@@ -14,18 +14,115 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 
 
 /**
- * Gibt den übergebenen Zeiger auf einen String zurück. Kann in MQL zum Lesen eines Strings von einer Adresse 
- * verwendet werden.
+ * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
  *
- * @param  char* str - Zeiger
+ * @param  void* values - Zeiger auf MQL-Bool-Array
+ *
+ * @return int - Speicheradresse
+ *
+ *
+ * MQL-Importdeklaration:  int GetBoolsAddress(bool array[]);
+ */
+int GetBoolsAddress(void* values) {
+   return((int) values);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
+ *
+ * @param  void* values - Zeiger auf MQL-Integer-Array
+ *
+ * @return int - Speicheradresse
+ *
+ *
+ * MQL-Importdeklaration:  int GetIntsAddress(int array[]);
+ */
+int GetIntsAddress(void* values) {
+   return((int) values);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Alias für GetIntsAddress()
+ *
+ * MQL-Importdeklaration:  int GetBufferAddress(int buffer[]);
+ */
+int GetBufferAddress(void* values) {
+   return((int) values);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
+ *
+ * @param  int* values - Zeiger auf MQL-Double-Array
+ *
+ * @return int - Speicheradresse
+ *
+ *
+ * MQL-Importdeklaration:  int GetDoublesAddress(double array[]);
+ */
+int GetDoublesAddress(void* values) {
+   return((int) values);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
+ *
+ * @param  int* values - Zeiger auf MQL-String-Array
+ *
+ * @return int - Speicheradresse
+ *
+ *
+ * MQL-Importdeklaration:  int GetStringsAddress(string array[]);
+ */
+int GetStringsAddress(void* values) {
+   return((int) values);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Gibt die Speicheradresse eines MQL-Strings zurück.
+ *
+ * @param  char* value - Zeiger auf MQL-String, @see struct MqlStr.string
+ *
+ * @return int - Speicheradresse
+ *
+ *
+ * MQL-Importdeklaration:  int GetStringAddress(string value);
+ */
+int GetStringAddress(char* value) {
+   return((int) value);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer 
+ * Adresse verwendet werden, da MetaTrader den Zeiger automatisch in einen MQL-String konvertiert.
+ *
+ * @param  char* value - Zeiger auf MQL-String, @see struct MqlStr.string
  *
  * @return char* - derselbe Zeiger
  *
  *
  * MQL-Importdeklaration:  string GetString(int address);
  */
-char* GetString(char* str) {
-   return(str);
+char* GetString(char* value) {
+   return(value);
 
    #pragma EXPORT_FUNCTION
 }
