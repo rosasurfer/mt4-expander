@@ -9,7 +9,7 @@
  * DLL entry point 
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-	return(true);
+	return(TRUE);
 }
 
 
