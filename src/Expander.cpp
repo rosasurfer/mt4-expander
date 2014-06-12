@@ -16,14 +16,14 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 /**
  * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
  *
- * @param  void* values - Zeiger auf MQL-Bool-Array
+ * @param  int* values[] - Zeiger auf MQL-Bool-Array (ist in MetaTrader als Integer-Array implementiert)
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetBoolsAddress(bool array[]);
  */
-int GetBoolsAddress(void* values) {
+int GetBoolsAddress(int* values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION
@@ -33,14 +33,14 @@ int GetBoolsAddress(void* values) {
 /**
  * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
  *
- * @param  void* values - Zeiger auf MQL-Integer-Array
+ * @param  int* values[] - Zeiger auf MQL-Integer-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetIntsAddress(int array[]);
  */
-int GetIntsAddress(void* values) {
+int GetIntsAddress(int* values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION
@@ -52,8 +52,8 @@ int GetIntsAddress(void* values) {
  *
  * MQL-Importdeklaration:  int GetBufferAddress(int buffer[]);
  */
-int GetBufferAddress(void* values) {
-   return((int) values);
+int GetBufferAddress(int* values[]) {
+   return(GetIntsAddress(values));
 
    #pragma EXPORT_FUNCTION
 }
@@ -62,14 +62,14 @@ int GetBufferAddress(void* values) {
 /**
  * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
  *
- * @param  int* values - Zeiger auf MQL-Double-Array
+ * @param  double* values[] - Zeiger auf MQL-Double-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetDoublesAddress(double array[]);
  */
-int GetDoublesAddress(void* values) {
+int GetDoublesAddress(double* values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION
@@ -79,14 +79,14 @@ int GetDoublesAddress(void* values) {
 /**
  * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
  *
- * @param  int* values - Zeiger auf MQL-String-Array
+ * @param  void* values[] - Zeiger auf MQL-String-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetStringsAddress(string array[]);
  */
-int GetStringsAddress(void* values) {
+int GetStringsAddress(void* values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION

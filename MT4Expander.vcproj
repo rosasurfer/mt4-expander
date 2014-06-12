@@ -21,7 +21,7 @@
 			OutputDirectory="bin\$(ConfigurationName)"
 			IntermediateDirectory="bin\$(ConfigurationName)\intermediate"
 			ConfigurationType="2"
-			CharacterSet="0"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -86,7 +86,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\stdlib.dll&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\$(TargetFileName)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -94,7 +94,7 @@
 			OutputDirectory="bin\$(ConfigurationName)"
 			IntermediateDirectory="bin\$(ConfigurationName)\intermediate"
 			ConfigurationType="2"
-			CharacterSet="0"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -162,7 +162,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\stdlib.dll&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\$(TargetFileName)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -170,7 +170,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source"
+			Name="Sources"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
