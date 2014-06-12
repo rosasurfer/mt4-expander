@@ -1,23 +1,15 @@
-#include "stdafx.h"
+
+#define WIN32_LEAN_AND_MEAN             
+#include <windows.h>
+
+#define EXPORT_FUNCTION comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 
 
 /**
- *
+ * DLL entry point 
  */
-int GetInteger(int value) { 
-   return(value);
-
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-double GetDouble(double value) {
-   return(value);
-
-   #pragma EXPORT
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+	return(true);
 }
 
 
@@ -29,10 +21,11 @@ double GetDouble(double value) {
  *
  * @return char* - derselbe Zeiger
  *
- * NOTE: MQL-Importdeklaration:  string GetString(int address);
+ *
+ * MQL-Importdeklaration:  string GetString(int address);
  */
 char* GetString(char* str) {
    return(str);
 
-   #pragma EXPORT
+   #pragma EXPORT_FUNCTION
 }
