@@ -86,8 +86,8 @@ int GetDoublesAddress(double* values[]) {
  *
  * MQL-Importdeklaration:  int GetStringsAddress(string array[]);
  */
-int GetStringsAddress(void* values[]) {
-   return((int) values);
+int GetStringsAddress(void* array[]) {
+   return((int) array);
 
    #pragma EXPORT_FUNCTION
 }
