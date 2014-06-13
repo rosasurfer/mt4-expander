@@ -86,7 +86,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\$(TargetFileName)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -162,7 +162,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\$(TargetFileName)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4.mql\experts\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 	</Configurations>

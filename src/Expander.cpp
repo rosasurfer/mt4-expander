@@ -1,8 +1,16 @@
-
 #define WIN32_LEAN_AND_MEAN             
 #include <windows.h>
 
 #define EXPORT_FUNCTION comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+
+
+/**
+ *
+ */
+struct MqlStr {
+   int   length;
+   char* string;
+};
 
 
 /**
@@ -16,15 +24,15 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 /**
  * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
  *
- * @param  int *values - Zeiger auf MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
+ * @param  int array[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetBoolsAddress(bool array[]);
  */
-int GetBoolsAddress(int *values) {
-   return((int) values);
+int GetBoolsAddress(const int array[]) {
+   return((int) array);
 
    #pragma EXPORT_FUNCTION
 }
@@ -33,15 +41,15 @@ int GetBoolsAddress(int *values) {
 /**
  * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
  *
- * @param  int *values - Zeiger auf MQL-Integer-Array
+ * @param  int array[] - MQL-Integer-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetIntsAddress(int array[]);
  */
-int GetIntsAddress(int *values) {
-   return((int) values);
+int GetIntsAddress(const int array[]) {
+   return((int) array);
 
    #pragma EXPORT_FUNCTION
 }
@@ -52,8 +60,8 @@ int GetIntsAddress(int *values) {
  *
  * MQL-Importdeklaration:  int GetBufferAddress(int buffer[]);
  */
-int GetBufferAddress(int *values) {
-   return(GetIntsAddress(values));
+int GetBufferAddress(const int array[]) {
+   return(GetIntsAddress(array));
 
    #pragma EXPORT_FUNCTION
 }
@@ -62,15 +70,15 @@ int GetBufferAddress(int *values) {
 /**
  * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
  *
- * @param  double *values - Zeiger auf MQL-Double-Array
+ * @param  double array[] - MQL-Double-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetDoublesAddress(double array[]);
  */
-int GetDoublesAddress(double *values) {
-   return((int) values);
+int GetDoublesAddress(const double array[]) {
+   return((int) array);
 
    #pragma EXPORT_FUNCTION
 }
@@ -79,31 +87,31 @@ int GetDoublesAddress(double *values) {
 /**
  * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
  *
- * @param  void *values - Zeiger auf MQL-String-Array
+ * @param  MqlStr array[] - MQL-String-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetStringsAddress(string array[]);
  */
-int GetStringsAddress(void *values) {
-   return((int) values);
+int GetStringsAddress(const MqlStr array[]) {
+   return((int) array);
 
    #pragma EXPORT_FUNCTION
 }
 
 
 /**
- * Gibt die Speicheradresse eines MQL-Strings zurück.
+ * Gibt die Speicheradresse eines Strings zurück.
  *
- * @param  char *value - Zeiger auf MQL-String, @see struct MqlStr.string
+ * @param  char* value - String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetStringAddress(string value);
  */
-int GetStringAddress(char* value) {
+int GetStringAddress(const char* value) {
    return((int) value);
 
    #pragma EXPORT_FUNCTION
@@ -114,15 +122,15 @@ int GetStringAddress(char* value) {
  * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer 
  * Adresse verwendet werden, da MetaTrader den Zeiger automatisch in einen MQL-String konvertiert.
  *
- * @param  char* value - Zeiger auf MQL-String, @see struct MqlStr.string
+ * @param  char* value - String, @see struct MqlStr.string
  *
  * @return char* - derselbe Zeiger
  *
  *
  * MQL-Importdeklaration:  string GetString(int address);
  */
-char* GetString(char* value) {
-   return(value);
+char* GetString(const char* value) {
+   return((char*) value);
 
    #pragma EXPORT_FUNCTION
 }
