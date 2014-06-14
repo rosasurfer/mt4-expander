@@ -1,16 +1,4 @@
-#define WIN32_LEAN_AND_MEAN             
-#include <windows.h>
-
-#define EXPORT_FUNCTION comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
-
-
-/**
- *
- */
-struct MqlStr {
-   int   length;
-   char* string;
-};
+#include "stdafx.h"
 
 
 /**
@@ -24,15 +12,15 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 /**
  * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
  *
- * @param  int array[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
+ * @param  int values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetBoolsAddress(bool array[]);
  */
-int GetBoolsAddress(const int array[]) {
-   return((int) array);
+int GetBoolsAddress(const int values[]) {
+   return((int) values);
 
    #pragma EXPORT_FUNCTION
 }
@@ -41,15 +29,15 @@ int GetBoolsAddress(const int array[]) {
 /**
  * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
  *
- * @param  int array[] - MQL-Integer-Array
+ * @param  int values[] - MQL-Integer-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetIntsAddress(int array[]);
  */
-int GetIntsAddress(const int array[]) {
-   return((int) array);
+int GetIntsAddress(const int values[]) {
+   return((int) values);
 
    #pragma EXPORT_FUNCTION
 }
@@ -60,8 +48,8 @@ int GetIntsAddress(const int array[]) {
  *
  * MQL-Importdeklaration:  int GetBufferAddress(int buffer[]);
  */
-int GetBufferAddress(const int array[]) {
-   return(GetIntsAddress(array));
+int GetBufferAddress(const int values[]) {
+   return(GetIntsAddress(values));
 
    #pragma EXPORT_FUNCTION
 }
@@ -70,15 +58,15 @@ int GetBufferAddress(const int array[]) {
 /**
  * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
  *
- * @param  double array[] - MQL-Double-Array
+ * @param  double values[] - MQL-Double-Array
  *
  * @return int - Speicheradresse
  *
  *
  * MQL-Importdeklaration:  int GetDoublesAddress(double array[]);
  */
-int GetDoublesAddress(const double array[]) {
-   return((int) array);
+int GetDoublesAddress(const double values[]) {
+   return((int) values);
 
    #pragma EXPORT_FUNCTION
 }
@@ -87,15 +75,15 @@ int GetDoublesAddress(const double array[]) {
 /**
  * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
  *
- * @param  MqlStr array[] - MQL-String-Array
+ * @param  MqlStr values[] - MQL-String-Array
  *
  * @return int - Speicheradresse
  *
  *
- * MQL-Importdeklaration:  int GetStringsAddress(string array[]);
+ * MQL-Importdeklaration:  int GetStringsAddress(string values[]);
  */
-int GetStringsAddress(const MqlStr array[]) {
-   return((int) array);
+int GetStringsAddress(const MqlStr values[]) {
+   return((int) values);
 
    #pragma EXPORT_FUNCTION
 }
@@ -131,6 +119,20 @@ int GetStringAddress(const char* value) {
  */
 char* GetString(const char* value) {
    return((char*) value);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Gibt den letzten aufgetretenen Windows-Fehler des aktuellen Threads zurück.
+ *
+ * @return int - Fehlercode
+ *
+ * NOTE: Wrapper für kernel32::GetLastError(), da MQL eine Funktion desselben Namens definiert.
+ */
+int GetLastWin32Error() {
+   return(GetLastError());
 
    #pragma EXPORT_FUNCTION
 }
