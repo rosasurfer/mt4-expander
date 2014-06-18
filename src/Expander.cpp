@@ -125,11 +125,10 @@ char* GetString(const char* value) {
 
 
 /**
- * Gibt den letzten aufgetretenen Windows-Fehler des aktuellen Threads zurück.
+ * Gibt den letzten aufgetretenen Windows-Fehler des aktuellen Threads zurück. Wrapper für kernel32::GetLastError(), 
+ * da MQL eine Funktion desselben Namens definiert.
  *
  * @return int - Fehlercode
- *
- * NOTE: Wrapper für kernel32::GetLastError(), da MQL eine Funktion desselben Namens definiert.
  */
 int GetLastWin32Error() {
    return(GetLastError());
