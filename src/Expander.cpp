@@ -135,3 +135,44 @@ int GetLastWin32Error() {
 
    #pragma EXPORT_FUNCTION
 }
+
+
+/**
+ * Ob die angegebene Timeframe-ID einen eingebauten MetaTrader-Timeframe darstellt.
+ *
+ * @param  int timeframe - Timeframe-ID
+ *
+ * @return BOOL
+ */
+BOOL IsBuiltinTimeframe(const int timeframe) {
+   switch (timeframe) {
+      case PERIOD_M1 : return(TRUE);
+      case PERIOD_M5 : return(TRUE);
+      case PERIOD_M15: return(TRUE);
+      case PERIOD_M30: return(TRUE);
+      case PERIOD_H1 : return(TRUE);
+      case PERIOD_H4 : return(TRUE);
+      case PERIOD_D1 : return(TRUE);
+      case PERIOD_W1 : return(TRUE);
+      case PERIOD_MN1: return(TRUE);
+   }
+   return(FALSE);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ * Ob die angegebene Timeframe-ID einen benutzerdefinierten Timeframe darstellt.
+ *
+ * @param  int timeframe - Timeframe-ID
+ *
+ * @return BOOL
+ */
+ BOOL IsCustomTimeframe(const int timeframe) {
+   if (timeframe <= 0)
+      return(FALSE);
+   return(!IsBuiltinTimeframe(timeframe));
+
+   #pragma EXPORT_FUNCTION
+}
