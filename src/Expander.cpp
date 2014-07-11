@@ -1,11 +1,24 @@
+#include <iostream>
+#include <string>
 #include "stdafx.h"
+
+
+using namespace std;
 
 
 /**
  * DLL entry point 
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-	return(TRUE);
+   /*
+   switch (reason) {
+      case DLL_PROCESS_ATTACH: OutputDebugStringA("MetaTrader::DLL_PROCESS_ATTACH");   break;
+      case DLL_THREAD_ATTACH : OutputDebugStringA("MetaTrader::DLL_THREAD_ATTACH");    break;
+      case DLL_THREAD_DETACH : OutputDebugStringA("MetaTrader::DLL_THREAD_DETACH");    break;
+      case DLL_PROCESS_DETACH: OutputDebugStringA("MetaTrader::DLL_PROCESS_DEATTACH"); break;
+   }
+   */
+   return(TRUE);
 }
 
 
@@ -100,6 +113,12 @@ int GetStringsAddress(const MqlStr values[]) {
  * MQL-Importdeklaration:  int GetStringAddress(string value);
  */
 int GetStringAddress(const char* value) {
+   /*
+   int size = 1000; 
+   char* msg = (char*)_alloca(size);
+   sprintf_s(msg, size, "MetaTrader::%s::%s(%d)",__FILE__, __FUNCTION__, __LINE__); 
+   OutputDebugStringA(msg);
+   */
    return((int) value);
 
    #pragma EXPORT_FUNCTION
