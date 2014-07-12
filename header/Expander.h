@@ -1,13 +1,16 @@
 #pragma once
 
 #include <stdlib.h>
-#include <iostream>
+#include <stdarg.h>
+#include <string>
 
 
 #define WIN32_LEAN_AND_MEAN             
 #include <windows.h>
 
+
 #define EXPORT_FUNCTION comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+#define debug(...)      _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 
 #pragma pack(1)
@@ -47,30 +50,36 @@ struct RateInfo {
 /**
  * Schickt einen String an den System-Debugger.
  *
- * @param  char* fileName - Name der Datei, in der der Aufruf erfolgt
- * @param  char* funcName - Name der Funktion, in der der Aufruf erfolgt
- * @param  int   line     - Zeile, in der der Aufruf erfolgt
- * @param  char* msg      - Message
+ * @param  char* fileName  - Name der Datei, in der der Aufruf erfolgt
+ * @param  char* funcName  - Name der Funktion, in der der Aufruf erfolgt
+ * @param  int   line      - Zeile, in der der Aufruf erfolgt
+ * @param  char* msgFormat - Formatstring mit Platzhaltern für alle weiteren Parameter
+ * @param  ...             - beliebige weitere Parameter
  *
  * @return void
  * 
- * 
- * NOTE: Statt dieser Funktion sollte immer das Makro debug(s) benutzt werden, das die ersten 
- *       drei Parameter automatisch ermittelt und setzt.
+ * NOTE: Diese Funktion sollte niemals direkt, sondern nur über das Makro debug(...) aufgerufen werden.
  */
-void _debug(char* fileName, char* funcName, int line, char* msg) {
-   // TODO: Parameter validieren
+void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...) {
+   // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab msgFormat)
+   va_list args;
+   va_start(args, msgFormat);
+   int size = _vscprintf(msgFormat, args) + 1;                             // +1 für das terminierende '\0'
+   char* msg = (char*) _alloca(size);
+   vsprintf_s(msg, size, msgFormat, args);
+   va_end(args);
+   
 
-   // Parameter file zerlegen: nur der Basisname wird angezeigt, kein Pfad
-   char baseName[_MAX_FNAME], ext[_MAX_EXT];
+   // Parameter fileName zerlegen: nur der Basisname wird angezeigt, kein Pfad
+   char baseName[_MAX_FNAME], ext[_MAX_EXT];                         
    _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
-   // dynamischen Buffer auf dem Stack alloziieren
-   char* format = "MetaTrader::%s%s::%s(%d)   %s";                    // maxLen(int) = 11: -2147483648  <NUL>
-   int bufSize  = strlen(format) + strlen(baseName) + strlen(ext) + strlen(funcName) + 11 + strlen(msg) + 1;
-   char* buffer = (char*)_alloca(bufSize);                            // wird wegen der Platzhalter immer ein paar Bytes zu groß
-   sprintf_s(buffer, bufSize, format, baseName, ext, funcName, line, msg);
+
+   // (2) dann die impliziten Location-Infos vorn anfügen
+   char* locFormat = "MetaTrader::%s%s::%s(%d)   %s";
+   size = _scprintf(locFormat, baseName, ext, funcName, line, msg) + 1;    // +1 für das terminierende '\0'
+   char* buffer = (char*) _alloca(size);                                   
+   sprintf_s(buffer, size, locFormat, baseName, ext, funcName, line, msg);
 
    OutputDebugString(buffer);
 }
-#define debug(msg)  _debug(__FILE__, __FUNCTION__, __LINE__, msg)

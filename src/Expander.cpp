@@ -1,19 +1,21 @@
 #include "stdafx.h"
 
-using namespace std;
+//using namespace std;
 
 
 /**
  * DLL entry point 
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+   /*
    switch (reason) {
-      case DLL_PROCESS_ATTACH: //debug("DLL_PROCESS_ATTACH"); break;
-      case DLL_THREAD_ATTACH :
-      case DLL_THREAD_DETACH :
-      case DLL_PROCESS_DETACH: //debug("DLL_PROCESS_DETACH"); break;
+      case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
          break;
    }
+   */
    return(TRUE);
 }
 
@@ -192,6 +194,20 @@ BOOL IsBuiltinTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
+ *
+ * @return BOOL
+ * 
+ * MQL-Importdeklaration:  bool Test();
+ */
+BOOL Test() {
+   //debug("string: hello %s", "world");   
+   return(TRUE);
 
    #pragma EXPORT_FUNCTION
 }
