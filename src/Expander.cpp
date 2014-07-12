@@ -1,7 +1,4 @@
-#include <iostream>
-#include <string>
 #include "stdafx.h"
-
 
 using namespace std;
 
@@ -10,14 +7,13 @@ using namespace std;
  * DLL entry point 
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-   /*
    switch (reason) {
-      case DLL_PROCESS_ATTACH: OutputDebugStringA("MetaTrader::DLL_PROCESS_ATTACH");   break;
-      case DLL_THREAD_ATTACH : OutputDebugStringA("MetaTrader::DLL_THREAD_ATTACH");    break;
-      case DLL_THREAD_DETACH : OutputDebugStringA("MetaTrader::DLL_THREAD_DETACH");    break;
-      case DLL_PROCESS_DETACH: OutputDebugStringA("MetaTrader::DLL_PROCESS_DEATTACH"); break;
+      case DLL_PROCESS_ATTACH: //debug("DLL_PROCESS_ATTACH"); break;
+      case DLL_THREAD_ATTACH :
+      case DLL_THREAD_DETACH :
+      case DLL_PROCESS_DETACH: //debug("DLL_PROCESS_DETACH"); break;
+         break;
    }
-   */
    return(TRUE);
 }
 
@@ -28,11 +24,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  * @param  int values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
  * @return int - Speicheradresse
- *
+ * 
  *
  * MQL-Importdeklaration:  int GetBoolsAddress(bool array[]);
  */
-int GetBoolsAddress(const int values[]) {
+int GetBoolsAddress(int values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION
@@ -49,7 +45,7 @@ int GetBoolsAddress(const int values[]) {
  *
  * MQL-Importdeklaration:  int GetIntsAddress(int array[]);
  */
-int GetIntsAddress(const int values[]) {
+int GetIntsAddress(int values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION
@@ -58,10 +54,11 @@ int GetIntsAddress(const int values[]) {
 
 /**
  * Alias für GetIntsAddress()
+ * 
  *
  * MQL-Importdeklaration:  int GetBufferAddress(int buffer[]);
  */
-int GetBufferAddress(const int values[]) {
+int GetBufferAddress(int values[]) {
    return(GetIntsAddress(values));
 
    #pragma EXPORT_FUNCTION
@@ -78,7 +75,7 @@ int GetBufferAddress(const int values[]) {
  *
  * MQL-Importdeklaration:  int GetDoublesAddress(double array[]);
  */
-int GetDoublesAddress(const double values[]) {
+int GetDoublesAddress(double values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION
@@ -95,7 +92,7 @@ int GetDoublesAddress(const double values[]) {
  *
  * MQL-Importdeklaration:  int GetStringsAddress(string values[]);
  */
-int GetStringsAddress(const MqlStr values[]) {
+int GetStringsAddress(MqlStr values[]) {
    return((int) values);
 
    #pragma EXPORT_FUNCTION
@@ -112,13 +109,7 @@ int GetStringsAddress(const MqlStr values[]) {
  *
  * MQL-Importdeklaration:  int GetStringAddress(string value);
  */
-int GetStringAddress(const char* value) {
-   /*
-   int size = 1000; 
-   char* msg = (char*)_alloca(size);
-   sprintf_s(msg, size, "MetaTrader::%s::%s(%d)",__FILE__, __FUNCTION__, __LINE__); 
-   OutputDebugStringA(msg);
-   */
+int GetStringAddress(char* value) {
    return((int) value);
 
    #pragma EXPORT_FUNCTION
@@ -136,8 +127,8 @@ int GetStringAddress(const char* value) {
  *
  * MQL-Importdeklaration:  string GetString(int address);
  */
-char* GetString(const char* value) {
-   return((char*) value);
+char* GetString(char* value) {
+   return(value);
 
    #pragma EXPORT_FUNCTION
 }
@@ -148,6 +139,9 @@ char* GetString(const char* value) {
  * da MQL eine Funktion desselben Namens definiert.
  *
  * @return int - Fehlercode
+ * 
+ * 
+ * MQL-Importdeklaration:  int GetLastWin32Error();
  */
 int GetLastWin32Error() {
    return(GetLastError());
@@ -162,8 +156,11 @@ int GetLastWin32Error() {
  * @param  int timeframe - Timeframe-ID
  *
  * @return BOOL
+ * 
+ * 
+ * MQL-Importdeklaration:  bool IsBuiltinTimeframe(int timeframe);
  */
-BOOL IsBuiltinTimeframe(const int timeframe) {
+BOOL IsBuiltinTimeframe(int timeframe) {
    switch (timeframe) {
       case PERIOD_M1 : return(TRUE);
       case PERIOD_M5 : return(TRUE);
@@ -187,8 +184,11 @@ BOOL IsBuiltinTimeframe(const int timeframe) {
  * @param  int timeframe - Timeframe-ID
  *
  * @return BOOL
+ * 
+ * 
+ * MQL-Importdeklaration:  bool pw_IsCustomTimeframe(int timeframe);
  */
- BOOL IsCustomTimeframe(const int timeframe) {
+ BOOL IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
