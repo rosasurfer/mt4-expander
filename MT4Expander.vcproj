@@ -87,7 +87,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\experts\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\mql4\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -142,7 +142,6 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -165,7 +164,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\experts\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\mql4\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
