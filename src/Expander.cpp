@@ -201,13 +201,23 @@ BOOL IsBuiltinTimeframe(int timeframe) {
 
 /**
  *
+ * @return int
+ *
+int dll_GetIntValue(int a) {
+   int b = a + 666;
+   return(b);
+
+   #pragma EXPORT_FUNCTION
+}*/
+
+
+/**
+ *
  * @return BOOL
- * 
- * MQL-Importdeklaration:  bool Test();
- */
+ *
 BOOL Test() {
    //debug("string: hello %s", "world");   
    return(TRUE);
 
    #pragma EXPORT_FUNCTION
-}
+}*/
