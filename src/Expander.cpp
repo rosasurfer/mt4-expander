@@ -1,3 +1,8 @@
+/**
+ * Expander des Fortschritts.
+ *
+ * @author  Peter Walther
+ */
 #include "stdafx.h"
 
 //using namespace std;
