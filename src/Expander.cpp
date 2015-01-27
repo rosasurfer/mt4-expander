@@ -1,5 +1,5 @@
 /**
- * Expander des Fortschritts.
+ * Der Expander des Fortschritts
  *
  * @author  Peter Walther
  */
