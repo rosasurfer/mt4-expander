@@ -1,5 +1,6 @@
 /**
  * Der Expander des Fortschritts
+ * 
  *
  * @author  Peter Walther
  */
@@ -32,8 +33,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  *
  * @return int - Speicheradresse
  * 
- *
- * MQL-Importdeklaration:  int GetBoolsAddress(bool array[]);
+ * 
+ * @mql-import:  int GetBoolsAddress(bool array[]);
  */
 int GetBoolsAddress(int values[]) {
    return((int) values);
@@ -44,13 +45,13 @@ int GetBoolsAddress(int values[]) {
 
 /**
  * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
- *
+ * 
  * @param  int values[] - MQL-Integer-Array
  *
  * @return int - Speicheradresse
- *
- *
- * MQL-Importdeklaration:  int GetIntsAddress(int array[]);
+ * 
+ * 
+ * @mql-import:  int GetIntsAddress(int array[]);
  */
 int GetIntsAddress(int values[]) {
    return((int) values);
@@ -63,7 +64,7 @@ int GetIntsAddress(int values[]) {
  * Alias für GetIntsAddress()
  * 
  *
- * MQL-Importdeklaration:  int GetBufferAddress(int buffer[]);
+ * @mql-import:  int GetBufferAddress(int buffer[]);
  */
 int GetBufferAddress(int values[]) {
    return(GetIntsAddress(values));
@@ -80,7 +81,7 @@ int GetBufferAddress(int values[]) {
  * @return int - Speicheradresse
  *
  *
- * MQL-Importdeklaration:  int GetDoublesAddress(double array[]);
+ * @mql-import:  int GetDoublesAddress(double array[]);
  */
 int GetDoublesAddress(double values[]) {
    return((int) values);
@@ -97,7 +98,7 @@ int GetDoublesAddress(double values[]) {
  * @return int - Speicheradresse
  *
  *
- * MQL-Importdeklaration:  int GetStringsAddress(string values[]);
+ * @mql-import:  int GetStringsAddress(string values[]);
  */
 int GetStringsAddress(MqlStr values[]) {
    return((int) values);
@@ -114,7 +115,7 @@ int GetStringsAddress(MqlStr values[]) {
  * @return int - Speicheradresse
  *
  *
- * MQL-Importdeklaration:  int GetStringAddress(string value);
+ * @mql-import:  int GetStringAddress(string value);
  */
 int GetStringAddress(char* value) {
    return((int) value);
@@ -124,15 +125,15 @@ int GetStringAddress(char* value) {
 
 
 /**
- * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer 
- * Adresse verwendet werden, da MetaTrader den Zeiger automatisch in einen MQL-String konvertiert.
+ * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer Adresse 
+ * verwendet werden, da MetaTrader den Zeiger mit der entsprechenden Importdeklaration in einen MQL-String konvertiert.
  *
  * @param  char* value - String, @see struct MqlStr.string
  *
  * @return char* - derselbe Zeiger
  *
  *
- * MQL-Importdeklaration:  string GetString(int address);
+ * @mql-import:  string GetString(int address);
  */
 char* GetString(char* value) {
    return(value);
@@ -148,7 +149,7 @@ char* GetString(char* value) {
  * @return int - Fehlercode
  * 
  * 
- * MQL-Importdeklaration:  int GetLastWin32Error();
+ * @mql-import:  int GetLastWin32Error();
  */
 int GetLastWin32Error() {
    return(GetLastError());
@@ -165,7 +166,7 @@ int GetLastWin32Error() {
  * @return BOOL
  * 
  * 
- * MQL-Importdeklaration:  bool IsBuiltinTimeframe(int timeframe);
+ * @mql-import:  bool IsBuiltinTimeframe(int timeframe);
  */
 BOOL IsBuiltinTimeframe(int timeframe) {
    switch (timeframe) {
@@ -193,7 +194,7 @@ BOOL IsBuiltinTimeframe(int timeframe) {
  * @return BOOL
  * 
  * 
- * MQL-Importdeklaration:  bool pw_IsCustomTimeframe(int timeframe);
+ * @mql-import:  bool pw_IsCustomTimeframe(int timeframe);
  */
  BOOL IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
@@ -218,11 +219,35 @@ int dll_GetIntValue(int a) {
 
 /**
  *
- * @return BOOL
+ * @return int
+ */
+int SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s6, int i1, int i2, double dValues[]) {
+/*
+s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
+        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-current-9850480.tmp,
+        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-historic-9850480.tmp
+*/
+   debug("s1=%s", s1);
+   debug("s2=%s", s2);
+   debug("s3=%s", s3);
+   debug("s4=%s", s4);
+   debug("s5=%s", s5);
+   debug("s6=%s", s6);
+   debug("i1=%d", i1);
+   debug("i2=%d", i2);
+   return(100);
+
+   #pragma EXPORT_FUNCTION
+}
+
+
+/**
  *
+ * @return BOOL
+ */
 BOOL Test() {
-   //debug("string: hello %s", "world");   
+   debug("string: hello %s", "world");   
    return(TRUE);
 
    #pragma EXPORT_FUNCTION
-}*/
+}

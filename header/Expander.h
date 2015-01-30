@@ -58,7 +58,7 @@ struct RateInfo {
  *
  * @return void
  * 
- * NOTE: Diese Funktion sollte niemals direkt, sondern nur über das Makro debug(...) aufgerufen werden.
+ * NOTE: Diese Funktion sollte nicht direkt, sondern nur über das Makro debug(...) aufgerufen werden.
  */
 void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...) {
    // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab msgFormat)
