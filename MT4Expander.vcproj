@@ -4,7 +4,7 @@
 	Version="9,00"
 	Name="MT4Expander"
 	ProjectGUID="{2E0F4332-3519-400E-9AC1-4B83EA652CCD}"
-	RootNamespace="MT4Expander"
+	RootNamespace="Expander"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -164,7 +164,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\mql4\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
