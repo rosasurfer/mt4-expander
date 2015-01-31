@@ -67,20 +67,20 @@ void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...
    va_list args;
    va_start(args, msgFormat);
    int size = _vscprintf(msgFormat, args) + 1;                             // +1 für das terminierende '\0'
-   char* msg = (char*) _alloca(size);
+   char* msg = (char*) _alloca(size);                                      // auf dem Stack
    vsprintf_s(msg, size, msgFormat, args);
    va_end(args);
    
 
-   // Parameter fileName zerlegen: nur der Basisname wird angezeigt, kein Pfad
+   // Parameter fileName zerlegen: nur der Dateiname {basename.ext} wird angezeigt, kein Pfad
    char baseName[_MAX_FNAME], ext[_MAX_EXT];                         
    _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
 
    // (2) dann die impliziten Location-Infos vorn anfügen
-   char* locFormat = "MetaTrader::%s%s::%s(%d)   %s";
+   char* locFormat = "MetaTrader::%s%s::%s(%d)  %s";
    size = _scprintf(locFormat, baseName, ext, funcName, line, msg) + 1;    // +1 für das terminierende '\0'
-   char* buffer = (char*) _alloca(size);                                   
+   char* buffer = (char*) _alloca(size);                                   // auf dem Stack
    sprintf_s(buffer, size, locFormat, baseName, ext, funcName, line, msg);
 
    OutputDebugString(buffer);

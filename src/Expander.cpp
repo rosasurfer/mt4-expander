@@ -11,12 +11,14 @@
  * DLL entry point 
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+   /*
    switch (reason) {
-      //case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
-      //case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
-      //case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
-      //case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
    }
+   */
    return(TRUE);
 }
 
@@ -215,13 +217,13 @@ int dll_GetIntValue(int a) {
 /**
  *
  * @return int
- */
+ *
 int SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s6, int i1, int i2, double dValues[]) {
 /*
 s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
         E:\Trading\MetaTrader\S7\experts\files\mt4ipub-current-9850480.tmp,
         E:\Trading\MetaTrader\S7\experts\files\mt4ipub-historic-9850480.tmp
-*/
+*
    debug("s1=%s", s1);
    debug("s2=%s", s2);
    debug("s3=%s", s3);
@@ -233,15 +235,15 @@ s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
    return(100);
 
    #pragma EXPORT
-}
+}*/
 
 
 /**
  *
  */
 int Test(char* s1, int i1, char* s2) {
-   debug("%s %d %s", s1, i1, s2);   
-   return(6666);
+   debug("s1=\"%s\"  i1=0x%p  s2=\"%s\"", s1, i1, s2);   
+   return(0);
 
    #pragma EXPORT
 }
