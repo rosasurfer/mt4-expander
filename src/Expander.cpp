@@ -39,7 +39,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 int GetBoolsAddress(int values[]) {
    return((int) values);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -56,7 +56,7 @@ int GetBoolsAddress(int values[]) {
 int GetIntsAddress(int values[]) {
    return((int) values);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -69,7 +69,7 @@ int GetIntsAddress(int values[]) {
 int GetBufferAddress(int values[]) {
    return(GetIntsAddress(values));
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -86,7 +86,7 @@ int GetBufferAddress(int values[]) {
 int GetDoublesAddress(double values[]) {
    return((int) values);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -103,7 +103,7 @@ int GetDoublesAddress(double values[]) {
 int GetStringsAddress(MqlStr values[]) {
    return((int) values);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -120,7 +120,7 @@ int GetStringsAddress(MqlStr values[]) {
 int GetStringAddress(char* value) {
    return((int) value);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -138,7 +138,7 @@ int GetStringAddress(char* value) {
 char* GetString(char* value) {
    return(value);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -154,7 +154,7 @@ char* GetString(char* value) {
 int GetLastWin32Error() {
    return(GetLastError());
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -182,7 +182,7 @@ BOOL IsBuiltinTimeframe(int timeframe) {
    }
    return(FALSE);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -201,7 +201,7 @@ BOOL IsBuiltinTimeframe(int timeframe) {
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
@@ -213,7 +213,7 @@ int dll_GetIntValue(int a) {
    int b = a + 666;
    return(b);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }*/
 
 
@@ -237,17 +237,16 @@ s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
    debug("i2=%d", i2);
    return(100);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
 
 
 /**
  *
- * @return BOOL
  */
-BOOL Test() {
-   debug("string: hello %s", "world");   
-   return(TRUE);
+int Test1(char* s1, int i1, char* s2) {
+   debug("%s %d %s", s1, i1, s2);   
+   return(6666);
 
-   #pragma EXPORT_FUNCTION
+   #pragma EXPORT
 }
