@@ -7,12 +7,11 @@
 #include <windows.h>
 
 
-#ifndef EXPANDER_EXPORTS                                                      // Exportdeklaration via Makro EXPORT
+#ifndef EXPANDER_EXPORTS                                                         // Exportdeklaration via Makro EXPORT
 #define EXPANDER_API extern "C" __declspec(dllimport)
 #endif
 
-
-#define EXPORT       comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)  // export unmangled name w/o DEF file
+#define EXPORT        comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)    // export unmangled names w/o DEF file
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 

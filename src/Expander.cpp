@@ -4,24 +4,19 @@
  *
  * @author  Peter Walther
  */
-#include "stdafx.h"
-
-//using namespace std;
+#include "Expander.h"
 
 
 /**
  * DLL entry point 
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-   /*
    switch (reason) {
-      case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
-         break;
+      //case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
+      //case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
+      //case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
+      //case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
    }
-   */
    return(TRUE);
 }
 
@@ -244,7 +239,7 @@ s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
 /**
  *
  */
-int Test1(char* s1, int i1, char* s2) {
+int Test(char* s1, int i1, char* s2) {
    debug("%s %d %s", s1, i1, s2);   
    return(6666);
 
