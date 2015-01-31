@@ -33,7 +33,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  * 
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
-int GetBoolsAddress(int values[]) {
+int WINAPI GetBoolsAddress(int values[]) {
    return((int) values);
 
    #pragma EXPORT
@@ -50,7 +50,7 @@ int GetBoolsAddress(int values[]) {
  * 
  * @mql-import:  int GetIntsAddress(int array[]);
  */
-int GetIntsAddress(int values[]) {
+int WINAPI GetIntsAddress(int values[]) {
    return((int) values);
 
    #pragma EXPORT
@@ -63,7 +63,7 @@ int GetIntsAddress(int values[]) {
  *
  * @mql-import:  int GetBufferAddress(int buffer[]);
  */
-int GetBufferAddress(int values[]) {
+int WINAPI GetBufferAddress(int values[]) {
    return(GetIntsAddress(values));
 
    #pragma EXPORT
@@ -80,7 +80,7 @@ int GetBufferAddress(int values[]) {
  *
  * @mql-import:  int GetDoublesAddress(double array[]);
  */
-int GetDoublesAddress(double values[]) {
+int WINAPI GetDoublesAddress(double values[]) {
    return((int) values);
 
    #pragma EXPORT
@@ -97,7 +97,7 @@ int GetDoublesAddress(double values[]) {
  *
  * @mql-import:  int GetStringsAddress(string values[]);
  */
-int GetStringsAddress(MqlStr values[]) {
+int WINAPI GetStringsAddress(MqlStr values[]) {
    return((int) values);
 
    #pragma EXPORT
@@ -114,7 +114,7 @@ int GetStringsAddress(MqlStr values[]) {
  *
  * @mql-import:  int GetStringAddress(string value);
  */
-int GetStringAddress(char* value) {
+int WINAPI GetStringAddress(char* value) {
    return((int) value);
 
    #pragma EXPORT
@@ -132,7 +132,7 @@ int GetStringAddress(char* value) {
  *
  * @mql-import:  string GetString(int address);
  */
-char* GetString(char* value) {
+char* WINAPI GetString(char* value) {
    return(value);
 
    #pragma EXPORT
@@ -148,7 +148,7 @@ char* GetString(char* value) {
  * 
  * @mql-import:  int GetLastWin32Error();
  */
-int GetLastWin32Error() {
+int WINAPI GetLastWin32Error() {
    return(GetLastError());
 
    #pragma EXPORT
@@ -165,7 +165,7 @@ int GetLastWin32Error() {
  * 
  * @mql-import:  bool IsBuiltinTimeframe(int timeframe);
  */
-BOOL IsBuiltinTimeframe(int timeframe) {
+BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
    switch (timeframe) {
       case PERIOD_M1 : return(TRUE);
       case PERIOD_M5 : return(TRUE);
@@ -193,7 +193,7 @@ BOOL IsBuiltinTimeframe(int timeframe) {
  * 
  * @mql-import:  bool pw_IsCustomTimeframe(int timeframe);
  */
- BOOL IsCustomTimeframe(int timeframe) {
+ BOOL WINAPI IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
@@ -206,7 +206,7 @@ BOOL IsBuiltinTimeframe(int timeframe) {
  *
  * @return int
  *
-int dll_GetIntValue(int a) {
+int WINAPI dll_GetIntValue(int a) {
    int b = a + 666;
    return(b);
 
@@ -218,7 +218,7 @@ int dll_GetIntValue(int a) {
  *
  * @return int
  *
-int SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s6, int i1, int i2, double dValues[]) {
+int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s6, int i1, int i2, double dValues[]) {
 /*
 s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
         E:\Trading\MetaTrader\S7\experts\files\mt4ipub-current-9850480.tmp,
@@ -241,7 +241,7 @@ s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
 /**
  *
  */
-int Test(char* s1, int i1, char* s2) {
+int WINAPI Test(char* s1, int i1, char* s2) {
    debug("s1=\"%s\"  i1=0x%p  s2=\"%s\"", s1, i1, s2);   
    return(0);
 
