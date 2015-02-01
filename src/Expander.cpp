@@ -210,13 +210,12 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  * @mql-import:  string DwordToHexStr(int value);
  */
 char* WINAPI DwordToHexStr(int value) {
-   const int bufSize = 9;                                                   // 8 Zeichen + 1 für das terminierende '\0'
+   const int size = 9;                                               // 8 Zeichen + 1 für das terminierende '\0'
+   char string[size];
+   sprintf_s(string, size, "%p", value);
 
-   char  myStr[bufSize];
-   char* buffer = myStr;
-
-   sprintf_s(buffer, bufSize, "%p", value);
-   return(buffer);
+   char* p = string;
+   return(p);
 
    #pragma EXPORT
 }
@@ -284,17 +283,5 @@ int WINAPI Test(char* s1, int i1, char* s2) {
    debug("s1=\"%s\"  i1=0x%p  s2=\"%s\"", s1, i1, s2);   
    return(0);
 
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-char* WINAPI StringTest() {
-   char* myStr = "MetaTrader::%s%s::%s(%d)  %s";
-   debug("returning char* = 0x%p", myStr);   
-   return(myStr);
-
-   #pragma EXPORT
+   //#pragma EXPORT
 }
