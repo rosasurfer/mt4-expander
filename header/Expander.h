@@ -34,8 +34,8 @@ void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...
    // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab msgFormat)
    va_list args;
    va_start(args, msgFormat);
-   int size = _vscprintf(msgFormat, args) + 1;                             // +1 für das terminierende '\0'
-   char* msg = (char*) _alloca(size);                                      // auf dem Stack
+   int size = _vscprintf(msgFormat, args) + 1;                                   // +1 für das terminierende '\0'
+   char* msg = (char*) _alloca(size);                                            // auf dem Stack
    vsprintf_s(msg, size, msgFormat, args);
    va_end(args);
    
@@ -46,10 +46,10 @@ void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...
 
 
    // (2) dann die impliziten Location-Infos vorn anfügen
-   char* locFormat = "MetaTrader::%s%s::%s(%d)  %s";
-   size = _scprintf(locFormat, baseName, ext, funcName, line, msg) + 1;    // +1 für das terminierende '\0'
-   char* buffer = (char*) _alloca(size);                                   // auf dem Stack
-   sprintf_s(buffer, size, locFormat, baseName, ext, funcName, line, msg);
+   char* locationFormat = "MetaTrader::%s%s::%s(%d)  %s";
+   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;     // +1 für das terminierende '\0'
+   char* buffer = (char*) _alloca(size);                                         // auf dem Stack
+   sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);
 
    OutputDebugString(buffer);
 }
@@ -73,8 +73,8 @@ void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...
 
 // MT4-interne Darstellung eines MQL-Strings
 struct MqlStr {
-   int   length;
-   char* string;
+   int   length;                 // Nicht die Länge des Strings, sondern 16 mehr, wenn der String kein Literal ist.
+   char* string;                 // Ist der String Literal (im String-Pool), dann ist length=0.
 };
 
 

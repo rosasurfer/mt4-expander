@@ -215,15 +215,16 @@ int WINAPI dll_GetIntValue(int a) {
 
 
 /**
+ * MT4i Publisher
  *
  * @return int
  *
 int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s6, int i1, int i2, double dValues[]) {
-/*
-s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
-        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-current-9850480.tmp,
-        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-historic-9850480.tmp
-*
+
+   //s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
+   //        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-current-9850480.tmp,
+   //        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-historic-9850480.tmp
+
    debug("s1=%s", s1);
    debug("s2=%s", s2);
    debug("s3=%s", s3);
@@ -244,6 +245,18 @@ s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
 int WINAPI Test(char* s1, int i1, char* s2) {
    debug("s1=\"%s\"  i1=0x%p  s2=\"%s\"", s1, i1, s2);   
    return(0);
+
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+char* WINAPI StringTest() {
+   char* myStr = "MetaTrader::%s%s::%s(%d)  %s";
+   debug("returning char* = 0x%p", myStr);   
+   return(myStr);
 
    #pragma EXPORT
 }
