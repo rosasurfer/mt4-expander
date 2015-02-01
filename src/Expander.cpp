@@ -58,14 +58,10 @@ int WINAPI GetIntsAddress(int values[]) {
 
 
 /**
- * Alias für GetIntsAddress()
- * 
- *
- * @mql-import:  int GetBufferAddress(int buffer[]);
+ * Alias
  */
 int WINAPI GetBufferAddress(int values[]) {
    return(GetIntsAddress(values));
-
    #pragma EXPORT
 }
 
@@ -191,13 +187,55 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  * @return BOOL
  * 
  * 
- * @mql-import:  bool pw_IsCustomTimeframe(int timeframe);
+ * @mql-import:  bool IsCustomTimeframe(int timeframe);
  */
  BOOL WINAPI IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
 
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die hexadezimale Repräsentation eines Dwords zurück.
+ * z.B.: DwordToHexStr(13465610) => "00CD780A"
+ *
+ * @param  int dword - Dword (4 Byte, entspricht einem MQL-Integer)
+ *
+ * @return char* - hexadezimaler Wert mit 8 Stellen
+ *
+ * 
+ * @mql-import:  string DwordToHexStr(int value);
+ */
+char* WINAPI DwordToHexStr(int value) {
+   const int bufSize = 9;                                                   // 8 Zeichen + 1 für das terminierende '\0'
+
+   char  myStr[bufSize];
+   char* buffer = myStr;
+
+   sprintf_s(buffer, bufSize, "%p", value);
+   return(buffer);
+
+   #pragma EXPORT
+}
+
+
+/**
+ * Alias
+ */
+char* WINAPI IntToHexStr(int value) {
+   return(DwordToHexStr(value));
+   #pragma EXPORT
+}
+
+
+/**
+ * MetaQuotes-Alias
+ */
+char* WINAPI IntegerToHexString(int value) {
+   return(DwordToHexStr(value));
    #pragma EXPORT
 }
 
