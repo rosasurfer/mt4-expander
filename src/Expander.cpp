@@ -210,13 +210,11 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  * @mql-import:  string DwordToHexStr(int value);
  */
 char* WINAPI DwordToHexStr(DWORD value) {
-   const int size = 9;                                               // 8 Zeichen + 1 für das terminierende '\0'
-   char string[size];
+   int   size = 9;                                                   // 8 Zeichen + 1 für das terminierende '\0'
+   char* string = new char[size];
    sprintf_s(string, size, "%p", value);
 
-   char* p = string;
-   return(p);
-
+   return(string);                     // TODO: !!! string wird nicht freigegeben: Garbage collection einbauen
    #pragma EXPORT
 }
 
@@ -279,9 +277,14 @@ int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s
 /**
  *
  */
-int WINAPI Test(char* s1, int i1, char* s2) {
-   debug("s1=\"%s\"  i1=0x%p  s2=\"%s\"", s1, i1, s2);
-   return(0);
+char* WINAPI Test(int value) {
+
+   int size = 9;
+   char* string = new char[size];
+   sprintf_s(string, size, "%p", value);
+   debug(string);
+
+   return(string);
 
    //#pragma EXPORT
 }
