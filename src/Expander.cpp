@@ -1,6 +1,6 @@
 /**
  * Der Expander des Fortschritts
- * 
+ *
  *
  * @author  Peter Walther
  */
@@ -8,7 +8,7 @@
 
 
 /**
- * DLL entry point 
+ * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
    /*
@@ -29,8 +29,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  * @param  int values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
  * @return int - Speicheradresse
- * 
- * 
+ *
+ *
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
 int WINAPI GetBoolsAddress(int values[]) {
@@ -42,12 +42,12 @@ int WINAPI GetBoolsAddress(int values[]) {
 
 /**
  * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
- * 
+ *
  * @param  int values[] - MQL-Integer-Array
  *
  * @return int - Speicheradresse
- * 
- * 
+ *
+ *
  * @mql-import:  int GetIntsAddress(int array[]);
  */
 int WINAPI GetIntsAddress(int values[]) {
@@ -118,7 +118,7 @@ int WINAPI GetStringAddress(char* value) {
 
 
 /**
- * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer Adresse 
+ * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer Adresse
  * verwendet werden, da MetaTrader den Zeiger mit der entsprechenden Importdeklaration in einen MQL-String konvertiert.
  *
  * @param  char* value - String, @see struct MqlStr.string
@@ -136,12 +136,12 @@ char* WINAPI GetString(char* value) {
 
 
 /**
- * Gibt den letzten aufgetretenen Windows-Fehler des aktuellen Threads zurück. Wrapper für kernel32::GetLastError(), 
+ * Gibt den letzten aufgetretenen Windows-Fehler des aktuellen Threads zurück. Wrapper für kernel32::GetLastError(),
  * da MQL eine Funktion desselben Namens definiert.
  *
  * @return int - Fehlercode
- * 
- * 
+ *
+ *
  * @mql-import:  int GetLastWin32Error();
  */
 int WINAPI GetLastWin32Error() {
@@ -157,8 +157,8 @@ int WINAPI GetLastWin32Error() {
  * @param  int timeframe - Timeframe-ID
  *
  * @return BOOL
- * 
- * 
+ *
+ *
  * @mql-import:  bool IsBuiltinTimeframe(int timeframe);
  */
 BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
@@ -185,8 +185,8 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  * @param  int timeframe - Timeframe-ID
  *
  * @return BOOL
- * 
- * 
+ *
+ *
  * @mql-import:  bool IsCustomTimeframe(int timeframe);
  */
  BOOL WINAPI IsCustomTimeframe(int timeframe) {
@@ -206,7 +206,7 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  *
  * @return char* - hexadezimaler Wert mit 8 Stellen
  *
- * 
+ *
  * @mql-import:  string DwordToHexStr(int value);
  */
 char* WINAPI DwordToHexStr(DWORD value) {
@@ -280,7 +280,7 @@ int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s
  *
  */
 int WINAPI Test(char* s1, int i1, char* s2) {
-   debug("s1=\"%s\"  i1=0x%p  s2=\"%s\"", s1, i1, s2);   
+   debug("s1=\"%s\"  i1=0x%p  s2=\"%s\"", s1, i1, s2);
    return(0);
 
    //#pragma EXPORT

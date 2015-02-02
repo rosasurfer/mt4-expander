@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string>
-#define WIN32_LEAN_AND_MEAN             
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 
@@ -38,10 +38,10 @@ void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
    char* msg = (char*) alloca(size);                                             // auf dem Stack
    vsprintf_s(msg, size, msgFormat, args);
    va_end(args);
-   
+
 
    // Parameter fileName zerlegen: nur der Dateiname {basename.ext} wird benötigt, kein Pfad
-   char baseName[_MAX_FNAME], ext[_MAX_EXT];                         
+   char baseName[_MAX_FNAME], ext[_MAX_EXT];
    _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
 
