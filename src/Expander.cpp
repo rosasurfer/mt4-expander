@@ -202,14 +202,14 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  * Gibt die hexadezimale Repräsentation eines Dwords zurück.
  * z.B.: DwordToHexStr(13465610) => "00CD780A"
  *
- * @param  int dword - Dword (4 Byte, entspricht einem MQL-Integer)
+ * @param  DWORD value - Dword (4 Byte, entspricht einem MQL-Integer)
  *
  * @return char* - hexadezimaler Wert mit 8 Stellen
  *
  * 
  * @mql-import:  string DwordToHexStr(int value);
  */
-char* WINAPI DwordToHexStr(int value) {
+char* WINAPI DwordToHexStr(DWORD value) {
    const int size = 9;                                               // 8 Zeichen + 1 für das terminierende '\0'
    char string[size];
    sprintf_s(string, size, "%p", value);

@@ -30,7 +30,7 @@
  *
  * @return void
  */
-void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...) {
+void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
    // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab msgFormat)
    va_list args;
    va_start(args, msgFormat);
@@ -40,7 +40,7 @@ void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...
    va_end(args);
    
 
-   // Parameter fileName zerlegen: nur der Dateiname {basename.ext} wird angezeigt, kein Pfad
+   // Parameter fileName zerlegen: nur der Dateiname {basename.ext} wird benötigt, kein Pfad
    char baseName[_MAX_FNAME], ext[_MAX_EXT];                         
    _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
