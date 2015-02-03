@@ -210,11 +210,16 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  * @mql-import:  string DwordToHexStr(int value);
  */
 char* WINAPI DwordToHexStr(DWORD value) {
-   int   size = 9;                                                   // 8 Zeichen + 1 für das terminierende '\0'
-   char* string = new char[size];
+   alloca(32);                            // Alles folgende auf dem Stack etwas nach hinten schieben (mindestens 10 Bytes), damit
+                                          // MetaTrader beim Kopieren des zurückgegebenen Strings diesen nicht selbst überschreibt.
+                                          // Ist schneller als auf dem Heap und erspart uns die Notwendigkeit einer zusätzlichen
+                                          // Speicherverwaltung. Funktioniert bis zum nächsten Crash.
+
+   int   size = 9;                        // 8 Zeichen + 1 für das terminierende '\0'
+   char* string = (char*) alloca(size);   // Rückgabewert liegt auf dem Stack: mit alloca(), nicht per "char string[size]" definieren
    sprintf_s(string, size, "%p", value);
 
-   return(string);                     // TODO: !!! string wird nicht freigegeben: Garbage collection einbauen
+   return(string);
    #pragma EXPORT
 }
 
@@ -277,14 +282,15 @@ int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s
 /**
  *
  */
-char* WINAPI Test(int value) {
+char* WINAPI Test_IntToHexStr(DWORD value) {
 
-   int size = 9;
-   char* string = new char[size];
-   sprintf_s(string, size, "%p", value);
-   debug(string);
+   alloca(10);
 
-   return(string);
+   int   size = 9;
+   char* sOut = (char*) alloca(size);
+   sprintf_s(sOut, size, "%p", value);
+   //debug("sOut liegt bei %p (%d): \"%s\"", sOut, sOut, sOut);
 
+   return(sOut);
    //#pragma EXPORT
 }
