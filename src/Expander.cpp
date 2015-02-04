@@ -210,13 +210,8 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  * @mql-import:  string DwordToHexStr(int value);
  */
 char* WINAPI DwordToHexStr(DWORD value) {
-   alloca(32);                            // Alles folgende auf dem Stack etwas nach hinten schieben (mindestens 10 Bytes), damit
-                                          // MetaTrader beim Kopieren des zurückgegebenen Strings diesen nicht selbst überschreibt.
-                                          // Ist schneller als auf dem Heap und erspart uns die Notwendigkeit einer zusätzlichen
-                                          // Speicherverwaltung. Funktioniert bis zum nächsten Crash.
-
-   int   size = 9;                        // 8 Zeichen + 1 für das terminierende '\0'
-   char* string = (char*) alloca(size);   // Rückgabewert liegt auf dem Stack: mit alloca(), nicht per "char string[size]" definieren
+   int   size = 9;
+   char* string = new char[size];
    sprintf_s(string, size, "%p", value);
 
    return(string);
@@ -278,19 +273,73 @@ int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s
    #pragma EXPORT
 }*/
 
+enum ProgramType     { T_INDICATOR=1, T_EXPERT=2, T_SCRIPT=4, T_LIBRARY=8 };
+enum MqlRootFunction { FUNC_INIT=1, FUNC_START, FUNC_DEINIT };
+
+
+// Laufzeitdaten eines MQL-Programms
+ struct EXECUTION_CONTEXT {
+    ProgramType        programType;
+    LPSTR              programName;
+    int                initFlags;
+    int                deinitFlags;
+    EXECUTION_CONTEXT* superContext;
+
+    int                launchType;
+    int                uninitializeReason;
+    int                whereami;
+
+    LPSTR              symbol;
+    int                timeframe;
+    HWND               hChart;
+    HWND               hChartWindow;
+    HANDLE             hThreadId;
+    int                testFlags;
+
+    int                logLevel;
+    LPSTR              logFile;
+
+    int                lastError;
+    int                countErrors;
+    LPSTR*             errorMessages;
+ };
+
 
 /**
  *
  */
-char* WINAPI Test_IntToHexStr(DWORD value) {
+int WINAPI Test() {
 
-   alloca(10);
+   EXECUTION_CONTEXT ec;
+   debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(ec));
 
-   int   size = 9;
-   char* sOut = (char*) alloca(size);
-   sprintf_s(sOut, size, "%p", value);
-   //debug("sOut liegt bei %p (%d): \"%s\"", sOut, sOut, sOut);
+   return(777);
+   #pragma EXPORT
+}
 
-   return(sOut);
-   //#pragma EXPORT
+
+/**
+ *
+ */
+int WINAPI Expander_Init() {
+   return(0);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+int WINAPI Expander_Start() {
+   return(0);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+int WINAPI Expander_Deinit() {
+   return(0);
+   #pragma EXPORT
 }
