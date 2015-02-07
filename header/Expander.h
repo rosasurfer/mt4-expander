@@ -3,8 +3,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string>
+#include <memory>
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+
+using namespace std;
 
 
 #ifdef EXPANDER_EXPORTS

@@ -273,35 +273,41 @@ int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s
    #pragma EXPORT
 }*/
 
-enum ProgramType     { T_INDICATOR=1, T_EXPERT=2, T_SCRIPT=4, T_LIBRARY=8 };
-enum MqlRootFunction { FUNC_INIT=1, FUNC_START, FUNC_DEINIT };
+
+enum ProgramType  { PT_INDICATOR=1, PT_EXPERT=2, PT_SCRIPT=4 };
+enum LaunchType   { LT_TEMPLATE=1, LT_PROGRAM, LT_MANUAL };
+enum RootFunction { RF_INIT=1, RF_START, RF_DEINIT };
 
 
 // Laufzeitdaten eines MQL-Programms
  struct EXECUTION_CONTEXT {
+    unsigned int       id;
+
     ProgramType        programType;
     LPSTR              programName;
-    int                initFlags;
-    int                deinitFlags;
+    unsigned int       initFlags;
+    unsigned int       deinitFlags;
     EXECUTION_CONTEXT* superContext;
 
-    int                launchType;
-    int                uninitializeReason;
-    int                whereami;
+    LaunchType         launchType;
+    unsigned int       uninitializeReason;
+    RootFunction       whereami;
 
     LPSTR              symbol;
-    int                timeframe;
+    unsigned int       timeframe;
     HWND               hChart;
     HWND               hChartWindow;
     HANDLE             hThreadId;
-    int                testFlags;
+    unsigned int       testFlags;
 
-    int                logLevel;
+    unsigned int       logLevel;
     LPSTR              logFile;
 
-    int                lastError;
-    int                countErrors;
+    unsigned int       events;
+
+    unsigned int       lastError;
     LPSTR*             errorMessages;
+    unsigned int       sizeErrorMessages;
  };
 
 
@@ -312,6 +318,9 @@ int WINAPI Test() {
 
    EXECUTION_CONTEXT ec;
    debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(ec));
+
+   auto_ptr<char> p2(new char(10));
+   strlen(p2.get());
 
    return(777);
    #pragma EXPORT
