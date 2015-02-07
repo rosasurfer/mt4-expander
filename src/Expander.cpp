@@ -274,6 +274,33 @@ int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s
 }*/
 
 
+/**
+ *
+ */
+int WINAPI Expander_Init() {
+   return(0);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+int WINAPI Expander_Start() {
+   return(0);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+int WINAPI Expander_Deinit() {
+   return(0);
+   #pragma EXPORT
+}
+
+
 enum ProgramType  { PT_INDICATOR=1, PT_EXPERT=2, PT_SCRIPT=4 };
 enum LaunchType   { LT_TEMPLATE=1, LT_PROGRAM, LT_MANUAL };
 enum RootFunction { RF_INIT=1, RF_START, RF_DEINIT };
@@ -323,32 +350,5 @@ int WINAPI Test() {
    strlen(p2.get());
 
    return(777);
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-int WINAPI Expander_Init() {
-   return(0);
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-int WINAPI Expander_Start() {
-   return(0);
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-int WINAPI Expander_Deinit() {
-   return(0);
    #pragma EXPORT
 }
