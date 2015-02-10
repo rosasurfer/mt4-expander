@@ -48,12 +48,12 @@ void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
    vsprintf_s(msg, size, msgFormat, args);
    va_end(args);
 
-   // Parameter fileName zerlegen: nur der Dateiname {basename.ext} wird benötigt, kein Pfad
+   // Parameter fileName zerlegen: nur der einfache Dateiname {basename.ext} wird benötigt
    char baseName[_MAX_FNAME], ext[_MAX_EXT];
    _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
    // (2) dann die impliziten Location-Infos vorn anfügen
-   char* locationFormat = "MetaTrader::%s%s::%s(%d)  %s";
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  %s";
    size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;     // +1 für das terminierende '\0'
    char* buffer = (char*) alloca(size);                                          // auf dem Stack
    sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);

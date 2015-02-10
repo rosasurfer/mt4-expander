@@ -11,14 +11,13 @@
  * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-   /*
    switch (reason) {
-      case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_ATTACH: //debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_ATTACH : //debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_DETACH : //debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_DETACH: //debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
+         break;
    }
-   */
    return(TRUE);
 }
 
@@ -274,33 +273,6 @@ int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s
 }*/
 
 
-/**
- *
- */
-int WINAPI Expander_Init() {
-   return(0);
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-int WINAPI Expander_Start() {
-   return(0);
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-int WINAPI Expander_Deinit() {
-   return(0);
-   #pragma EXPORT
-}
-
-
 enum ProgramType  { PT_INDICATOR=1, PT_EXPERT=2, PT_SCRIPT=4 };
 enum LaunchType   { LT_TEMPLATE=1, LT_PROGRAM, LT_MANUAL };
 enum RootFunction { RF_INIT=1, RF_START, RF_DEINIT };
@@ -336,6 +308,53 @@ enum RootFunction { RF_INIT=1, RF_START, RF_DEINIT };
     LPSTR*             errorMessages;
     unsigned int       sizeErrorMessages;
  };
+
+
+//
+struct ERROR_CONTEXT {
+   int   error;
+   char* message;
+};
+
+
+/**
+ *
+ */
+BOOL WINAPI Expander_init(ERROR_CONTEXT* context) {
+   //debug("c.error=%d  c.message=%s", context->error, context->message);
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI Expander_start(ERROR_CONTEXT* context) {
+   //debug("c.error=%d  c.message=%s", context->error, context->message);
+
+   context->error = 200;
+   char* msg      = "200: OK";
+   int   bufSize  = strlen(msg)+1;
+   char* buffer   = new char[bufSize];
+   strcpy_s(buffer, bufSize, msg);
+   context->message = buffer;
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI Expander_deinit(ERROR_CONTEXT* context) {
+   //debug("c.error=%d  c.message=%s", context->error, context->message);
+
+   return(TRUE);
+   #pragma EXPORT
+}
 
 
 /**
