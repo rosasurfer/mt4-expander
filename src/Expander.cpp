@@ -11,13 +11,15 @@
  * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+   /*
    switch (reason) {
-      case DLL_PROCESS_ATTACH: //debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_ATTACH : //debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_DETACH : //debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_PROCESS_DETACH: //debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
          break;
    }
+   */
    return(TRUE);
 }
 
