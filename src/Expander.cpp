@@ -230,15 +230,6 @@ char* WINAPI IntToHexStr(int value) {
 
 
 /**
- * MetaQuotes-Alias
- */
-char* WINAPI IntegerToHexString(int value) {
-   return(DwordToHexStr(value));
-   #pragma EXPORT
-}
-
-
-/**
  *
  * @return int
  *
@@ -367,9 +358,9 @@ int WINAPI Test() {
    EXECUTION_CONTEXT ec;
    debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(ec));
 
-   auto_ptr<char> p2(new char(10));
-   strlen(p2.get());
+   auto_ptr<char> p(new char(10));
+   int len = strlen(p.get());
 
-   return(777);
+   return(len);
    #pragma EXPORT
 }
