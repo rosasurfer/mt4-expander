@@ -13,11 +13,11 @@ using namespace std;
 
 
 #ifdef EXPANDER_EXPORTS
-//#define EXPANDER_API extern "C" __declspec(dllexport)
-#define EXPANDER_API                                                             // empty
-#define EXPORT       comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)     // export unmangled names w/o DEF file
+ //#define EXPANDER_API extern "C" __declspec(dllexport)
+   #define EXPANDER_API                                                             // empty define
+   #define EXPORT       comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)     // export unmangled names w/o DEF file
 #else
-#define EXPANDER_API extern "C" __declspec(dllimport)
+   #define EXPANDER_API extern "C" __declspec(dllimport)
 #endif
 
 
