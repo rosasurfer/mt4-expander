@@ -4,12 +4,9 @@
 #include <stdarg.h>
 #include <string>
 #include <memory>
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
-
-using namespace std;
+#include "mql4/include/stderror.h"
 
 
 #ifdef EXPANDER_EXPORTS
@@ -78,10 +75,34 @@ void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
 #define PERIOD_Q1              129600           // 1 Quartal (3 Monate)
 
 
+// MQL-Programmtypen: Indicator, Expert oder Script (Library-Module sind keine eigenständige Programme)
+enum ProgramType {
+   PT_INDICATOR = 1,
+   PT_EXPERT    = 2,
+   PT_SCRIPT    = 4
+};
+
+
+// Launchtypen eines MQL-Programms: per Template, per iCustom() oder von Hand
+enum LaunchType {
+   LT_TEMPLATE = 1,     // von Template geladen
+   LT_PROGRAM,          // von iCustom() geladen
+   LT_MANUAL            // von Hand geladen
+};
+
+
+// MQL-Rootfunktionen: init(), start() oder deinit()
+enum RootFunction {
+   RF_INIT = 1,
+   RF_START,
+   RF_DEINIT
+};
+
+
 // MT4-interne Darstellung eines MQL-Strings
 struct MqlStr {
-   int   length;                 // Nicht die Länge des Strings, sondern 16 mehr, wenn der String kein Literal ist.
-   char* string;                 // Ist der String Literal (im String-Pool), dann ist length=0.
+   int   length;                 // 0, wenn der String ein C-Literal ist;
+   char* string;                 // andererseits die Größe des verfügbaren Speicherblocks
 };
 
 
@@ -93,4 +114,38 @@ struct RateInfo {
    double       high;
    double       close;
    double       volume;          // immer Ganzzahl
+};
+
+
+// in der DLL aufgetretener Fehler zur Weiterleitung an das aufrufende MQL-Programm
+struct DLL_ERROR {
+   int   code;
+   char* message;
+};
+
+
+// Ausführungskontext: Synchronisierung und Kommunikation zwischen mehreren MQL-Modulen eines Programms
+struct EXECUTION_CONTEXT {
+   int                id;
+   ProgramType        programType;
+   LPSTR              programName;
+   int                initFlags;
+   int                deinitFlags;
+   EXECUTION_CONTEXT* superContext;
+
+   LaunchType         launchType;
+   int                uninitializeReason;
+   RootFunction       whereami;
+
+   LPSTR              symbol;
+   int                timeframe;
+   HWND               hChart;                // Parent von hChartWindow (mit Titelzeile)
+   HWND               hChartWindow;          // wie von WindowHandle() zurückgegeben (AfxFrame)
+   HANDLE             hThreadId;
+   int                testFlags;
+
+   int                logLevel;
+   LPSTR              logFile;
+   int                errorsSize;
+   DLL_ERROR*         errors;                // Array von Fehlern oder NULL
 };

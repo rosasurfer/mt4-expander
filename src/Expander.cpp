@@ -6,6 +6,8 @@
  */
 #include "Expander.h"
 
+using namespace std;
+
 
 /**
  * DLL entry point
@@ -36,7 +38,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  */
 int WINAPI GetBoolsAddress(int values[]) {
    return((int) values);
-
    #pragma EXPORT
 }
 
@@ -53,7 +54,6 @@ int WINAPI GetBoolsAddress(int values[]) {
  */
 int WINAPI GetIntsAddress(int values[]) {
    return((int) values);
-
    #pragma EXPORT
 }
 
@@ -79,7 +79,6 @@ int WINAPI GetBufferAddress(int values[]) {
  */
 int WINAPI GetDoublesAddress(double values[]) {
    return((int) values);
-
    #pragma EXPORT
 }
 
@@ -96,7 +95,6 @@ int WINAPI GetDoublesAddress(double values[]) {
  */
 int WINAPI GetStringsAddress(MqlStr values[]) {
    return((int) values);
-
    #pragma EXPORT
 }
 
@@ -113,7 +111,6 @@ int WINAPI GetStringsAddress(MqlStr values[]) {
  */
 int WINAPI GetStringAddress(char* value) {
    return((int) value);
-
    #pragma EXPORT
 }
 
@@ -131,7 +128,6 @@ int WINAPI GetStringAddress(char* value) {
  */
 char* WINAPI GetString(char* value) {
    return(value);
-
    #pragma EXPORT
 }
 
@@ -147,7 +143,6 @@ char* WINAPI GetString(char* value) {
  */
 int WINAPI GetLastWin32Error() {
    return(GetLastError());
-
    #pragma EXPORT
 }
 
@@ -231,90 +226,10 @@ char* WINAPI IntToHexStr(int value) {
 
 /**
  *
- * @return int
- *
-int WINAPI dll_GetIntValue(int a) {
-   int b = a + 666;
-   return(b);
-
-   #pragma EXPORT
-}*/
-
-
-/**
- * MT4i Publisher
- *
- * @return int
- *
-int WINAPI SendReport4(char* s1, char* s2, char* s3, char* s4, char* s5, char* s6, int i1, int i2, double dValues[]) {
-
-   //s3=file:E:\Trading\MetaTrader\S7\experts\files\mt4ipub-header-9850480.tmp,
-   //        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-current-9850480.tmp,
-   //        E:\Trading\MetaTrader\S7\experts\files\mt4ipub-historic-9850480.tmp
-
-   debug("s1=%s", s1);
-   debug("s2=%s", s2);
-   debug("s3=%s", s3);
-   debug("s4=%s", s4);
-   debug("s5=%s", s5);
-   debug("s6=%s", s6);
-   debug("i1=%d", i1);
-   debug("i2=%d", i2);
-   return(100);
-
-   #pragma EXPORT
-}*/
-
-
-enum ProgramType  { PT_INDICATOR=1, PT_EXPERT=2, PT_SCRIPT=4 };
-enum LaunchType   { LT_TEMPLATE=1, LT_PROGRAM, LT_MANUAL };
-enum RootFunction { RF_INIT=1, RF_START, RF_DEINIT };
-
-
-// Laufzeitdaten eines MQL-Programms
- struct EXECUTION_CONTEXT {
-    unsigned int       id;
-
-    ProgramType        programType;
-    LPSTR              programName;
-    unsigned int       initFlags;
-    unsigned int       deinitFlags;
-    EXECUTION_CONTEXT* superContext;
-
-    LaunchType         launchType;
-    unsigned int       uninitializeReason;
-    RootFunction       whereami;
-
-    LPSTR              symbol;
-    unsigned int       timeframe;
-    HWND               hChart;
-    HWND               hChartWindow;
-    HANDLE             hThreadId;
-    unsigned int       testFlags;
-
-    unsigned int       logLevel;
-    LPSTR              logFile;
-
-    unsigned int       events;
-
-    unsigned int       lastError;
-    LPSTR*             errorMessages;
-    unsigned int       sizeErrorMessages;
- };
-
-
-//
-struct ERROR_CONTEXT {
-   int   error;
-   char* message;
-};
-
-
-/**
- *
  */
-BOOL WINAPI Expander_init(ERROR_CONTEXT* context) {
-   //debug("c.error=%d  c.message=%s", context->error, context->message);
+BOOL WINAPI Expander_init(DLL_ERROR* error) {
+   if (!error) return(TRUE);
+   //debug("error.code=%d  error.message=%s", error->code, error->message);
 
    return(TRUE);
    #pragma EXPORT
@@ -324,15 +239,16 @@ BOOL WINAPI Expander_init(ERROR_CONTEXT* context) {
 /**
  *
  */
-BOOL WINAPI Expander_start(ERROR_CONTEXT* context) {
-   //debug("c.error=%d  c.message=%s", context->error, context->message);
+BOOL WINAPI Expander_start(DLL_ERROR* error) {
+   if (!error) return(TRUE);
+   //debug("error.code=%d  error.message=%s", error->code, error->message);
 
-   context->error = 200;
+   error->code    = 200;
    char* msg      = "200: OK";
    int   bufSize  = strlen(msg)+1;
    char* buffer   = new char[bufSize];
    strcpy_s(buffer, bufSize, msg);
-   context->message = buffer;
+   error->message = buffer;
 
    return(TRUE);
    #pragma EXPORT
@@ -342,8 +258,9 @@ BOOL WINAPI Expander_start(ERROR_CONTEXT* context) {
 /**
  *
  */
-BOOL WINAPI Expander_deinit(ERROR_CONTEXT* context) {
-   //debug("c.error=%d  c.message=%s", context->error, context->message);
+BOOL WINAPI Expander_deinit(DLL_ERROR* error) {
+   if (!error) return(TRUE);
+   //debug("error.code=%d  error.message=%s", error->code, error->message);
 
    return(TRUE);
    #pragma EXPORT
@@ -357,10 +274,11 @@ int WINAPI Test() {
 
    EXECUTION_CONTEXT ec;
    debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(ec));
+   ec.launchType = LT_PROGRAM;
 
    auto_ptr<char> p(new char(10));
    int len = strlen(p.get());
 
-   return(len);
-   #pragma EXPORT
+   return(0);
+   //#pragma EXPORT
 }
