@@ -75,7 +75,7 @@ void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
 #define PERIOD_Q1              129600           // 1 Quartal (3 Monate)
 
 
-// MQL-Programmtypen: Indicator, Expert oder Script (Library-Module sind keine eigenständige Programme)
+// MQL-Programmtypen: Indicator, Expert oder Script (Library-Module sind keine eigenständigen Programme)
 enum ProgramType {
    PT_INDICATOR = 1,
    PT_EXPERT    = 2,
@@ -117,7 +117,7 @@ struct RateInfo {
 };
 
 
-// in der DLL aufgetretener Fehler zur Weiterleitung an das aufrufende MQL-Programm
+// in der DLL aufgetretener Fehler, wird an das aufrufende MQL-Programm weitergeleitet
 struct DLL_ERROR {
    int   code;
    char* message;
@@ -139,13 +139,13 @@ struct EXECUTION_CONTEXT {
 
    LPSTR              symbol;
    int                timeframe;
-   HWND               hChart;                // Parent von hChartWindow (mit Titelzeile)
-   HWND               hChartWindow;          // wie von WindowHandle() zurückgegeben (AfxFrame)
+   HWND               hWndChart;             // Win32-Chartfenster (mit Titelzeile)
+   HWND               hWndChartFrame;        // MQL-Chartfenster (Child von hWndChart = AfxFrame)
    HANDLE             hThreadId;
    int                testFlags;
 
    int                logLevel;
    LPSTR              logFile;
    int                errorsSize;
-   DLL_ERROR*         errors;                // Array von Fehlern oder NULL
+   DLL_ERROR*         errors;                // Array von DLL-Fehlern
 };
