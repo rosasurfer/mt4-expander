@@ -227,9 +227,9 @@ char* WINAPI IntToHexStr(int value) {
 /**
  *
  */
-BOOL WINAPI Expander_init(DLL_ERROR* error) {
-   if (!error) return(TRUE);
-   //debug("error.code=%d  error.message=%s", error->code, error->message);
+BOOL WINAPI Expander_init(EXECUTION_CONTEXT* context) {
+   if (!context) return(TRUE);
+   //debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
 
    return(TRUE);
    #pragma EXPORT
@@ -239,17 +239,19 @@ BOOL WINAPI Expander_init(DLL_ERROR* error) {
 /**
  *
  */
-BOOL WINAPI Expander_start(DLL_ERROR* error) {
-   if (!error) return(TRUE);
-   //debug("error.code=%d  error.message=%s", error->code, error->message);
+BOOL WINAPI Expander_start(EXECUTION_CONTEXT* context) {
+   if (!context) return(TRUE);
+   //debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
 
+   /*
+   debug("error.code=%d  error.message=%s", error->code, error->message);
    error->code    = 200;
    char* msg      = "200: OK";
    int   bufSize  = strlen(msg)+1;
    char* buffer   = new char[bufSize];
    strcpy_s(buffer, bufSize, msg);
    error->message = buffer;
-
+   */
    return(TRUE);
    #pragma EXPORT
 }
@@ -258,9 +260,9 @@ BOOL WINAPI Expander_start(DLL_ERROR* error) {
 /**
  *
  */
-BOOL WINAPI Expander_deinit(DLL_ERROR* error) {
-   if (!error) return(TRUE);
-   //debug("error.code=%d  error.message=%s", error->code, error->message);
+BOOL WINAPI Expander_deinit(EXECUTION_CONTEXT* context) {
+   if (!context) return(TRUE);
+   //debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
 
    return(TRUE);
    #pragma EXPORT

@@ -124,7 +124,7 @@ struct DLL_ERROR {
 };
 
 
-// Ausführungskontext: Synchronisierung und Kommunikation zwischen mehreren MQL-Modulen eines Programms
+// Ausführungskontext: Datenaustausch zwischen mehreren MQL-Modulen eines Programms und der DLL
 struct EXECUTION_CONTEXT {
    int                id;
    ProgramType        programType;
