@@ -29,14 +29,14 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 /**
  * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
  *
- * @param  int values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
+ * @param  BOOL values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
  * @return int - Speicheradresse
  *
  *
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
-int WINAPI GetBoolsAddress(int values[]) {
+int WINAPI GetBoolsAddress(BOOL values[]) {
    return((int) values);
    #pragma EXPORT
 }
