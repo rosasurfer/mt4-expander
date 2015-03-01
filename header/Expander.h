@@ -62,6 +62,10 @@ void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
 #pragma pack(1)
 
 
+// Special constants
+#define MIN_VALID_POINTER  0x00010000           // kleinster möglicher Wert für einen gültigen Pointer (x86)
+
+
 // Timeframe-Identifier
 #define PERIOD_M1                   1           // 1 Minute
 #define PERIOD_M5                   5           // 5 Minuten

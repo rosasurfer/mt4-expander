@@ -29,15 +29,19 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 /**
  * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
  *
- * @param  BOOL values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
+ * @param  BOOL lpValues[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
- * @return int - Speicheradresse
+ * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
-int WINAPI GetBoolsAddress(BOOL values[]) {
-   return((int) values);
+int WINAPI GetBoolsAddress(BOOL lpValues[]) {
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
+      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
+      lpValues = NULL;
+   }
+   return((int) lpValues);
    #pragma EXPORT
 }
 
@@ -45,15 +49,19 @@ int WINAPI GetBoolsAddress(BOOL values[]) {
 /**
  * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
  *
- * @param  int values[] - MQL-Integer-Array
+ * @param  int lpValues[] - MQL-Integer-Array
  *
- * @return int - Speicheradresse
+ * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetIntsAddress(int array[]);
  */
-int WINAPI GetIntsAddress(int values[]) {
-   return((int) values);
+int WINAPI GetIntsAddress(int lpValues[]) {
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
+      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
+      lpValues = NULL;
+   }
+   return((int) lpValues);
    #pragma EXPORT
 }
 
@@ -70,15 +78,19 @@ int WINAPI GetBufferAddress(int values[]) {
 /**
  * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
  *
- * @param  double values[] - MQL-Double-Array
+ * @param  double lpValues[] - MQL-Double-Array
  *
- * @return int - Speicheradresse
+ * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetDoublesAddress(double array[]);
  */
-int WINAPI GetDoublesAddress(double values[]) {
-   return((int) values);
+int WINAPI GetDoublesAddress(double lpValues[]) {
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
+      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
+      lpValues = NULL;
+   }
+   return((int) lpValues);
    #pragma EXPORT
 }
 
@@ -86,15 +98,19 @@ int WINAPI GetDoublesAddress(double values[]) {
 /**
  * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
  *
- * @param  MqlStr values[] - MQL-String-Array
+ * @param  MqlStr lpValues[] - MQL-String-Array
  *
- * @return int - Speicheradresse
+ * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetStringsAddress(string values[]);
  */
-int WINAPI GetStringsAddress(MqlStr values[]) {
-   return((int) values);
+int WINAPI GetStringsAddress(MqlStr lpValues[]) {
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
+      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
+      lpValues = NULL;
+   }
+   return((int) lpValues);
    #pragma EXPORT
 }
 
@@ -102,15 +118,19 @@ int WINAPI GetStringsAddress(MqlStr values[]) {
 /**
  * Gibt die Speicheradresse eines Strings zurück.
  *
- * @param  char* value - String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
+ * @param  char* lpValue - String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
  *
- * @return int - Speicheradresse
+ * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetStringAddress(string value);
  */
-int WINAPI GetStringAddress(char* value) {
-   return((int) value);
+int WINAPI GetStringAddress(char* lpValue) {
+   if (lpValue && (int)lpValue < MIN_VALID_POINTER) {
+      debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue);
+      lpValue = NULL;
+   }
+   return((int) lpValue);
    #pragma EXPORT
 }
 
@@ -119,15 +139,19 @@ int WINAPI GetStringAddress(char* value) {
  * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer Adresse
  * verwendet werden, da MetaTrader den Zeiger mit der entsprechenden Importdeklaration in einen MQL-String konvertiert.
  *
- * @param  char* value - String, @see struct MqlStr.string
+ * @param  char* lpValue - String
  *
- * @return char* - derselbe Zeiger
+ * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  string GetString(int address);
  */
-char* WINAPI GetString(char* value) {
-   return(value);
+char* WINAPI GetString(char* lpValue) {
+   if (lpValue && (int)lpValue < MIN_VALID_POINTER) {
+      debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue);
+      lpValue = NULL;
+   }
+   return(lpValue);
    #pragma EXPORT
 }
 
