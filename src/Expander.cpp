@@ -252,9 +252,9 @@ char* WINAPI IntToHexStr(int value) {
  *
  */
 BOOL WINAPI Expander_init(EXECUTION_CONTEXT* context) {
-   if (!context) return(TRUE);
-   //debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
-
+   if (!context) {
+      debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
+   }
    return(TRUE);
    #pragma EXPORT
 }
@@ -264,8 +264,9 @@ BOOL WINAPI Expander_init(EXECUTION_CONTEXT* context) {
  *
  */
 BOOL WINAPI Expander_start(EXECUTION_CONTEXT* context) {
-   if (!context) return(TRUE);
-   //debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
+   if (!context) {
+      debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
+   }
 
    /*
    debug("error.code=%d  error.message=%s", error->code, error->message);
@@ -285,9 +286,9 @@ BOOL WINAPI Expander_start(EXECUTION_CONTEXT* context) {
  *
  */
 BOOL WINAPI Expander_deinit(EXECUTION_CONTEXT* context) {
-   if (!context) return(TRUE);
-   //debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
-
+   if (!context) {
+      debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
+   }
    return(TRUE);
    #pragma EXPORT
 }
@@ -298,12 +299,14 @@ BOOL WINAPI Expander_deinit(EXECUTION_CONTEXT* context) {
  */
 int WINAPI Test() {
 
+   /*
    EXECUTION_CONTEXT ec;
    debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(ec));
    ec.launchType = LT_PROGRAM;
 
    auto_ptr<char> p(new char(10));
    int len = strlen(p.get());
+   */
 
    return(0);
    //#pragma EXPORT

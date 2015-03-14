@@ -121,6 +121,25 @@ struct RateInfo {
 };
 
 
+// Ausführungskontext: Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module, Programme und DLL
+struct EXECUTION_CONTEXT {
+   int                signature;
+   LPSTR              name;
+   int                type;
+   int                hChart;
+   int                hChartWindow;
+   int                testFlags;
+   EXECUTION_CONTEXT* superContext;
+   int                initFlags;
+   int                deinitFlags;
+   int                uninitializeReason;
+   int                whereami;
+   BOOL               logging;
+   LPSTR              lpLogFile;
+   int                lastError;
+};
+
+
 // in der DLL aufgetretener Fehler, wird an das aufrufende MQL-Programm weitergeleitet
 struct DLL_ERROR {
    int   code;
@@ -128,8 +147,8 @@ struct DLL_ERROR {
 };
 
 
-// Ausführungskontext: Datenaustausch zwischen mehreren MQL-Modulen eines Programms und der DLL
-struct EXECUTION_CONTEXT {
+// Ausführungskontext: Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module, Programme und DLL
+struct EXECUTION_CONTEXT_neu {
    int                id;
    ProgramType        programType;
    LPSTR              programName;
