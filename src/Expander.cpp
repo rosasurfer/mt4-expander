@@ -249,12 +249,40 @@ char* WINAPI IntToHexStr(int value) {
 
 
 /**
+ * Gibt die lesbare Beschreibung einer RootFunction-ID zurück.
+ *
+ * @param  RootFunction id
+ *
+ * @return char*
+ */
+char* RootFunctionDescription(RootFunction id) {
+   switch (id) {
+      case RF_INIT  : return("init()"  );
+      case RF_START : return("start()" );
+      case RF_DEINIT: return("deinit()");
+   }
+
+   std::stringstream ss;
+   ss << "(unknown MQL root function id " << id << ")";
+   debug(ss.str().c_str());
+
+   int bufSize  = ss.str().size()+1;
+   char* string = new char[bufSize];
+   strcpy_s(string, bufSize, ss.str().c_str());
+   return(string);
+}
+
+
+/**
  *
  */
 BOOL WINAPI Expander_init(EXECUTION_CONTEXT* context) {
    if (!context) {
-      debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
+      debug("context=%p", context);
+      return(FALSE);
    }
+
+   debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
    return(TRUE);
    #pragma EXPORT
 }
@@ -265,18 +293,11 @@ BOOL WINAPI Expander_init(EXECUTION_CONTEXT* context) {
  */
 BOOL WINAPI Expander_start(EXECUTION_CONTEXT* context) {
    if (!context) {
-      debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
+      debug("context=%p", context);
+      return(FALSE);
    }
 
-   /*
-   debug("error.code=%d  error.message=%s", error->code, error->message);
-   error->code    = 200;
-   char* msg      = "200: OK";
-   int   bufSize  = strlen(msg)+1;
-   char* buffer   = new char[bufSize];
-   strcpy_s(buffer, bufSize, msg);
-   error->message = buffer;
-   */
+   debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
    return(TRUE);
    #pragma EXPORT
 }
@@ -287,9 +308,22 @@ BOOL WINAPI Expander_start(EXECUTION_CONTEXT* context) {
  */
 BOOL WINAPI Expander_deinit(EXECUTION_CONTEXT* context) {
    if (!context) {
-      debug("&context=%p  threadId=%d", context, GetCurrentThreadId());
+      debug("context=%p", context);
+      return(FALSE);
    }
+
+   debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
    return(TRUE);
+
+   /*
+   debug("error.code=%d  error.message=%s", error->code, error->message);
+   error->code    = 200;
+   char* msg      = "200: OK";
+   int   bufSize  = strlen(msg)+1;
+   char* buffer   = new char[bufSize];
+   strcpy_s(buffer, bufSize, msg);
+   error->message = buffer;
+   */
    #pragma EXPORT
 }
 

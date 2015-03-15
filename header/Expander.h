@@ -3,10 +3,12 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string>
+#include <sstream>
 #include <memory>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "mql4/include/stderror.h"
+#include "mql4/include/shared/defines.h"
+#include "mql4/include/shared/errors.h"
 
 
 #ifdef EXPANDER_EXPORTS
@@ -32,7 +34,7 @@
  *
  * @return void
  */
-void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
+void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...) {
    if (!fileName) fileName = __FILE__;                                           // Falls doch jemand die Funktion direkt
    if (!funcName) funcName = __FUNCTION__;                                       // und falsch aufruft.
    if (!msgFormat) return;
@@ -62,44 +64,36 @@ void _debug(char* fileName, char* funcName, int line, char* msgFormat, ...) {
 #pragma pack(1)
 
 
-// Special constants
-#define MIN_VALID_POINTER  0x00010000           // kleinster möglicher Wert für einen gültigen Pointer (x86)
-
-
-// Timeframe-Identifier
-#define PERIOD_M1                   1           // 1 Minute
-#define PERIOD_M5                   5           // 5 Minuten
-#define PERIOD_M15                 15           // 15 Minuten
-#define PERIOD_M30                 30           // 30 Minuten
-#define PERIOD_H1                  60           // 1 Stunde
-#define PERIOD_H4                 240           // 4 Stunden
-#define PERIOD_D1                1440           // 1 Tag
-#define PERIOD_W1               10080           // 1 Woche (7 Tage)
-#define PERIOD_MN1              43200           // 1 Monat (30 Tage)
-#define PERIOD_Q1              129600           // 1 Quartal (3 Monate)
-
-
-// MQL-Programmtypen: Indicator, Expert oder Script (Library-Module sind keine eigenständigen Programme)
-enum ProgramType {
-   PT_INDICATOR = 1,
-   PT_EXPERT    = 2,
-   PT_SCRIPT    = 4
+// MQL-Moduletypen
+enum ModuleType {
+   MT_INDICATOR = MODULETYPE_INDICATOR,
+   MT_EXPERT    = MODULETYPE_EXPERT,
+   MT_SCRIPT    = MODULETYPE_SCRIPT,
+   MT_LIBRARY   = MODULETYPE_LIBRARY
 };
 
 
-// Launchtypen eines MQL-Programms: per Template, per iCustom() oder von Hand
-enum LaunchType {
-   LT_TEMPLATE = 1,     // von Template geladen
-   LT_PROGRAM,          // von iCustom() geladen
-   LT_MANUAL            // von Hand geladen
+// MQL-Programmtypen (Library-Module sind keine eigenständigen Programme)
+enum ProgramType {
+   PT_INDICATOR = MODULETYPE_INDICATOR,
+   PT_EXPERT    = MODULETYPE_EXPERT,
+   PT_SCRIPT    = MODULETYPE_SCRIPT
 };
 
 
 // MQL-Rootfunktionen: init(), start() oder deinit()
 enum RootFunction {
-   RF_INIT = 1,
-   RF_START,
-   RF_DEINIT
+   RF_INIT      = ROOTFUNCTION_INIT,
+   RF_START     = ROOTFUNCTION_START,
+   RF_DEINIT    = ROOTFUNCTION_DEINIT
+};
+
+
+// Launchtypen eines MQL-Programms: per Template, per iCustom() oder von Hand
+enum LaunchType {
+   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,
+   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,
+   LT_MANUAL    = LAUNCHTYPE_MANUAL
 };
 
 
@@ -121,54 +115,69 @@ struct RateInfo {
 };
 
 
-// Ausführungskontext: Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module, Programme und DLL
-struct EXECUTION_CONTEXT {
-   int                signature;
-   LPSTR              name;
-   int                type;
-   int                hChart;
-   int                hChartWindow;
-   int                testFlags;
-   EXECUTION_CONTEXT* superContext;
-   int                initFlags;
-   int                deinitFlags;
-   int                uninitializeReason;
-   int                whereami;
-   BOOL               logging;
-   LPSTR              lpLogFile;
-   int                lastError;
-};
-
-
-// in der DLL aufgetretener Fehler, wird an das aufrufende MQL-Programm weitergeleitet
+// in der DLL aufgetretener Fehler, kann an ein MQL-Programm weitergeleitet werden
 struct DLL_ERROR {
    int   code;
    char* message;
 };
 
 
-// Ausführungskontext: Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module, Programme und DLL
+// Ausführungskontext eines MQL-Programms:
+// Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module/-Programme und die DLL
+//
+struct EXECUTION_CONTEXT {                         // -- size ------- offset ------------------------------------------------------------------------------------------------------------
+   EXECUTION_CONTEXT* self;                        //       4      => ec[ 0]      // Zeiger auf den Context selbst                   (konstant)   => Validierung des Speicherblocks
+   ProgramType        programType;                 //       4      => ec[ 1]      // Programmtyp                                     (konstant)   => was bin ich
+   LPSTR              programName;                 //       4      => ec[ 2]      // Programmname                                    (konstant)   => wie heiße ich
+
+   HANDLE             hThreadId;                   //       4      => ec[ 3]      // Thread, in dem das Programm läuft               (variabel)   =>
+   LaunchType         launchType;                  //       4      => ec[ 4]      // Launchtyp                                       (konstant)   => wie wurde ich gestartet
+   EXECUTION_CONTEXT* superContext;                //       4      => ec[ 5]      // übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
+   int                initFlags;                   //       4      => ec[ 6]      // init-Flags                                      (konstant)   => wie werde ich initialisiert
+   int                deinitFlags;                 //       4      => ec[ 7]      // deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
+   RootFunction       whereami;                    //       4      => ec[ 8]      // aktuelle Rootfunktion des Programms             (variabel)   => wo bin ich
+   int                uninitializeReason;          //       4      => ec[ 9]      // letzter Uninitialize-Reason                     (variabel)   => woher komme ich
+
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[10]      // aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
+   int                timeframe;                   //       4      => ec[13]      // aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   HWND               hChartWindow;                //       4      => ec[14]      // Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
+   HWND               hChart;                      //       4      => ec[15]      // Chart-Frame:   MQL => WindowHandle()            (konstant)   => ...
+   int                testFlags;                   //       4      => ec[16]      // Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
+
+   int                lastError;                   //       4      => ec[17]      // letzter aufgetretener MQL-Fehler                (variabel)   => welcher MQL-Fehler ist aufgetreten
+   DLL_ERROR**        dllErrors;                   //       4      => ec[18]      // Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
+   int                dllErrorsSize;               //       4      => ec[19]      // Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => ...
+   BOOL               logging;                     //       4      => ec[20]      // Logstatus                                       (konstant)   => was logge ich
+   LPSTR              logFile;                     //       4      => ec[21]      // Zeiger auf Pfad und Namen der Logdatei          (konstant)   => wohin logge ich
+};                                                 // ----------------------
+                                                   //      88      = int[22]                                                                         warum bin ich nicht auf Ibiza
+
+
+
+
+
+// Prototype
 struct EXECUTION_CONTEXT_neu {
    int                id;
-   ProgramType        programType;
+ //ProgramType        programType;                 // ok
    LPSTR              programName;
-   int                initFlags;
-   int                deinitFlags;
-   EXECUTION_CONTEXT* superContext;
 
-   LaunchType         launchType;
-   int                uninitializeReason;
-   RootFunction       whereami;
-
-   LPSTR              symbol;
-   int                timeframe;
-   HWND               hWndChart;             // Win32-Chartfenster (mit Titelzeile)
-   HWND               hWndChartFrame;        // MQL-Chartfenster (Child von hWndChart = AfxFrame)
    HANDLE             hThreadId;
+ //LaunchType         launchType;                  // ok
+ //EXECUTION_CONTEXT* superContext;                // ok
+ //int                initFlags;                   // ok
+ //int                deinitFlags;                 // ok
+ //RootFunction       whereami;                    // ok
+   int                uninitializeReason;
+
+   char               symbol[MAX_SYMBOL_LENGTH+1];
+   int                timeframe;
+   HWND               hChartWindow;                // Win32-Chartfenster (mit Titelzeile)
+   HWND               hChart;                      // MQL-Chartfenster (Child von hWndChart = AfxFrame)
    int                testFlags;
 
+   DLL_ERROR**        errors;                      // Array von DLL-Fehlern
+   int                errorsSize;                  // Anzahl von DLL-Fehlern (Arraygröße)
    int                logLevel;
    LPSTR              logFile;
-   int                errorsSize;
-   DLL_ERROR*         errors;                // Array von DLL-Fehlern
 };
