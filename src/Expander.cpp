@@ -125,7 +125,7 @@ int WINAPI GetStringsAddress(MqlStr lpValues[]) {
  *
  * @mql-import:  int GetStringAddress(string value);
  */
-int WINAPI GetStringAddress(char* lpValue) {
+int WINAPI GetStringAddress(const char* lpValue) {
    if (lpValue && (int)lpValue < MIN_VALID_POINTER) {
       debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue);
       lpValue = NULL;
@@ -146,7 +146,7 @@ int WINAPI GetStringAddress(char* lpValue) {
  *
  * @mql-import:  string GetString(int address);
  */
-char* WINAPI GetString(char* lpValue) {
+const char* WINAPI GetString(const char* lpValue) {
    if (lpValue && (int)lpValue < MIN_VALID_POINTER) {
       debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue);
       lpValue = NULL;
@@ -229,7 +229,7 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  *
  * @mql-import:  string DwordToHexStr(int value);
  */
-char* WINAPI DwordToHexStr(DWORD value) {
+const char* WINAPI DwordToHexStr(DWORD value) {
    int   size = 9;
    char* string = new char[size];
    sprintf_s(string, size, "%p", value);
@@ -242,7 +242,7 @@ char* WINAPI DwordToHexStr(DWORD value) {
 /**
  * Alias
  */
-char* WINAPI IntToHexStr(int value) {
+const char* WINAPI IntToHexStr(int value) {
    return(DwordToHexStr(value));
    #pragma EXPORT
 }
@@ -255,21 +255,16 @@ char* WINAPI IntToHexStr(int value) {
  *
  * @return char*
  */
-char* RootFunctionDescription(RootFunction id) {
+const char* RootFunctionDescription(RootFunction id) {
    switch (id) {
       case RF_INIT  : return("init()"  );
       case RF_START : return("start()" );
       case RF_DEINIT: return("deinit()");
    }
 
-   std::stringstream ss;
-   ss << "(unknown MQL root function id " << id << ")";
-   debug(ss.str().c_str());
-
-   int bufSize  = ss.str().size()+1;
-   char* string = new char[bufSize];
-   strcpy_s(string, bufSize, ss.str().c_str());
-   return(string);
+   std::string s = "unknown MQL root function id "+ to_string(id);
+   debug(s.c_str());
+   return("");
 }
 
 
@@ -333,15 +328,25 @@ BOOL WINAPI Expander_deinit(EXECUTION_CONTEXT* context) {
  */
 int WINAPI Test() {
 
-   /*
-   EXECUTION_CONTEXT ec;
-   debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(ec));
-   ec.launchType = LT_PROGRAM;
+   #pragma warning(push)
+   #pragma warning(disable: 4996)
 
+   std::string str("Hello world");
+   int len = str.length();
+   char* test = new char[len+1];
+   str.copy(test, len);
+   test[len] = '\0';
+
+   #pragma warning(pop)
+
+
+   debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
+
+   /*
    auto_ptr<char> p(new char(10));
    int len = strlen(p.get());
    */
 
    return(0);
-   //#pragma EXPORT
+   #pragma EXPORT
 }

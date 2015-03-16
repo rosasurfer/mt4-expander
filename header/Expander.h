@@ -20,6 +20,14 @@
 #endif
 
 
+template <typename T>
+std::string to_string(T value) {
+   std::ostringstream os;
+   os << value;
+   return(os.str());
+}
+
+
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 
@@ -35,9 +43,9 @@
  * @return void
  */
 void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...) {
-   if (!fileName) fileName = __FILE__;                                           // Falls doch jemand die Funktion direkt
-   if (!funcName) funcName = __FUNCTION__;                                       // und falsch aufruft.
-   if (!msgFormat) return;
+   if (!fileName) fileName = __FILE__;                                           // falls die Funktion direkt aufgerufen wird
+   if (!funcName) funcName = __FUNCTION__;                                       // ...
+   if (!msgFormat) return;                                                       // falls ein Nullpointer übergeben wurde
 
    // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab msgFormat)
    va_list args;
