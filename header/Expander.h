@@ -32,28 +32,25 @@ std::string to_string(T value) {
 
 
 /**
- * Schickt einen String an den System-Debugger.  Sollte nur über das Makro debug(...) aufgerufen werden.
+ * Schickt eine formatierte Nachricht an die Debugger-Ausgabe. Sollte nicht direkt aufgerufen werden.
  *
- * @param  char* fileName  - Name der Datei, in der der Aufruf erfolgt
- * @param  char* funcName  - Name der Funktion, in der der Aufruf erfolgt
- * @param  int   line      - Zeile, in der der Aufruf erfolgt
- * @param  char* msgFormat - Formatstring mit Platzhaltern für alle weiteren Parameter
- * @param  ...             - beliebige weitere Parameter
+ * @param  char*   fileName - Name der Datei, in der der Aufruf erfolgt
+ * @param  char*   funcName - Name der Funktion, in der der Aufruf erfolgt
+ * @param  int     line     - Zeile, in der der Aufruf erfolgt
+ * @param  char*   format   - Formatstring mit Platzhaltern für alle weiteren Parameter
+ * @param  va_list args     - weitere Parameter
  *
  * @return void
  */
-void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...) {
+void _debug(char* fileName, char* funcName, int line, const char* format, va_list &args) {
    if (!fileName) fileName = __FILE__;                                           // falls die Funktion direkt aufgerufen wird
    if (!funcName) funcName = __FUNCTION__;                                       // ...
-   if (!msgFormat) return;                                                       // falls ein Nullpointer übergeben wurde
+   if (!format  ) return;                                                        // falls ein Nullpointer übergeben wurde
 
-   // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab msgFormat)
-   va_list args;
-   va_start(args, msgFormat);
-   int size = _vscprintf(msgFormat, args) + 1;                                   // +1 für das terminierende '\0'
+   // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab format)
+   int size  = _vscprintf(format, args) + 1;                                     // +1 für das terminierende '\0'
    char* msg = (char*) alloca(size);                                             // auf dem Stack
-   vsprintf_s(msg, size, msgFormat, args);
-   va_end(args);
+   vsprintf_s(msg, size, format, args);
 
    // Parameter fileName zerlegen: nur der einfache Dateiname {basename.ext} wird benötigt
    char baseName[_MAX_FNAME], ext[_MAX_EXT];
@@ -66,6 +63,32 @@ void _debug(char* fileName, char* funcName, int line, const char* msgFormat, ...
    sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);
 
    OutputDebugString(buffer);
+}
+
+
+/**
+ * Schickt einen C-String an die Debugger-Ausgabe. Sollte nicht direkt aufgerufen werden.
+ *
+ * @return void
+ */
+void _debug(char* fileName, char* funcName, int line, const char* format, ...) {
+   va_list args;
+   va_start(args, format);
+   _debug(fileName, funcName, line, format, args);
+   va_end(args);
+}
+
+
+/**
+ * Schickt einen C++-String an die Debugger-Ausgabe. Sollte nicht direkt aufgerufen werden.
+ *
+ * @return void
+ */
+void _debug(char* fileName, char* funcName, int line, const std::string &format, ...) {
+   va_list args;
+   va_start(args, format);
+   _debug(fileName, funcName, line, format.c_str(), args);
+   va_end(args);
 }
 
 
@@ -152,11 +175,11 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    HWND               hChart;                      //       4      => ec[15]      // Chart-Frame:   MQL => WindowHandle()            (konstant)   => ...
    int                testFlags;                   //       4      => ec[16]      // Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
 
-   int                lastError;                   //       4      => ec[17]      // letzter aufgetretener MQL-Fehler                (variabel)   => welcher MQL-Fehler ist aufgetreten
+   int                lastError;                   //       4      => ec[17]      // letzter in MQL aufgetretener Fehler             (variabel)   => welcher MQL-Fehler ist aufgetreten
    DLL_ERROR**        dllErrors;                   //       4      => ec[18]      // Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
    int                dllErrorsSize;               //       4      => ec[19]      // Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => ...
    BOOL               logging;                     //       4      => ec[20]      // Logstatus                                       (konstant)   => was logge ich
-   LPSTR              logFile;                     //       4      => ec[21]      // Zeiger auf Pfad und Namen der Logdatei          (konstant)   => wohin logge ich
+   LPSTR              logFile;                     //       4      => ec[21]      // vollständiger Name der Logdatei                 (konstant)   => wohin logge ich
 };                                                 // ----------------------
                                                    //      88      = int[22]                                                                         warum bin ich nicht auf Ibiza
 

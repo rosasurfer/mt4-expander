@@ -6,8 +6,6 @@
  */
 #include "Expander.h"
 
-using namespace std;
-
 
 /**
  * DLL entry point
@@ -231,10 +229,10 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  */
 const char* WINAPI DwordToHexStr(DWORD value) {
    int   size = 9;
-   char* string = new char[size];
-   sprintf_s(string, size, "%p", value);
+   char* str  = new char[size];
+   sprintf_s(str, size, "%p", value);
 
-   return(string);
+   return(str);
    #pragma EXPORT
 }
 
@@ -249,11 +247,30 @@ const char* WINAPI IntToHexStr(int value) {
 
 
 /**
+ * Gibt die lesbare Beschreibung einer ModuleType-ID zurück.
+ *
+ * @param  ModuleType id
+ *
+ * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
+ */
+const char* ModuleTypeDescription(ModuleType id) {
+   switch (id) {
+      case MT_EXPERT   : return("Expert"   );
+      case MT_SCRIPT   : return("Script"   );
+      case MT_INDICATOR: return("Indicator");
+      case MT_LIBRARY  : return("Library"  );
+   }
+   debug("unknown module type id = "+ to_string(id));
+   return(NULL);
+}
+
+
+/**
  * Gibt die lesbare Beschreibung einer RootFunction-ID zurück.
  *
  * @param  RootFunction id
  *
- * @return char*
+ * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
  */
 const char* RootFunctionDescription(RootFunction id) {
    switch (id) {
@@ -261,23 +278,21 @@ const char* RootFunctionDescription(RootFunction id) {
       case RF_START : return("start()" );
       case RF_DEINIT: return("deinit()");
    }
-
-   std::string s = "unknown MQL root function id "+ to_string(id);
-   debug(s.c_str());
-   return("");
+   debug("unknown MQL root function id = "+ to_string(id));
+   return(NULL);
 }
 
 
 /**
  *
  */
-BOOL WINAPI Expander_init(EXECUTION_CONTEXT* context) {
+BOOL WINAPI expander_onInit(EXECUTION_CONTEXT* context) {
    if (!context) {
       debug("context=%p", context);
       return(FALSE);
    }
 
-   debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
+   //debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
    return(TRUE);
    #pragma EXPORT
 }
@@ -286,13 +301,13 @@ BOOL WINAPI Expander_init(EXECUTION_CONTEXT* context) {
 /**
  *
  */
-BOOL WINAPI Expander_start(EXECUTION_CONTEXT* context) {
+BOOL WINAPI expander_onStart(EXECUTION_CONTEXT* context) {
    if (!context) {
       debug("context=%p", context);
       return(FALSE);
    }
 
-   debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
+   //debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
    return(TRUE);
    #pragma EXPORT
 }
@@ -301,14 +316,41 @@ BOOL WINAPI Expander_start(EXECUTION_CONTEXT* context) {
 /**
  *
  */
-BOOL WINAPI Expander_deinit(EXECUTION_CONTEXT* context) {
+BOOL WINAPI expander_onDeinit(EXECUTION_CONTEXT* context) {
    if (!context) {
       debug("context=%p", context);
       return(FALSE);
    }
 
-   debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
+   //debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
    return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+int WINAPI Test() {
+
+   debug(RootFunctionDescription(RF_INIT));
+   debug(RootFunctionDescription((RootFunction) 500));
+
+   return(0);
+
+
+   #pragma warning(push)
+   #pragma warning(disable: 4996)   // std::basic_string<>::copy: Function call with parameters that may be unsafe
+
+   std::string str("Hello world");
+   int len = str.length();
+   char* test = new char[len+1];
+   str.copy(test, len);
+   test[len] = '\0';
+
+   #pragma warning(pop)
+
+   debug("sizeof(EXECUTION_CONTEXT) = "+ to_string(sizeof(EXECUTION_CONTEXT)));
 
    /*
    debug("error.code=%d  error.message=%s", error->code, error->message);
@@ -319,28 +361,6 @@ BOOL WINAPI Expander_deinit(EXECUTION_CONTEXT* context) {
    strcpy_s(buffer, bufSize, msg);
    error->message = buffer;
    */
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-int WINAPI Test() {
-
-   #pragma warning(push)
-   #pragma warning(disable: 4996)
-
-   std::string str("Hello world");
-   int len = str.length();
-   char* test = new char[len+1];
-   str.copy(test, len);
-   test[len] = '\0';
-
-   #pragma warning(pop)
-
-
-   debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
 
    /*
    auto_ptr<char> p(new char(10));

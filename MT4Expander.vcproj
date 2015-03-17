@@ -190,10 +190,6 @@
 				RelativePath=".\Expander.h"
 				>
 			</File>
-			<File
-				RelativePath=".\mql4\include\stderror.h"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>
