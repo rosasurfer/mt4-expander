@@ -7,19 +7,186 @@
 #include "Expander.h"
 
 
+// Liste des letzten EXECUTION_CONTEXT je Thread
+CRITICAL_SECTION    threadsSection;
+DWORD*              threads;
+size_t              threadsSize;
+EXECUTION_CONTEXT** lastContext;
+
+
 /**
  * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-   /*
    switch (reason) {
-      case DLL_PROCESS_ATTACH: debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_ATTACH : debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_THREAD_DETACH : debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId()); break;
-      case DLL_PROCESS_DETACH: debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId()); break;
+      case DLL_PROCESS_ATTACH: //debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId());
+                               InitializeCriticalSection(&threadsSection);
+                               break;
+
+      case DLL_THREAD_ATTACH : //debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId());
+                               break;
+
+      case DLL_THREAD_DETACH : //debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId());
+                               ResetCurrentThreadData();
+                               break;
+
+      case DLL_PROCESS_DETACH: //debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId());
+                               ResetCurrentThreadData();
+                               DeleteCriticalSection(&threadsSection);
+                               break;
+   }
+   return(TRUE);
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
+   if (!ec) return(debug("invalid parameter ec = (null)"));
+
+   TrackContext(ec);
+   //debug("  thread=%d, ec=%p, ec.self=%p", GetCurrentThreadId(), ec, ec->self);
+   //debug("  thread=%d, type=%s, name=%s", GetCurrentThreadId(), ModuleTypeDescription((ModuleType)ec->programType), ec->programName);
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
+   if (!ec) return(debug("invalid parameter ec = (null)"));
+
+   TrackContext(ec);
+   //debug(" thread=%d, ec=%p, ec.self=%p", GetCurrentThreadId(), ec, ec->self);
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
+   if (!ec) return(debug("invalid parameter ec = (null)"));
+
+   TrackContext(ec);
+   //debug("thread=%d, ec=%p, ec.self=%p", GetCurrentThreadId(), ec, ec->self);
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Aktualisiert den letzten bekannten EXECUTION_CONTEXT eines Threads. Wird indirekt von jeder MQL-Rootfunktion aufgerufen.
+ * MQL-Libraries können dadurch den aktuellen EXECUTION_CONTEXT und darüber das sie aufrufende MQL-Programm ermitteln.
+ *
+ * @param EXECUTION_CONTEXT* ec - aktueller Context eines MQL-Programms
+ *
+ * @return bool - Erfolgsstaus
+ */
+BOOL TrackContext(EXECUTION_CONTEXT* ec) {
+   if (!ec) return(debug("invalid parameter ec = (null)"));
+
+   DWORD currentThread = GetCurrentThreadId();
+
+
+   // (1) ThreadId im EXECUTION_CONTEXT setzen bzw. aktualisieren
+   if (ec->hThreadId != currentThread)
+      ec->hThreadId = currentThread;
+
+
+   // (2) Thread in den bekannten Threads suchen
+   size_t i;
+   for (i=0; i < threadsSize; i++) {
+      if (currentThread == threads[i])
          break;
    }
-   */
+   if (i < threadsSize) {                                // Thread gefunden: letzten Context aktualisieren
+      if (lastContext[i] != ec) {
+         lastContext[i] = ec;
+         //debug("switching context of thread at index %d", i);
+      }
+   }
+   else {                                                // Thread nicht gefunden
+      // synchronize() start
+      // EnterCriticalSection(&threadsSection);
+      int counter = 1;
+      while (!TryEnterCriticalSection(&threadsSection)) { counter++; }
+      if (counter > 1) debug("->TryEnterCriticalSection() initially failed but succeeded after %d tries", counter);
+
+
+      for (i=0; i < threadsSize; i++) {                  // ersten freien Slot suchen
+         if (!threads[i])
+            break;
+      }
+      if (i < threadsSize) {
+         debug("inserting thread at index %d", i);
+      }
+      else {                                             // kein freier Slot mehr vorhanden, Arrays vergrößern
+         size_t new_size = 2 * (threadsSize ? threadsSize : 1);
+         debug("increasing arrays to %d", new_size);
+
+         DWORD* tmp1 = (DWORD*) realloc(threads,     new_size * sizeof(DWORD)             ); if (!tmp1) return(debug("->realloc(threads) failed"));
+         void** tmp2 = (void**) realloc(lastContext, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp2) return(debug("->realloc(lastContext) failed"));
+
+         for (size_t n=threadsSize; n < new_size; n++) { // neuen Speicherbereich initialisieren
+            tmp1[n] =         NULL;
+            tmp2[n] = (void*) NULL;
+         }
+         threads     =                       tmp1;       // und Zuweisung ändern
+         lastContext = (EXECUTION_CONTEXT**) tmp2;
+         threadsSize = new_size;
+
+         if (!i) debug("adding thread at index %d", i);
+         else    debug("adding thread at index %d, thread before was %d", i, threads[i-1]);
+      }
+      threads    [i] = currentThread;                    // Thread und letzten Context an Index i einfügen
+      lastContext[i] = ec;
+
+		LeaveCriticalSection(&threadsSection);
+		// synchronize() end
+   }
+
+   return(TRUE);
+}
+
+
+/**
+ * Setzt die EXECUTION_CONTEXT-Daten des aktuellen Threads zurück. Wird von DllMain() bei DLL_THREAD_DETACH und
+ * DLL_PROCESS_DETACH aufgerufen.
+ *
+ * @return bool - Erfolgsstaus
+ */
+BOOL ResetCurrentThreadData() {
+   DWORD currentThread = GetCurrentThreadId();
+
+   // (1) aktuellen Thread in den Threads mit EXECUTION_CONTEXT suchen
+   size_t i;
+   for (i=0; i < threadsSize; i++) {
+      if (currentThread == threads[i])
+         break;
+   }
+
+   // (2) bei Sucherfolg Daten löschen, der Slot ist danach wieder verfügbar
+   if (i < threadsSize) {
+      // synchronize() start
+      int counter = 1;
+      while (!TryEnterCriticalSection(&threadsSection)) { counter++; }
+      if (counter > 1) debug("->TryEnterCriticalSection() initially failed but succeeded after %d tries", counter);
+
+      debug("dropping thread at index %d", i);
+      threads    [i] =                      NULL;
+      lastContext[i] = (EXECUTION_CONTEXT*) NULL;
+
+		LeaveCriticalSection(&threadsSection);
+		// synchronize() end
+   }
    return(TRUE);
 }
 
@@ -35,10 +202,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
 int WINAPI GetBoolsAddress(BOOL lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
-      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
-      lpValues = NULL;
-   }
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
 }
@@ -55,10 +220,8 @@ int WINAPI GetBoolsAddress(BOOL lpValues[]) {
  * @mql-import:  int GetIntsAddress(int array[]);
  */
 int WINAPI GetIntsAddress(int lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
-      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
-      lpValues = NULL;
-   }
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
 }
@@ -84,10 +247,8 @@ int WINAPI GetBufferAddress(int values[]) {
  * @mql-import:  int GetDoublesAddress(double array[]);
  */
 int WINAPI GetDoublesAddress(double lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
-      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
-      lpValues = NULL;
-   }
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
 }
@@ -104,10 +265,8 @@ int WINAPI GetDoublesAddress(double lpValues[]) {
  * @mql-import:  int GetStringsAddress(string values[]);
  */
 int WINAPI GetStringsAddress(MqlStr lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER) {
-      debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues);
-      lpValues = NULL;
-   }
+   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
 }
@@ -124,10 +283,8 @@ int WINAPI GetStringsAddress(MqlStr lpValues[]) {
  * @mql-import:  int GetStringAddress(string value);
  */
 int WINAPI GetStringAddress(const char* lpValue) {
-   if (lpValue && (int)lpValue < MIN_VALID_POINTER) {
-      debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue);
-      lpValue = NULL;
-   }
+   if (lpValue && (int)lpValue < MIN_VALID_POINTER)
+      return(debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
    return((int) lpValue);
    #pragma EXPORT
 }
@@ -145,10 +302,8 @@ int WINAPI GetStringAddress(const char* lpValue) {
  * @mql-import:  string GetString(int address);
  */
 const char* WINAPI GetString(const char* lpValue) {
-   if (lpValue && (int)lpValue < MIN_VALID_POINTER) {
-      debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue);
-      lpValue = NULL;
-   }
+   if (lpValue && (int)lpValue < MIN_VALID_POINTER)
+      return((char*)debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
    return(lpValue);
    #pragma EXPORT
 }
@@ -192,7 +347,6 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
       case PERIOD_MN1: return(TRUE);
    }
    return(FALSE);
-
    #pragma EXPORT
 }
 
@@ -211,7 +365,6 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
-
    #pragma EXPORT
 }
 
@@ -247,21 +400,38 @@ const char* WINAPI IntToHexStr(int value) {
 
 
 /**
- * Gibt die lesbare Beschreibung einer ModuleType-ID zurück.
+ * Gibt die lesbare Beschreibung eines ModuleTypes zurück.
  *
- * @param  ModuleType id
+ * @param  ModuleType type
  *
- * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
+ * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ModuleTypeDescription(ModuleType id) {
-   switch (id) {
+const char* ModuleTypeDescription(ModuleType type) {
+   switch (type) {
       case MT_EXPERT   : return("Expert"   );
       case MT_SCRIPT   : return("Script"   );
       case MT_INDICATOR: return("Indicator");
       case MT_LIBRARY  : return("Library"  );
    }
-   debug("unknown module type id = "+ to_string(id));
-   return(NULL);
+   return((char*)debug("unknown module type = "+ to_string(type)));
+}
+
+
+/**
+ * Gibt die lesbare Konstante eines ModuleTypes zurück.
+ *
+ * @param  ModuleType type
+ *
+ * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
+ */
+const char* ModuleTypeToStr(ModuleType type) {
+   switch (type) {
+      case MT_EXPERT   : return("MT_EXPERT"   );
+      case MT_SCRIPT   : return("MT_SCRIPT"   );
+      case MT_INDICATOR: return("MT_INDICATOR");
+      case MT_LIBRARY  : return("MT_LIBRARY"  );
+   }
+   return((char*)debug("unknown module type = "+ to_string(type)));
 }
 
 
@@ -278,53 +448,24 @@ const char* RootFunctionDescription(RootFunction id) {
       case RF_START : return("start()" );
       case RF_DEINIT: return("deinit()");
    }
-   debug("unknown MQL root function id = "+ to_string(id));
-   return(NULL);
+   return((char*)debug("unknown MQL root function id = "+ to_string(id)));
 }
 
 
 /**
+ * Gibt die lesbare Konstante einer RootFunction-ID zurück.
  *
- */
-BOOL WINAPI expander_onInit(EXECUTION_CONTEXT* context) {
-   if (!context) {
-      debug("context=%p", context);
-      return(FALSE);
-   }
-
-   //debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
-   return(TRUE);
-   #pragma EXPORT
-}
-
-
-/**
+ * @param  RootFunction id
  *
+ * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
  */
-BOOL WINAPI expander_onStart(EXECUTION_CONTEXT* context) {
-   if (!context) {
-      debug("context=%p", context);
-      return(FALSE);
+const char* RootFunctionToStr(RootFunction id) {
+   switch (id) {
+      case RF_INIT  : return("init()"  );
+      case RF_START : return("start()" );
+      case RF_DEINIT: return("deinit()");
    }
-
-   //debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
-   return(TRUE);
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-BOOL WINAPI expander_onDeinit(EXECUTION_CONTEXT* context) {
-   if (!context) {
-      debug("context=%p", context);
-      return(FALSE);
-   }
-
-   //debug("context  programName=%s, programType=%d, whereami=%s", context->programName, context->programType, RootFunctionDescription(context->whereami));
-   return(TRUE);
-   #pragma EXPORT
+   return((char*)debug("unknown MQL root function id = "+ to_string(id)));
 }
 
 
@@ -333,11 +474,11 @@ BOOL WINAPI expander_onDeinit(EXECUTION_CONTEXT* context) {
  */
 int WINAPI Test() {
 
-   debug(RootFunctionDescription(RF_INIT));
-   debug(RootFunctionDescription((RootFunction) 500));
+   debug("sizeof(LaunchType)=%d  sizeof(EXECUTION_CONTEXT)=%d", sizeof(LaunchType), sizeof(EXECUTION_CONTEXT));
 
    return(0);
 
+   debug(RootFunctionDescription(RF_INIT));
 
    #pragma warning(push)
    #pragma warning(disable: 4996)   // std::basic_string<>::copy: Function call with parameters that may be unsafe

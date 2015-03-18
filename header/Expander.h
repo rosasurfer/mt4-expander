@@ -11,6 +11,11 @@
 #include "mql4/include/shared/errors.h"
 
 
+#pragma warning(push)
+#pragma warning(disable: 4060)         // switch statement contains no 'case' or 'default' labels
+#pragma warning(disable: 4065)         // switch statement contains 'default' but no 'case' labels
+
+
 #ifdef EXPANDER_EXPORTS
  //#define EXPANDER_API extern "C" __declspec(dllexport)
    #define EXPANDER_API                                                             // empty define
@@ -40,12 +45,12 @@ std::string to_string(T value) {
  * @param  char*   format   - Formatstring mit Platzhaltern für alle weiteren Parameter
  * @param  va_list args     - weitere Parameter
  *
- * @return void
+ * @return int - zur Zeit immer 0
  */
-void _debug(char* fileName, char* funcName, int line, const char* format, va_list &args) {
+int _debug(char* fileName, char* funcName, int line, const char* format, va_list &args) {
    if (!fileName) fileName = __FILE__;                                           // falls die Funktion direkt aufgerufen wird
    if (!funcName) funcName = __FUNCTION__;                                       // ...
-   if (!format  ) return;                                                        // falls ein Nullpointer übergeben wurde
+   if (!format  ) return(0);                                                     // falls ein Nullpointer übergeben wurde
 
    // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab format)
    int size  = _vscprintf(format, args) + 1;                                     // +1 für das terminierende '\0'
@@ -63,32 +68,35 @@ void _debug(char* fileName, char* funcName, int line, const char* format, va_lis
    sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);
 
    OutputDebugString(buffer);
+   return(0);
 }
 
 
 /**
  * Schickt einen C-String an die Debugger-Ausgabe. Sollte nicht direkt aufgerufen werden.
  *
- * @return void
+ * @return int - zur Zeit immer 0
  */
-void _debug(char* fileName, char* funcName, int line, const char* format, ...) {
+int _debug(char* fileName, char* funcName, int line, const char* format, ...) {
    va_list args;
    va_start(args, format);
    _debug(fileName, funcName, line, format, args);
    va_end(args);
+   return(0);
 }
 
 
 /**
  * Schickt einen C++-String an die Debugger-Ausgabe. Sollte nicht direkt aufgerufen werden.
  *
- * @return void
+ * @return int - zur Zeit immer 0
  */
-void _debug(char* fileName, char* funcName, int line, const std::string &format, ...) {
+int _debug(char* fileName, char* funcName, int line, const std::string &format, ...) {
    va_list args;
    va_start(args, format);
    _debug(fileName, funcName, line, format.c_str(), args);
    va_end(args);
+   return(0);
 }
 
 
@@ -157,11 +165,11 @@ struct DLL_ERROR {
 // Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module/-Programme und die DLL
 //
 struct EXECUTION_CONTEXT {                         // -- size ------- offset ------------------------------------------------------------------------------------------------------------
-   EXECUTION_CONTEXT* self;                        //       4      => ec[ 0]      // Zeiger auf den Context selbst                   (konstant)   => Validierung des Speicherblocks
+   unsigned int       id;                          //       4      => ec[ 0]      // eindeutige ID des Context                       (konstant)   => Validierung des Speicherblocks
    ProgramType        programType;                 //       4      => ec[ 1]      // Programmtyp                                     (konstant)   => was bin ich
    LPSTR              programName;                 //       4      => ec[ 2]      // Programmname                                    (konstant)   => wie heiße ich
 
-   HANDLE             hThreadId;                   //       4      => ec[ 3]      // Thread, in dem das Programm läuft               (variabel)   =>
+   DWORD              hThreadId;                   //       4      => ec[ 3]      // Thread, in dem das Programm läuft               (variabel)   =>
    LaunchType         launchType;                  //       4      => ec[ 4]      // Launchtyp                                       (konstant)   => wie wurde ich gestartet
    EXECUTION_CONTEXT* superContext;                //       4      => ec[ 5]      // übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
    int                initFlags;                   //       4      => ec[ 6]      // init-Flags                                      (konstant)   => wie werde ich initialisiert
@@ -177,7 +185,7 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
 
    int                lastError;                   //       4      => ec[17]      // letzter in MQL aufgetretener Fehler             (variabel)   => welcher MQL-Fehler ist aufgetreten
    DLL_ERROR**        dllErrors;                   //       4      => ec[18]      // Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
-   int                dllErrorsSize;               //       4      => ec[19]      // Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => ...
+   size_t             dllErrorsSize;               //       4      => ec[19]      // Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => ...
    BOOL               logging;                     //       4      => ec[20]      // Logstatus                                       (konstant)   => was logge ich
    LPSTR              logFile;                     //       4      => ec[21]      // vollständiger Name der Logdatei                 (konstant)   => wohin logge ich
 };                                                 // ----------------------
@@ -212,3 +220,8 @@ struct EXECUTION_CONTEXT_neu {
    int                logLevel;
    LPSTR              logFile;
 };
+
+
+// Funktionsdeklarationen
+BOOL ResetCurrentThreadData();
+BOOL TrackContext(EXECUTION_CONTEXT* ec);
