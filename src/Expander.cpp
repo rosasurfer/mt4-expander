@@ -128,8 +128,8 @@ BOOL TrackContext(EXECUTION_CONTEXT* ec) {
       if (i < threadsSize) {
          debug("inserting thread at index %d", i);
       }
-      else {                                             // kein freier Slot mehr vorhanden, Arrays vergrößern
-         size_t new_size = 2 * (threadsSize ? threadsSize : 1);
+      else {                                             // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 8)
+         size_t new_size = 2 * (threadsSize ? threadsSize : 8);
          debug("increasing arrays to %d", new_size);
 
          DWORD* tmp1 = (DWORD*) realloc(threads,     new_size * sizeof(DWORD)             ); if (!tmp1) return(debug("->realloc(threads) failed"));
