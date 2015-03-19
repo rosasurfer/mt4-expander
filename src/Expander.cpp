@@ -470,6 +470,33 @@ const char* RootFunctionToStr(RootFunction id) {
 /**
  *
  */
+BOOL WINAPI Test_onInit(EXECUTION_CONTEXT* ec, int logLevel) {
+   return(Expander_onInit(ec));
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI Test_onStart(EXECUTION_CONTEXT* ec, int logLevel) {
+   return(Expander_onStart(ec));
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI Test_onDeinit(EXECUTION_CONTEXT* ec, int logLevel) {
+   return(Expander_onDeinit(ec));
+   #pragma EXPORT
+}
+
+
+/**
+ *
+ */
 int WINAPI Test() {
 
    debug("sizeof(LaunchType)=%d  sizeof(EXECUTION_CONTEXT)=%d", sizeof(LaunchType), sizeof(EXECUTION_CONTEXT));
