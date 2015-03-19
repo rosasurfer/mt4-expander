@@ -74,7 +74,7 @@ BOOL onProcessDetach() {
 BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
    //debug("  thread=%d, type=%s, name=%s", GetCurrentThreadId(), ModuleTypeDescription((ModuleType)ec->programType), ec->programName);
-   return(TrackContext(ec));
+   return(ManageExecutionContext(ec));
    #pragma EXPORT
 }
 
@@ -84,7 +84,7 @@ BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
  */
 BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
-   return(TrackContext(ec));
+   return(ManageExecutionContext(ec));
    #pragma EXPORT
 }
 
@@ -94,20 +94,20 @@ BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
  */
 BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
-   return(TrackContext(ec));
+   return(ManageExecutionContext(ec));
    #pragma EXPORT
 }
 
 
 /**
- * Aktualisiert den letzten bekannten EXECUTION_CONTEXT eines Threads. Wird indirekt von jeder MQL-Rootfunktion aufgerufen.
- * MQL-Libraries können dadurch den aktuellen EXECUTION_CONTEXT und darüber das sie aufrufende MQL-Programm ermitteln.
+ * Verwaltet den letzten bekannten EXECUTION_CONTEXT eines Threads. Wird indirekt von jeder MQL-Rootfunktion aufgerufen.
+ * MQL-Libraries können so den aktuellen EXECUTION_CONTEXT ermitteln und darüber mit dem sie aufrufenden MQL-Programm kommunizieren.
  *
- * @param EXECUTION_CONTEXT* ec - aktueller Context eines MQL-Programms
+ * @param EXECUTION_CONTEXT* ec - aktueller Kontext eines MQL-Programms
  *
  * @return bool - Erfolgsstaus
  */
-BOOL TrackContext(EXECUTION_CONTEXT* ec) {
+BOOL ManageExecutionContext(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
 
    DWORD currentThread = GetCurrentThreadId();

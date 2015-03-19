@@ -166,11 +166,11 @@ struct DLL_ERROR {
 // Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module/-Programme und die DLL
 //
 struct EXECUTION_CONTEXT {                         // -- size ------- offset ------------------------------------------------------------------------------------------------------------
-   unsigned int       id;                          //       4      => ec[ 0]      // eindeutige ID des Context                       (konstant)   => Validierung des Speicherblocks
-   ProgramType        programType;                 //       4      => ec[ 1]      // Programmtyp                                     (konstant)   => was bin ich
-   LPSTR              programName;                 //       4      => ec[ 2]      // Programmname                                    (konstant)   => wie heiße ich
+   unsigned int       id;                          //       4      => ec[ 0]      // eindeutige ID des Context                       (konstant)   => ...
+   DWORD              hThreadId;                   //       4      => ec[ 1]      // aktueller Thread, in dem das Programm läuft     (variabel)   => ...
 
-   DWORD              hThreadId;                   //       4      => ec[ 3]      // Thread, in dem das Programm läuft               (variabel)   =>
+   ProgramType        programType;                 //       4      => ec[ 2]      // Programmtyp                                     (konstant)   => was bin ich
+   LPSTR              programName;                 //       4      => ec[ 3]      // Programmname                                    (konstant)   => wie heiße ich
    LaunchType         launchType;                  //       4      => ec[ 4]      // Launchtyp                                       (konstant)   => wie wurde ich gestartet
    EXECUTION_CONTEXT* superContext;                //       4      => ec[ 5]      // übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
    int                initFlags;                   //       4      => ec[ 6]      // init-Flags                                      (konstant)   => wie werde ich initialisiert
@@ -179,7 +179,7 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    int                uninitializeReason;          //       4      => ec[ 9]      // letzter Uninitialize-Reason                     (variabel)   => woher komme ich
 
    char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[10]      // aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
-   int                timeframe;                   //       4      => ec[13]      // aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   unsigned int       timeframe;                   //       4      => ec[13]      // aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
    HWND               hChartWindow;                //       4      => ec[14]      // Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
    HWND               hChart;                      //       4      => ec[15]      // Chart-Frame:   MQL => WindowHandle()            (konstant)   => ...
    int                testFlags;                   //       4      => ec[16]      // Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
@@ -193,16 +193,13 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
                                                    //      88      = int[22]                                                                         warum bin ich nicht auf Ibiza
 
 
-
-
-
 // Prototype
-struct EXECUTION_CONTEXT_neu {
-   int                id;
+struct EXECUTION_CONTEXT_proto {
+   unsigned int       id;
+   DWORD              hThreadId;
+
  //ProgramType        programType;                 // ok
    LPSTR              programName;
-
-   HANDLE             hThreadId;
  //LaunchType         launchType;                  // ok
  //EXECUTION_CONTEXT* superContext;                // ok
  //int                initFlags;                   // ok
@@ -211,13 +208,13 @@ struct EXECUTION_CONTEXT_neu {
    int                uninitializeReason;
 
    char               symbol[MAX_SYMBOL_LENGTH+1];
-   int                timeframe;
+   unsigned int       timeframe;
    HWND               hChartWindow;                // Win32-Chartfenster (mit Titelzeile)
    HWND               hChart;                      // MQL-Chartfenster (Child von hWndChart = AfxFrame)
    int                testFlags;
 
-   DLL_ERROR**        errors;                      // Array von DLL-Fehlern
-   int                errorsSize;                  // Anzahl von DLL-Fehlern (Arraygröße)
+   DLL_ERROR**        dllErrors;                   // Array von DLL-Fehlern
+   size_t             dllErrorsSize;               // Anzahl von DLL-Fehlern (Arraygröße)
    int                logLevel;
    LPSTR              logFile;
 };
@@ -231,4 +228,4 @@ BOOL onThreadDetach();
 BOOL onProcessDetach();
 
 BOOL ResetCurrentThreadData();
-BOOL TrackContext(EXECUTION_CONTEXT* ec);
+BOOL ManageExecutionContext(EXECUTION_CONTEXT* ec);
