@@ -14,6 +14,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4060)         // switch statement contains no 'case' or 'default' labels
 #pragma warning(disable: 4065)         // switch statement contains 'default' but no 'case' labels
+#pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
 
 #ifdef EXPANDER_EXPORTS
@@ -222,6 +223,12 @@ struct EXECUTION_CONTEXT_neu {
 };
 
 
+
 // Funktionsdeklarationen
+BOOL onProcessAttach();
+BOOL onThreadAttach();
+BOOL onThreadDetach();
+BOOL onProcessDetach();
+
 BOOL ResetCurrentThreadData();
 BOOL TrackContext(EXECUTION_CONTEXT* ec);

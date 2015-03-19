@@ -7,34 +7,63 @@
 #include "Expander.h"
 
 
-// Liste des letzten EXECUTION_CONTEXT je Thread
-CRITICAL_SECTION    threadsSection;
-DWORD*              threads;
-size_t              threadsSize;
-EXECUTION_CONTEXT** lastContext;
-
-
 /**
  * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
    switch (reason) {
-      case DLL_PROCESS_ATTACH: //debug("DLL_PROCESS_ATTACH  threadId=%d", GetCurrentThreadId());
-                               InitializeCriticalSection(&threadsSection);
-                               break;
-
-      case DLL_THREAD_ATTACH : //debug("DLL_THREAD_ATTACH   threadId=%d", GetCurrentThreadId());
-                               break;
-
-      case DLL_THREAD_DETACH : //debug("DLL_THREAD_DETACH   threadId=%d", GetCurrentThreadId());
-                               ResetCurrentThreadData();
-                               break;
-
-      case DLL_PROCESS_DETACH: //debug("DLL_PROCESS_DETACH  threadId=%d", GetCurrentThreadId());
-                               ResetCurrentThreadData();
-                               DeleteCriticalSection(&threadsSection);
-                               break;
+      case DLL_PROCESS_ATTACH: onProcessAttach(); break;
+      case DLL_THREAD_ATTACH : onThreadAttach();  break;
+      case DLL_THREAD_DETACH : onThreadDetach();  break;
+      case DLL_PROCESS_DETACH: onProcessDetach(); break;
    }
+   return(TRUE);
+}
+
+
+// Liste des letzten EXECUTION_CONTEXT je Thread
+CRITICAL_SECTION    threadsSection;             // Lock
+DWORD*              threads;                    // Array
+size_t              threadsSize;                // Arraygröße
+EXECUTION_CONTEXT** lastContext;                // Array
+
+
+/**
+ *
+ */
+BOOL onProcessAttach() {
+   //debug("");
+   InitializeCriticalSection(&threadsSection);
+   return(TRUE);
+}
+
+
+/**
+ *
+ */
+BOOL onThreadAttach() {
+   //debug("threadId=%d", GetCurrentThreadId());
+   return(TRUE);
+}
+
+
+/**
+ *
+ */
+BOOL onThreadDetach() {
+   //debug("threadId=%d", GetCurrentThreadId());
+   ResetCurrentThreadData();
+   return(TRUE);
+}
+
+
+/**
+ *
+ */
+BOOL onProcessDetach() {
+   //debug("threadId=%d", GetCurrentThreadId());
+   onThreadDetach();
+   DeleteCriticalSection(&threadsSection);
    return(TRUE);
 }
 
@@ -44,12 +73,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  */
 BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
-
-   TrackContext(ec);
-   //debug("  thread=%d, ec=%p, ec.self=%p", GetCurrentThreadId(), ec, ec->self);
    //debug("  thread=%d, type=%s, name=%s", GetCurrentThreadId(), ModuleTypeDescription((ModuleType)ec->programType), ec->programName);
-
-   return(TRUE);
+   return(TrackContext(ec));
    #pragma EXPORT
 }
 
@@ -59,11 +84,7 @@ BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
  */
 BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
-
-   TrackContext(ec);
-   //debug(" thread=%d, ec=%p, ec.self=%p", GetCurrentThreadId(), ec, ec->self);
-
-   return(TRUE);
+   return(TrackContext(ec));
    #pragma EXPORT
 }
 
@@ -73,11 +94,7 @@ BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
  */
 BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
-
-   TrackContext(ec);
-   //debug("thread=%d, ec=%p, ec.self=%p", GetCurrentThreadId(), ec, ec->self);
-
-   return(TRUE);
+   return(TrackContext(ec));
    #pragma EXPORT
 }
 
@@ -115,37 +132,30 @@ BOOL TrackContext(EXECUTION_CONTEXT* ec) {
    }
    else {                                                // Thread nicht gefunden
       // synchronize() start
-      // EnterCriticalSection(&threadsSection);
-      int counter = 1;
-      while (!TryEnterCriticalSection(&threadsSection)) { counter++; }
-      if (counter > 1) debug("->TryEnterCriticalSection() initially failed but succeeded after %d tries", counter);
-
+      EnterCriticalSection(&threadsSection);
 
       for (i=0; i < threadsSize; i++) {                  // ersten freien Slot suchen
-         if (!threads[i])
-            break;
+         if (!threads[i]) break;
       }
-      if (i < threadsSize) {
-         debug("inserting thread at index %d", i);
-      }
-      else {                                             // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 8)
-         size_t new_size = 2 * (threadsSize ? threadsSize : 8);
+      if (i == threadsSize) {                            // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 8)
+         size_t new_size = 2 * (threadsSize ? threadsSize : 4);
          debug("increasing arrays to %d", new_size);
 
          DWORD* tmp1 = (DWORD*) realloc(threads,     new_size * sizeof(DWORD)             ); if (!tmp1) return(debug("->realloc(threads) failed"));
          void** tmp2 = (void**) realloc(lastContext, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp2) return(debug("->realloc(lastContext) failed"));
 
          for (size_t n=threadsSize; n < new_size; n++) { // neuen Speicherbereich initialisieren
-            tmp1[n] =         NULL;
-            tmp2[n] = (void*) NULL;
+            tmp1[n] = NULL;
+            tmp2[n] = NULL;
          }
          threads     =                       tmp1;       // und Zuweisung ändern
          lastContext = (EXECUTION_CONTEXT**) tmp2;
          threadsSize = new_size;
 
-         if (!i) debug("adding thread at index %d", i);
-         else    debug("adding thread at index %d, thread before was %d", i, threads[i-1]);
+         //debug("adding thread at index %d", i);
       }
+      //else debug("inserting thread at index %d", i);
+
       threads    [i] = currentThread;                    // Thread und letzten Context an Index i einfügen
       lastContext[i] = ec;
 
@@ -158,8 +168,7 @@ BOOL TrackContext(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Setzt die EXECUTION_CONTEXT-Daten des aktuellen Threads zurück. Wird von DllMain() bei DLL_THREAD_DETACH und
- * DLL_PROCESS_DETACH aufgerufen.
+* Setzt die EXECUTION_CONTEXT-Daten des aktuellen Threads zurück.
  *
  * @return bool - Erfolgsstaus
  */
@@ -175,17 +184,11 @@ BOOL ResetCurrentThreadData() {
 
    // (2) bei Sucherfolg Daten löschen, der Slot ist danach wieder verfügbar
    if (i < threadsSize) {
-      // synchronize() start
-      int counter = 1;
-      while (!TryEnterCriticalSection(&threadsSection)) { counter++; }
-      if (counter > 1) debug("->TryEnterCriticalSection() initially failed but succeeded after %d tries", counter);
-
-      debug("dropping thread at index %d", i);
-      threads    [i] =                      NULL;
-      lastContext[i] = (EXECUTION_CONTEXT*) NULL;
-
-		LeaveCriticalSection(&threadsSection);
-		// synchronize() end
+      EnterCriticalSection(&threadsSection);             // synchronize() start
+      //debug("dropping thread at index %d", i);
+      threads    [i] = NULL;
+      lastContext[i] = NULL;
+		LeaveCriticalSection(&threadsSection);             // synchronize() end
    }
    return(TRUE);
 }
@@ -301,10 +304,10 @@ int WINAPI GetStringAddress(const char* lpValue) {
  *
  * @mql-import:  string GetString(int address);
  */
-const char* WINAPI GetString(const char* lpValue) {
+char* WINAPI GetString(const char* lpValue) {
    if (lpValue && (int)lpValue < MIN_VALID_POINTER)
-      return((char*)debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
-   return(lpValue);
+      return((char*) debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
+   return((char*) lpValue);
    #pragma EXPORT
 }
 
@@ -370,31 +373,22 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
 
 
 /**
- * Gibt die hexadezimale Repräsentation eines Dwords zurück.
- * z.B.: DwordToHexStr(13465610) => "00CD780A"
+ * Gibt die hexadezimale Repräsentation eines Integers zurück.
+ * z.B.: IntToHexStr(13465610) => "00CD780A"
  *
- * @param  DWORD value - Dword (4 Byte, entspricht einem MQL-Integer)
+ * @param  int value - Integer (4 Byte)
  *
- * @return char* - hexadezimaler Wert mit 8 Stellen
+ * @return char* - hexadezimaler String mit 8 Zeichen
  *
  *
- * @mql-import:  string DwordToHexStr(int value);
+ * @mql-import:  string IntToHexStr(int value);
  */
-const char* WINAPI DwordToHexStr(DWORD value) {
+char* WINAPI IntToHexStr(int value) {
    int   size = 9;
    char* str  = new char[size];
    sprintf_s(str, size, "%p", value);
 
    return(str);
-   #pragma EXPORT
-}
-
-
-/**
- * Alias
- */
-const char* WINAPI IntToHexStr(int value) {
-   return(DwordToHexStr(value));
    #pragma EXPORT
 }
 
@@ -413,7 +407,8 @@ const char* ModuleTypeDescription(ModuleType type) {
       case MT_INDICATOR: return("Indicator");
       case MT_LIBRARY  : return("Library"  );
    }
-   return((char*)debug("unknown module type = "+ to_string(type)));
+   debug("unknown module type = "+ to_string(type));
+   return(NULL);
 }
 
 
@@ -431,7 +426,8 @@ const char* ModuleTypeToStr(ModuleType type) {
       case MT_INDICATOR: return("MT_INDICATOR");
       case MT_LIBRARY  : return("MT_LIBRARY"  );
    }
-   return((char*)debug("unknown module type = "+ to_string(type)));
+   debug("unknown module type = "+ to_string(type));
+   return(NULL);
 }
 
 
@@ -448,7 +444,8 @@ const char* RootFunctionDescription(RootFunction id) {
       case RF_START : return("start()" );
       case RF_DEINIT: return("deinit()");
    }
-   return((char*)debug("unknown MQL root function id = "+ to_string(id)));
+   debug("unknown MQL root function id = "+ to_string(id));
+   return(NULL);
 }
 
 
@@ -465,7 +462,8 @@ const char* RootFunctionToStr(RootFunction id) {
       case RF_START : return("start()" );
       case RF_DEINIT: return("deinit()");
    }
-   return((char*)debug("unknown MQL root function id = "+ to_string(id)));
+   debug("unknown MQL root function id = "+ to_string(id));
+   return(NULL);
 }
 
 
@@ -475,21 +473,13 @@ const char* RootFunctionToStr(RootFunction id) {
 int WINAPI Test() {
 
    debug("sizeof(LaunchType)=%d  sizeof(EXECUTION_CONTEXT)=%d", sizeof(LaunchType), sizeof(EXECUTION_CONTEXT));
-
    return(0);
-
-   debug(RootFunctionDescription(RF_INIT));
-
-   #pragma warning(push)
-   #pragma warning(disable: 4996)   // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
    std::string str("Hello world");
    int len = str.length();
    char* test = new char[len+1];
    str.copy(test, len);
    test[len] = '\0';
-
-   #pragma warning(pop)
 
    debug("sizeof(EXECUTION_CONTEXT) = "+ to_string(sizeof(EXECUTION_CONTEXT)));
 
