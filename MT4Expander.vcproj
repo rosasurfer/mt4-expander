@@ -64,6 +64,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="2"
+				ModuleDefinitionFile="Modules.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -141,6 +142,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
+				ModuleDefinitionFile="Modules.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -191,6 +193,10 @@
 			>
 			<File
 				RelativePath=".\Expander.h"
+				>
+			</File>
+			<File
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 		</Filter>

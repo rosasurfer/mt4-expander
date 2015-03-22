@@ -4,7 +4,24 @@
  *
  * @author  Peter Walther
  */
+#include "stdafx.h"
 #include "Expander.h"
+
+
+// Loglevel-Status
+bool logDebug, logNotice, logInfo, logWarn, logError, logFatal;
+
+
+// Liste der verwalteten EXECUTION_CONTEXTe
+EXECUTION_CONTEXT** contexts;                               // Array contexts[]
+size_t              contextsSize;                           // Arraygröße
+CRITICAL_SECTION    contextsSection;                        // Lock
+
+// Liste des letzten EXECUTION_CONTEXT je Thread
+DWORD*              threads;                                // Array threads[]
+size_t              threadsSize;                            // Arraygröße
+EXECUTION_CONTEXT** threadsLastContext;                     // Array threadsLastContext[]
+CRITICAL_SECTION    threadsSection;                         // Lock
 
 
 /**
@@ -21,146 +38,172 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 }
 
 
-// Liste des letzten EXECUTION_CONTEXT je Thread
-CRITICAL_SECTION    threadsSection;             // Lock
-DWORD*              threads;                    // Array
-size_t              threadsSize;                // Arraygröße
-EXECUTION_CONTEXT** lastContext;                // Array
-
-
 /**
  *
  */
-BOOL onProcessAttach() {
-   //debug("");
-   InitializeCriticalSection(&threadsSection);
-   return(TRUE);
+void onProcessAttach() {
+   SetLogLevel(L_WARN);                                     // Default-Loglevel
+   InitializeCriticalSection(&contextsSection);
+   InitializeCriticalSection(&threadsSection );
 }
 
 
 /**
  *
  */
-BOOL onThreadAttach() {
-   //debug("threadId=%d", GetCurrentThreadId());
-   return(TRUE);
+void onThreadAttach() {
 }
 
 
 /**
  *
  */
-BOOL onThreadDetach() {
-   //debug("threadId=%d", GetCurrentThreadId());
+void onThreadDetach() {
    ResetCurrentThreadData();
-   return(TRUE);
 }
 
 
 /**
  *
  */
-BOOL onProcessDetach() {
-   //debug("threadId=%d", GetCurrentThreadId());
+void onProcessDetach() {
    onThreadDetach();
-   DeleteCriticalSection(&threadsSection);
-   return(TRUE);
+   DeleteCriticalSection(&contextsSection);
+   DeleteCriticalSection(&threadsSection );
 }
 
 
 /**
+ * Wird in init() eines jeden MQL-Programms aufgerufen.
  *
+ * @param EXECUTION_CONTEXT* ec - aktueller Kontext
+ *
+ * @return BOOL - Erfolgsstaus
  */
 BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
-   if (!ec) return(debug("invalid parameter ec = (null)"));
-   //debug("  thread=%d, type=%s, name=%s", GetCurrentThreadId(), ModuleTypeDescription((ModuleType)ec->programType), ec->programName);
-   return(ManageExecutionContext(ec));
+   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(SetCurrentExecutionContext(ec));
    #pragma EXPORT
 }
 
 
 /**
+ * Wird in start() eines jeden MQL-Programms aufgerufen.
  *
+ * @param EXECUTION_CONTEXT* ec - aktueller Kontext
+ *
+ * @return BOOL - Erfolgsstaus
  */
 BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
-   if (!ec) return(debug("invalid parameter ec = (null)"));
-   return(ManageExecutionContext(ec));
+   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(SetCurrentExecutionContext(ec));
    #pragma EXPORT
 }
 
 
 /**
+ * Wird in deinit() eines jeden MQL-Programms aufgerufen.
  *
+ * @param EXECUTION_CONTEXT* ec - aktueller Kontext
+ *
+ * @return BOOL - Erfolgsstaus
  */
 BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
-   if (!ec) return(debug("invalid parameter ec = (null)"));
-   return(ManageExecutionContext(ec));
+   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(SetCurrentExecutionContext(ec));
    #pragma EXPORT
 }
 
 
 /**
- * Verwaltet den letzten bekannten EXECUTION_CONTEXT eines Threads. Wird indirekt von jeder MQL-Rootfunktion aufgerufen.
- * MQL-Libraries können so den aktuellen EXECUTION_CONTEXT ermitteln und darüber mit dem sie aufrufenden MQL-Programm kommunizieren.
+ * Setzt den aktuellen EXECUTION_CONTEXT eines Threads. Wird von jeder MQL-Rootfunktion zu allererst aufgerufen,
+ * wodurch Libraries den eigenen EXECUTION_CONTEXT abfragen können.
  *
  * @param EXECUTION_CONTEXT* ec - aktueller Kontext eines MQL-Programms
  *
- * @return bool - Erfolgsstaus
+ * @return BOOL - Erfolgsstaus
  */
-BOOL ManageExecutionContext(EXECUTION_CONTEXT* ec) {
+BOOL SetCurrentExecutionContext(EXECUTION_CONTEXT* ec) {
    if (!ec) return(debug("invalid parameter ec = (null)"));
 
    DWORD currentThread = GetCurrentThreadId();
 
-
-   // (1) ThreadId im EXECUTION_CONTEXT setzen bzw. aktualisieren
+   // (1) ThreadId im EXECUTION_CONTEXT aktualisieren
    if (ec->hThreadId != currentThread)
       ec->hThreadId = currentThread;
 
 
-   // (2) Thread in den bekannten Threads suchen
+   // (2) Thread in den verwalteten Threads suchen
    size_t i;
    for (i=0; i < threadsSize; i++) {
-      if (currentThread == threads[i])
+      if (threads[i] == currentThread) {                    // Thread gefunden: letzten Context aktualisieren
+         threadsLastContext[i] = ec;
          break;
-   }
-   if (i < threadsSize) {                                // Thread gefunden: letzten Context aktualisieren
-      if (lastContext[i] != ec) {
-         lastContext[i] = ec;
-         //debug("switching context of thread at index %d", i);
       }
    }
-   else {                                                // Thread nicht gefunden
-      // synchronize() start
+
+
+   // (3) wenn Thread nicht gefunden: hinzufügen
+   if (i >= threadsSize) {
       EnterCriticalSection(&threadsSection);
 
-      for (i=0; i < threadsSize; i++) {                  // ersten freien Slot suchen
+      for (i=0; i < threadsSize; i++) {                     // ersten freien Slot suchen
          if (!threads[i]) break;
       }
-      if (i == threadsSize) {                            // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 8)
+      if (i == threadsSize) {                               // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 8)
          size_t new_size = 2 * (threadsSize ? threadsSize : 4);
-         debug("increasing arrays to %d", new_size);
+         if (logInfo) debug("sizeof(threads) -> now %d", new_size);
 
-         DWORD* tmp1 = (DWORD*) realloc(threads,     new_size * sizeof(DWORD)             ); if (!tmp1) return(debug("->realloc(threads) failed"));
-         void** tmp2 = (void**) realloc(lastContext, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp2) return(debug("->realloc(lastContext) failed"));
+         DWORD* tmp1 = (DWORD*) realloc(threads,            new_size * sizeof(DWORD)             ); if (!tmp1) { LeaveCriticalSection(&threadsSection); return(debug("->realloc(threads) failed"));            }
+         void** tmp2 = (void**) realloc(threadsLastContext, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp2) { LeaveCriticalSection(&threadsSection); return(debug("->realloc(threadsLastContext) failed")); }
 
-         for (size_t n=threadsSize; n < new_size; n++) { // neuen Speicherbereich initialisieren
+         for (size_t n=threadsSize; n < new_size; n++) {    // neuen Bereich initialisieren
             tmp1[n] = NULL;
             tmp2[n] = NULL;
          }
-         threads     =                       tmp1;       // und Zuweisung ändern
-         lastContext = (EXECUTION_CONTEXT**) tmp2;
-         threadsSize = new_size;
-
-         //debug("adding thread at index %d", i);
+         threads            =                       tmp1;   // Zuweisung ändern
+         threadsLastContext = (EXECUTION_CONTEXT**) tmp2;
+         threadsSize        = new_size;
       }
-      //else debug("inserting thread at index %d", i);
+      threads           [i] = currentThread;                // Thread und letzten Context an Index i setzen
+      threadsLastContext[i] = ec;
 
-      threads    [i] = currentThread;                    // Thread und letzten Context an Index i einfügen
-      lastContext[i] = ec;
+	   LeaveCriticalSection(&threadsSection);
+   }
 
-		LeaveCriticalSection(&threadsSection);
-		// synchronize() end
+
+	// (4) EXECUTION_CONTEXT in der Liste der verwalteten Contexte suchen
+   for (i=0; i < contextsSize; i++) {
+      if (contexts[i] == ec) {
+         if (logDebug) debug("context %d found in contexts[%d]", ec, i);
+         break;
+      }
+   }
+
+
+	// (5) wenn Context nicht gefunden: hinzufügen
+   if (i >= contextsSize) {
+      EnterCriticalSection(&contextsSection);
+
+      for (i=0; i < contextsSize; i++) {
+         if (!contexts[i]) break;
+      }
+      if (i == contextsSize) {                              // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 32)
+         size_t new_size = 2 * (contextsSize ? contextsSize : 1);
+         if (logInfo) debug("sizeof(contexts) -> now %d", new_size);
+
+         void** tmp = (void**) realloc(contexts, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp) { LeaveCriticalSection(&contextsSection); return(debug("->realloc(contexts) failed")); }
+
+         for (size_t n=contextsSize; n < new_size; n++) {   // neuen Bereich initialisieren
+            tmp[n] = NULL;
+         }
+         contexts     = (EXECUTION_CONTEXT**) tmp;          // Zuweisung ändern
+         contextsSize = new_size;
+      }
+      if (logDebug) debug("contexts[%d] = %d", i, ec);
+      contexts[i] = ec;                                     // Context an Index i setzen
+
+	   LeaveCriticalSection(&contextsSection);
    }
 
    return(TRUE);
@@ -168,11 +211,41 @@ BOOL ManageExecutionContext(EXECUTION_CONTEXT* ec) {
 
 
 /**
-* Setzt die EXECUTION_CONTEXT-Daten des aktuellen Threads zurück.
+ * Kopiert den aktuellen EXECUTION_CONTEXT eines Threads in die angegebene Variable und registriert diese Kopie
+ * für die automatische Synchronisation von Änderungen mit dem aktuellen EXECUTION_CONTEXT eines Threads.
+ *
+ * @param EXECUTION_CONTEXT* dest - Zeiger auf einen EXECUTION_CONTEXT
+ *
+ * @return BOOL - Erfolgsstaus
+ */
+BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* dest) {
+   if ((int)dest < MIN_VALID_POINTER) return(debug("invalid parameter dest = 0x%p (not a valid pointer)", dest));
+
+   DWORD currentThread = GetCurrentThreadId();
+
+   // aktuellen Thread in den bekannten Threads suchen
+   for (size_t i=0; i < threadsSize; i++) {
+      if (threads[i] == currentThread) {                    // Thread gefunden
+         *dest = *threadsLastContext[i];                    // Context kopieren
+
+         // Context zu den synchron zu haltenden Contexten dieses Threads hinzufügen
+
+         return(TRUE);
+      }
+   }
+
+   // Thread nicht gefunden
+   return(debug("thread %d not found - ERR_ILLEGAL_STATE", currentThread));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die EXECUTION_CONTEXT-Daten des aktuellen Threads zurück.
  *
  * @return bool - Erfolgsstaus
  */
-BOOL ResetCurrentThreadData() {
+bool ResetCurrentThreadData() {
    DWORD currentThread = GetCurrentThreadId();
 
    // (1) aktuellen Thread in den Threads mit EXECUTION_CONTEXT suchen
@@ -184,13 +257,14 @@ BOOL ResetCurrentThreadData() {
 
    // (2) bei Sucherfolg Daten löschen, der Slot ist danach wieder verfügbar
    if (i < threadsSize) {
-      EnterCriticalSection(&threadsSection);             // synchronize() start
-      //debug("dropping thread at index %d", i);
-      threads    [i] = NULL;
-      lastContext[i] = NULL;
-		LeaveCriticalSection(&threadsSection);             // synchronize() end
+      EnterCriticalSection(&threadsSection);
+
+      threads           [i] = NULL;
+      threadsLastContext[i] = NULL;
+
+		LeaveCriticalSection(&threadsSection);
    }
-   return(TRUE);
+   return(true);
 }
 
 
@@ -470,7 +544,25 @@ const char* RootFunctionToStr(RootFunction id) {
 /**
  *
  */
+void SetLogLevel(int level) {
+   logDebug = logNotice = logInfo = logWarn = logError = logFatal = false;
+   switch (level) {
+      case L_ALL   :
+      case L_DEBUG : logDebug  = true;
+      case L_NOTICE: logNotice = true;
+      case L_INFO  : logInfo   = true;
+      case L_WARN  : logWarn   = true;
+      case L_ERROR : logError  = true;
+      case L_FATAL : logFatal  = true;
+   }
+}
+
+
+/**
+ *
+ */
 BOOL WINAPI Test_onInit(EXECUTION_CONTEXT* ec, int logLevel) {
+   SetLogLevel(logLevel);
    return(Expander_onInit(ec));
    #pragma EXPORT
 }
@@ -480,6 +572,7 @@ BOOL WINAPI Test_onInit(EXECUTION_CONTEXT* ec, int logLevel) {
  *
  */
 BOOL WINAPI Test_onStart(EXECUTION_CONTEXT* ec, int logLevel) {
+   SetLogLevel(logLevel);
    return(Expander_onStart(ec));
    #pragma EXPORT
 }
@@ -489,6 +582,7 @@ BOOL WINAPI Test_onStart(EXECUTION_CONTEXT* ec, int logLevel) {
  *
  */
 BOOL WINAPI Test_onDeinit(EXECUTION_CONTEXT* ec, int logLevel) {
+   SetLogLevel(logLevel);
    return(Expander_onDeinit(ec));
    #pragma EXPORT
 }
