@@ -1,7 +1,6 @@
 /**
  * Der Expander des Fortschritts
  *
- *
  * @author  Peter Walther
  */
 #include "stdafx.h"
@@ -76,7 +75,7 @@ void onProcessDetach() {
 /**
  * Wird in init() eines jeden MQL-Programms aufgerufen.
  *
- * @param EXECUTION_CONTEXT* ec - aktueller Kontext
+ * @param EXECUTION_CONTEXT* ec - aktueller Context
  *
  * @return BOOL - Erfolgsstaus
  */
@@ -90,7 +89,7 @@ BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
 /**
  * Wird in start() eines jeden MQL-Programms aufgerufen.
  *
- * @param EXECUTION_CONTEXT* ec - aktueller Kontext
+ * @param EXECUTION_CONTEXT* ec - aktueller Context
  *
  * @return BOOL - Erfolgsstaus
  */
@@ -104,7 +103,7 @@ BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
 /**
  * Wird in deinit() eines jeden MQL-Programms aufgerufen.
  *
- * @param EXECUTION_CONTEXT* ec - aktueller Kontext
+ * @param EXECUTION_CONTEXT* ec - aktueller Context
  *
  * @return BOOL - Erfolgsstaus
  */
@@ -116,8 +115,8 @@ BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Setzt den aktuellen EXECUTION_CONTEXT eines Threads. Wird von jeder MQL-Rootfunktion zu allererst aufgerufen,
- * wodurch Libraries den eigenen EXECUTION_CONTEXT abfragen können.
+ * Setzt den aktuellen EXECUTION_CONTEXT eines Threads. Wird zu Beginn jeder MQL-Rootfunktion aufgerufen,
+ * wodurch MQL-Libraries den eigenen EXECUTION_CONTEXT abfragen können.
  *
  * @param EXECUTION_CONTEXT* ec - aktueller Kontext eines MQL-Programms
  *
@@ -128,9 +127,8 @@ BOOL SetCurrentExecutionContext(EXECUTION_CONTEXT* ec) {
 
    DWORD currentThread = GetCurrentThreadId();
 
-   // (1) ThreadId im EXECUTION_CONTEXT aktualisieren
-   if (ec->hThreadId != currentThread)
-      ec->hThreadId = currentThread;
+   // (1) ThreadId im übergebenen EXECUTION_CONTEXT aktualisieren (der ausführende Thread von Online-EA's wechselt)
+   ec->hThreadId = currentThread;
 
 
    // (2) Thread in den verwalteten Threads suchen
