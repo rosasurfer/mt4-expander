@@ -180,7 +180,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\ExecutionContext.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Expander.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MQLUtils.cpp"
 				>
 			</File>
 		</Filter>
@@ -191,6 +199,10 @@
 			>
 			<File
 				RelativePath=".\Expander.h"
+				>
+			</File>
+			<File
+				RelativePath=".\global.h"
 				>
 			</File>
 			<File
