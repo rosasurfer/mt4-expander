@@ -13,16 +13,17 @@ bool logDebug, logNotice, logInfo, logWarn, logError, logFatal;
 
 
 // alle bekannten EXECUTION_CONTEXTe
-EXECUTION_CONTEXT** contexts;                               // contexts[]           = Array EXECUTION_CONTEXT*[]
+EXECUTION_CONTEXT** contexts;                               // Array EXECUTION_CONTEXT*[]
 size_t              contextsSize;                           // Arraygröße
-CRITICAL_SECTION    contextsSection;                        // Lock
+CRITICAL_SECTION    contextsLock;                           // Lock
 
 // alle bekannten Threads
-DWORD*              threads;                                // threads[]            = Array DWORD[]
+DWORD*              threads;                                // Array DWORD[]
+
 // der letzte EXECUTION_CONTEXT je Thread
-EXECUTION_CONTEXT** threadsLastContext;                     // threadsLastContext[] = Array EXECUTION_CONTEXT*[]
-size_t              threadsSize;                            // Arraygröße, es gilt: count_of(threads) == count_of(threadsLastContext)
-CRITICAL_SECTION    threadsSection;                         // Lock
+EXECUTION_CONTEXT** threadsLastContext;                     // Array EXECUTION_CONTEXT*[]
+size_t              threadsSize;                            // Arraygröße: sizeof(threads) == sizeof(threadsLastContext)
+CRITICAL_SECTION    threadsLock;                            // Lock
 
 
 /**
@@ -44,8 +45,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
  */
 void onProcessAttach() {
    SetLogLevel(L_WARN);                                     // Default-Loglevel
-   InitializeCriticalSection(&contextsSection);
-   InitializeCriticalSection(&threadsSection );
+   InitializeCriticalSection(&contextsLock);
+   InitializeCriticalSection(&threadsLock );
 }
 
 
@@ -62,8 +63,8 @@ void onThreadDetach() {
  */
 void onProcessDetach() {
    onThreadDetach();
-   DeleteCriticalSection(&contextsSection);
-   DeleteCriticalSection(&threadsSection );
+   DeleteCriticalSection(&contextsLock);
+   DeleteCriticalSection(&threadsLock );
 }
 
 
@@ -110,8 +111,8 @@ BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Schaltet den aktuellen EXECUTION_CONTEXT des Threads um. Wird indirekt von jeder MQL-Rootfunktion aufgerufen,
- * wodurch MQL-Libraries den EXECUTION_CONTEXT ihres MQL-Hauptmodules ermitteln können.
+ * Setzt den aktuellen EXECUTION_CONTEXT des Threads. Wird indirekt von jeder MQL-Rootfunktion aufgerufen,
+ * wodurch MQL-Libraries den EXECUTION_CONTEXT ihres MQL-Hauptmoduls ermitteln können.
  *
  * @param EXECUTION_CONTEXT* ec - aktueller Kontext eines MQL-Programms
  *
@@ -124,7 +125,6 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
    DWORD currentThread = GetCurrentThreadId();
    ec->hThreadId = currentThread;
 
-
    // (2) Thread in den bekannten Threads suchen
    size_t i;
    for (i=0; i < threadsSize; i++) {
@@ -134,10 +134,9 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
       }
    }
 
-
    // (3) wenn Thread nicht gefunden: Thread und Context hinzufügen
    if (i >= threadsSize) {
-      EnterCriticalSection(&threadsSection);
+      EnterCriticalSection(&threadsLock);
 
       for (i=0; i < threadsSize; i++) {                     // ersten freien Slot suchen
          if (!threads[i]) break;
@@ -146,8 +145,8 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
          size_t new_size = 2 * (threadsSize ? threadsSize : 4);
          if (logInfo) debug("sizeof(threads) -> now %d", new_size);
 
-         DWORD* tmp1 = (DWORD*) realloc(threads,            new_size * sizeof(DWORD)             ); if (!tmp1) { LeaveCriticalSection(&threadsSection); return(debug("->realloc(threads) failed"));            }
-         void** tmp2 = (void**) realloc(threadsLastContext, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp2) { LeaveCriticalSection(&threadsSection); return(debug("->realloc(threadsLastContext) failed")); }
+         DWORD* tmp1 = (DWORD*) realloc(threads,            new_size * sizeof(DWORD)             ); if (!tmp1) { LeaveCriticalSection(&threadsLock); return(debug("->realloc(threads) failed"));            }
+         void** tmp2 = (void**) realloc(threadsLastContext, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp2) { LeaveCriticalSection(&threadsLock); return(debug("->realloc(threadsLastContext) failed")); }
 
          for (size_t n=threadsSize; n < new_size; n++) {    // neuen Bereich initialisieren
             tmp1[n] = NULL;
@@ -160,9 +159,8 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
       threads           [i] = currentThread;                // Thread und letzten Context an Index i setzen
       threadsLastContext[i] = ec;
 
-	   LeaveCriticalSection(&threadsSection);
+	   LeaveCriticalSection(&threadsLock);
    }
-
 
 	// (4) EXECUTION_CONTEXT in der Liste der bekannten Contexte suchen
    for (i=0; i < contextsSize; i++) {
@@ -172,10 +170,9 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
       }
    }
 
-
 	// (5) wenn Context nicht gefunden: hinzufügen
    if (i >= contextsSize) {
-      EnterCriticalSection(&contextsSection);
+      EnterCriticalSection(&contextsLock);
 
       for (i=0; i < contextsSize; i++) {
          if (!contexts[i]) break;
@@ -184,7 +181,7 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
          size_t new_size = 2 * (contextsSize ? contextsSize : 1);
          if (logInfo) debug("sizeof(contexts) -> now %d", new_size);
 
-         void** tmp = (void**) realloc(contexts, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp) { LeaveCriticalSection(&contextsSection); return(debug("->realloc(contexts) failed")); }
+         void** tmp = (void**) realloc(contexts, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp) { LeaveCriticalSection(&contextsLock); return(debug("->realloc(contexts) failed")); }
 
          for (size_t n=contextsSize; n < new_size; n++) {   // neuen Bereich initialisieren
             tmp[n] = NULL;
@@ -195,9 +192,8 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
       if (logDebug) debug("contexts[%d] = %d", i, ec);
       contexts[i] = ec;                                     // Context an Index i setzen
 
-	   LeaveCriticalSection(&contextsSection);
+	   LeaveCriticalSection(&contextsLock);
    }
-
    return(TRUE);
 }
 
@@ -246,10 +242,10 @@ bool ResetCurrentThreadData() {
    for (size_t i=0; i < threadsSize; i++) {
       if (currentThread == threads[i]) {
          // (2) bei Sucherfolg Daten löschen, der Slot ist danach wieder verfügbar
-         EnterCriticalSection(&threadsSection);
+         EnterCriticalSection(&threadsLock);
          threads           [i] = NULL;
          threadsLastContext[i] = NULL;
-		   LeaveCriticalSection(&threadsSection);
+		   LeaveCriticalSection(&threadsLock);
          break;
       }
    }
