@@ -64,7 +64,7 @@ void onThreadDetach() {
             }
          }
 
-		   LeaveCriticalSection(&threadsLock);
+         LeaveCriticalSection(&threadsLock);
          break;
       }
    }
@@ -86,7 +86,7 @@ void onProcessDetach() {
  *
  * @param EXECUTION_CONTEXT* ec - Kontext des Hauptmoduls eines MQL-Programms
  *
- * @return BOOL - Erfolgsstaus
+ * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
@@ -122,7 +122,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    int                 contextsSize;                        // Arraygröße
    CRITICAL_SECTION    contextsLock;                        // Lock
 
-	// EXECUTION_CONTEXT in der Liste der bekannten Contexte suchen
+   // EXECUTION_CONTEXT in der Liste der bekannten Contexte suchen
    for (i=0; i < contextsSize; i++) {
       if (contexts[i] == ec) {
          if (logDebug) debug("context %d found in contexts[%d]", ec, i);
@@ -130,7 +130,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
       }
    }
 
-	// wenn Context nicht gefunden: hinzufügen
+   // wenn Context nicht gefunden: hinzufügen
    if (i >= contextsSize) {
       EnterCriticalSection(&contextsLock);
 
@@ -152,7 +152,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
       if (logDebug) debug("contexts[%d] = %d", i, ec);
       contexts[i] = ec;                                     // Context an Index i speichern
 
-	   LeaveCriticalSection(&contextsLock);
+      LeaveCriticalSection(&contextsLock);
    }
    */
    #pragma EXPORT
@@ -165,19 +165,19 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
  * ihres MQL-Hauptmodules zu ermitteln. Bei Änderungen an einem der verbundenen EXECUTION_CONTEXTe werden alle
  * zugehörigen EXECUTION_CONTEXTe aktualisiert.
  *
- * @param EXECUTION_CONTEXT* dest - Zeiger auf einen EXECUTION_CONTEXT
+ * @param EXECUTION_CONTEXT* ec - Zeiger auf einen EXECUTION_CONTEXT
  *
- * @return BOOL - Erfolgsstaus
+ * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* dest) {
-   if ((int)dest < MIN_VALID_POINTER) return(debug("invalid parameter dest = 0x%p (not a valid pointer)", dest));
+BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec) {
+   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    DWORD currentThread = GetCurrentThreadId();
 
    // aktuellen Thread in den bekannten Threads suchen
    for (int i=threads.size()-1; i >= 0; i--) {
       if (threads[i] == currentThread) {                    // Thread gefunden
-         *dest = *lastContexts[i];                          // Context kopieren
+         *ec = *lastContexts[i];                            // Context kopieren
 
          // TODO: Context zu den synchron zu haltenden Contexten dieses Threads hinzufügen
          return(TRUE);
