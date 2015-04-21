@@ -81,57 +81,15 @@ void onProcessDetach() {
 
 
 /**
- * DLL-Hook für MQL::init()
- *
- * @param EXECUTION_CONTEXT* ec - aktueller Context
- *
- * @return BOOL - Erfolgsstaus
- */
-BOOL WINAPI Expander_onInit(EXECUTION_CONTEXT* ec) {
-   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   return(SetExecutionContext(ec));
-   #pragma EXPORT
-}
-
-
-/**
- * DLL-Hook für MQL::start()
- *
- * @param EXECUTION_CONTEXT* ec - aktueller Context
- *
- * @return BOOL - Erfolgsstaus
- */
-BOOL WINAPI Expander_onStart(EXECUTION_CONTEXT* ec) {
-   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   return(SetExecutionContext(ec));
-   #pragma EXPORT
-}
-
-
-/**
- * DLL-Hook für MQL::deinit()
- *
- * @param EXECUTION_CONTEXT* ec - aktueller Context
- *
- * @return BOOL - Erfolgsstaus
- */
-BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
-   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   return(SetExecutionContext(ec));
-   #pragma EXPORT
-}
-
-
-/**
- * Setzt den aktuellen EXECUTION_CONTEXT des Threads. Wird indirekt von jeder MQL-Rootfunktion aufgerufen,
- * wodurch MQL-Libraries den EXECUTION_CONTEXT ihres MQL-Hauptmoduls ermitteln können.
+ * Setzt den aktuellen EXECUTION_CONTEXT des Threads. Wird von jeder MQL-Rootfunktion aufgerufen, wodurch MQL-Libraries
+ * den EXECUTION_CONTEXT ihres MQL-Hauptmoduls ermitteln können.
  *
  * @param EXECUTION_CONTEXT* ec - Kontext des Hauptmoduls eines MQL-Programms
  *
  * @return BOOL - Erfolgsstaus
  */
-BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
-   if (!ec) return(debug("invalid parameter ec = (null)"));
+BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
+   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    // (1) ThreadId im übergebenen EXECUTION_CONTEXT aktualisieren (der Thread von Online-EA's wechselt bei jedem Tick)
    DWORD currentThread = GetCurrentThreadId();
@@ -151,7 +109,8 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
    EnterCriticalSection(&threadsLock);
    threads     .push_back(currentThread);
    lastContexts.push_back(ec           );
-   if (logDebug) debug("thread %d added (now %d threads)", currentThread, threads.size());
+   if (threads.size() > 2)
+      debug("thread %d added (now %d threads)", currentThread, threads.size());
    LeaveCriticalSection(&threadsLock);
 
    return(TRUE);
@@ -196,6 +155,7 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
 	   LeaveCriticalSection(&contextsLock);
    }
    */
+   #pragma EXPORT
 }
 
 
@@ -225,7 +185,7 @@ BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* dest) {
    }
 
    // Thread nicht gefunden
-   debug("current thread %d not in known threads - ERR_ILLEGAL_STATE", currentThread);
+   debug("current thread %d not in known threads  [ERR_ILLEGAL_STATE]", currentThread);
    return(FALSE);
    #pragma EXPORT
 }
@@ -253,7 +213,7 @@ void SetLogLevel(int level) {
  */
 BOOL WINAPI Test_onInit(EXECUTION_CONTEXT* ec, int logLevel) {
    SetLogLevel(logLevel);
-   return(Expander_onInit(ec));
+   return(SetExecutionContext(ec));
    #pragma EXPORT
 }
 
@@ -263,7 +223,7 @@ BOOL WINAPI Test_onInit(EXECUTION_CONTEXT* ec, int logLevel) {
  */
 BOOL WINAPI Test_onStart(EXECUTION_CONTEXT* ec, int logLevel) {
    SetLogLevel(logLevel);
-   return(Expander_onStart(ec));
+   return(SetExecutionContext(ec));
    #pragma EXPORT
 }
 
@@ -273,7 +233,7 @@ BOOL WINAPI Test_onStart(EXECUTION_CONTEXT* ec, int logLevel) {
  */
 BOOL WINAPI Test_onDeinit(EXECUTION_CONTEXT* ec, int logLevel) {
    SetLogLevel(logLevel);
-   return(Expander_onDeinit(ec));
+   return(SetExecutionContext(ec));
    #pragma EXPORT
 }
 

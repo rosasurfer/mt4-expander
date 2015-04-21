@@ -126,5 +126,5 @@ void onThreadDetach ();
 void onProcessDetach();
 
 void SetLogLevel(int level);
-BOOL SetExecutionContext(EXECUTION_CONTEXT* ec);
-bool DropCurrentThread();
+BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec);
+BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* dest);
