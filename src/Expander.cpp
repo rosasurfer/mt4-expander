@@ -12,18 +12,10 @@
 bool logDebug, logNotice, logInfo, logWarn, logError, logFatal;
 
 
-// alle bekannten EXECUTION_CONTEXTe
-EXECUTION_CONTEXT** contexts;                               // Array EXECUTION_CONTEXT*[]
-size_t              contextsSize;                           // Arraygröße
-CRITICAL_SECTION    contextsLock;                           // Lock
-
-// alle bekannten Threads
-DWORD*              threads;                                // Array DWORD[]
-
-// der letzte EXECUTION_CONTEXT je Thread
-EXECUTION_CONTEXT** threadsLastContext;                     // Array EXECUTION_CONTEXT*[]
-size_t              threadsSize;                            // Arraygröße: sizeof(threads) == sizeof(threadsLastContext)
-CRITICAL_SECTION    threadsLock;                            // Lock
+// Thread- und EXECUTION_CONTEXT-Verwaltung
+std::vector<DWORD>              threads;                    // alle bekannten Threads
+std::vector<EXECUTION_CONTEXT*> lastContexts;               // der letzte Context je Thread
+CRITICAL_SECTION                threadsLock;                // Lock
 
 
 /**
@@ -41,30 +33,50 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 
 
 /**
- *
+ * Aufruf beim Laden der DLL
  */
 void onProcessAttach() {
    SetLogLevel(L_WARN);                                     // Default-Loglevel
-   InitializeCriticalSection(&contextsLock);
-   InitializeCriticalSection(&threadsLock );
+   threads     .reserve(8);
+   lastContexts.reserve(8);
+   InitializeCriticalSection(&threadsLock);
 }
 
 
 /**
- *
+ * Threaddaten löschen
  */
 void onThreadDetach() {
-   ResetCurrentThreadData();
+   DWORD currentThread = GetCurrentThreadId();
+
+   // Thread in den bekannten Threads suchen und Daten löschen
+   for (int i=threads.size()-1; i >= 0; i--) {
+      if (threads[i] == currentThread) {
+         EnterCriticalSection(&threadsLock);
+
+         // Suche wiederholen, da die Daten inzwischen modifiziert worden sein können
+         for (i=threads.size()-1; i >= 0; i--) {
+            if (threads[i] == currentThread) {
+               threads     .erase(threads     .begin() + i);
+               lastContexts.erase(lastContexts.begin() + i);
+               if (logDebug) debug("thread %d at index %d deleted (now %d threads)", currentThread, i, threads.size());
+               break;
+            }
+         }
+
+		   LeaveCriticalSection(&threadsLock);
+         break;
+      }
+   }
 }
 
 
 /**
- *
+ * Entladen der DLL
  */
 void onProcessDetach() {
    onThreadDetach();
-   DeleteCriticalSection(&contextsLock);
-   DeleteCriticalSection(&threadsLock );
+   DeleteCriticalSection(&threadsLock);
 }
 
 
@@ -114,7 +126,7 @@ BOOL WINAPI Expander_onDeinit(EXECUTION_CONTEXT* ec) {
  * Setzt den aktuellen EXECUTION_CONTEXT des Threads. Wird indirekt von jeder MQL-Rootfunktion aufgerufen,
  * wodurch MQL-Libraries den EXECUTION_CONTEXT ihres MQL-Hauptmoduls ermitteln können.
  *
- * @param EXECUTION_CONTEXT* ec - aktueller Kontext eines MQL-Programms
+ * @param EXECUTION_CONTEXT* ec - Kontext des Hauptmoduls eines MQL-Programms
  *
  * @return BOOL - Erfolgsstaus
  */
@@ -125,44 +137,33 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
    DWORD currentThread = GetCurrentThreadId();
    ec->hThreadId = currentThread;
 
+
    // (2) Thread in den bekannten Threads suchen
-   size_t i;
-   for (i=0; i < threadsSize; i++) {
-      if (threads[i] == currentThread) {                    // wenn Thread gefunden: letzten Context aktualisieren
-         threadsLastContext[i] = ec;
-         break;
+   for (int i=threads.size()-1; i >= 0; i--) {
+      if (threads[i] == currentThread) {                    // Thread gefunden:
+         lastContexts[i] = ec;                              // letzten Context aktualisieren
+         return(TRUE);
       }
    }
 
-   // (3) wenn Thread nicht gefunden: Thread und Context hinzufügen
-   if (i >= threadsSize) {
-      EnterCriticalSection(&threadsLock);
 
-      for (i=0; i < threadsSize; i++) {                     // ersten freien Slot suchen
-         if (!threads[i]) break;
-      }
-      if (i >= threadsSize) {                               // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 8)
-         size_t new_size = 2 * (threadsSize ? threadsSize : 4);
-         if (logInfo) debug("sizeof(threads) -> now %d", new_size);
+   // (3) Thread nicht gefunden: Thread und Context hinzufügen
+   EnterCriticalSection(&threadsLock);
+   threads     .push_back(currentThread);
+   lastContexts.push_back(ec           );
+   if (logDebug) debug("thread %d added (now %d threads)", currentThread, threads.size());
+   LeaveCriticalSection(&threadsLock);
 
-         DWORD* tmp1 = (DWORD*) realloc(threads,            new_size * sizeof(DWORD)             ); if (!tmp1) { LeaveCriticalSection(&threadsLock); return(debug("->realloc(threads) failed"));            }
-         void** tmp2 = (void**) realloc(threadsLastContext, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp2) { LeaveCriticalSection(&threadsLock); return(debug("->realloc(threadsLastContext) failed")); }
+   return(TRUE);
 
-         for (size_t n=threadsSize; n < new_size; n++) {    // neuen Bereich initialisieren
-            tmp1[n] = NULL;
-            tmp2[n] = NULL;
-         }
-         threads            =                       tmp1;   // Zuweisung ändern
-         threadsLastContext = (EXECUTION_CONTEXT**) tmp2;
-         threadsSize        = new_size;
-      }
-      threads           [i] = currentThread;                // Thread und letzten Context an Index i setzen
-      threadsLastContext[i] = ec;
 
-	   LeaveCriticalSection(&threadsLock);
-   }
+   /*
+   // alle bekannten EXECUTION_CONTEXTe
+   EXECUTION_CONTEXT** contexts;                            // Array EXECUTION_CONTEXT*[]
+   int                 contextsSize;                        // Arraygröße
+   CRITICAL_SECTION    contextsLock;                        // Lock
 
-	// (4) EXECUTION_CONTEXT in der Liste der bekannten Contexte suchen
+	// EXECUTION_CONTEXT in der Liste der bekannten Contexte suchen
    for (i=0; i < contextsSize; i++) {
       if (contexts[i] == ec) {
          if (logDebug) debug("context %d found in contexts[%d]", ec, i);
@@ -170,7 +171,7 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
       }
    }
 
-	// (5) wenn Context nicht gefunden: hinzufügen
+	// wenn Context nicht gefunden: hinzufügen
    if (i >= contextsSize) {
       EnterCriticalSection(&contextsLock);
 
@@ -178,23 +179,23 @@ BOOL SetExecutionContext(EXECUTION_CONTEXT* ec) {
          if (!contexts[i]) break;
       }
       if (i == contextsSize) {                              // kein freier Slot mehr vorhanden, Arrays vergrößern (Startwert: 32)
-         size_t new_size = 2 * (contextsSize ? contextsSize : 1);
+         int new_size = 2 * (contextsSize ? contextsSize : 1);
          if (logInfo) debug("sizeof(contexts) -> now %d", new_size);
 
          void** tmp = (void**) realloc(contexts, new_size * sizeof(EXECUTION_CONTEXT*)); if (!tmp) { LeaveCriticalSection(&contextsLock); return(debug("->realloc(contexts) failed")); }
 
-         for (size_t n=contextsSize; n < new_size; n++) {   // neuen Bereich initialisieren
+         for (int n=contextsSize; n < new_size; n++) {   // neuen Bereich initialisieren
             tmp[n] = NULL;
          }
          contexts     = (EXECUTION_CONTEXT**) tmp;          // Zuweisung ändern
          contextsSize = new_size;
       }
       if (logDebug) debug("contexts[%d] = %d", i, ec);
-      contexts[i] = ec;                                     // Context an Index i setzen
+      contexts[i] = ec;                                     // Context an Index i speichern
 
 	   LeaveCriticalSection(&contextsLock);
    }
-   return(TRUE);
+   */
 }
 
 
@@ -214,42 +215,19 @@ BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* dest) {
    DWORD currentThread = GetCurrentThreadId();
 
    // aktuellen Thread in den bekannten Threads suchen
-   for (size_t i=0; i < threadsSize; i++) {
+   for (int i=threads.size()-1; i >= 0; i--) {
       if (threads[i] == currentThread) {                    // Thread gefunden
-         *dest = *threadsLastContext[i];                    // Context kopieren
+         *dest = *lastContexts[i];                          // Context kopieren
 
          // TODO: Context zu den synchron zu haltenden Contexten dieses Threads hinzufügen
-
          return(TRUE);
       }
    }
 
    // Thread nicht gefunden
-   return(debug("thread %d not found - ERR_ILLEGAL_STATE", currentThread));
+   debug("current thread %d not in known threads - ERR_ILLEGAL_STATE", currentThread);
+   return(FALSE);
    #pragma EXPORT
-}
-
-
-/**
- * Setzt die EXECUTION_CONTEXT-Daten des aktuellen Threads zurück.
- *
- * @return bool - Erfolgsstaus
- */
-bool ResetCurrentThreadData() {
-   DWORD currentThread = GetCurrentThreadId();
-
-   // (1) aktuellen Thread in den bekannten Threads suchen
-   for (size_t i=0; i < threadsSize; i++) {
-      if (currentThread == threads[i]) {
-         // (2) bei Sucherfolg Daten löschen, der Slot ist danach wieder verfügbar
-         EnterCriticalSection(&threadsLock);
-         threads           [i] = NULL;
-         threadsLastContext[i] = NULL;
-		   LeaveCriticalSection(&threadsLock);
-         break;
-      }
-   }
-   return(true);
 }
 
 
@@ -305,6 +283,23 @@ BOOL WINAPI Test_onDeinit(EXECUTION_CONTEXT* ec, int logLevel) {
  */
 int WINAPI Test() {
 
+   int_vector ints(8);
+
+   ints.push_back(1);
+   ints.push_back(1);
+   ints.push_back(1);
+   ints.push_back(1);
+   ints.push_back(1);
+
+   int_vector::iterator it = ints.begin();
+   ints.erase(ints.begin() + 1);
+
+
+   debug("capacity(ints)=%d  size(ints)=%d", ints.capacity(), ints.size());
+
+   return(0);
+
+
    debug("sizeof(LaunchType)=%d  sizeof(EXECUTION_CONTEXT)=%d", sizeof(LaunchType), sizeof(EXECUTION_CONTEXT));
    return(0);
 
@@ -313,9 +308,10 @@ int WINAPI Test() {
    char* test = new char[len+1];
    str.copy(test, len);
    test[len] = '\0';
+   delete test;
+   return(0);
 
    debug("sizeof(EXECUTION_CONTEXT) = "+ to_string(sizeof(EXECUTION_CONTEXT)));
-
    /*
    debug("error.code=%d  error.message=%s", error->code, error->message);
    error->code    = 200;

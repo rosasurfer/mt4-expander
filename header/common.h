@@ -7,6 +7,7 @@
 #pragma warning(disable: 4065)         // switch statement contains 'default' but no 'case' labels
 #pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
+typedef unsigned int uint;             // more intuitiv than UINT
 
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 

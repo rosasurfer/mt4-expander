@@ -4,6 +4,10 @@
 #include "mql4/include/shared/errors.h"
 
 
+#include <vector>
+typedef std::vector<int> int_vector;
+
+
 #pragma pack(1)
 
 // MQL-Moduletypen
@@ -48,12 +52,12 @@ struct MqlStr {
 
 // MT4-interne Darstellung einer Preis-Bar
 struct RateInfo {
-   unsigned int time;            // BarOpen-Time
-   double       open;
-   double       low;
-   double       high;
-   double       close;
-   double       volume;          // immer Ganzzahl
+   int    time;                  // BarOpen-Time
+   double open;
+   double low;
+   double high;
+   double close;
+   double volume;                // immer Ganzzahl
 };
 
 
@@ -68,7 +72,7 @@ struct DLL_ERROR {
 // Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module/-Programme und die DLL
 //
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-   unsigned int       id;                          //       4      => ec[ 0]     eindeutige ID                                   (konstant)   => ...
+   int                id;                          //       4      => ec[ 0]     eindeutige ID                                   (konstant)   => ...
    DWORD              hThreadId;                   //       4      => ec[ 1]     aktueller Thread, in dem das Programm läuft     (variabel)   => ...
 
    ProgramType        programType;                 //       4      => ec[ 2]     Programmtyp                                     (konstant)   => was bin ich
@@ -81,14 +85,14 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    int                uninitializeReason;          //       4      => ec[ 9]     letzter Uninitialize-Reason                     (variabel)   => woher komme ich
 
    char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[10]     aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
-   unsigned int       timeframe;                   //       4      => ec[13]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   int                timeframe;                   //       4      => ec[13]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
    HWND               hChartWindow;                //       4      => ec[14]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
    HWND               hChart;                      //       4      => ec[15]     Chart-Frame:   MQL - WindowHandle()             (konstant)   => ...
    int                testFlags;                   //       4      => ec[16]     Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
 
    int                lastError;                   //       4      => ec[17]     letzter in MQL aufgetretener Fehler             (variabel)   => welcher MQL-Fehler ist aufgetreten
    DLL_ERROR**        dllErrors;                   //       4      => ec[18]     Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
-   size_t             dllErrorsSize;               //       4      => ec[19]     Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => ...
+   unsigned int       dllErrorsSize;               //       4      => ec[19]     Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => ...
    BOOL               logging;                     //       4      => ec[20]     Logstatus                                       (konstant)   => was logge ich
    LPSTR              logFile;                     //       4      => ec[21]     vollständiger Name der Logdatei                 (konstant)   => wohin logge ich
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
@@ -97,18 +101,18 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
 /*
 // Prototype
 struct EXECUTION_CONTEXT_proto {
-   unsigned int       id;
+   uint               id;
    ...
    LPSTR              programName;
    ...
    int                uninitializeReason;
 
    char               symbol[MAX_SYMBOL_LENGTH+1];
-   unsigned int       timeframe;
+   uint               timeframe;
    ...
 
    DLL_ERROR**        dllErrors;
-   size_t             dllErrorsSize;
+   uint               dllErrorsSize;
    int                logLevel;
    LPSTR              logFile;
 };
@@ -123,4 +127,4 @@ void onProcessDetach();
 
 void SetLogLevel(int level);
 BOOL SetExecutionContext(EXECUTION_CONTEXT* ec);
-bool ResetCurrentThreadData();
+bool DropCurrentThread();
