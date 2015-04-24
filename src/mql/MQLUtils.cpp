@@ -178,7 +178,7 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  *
  * @mql-import:  bool IsCustomTimeframe(int timeframe);
  */
- BOOL WINAPI IsCustomTimeframe(int timeframe) {
+BOOL WINAPI IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
@@ -208,25 +208,6 @@ char* WINAPI IntToHexStr(int value) {
 
 
 /**
- * Gibt die lesbare Beschreibung eines ModuleTypes zurück.
- *
- * @param  ModuleType type
- *
- * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
- */
-const char* ModuleTypeDescription(ModuleType type) {
-   switch (type) {
-      case MT_EXPERT   : return("Expert"   );
-      case MT_SCRIPT   : return("Script"   );
-      case MT_INDICATOR: return("Indicator");
-      case MT_LIBRARY  : return("Library"  );
-   }
-   debug("unknown module type = "+ to_string(type));
-   return(NULL);
-}
-
-
-/**
  * Gibt die lesbare Konstante eines ModuleTypes zurück.
  *
  * @param  ModuleType type
@@ -246,19 +227,56 @@ const char* ModuleTypeToStr(ModuleType type) {
 
 
 /**
- * Gibt die lesbare Beschreibung einer RootFunction-ID zurück.
+ * Gibt die lesbare Beschreibung eines ModuleTypes zurück.
  *
- * @param  RootFunction id
+ * @param  ModuleType type
  *
- * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
+ * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* RootFunctionDescription(RootFunction id) {
-   switch (id) {
-      case RF_INIT  : return("init()"  );
-      case RF_START : return("start()" );
-      case RF_DEINIT: return("deinit()");
+const char* ModuleTypeDescription(ModuleType type) {
+   switch (type) {
+      case MT_EXPERT   : return("Expert"   );
+      case MT_SCRIPT   : return("Script"   );
+      case MT_INDICATOR: return("Indicator");
+      case MT_LIBRARY  : return("Library"  );
    }
-   debug("unknown MQL root function id = "+ to_string(id));
+   debug("unknown module type = "+ to_string(type));
+   return(NULL);
+}
+
+
+/**
+ * Gibt die lesbare Konstante eines ProgramTypes zurück.
+ *
+ * @param  ProgramType type
+ *
+ * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
+ */
+const char* ProgramTypeToStr(ProgramType type) {
+   switch (type) {
+      case PT_EXPERT   : return("PT_EXPERT"   );
+      case PT_SCRIPT   : return("PT_SCRIPT"   );
+      case PT_INDICATOR: return("PT_INDICATOR");
+   }
+   debug("unknown program type = "+ to_string(type));
+   return(NULL);
+}
+
+
+/**
+ * Gibt die lesbare Beschreibung eines ProgramTypes zurück.
+ *
+ * @param  ProgramType type
+ *
+ * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
+ */
+const char* ProgramTypeDescription(ProgramType type) {
+   switch (type) {
+      case PT_EXPERT   : return("Expert"   );
+      case PT_SCRIPT   : return("Script"   );
+      case PT_INDICATOR: return("Indicator");
+   }
+   debug("unknown program type = "+ to_string(type));
    return(NULL);
 }
 
@@ -271,6 +289,24 @@ const char* RootFunctionDescription(RootFunction id) {
  * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
  */
 const char* RootFunctionToStr(RootFunction id) {
+   switch (id) {
+      case RF_INIT  : return("RF_INIT"  );
+      case RF_START : return("RF_START" );
+      case RF_DEINIT: return("RD_DEINIT");
+   }
+   debug("unknown MQL root function id = "+ to_string(id));
+   return(NULL);
+}
+
+
+/**
+ * Gibt die lesbare Beschreibung einer RootFunction-ID zurück.
+ *
+ * @param  RootFunction id
+ *
+ * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
+ */
+const char* RootFunctionDescription(RootFunction id) {
    switch (id) {
       case RF_INIT  : return("init()"  );
       case RF_START : return("start()" );

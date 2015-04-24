@@ -5,7 +5,9 @@
 #pragma warning(push)
 #pragma warning(disable: 4060)         // switch statement contains no 'case' or 'default' labels
 #pragma warning(disable: 4065)         // switch statement contains 'default' but no 'case' labels
+#pragma warning(disable: 4101)         // unreferenced local variable
 #pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
+
 
 typedef unsigned int uint;             // more intuitiv than UINT
 

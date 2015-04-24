@@ -2,28 +2,26 @@
 
 #include "mql4/include/shared/defines.h"
 #include "mql4/include/shared/errors.h"
-
-
 #include <vector>
-typedef std::vector<int> int_vector;
 
 
 #pragma pack(1)
 
-// MQL-Moduletypen
-enum ModuleType {
-   MT_INDICATOR = MODULETYPE_INDICATOR,
-   MT_EXPERT    = MODULETYPE_EXPERT,
-   MT_SCRIPT    = MODULETYPE_SCRIPT,
-   MT_LIBRARY   = MODULETYPE_LIBRARY
+
+// MQL-Programmtypen
+enum ProgramType {
+   PT_INDICATOR = PROGRAMTYPE_INDICATOR,
+   PT_EXPERT    = PROGRAMTYPE_EXPERT,
+   PT_SCRIPT    = PROGRAMTYPE_SCRIPT
 };
 
 
-// MQL-Programmtypen (Library-Module sind keine eigenständigen Programme)
-enum ProgramType {
-   PT_INDICATOR = MODULETYPE_INDICATOR,
-   PT_EXPERT    = MODULETYPE_EXPERT,
-   PT_SCRIPT    = MODULETYPE_SCRIPT
+// MQL-Moduletypen
+enum ModuleType {                            // als Flag implementiert
+   MT_INDICATOR = MODULETYPE_INDICATOR,      // 1
+   MT_EXPERT    = MODULETYPE_EXPERT,         // 2
+   MT_SCRIPT    = MODULETYPE_SCRIPT,         // 4
+   MT_LIBRARY   = MODULETYPE_LIBRARY         // 8 - Library-Module sind keine eigenständigen Programme
 };
 
 
@@ -72,23 +70,23 @@ struct DLL_ERROR {
 // Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module/-Programme und die DLL
 //
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-   int                id;                          //       4      => ec[ 0]     eindeutige ID                                   (konstant)   => ...
-   DWORD              hThreadId;                   //       4      => ec[ 1]     aktueller Thread, in dem das Programm läuft     (variabel)   => ...
+   DWORD              hThreadId;                   //       4      => ec[ 0]     Thread, in dem das Programm momentan läuft      (variabel)   => ...
 
+   unsigned int       programId;                   //       4      => ec[ 1]     eindeutige Programm-ID größer 0                 (konstant)   => Index in programs[i]
    ProgramType        programType;                 //       4      => ec[ 2]     Programmtyp                                     (konstant)   => was bin ich
    LPSTR              programName;                 //       4      => ec[ 3]     Programmname                                    (konstant)   => wie heiße ich
    LaunchType         launchType;                  //       4      => ec[ 4]     Launchtyp                                       (konstant)   => wie wurde ich gestartet
    EXECUTION_CONTEXT* superContext;                //       4      => ec[ 5]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   int                initFlags;                   //       4      => ec[ 6]     init-Flags                                      (konstant)   => wie werde ich initialisiert
-   int                deinitFlags;                 //       4      => ec[ 7]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
+   unsigned int       initFlags;                   //       4      => ec[ 6]     init-Flags                                      (konstant)   => wie werde ich initialisiert
+   unsigned int       deinitFlags;                 //       4      => ec[ 7]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
    RootFunction       rootFunction;                //       4      => ec[ 8]     aktuelle Rootfunktion des Programms             (variabel)   => wo bin ich
    int                uninitializeReason;          //       4      => ec[ 9]     letzter Uninitialize-Reason                     (variabel)   => woher komme ich
 
    char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[10]     aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
-   int                timeframe;                   //       4      => ec[13]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   unsigned int       timeframe;                   //       4      => ec[13]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
    HWND               hChartWindow;                //       4      => ec[14]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
    HWND               hChart;                      //       4      => ec[15]     Chart-Frame:   MQL - WindowHandle()             (konstant)   => ...
-   int                testFlags;                   //       4      => ec[16]     Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
+   unsigned int       testFlags;                   //       4      => ec[16]     Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
 
    int                lastError;                   //       4      => ec[17]     letzter in MQL aufgetretener Fehler             (variabel)   => welcher MQL-Fehler ist aufgetreten
    DLL_ERROR**        dllErrors;                   //       4      => ec[18]     Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
@@ -97,6 +95,9 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    LPSTR              logFile;                     //       4      => ec[21]     vollständiger Name der Logdatei                 (konstant)   => wohin logge ich
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
                                                    //      88      = int[22]                                                                     und warum bin ich nicht auf Ibiza
+
+typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
+
 
 /*
 // Prototype
@@ -119,12 +120,32 @@ struct EXECUTION_CONTEXT_proto {
 */
 
 
-
 // Funktionsdeklarationen
-void onProcessAttach();
-void onThreadDetach ();
-void onProcessDetach();
+void  onProcessAttach();
+void  onThreadDetach ();
+void  onProcessDetach();
 
-void SetLogLevel(int level);
-BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec);
-BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* dest);
+BOOL  WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec);
+BOOL  WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec);
+
+DWORD ecc_setHThreadId(pec_vector &chain, DWORD id);
+uint  ecc_setProgramId(pec_vector &chain, uint id);
+
+void  WINAPI SetLogLevel(int level);
+int   WINAPI GetBoolsAddress  (BOOL   values[]);
+int   WINAPI GetIntsAddress   (int    values[]);
+int   WINAPI GetBufferAddress (int    values[]);
+int   WINAPI GetDoublesAddress(double values[]);
+int   WINAPI GetStringsAddress(MqlStr values[]);
+int   WINAPI GetStringAddress(const char* value);
+char* WINAPI GetString       (const char* value);
+int   WINAPI GetLastWin32Error();
+BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
+BOOL  WINAPI IsCustomTimeframe(int timeframe);
+char* WINAPI IntToHexStr(int value);
+const char*  ModuleTypeToStr        (ModuleType   type);
+const char*  ModuleTypeDescription  (ModuleType   type);
+const char*  ProgramTypeToStr       (ProgramType  type);
+const char*  ProgramTypeDescription (ProgramType  type);
+const char*  RootFunctionToStr      (RootFunction id  );
+const char*  RootFunctionDescription(RootFunction id  );

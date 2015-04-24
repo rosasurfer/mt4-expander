@@ -198,6 +198,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\mql4\include\shared\defines.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mql4\include\shared\errors.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Expander.h"
 				>
 			</File>
