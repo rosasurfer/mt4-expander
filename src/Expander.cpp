@@ -41,8 +41,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
  * DllMain-Aufruf beim Laden der DLL
  */
 BOOL onProcessAttach() {
-   debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
    SetLogLevel(L_WARN);                                     // Default-Loglevel
+   //debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
 
    threads         .resize(0);
    threadProgramIds.resize(0);
@@ -56,7 +56,7 @@ BOOL onProcessAttach() {
  * DllMain-Aufruf beim Entladen der DLL
  */
 BOOL onProcessDetach() {
-   debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
+   if (logDebug) debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
    DeleteCriticalSection(&threadsLock);
    return(TRUE);
 }
