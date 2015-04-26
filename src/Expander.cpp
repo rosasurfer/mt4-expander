@@ -2,6 +2,9 @@
  * Der Expander des Fortschritts
  *
  * @author  Peter Walther
+ *
+ *
+ * Post-Build Event: copy "$(TargetPath)" "$(SolutionDir)..\mt4\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)"
  */
 #include "stdafx.h"
 #include "global.h"
@@ -11,11 +14,10 @@
 // Loglevel-Status
 bool logDebug, logNotice, logInfo, logWarn, logError, logFatal;
 
-
 // Thread- und EXECUTION_CONTEXT-Verwaltung
-std::vector<DWORD>      threads;                            // alle bekannten Thread-IDs
-std::vector<UINT>       threadProgramIds;                   // das von einem Thread jeweils zuletzt ausgeführte Programm
-std::vector<pec_vector> contextChains;                      // alle bekannten Context-Chains (Index = ProgramID)
+std::vector<DWORD>      threads         (64);               // alle bekannten Thread-IDs
+std::vector<UINT>       threadProgramIds(64);               // das von einem Thread jeweils zuletzt ausgeführte Programm
+std::vector<pec_vector> contextChains   (64);               // alle bekannten Context-Chains (Index = ProgramID)
 CRITICAL_SECTION        threadsLock;                        // Lock
 
 
@@ -23,71 +25,40 @@ CRITICAL_SECTION        threadsLock;                        // Lock
  * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
+   BOOL result = TRUE;
+
    switch (fReason) {
-      case DLL_PROCESS_ATTACH: onProcessAttach(); break;
-      case DLL_THREAD_ATTACH :                    break;
-      case DLL_THREAD_DETACH : onThreadDetach();  break;
-      case DLL_PROCESS_DETACH: onProcessDetach(); break;
+      case DLL_PROCESS_ATTACH: result = onProcessAttach(); break;
+      case DLL_THREAD_ATTACH :                             break;
+      case DLL_THREAD_DETACH :                             break;
+      case DLL_PROCESS_DETACH: result = onProcessDetach(); break;
    }
+   return(result);
+}
+
+
+/**
+ * DllMain-Aufruf beim Laden der DLL
+ */
+BOOL onProcessAttach() {
+   debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
+   SetLogLevel(L_WARN);                                     // Default-Loglevel
+
+   threads         .resize(0);
+   threadProgramIds.resize(0);
+   contextChains   .resize(1);                              // Index[0] ist keine gültige Programm-ID und bleibt frei
+   InitializeCriticalSection(&threadsLock);
    return(TRUE);
 }
 
 
 /**
- * Aufruf beim Laden der DLL
+ * DllMain-Aufruf beim Entladen der DLL
  */
-void onProcessAttach() {
-   SetLogLevel(L_WARN);                                     // Default-Loglevel
-   threads         .reserve( 8);
-   threadProgramIds.reserve( 8);
-   contextChains   .reserve(32);
-   InitializeCriticalSection(&threadsLock);
-}
-
-
-/**
- * Threaddaten löschen
- */
-void onThreadDetach() {
-   DWORD currentThread = GetCurrentThreadId();
-
-   // Thread in den bekannten Threads suchen und Daten löschen
-   for (int i=threads.size()-1; i >= 0; i--) {
-      if (threads[i] == currentThread) {
-         EnterCriticalSection(&threadsLock);
-
-         // Suche wiederholen, da die Daten inzwischen modifiziert worden sein können
-         for (i=threads.size()-1; i >= 0; i--) {
-            if (threads[i] == currentThread) {
-               /*
-               pec_vector* chain     = &contextChains[threadProgramIds[i]];         // ContextChain eines Scripts löschen
-               EXECUTION_CONTEXT* ec = chain->at(0);                                // Da unbekannt ist, wann MetaTrader den Speicher freigibt,
-               debug("dropping thread with %s", ProgramTypeToStr(ec->programType)); // sollte nach Script::deinit() nicht mehr auf die Contexte
-               if (ec->programType == PROGRAMTYPE_SCRIPT)                           // zugegriffen werden.
-                  chain->clear();
-               */
-               threads         .erase(threads         .begin() + i);
-               threadProgramIds.erase(threadProgramIds.begin() + i);
-               break;
-            }
-         }
-
-         LeaveCriticalSection(&threadsLock);
-         break;
-      }
-   }
-}
-
-
-/**
- * Entladen der DLL
- */
-void onProcessDetach() {
-   onThreadDetach();
-   threads         .clear();
-   threadProgramIds.clear();
-   contextChains   .clear();
+BOOL onProcessDetach() {
+   debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
    DeleteCriticalSection(&threadsLock);
+   return(TRUE);
 }
 
 
@@ -102,37 +73,52 @@ void onProcessDetach() {
 BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
+   // (1) ThreadId des Contexts aktualisieren (der Thread von Online-EA's wechselt bei jedem Tick)
+   DWORD currentThreadId = GetCurrentThreadId();
+   ec->hThreadId = currentThreadId;
 
-   // (1) bei unbekanntem Context neue Chain anlegen und zu den bekannten Chains hinzufügen
+
+   // (2) Prüfen, ob der Context bereits bekannt ist
    int programId = ec->programId;
    if (!programId) {
-      if (logDebug) debug("ec.programId=0,  creating new chain");
+      // (2.1) bei neuem Context neue Chain anlegen und zu den bekannten Chains hinzufügen
+      if (logDebug) debug("thread=%d %s  %s::%s  programId=%d  creating new chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionDescription(ec->rootFunction), programId);
+
       pec_vector chain;
       chain.reserve(8);
       chain.push_back(ec);
 
       EnterCriticalSection(&threadsLock);
-      int size = contextChains.size();
-      if (!size) {
-         if (logDebug) debug("initializing contextChains");
-         contextChains.resize(++size);                      // Index[0] ist keine gültige Programm-ID und bleibt frei
-      }
       contextChains.push_back(chain);
-      if (logDebug) debug("contextChains.size now %d", contextChains.size());
-      ec->programId = programId = size;                     // ecc_setProgramId() unnötig, da chain.size hier immer 1
+      int size = contextChains.size();
       LeaveCriticalSection(&threadsLock);
+
+      if (logDebug) debug("chains.size now %d", size);
+      ec->programId = programId = size-1;                   // chain.size ist hier immer 1
+   }
+   else {
+      // (2.2) bei bekanntem Context alle Contexte der Chain aktualisieren
+      if (logDebug) debug("thread=%d %s  %s::%s  programId=%d  updating chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionDescription(ec->rootFunction), programId);
+      pec_vector &chain = contextChains[programId];
+
+      // (2.3) EXECUTION_CONTEXT des Hauptmodules nach Indicator::deinit() durch die übergebene Version ERSETZEN
+      int i = 0;
+      if (ec != chain[0])                                   // wenn sich der Pointer (= Speicherblock) des Hauptmodules geändert hat
+         chain[i++] = ec;
+
+      // (2.4) alle weiteren Contexte (Libraries) mit der übergebenen Version überschreiben
+      int size = chain.size();
+      for (; i < size; i++) {
+         *chain[i] = *ec;
+      }
    }
 
 
-   // (2) ThreadId der Chain aktualisieren (der Thread von Online-EA's wechselt bei jedem Tick)
-   DWORD currentThread = GetCurrentThreadId();
-   ecc_setHThreadId(contextChains[programId], currentThread);
-
-
    // (3) Thread in den bekannten Threads suchen
-   for (int i=threads.size()-1; i >= 0; i--) {
-      if (threads[i] == currentThread) {
-         threadProgramIds[i] = programId;                   // Thread gefunden: laufendes Programm aktualisieren
+   int size = threads.size();
+   for (int i=0; i < size; i++) {                           // Aufwärts, damit der UI-Thread (Index 0 oder 1) schnellstmöglich gefunden wird.
+      if (threads[i] == currentThreadId) {
+         threadProgramIds[i] = programId;                   // Thread gefunden: ID des laufenden Programms aktualisieren
          return(TRUE);
       }
    }
@@ -140,10 +126,9 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
 
    // (4) Thread nicht gefunden: Thread und Programm hinzufügen
    EnterCriticalSection(&threadsLock);
-   threads         .push_back(currentThread);
+   threads         .push_back(currentThreadId);
    threadProgramIds.push_back(programId);
-   if (logDebug || threads.size() > 2)
-      debug("thread %d added (now %d threads)", currentThread, threads.size());
+   if (logDebug || threads.size() > 2) debug("thread %d %s  added (now %d threads)", currentThreadId, (IsUIThread() ? "ui":"  "), threads.size());
    LeaveCriticalSection(&threadsLock);
 
    return(TRUE);
@@ -164,17 +149,22 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
 BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec) {
    if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
+   return(TRUE);
+
    DWORD currentThread = GetCurrentThreadId();
 
    // aktuellen Thread in den bekannten Threads suchen
+   EnterCriticalSection(&threadsLock);
    for (int i=threads.size()-1; i >= 0; i--) {
       if (threads[i] == currentThread) {                    // Thread gefunden
          int programId = threadProgramIds[i];
          *ec = *contextChains[programId][0];                // Hauptkontext kopieren (Index 0)
          contextChains[programId].push_back(ec);            // Context zur Chain des Programms hinzufügen
+         LeaveCriticalSection(&threadsLock);
          return(TRUE);
       }
    }
+   LeaveCriticalSection(&threadsLock);
 
    // Thread nicht gefunden
    debug("current thread %d not in known threads  [ERR_ILLEGAL_STATE]", currentThread);
@@ -194,7 +184,9 @@ BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec) {
 DWORD ecc_setHThreadId(pec_vector &chain, DWORD id) {
    int size = chain.size();
    for (int i=0; i < size; i++) {
-      chain[i]->hThreadId = id;
+      EXECUTION_CONTEXT* ec = chain.at(i);
+      if (logDebug) debug("chain.size=%d  programName[%d]=%s", size, i, ec->programName);
+      //ec->hThreadId = id;
    }
    return(id);
 }
@@ -211,7 +203,7 @@ DWORD ecc_setHThreadId(pec_vector &chain, DWORD id) {
 uint ecc_setProgramId(pec_vector &chain, uint id) {
    int size = chain.size();
    for (int i=0; i < size; i++) {
-      chain[i]->programId = id;
+      chain.at(i)->programId = id;
    }
    return(id);
 }
@@ -269,15 +261,9 @@ BOOL WINAPI Test_onDeinit(EXECUTION_CONTEXT* ec, int logLevel) {
  *
  */
 int WINAPI Test() {
-   typedef std::vector<int>                int_vector;
-
-   EXECUTION_CONTEXT ec1;
-   EXECUTION_CONTEXT ec2;
-   EXECUTION_CONTEXT ec3;
-
-   pec_vector ecChain(0);
-
+   pec_vector  ecChain(0);
    pec_vector* ecChain2 = new std::vector<EXECUTION_CONTEXT*>(2);
+   delete ecChain2;
 
    //ecChain      .push_back(ec1);
    //ecChain      .push_back(ec2);
@@ -285,7 +271,7 @@ int WINAPI Test() {
    //contextChains.push_back(ecChain);
    return(0);
 
-
+   typedef std::vector<int> int_vector;
    int_vector ints(1);
 
    ints.push_back(1);

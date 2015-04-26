@@ -44,6 +44,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;STDLIB_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
+				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				EnableEnhancedInstructionSet="2"
@@ -88,7 +89,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\mql4\libraries\$(TargetName).$(ConfigurationName)$(TargetExt)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\mt4\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -121,6 +122,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;EXPANDER_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
+				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"

@@ -121,17 +121,19 @@ struct EXECUTION_CONTEXT_proto {
 
 
 // Funktionsdeklarationen
-void  onProcessAttach();
-void  onThreadDetach ();
-void  onProcessDetach();
-
-BOOL  WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec);
-BOOL  WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec);
+BOOL  onProcessAttach();
+BOOL  onProcessDetach();
 
 DWORD ecc_setHThreadId(pec_vector &chain, DWORD id);
 uint  ecc_setProgramId(pec_vector &chain, uint id);
 
+BOOL  WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec);
+BOOL  WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec);
+
 void  WINAPI SetLogLevel(int level);
+HWND  WINAPI GetApplicationWindow();
+DWORD WINAPI GetUIThreadId();
+BOOL  WINAPI IsUIThread();
 int   WINAPI GetBoolsAddress  (BOOL   values[]);
 int   WINAPI GetIntsAddress   (int    values[]);
 int   WINAPI GetBufferAddress (int    values[]);
@@ -143,9 +145,10 @@ int   WINAPI GetLastWin32Error();
 BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
 BOOL  WINAPI IsCustomTimeframe(int timeframe);
 char* WINAPI IntToHexStr(int value);
-const char*  ModuleTypeToStr        (ModuleType   type);
-const char*  ModuleTypeDescription  (ModuleType   type);
-const char*  ProgramTypeToStr       (ProgramType  type);
-const char*  ProgramTypeDescription (ProgramType  type);
-const char*  RootFunctionToStr      (RootFunction id  );
-const char*  RootFunctionDescription(RootFunction id  );
+
+const char*  ModuleTypeToStr        (ModuleType  type);
+const char*  ModuleTypeDescription  (ModuleType  type);
+const char*  ProgramTypeToStr       (ProgramType type);
+const char*  ProgramTypeDescription (ProgramType type);
+const char*  RootFunctionToStr      (RootFunction  id);
+const char*  RootFunctionDescription(RootFunction  id);

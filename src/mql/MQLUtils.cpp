@@ -315,3 +315,77 @@ const char* RootFunctionDescription(RootFunction id) {
    debug("unknown MQL root function id = "+ to_string(id));
    return(NULL);
 }
+
+
+/**
+ * Gibt das Handle des Terminal-Hauptfensters zurück.
+ *
+ * @return HWND - Handle oder 0, falls ein Fehler auftrat
+ */
+HWND WINAPI GetApplicationWindow() {
+   static HWND hWnd;
+
+   if (!hWnd) {
+      HWND  hWndNext = GetTopWindow(NULL);
+      DWORD processId, myProcessId=GetCurrentProcessId();
+
+      // alle Top-Level-Windows durchlaufen
+      while (hWndNext) {
+         GetWindowThreadProcessId(hWndNext, &processId);
+         if (processId == myProcessId) {
+
+            // ClassName des Fensters ermitteln
+            int   size = 255;
+            char* className = (char*) alloca(size);            // auf dem Stack
+            int   copied = GetClassName(hWndNext, className, size);
+            if (!copied) return((HWND)debug("->GetClassName()  0 chars copied  [%d] ", GetLastError()));
+
+            while (copied >= size-1) {                         // GetClassName() gibt die Anzahl der kopierten Zeichen zurück (ohne \0).
+               size <<= 1;                                     // Bei size-1 ist unklar, ob der String genau in den Buffer paßte oder nicht.
+               className = (char*) alloca(size);               // auf dem Stack
+               copied    = GetClassName(hWndNext, className, size);
+            }
+            if (!copied) return((HWND)debug("->GetClassName()  0 chars copied  [%d]", GetLastError()));
+
+            // Klasse mit der Klasse des Terminal-Hauptfensters vergleichen
+            if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
+               break;
+         }
+         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+      }
+      if (!hWndNext) debug("cannot find application main window [%d]", GetLastError());
+      hWnd = hWndNext;
+   }
+   return(hWnd);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die ID des Userinterface-Threads zurück.
+ *
+ * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
+ */
+DWORD WINAPI GetUIThreadId() {
+   static DWORD uiThreadId;
+
+   if (!uiThreadId) {
+      HWND hWnd = GetApplicationWindow();
+      if (hWnd)
+         uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
+   }
+   return(uiThreadId);
+   #pragma EXPORT
+}
+
+
+/**
+ * Ob der aktuelle Thread der UI-Thread ist.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsUIThread() {
+   return(GetCurrentThreadId() == GetUIThreadId());
+   #pragma EXPORT
+}
+
