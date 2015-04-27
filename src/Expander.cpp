@@ -38,7 +38,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
 
 
 /**
- * DllMain-Aufruf beim Laden der DLL
+ * DllMain()-Aufruf beim Laden der DLL
  */
 BOOL onProcessAttach() {
    SetLogLevel(L_WARN);                                     // Default-Loglevel
@@ -53,7 +53,7 @@ BOOL onProcessAttach() {
 
 
 /**
- * DllMain-Aufruf beim Entladen der DLL
+ * DllMain()-Aufruf beim Entladen der DLL
  */
 BOOL onProcessDetach() {
    if (logDebug) debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
@@ -103,7 +103,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
 
       // (2.3) EXECUTION_CONTEXT des Hauptmodules nach Indicator::deinit() durch die übergebene Version ERSETZEN
       int i = 0;
-      if (ec != chain[0])                                   // wenn sich der Pointer (= Speicherblock) des Hauptmodules geändert hat
+      if (ec != chain[0])                                   // wenn sich der Pointer (= Speicherblock) auf den Hauptmodulkontext ändert
          chain[i++] = ec;
 
       // (2.4) alle weiteren Contexte (Libraries) mit der übergebenen Version überschreiben
@@ -184,9 +184,8 @@ BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec) {
 DWORD ecc_setHThreadId(pec_vector &chain, DWORD id) {
    int size = chain.size();
    for (int i=0; i < size; i++) {
-      EXECUTION_CONTEXT* ec = chain.at(i);
-      if (logDebug) debug("chain.size=%d  programName[%d]=%s", size, i, ec->programName);
-      //ec->hThreadId = id;
+      chain[i]->hThreadId = id;
+      //if (logDebug) debug("chain.size=%d  programName[%d]=%s", size, i, chain[i]->programName);
    }
    return(id);
 }
@@ -203,7 +202,7 @@ DWORD ecc_setHThreadId(pec_vector &chain, DWORD id) {
 uint ecc_setProgramId(pec_vector &chain, uint id) {
    int size = chain.size();
    for (int i=0; i < size; i++) {
-      chain.at(i)->programId = id;
+      chain[i]->programId = id;
    }
    return(id);
 }
