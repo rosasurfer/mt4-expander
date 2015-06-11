@@ -67,7 +67,7 @@ struct DLL_ERROR {
 
 
 // Ausführungskontext eines MQL-Programms:
-// Laufzeitumgebungsinformationen und Datenaustausch für MQL-Module/-Programme und die DLL
+// Laufzeitumgebungsinformationen und Datenaustausch zwischen MQL-Modulen und DLL
 //
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
    DWORD              hThreadId;                   //       4      => ec[ 0]     Thread, in dem das Programm momentan läuft      (variabel)   => ...
