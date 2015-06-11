@@ -128,7 +128,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    EnterCriticalSection(&threadsLock);
    threads         .push_back(currentThreadId);
    threadProgramIds.push_back(programId);
-   if (logDebug || threads.size() > 2) debug("thread %d %s  added (now %d threads)", currentThreadId, (IsUIThread() ? "ui":"  "), threads.size());
+   if (logDebug || threads.size() > 32) debug("thread %d %s  added (now %d threads)", currentThreadId, (IsUIThread() ? "ui":"  "), threads.size());
    LeaveCriticalSection(&threadsLock);
 
    return(TRUE);
