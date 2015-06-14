@@ -16,12 +16,12 @@ enum ProgramType {
 };
 
 
-// MQL-Moduletypen
-enum ModuleType {                            // als Flag implementiert
+// MQL-Modultypen                            // als Flag implementiert
+enum ModuleType {
    MT_INDICATOR = MODULETYPE_INDICATOR,      // 1
    MT_EXPERT    = MODULETYPE_EXPERT,         // 2
    MT_SCRIPT    = MODULETYPE_SCRIPT,         // 4
-   MT_LIBRARY   = MODULETYPE_LIBRARY         // 8 - Library-Module sind keine eigenständigen Programme
+   MT_LIBRARY   = MODULETYPE_LIBRARY         // 8 - Libraries sind keine eigenständigen Programme
 };
 
 
@@ -43,8 +43,8 @@ enum LaunchType {
 
 // MT4-interne Darstellung eines MQL-Strings
 struct MqlStr {
-   int   length;                 // 0, wenn der String ein C-Literal ist;
-   char* string;                 // andererseits die Größe des verfügbaren Speicherblocks
+   int   length;                 // Größe des verfügbaren Speicherblocks oder 0, wenn der String ein C-Literal ist
+   char* string;
 };
 
 
@@ -72,29 +72,29 @@ struct DLL_ERROR {
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
    DWORD              hThreadId;                   //       4      => ec[ 0]     Thread, in dem das Programm momentan läuft      (variabel)   => ...
 
-   unsigned int       programId;                   //       4      => ec[ 1]     eindeutige Programm-ID größer 0                 (konstant)   => Index in programs[i]
+   unsigned int       programId;                   //       4      => ec[ 1]     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
    ProgramType        programType;                 //       4      => ec[ 2]     Programmtyp                                     (konstant)   => was bin ich
-   LPSTR              programName;                 //       4      => ec[ 3]     Programmname                                    (konstant)   => wie heiße ich
-   LaunchType         launchType;                  //       4      => ec[ 4]     Launchtyp                                       (konstant)   => wie wurde ich gestartet
-   EXECUTION_CONTEXT* superContext;                //       4      => ec[ 5]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   unsigned int       initFlags;                   //       4      => ec[ 6]     init-Flags                                      (konstant)   => wie werde ich initialisiert
-   unsigned int       deinitFlags;                 //       4      => ec[ 7]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
-   RootFunction       rootFunction;                //       4      => ec[ 8]     aktuelle Rootfunktion des Programms             (variabel)   => wo bin ich
-   int                uninitializeReason;          //       4      => ec[ 9]     letzter Uninitialize-Reason                     (variabel)   => woher komme ich
+   char               programName[MAX_PATH];       //     260      => ec[ 3]     Programmname                                    (konstant)   => wie heiße ich
+   LaunchType         launchType;                  //       4      => ec[68]     Launchtyp                                       (konstant)   => wie wurde ich gestartet
+   EXECUTION_CONTEXT* superContext;                //       4      => ec[69]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
+   unsigned int       initFlags;                   //       4      => ec[70]     init-Flags                                      (konstant)   => wie werde ich initialisiert
+   unsigned int       deinitFlags;                 //       4      => ec[71]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
+   RootFunction       rootFunction;                //       4      => ec[72]     aktuelle Rootfunktion des Programms             (variabel)   => wo bin ich
+   int                uninitializeReason;          //       4      => ec[73]     letzter Uninitialize-Reason                     (variabel)   => woher komme ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[10]     aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
-   unsigned int       timeframe;                   //       4      => ec[13]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChartWindow;                //       4      => ec[14]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
-   HWND               hChart;                      //       4      => ec[15]     Chart-Frame:   MQL - WindowHandle()             (konstant)   => ...
-   unsigned int       testFlags;                   //       4      => ec[16]     Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[74]     aktuelles Symbol, <NUL>-terminiert              (variabel)   => auf welchem Symbol laufe ich
+   unsigned int       timeframe;                   //       4      => ec[77]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   HWND               hChartWindow;                //       4      => ec[78]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
+   HWND               hChart;                      //       4      => ec[79]     Chart-Frame: = MQL->WindowHandle()              (konstant)   => ...
+   unsigned int       testFlags;                   //       4      => ec[80]     Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
 
-   int                lastError;                   //       4      => ec[17]     letzter in MQL aufgetretener Fehler             (variabel)   => welcher MQL-Fehler ist aufgetreten
-   DLL_ERROR**        dllErrors;                   //       4      => ec[18]     Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
-   unsigned int       dllErrorsSize;               //       4      => ec[19]     Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => ...
-   BOOL               logging;                     //       4      => ec[20]     Logstatus                                       (konstant)   => was logge ich
-   LPSTR              logFile;                     //       4      => ec[21]     vollständiger Name der Logdatei                 (konstant)   => wohin logge ich
+   int                lastError;                   //       4      => ec[81]     letzter in MQL aufgetretener Fehler             (variabel)   => welcher MQL-Fehler ist aufgetreten
+   DLL_ERROR**        dllErrors;                   //       4      => ec[82]     Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
+   unsigned int       dllErrorsSize;               //       4      => ec[83]     Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => wieviele DLL-Fehler sind aufgetreten
+   BOOL               logging;                     //       4      => ec[84]     Logstatus                                       (konstant)   => was logge ich
+   char               logFile[MAX_PATH];           //     260      => ec[85]     Name der Logdatei, <NUL>-terminiert             (konstant)   => wohin logge ich
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
-                                                   //      88      = int[22]                                                                     und warum bin ich nicht auf Ibiza
+                                                   //     600     = int[150]                                                                     warum bin ich nicht auf Ibiza
 
 typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 
@@ -107,15 +107,11 @@ struct EXECUTION_CONTEXT_proto {
    LPSTR              programName;
    ...
    int                uninitializeReason;
-
-   char               symbol[MAX_SYMBOL_LENGTH+1];
-   uint               timeframe;
    ...
-
    DLL_ERROR**        dllErrors;
    uint               dllErrorsSize;
    int                logLevel;
-   LPSTR              logFile;
+   ...
 };
 */
 
