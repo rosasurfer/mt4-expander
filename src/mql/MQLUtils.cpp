@@ -18,7 +18,7 @@
  *
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
-int WINAPI GetBoolsAddress(BOOL lpValues[]) {
+int WINAPI GetBoolsAddress(const BOOL lpValues[]) {
    if (lpValues && (int)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
@@ -36,7 +36,7 @@ int WINAPI GetBoolsAddress(BOOL lpValues[]) {
  *
  * @mql-import:  int GetIntsAddress(int array[]);
  */
-int WINAPI GetIntsAddress(int lpValues[]) {
+int WINAPI GetIntsAddress(const int lpValues[]) {
    if (lpValues && (int)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
@@ -47,7 +47,7 @@ int WINAPI GetIntsAddress(int lpValues[]) {
 /**
  * Alias
  */
-int WINAPI GetBufferAddress(int values[]) {
+int WINAPI GetBufferAddress(const int values[]) {
    return(GetIntsAddress(values));
    #pragma EXPORT
 }
@@ -63,7 +63,7 @@ int WINAPI GetBufferAddress(int values[]) {
  *
  * @mql-import:  int GetDoublesAddress(double array[]);
  */
-int WINAPI GetDoublesAddress(double lpValues[]) {
+int WINAPI GetDoublesAddress(const double lpValues[]) {
    if (lpValues && (int)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
@@ -81,7 +81,7 @@ int WINAPI GetDoublesAddress(double lpValues[]) {
  *
  * @mql-import:  int GetStringsAddress(string values[]);
  */
-int WINAPI GetStringsAddress(MqlStr lpValues[]) {
+int WINAPI GetStringsAddress(const MqlStr lpValues[]) {
    if (lpValues && (int)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
@@ -151,7 +151,7 @@ int WINAPI GetLastWin32Error() {
  *
  * @mql-import:  bool IsBuiltinTimeframe(int timeframe);
  */
-BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
+BOOL WINAPI IsBuiltinTimeframe(const int timeframe) {
    switch (timeframe) {
       case PERIOD_M1 : return(TRUE);
       case PERIOD_M5 : return(TRUE);
@@ -178,7 +178,7 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  *
  * @mql-import:  bool IsCustomTimeframe(int timeframe);
  */
-BOOL WINAPI IsCustomTimeframe(int timeframe) {
+BOOL WINAPI IsCustomTimeframe(const int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
@@ -197,12 +197,12 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
  *
  * @mql-import:  string IntToHexStr(int value);
  */
-char* WINAPI IntToHexStr(int value) {
+char* WINAPI IntToHexStr(const int value) {
    int   size = 9;
-   char* str  = new char[size];
-   sprintf_s(str, size, "%p", value);
+   char* szchar = new char[size];                                    // TODO: Speicherleck schließen
+   sprintf_s(szchar, size, "%p", value);
 
-   return(str);
+   return(szchar);
    #pragma EXPORT
 }
 
@@ -214,7 +214,7 @@ char* WINAPI IntToHexStr(int value) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ModuleTypeToStr(ModuleType type) {
+const char* ModuleTypeToStr(const ModuleType type) {
    switch (type) {
       case MT_EXPERT   : return("MT_EXPERT"   );
       case MT_SCRIPT   : return("MT_SCRIPT"   );
@@ -233,7 +233,7 @@ const char* ModuleTypeToStr(ModuleType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ModuleTypeDescription(ModuleType type) {
+const char* ModuleTypeDescription(const ModuleType type) {
    switch (type) {
       case MT_EXPERT   : return("Expert"   );
       case MT_SCRIPT   : return("Script"   );
@@ -252,7 +252,7 @@ const char* ModuleTypeDescription(ModuleType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ProgramTypeToStr(ProgramType type) {
+const char* ProgramTypeToStr(const ProgramType type) {
    switch (type) {
       case PT_EXPERT   : return("PT_EXPERT"   );
       case PT_SCRIPT   : return("PT_SCRIPT"   );
@@ -270,7 +270,7 @@ const char* ProgramTypeToStr(ProgramType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ProgramTypeDescription(ProgramType type) {
+const char* ProgramTypeDescription(const ProgramType type) {
    switch (type) {
       case PT_EXPERT   : return("Expert"   );
       case PT_SCRIPT   : return("Script"   );
@@ -288,7 +288,7 @@ const char* ProgramTypeDescription(ProgramType type) {
  *
  * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
  */
-const char* RootFunctionToStr(RootFunction id) {
+const char* RootFunctionToStr(const RootFunction id) {
    switch (id) {
       case RF_INIT  : return("RF_INIT"  );
       case RF_START : return("RF_START" );
@@ -306,7 +306,7 @@ const char* RootFunctionToStr(RootFunction id) {
  *
  * @return char* - Name oder NULL, falls die ID ungültig ist
  */
-const char* RootFunctionName(RootFunction id) {
+const char* RootFunctionName(const RootFunction id) {
    switch (id) {
       case RF_INIT  : return("init"  );
       case RF_START : return("start" );
@@ -314,6 +314,76 @@ const char* RootFunctionName(RootFunction id) {
    }
    debug("unknown MQL root function id = "+ to_string(id));
    return(NULL);
+}
+
+
+/**
+ * Gibt die lesbare Konstante einer Timeframe-ID zurück.
+ *
+ * @param  int period - Timeframe-ID
+ *
+ * @return char*
+ */
+const char* PeriodToStr(const int period) {
+   switch (period) {
+      case PERIOD_M1 : return("PERIOD_M1" );     // 1 minute
+      case PERIOD_M5 : return("PERIOD_M5" );     // 5 minutes
+      case PERIOD_M15: return("PERIOD_M15");     // 15 minutes
+      case PERIOD_M30: return("PERIOD_M30");     // 30 minutes
+      case PERIOD_H1 : return("PERIOD_H1" );     // 1 hour
+      case PERIOD_H4 : return("PERIOD_H4" );     // 4 hour
+      case PERIOD_D1 : return("PERIOD_D1" );     // 1 day
+      case PERIOD_W1 : return("PERIOD_W1" );     // 1 week
+      case PERIOD_MN1: return("PERIOD_MN1");     // 1 month
+      case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter
+   }
+   debug("unknown timeframe id = "+ to_string(period));
+   return(NULL);
+}
+
+
+/**
+ * Gibt die Beschreibung einer Timeframe-ID zurück.
+ *
+ * @param  int period - Timeframe-ID bzw. Anzahl der Minuten je Chart-Bar
+ *
+ * @return char*
+ */
+const char* PeriodDescription(const int period) {
+   switch (period) {
+      case PERIOD_M1 : return("M1" );     // 1 minute
+      case PERIOD_M5 : return("M5" );     // 5 minutes
+      case PERIOD_M15: return("M15");     // 15 minutes
+      case PERIOD_M30: return("M30");     // 30 minutes
+      case PERIOD_H1 : return("H1" );     // 1 hour
+      case PERIOD_H4 : return("H4" );     // 4 hour
+      case PERIOD_D1 : return("D1" );     // 1 day
+      case PERIOD_W1 : return("W1" );     // 1 week
+      case PERIOD_MN1: return("MN1");     // 1 month
+      case PERIOD_Q1 : return("Q1" );     // 1 quarter
+   }
+
+   int size = _scprintf("%d", period) + 1;
+   char* szchar = new char[size];                                    // TODO: Speicherleck schließen
+   sprintf_s(szchar, size, "%d", period);
+
+   return(szchar);
+}
+
+
+/**
+ * Alias
+ */
+const char* TimeframeToStr(const int timeframe) {
+   return(PeriodToStr(timeframe));
+}
+
+
+/**
+ * Alias
+ */
+const char* TimeframeDescription(const int timeframe) {
+   return(PeriodDescription(timeframe));
 }
 
 

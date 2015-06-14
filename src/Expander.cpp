@@ -66,7 +66,11 @@ BOOL onProcessDetach() {
  * Setzt den aktuellen EXECUTION_CONTEXT des Threads. Wird von jeder MQL-Rootfunktion aufgerufen, wodurch MQL-Libraries
  * den EXECUTION_CONTEXT ihres MQL-Hauptmoduls abfragen können.
  *
- * @param EXECUTION_CONTEXT* ec - Kontext des Hauptmoduls eines MQL-Programms
+ * Der übergebene Context ist u.U. noch nicht vollständig initialisiert, da die Funktion sofort nach RootFunction-Eintritt
+ * aufgerufen werden muß (noch bevor eine der Libraries geladen werden kann). Bei jedem Aufruf wird die gesamte Context-Chain
+ * des Programms mit den daten der übergebenen Version aktualisiert.
+ *
+ * @param EXECUTION_CONTEXT* ec - Context des Hauptmoduls eines MQL-Programms
  *
  * @return BOOL - Erfolgsstatus
  */
@@ -74,19 +78,16 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
 
-   //debug("%s::%s()  %s,%d", ec->programName, RootFunctionName(ec->rootFunction), ec->symbol, ec->timeframe);
+   if (strcmp(ec->programName, "TestIndicator") == 0) {
+      debug("ec:   %s::%s()  %s,%s", ec->programName, RootFunctionName(ec->rootFunction), ec->symbol, TimeframeDescription(ec->timeframe));
+   }
 
 
-   // (1) ThreadId des Contexts aktualisieren (der Thread von Online-EA's wechselt bei jedem Tick)
-   DWORD currentThreadId = GetCurrentThreadId();
-   ec->hThreadId = currentThreadId;
-
-
-   // (2) Prüfen, ob der Context bereits bekannt ist
+   // (1) Prüfen, ob der Context bereits bekannt ist
    int programId = ec->programId;
    if (!programId) {
-      // (2.1) neuer Context: neue Context-Chain anlegen und zu den bekannten Chains hinzufügen
-      if (logDebug) debug("thread=%d %s  %s::%s()  programId=%d  creating new chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionName(ec->rootFunction), programId);
+      // (1.1) neuer Context: neue Context-Chain anlegen und zu den bekannten Chains hinzufügen
+      if (logDebug) debug("thread=%d %s  %s::%s()  programId=0  creating new chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionName(ec->rootFunction));
 
       pec_vector chain;
       chain.reserve(8);
@@ -101,16 +102,16 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
       ec->programId = programId = size-1;                   // Die programId entspricht dem Index in contextChains[].
    }
    else {
-      // (2.2) bekannter Context: alle Contexte seiner Context-Chain aktualisieren
+      // (1.2) bekannter Context: alle Contexte seiner Context-Chain aktualisieren
       if (logDebug) debug("thread=%d %s  %s::%s()  programId=%d  updating chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionName(ec->rootFunction), programId);
       pec_vector &chain = contextChains[programId];
 
-      // (2.3) EXECUTION_CONTEXT des Hauptmodules nach Indicator::deinit() durch die übergebene Version ERSETZEN
+      // (1.3) Context des Hauptmodules nach Indicator::deinit() durch die übergebene Version ERSETZEN
       int i = 0;
-      if (ec != chain[0])                                   // wenn sich der Pointer (= Speicherblock) auf den Hauptmodulkontext ändert
+      if (ec != chain[0])                                   // wenn sich der Pointer (= Speicherblock) des Hauptmodulkontext geändert hat
          chain[i++] = ec;
 
-      // (2.4) alle weiteren Contexte (Libraries) mit der übergebenen Version überschreiben
+      // (1.4) alle Library-Contexte mit der übergebenen Version überschreiben
       int size = chain.size();
       for (; i < size; i++) {
          *chain[i] = *ec;
@@ -118,21 +119,22 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    }
 
 
-   // (3) Thread in den bekannten Threads suchen
+   // (2) Thread in den bekannten Threads suchen
+   DWORD currentThread = GetCurrentThreadId();
    int size = threads.size();
    for (int i=0; i < size; i++) {                           // Aufwärts, damit der UI-Thread (Index 0 oder 1) schnellstmöglich gefunden wird.
-      if (threads[i] == currentThreadId) {
+      if (threads[i] == currentThread) {
          threadsProgram[i] = programId;                     // Thread gefunden: ID des laufenden Programms aktualisieren
          return(TRUE);
       }
    }
 
 
-   // (4) Thread nicht gefunden: Thread und Programm hinzufügen
+   // (3) Thread nicht gefunden: Thread und Programm hinzufügen
    EnterCriticalSection(&threadsLock);
-   threads       .push_back(currentThreadId);
+   threads       .push_back(currentThread);
    threadsProgram.push_back(programId);
-   if (logDebug || threads.size() > 32) debug("thread %d %s  added (now %d threads)", currentThreadId, (IsUIThread() ? "ui":"  "), threads.size());
+   if (logDebug || threads.size() > 32) debug("thread %d %s  added (size=%d)", currentThread, (IsUIThread() ? "ui":"  "), threads.size());
    LeaveCriticalSection(&threadsLock);
 
    return(TRUE);
@@ -141,60 +143,45 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Kopiert den aktuellen EXECUTION_CONTEXT des Threads in die übergebene Variable und registriert sie für die
- * automatische Synchronisation. Diese Funktion wird von MQL-Libraries aufgerufen, um den EXECUTION_CONTEXT
- * ihres MQL-Hauptmodules zu ermitteln. Bei Änderungen eines der verketteten EXECUTION_CONTEXTe werden alle
- * EXECUTION_CONTEXTe der Chain aktualisiert.
+ * Diese Funktion wird von MQL-Libraries aufgerufen, die ihren EXECUTION_CONTEXT mit dem des MQL-Hauptmodules initialisieren
+ * wollen. Ist der übergebene Context bereits initialisiert, bricht die Funktion ab. Nach dem Initialisieren wird der Context
+ * zur Context-Chain des entsprechenden Programms hinzugefügt.
  *
- * @param EXECUTION_CONTEXT* ec - Zeiger auf einen EXECUTION_CONTEXT
+ * @param  EXECUTION_CONTEXT* ec - Zeiger auf EXECUTION_CONTEXT einer Library
  *
- * @return BOOL - Erfolgsstatus
+ * @return BOOL - Erfolgsstatus; FALSE, wenn der Context bereits initialisiert war
+ *
+ *
+ * NOTE: letzte Version mit bedingungslosem Überschreiben durch den Main-Context: v1.63
  */
 BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec) {
    if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (ec->programId)
+      return(FALSE);                                        // Rückkehr, wenn der Context bereits initialisiert ist
 
-   return(FALSE);
+   // aktuellen Thread in den bekannten Threads suchen      // Library wird zum ersten mal initialisiert, der Hauptmodul-Context
+   DWORD currentThread = GetCurrentThreadId();              // ist immer gültig
 
-   DWORD currentThread = GetCurrentThreadId();
-
-   // aktuellen Thread in den bekannten Threads suchen
-   EnterCriticalSection(&threadsLock);
    for (int i=threads.size()-1; i >= 0; i--) {
       if (threads[i] == currentThread) {                    // Thread gefunden
          int programId = threadsProgram[i];
-         *ec = *contextChains[programId][0];                // Hauptkontext kopieren (Index 0)
-         contextChains[programId].push_back(ec);            // Context zur Chain des Programms hinzufügen
-         LeaveCriticalSection(&threadsLock);
 
-         debug("%s::%s()", ec->programName, RootFunctionName(ec->rootFunction));
+         pec_vector &chain = contextChains[programId];
+         *ec = *chain[0];                                   // Hauptkontext (Index 0) in den übergebenen Context kopieren
+         chain.push_back(ec);                               // Context zur Programm-Chain hinzufügen
 
+         if (strcmp(ec->programName, "TestIndicator") == 0) {
+            debug("ec:   überschreibe mit main");
+            debug("main: %s::%s()", ec->programName, RootFunctionName(ec->rootFunction));
+         }
          return(TRUE);
       }
    }
-   LeaveCriticalSection(&threadsLock);
 
    // Thread nicht gefunden
    debug("current thread %d not in known threads  [ERR_ILLEGAL_STATE]", currentThread);
    return(FALSE);
    #pragma EXPORT
-}
-
-
-/**
- * Setter ec.hThreadId für alle Elemente einer EXECUTION_CONTEXT*-Chain
- *
- * @param pec_vector chain - Context-Chain eines MQL-Programms
- * @param DWORD      id    - zu setzende Thread-ID
- *
- * @return DWORD - dieselbe ID (for chaining)
- */
-DWORD ecc_setHThreadId(pec_vector &chain, DWORD id) {
-   int size = chain.size();
-   for (int i=0; i < size; i++) {
-      chain[i]->hThreadId = id;
-      //if (logDebug) debug("chain.size=%d  programName[%d]=%s", size, i, chain[i]->programName);
-   }
-   return(id);
 }
 
 
@@ -218,7 +205,7 @@ uint ecc_setProgramId(pec_vector &chain, uint id) {
 /**
  *
  */
-void WINAPI SetLogLevel(int level) {
+void WINAPI SetLogLevel(const int level) {
    logDebug = logNotice = logInfo = logWarn = logError = logFatal = false;
    switch (level) {
       case L_ALL   :
