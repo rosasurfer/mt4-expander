@@ -74,7 +74,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
 
-   //debug("%s::%s  %s,%d", ec->programName, RootFunctionDescription(ec->rootFunction), ec->symbol, ec->timeframe);
+   //debug("%s::%s()  %s,%d", ec->programName, RootFunctionName(ec->rootFunction), ec->symbol, ec->timeframe);
 
 
    // (1) ThreadId des Contexts aktualisieren (der Thread von Online-EA's wechselt bei jedem Tick)
@@ -86,7 +86,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    int programId = ec->programId;
    if (!programId) {
       // (2.1) neuer Context: neue Context-Chain anlegen und zu den bekannten Chains hinzufügen
-      if (logDebug) debug("thread=%d %s  %s::%s  programId=%d  creating new chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionDescription(ec->rootFunction), programId);
+      if (logDebug) debug("thread=%d %s  %s::%s()  programId=%d  creating new chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionName(ec->rootFunction), programId);
 
       pec_vector chain;
       chain.reserve(8);
@@ -102,7 +102,7 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
    }
    else {
       // (2.2) bekannter Context: alle Contexte seiner Context-Chain aktualisieren
-      if (logDebug) debug("thread=%d %s  %s::%s  programId=%d  updating chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionDescription(ec->rootFunction), programId);
+      if (logDebug) debug("thread=%d %s  %s::%s()  programId=%d  updating chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), ec->programName, RootFunctionName(ec->rootFunction), programId);
       pec_vector &chain = contextChains[programId];
 
       // (2.3) EXECUTION_CONTEXT des Hauptmodules nach Indicator::deinit() durch die übergebene Version ERSETZEN
@@ -166,7 +166,7 @@ BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec) {
          contextChains[programId].push_back(ec);            // Context zur Chain des Programms hinzufügen
          LeaveCriticalSection(&threadsLock);
 
-         debug("%s::%s", ec->programName, RootFunctionDescription(ec->rootFunction));
+         debug("%s::%s()", ec->programName, RootFunctionName(ec->rootFunction));
 
          return(TRUE);
       }

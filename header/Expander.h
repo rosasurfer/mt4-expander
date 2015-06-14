@@ -142,9 +142,9 @@ BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
 BOOL  WINAPI IsCustomTimeframe(int timeframe);
 char* WINAPI IntToHexStr(int value);
 
-const char*  ModuleTypeToStr        (ModuleType  type);
-const char*  ModuleTypeDescription  (ModuleType  type);
-const char*  ProgramTypeToStr       (ProgramType type);
-const char*  ProgramTypeDescription (ProgramType type);
-const char*  RootFunctionToStr      (RootFunction  id);
-const char*  RootFunctionDescription(RootFunction  id);
+const char*  ModuleTypeToStr       (ModuleType  type);
+const char*  ModuleTypeDescription (ModuleType  type);
+const char*  ProgramTypeToStr      (ProgramType type);
+const char*  ProgramTypeDescription(ProgramType type);
+const char*  RootFunctionToStr     (RootFunction id);
+const char*  RootFunctionName      (RootFunction id);

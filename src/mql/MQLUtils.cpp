@@ -300,17 +300,17 @@ const char* RootFunctionToStr(RootFunction id) {
 
 
 /**
- * Gibt die lesbare Beschreibung einer RootFunction-ID zurück.
+ * Gibt den Namen einer RootFunction zurück.
  *
  * @param  RootFunction id
  *
- * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
+ * @return char* - Name oder NULL, falls die ID ungültig ist
  */
-const char* RootFunctionDescription(RootFunction id) {
+const char* RootFunctionName(RootFunction id) {
    switch (id) {
-      case RF_INIT  : return("init()"  );
-      case RF_START : return("start()" );
-      case RF_DEINIT: return("deinit()");
+      case RF_INIT  : return("init"  );
+      case RF_START : return("start" );
+      case RF_DEINIT: return("deinit");
    }
    debug("unknown MQL root function id = "+ to_string(id));
    return(NULL);
