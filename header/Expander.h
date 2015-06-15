@@ -66,8 +66,7 @@ struct DLL_ERROR {
 };
 
 
-// Ausführungskontext eines MQL-Programms:
-// Laufzeitumgebungsinformationen und Datenaustausch zwischen MQL-Modulen und DLL
+// Ausführungskontext eines MQL-Programms für Laufzeitinformationen und Datenaustausch zwischen MQL-Modulen und DLL
 //
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
    unsigned int       programId;                   //       4      => ec[ 0]     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
@@ -120,8 +119,8 @@ BOOL  onProcessDetach();
 
 uint  ecc_setProgramId(pec_vector &chain, uint id);
 
-BOOL  WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec);
-BOOL  WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec);
+BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period);
+BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period);
 
 void  WINAPI SetLogLevel(int level);
 HWND  WINAPI GetApplicationWindow();

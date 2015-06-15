@@ -63,19 +63,27 @@ BOOL onProcessDetach() {
 
 
 /**
- * Setzt den aktuellen EXECUTION_CONTEXT des Threads. Wird von jeder MQL-Rootfunktion aufgerufen, wodurch MQL-Libraries
- * den EXECUTION_CONTEXT ihres MQL-Hauptmoduls abfragen können.
+ * Wird von den MQL-Rootfunktionen der Hauptmodule (ggf. mehrmals) aufgerufen und setzt den aktuellen EXECUTION_CONTEXT
+ * eines Hauptmoduls. Der Hauptmodulkontext von Indikatoren ändert sich mit jedem init()-Cycle, der von Experts und Scripten
+ * nicht.
+ * Da die Funktion sofort nach RootFunction-Eintritt aufgerufen werden muß (noch bevor evt. Libraries geladen werden), ist
+ * der übergebene Context ggf. noch nicht vollständig initialisiert.
  *
- * Der übergebene Context ist u.U. noch nicht vollständig initialisiert, da die Funktion sofort nach RootFunction-Eintritt
- * aufgerufen werden muß (noch bevor eine der Libraries geladen werden kann). Bei jedem Aufruf wird die gesamte Context-Chain
- * des Programms mit den daten der übergebenen Version aktualisiert.
+ * Bei jedem Aufruf wird die Context-Chain des Programms mit der übergebenen Version aktualisiert.
  *
- * @param EXECUTION_CONTEXT* ec - Context des Hauptmoduls eines MQL-Programms
+ *
+ * @param  EXECUTION_CONTEXT* ec     - Context des Hauptmoduls eines MQL-Programms
+ * @param  char*              name   - Name des Hauptmoduls (je nach MetaTrader-Version ggf. mit Pfad)
+ * @param  char*              symbol - aktuelles Chart-Symbol
+ * @param  int                period - aktuelle Chart-Periode
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
-   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period) {
+   if ((uint)ec     < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name   < MIN_VALID_POINTER) return(debug("invalid parameter name = 0x%p (not a valid pointer)", name));
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (period <= 0)                      return(debug("invalid parameter period = %d", period));
 
 
    if (strcmp(ec->programName, "TestIndicator") == 0) {
@@ -143,21 +151,30 @@ BOOL WINAPI SetExecutionContext(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Diese Funktion wird von MQL-Libraries aufgerufen, die ihren EXECUTION_CONTEXT mit dem des MQL-Hauptmodules initialisieren
- * wollen. Ist der übergebene Context bereits initialisiert, bricht die Funktion ab. Nach dem Initialisieren wird der Context
- * zur Context-Chain des entsprechenden Programms hinzugefügt.
+ * Wird von MQL-Libraries aufgerufen, die ihren lokalen EXECUTION_CONTEXT mit dem des MQL-Hauptmodules synchronisieren
+ * wollen. Ist der übergebene Context bereits initialisiert, bricht die Funktion ab. Nach dem Initialisieren wird der
+ * Context zur Context-Chain des entsprechenden Programms hinzugefügt.
  *
- * @param  EXECUTION_CONTEXT* ec - Zeiger auf EXECUTION_CONTEXT einer Library
+ * @param  EXECUTION_CONTEXT* ec     - lokaler EXECUTION_CONTEXT einer Library
+ * @param  char*              name   - Name der aufrufenden Library (je nach MetaTrader-Version ggf. mit Pfad)
+ * @param  char*              symbol - aktuelles Chart-Symbol
+ * @param  int                period - aktuelle Chart-Periode
  *
  * @return BOOL - Erfolgsstatus; FALSE, wenn der Context bereits initialisiert war
  *
  *
  * NOTE: letzte Version mit bedingungslosem Überschreiben durch den Main-Context: v1.63
  */
-BOOL WINAPI GetExecutionContext(EXECUTION_CONTEXT* ec) {
-   if ((int)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period) {
+   if ((uint)ec     < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name   < MIN_VALID_POINTER) return(debug("invalid parameter name = 0x%p (not a valid pointer)", name));
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (period <= 0)                      return(debug("invalid parameter period = %d", period));
+
    if (ec->programId)
       return(FALSE);                                        // Rückkehr, wenn der Context bereits initialisiert ist
+
+   debug("%s::init()", name);
 
    // aktuellen Thread in den bekannten Threads suchen      // Library wird zum ersten mal initialisiert, der Hauptmodul-Context
    DWORD currentThread = GetCurrentThreadId();              // ist immer gültig
@@ -216,36 +233,6 @@ void WINAPI SetLogLevel(const int level) {
       case L_ERROR : logError  = true;
       case L_FATAL : logFatal  = true;
    }
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-BOOL WINAPI Test_onInit(EXECUTION_CONTEXT* ec, int logLevel) {
-   SetLogLevel(logLevel);
-   return(SetExecutionContext(ec));
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-BOOL WINAPI Test_onStart(EXECUTION_CONTEXT* ec, int logLevel) {
-   SetLogLevel(logLevel);
-   return(SetExecutionContext(ec));
-   #pragma EXPORT
-}
-
-
-/**
- *
- */
-BOOL WINAPI Test_onDeinit(EXECUTION_CONTEXT* ec, int logLevel) {
-   SetLogLevel(logLevel);
-   return(SetExecutionContext(ec));
    #pragma EXPORT
 }
 

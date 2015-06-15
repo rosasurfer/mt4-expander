@@ -19,7 +19,7 @@
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
 int WINAPI GetBoolsAddress(const BOOL lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
@@ -37,7 +37,7 @@ int WINAPI GetBoolsAddress(const BOOL lpValues[]) {
  * @mql-import:  int GetIntsAddress(int array[]);
  */
 int WINAPI GetIntsAddress(const int lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
@@ -64,7 +64,7 @@ int WINAPI GetBufferAddress(const int values[]) {
  * @mql-import:  int GetDoublesAddress(double array[]);
  */
 int WINAPI GetDoublesAddress(const double lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
@@ -82,7 +82,7 @@ int WINAPI GetDoublesAddress(const double lpValues[]) {
  * @mql-import:  int GetStringsAddress(string values[]);
  */
 int WINAPI GetStringsAddress(const MqlStr lpValues[]) {
-   if (lpValues && (int)lpValues < MIN_VALID_POINTER)
+   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
    return((int) lpValues);
    #pragma EXPORT
@@ -92,7 +92,7 @@ int WINAPI GetStringsAddress(const MqlStr lpValues[]) {
 /**
  * Gibt die Speicheradresse eines Strings zurück.
  *
- * @param  char* lpValue - String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
+ * @param  char* lpValue - C-String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
@@ -100,7 +100,7 @@ int WINAPI GetStringsAddress(const MqlStr lpValues[]) {
  * @mql-import:  int GetStringAddress(string value);
  */
 int WINAPI GetStringAddress(const char* lpValue) {
-   if (lpValue && (int)lpValue < MIN_VALID_POINTER)
+   if (lpValue && (uint)lpValue < MIN_VALID_POINTER)
       return(debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
    return((int) lpValue);
    #pragma EXPORT
@@ -119,7 +119,7 @@ int WINAPI GetStringAddress(const char* lpValue) {
  * @mql-import:  string GetString(int address);
  */
 char* WINAPI GetString(const char* lpValue) {
-   if (lpValue && (int)lpValue < MIN_VALID_POINTER)
+   if (lpValue && (uint)lpValue < MIN_VALID_POINTER)
       return((char*) debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
    return((char*) lpValue);
    #pragma EXPORT
