@@ -99,11 +99,6 @@ typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 /*
 // Prototype
 struct EXECUTION_CONTEXT_proto {
-   uint               id;
-   ...
-   LPSTR              programName;
-   ...
-   int                uninitializeReason;
    ...
    DLL_ERROR**        dllErrors;
    uint               dllErrorsSize;
