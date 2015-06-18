@@ -182,10 +182,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\ExecutionContext.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Expander.cpp"
 				>
 			</File>
@@ -193,6 +189,26 @@
 				RelativePath=".\MQLUtils.cpp"
 				>
 			</File>
+			<Filter
+				Name="structs"
+				>
+				<Filter
+					Name="win32"
+					>
+					<File
+						RelativePath=".\PROCESS_INFORMATION.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="pewa"
+					>
+					<File
+						RelativePath=".\ExecutionContext.cpp"
+						>
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Headers"
