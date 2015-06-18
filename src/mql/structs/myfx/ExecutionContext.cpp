@@ -114,8 +114,8 @@ BOOL WINAPI ec_SuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
       return(TRUE);
    }
 
-   EXECUTION_CONTEXT empty = {0};
-   *sec = empty;
+   EXECUTION_CONTEXT zeroed = {0};
+   *sec = zeroed;
    return(FALSE);
    #pragma EXPORT
 }
