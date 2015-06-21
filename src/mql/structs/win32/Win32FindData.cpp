@@ -18,7 +18,7 @@
  *
  * MQL-Importdeklarationen:
  * ------------------------
- * int    wfd_FileAttributes            (/*WIN32_FIND_DATAA/int wfd[]);
+ * int    wfd_FileAttributes            (/*WIN32_FIND_DATA/int wfd[]);
  *        ...
  *        ...
  *        ...
@@ -26,24 +26,25 @@
  *        ...
  *        ...
  *        ...
- * string wfd_FileName                  (/*WIN32_FIND_DATAA/int wfd[]);
- * string wfd_AlternateFileName         (/*WIN32_FIND_DATAA/int wfd[]);
+ * string wfd_FileName                  (/*WIN32_FIND_DATA/int wfd[]);
+ * string wfd_AlternateFileName         (/*WIN32_FIND_DATA/int wfd[]);
  *
- * bool   wfd_FileAttribute_ReadOnly    (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Hidden      (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_System      (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Directory   (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Archive     (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Device      (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Normal      (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Temporary   (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_SparseFile  (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_ReparsePoint(/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Compressed  (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Offline     (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_NotIndexed  (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Encrypted   (/*WIN32_FIND_DATAA/int wfd[]);
- * bool   wfd_FileAttribute_Virtual     (/*WIN32_FIND_DATAA/int wfd[]);
+ *
+ * bool   wfd_FileAttribute_ReadOnly    (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Hidden      (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_System      (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Directory   (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Archive     (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Device      (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Normal      (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Temporary   (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_SparseFile  (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_ReparsePoint(/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Compressed  (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Offline     (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_NotIndexed  (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Encrypted   (/*WIN32_FIND_DATA/int wfd[]);
+ * bool   wfd_FileAttribute_Virtual     (/*WIN32_FIND_DATA/int wfd[]);
  */
 #include "stdafx.h"
 #include "global.h"
@@ -279,7 +280,7 @@ BOOL WINAPI wfd_FileAttribute_Virtual(const WIN32_FIND_DATAA* wfd) {
  *
  * @param  WIN32_FIND_DATAA* st
  *
- * @return char* - Name als C-String
+ * @return char*
  */
 const char* WINAPI wfd_FileName(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return((char*)debug("invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
@@ -293,7 +294,7 @@ const char* WINAPI wfd_FileName(const WIN32_FIND_DATAA* wfd) {
  *
  * @param  WIN32_FIND_DATAA* st
  *
- * @return char* - Name als C-String
+ * @return char*
  */
 const char* WINAPI wfd_AlternateFileName(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return((char*)debug("invalid parameter wfd = 0x%p (not a valid pointer)", wfd));

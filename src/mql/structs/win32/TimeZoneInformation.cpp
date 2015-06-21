@@ -3,7 +3,7 @@
  *
  *
  * struct TIME_ZONE_INFORMATION {
- *    LONG       Bias;                 //   4         alle Bias-Werte i Minuten
+ *    LONG       Bias;                 //   4         in Minuten
  *    WCHAR      StandardName[32];     //  64         z.B. "G…T…B… …N…o…r…m…a…l…z…e…i…t", <NUL>-terminiert
  *    SYSTEMTIME StandardDate;         //  16
  *    LONG       StandardBias;         //   4
