@@ -59,14 +59,15 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
 char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
-   char* mbstr = NULL;
-   int bytes = wcstombs(mbstr, tzi->StandardName, 0);
-   if (bytes == -1) return((char*)debug("cannot convert WCHAR tzi->StandardName to CHAR string"));
+   int   size  = sizeof(tzi->StandardName) + 1;
+   char* mbstr = new char[size];
 
-   mbstr = new char[bytes+1];                               // TODO: Speicherleck schlieﬂen
-   wcstombs(mbstr, tzi->StandardName, bytes+1);             // +1, damit wcstombs() auch das terminierende <NUL> schreibt
+   int bytes = wcstombs(mbstr, tzi->StandardName, size);
+   if (bytes == -1) { delete mbstr; return((char*)debug("cannot convert WCHAR tzi->StandardName to CHAR string")); }
 
-   return(mbstr);
+   mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
+
+   return(mbstr);                                           // TODO: Speicherleck schlieﬂen
    #pragma EXPORT
 }
 
@@ -110,14 +111,15 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
 char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
-   char* mbstr = NULL;
-   int bytes = wcstombs(mbstr, tzi->DaylightName, 0);
-   if (bytes == -1) return((char*)debug("cannot convert WCHAR tzi->StandardName to CHAR string"));
+   int   size  = sizeof(tzi->DaylightName) + 1;
+   char* mbstr = new char[size];
 
-   mbstr = new char[bytes+1];                               // TODO: Speicherleck schlieﬂen
-   wcstombs(mbstr, tzi->DaylightName, bytes+1);             // +1, damit wcstombs() auch das terminierende <NUL> schreibt
+   int bytes = wcstombs(mbstr, tzi->DaylightName, size);
+   if (bytes == -1) { delete mbstr; return((char*)debug("cannot convert WCHAR tzi->StandardName to CHAR string")); }
 
-   return(mbstr);
+   mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
+
+   return(mbstr);                                           // TODO: Speicherleck schlieﬂen
    #pragma EXPORT
 }
 
