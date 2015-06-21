@@ -174,7 +174,7 @@ BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const 
    if (ec->programId)
       return(FALSE);                                        // Rückkehr, wenn der Context bereits initialisiert ist
 
-   debug("%s::init()", name);
+   //debug("%s::init()", name);
 
    // aktuellen Thread in den bekannten Threads suchen      // Library wird zum ersten mal initialisiert, der Hauptmodul-Context
    DWORD currentThread = GetCurrentThreadId();              // ist immer gültig
