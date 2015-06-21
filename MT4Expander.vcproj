@@ -199,6 +199,22 @@
 						RelativePath=".\PROCESS_INFORMATION.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\STARTUPINFOA.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\SYSTEMTIME.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\TIME_ZONE_INFORMATION.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\WIN32_FIND_DATAA.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="pewa"

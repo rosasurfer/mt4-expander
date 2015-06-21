@@ -79,7 +79,7 @@ BOOL onProcessDetach() {
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period) {
+BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period) {
    if ((uint)ec     < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if ((uint)name   < MIN_VALID_POINTER) return(debug("invalid parameter name = 0x%p (not a valid pointer)", name));
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
@@ -165,7 +165,7 @@ BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, con
  *
  * NOTE: letzte Version mit bedingungslosem Überschreiben durch den Main-Context: v1.63
  */
-BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period) {
+BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period) {
    if ((uint)ec     < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if ((uint)name   < MIN_VALID_POINTER) return(debug("invalid parameter name = 0x%p (not a valid pointer)", name));
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
@@ -210,7 +210,7 @@ BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const 
  *
  * @return uint - dieselbe ID (for chaining)
  */
-uint ecc_setProgramId(pec_vector &chain, uint id) {
+uint ecc_setProgramId(const pec_vector &chain, uint id) {
    int size = chain.size();
    for (int i=0; i < size; i++) {
       chain[i]->programId = id;
@@ -222,7 +222,7 @@ uint ecc_setProgramId(pec_vector &chain, uint id) {
 /**
  *
  */
-void WINAPI SetLogLevel(const int level) {
+void WINAPI SetLogLevel(int level) {
    logDebug = logNotice = logInfo = logWarn = logError = logFatal = false;
    switch (level) {
       case L_ALL   :

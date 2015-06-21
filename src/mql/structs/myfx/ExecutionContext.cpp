@@ -26,14 +26,31 @@
  * int    ec_hChart               (/*EXECUTION_CONTEXT/int ec[]);
  * int    ec_TestFlags            (/*EXECUTION_CONTEXT/int ec[]);
  * int    ec_LastError            (/*EXECUTION_CONTEXT/int ec[]);
- *        ec_DllErrors            ...
- *        ec_DllErrorsSize        ...
+ *        ...
+ *        ...
  * bool   ec_Logging              (/*EXECUTION_CONTEXT/int ec[]);
  * string ec_LogFile              (/*EXECUTION_CONTEXT/int ec[]);
  *
- * int    ec_setRootFunction      (/*EXECUTION_CONTEXT/int ec[], int function);
- * int    ec_setUninitializeReason(/*EXECUTION_CONTEXT/int ec[], int reason  );
- * int    ec_setLastError         (/*EXECUTION_CONTEXT/int ec[], int error   );
+ *
+ * int    ec_setProgramType       (/*EXECUTION_CONTEXT/int ec[], int    type     );
+ * string ec_setProgramName       (/*EXECUTION_CONTEXT/int ec[], string name     );
+ * int    ec_setLaunchType        (/*EXECUTION_CONTEXT/int ec[], int    type     );
+ * int    ec_setSuperContext      (/*EXECUTION_CONTEXT/int ec[], int    sec[]    );
+ * int    ec_setLpSuperContext    (/*EXECUTION_CONTEXT/int ec[], int    lpSec    );
+ * int    ec_InitFlags            (/*EXECUTION_CONTEXT/int ec[], int    flags    );
+ * int    ec_DeinitFlags          (/*EXECUTION_CONTEXT/int ec[], int    flags    );
+ * int    ec_setRootFunction      (/*EXECUTION_CONTEXT/int ec[], int    function );
+ * int    ec_setUninitializeReason(/*EXECUTION_CONTEXT/int ec[], int    reason   );
+ * string ec_setSymbol            (/*EXECUTION_CONTEXT/int ec[], string symbol   );
+ * int    ec_setTimeframe         (/*EXECUTION_CONTEXT/int ec[], int    timeframe);
+ * int    ec_setHChartWindow      (/*EXECUTION_CONTEXT/int ec[], int    hWnd     );
+ * int    ec_setHChart            (/*EXECUTION_CONTEXT/int ec[], int    hWnd     );
+ * int    ec_setTestFlags         (/*EXECUTION_CONTEXT/int ec[], int    testFlags);
+ * int    ec_setLastError         (/*EXECUTION_CONTEXT/int ec[], int    error    );
+ *        ...
+ *        ...
+ * bool   ec_setLogging           (/*EXECUTION_CONTEXT/int ec[], bool   logging  );
+ * string ec_setLogFile           (/*EXECUTION_CONTEXT/int ec[], string logFile  );
  */
 #include "stdafx.h"
 #include "global.h"
@@ -47,7 +64,7 @@
  *
  * @return uint - Programm-ID
  */
-uint WINAPI ec_ProgramId(EXECUTION_CONTEXT* ec) {
+uint WINAPI ec_ProgramId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programId);
    #pragma EXPORT
@@ -61,7 +78,7 @@ uint WINAPI ec_ProgramId(EXECUTION_CONTEXT* ec) {
  *
  * @return ProgramType
  */
-ProgramType WINAPI ec_ProgramType(EXECUTION_CONTEXT* ec) {
+ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programType);
    #pragma EXPORT
@@ -75,7 +92,7 @@ ProgramType WINAPI ec_ProgramType(EXECUTION_CONTEXT* ec) {
  *
  * @return char* - Programmname
  */
-char* WINAPI ec_ProgramName(EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programName);
    #pragma EXPORT
@@ -89,7 +106,7 @@ char* WINAPI ec_ProgramName(EXECUTION_CONTEXT* ec) {
  *
  * @return LaunchType
  */
-LaunchType WINAPI ec_LaunchType(EXECUTION_CONTEXT* ec) {
+LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->launchType);
    #pragma EXPORT
@@ -105,7 +122,7 @@ LaunchType WINAPI ec_LaunchType(EXECUTION_CONTEXT* ec) {
  * @return BOOL - TRUE,  wenn ein SuperContext kopiert wurde;
  *                FALSE, wenn der ExecutionContext keinen SuperContext enthielt oder ein Fehler auftrat
  */
-BOOL WINAPI ec_SuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
+BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
    if ((uint)ec  < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if ((uint)sec < MIN_VALID_POINTER) return(debug("invalid parameter sec = 0x%p (not a valid pointer)", sec));
 
@@ -114,7 +131,7 @@ BOOL WINAPI ec_SuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
       return(TRUE);
    }
 
-   EXECUTION_CONTEXT zeroed = {0};
+   EXECUTION_CONTEXT zeroed = {};
    *sec = zeroed;
    return(FALSE);
    #pragma EXPORT
@@ -128,7 +145,7 @@ BOOL WINAPI ec_SuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
  *
  * @return EXECUTION_CONTEXT*
  */
-EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(EXECUTION_CONTEXT* ec) {
+EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->superContext);
    #pragma EXPORT
@@ -142,7 +159,7 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(EXECUTION_CONTEXT* ec) {
  *
  * @return uint - Init-Flags
  */
-uint WINAPI ec_InitFlags(EXECUTION_CONTEXT* ec) {
+uint WINAPI ec_InitFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->initFlags);
    #pragma EXPORT
@@ -156,7 +173,7 @@ uint WINAPI ec_InitFlags(EXECUTION_CONTEXT* ec) {
  *
  * @return uint - Deinit-Flags
  */
-uint WINAPI ec_DeinitFlags(EXECUTION_CONTEXT* ec) {
+uint WINAPI ec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->deinitFlags);
    #pragma EXPORT
@@ -170,7 +187,7 @@ uint WINAPI ec_DeinitFlags(EXECUTION_CONTEXT* ec) {
  *
  * @return RootFunction
  */
-RootFunction WINAPI ec_RootFunction(EXECUTION_CONTEXT* ec) {
+RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->rootFunction);
    #pragma EXPORT
@@ -184,7 +201,7 @@ RootFunction WINAPI ec_RootFunction(EXECUTION_CONTEXT* ec) {
  *
  * @return int - UninitializeReason
  */
-int WINAPI ec_UninitializeReason(EXECUTION_CONTEXT* ec) {
+int WINAPI ec_UninitializeReason(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->uninitializeReason);
    #pragma EXPORT
@@ -198,7 +215,7 @@ int WINAPI ec_UninitializeReason(EXECUTION_CONTEXT* ec) {
  *
  * @return char* - Symbol
  */
-char* WINAPI ec_Symbol(EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->symbol);
    #pragma EXPORT
@@ -212,7 +229,7 @@ char* WINAPI ec_Symbol(EXECUTION_CONTEXT* ec) {
  *
  * @return uint - Chartperiode
  */
-uint WINAPI ec_Timeframe(EXECUTION_CONTEXT* ec) {
+uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->timeframe);
    #pragma EXPORT
@@ -226,7 +243,7 @@ uint WINAPI ec_Timeframe(EXECUTION_CONTEXT* ec) {
  *
  * @return HWND - Handle
  */
-HWND WINAPI ec_hChartWindow(EXECUTION_CONTEXT* ec) {
+HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->hChartWindow);
    #pragma EXPORT
@@ -240,7 +257,7 @@ HWND WINAPI ec_hChartWindow(EXECUTION_CONTEXT* ec) {
  *
  * @return HWND - Handle, entspricht dem Rückgabewert der MQL-Funktion WindowHandle()
  */
-HWND WINAPI ec_hChart(EXECUTION_CONTEXT* ec) {
+HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->hChart);
    #pragma EXPORT
@@ -254,7 +271,7 @@ HWND WINAPI ec_hChart(EXECUTION_CONTEXT* ec) {
  *
  * @return uint - Test-Flags
  */
-uint WINAPI ec_TestFlags(EXECUTION_CONTEXT* ec) {
+uint WINAPI ec_TestFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->testFlags);
    #pragma EXPORT
@@ -268,7 +285,7 @@ uint WINAPI ec_TestFlags(EXECUTION_CONTEXT* ec) {
  *
  * @return int - Fehler-Code
  */
-int WINAPI ec_LastError(EXECUTION_CONTEXT* ec) {
+int WINAPI ec_LastError(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->lastError);
    #pragma EXPORT
@@ -282,7 +299,7 @@ int WINAPI ec_LastError(EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL - Status
  */
-BOOL WINAPI ec_Logging(EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->logging);
    #pragma EXPORT
@@ -296,9 +313,157 @@ BOOL WINAPI ec_Logging(EXECUTION_CONTEXT* ec) {
  *
  * @return char* - Dateiname
  */
-char* WINAPI ec_LogFile(EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_LogFile(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->logFile);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Programm-ID eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               id - ID größer 0
+ *
+ * @return uint - dieselbe ID
+ */
+uint WINAPI ec_setProgramId(EXECUTION_CONTEXT* ec, uint id) {
+   if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (id <= 0)                      return(debug("invalid parameter id = %d (must be greater than zero)", id));
+
+   ec->programId = id;
+   return(id);
+   //#pragma EXPORT                                // kein Export
+}
+
+
+/**
+ * Setzt den Programm-Typ eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  ProgramType        type
+ *
+ * @return ProgramType - derselbe ProgramType
+ */
+ProgramType WINAPI ec_setProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
+   if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   switch (type) {
+      case PT_INDICATOR:
+      case PT_EXPERT   :
+      case PT_SCRIPT   : break;
+      default:
+         return((ProgramType)debug("invalid parameter type = %d (not a ProgramType)", type));
+   }
+   ec->programType = type;
+   return(type);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Programmnamen eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  char*              name
+ *
+ * @return char* - derselbe Name
+ */
+const char* WINAPI ec_setProgramName(EXECUTION_CONTEXT* ec, const char* name) {
+   if ((uint)ec   < MIN_VALID_POINTER)             return((char*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)             return((char*)debug("invalid parameter name = 0x%p (not a valid pointer)", name));
+   if (!strlen(name) || strlen(name) > MAX_PATH-1) return((char*)debug("invalid parameter name = \"%s\" (1-%d characters)", name, MAX_PATH-1));
+
+   return(strcpy(ec->programName, name));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Launch-Typ eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  LaunchType         type
+ *
+ * @return LaunchType - derselbe Launch-Typ
+ */
+LaunchType WINAPI ec_setLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
+   if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   switch (type) {
+      case LT_TEMPLATE:
+      case LT_PROGRAM:
+      case LT_MANUAL: break;
+      default:
+         return((LaunchType)debug("invalid parameter type = %d (not a LaunchType)", type));
+   }
+   ec->launchType = type;
+   return(type);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den SuperContext eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec  - zu modifizierender Context
+ * @param  EXECUTION_CONTEXT* sec - zu setzender SuperContext
+ *
+ * @return EXECUTION_CONTEXT* - derselbe SuperContext
+ */
+const EXECUTION_CONTEXT* WINAPI ec_setSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
+   if (       (uint)ec  < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)debug("invalid parameter sec = 0x%p (not a valid pointer)", sec));
+
+   ec->superContext = sec;
+   return(sec);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den SuperContext eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec    - zu modifizierender Context
+ * @param  EXECUTION_CONTEXT* lpSec - zu setzender SuperContext
+ *
+ * @return EXECUTION_CONTEXT* - derselbe SuperContext
+ */
+const EXECUTION_CONTEXT* WINAPI ec_setLpSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* lpSec) {
+   return(ec_setSuperContext(ec, lpSec));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Init-Flags eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               flags
+ *
+ * @return uint - dieselben Init-Flags
+ */
+uint WINAPI ec_setInitFlags(EXECUTION_CONTEXT* ec, uint flags) {
+   if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   ec->initFlags = flags;
+   return(flags);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Deinit-Flags eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               flags
+ *
+ * @return uint - dieselben Deinit-Flags
+ */
+uint WINAPI ec_setDeinitFlags(EXECUTION_CONTEXT* ec, uint flags) {
+   if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   ec->deinitFlags = flags;
+   return(flags);
    #pragma EXPORT
 }
 
@@ -318,11 +483,9 @@ RootFunction WINAPI ec_setRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
       case RF_INIT  :
       case RF_START :
       case RF_DEINIT: break;
-
       default:
          return((RootFunction)debug("invalid parameter id = %d (not a RootFunction)", id));
    }
-
    ec->rootFunction = id;
    return(id);
    #pragma EXPORT
@@ -352,13 +515,95 @@ int WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, int reason) {
       case REASON_TEMPLATE   :
       case REASON_INITFAILED :
       case REASON_CLOSE      : break;
-
       default:
          return(debug("invalid parameter reason = %d (not an UninitializeReason)", reason));
    }
-
    ec->uninitializeReason = reason;
    return(reason);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt das Symbol eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  char*              symbol
+ *
+ * @return char* - dasselbe Symbol
+ */
+const char* WINAPI ec_setSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
+   if ((uint)ec     < MIN_VALID_POINTER)                      return((char*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)symbol < MIN_VALID_POINTER)                      return((char*)debug("invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (!strlen(symbol) || strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)debug("invalid parameter symbol = \"%s\" (1-%d characters)", symbol, MAX_SYMBOL_LENGTH));
+
+   return(strcpy(ec->symbol, symbol));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Chart-Timeframe eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               timeframe
+ *
+ * @return uint - derselbe Timeframe
+ */
+uint WINAPI ec_setTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
+   if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (timeframe <= 0)               return(debug("invalid parameter timeframe = %d (must be greater than zero)", timeframe));
+
+   ec->timeframe = timeframe;
+   return(timeframe);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt das Handle des Chart-Fensters eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  HWND               hWnd
+ *
+ * @return HWND - dasselbe Handle
+ */
+HWND WINAPI ec_setHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   ec->hChartWindow = hWnd;
+   return(hWnd);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt das Handle des Chart-Frames eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  HWND               hWnd - entspricht dem Rückgabewert von WindowHandle()
+ *
+ * @return HWND - dasselbe Handle
+ */
+HWND WINAPI ec_setHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   ec->hChart = hWnd;
+   return(hWnd);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Test-Flags eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               flags
+ *
+ * @return uint - dieselben Test-Flags
+ */
+uint WINAPI ec_setTestFlags(EXECUTION_CONTEXT* ec, uint flags) {
+   if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   ec->testFlags = flags;
+   return(flags);
    #pragma EXPORT
 }
 
@@ -375,10 +620,49 @@ int WINAPI ec_setLastError(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    ec->lastError = error;
-
    if (ec->superContext)
       ec_setLastError(ec->superContext, error);                          // Fehler rekursiv im SuperContext setzen
-
    return(error);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Logging-Status eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe Logging-Status
+ */
+BOOL WINAPI ec_setLogging(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   ec->logging = status;
+   return(status);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Namen der Logdatei eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  char*              fileName - statt eines NULL-Pointers kann auch ein Leerstring angegeben werden
+ *
+ * @return char* - derselbe Dateiname
+ */
+const char* WINAPI ec_setLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
+   if ((uint)ec < MIN_VALID_POINTER)          return((char*)debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   if (fileName) {
+      if ((uint)fileName < MIN_VALID_POINTER) return((char*)debug("invalid parameter fileName = 0x%p (not a valid pointer)", fileName));
+      if (strlen(fileName) > MAX_PATH-1)      return((char*)debug("invalid parameter fileName = \"%s\" (max %d characters)", fileName, MAX_PATH-1));
+      strcpy(ec->logFile, fileName);
+   }
+   else {
+      ec->logFile[0] = '\0';
+   }
+   return(ec->logFile);
    #pragma EXPORT
 }

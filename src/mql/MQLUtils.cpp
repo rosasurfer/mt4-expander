@@ -11,17 +11,17 @@
 /**
  * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
  *
- * @param  BOOL lpValues[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
+ * @param  BOOL values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
-int WINAPI GetBoolsAddress(const BOOL lpValues[]) {
-   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
-      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
-   return((int) lpValues);
+int WINAPI GetBoolsAddress(const BOOL values[]) {
+   if (values && (uint)values < MIN_VALID_POINTER)
+      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+   return((int) values);
    #pragma EXPORT
 }
 
@@ -29,17 +29,17 @@ int WINAPI GetBoolsAddress(const BOOL lpValues[]) {
 /**
  * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
  *
- * @param  int lpValues[] - MQL-Integer-Array
+ * @param  int values[] - MQL-Integer-Array
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetIntsAddress(int array[]);
  */
-int WINAPI GetIntsAddress(const int lpValues[]) {
-   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
-      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
-   return((int) lpValues);
+int WINAPI GetIntsAddress(const int values[]) {
+   if (values && (uint)values < MIN_VALID_POINTER)
+      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+   return((int) values);
    #pragma EXPORT
 }
 
@@ -56,17 +56,17 @@ int WINAPI GetBufferAddress(const int values[]) {
 /**
  * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
  *
- * @param  double lpValues[] - MQL-Double-Array
+ * @param  double values[] - MQL-Double-Array
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetDoublesAddress(double array[]);
  */
-int WINAPI GetDoublesAddress(const double lpValues[]) {
-   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
-      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
-   return((int) lpValues);
+int WINAPI GetDoublesAddress(const double values[]) {
+   if (values && (uint)values < MIN_VALID_POINTER)
+      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+   return((int) values);
    #pragma EXPORT
 }
 
@@ -74,17 +74,17 @@ int WINAPI GetDoublesAddress(const double lpValues[]) {
 /**
  * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
  *
- * @param  MqlStr lpValues[] - MQL-String-Array
+ * @param  MqlStr values[] - MQL-String-Array
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetStringsAddress(string values[]);
  */
-int WINAPI GetStringsAddress(const MqlStr lpValues[]) {
-   if (lpValues && (uint)lpValues < MIN_VALID_POINTER)
-      return(debug("invalid parameter lpValues = 0x%p (not a valid pointer)", lpValues));
-   return((int) lpValues);
+int WINAPI GetStringsAddress(const MqlStr values[]) {
+   if (values && (uint)values < MIN_VALID_POINTER)
+      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+   return((int) values);
    #pragma EXPORT
 }
 
@@ -92,36 +92,36 @@ int WINAPI GetStringsAddress(const MqlStr lpValues[]) {
 /**
  * Gibt die Speicheradresse eines Strings zurück.
  *
- * @param  char* lpValue - C-String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
+ * @param  char* value - C-String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  int GetStringAddress(string value);
  */
-int WINAPI GetStringAddress(const char* lpValue) {
-   if (lpValue && (uint)lpValue < MIN_VALID_POINTER)
-      return(debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
-   return((int) lpValue);
+int WINAPI GetStringAddress(const char* value) {
+   if (value && (uint)value < MIN_VALID_POINTER)
+      return(debug("invalid parameter value = 0x%p (not a valid pointer)", value));
+   return((int) value);
    #pragma EXPORT
 }
 
 
 /**
- * Gibt den übergebenen Zeiger auf einen String selbst zurück. Kann in MQL zum Lesen eines Strings von einer Adresse
- * verwendet werden, da MetaTrader den Zeiger mit der entsprechenden Importdeklaration in einen MQL-String konvertiert.
+ * Gibt den übergebenen Zeiger auf einen String selbst zurück. Wird in MQL zum Lesen eines C-Strings von
+ * einer Adresse verwendet, da MetaTrader einen C-String automatisch in einen MQL-String konvertiert.
  *
- * @param  char* lpValue - String
+ * @param  char* value - String
  *
  * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
  *
  *
  * @mql-import:  string GetString(int address);
  */
-char* WINAPI GetString(const char* lpValue) {
-   if (lpValue && (uint)lpValue < MIN_VALID_POINTER)
-      return((char*) debug("invalid parameter lpValue = 0x%p (not a valid pointer)", lpValue));
-   return((char*) lpValue);
+char* WINAPI GetString(const char* value) {
+   if (value && (uint)value < MIN_VALID_POINTER)
+      return((char*) debug("invalid parameter value = 0x%p (not a valid pointer)", value));
+   return((char*) value);
    #pragma EXPORT
 }
 
@@ -151,7 +151,7 @@ int WINAPI GetLastWin32Error() {
  *
  * @mql-import:  bool IsBuiltinTimeframe(int timeframe);
  */
-BOOL WINAPI IsBuiltinTimeframe(const int timeframe) {
+BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
    switch (timeframe) {
       case PERIOD_M1 : return(TRUE);
       case PERIOD_M5 : return(TRUE);
@@ -178,7 +178,7 @@ BOOL WINAPI IsBuiltinTimeframe(const int timeframe) {
  *
  * @mql-import:  bool IsCustomTimeframe(int timeframe);
  */
-BOOL WINAPI IsCustomTimeframe(const int timeframe) {
+BOOL WINAPI IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsBuiltinTimeframe(timeframe));
@@ -197,7 +197,7 @@ BOOL WINAPI IsCustomTimeframe(const int timeframe) {
  *
  * @mql-import:  string IntToHexStr(int value);
  */
-char* WINAPI IntToHexStr(const int value) {
+char* WINAPI IntToHexStr(int value) {
    int   size = 9;
    char* szchar = new char[size];                                    // TODO: Speicherleck schließen
    sprintf_s(szchar, size, "%p", value);
@@ -214,7 +214,7 @@ char* WINAPI IntToHexStr(const int value) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ModuleTypeToStr(const ModuleType type) {
+const char* ModuleTypeToStr(ModuleType type) {
    switch (type) {
       case MT_EXPERT   : return("MT_EXPERT"   );
       case MT_SCRIPT   : return("MT_SCRIPT"   );
@@ -233,7 +233,7 @@ const char* ModuleTypeToStr(const ModuleType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ModuleTypeDescription(const ModuleType type) {
+const char* ModuleTypeDescription(ModuleType type) {
    switch (type) {
       case MT_EXPERT   : return("Expert"   );
       case MT_SCRIPT   : return("Script"   );
@@ -252,7 +252,7 @@ const char* ModuleTypeDescription(const ModuleType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ProgramTypeToStr(const ProgramType type) {
+const char* ProgramTypeToStr(ProgramType type) {
    switch (type) {
       case PT_EXPERT   : return("PT_EXPERT"   );
       case PT_SCRIPT   : return("PT_SCRIPT"   );
@@ -270,7 +270,7 @@ const char* ProgramTypeToStr(const ProgramType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ProgramTypeDescription(const ProgramType type) {
+const char* ProgramTypeDescription(ProgramType type) {
    switch (type) {
       case PT_EXPERT   : return("Expert"   );
       case PT_SCRIPT   : return("Script"   );
@@ -288,7 +288,7 @@ const char* ProgramTypeDescription(const ProgramType type) {
  *
  * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
  */
-const char* RootFunctionToStr(const RootFunction id) {
+const char* RootFunctionToStr(RootFunction id) {
    switch (id) {
       case RF_INIT  : return("RF_INIT"  );
       case RF_START : return("RF_START" );
@@ -306,7 +306,7 @@ const char* RootFunctionToStr(const RootFunction id) {
  *
  * @return char* - Name oder NULL, falls die ID ungültig ist
  */
-const char* RootFunctionName(const RootFunction id) {
+const char* RootFunctionName(RootFunction id) {
    switch (id) {
       case RF_INIT  : return("init"  );
       case RF_START : return("start" );
@@ -324,7 +324,7 @@ const char* RootFunctionName(const RootFunction id) {
  *
  * @return char*
  */
-const char* PeriodToStr(const int period) {
+const char* PeriodToStr(int period) {
    switch (period) {
       case PERIOD_M1 : return("PERIOD_M1" );     // 1 minute
       case PERIOD_M5 : return("PERIOD_M5" );     // 5 minutes
@@ -349,7 +349,7 @@ const char* PeriodToStr(const int period) {
  *
  * @return char*
  */
-const char* PeriodDescription(const int period) {
+const char* PeriodDescription(int period) {
    switch (period) {
       case PERIOD_M1 : return("M1" );     // 1 minute
       case PERIOD_M5 : return("M5" );     // 5 minutes
@@ -374,7 +374,7 @@ const char* PeriodDescription(const int period) {
 /**
  * Alias
  */
-const char* TimeframeToStr(const int timeframe) {
+const char* TimeframeToStr(int timeframe) {
    return(PeriodToStr(timeframe));
 }
 
@@ -382,7 +382,7 @@ const char* TimeframeToStr(const int timeframe) {
 /**
  * Alias
  */
-const char* TimeframeDescription(const int timeframe) {
+const char* TimeframeDescription(int timeframe) {
    return(PeriodDescription(timeframe));
 }
 

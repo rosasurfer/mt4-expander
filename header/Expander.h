@@ -25,7 +25,7 @@ enum ModuleType {
 };
 
 
-// MQL-Rootfunktionen: init(), start() oder deinit()
+// MQL-Rootfunktionen
 enum RootFunction {
    RF_INIT      = ROOTFUNCTION_INIT,
    RF_START     = ROOTFUNCTION_START,
@@ -33,7 +33,7 @@ enum RootFunction {
 };
 
 
-// Launchtypen eines MQL-Programms: per Template, per iCustom() oder von Hand
+// Launchtypen eines MQL-Programms: via Template, via iCustom() oder von Hand
 enum LaunchType {
    LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,
    LT_PROGRAM   = LAUNCHTYPE_PROGRAM,
@@ -41,14 +41,18 @@ enum LaunchType {
 };
 
 
-// MT4-interne Darstellung eines MQL-Strings
+/**
+ * MT4-interne Darstellung eines MQL-Strings
+ */
 struct MqlStr {
-   int   length;                 // Größe des verfügbaren Speicherblocks oder 0, wenn der String ein C-Literal ist
+   int   size;                   // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
    char* string;
 };
 
 
-// MT4-interne Darstellung einer Preis-Bar
+/**
+ * MT4-interne Darstellung einer Preis-Bar
+ */
 struct RateInfo {
    int    time;                  // BarOpen-Time
    double open;
@@ -59,15 +63,18 @@ struct RateInfo {
 };
 
 
-// in der DLL aufgetretener Fehler, kann an ein MQL-Programm weitergereicht werden
+/**
+ * In der DLL aufgetretener Fehler, kann an ein MQL-Programm weitergereicht werden.
+ */
 struct DLL_ERROR {
    int   code;
    char* message;
 };
 
 
-// Ausführungskontext eines MQL-Programms für Laufzeitinformationen und Datenaustausch zwischen MQL-Modulen und DLL
-//
+/**
+ * Ausführungskontext eines MQL-Programms für Laufzeitinformationen und Datenaustausch zwischen MQL-Modulen und DLL
+ */
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
    unsigned int       programId;                   //       4      => ec[ 0]     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
    ProgramType        programType;                 //       4      => ec[ 1]     Programmtyp                                     (konstant)   => was bin ich
@@ -76,7 +83,7 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    EXECUTION_CONTEXT* superContext;                //       4      => ec[68]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
    unsigned int       initFlags;                   //       4      => ec[69]     init-Flags                                      (konstant)   => wie werde ich initialisiert
    unsigned int       deinitFlags;                 //       4      => ec[70]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
-   RootFunction       rootFunction;                //       4      => ec[71]     aktuelle Rootfunktion des Programms             (variabel)   => wo bin ich
+   RootFunction       rootFunction;                //       4      => ec[71]     aktuelle Rootfunktion                           (variabel)   => wo bin ich
    int                uninitializeReason;          //       4      => ec[72]     letzter Uninitialize-Reason                     (variabel)   => woher komme ich
 
    char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[73]     aktuelles Symbol, <NUL>-terminiert              (variabel)   => auf welchem Symbol laufe ich
@@ -114,8 +121,8 @@ BOOL  onProcessDetach();
 
 uint  ecc_setProgramId(pec_vector &chain, uint id);
 
-BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period);
-BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec, const char* name, const char* symbol, const int period);
+BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period);
+BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period);
 
 void  WINAPI SetLogLevel(int level);
 HWND  WINAPI GetApplicationWindow();
@@ -125,8 +132,8 @@ int   WINAPI GetBoolsAddress  (BOOL   values[]);
 int   WINAPI GetIntsAddress   (int    values[]);   int WINAPI GetBufferAddress(int values[]);   // Alias
 int   WINAPI GetDoublesAddress(double values[]);
 int   WINAPI GetStringsAddress(MqlStr values[]);
-int   WINAPI GetStringAddress(char* value);
-char* WINAPI GetString       (char* value);
+int   WINAPI GetStringAddress (char*  value   );
+char* WINAPI GetString        (char*  value   );
 int   WINAPI GetLastWin32Error();
 BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
 BOOL  WINAPI IsCustomTimeframe(int timeframe);

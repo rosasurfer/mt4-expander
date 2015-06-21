@@ -2,11 +2,11 @@
  * Win32 structure PROCESS_INFORMATION
  *
  * struct PROCESS_INFORMATION {
- *    HANDLE hProcess;           //  4
- *    HANDLE hThread;            //  4
- *    DWORD  processId;          //  4
- *    DWORD  threadId;           //  4
- * } pi;                         // 16 byte = int[4]
+ *    HANDLE hProcess;              //  4
+ *    HANDLE hThread;               //  4
+ *    DWORD  processId;             //  4
+ *    DWORD  threadId;              //  4
+ * } pi;                            // 16 byte
  *
  *
  * MQL-Importdeklarationen:
@@ -27,11 +27,8 @@
  * @param  PROCESS_INFORMATION* pi
  *
  * @return HANDLE
- *
- *
- * @mql    int pi_hProcess(int pi[]);
  */
-HANDLE WINAPI pi_hProcess(PROCESS_INFORMATION* pi) {
+HANDLE WINAPI pi_hProcess(const PROCESS_INFORMATION* pi) {
    if ((uint)pi < MIN_VALID_POINTER) return((HANDLE)debug("invalid parameter pi = 0x%p (not a valid pointer)", pi));
    return(pi->hProcess);
    #pragma EXPORT
@@ -44,11 +41,8 @@ HANDLE WINAPI pi_hProcess(PROCESS_INFORMATION* pi) {
  * @param  PROCESS_INFORMATION* pi
  *
  * @return HANDLE
- *
- *
- * @mql    int pi_hThread(int pi[]);
  */
-HANDLE WINAPI pi_hThread(PROCESS_INFORMATION* pi) {
+HANDLE WINAPI pi_hThread(const PROCESS_INFORMATION* pi) {
    if ((uint)pi < MIN_VALID_POINTER) return((HANDLE)debug("invalid parameter pi = 0x%p (not a valid pointer)", pi));
    return(pi->hThread);
    #pragma EXPORT
@@ -61,11 +55,8 @@ HANDLE WINAPI pi_hThread(PROCESS_INFORMATION* pi) {
  * @param  PROCESS_INFORMATION* pi
  *
  * @return DWORD
- *
- *
- * @mql    int pi_ProcessId(int pi[]);
  */
-DWORD WINAPI pi_ProcessId(PROCESS_INFORMATION* pi) {
+DWORD WINAPI pi_ProcessId(const PROCESS_INFORMATION* pi) {
    if ((uint)pi < MIN_VALID_POINTER) return(debug("invalid parameter pi = 0x%p (not a valid pointer)", pi));
    return(pi->dwProcessId);
    #pragma EXPORT
@@ -78,11 +69,8 @@ DWORD WINAPI pi_ProcessId(PROCESS_INFORMATION* pi) {
  * @param  PROCESS_INFORMATION* pi
  *
  * @return DWORD
- *
- *
- * @mql    int pi_ThreadId(int pi[]);
  */
-DWORD WINAPI pi_ThreadId(PROCESS_INFORMATION* pi) {
+DWORD WINAPI pi_ThreadId(const PROCESS_INFORMATION* pi) {
    if ((uint)pi < MIN_VALID_POINTER) return(debug("invalid parameter pi = 0x%p (not a valid pointer)", pi));
    return(pi->dwThreadId);
    #pragma EXPORT
