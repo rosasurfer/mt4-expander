@@ -12,18 +12,6 @@
  *    WORD wSecond;                 //  2
  *    WORD wMilliseconds;           //  2
  * } st;                            // 16 byte
- *
- *
- * MQL-Importdeklarationen:
- * ------------------------
- * int st_Year        (/*SYSTEMTIME/int st[]);
- * int st_Month       (/*SYSTEMTIME/int st[]);
- * int st_DayOfWeek   (/*SYSTEMTIME/int st[]);
- * int st_Day         (/*SYSTEMTIME/int st[]);
- * int st_Hour        (/*SYSTEMTIME/int st[]);
- * int st_Minute      (/*SYSTEMTIME/int st[]);
- * int st_Second      (/*SYSTEMTIME/int st[]);
- * int st_Milliseconds(/*SYSTEMTIME/int st[]);
  */
 #include "stdafx.h"
 #include "global.h"

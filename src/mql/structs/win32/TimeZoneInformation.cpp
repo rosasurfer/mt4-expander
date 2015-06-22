@@ -18,17 +18,6 @@
  *  Bias             = -Offset
  *  LocalTime + Bias = GMT
  *  GMT + Offset     = LocalTime
- *
- *
- * MQL-Importdeklarationen:
- * ------------------------
- * int    tzi_Bias        (/*TIME_ZONE_INFORMATION/int tzi[]);
- * string tzi_StandardName(/*TIME_ZONE_INFORMATION/int tzi[]);
- * void   tzi_StandardDate(/*TIME_ZONE_INFORMATION/int tzi[], /*SYSTEMTIME/int st[]);
- * int    tzi_StandardBias(/*TIME_ZONE_INFORMATION/int tzi[]);
- * string tzi_DaylightName(/*TIME_ZONE_INFORMATION/int tzi[]);
- * void   tzi_DaylightDate(/*TIME_ZONE_INFORMATION/int tzi[], /*SYSTEMTIME/int st[]);
- * int    tzi_DaylightBias(/*TIME_ZONE_INFORMATION/int tzi[]);
  */
 #include "stdafx.h"
 #include "global.h"

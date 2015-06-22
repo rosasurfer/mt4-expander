@@ -196,7 +196,15 @@
 					Name="win32"
 					>
 					<File
+						RelativePath=".\FILETIME.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\PROCESS_INFORMATION.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\SECURITY_ATTRIBUTES.cpp"
 						>
 					</File>
 					<File

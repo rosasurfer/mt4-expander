@@ -3,7 +3,7 @@
  *
  *
  * struct STARTUPINFOA {
- *    DWORD   cb;
+ *    DWORD   cb;                      // Getter/Setter mit Alias: si_Size
  *    LPSTR   lpReserved;
  *    LPSTR   lpDesktop;
  *    LPSTR   lpTitle;
@@ -22,28 +22,6 @@
  *    HANDLE  hStdOutput;
  *    HANDLE  hStdError;
  * } si;
- *
- *
- * MQL-Importdeklarationen:
- * ------------------------
- * int si.setCb        (/*STARTUPINFO/int si[], int size   );
- *     ...
- *     ...
- *     ...
- *     ...
- *     ...
- *     ...
- *     ...
- *     ...
- *     ...
- * int si.setFlags     (/*STARTUPINFO/int si[], int flags  );
- *     ...
- * int si.setShowWindow(/*STARTUPINFO/int si[], int cmdShow);
- *     ...
- *     ...
- *     ...
- *     ...
- *     ...
  */
 #include "stdafx.h"
 #include "global.h"
@@ -58,9 +36,9 @@
  *
  * @return DWORD - dieselbe Größe
  */
-DWORD WINAPI si_setCb(STARTUPINFOA* si, DWORD size) {
+DWORD WINAPI si_setSize(STARTUPINFOA* si, DWORD size) {
    if ((uint)si < MIN_VALID_POINTER) return(debug("invalid parameter si = 0x%p (not a valid pointer)", si));
-   if (size != sizeof(STARTUPINFOA))  return(debug("invalid parameter size = %d (must be %d)", size, sizeof(STARTUPINFOA)));
+   if (size != sizeof(STARTUPINFOA)) return(debug("invalid parameter size = %d (must be %d)", size, sizeof(STARTUPINFOA)));
 
    si->cb = size;
    return(size);

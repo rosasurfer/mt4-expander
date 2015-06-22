@@ -1,20 +1,13 @@
 /**
  * Win32 structure PROCESS_INFORMATION
  *
+ *
  * struct PROCESS_INFORMATION {
  *    HANDLE hProcess;              //  4
  *    HANDLE hThread;               //  4
- *    DWORD  processId;             //  4
- *    DWORD  threadId;              //  4
- * } pi;                            // 16 byte
- *
- *
- * MQL-Importdeklarationen:
- * ------------------------
- * int pi_hProcess (/*PROCESS_INFORMATION/int pi[]);
- * int pi_hThread  (/*PROCESS_INFORMATION/int pi[]);
- * int pi_ProcessId(/*PROCESS_INFORMATION/int pi[]);
- * int pi_ThreadId (/*PROCESS_INFORMATION/int pi[]);
+ *    DWORD  dwProcessId;           //  4
+ *    DWORD  dwThreadId;            //  4
+ * } pi;                            // 16 byte = int[4]
  */
 #include "stdafx.h"
 #include "global.h"
