@@ -8,49 +8,7 @@
  * ungültigen Hauptmodulkontext zugreifen (weder lesend noch schreibend).
  *
  *
- * MQL-Importdeklarationen:
- * ------------------------
- * int    ec_ProgramId            (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_ProgramType          (/*EXECUTION_CONTEXT/int ec[]);
- * string ec_ProgramName          (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_LaunchType           (/*EXECUTION_CONTEXT/int ec[]);
- * bool   ec_SuperContext         (/*EXECUTION_CONTEXT/int ec[], /*EXECUTION_CONTEXT/int sec[]);
- * int    ec_lpSuperContext       (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_InitFlags            (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_DeinitFlags          (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_RootFunction         (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_UninitializeReason   (/*EXECUTION_CONTEXT/int ec[]);
- * string ec_Symbol               (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_Timeframe            (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_hChartWindow         (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_hChart               (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_TestFlags            (/*EXECUTION_CONTEXT/int ec[]);
- * int    ec_LastError            (/*EXECUTION_CONTEXT/int ec[]);
- *        ...
- *        ...
- * bool   ec_Logging              (/*EXECUTION_CONTEXT/int ec[]);
- * string ec_LogFile              (/*EXECUTION_CONTEXT/int ec[]);
- *
- *
- * int    ec_setProgramType       (/*EXECUTION_CONTEXT/int ec[], int    type     );
- * string ec_setProgramName       (/*EXECUTION_CONTEXT/int ec[], string name     );
- * int    ec_setLaunchType        (/*EXECUTION_CONTEXT/int ec[], int    type     );
- * int    ec_setSuperContext      (/*EXECUTION_CONTEXT/int ec[], int    sec[]    );
- * int    ec_setLpSuperContext    (/*EXECUTION_CONTEXT/int ec[], int    lpSec    );
- * int    ec_InitFlags            (/*EXECUTION_CONTEXT/int ec[], int    flags    );
- * int    ec_DeinitFlags          (/*EXECUTION_CONTEXT/int ec[], int    flags    );
- * int    ec_setRootFunction      (/*EXECUTION_CONTEXT/int ec[], int    function );
- * int    ec_setUninitializeReason(/*EXECUTION_CONTEXT/int ec[], int    reason   );
- * string ec_setSymbol            (/*EXECUTION_CONTEXT/int ec[], string symbol   );
- * int    ec_setTimeframe         (/*EXECUTION_CONTEXT/int ec[], int    timeframe);
- * int    ec_setHChartWindow      (/*EXECUTION_CONTEXT/int ec[], int    hWnd     );
- * int    ec_setHChart            (/*EXECUTION_CONTEXT/int ec[], int    hWnd     );
- * int    ec_setTestFlags         (/*EXECUTION_CONTEXT/int ec[], int    testFlags);
- * int    ec_setLastError         (/*EXECUTION_CONTEXT/int ec[], int    error    );
- *        ...
- *        ...
- * bool   ec_setLogging           (/*EXECUTION_CONTEXT/int ec[], bool   logging  );
- * string ec_setLogFile           (/*EXECUTION_CONTEXT/int ec[], string logFile  );
+ * @see  Definition in Expander.dll::Expander.h
  */
 #include "stdafx.h"
 #include "global.h"
@@ -334,7 +292,7 @@ uint WINAPI ec_setProgramId(EXECUTION_CONTEXT* ec, uint id) {
 
    ec->programId = id;
    return(id);
-   //#pragma EXPORT                                // kein Export
+   #pragma EXPORT
 }
 
 
