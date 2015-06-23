@@ -459,3 +459,17 @@ BOOL WINAPI IsUIThread() {
    #pragma EXPORT
 }
 
+
+/**
+ * Konvertiert den angegebenen WCHAR-String in einen CHAR-String.
+ *
+ * @param  WCHAR wcstr - wide character string
+ * @param  int   count - number of wide characters to convert
+ *
+ * @return char*
+ */
+char* WINAPI WCharsToStr(const WCHAR* wcstr, size_t count) {
+   //size_t t = wcstombs(mbstr, wcstr, size);
+   return((char*)NULL);
+   //#pragma EXPORT
+}
