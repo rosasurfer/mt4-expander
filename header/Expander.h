@@ -45,26 +45,56 @@ enum LaunchType {
  * MT4-interne Darstellung eines MQL-Strings
  */
 struct MqlStr {
-   int   size;                   // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
+   int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes Literal ist
    char* string;
 };
 
 
 /**
- * MT4-interne Darstellung einer Preis-Bar
+ * HistoryFile-Header
  */
-struct RateInfo {
-   int    time;                  // BarOpen-Time
-   double open;
-   double low;
-   double high;
-   double close;
-   double volume;                // immer Ganzzahl
-};
-
+struct HISTORY_HEADER {                            // -- size ------- offset --- description ----------------------------------------------------------------------------------------
+  uint  version;                                   //       4      => hh[ 0]     Dateiformat, bis v509: 400, danach: 401
+  char  description[64];                           //      64      => hh[ 1]     Beschreibung, <NUL> terminated
+  char  symbol[MAX_SYMBOL_LENGTH+1];               //      12      => hh[17]     Symbol, <NUL> terminated
+  uint  period;                                    //       4      => hh[20]     Timeframe
+  uint  digits;                                    //       4      => hh[21]     Digits
+  uint  timeSign;                                  //       4      => hh[22]     Server-Datenbankversion (timestamp)
+  uint  lastSync;                                  //       4      => hh[23]     LastSync                            unbenutzt
+  uint  reserved[13];                              //      52      => hh[24]                                         unbenutzt
+};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+                                                   //   = 148      = int[37]
 
 /**
- * In der DLL aufgetretener Fehler, kann an ein MQL-Programm weitergereicht werden.
+ * HistoryBar bis Build 509
+ */
+struct HISTORY_BAR_400 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
+   uint   time;                                    //       4                    Open-Time (timestamp)
+   double open;                                    //       8
+   double low;                                     //       8
+   double high;                                    //       8
+   double close;                                   //       8
+   double volume;                                  //       8                    immer Ganzzahl
+};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+                                                   //    = 44
+
+/**
+ * HistoryBar nach Build 509
+ */
+struct HISTORY_BAR_401 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
+   __int64          time;                          //       8                    Open-Time (timestamp)
+   double           open;                          //       8
+   double           high;                          //       8
+   double           low;                           //       8
+   double           close;                         //       8
+   unsigned __int64 tickVolume;                    //       8
+   int              spread;                        //       4                    unbenutzt
+   unsigned __int64 realVolume;                    //       8                    unbenutzt
+};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+                                                   //    = 60
+
+/**
+ * In der DLL aufgetretener Fehler.
  */
 struct DLL_ERROR {
    int   code;
@@ -78,7 +108,7 @@ struct DLL_ERROR {
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
    unsigned int       programId;                   //       4      => ec[ 0]     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
    ProgramType        programType;                 //       4      => ec[ 1]     Programmtyp                                     (konstant)   => was bin ich
-   char               programName[MAX_PATH];       //     260      => ec[ 2]     Programmname                                    (konstant)   => wie heiße ich
+   char               programName[MAX_PATH];       //     260      => ec[ 2]     Programmname, <NUL> terminated                  (konstant)   => wie heiße ich
    LaunchType         launchType;                  //       4      => ec[67]     Launchtyp                                       (konstant)   => wie wurde ich gestartet
    EXECUTION_CONTEXT* superContext;                //       4      => ec[68]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
    unsigned int       initFlags;                   //       4      => ec[69]     init-Flags                                      (konstant)   => wie werde ich initialisiert
@@ -86,7 +116,7 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    RootFunction       rootFunction;                //       4      => ec[71]     aktuelle Rootfunktion                           (variabel)   => wo bin ich
    int                uninitializeReason;          //       4      => ec[72]     letzter Uninitialize-Reason                     (variabel)   => woher komme ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[73]     aktuelles Symbol, <NUL>-terminiert              (variabel)   => auf welchem Symbol laufe ich
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[73]     aktuelles Symbol, <NUL> terminated              (variabel)   => auf welchem Symbol laufe ich
    unsigned int       timeframe;                   //       4      => ec[76]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
    HWND               hChartWindow;                //       4      => ec[77]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
    HWND               hChart;                      //       4      => ec[78]     Chart-Frame: = MQL->WindowHandle()              (konstant)   => ...
@@ -96,23 +126,11 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    DLL_ERROR**        dllErrors;                   //       4      => ec[81]     Array von in der DLL aufgetretenen Fehlern      (variabel)   => welche DLL-Fehler sind aufgetreten
    unsigned int       dllErrorsSize;               //       4      => ec[82]     Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => wieviele DLL-Fehler sind aufgetreten
    BOOL               logging;                     //       4      => ec[83]     Logstatus                                       (konstant)   => was logge ich
-   char               logFile[MAX_PATH];           //     260      => ec[84]     Name der Logdatei, <NUL>-terminiert             (konstant)   => wohin logge ich
+   char               logFile[MAX_PATH];           //     260      => ec[84]     Name der Logdatei, <NUL> terminated             (konstant)   => wohin logge ich
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
                                                    //     596     = int[149]                                                                     warum bin ich nicht auf Ibiza
 
 typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
-
-
-/*
-// Prototype
-struct EXECUTION_CONTEXT_proto {
-   ...
-   DLL_ERROR**        dllErrors;
-   uint               dllErrorsSize;
-   int                logLevel;
-   ...
-};
-*/
 
 
 // Funktionsdeklarationen

@@ -232,6 +232,14 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="mt4"
+					>
+					<File
+						RelativePath=".\HISTORY_HEADER.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter

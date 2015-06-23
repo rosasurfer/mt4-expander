@@ -16,7 +16,7 @@ bool logDebug, logNotice, logInfo, logWarn, logError, logFatal;
 
 // Thread- und EXECUTION_CONTEXT-Verwaltung
 std::vector<DWORD>      threads       (64);                 // alle bekannten Thread-IDs
-std::vector<UINT>       threadsProgram(64);                 // das von einem Thread jeweils zuletzt ausgeführte Programm
+std::vector<uint>       threadsProgram(64);                 // das von einem Thread jeweils zuletzt ausgeführte Programm
 std::vector<pec_vector> contextChains (64);                 // alle bekannten Context-Chains (Index = ProgramID)
 CRITICAL_SECTION        threadsLock;                        // Lock
 
