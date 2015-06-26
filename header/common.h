@@ -9,9 +9,9 @@
 #pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
 
-typedef unsigned   int   uint;         // UINT ist Windows-Slang
+typedef unsigned   int   uint;
+typedef          __int64 int64;
 typedef unsigned __int64 uint64;
-typedef          __int64  int64;
 
 
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)

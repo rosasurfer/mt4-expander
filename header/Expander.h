@@ -54,7 +54,7 @@ struct MqlStr {
  * HistoryFile Header
  */
 struct HISTORY_HEADER {                            // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-  uint  version;                                   //       4      => hh[ 0]     Barformat, bis Build 509: 400, danach: 401
+  uint  format;                                    //       4      => hh[ 0]     Barformat, bis Build 509: 400, danach: 401
   char  description[64];                           //      64      => hh[ 1]     Beschreibung (szchar)
   char  symbol[MAX_SYMBOL_LENGTH+1];               //      12      => hh[17]     Symbol       (szchar)
   uint  period;                                    //       4      => hh[20]     Timeframe
