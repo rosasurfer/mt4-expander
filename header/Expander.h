@@ -98,7 +98,7 @@ struct HISTORY_BAR_401 {                           // -- size ------------------
  */
 struct DLL_ERROR {
    int   code;
-   char* message;
+   char* message;                                  // szchar
 };
 
 
