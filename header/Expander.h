@@ -61,7 +61,7 @@ struct HISTORY_HEADER {                            // -- size ------- offset ---
   uint  digits;                                    //       4      => hh[21]     Digits
   uint  timeSign;                                  //       4      => hh[22]     Server-Datenbankversion (timestamp)
   uint  lastSync;                                  //       4      => hh[23]     LastSync                (unbenutzt)
-  uint  reserved[13];                              //      52      => hh[24]
+  BYTE  reserved[52];                              //      52      => hh[24]
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
                                                    //   = 148      = int[37]
 
