@@ -61,13 +61,13 @@ struct HISTORY_HEADER {                            // -- size ------- offset ---
   uint  digits;                                    //       4      => hh[21]     Digits
   uint  syncMark;                                  //       4      => hh[22]     Server-SyncMarker (timestamp), wird beim Online-Refresh mit Server-SyncMarker überschrieben
   uint  lastSync;                                  //       4      => hh[23]     LastSync          (unbenutzt), wird beim Online-Refresh *nicht* überschrieben
-  uint  timezoneId;                                //       4      => hh[24]     custom timezone ID (default: 0 => Server-Timezone)
+  uint  timezoneId;     /*zusätzliches Element*/   //       4      => hh[24]     Timezone ID (default: 0 => Server-Timezone)
   BYTE  reserved[48];                              //      48      => hh[25]
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
                                                    //   = 148      = int[37]
 
 /**
- * HistoryFile Barformat v400 (bis Build 509)
+ * HistoryFile Barformat v400 (bis Build 509), entspricht dem MT4 struct RateInfo
  */
 struct HISTORY_BAR_400 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
    uint   time;                                    //       4                    Open-Time (timestamp)
@@ -80,7 +80,7 @@ struct HISTORY_BAR_400 {                           // -- size ------------------
                                                    //    = 44
 
 /**
- * HistoryFile Barformat v401 (ab Build 510)
+ * HistoryFile Barformat v401 (ab Build 510), entspricht dem MT4 struct MqlRates
  */
 struct HISTORY_BAR_401 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
    int64  time;                                    //       8                    Open-Time (timestamp)

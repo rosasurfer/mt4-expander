@@ -8,7 +8,7 @@
  * ungültigen Hauptmodulkontext zugreifen (weder lesend noch schreibend).
  *
  *
- * @see  Definition in Expander.dll::Expander.h
+ * @see  struct EXECUTION_CONTEXT - Definition in Expander.dll::Expander.h
  */
 #include "stdafx.h"
 #include "global.h"
