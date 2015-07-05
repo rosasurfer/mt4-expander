@@ -61,7 +61,7 @@ struct HISTORY_HEADER {                            // -- size ------- offset ---
   uint  digits;                                    //       4      => hh[21]     Digits
   uint  syncMark;                                  //       4      => hh[22]     Server-SyncMarker (timestamp), wird beim Online-Refresh mit Server-SyncMarker überschrieben
   uint  lastSync;                                  //       4      => hh[23]     LastSync          (unbenutzt), wird beim Online-Refresh *nicht* überschrieben
-  uint  timezoneId;     /*zusätzliches Element*/   //       4      => hh[24]     Timezone ID (default: 0 => Server-Timezone)
+  uint  timezoneId;     /*zusätzliches Element*/   //       4      => hh[24]     Timezone-ID (default: 0 => Server-Timezone)
   BYTE  reserved[48];                              //      48      => hh[25]
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
                                                    //   = 148      = int[37]
