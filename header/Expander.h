@@ -42,7 +42,7 @@ enum LaunchType {
 
 
 /**
- * MT4-interne Darstellung eines MQL-Strings
+ * MT4 structure: interne Darstellung eines MQL-Strings
  */
 struct MqlStr {
    int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes Literal ist
@@ -51,23 +51,47 @@ struct MqlStr {
 
 
 /**
- * HistoryFile Header
+ * MT4 structure: Dateiformat "symbols.raw"
  */
-struct HISTORY_HEADER {                            // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-  uint  format;                                    //       4      => hh[ 0]     Barformat, bis Build 509: 400, danach: 401
-  char  description[64];                           //      64      => hh[ 1]     Beschreibung (szchar)
-  char  symbol[MAX_SYMBOL_LENGTH+1];               //      12      => hh[17]     Symbol       (szchar)
-  uint  period;                                    //       4      => hh[20]     Timeframe
-  uint  digits;                                    //       4      => hh[21]     Digits
-  uint  syncMark;                                  //       4      => hh[22]     Server-SyncMarker (timestamp), wird beim Online-Refresh mit Server-SyncMarker überschrieben
-  uint  lastSync;                                  //       4      => hh[23]     LastSync          (unbenutzt), wird beim Online-Refresh *nicht* überschrieben
-  uint  timezoneId;     /*zusätzliches Element*/   //       4      => hh[24]     Timezone-ID (default: 0 => Server-Timezone)
-  BYTE  reserved[48];                              //      48      => hh[25]
+struct SYMBOL {                                    // -- size ------- offset --- description ----------------------------------------------------------------------------------------
+   BYTE reserved[1936];                            //
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
-                                                   //   = 148      = int[37]
+                                                   //  = 1936
 
 /**
- * HistoryFile Barformat v400 (bis Build 509), entspricht dem MT4 struct RateInfo
+ * MT4 structure: Dateiformat "symbols.sel"
+ */
+struct SYMBOL_SELECTED {                           // -- size ------- offset --- description ----------------------------------------------------------------------------------------
+   BYTE reserved[128];                             //
+};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+                                                   //   = 128
+
+/**
+ * MT4 structure: Dateiformat "symgroups.raw"
+ */
+struct SYMBOL_GROUP {                              // -- size ------- offset --- description ----------------------------------------------------------------------------------------
+   BYTE reserved[80];                              //
+};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+                                                   //    = 80
+
+/**
+ * MT4 structure: HistoryFile Header
+ */
+struct HISTORY_HEADER {                            // -- size ------- offset --- description ----------------------------------------------------------------------------------------
+   uint  format;                                   //       4      => hh[ 0]     Barformat, bis Build 509: 400, danach: 401
+   char  description[64];                          //      64      => hh[ 1]     Beschreibung (szchar)
+   char  symbol[MAX_SYMBOL_LENGTH+1];              //      12      => hh[17]     Symbol       (szchar)
+   uint  period;                                   //       4      => hh[20]     Timeframe
+   uint  digits;                                   //       4      => hh[21]     Digits
+   uint  syncMark;                                 //       4      => hh[22]     Server-SyncMarker (timestamp), wird beim Online-Refresh mit Server-SyncMarker überschrieben
+   uint  lastSync;                                 //       4      => hh[23]     LastSync          (unbenutzt), wird beim Online-Refresh *nicht* überschrieben
+   uint  timezoneId;     /*custom*/                //       4      => hh[24]     Timezone-ID (default: 0 => Server-Timezone)
+   BYTE  reserved[48];                             //      48      => hh[25]
+};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+                                                   //   = 148
+
+/**
+ * MT4 structure: HistoryFile Barformat v400 (bis Build 509), entspricht dem MT4 struct RateInfo
  */
 struct HISTORY_BAR_400 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
    uint   time;                                    //       4                    Open-Time (timestamp)
@@ -80,7 +104,7 @@ struct HISTORY_BAR_400 {                           // -- size ------------------
                                                    //    = 44
 
 /**
- * HistoryFile Barformat v401 (ab Build 510), entspricht dem MT4 struct MqlRates
+ * MT4 structure: HistoryFile Barformat v401 (ab Build 510), entspricht dem MT4 struct MqlRates
  */
 struct HISTORY_BAR_401 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
    int64  time;                                    //       8                    Open-Time (timestamp)
