@@ -52,6 +52,8 @@ struct MqlStr {
 
 /**
  * MT4 structure SYMBOL: Dateiformat "symbols.raw"
+ *
+ * Die Symbole in der Datei sind alphabetisch nach Symbolnamen sortiert.
  */
 struct SYMBOL {                                    // -- offset ---- size --- description ----------------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol              (szchar)
@@ -63,29 +65,35 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 
    BYTE   undocumented_1[1532];                    //       108      1532
    double undocumented_2;                          //      1640         8     ?
+   BYTE   undocumented_3[12];                      //      1648        12
 
-   BYTE   undocumented_3[32];                      //      1648        32
+   uint   fixedSpread;                             //      1660         4     fester Spread in Points oder NULL bei variablem Spread
+   BYTE   undocumented_4[16];                      //      1664        16
+
    double swapLong;                                //      1680         8     Swap Long
    double swapShort;                               //      1688         8     Swap Short
 
-   uint   undocumented_4;                          //      1696         4     ?
-   BYTE   undocumented_5[4];                       //      1700         4
+   uint   undocumented_5;                          //      1696         4     ?
+   DWORD  undocumented_6;                          //      1700         4
    double lotSize;                                 //      1704         8     Lot Size
+   BYTE   undocumented_7[16];                      //      1712        16
 
-   BYTE   undocumented_6[32];                      //      1712        32
+   uint   stopLevel;                               //      1728         4     Stop Level
+   BYTE   undocumented_8[12];                      //      1732        12
+
    double marginInit;                              //      1744         8     Margin Init        (wenn NULL, dann wie lotSize)
    double marginMaintenance;                       //      1752         8     Margin Maintenance (wenn NULL, dann wie lotSize)
    double marginHedged;                            //      1760         8     Margin Hedged
 
-   double undocumented_7;                          //      1768         8     ?
-   double pointSize;                               //      1776         8     Point Size
+   double undocumented_9;                          //      1768         8     ?
+   double point;                                   //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
-   BYTE   undocumented_8[24];                      //      1792        24
+   BYTE   undocumented_10[24];                     //      1792        24
    char   currency[MAX_SYMBOL_LENGTH+1];           //      1816        12     Currency (szchar)    - unklar, welche -
 
-   BYTE   undocumented_9[104];                     //      1828       104
-   uint   undocumented_10;                         //      1932         4     ?
+   BYTE   undocumented_11[104];                    //      1828       104
+   uint   undocumented_12;                         //      1932         4     ?
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //              = 1936
 
@@ -114,7 +122,7 @@ struct SYMBOL_SELECTED {                           // -- size --- description --
    DWORD  undocumented_2;                          //       4
 
    double point;                                   //       8     Point
-   int    spread;                                  //       4     Spread in Points (jedoch oft NULL)
+   uint   fixedSpread;                             //       4     fester Spread in Points oder NULL bei variablem Spread
    DWORD  undocumented_3;                          //       4
 
    uint   tickType;                                //       4     Tick-Type: 0=Uptick, 1=Downtick, 2=n/a
