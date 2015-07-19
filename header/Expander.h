@@ -92,7 +92,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 /**
  * MT4 structure SYMBOL_GROUP: Dateiformat "symgroups.raw"
  *
- * Die Datei enthält immer 32 Gruppen, die Dateigröße ist immer 2.560 Bytes. Einzelne Gruppen können undefiniert sein.
+ * Die Datei enthält immer 32 Gruppen, die Dateigröße ist fix 2.560 Bytes. Einzelne Gruppen können undefiniert sein.
  */
 struct SYMBOL_GROUP {                              // -- size --- description ----------------------------------------------------------------------------------------
    char name       [16];                           //      16     Name         (szchar)
