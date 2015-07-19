@@ -42,7 +42,7 @@ enum LaunchType {
 
 
 /**
- * MT4 structure: interne Darstellung eines MQL-Strings
+ * MT4 structure MqlStr: interne Darstellung eines MQL-Strings
  */
 struct MqlStr {
    int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes Literal ist
@@ -51,33 +51,95 @@ struct MqlStr {
 
 
 /**
- * MT4 structure: Dateiformat "symbols.raw"
+ * MT4 structure SYMBOL: Dateiformat "symbols.raw"
  */
-struct SYMBOL {                                    // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-   BYTE reserved[1936];                            //
-};                                                 // -------------------------------------------------------------------------------------------------------------------------------
-                                                   //  = 1936
+struct SYMBOL {                                    // -- offset ---- size --- description ----------------------------------------------------------------------------
+   char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol              (szchar)
+   char   description [64];                        //        64        64     Beschreibung        (szchar)
+   char   altName     [MAX_SYMBOL_LENGTH+1];       //        76        12     alternatives Symbol (szchar)  - unbenutzt -
+   char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //        88        12     Base Currency
+   uint   groupIndex;                              //       100         4     Index der Symbolgruppe in "symgroups.raw"
+   uint   digits;                                  //       104         4     Digits
+
+   BYTE   undocumented_1[1532];                    //       108      1532
+   double undocumented_2;                          //      1640         8     ?
+
+   BYTE   undocumented_3[32];                      //      1648        32
+   double swapLong;                                //      1680         8     Swap Long
+   double swapShort;                               //      1688         8     Swap Short
+
+   uint   undocumented_4;                          //      1696         4     ?
+   BYTE   undocumented_5[4];                       //      1700         4
+   double lotSize;                                 //      1704         8     Lot Size
+
+   BYTE   undocumented_6[32];                      //      1712        32
+   double marginInit;                              //      1744         8     Margin Init        (wenn NULL, dann wie lotSize)
+   double marginMaintenance;                       //      1752         8     Margin Maintenance (wenn NULL, dann wie lotSize)
+   double marginHedged;                            //      1760         8     Margin Hedged
+
+   double undocumented_7;                          //      1768         8     ?
+   double pointSize;                               //      1776         8     Point Size
+   double pointsPerUnit;                           //      1784         8     Points per Unit
+
+   BYTE   undocumented_8[24];                      //      1792        24
+   char   currency[MAX_SYMBOL_LENGTH+1];           //      1816        12     Currency (szchar)    - unklar, welche -
+
+   BYTE   undocumented_9[104];                     //      1828       104
+   uint   undocumented_10;                         //      1932         4     ?
+};                                                 // ----------------------------------------------------------------------------------------------------------------
+                                                   //              = 1936
 
 /**
- * MT4 structure: Dateiformat "symbols.sel"
+ * MT4 structure SYMBOL_GROUP: Dateiformat "symgroups.raw"
+ *
+ * Die Datei enthält immer 32 Gruppen, die Dateigröße ist immer 2.560 Bytes. Einzelne Gruppen können undefiniert sein.
  */
-struct SYMBOL_SELECTED {                           // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-   BYTE reserved[128];                             //
-};                                                 // -------------------------------------------------------------------------------------------------------------------------------
-                                                   //   = 128
-
-/**
- * MT4 structure: Dateiformat "symgroups.raw"
- */
-struct SYMBOL_GROUP {                              // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-   BYTE reserved[80];                              //
-};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+struct SYMBOL_GROUP {                              // -- size --- description ----------------------------------------------------------------------------------------
+   char name       [16];                           //      16     Name         (szchar)
+   char description[64];                           //      64     Beschreibung (szchar)
+};                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //    = 80
 
 /**
- * MT4 structure: HistoryFile Header
+ * MT4 structure SYMBOL_SELECTED: Dateiformat "symbols.sel"
  */
-struct HISTORY_HEADER {                            // -- size ------- offset --- description ----------------------------------------------------------------------------------------
+struct SYMBOL_SELECTED {                           // -- size --- description ----------------------------------------------------------------------------------------
+   char   symbol[MAX_SYMBOL_LENGTH+1];             //      12     Symbol (szchar)
+   uint   digits;                                  //       4     Digits
+
+   uint   symbolIndex;                             //       4     Index des Symbols in "symbols.raw"
+   DWORD  undocumented_1;                          //       4     immer 0x0001
+
+   uint   groupIndex;                              //       4     Index der Symbolgruppe in "symgroups.raw"
+   DWORD  undocumented_2;                          //       4
+
+   double point;                                   //       8     Point
+   int    spread;                                  //       4     Spread in Points (jedoch oft NULL)
+   DWORD  undocumented_3;                          //       4
+
+   uint   tickType;                                //       4     Tick-Type: 0=Uptick, 1=Downtick, 2=n/a
+   WORD   undocumented_4;                          //       2     immer 0x0100
+   WORD   undocumented_5;                          //       2     unterschiedlich (oft NULL)
+
+   uint   time;                                    //       4     Time
+   DWORD  undocumented_6;                          //       4
+   double bid;                                     //       8     Bid
+   double ask;                                     //       8     Ask
+   double sessionHigh;                             //       8     Session High
+   double sessionLow;                              //       8     Session Low
+
+   BYTE   undocumented_7[16];                      //      16     unterschiedlich (oft alles NULL)
+   double bid_2;                                   //       8     Bid (Wiederholung)
+   double ask_2;                                   //       8     Ask (Wiederholung)
+};                                                 // ----------------------------------------------------------------------------------------------------------------
+                                                   //   = 128
+
+/**
+ * MT4 structure HISTORY_HEADER
+ *
+ * HistoryFile Header
+ */
+struct HISTORY_HEADER {                            // -- size ------- offset --- description -------------------------------------------------------------------------
    uint  format;                                   //       4      => hh[ 0]     Barformat, bis Build 509: 400, danach: 401
    char  description[64];                          //      64      => hh[ 1]     Beschreibung (szchar)
    char  symbol[MAX_SYMBOL_LENGTH+1];              //      12      => hh[17]     Symbol       (szchar)
@@ -87,35 +149,39 @@ struct HISTORY_HEADER {                            // -- size ------- offset ---
    uint  lastSync;                                 //       4      => hh[23]     LastSync          (unbenutzt), wird beim Online-Refresh *nicht* überschrieben
    uint  timezoneId;     /*custom*/                //       4      => hh[24]     Timezone-ID (default: 0 => Server-Timezone)
    BYTE  reserved[48];                             //      48      => hh[25]
-};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+};                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //   = 148
 
 /**
- * MT4 structure: HistoryFile Barformat v400 (bis Build 509), entspricht dem MT4 struct RateInfo
+ * MT4 structure HISTORY_BAR_400
+ *
+ * HistoryFile Barformat v400 (bis Build 509), entspricht dem MetaQuotes-Struct RateInfo
  */
-struct HISTORY_BAR_400 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
-   uint   time;                                    //       4                    Open-Time (timestamp)
+struct HISTORY_BAR_400 {                           // -- size --- description ----------------------------------------------------------------------------------------
+   uint   time;                                    //       4     Open-Time (timestamp)
    double open;                                    //       8
    double low;                                     //       8
    double high;                                    //       8
    double close;                                   //       8
-   double ticks;                                   //       8                    immer Ganzzahl
-};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+   double ticks;                                   //       8     immer Ganzzahl
+};                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //    = 44
 
 /**
- * MT4 structure: HistoryFile Barformat v401 (ab Build 510), entspricht dem MT4 struct MqlRates
+ * MT4 structure HISTORY_BAR_401
+ *
+ * HistoryFile Barformat v401 (ab Build 510), entspricht dem MetaQuotes-Struct MqlRates
  */
-struct HISTORY_BAR_401 {                           // -- size ------------------ description ----------------------------------------------------------------------------------------
-   int64  time;                                    //       8                    Open-Time (timestamp)
+struct HISTORY_BAR_401 {                           // -- size --- description ----------------------------------------------------------------------------------------
+   int64  time;                                    //       8     Open-Time (timestamp)
    double open;                                    //       8
    double high;                                    //       8
    double low;                                     //       8
    double close;                                   //       8
    uint64 ticks;                                   //       8
-   int    spread;                                  //       4                    (unbenutzt)
-   uint64 volume;                                  //       8                    (unbenutzt)
-};                                                 // -------------------------------------------------------------------------------------------------------------------------------
+   int    spread;                                  //       4     (unbenutzt)
+   uint64 volume;                                  //       8     (unbenutzt)
+};                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //    = 60
 
 /**
