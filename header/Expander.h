@@ -45,7 +45,7 @@ enum LaunchType {
  * MT4 structure MqlStr: interne Darstellung eines MQL-Strings
  */
 struct MqlStr {
-   int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes Literal ist
+   int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
    char* string;
 };
 
