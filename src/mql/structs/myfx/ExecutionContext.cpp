@@ -6,9 +6,6 @@
  * Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt, also die Funktionen Library::deinit()
  * und Library::init() aufgerufen. In Indikatoren geladene Libraries dürfen also während ihres init()-Cycles nicht auf den alten, bereits
  * ungültigen Hauptmodulkontext zugreifen (weder lesend noch schreibend).
- *
- *
- * @see  struct EXECUTION_CONTEXT - Definition in Expander.dll::Expander.h
  */
 #include "stdafx.h"
 #include "global.h"

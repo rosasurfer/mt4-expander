@@ -218,7 +218,7 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[73]     aktuelles Symbol (szchar)                       (variabel)   => auf welchem Symbol laufe ich
    uint               timeframe;                   //       4      => ec[76]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
    HWND               hChartWindow;                //       4      => ec[77]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
-   HWND               hChart;                      //       4      => ec[78]     Chart-Frame:   MQL->WindowHandle()              (konstant)   => ...
+   HWND               hChart;                      //       4      => ec[78]     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
    uint               testFlags;                   //       4      => ec[79]     Test-Flags: Off|On|VisualMode|Optimization      (konstant)   => laufe ich im Tester und wenn ja, wie
 
    int                lastError;                   //       4      => ec[80]     letzter MQL-Fehler                              (variabel)   => welcher MQL-Fehler ist aufgetreten
