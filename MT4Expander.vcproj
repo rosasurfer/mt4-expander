@@ -228,6 +228,10 @@
 					Name="pewa"
 					>
 					<File
+						RelativePath=".\CustomPosition.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\EXECUTION_CONTEXT.cpp"
 						>
 					</File>
