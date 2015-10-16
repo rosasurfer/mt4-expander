@@ -86,9 +86,9 @@ BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, con
    if (period <= 0)                      return(debug("invalid parameter period = %d", period));
 
 
-   if (strcmp(ec->programName, "TestIndicator") == 0) {
-      debug("ec:   %s::%s()  %s,%s", ec->programName, RootFunctionName(ec->rootFunction), ec->symbol, TimeframeDescription(ec->timeframe));
-   }
+   //if (strcmp(ec->programName, "TestIndicator") == 0) {
+   //   debug("ec:   %s::%s()  %s,%s", ec->programName, RootFunctionName(ec->rootFunction), ec->symbol, TimeframeDescription(ec->timeframe));
+   //}
 
 
    // (1) Prüfen, ob der Context bereits bekannt ist
