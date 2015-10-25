@@ -265,3 +265,6 @@ const char*  RootFunctionName      (RootFunction id);
 
 const char*  PeriodToStr      (int period);  const char* TimeframeToStr      (int timeframe);   // Alias
 const char*  PeriodDescription(int period);  const char* TimeframeDescription(int timeframe);   // Alias
+
+void         RemoveTickTimers();
+uint         MT4InternalMsg();

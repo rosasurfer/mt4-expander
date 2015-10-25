@@ -20,7 +20,7 @@
  * @return DWORD
  */
 DWORD WINAPI ft_LowDateTime(const FILETIME* ft) {
-   if ((uint)ft < MIN_VALID_POINTER) return(debug("invalid parameter ft = 0x%p (not a valid pointer)", ft));
+   if ((uint)ft < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ft = 0x%p (not a valid pointer)", ft));
    return(ft->dwLowDateTime);
    #pragma EXPORT
 }
@@ -34,7 +34,7 @@ DWORD WINAPI ft_LowDateTime(const FILETIME* ft) {
  * @return DWORD
  */
 DWORD WINAPI ft_HighDateTime(const FILETIME* ft) {
-   if ((uint)ft < MIN_VALID_POINTER) return(debug("invalid parameter ft = 0x%p (not a valid pointer)", ft));
+   if ((uint)ft < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ft = 0x%p (not a valid pointer)", ft));
    return(ft->dwHighDateTime);
    #pragma EXPORT
 }

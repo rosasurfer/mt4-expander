@@ -20,7 +20,7 @@
  */
 int WINAPI GetBoolsAddress(const BOOL values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
    return((int) values);
    #pragma EXPORT
 }
@@ -38,7 +38,7 @@ int WINAPI GetBoolsAddress(const BOOL values[]) {
  */
 int WINAPI GetIntsAddress(const int values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
    return((int) values);
    #pragma EXPORT
 }
@@ -65,7 +65,7 @@ int WINAPI GetBufferAddress(const int values[]) {
  */
 int WINAPI GetDoublesAddress(const double values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
    return((int) values);
    #pragma EXPORT
 }
@@ -83,7 +83,7 @@ int WINAPI GetDoublesAddress(const double values[]) {
  */
 int WINAPI GetStringsAddress(const MqlStr values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("invalid parameter values = 0x%p (not a valid pointer)", values));
+      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
    return((int) values);
    #pragma EXPORT
 }
@@ -101,7 +101,7 @@ int WINAPI GetStringsAddress(const MqlStr values[]) {
  */
 int WINAPI GetStringAddress(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER)
-      return(debug("invalid parameter value = 0x%p (not a valid pointer)", value));
+      return(debug("ERROR:  invalid parameter value = 0x%p (not a valid pointer)", value));
    return((int) value);
    #pragma EXPORT
 }
@@ -120,7 +120,7 @@ int WINAPI GetStringAddress(const char* value) {
  */
 char* WINAPI GetString(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER)
-      return((char*) debug("invalid parameter value = 0x%p (not a valid pointer)", value));
+      return((char*) debug("ERROR:  invalid parameter value = 0x%p (not a valid pointer)", value));
    return((char*) value);
    #pragma EXPORT
 }
@@ -221,7 +221,7 @@ const char* ModuleTypeToStr(ModuleType type) {
       case MT_INDICATOR: return("MT_INDICATOR");
       case MT_LIBRARY  : return("MT_LIBRARY"  );
    }
-   debug("unknown module type = "+ to_string(type));
+   debug("ERROR:  unknown module type = "+ to_string(type));
    return(NULL);
 }
 
@@ -240,7 +240,7 @@ const char* ModuleTypeDescription(ModuleType type) {
       case MT_INDICATOR: return("Indicator");
       case MT_LIBRARY  : return("Library"  );
    }
-   debug("unknown module type = "+ to_string(type));
+   debug("ERROR:  unknown module type = "+ to_string(type));
    return(NULL);
 }
 
@@ -258,7 +258,7 @@ const char* ProgramTypeToStr(ProgramType type) {
       case PT_SCRIPT   : return("PT_SCRIPT"   );
       case PT_INDICATOR: return("PT_INDICATOR");
    }
-   debug("unknown program type = "+ to_string(type));
+   debug("ERROR:  unknown program type = "+ to_string(type));
    return(NULL);
 }
 
@@ -276,7 +276,7 @@ const char* ProgramTypeDescription(ProgramType type) {
       case PT_SCRIPT   : return("Script"   );
       case PT_INDICATOR: return("Indicator");
    }
-   debug("unknown program type = "+ to_string(type));
+   debug("ERROR:  unknown program type = "+ to_string(type));
    return(NULL);
 }
 
@@ -294,7 +294,7 @@ const char* RootFunctionToStr(RootFunction id) {
       case RF_START : return("RF_START" );
       case RF_DEINIT: return("RD_DEINIT");
    }
-   debug("unknown MQL root function id = "+ to_string(id));
+   debug("ERROR:  unknown MQL root function id = "+ to_string(id));
    return(NULL);
 }
 
@@ -312,7 +312,7 @@ const char* RootFunctionName(RootFunction id) {
       case RF_START : return("start" );
       case RF_DEINIT: return("deinit");
    }
-   debug("unknown MQL root function id = "+ to_string(id));
+   debug("ERROR:  unknown MQL root function id = "+ to_string(id));
    return(NULL);
 }
 
@@ -408,14 +408,14 @@ HWND WINAPI GetApplicationWindow() {
             int   size = 255;
             char* className = (char*) alloca(size);            // auf dem Stack
             int   copied = GetClassName(hWndNext, className, size);
-            if (!copied) return((HWND)debug("->GetClassName()  0 chars copied  [%d] ", GetLastError()));
+            if (!copied) return((HWND)debug("ERROR:  GetClassName() 0 chars copied  [%d] ", GetLastError()));
 
             while (copied >= size-1) {                         // GetClassName() gibt die Anzahl der kopierten Zeichen zurück (ohne \0).
                size <<= 1;                                     // Bei size-1 ist unklar, ob der String genau in den Buffer paßte oder nicht.
                className = (char*) alloca(size);               // auf dem Stack
                copied    = GetClassName(hWndNext, className, size);
             }
-            if (!copied) return((HWND)debug("->GetClassName()  0 chars copied  [%d]", GetLastError()));
+            if (!copied) return((HWND)debug("ERROR:  GetClassName() 0 chars copied  [%d]", GetLastError()));
 
             // Klasse mit der Klasse des Terminal-Hauptfensters vergleichen
             if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
@@ -423,9 +423,10 @@ HWND WINAPI GetApplicationWindow() {
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
-      if (!hWndNext) debug("cannot find application main window [%d]", GetLastError());
+      if (!hWndNext) debug("ERROR:  cannot find application main window [%d]", GetLastError());
       hWnd = hWndNext;
    }
+
    return(hWnd);
    #pragma EXPORT
 }
@@ -472,11 +473,11 @@ uint WINAPI GetGmtTime() {
    ULARGE_INTEGER ulintNow, ulint1970;
 
    GetSystemTime(&stNow);
-   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(debug("SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(debug("ERROR:  SystemTimeToFileTime() failed"));
    ulintNow.LowPart   = ftNow.dwLowDateTime;
    ulintNow.HighPart  = ftNow.dwHighDateTime;
 
-   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(debug("SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(debug("ERROR:  SystemTimeToFileTime() failed"));
    ulint1970.LowPart  = ft1970.dwLowDateTime;
    ulint1970.HighPart = ft1970.dwHighDateTime;
 
@@ -498,11 +499,11 @@ uint WINAPI GetLocalTime() {
    ULARGE_INTEGER ulintNow, ulint1970;
 
    GetLocalTime(&stNow);
-   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(debug("SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(debug("ERROR:  SystemTimeToFileTime() failed"));
    ulintNow.LowPart   = ftNow.dwLowDateTime;
    ulintNow.HighPart  = ftNow.dwHighDateTime;
 
-   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(debug("SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(debug("ERROR:  SystemTimeToFileTime() failed"));
    ulint1970.LowPart  = ft1970.dwLowDateTime;
    ulint1970.HighPart = ft1970.dwHighDateTime;
 
@@ -524,4 +525,133 @@ char* WINAPI WCharsToStr(const WCHAR* wcstr, size_t count) {
    //size_t t = wcstombs(mbstr, wcstr, size);
    return((char*)NULL);
    //#pragma EXPORT
+}
+
+
+// Verwaltungsdaten eines TickTimers
+struct TICK_TIMER_DATA {
+   uint  id;                                 // Timer-ID
+   HWND  hWnd;                               // Chartfenster, das Ticks empfängt
+   DWORD flags;                              // Timer-Flags (Tickkonfiguration)
+   DWORD userdata1;
+   DWORD userdata2;                          // event-übergreifende User-Daten (Cookies etc.)
+   DWORD userdata3;
+};
+std::vector<TICK_TIMER_DATA> tickTimers;     // Daten aller aktiven TickTimer
+
+
+/**
+ * Callback function for WM_TIMER messages.
+ *
+ * @param  HWND     hWnd    - [in] Handle to the window associated with the timer.
+ * @param  UINT     msg     - [in] Specifies the WM_TIMER message.
+ * @param  UINT_PTR timerId - [in] Specifies the timer's identifier.
+ * @param  DWORD    time    - [in] Specifies the number of milliseconds that have elapsed since the system was started. This is the value
+ *                                 returned by the GetTickCount function.
+ */
+VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
+   int size = tickTimers.size();
+
+   for (int i=0; i < size; i++) {
+      if (tickTimers[i].id == timerId) {
+         TICK_TIMER_DATA tt = tickTimers[i];
+
+         if (tt.flags & TICK_OFFLINE_REFRESH) {
+            PostMessageA(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);                 // refresh tick
+         }
+         else {
+            PostMessageA(hWnd, MT4InternalMsg(), MT4_TICK, TICK_OFFLINE_EA);     // default tick
+         }
+
+         if (tt.flags & TICK_PAUSE_ON_WEEKEND) {
+         }
+         return;
+      }
+   }
+
+   debug("ERROR:  timer not found, timerId = %d", timerId);
+}
+
+
+/**
+ * Installiert einen Timer, der dem angegebenen Fenster synthetische Ticks schickt.
+ *
+ * @param  HWND  hWnd   - Handle des Fensters, an das die Ticks geschickt werden.
+ * @param  int   millis - Zeitperiode der zu generierenden Ticks in Millisekunden
+ * @param  DWORD flags  - die Ticks konfigurierende Flags (default: keine)
+ *                        TICK_OFFLINE_REFRESH : Mit diesem Flag wird ein die Ticks empfangener Offline-Chart bei jedem Tick refreshed,
+ *                                               ohne dieses Flag wird ein gewöhnlicher synthetischer Tick generiert (default).
+ *                        TICK_PAUSE_ON_WEEKEND: Mit diesem Flag werden von Samstag, 00:00 FXT bis Montag, 00:00 FXT keine Ticks generiert,
+ *                                               ohne dieses Flag werden auch am Wochenende Ticks generiert (default).
+ *
+ * @return uint - ID des installierten Timers zur Übergabe an RemoveTickTimer() bei Deinstallation des Timers oder 0, falls ein Fehler auftrat.
+ */
+uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
+   // Parametervalidierung
+   DWORD threadId = GetWindowThreadProcessId(hWnd, NULL);
+   if (threadId != GetCurrentThreadId()) {
+      if (!threadId)           return(debug("ERROR:  invalid parameter hWnd = %d (not a window)", hWnd));
+                               return(debug("ERROR:  window hWnd = %d not owned by the current thread", hWnd));
+   }
+   if (millis <= 0)            return(debug("ERROR:  invalid parameter millis = %d", millis));
+   if (flags & TICK_PAUSE_ON_WEEKEND) debug("flag TICK_PAUSE_ON_WEEKEND not yet supported");
+
+   // neue Timer-ID erzeugen
+   static uint timerId = 10000;
+   timerId++;
+
+   // Timer setzen
+   uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
+   if (result != timerId)                             // muß stimmen, da hWnd immer != NULL
+      return(debug("ERROR:  SetTimer(hWnd=%d, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
+   //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
+
+   // Timerdaten speichern
+   TICK_TIMER_DATA tt = {timerId, hWnd, flags};
+   tickTimers.push_back(tt);
+
+   return(timerId);
+   #pragma EXPORT
+}
+
+
+/**
+ * Deinstalliert einen mit SetupTickTimer() installierten Timer.
+ *
+ * @param  int timerId - ID des Timers, wie von SetupTickTimer() zurückgegeben.
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI RemoveTickTimer(int timerId) {
+   if (timerId <= 0) return(debug("ERROR:  invalid parameter timerId = %d", timerId));
+
+   int size = tickTimers.size();
+
+   for (int i=0; i < size; i++) {
+      if (tickTimers[i].id == timerId) {
+         if (!KillTimer(tickTimers[i].hWnd, timerId))
+            return(debug("ERROR:  KillTimer(hWnd=%d, timerId=%d) failed", tickTimers[i].hWnd, timerId));
+
+         //debug("KillTimer(hWnd=%d, timerId=%d) success", tickTimers[i].hWnd, timerId);
+         tickTimers.erase(tickTimers.begin() + i);
+         return(TRUE);
+      }
+   }
+   return(debug("ERROR:  no such timer with timerId = %d", timerId));
+   #pragma EXPORT
+}
+
+
+/**
+ * Deinstalliert alle mit SetupTickTimer() installierten Timer, die nicht explizit deinstalliert wurden.
+ * Wird in onProcessDetach() aufgerufen.
+ */
+void RemoveTickTimers() {
+   int size = tickTimers.size();
+
+   for (int i=size-1; i>=0; i--) {                 // rückwärts, da der Vector in RemoveTickTimer() modifiziert wird
+      uint id = tickTimers[i].id;
+      debug("WARN:  removing orphaned tickTimer with id = %d", id);
+      RemoveTickTimer(id);
+   }
 }

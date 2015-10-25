@@ -57,7 +57,9 @@ BOOL onProcessAttach() {
  */
 BOOL onProcessDetach() {
    if (logDebug) debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
+
    DeleteCriticalSection(&threadsLock);
+   RemoveTickTimers();
    return(TRUE);
 }
 
@@ -80,10 +82,10 @@ BOOL onProcessDetach() {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period) {
-   if ((uint)ec     < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)name   < MIN_VALID_POINTER) return(debug("invalid parameter name = 0x%p (not a valid pointer)", name));
-   if ((uint)symbol < MIN_VALID_POINTER) return(debug("invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (period <= 0)                      return(debug("invalid parameter period = %d", period));
+   if ((uint)ec     < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name   < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (period <= 0)                      return(debug("ERROR:  invalid parameter period = %d", period));
 
 
    //if (strcmp(ec->programName, "TestIndicator") == 0) {
@@ -166,10 +168,10 @@ BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, con
  * NOTE: letzte Version mit bedingungslosem Überschreiben durch den Main-Context: v1.63
  */
 BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period) {
-   if ((uint)ec     < MIN_VALID_POINTER) return(debug("invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)name   < MIN_VALID_POINTER) return(debug("invalid parameter name = 0x%p (not a valid pointer)", name));
-   if ((uint)symbol < MIN_VALID_POINTER) return(debug("invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (period <= 0)                      return(debug("invalid parameter period = %d", period));
+   if ((uint)ec     < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name   < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (period <= 0)                      return(debug("ERROR:  invalid parameter period = %d", period));
 
    if (ec->programId)
       return(FALSE);                                        // Rückkehr, wenn der Context bereits initialisiert ist
@@ -196,7 +198,7 @@ BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const 
    }
 
    // Thread nicht gefunden
-   debug("current thread %d not in known threads  [ERR_ILLEGAL_STATE]", currentThread);
+   debug("ERROR:  current thread %d not in known threads  [ERR_ILLEGAL_STATE]", currentThread);
    return(FALSE);
    #pragma EXPORT
 }
@@ -234,6 +236,24 @@ void WINAPI SetLogLevel(int level) {
       case L_FATAL : logFatal  = true;
    }
    #pragma EXPORT
+}
+
+
+/**
+ * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".
+ *
+ * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
+ */
+uint MT4InternalMsg() {
+   static uint msgId;
+   if (msgId)
+      return(msgId);
+
+   msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
+   if (!msgId)
+      debug("ERROR:  RegisterWindowMessageA() failed with [%d]", GetLastError());
+
+   return(msgId);
 }
 
 
