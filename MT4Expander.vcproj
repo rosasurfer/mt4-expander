@@ -189,6 +189,10 @@
 				RelativePath=".\MQLUtils.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\Subclassing.cpp"
+				>
+			</File>
 			<Filter
 				Name="structs"
 				>

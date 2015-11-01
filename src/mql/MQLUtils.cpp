@@ -462,7 +462,7 @@ BOOL WINAPI IsUIThread() {
 
 
 /**
- * Gibt die aktuelle GMT-Zeit zurück (auch im Tester).
+ * Gibt die aktuelle GMT-Zeit des Systems zurück (auch im Tester).
  *
  * @return uint - Unix-Timestamp der GMT-Zeit
  */
@@ -543,11 +543,11 @@ std::vector<TICK_TIMER_DATA> tickTimers;     // Daten aller aktiven TickTimer
 /**
  * Callback function for WM_TIMER messages.
  *
- * @param  HWND     hWnd    - [in] Handle to the window associated with the timer.
- * @param  UINT     msg     - [in] Specifies the WM_TIMER message.
- * @param  UINT_PTR timerId - [in] Specifies the timer's identifier.
- * @param  DWORD    time    - [in] Specifies the number of milliseconds that have elapsed since the system was started. This is the value
- *                                 returned by the GetTickCount function.
+ * @param  HWND     hWnd    - Handle to the window associated with the timer.
+ * @param  UINT     msg     - Specifies the WM_TIMER message.
+ * @param  UINT_PTR timerId - Specifies the timer's identifier.
+ * @param  DWORD    time    - Specifies the number of milliseconds that have elapsed since the system was started. This is the value
+ *                            returned by the GetTickCount function.
  */
 VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
    int size = tickTimers.size();
