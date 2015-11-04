@@ -190,6 +190,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Stubs.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Subclassing.cpp"
 				>
 			</File>
