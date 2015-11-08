@@ -1,6 +1,6 @@
 /**
- * Globale Stubs für MQL-Init/Deinit/Main-Funktionen. Diese können im MQL-Programm nach Bedarf durch
- * eigene Versionen überschrieben werden.
+ * Globale Stubs für MQL-Init/Deinit/Main-Funktionen. Diese können im MQL-Programm nach Bedarf durch eigene Versionen
+ * überschrieben werden.
  */
 #include "stdafx.h"
 #include "global.h"

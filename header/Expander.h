@@ -56,9 +56,9 @@ struct MqlStr {
  * Die Symbole in der Datei sind alphabetisch nach Symbolnamen sortiert.
  */
 struct SYMBOL {                                    // -- offset ---- size --- description ----------------------------------------------------------------------------
-   char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol              (szchar)
-   char   description [64];                        //        64        64     Beschreibung        (szchar)
-   char   altName     [MAX_SYMBOL_LENGTH+1];       //        76        12     alternatives Symbol (szchar)  - unbenutzt -
+   char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol         (szchar) z.B. "AUDCAD.mkt"
+   char   description [64];                        //        64        64     Beschreibung   (szchar)
+   char   stdName     [MAX_SYMBOL_LENGTH+1];       //        76        12     Standardsymbol (szchar) z.B. "AUDCAD" (falls ungleich 'name')
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //        88        12     Base Currency
    uint   groupIndex;                              //       100         4     Index der Symbolgruppe in "symgroups.raw"
    uint   digits;                                  //       104         4     Digits
@@ -90,7 +90,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
    BYTE   undocumented_10[24];                     //      1792        24
-   char   currency[MAX_SYMBOL_LENGTH+1];           //      1816        12     Currency (szchar)    - unklar, welche -
+   char   currency[MAX_SYMBOL_LENGTH+1];           //      1816        12     Currency (szchar)    - Margin??? -
 
    BYTE   undocumented_11[104];                    //      1828       104
    uint   undocumented_12;                         //      1932         4     ?
