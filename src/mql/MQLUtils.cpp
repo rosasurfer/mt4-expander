@@ -547,7 +547,7 @@ std::vector<TICK_TIMER_DATA> tickTimers;     // Daten aller aktiven TickTimer
  * @param  UINT     msg     - Specifies the WM_TIMER message.
  * @param  UINT_PTR timerId - Specifies the timer's identifier.
  * @param  DWORD    time    - Specifies the number of milliseconds that have elapsed since the system was started. This is the value
- *                            returned by the GetTickCount function.
+ *                            returned by the GetTickCount() function.
  */
 VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
    int size = tickTimers.size();
@@ -557,7 +557,17 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
          TICK_TIMER_DATA tt = tickTimers[i];
 
          if (tt.flags & TICK_OFFLINE_REFRESH) {
-            PostMessageA(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);                 // refresh tick
+            RECT rect;                                                           // ermitteln, ob der Chart mindestens teilweise sichtbar ist
+            HDC hDC = GetDC(hWnd);
+            int rgn = GetClipBox(hDC, &rect);
+            ReleaseDC(hWnd, hDC);
+
+            if (rgn == RGN_ERROR) {
+               debug("ERROR:  GetClipBox(hDC=%p) => RGN_ERROR (win32 error %d)", hDC, GetLastError());
+            }
+            else if (rgn != NULLREGION) {                                        // Tick nur bei sichtbarem Chart verschicken
+               PostMessageA(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);              // refresh tick
+            }
          }
          else {
             PostMessageA(hWnd, MT4InternalMsg(), MT4_TICK, TICK_OFFLINE_EA);     // default tick

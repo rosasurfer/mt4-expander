@@ -262,19 +262,28 @@ uint MT4InternalMsg() {
  */
 int WINAPI Test() {
 
-   float  f = 1.49999994f;
-   double d = 1.49999994;
+   HDC  hDC = GetDC(GetApplicationWindow());
+   RECT rect;
+   int result = GetClipBox(hDC, &rect);
 
-   //f=1.499999880790710
-   //d=1.499999930000000
-
-   debug("f=%.27f  d=%.27lf", f, d);
+   switch (result) {
+      case NULLREGION   :     // region is empty.
+      case SIMPLEREGION :     // region is a single rectangle.
+      case COMPLEXREGION:     // region is more than one rectangle.
+      case ERROR        :
+         break;
+   }
 
    return(0);
 
 
+   float  f = 1.49999994f;
+   double d = 1.49999994;
+   //f=1.499999880790710
+   //d=1.499999930000000
 
-
+   debug("f=%.27f  d=%.27lf", f, d);
+   return(0);
 
 
    pec_vector  ecChain(0);

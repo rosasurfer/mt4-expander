@@ -153,9 +153,9 @@ struct HISTORY_HEADER {                            // -- size ------- offset ---
    char  symbol[MAX_SYMBOL_LENGTH+1];              //      12      => hh[17]     Symbol       (szchar)
    uint  period;                                   //       4      => hh[20]     Timeframe
    uint  digits;                                   //       4      => hh[21]     Digits
-   uint  syncMark;                                 //       4      => hh[22]     Server-SyncMarker (timestamp), wird beim Online-Refresh mit Server-SyncMarker überschrieben
-   uint  lastSync;                                 //       4      => hh[23]     LastSync          (unbenutzt), wird beim Online-Refresh *nicht* überschrieben
-   uint  timezoneId;     /*custom*/                //       4      => hh[24]     Timezone-ID (default: 0 => Server-Timezone)
+   uint  syncMark;                                 //       4      => hh[22]     SyncMarker (timestamp), wird vom Terminal beim Refresh mit Serverversion überschrieben
+   uint  lastSync;                                 //       4      => hh[23]     LastSync   (unbenutzt), wird vom Terminal nicht überschrieben
+   uint  timezoneId;                   /*custom*/  //       4      => hh[24]     Timezone-ID (default: 0 => Server-Timezone)
    BYTE  reserved[48];                             //      48      => hh[25]
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //   = 148
