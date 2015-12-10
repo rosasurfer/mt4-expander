@@ -63,37 +63,40 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    uint   groupIndex;                              //       100         4     Index der Symbolgruppe in "symgroups.raw"
    uint   digits;                                  //       104         4     Digits
 
-   BYTE   undocumented_1[1532];                    //       108      1532
-   double undocumented_2;                          //      1640         8     ?
-   BYTE   undocumented_3[12];                      //      1648        12
+   uint   undocumented_1;                          //       108         4     ?
+   uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch"-Window
+
+   BYTE   undocumented_2[1524];                    //       116      1524
+   double undocumented_3;                          //      1640         8     ?
+   BYTE   undocumented_4[12];                      //      1648        12
 
    uint   fixedSpread;                             //      1660         4     fester Spread in Points oder NULL bei variablem Spread
-   BYTE   undocumented_4[16];                      //      1664        16
+   BYTE   undocumented_5[16];                      //      1664        16
 
    double swapLong;                                //      1680         8     Swap Long
    double swapShort;                               //      1688         8     Swap Short
 
-   uint   undocumented_5;                          //      1696         4     ?
-   DWORD  undocumented_6;                          //      1700         4
+   uint   undocumented_6;                          //      1696         4     ?
+   DWORD  undocumented_7;                          //      1700         4
    double lotSize;                                 //      1704         8     Lot Size
-   BYTE   undocumented_7[16];                      //      1712        16
+   BYTE   undocumented_8[16];                      //      1712        16
 
    uint   stopLevel;                               //      1728         4     Stop Level
-   BYTE   undocumented_8[12];                      //      1732        12
+   BYTE   undocumented_9[12];                      //      1732        12
 
    double marginInit;                              //      1744         8     Margin Init        (wenn NULL, dann wie lotSize)
    double marginMaintenance;                       //      1752         8     Margin Maintenance (wenn NULL, dann wie lotSize)
    double marginHedged;                            //      1760         8     Margin Hedged
 
-   double undocumented_9;                          //      1768         8     ?
+   double undocumented_10;                         //      1768         8     ?
    double point;                                   //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
-   BYTE   undocumented_10[24];                     //      1792        24
+   BYTE   undocumented_11[24];                     //      1792        24
    char   currency[MAX_SYMBOL_LENGTH+1];           //      1816        12     Currency (szchar)    - Margin??? -
 
-   BYTE   undocumented_11[104];                    //      1828       104
-   uint   undocumented_12;                         //      1932         4     ?
+   BYTE   undocumented_12[104];                    //      1828       104
+   uint   undocumented_13;                         //      1932         4     ?
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //              = 1936
 
