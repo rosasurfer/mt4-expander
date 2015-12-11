@@ -64,9 +64,10 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    uint   digits;                                  //       104         4     Digits
 
    uint   undocumented_1;                          //       108         4     ?
-   uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch"-Window
+   uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch" Window
+   uint   id;                                      //       116         4     eindeutige ID des Symbols
 
-   BYTE   undocumented_2[1524];                    //       116      1524
+   BYTE   undocumented_2[1520];                    //       120      1520
    double undocumented_3;                          //      1640         8     ?
    BYTE   undocumented_4[12];                      //      1648        12
 
@@ -107,7 +108,8 @@ struct SYMBOL {                                    // -- offset ---- size --- de
  */
 struct SYMBOL_GROUP {                              // -- size --- description ----------------------------------------------------------------------------------------
    char name       [16];                           //      16     Name         (szchar)
-   char description[64];                           //      64     Beschreibung (szchar)
+   char description[60];                           //      60     Beschreibung (szchar)
+   uint backgroundColor;               /*custom*/  //       4     Farbe im "MarketWatch" Window
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //    = 80
 
