@@ -665,3 +665,46 @@ void RemoveTickTimers() {
       RemoveTickTimer(id);
    }
 }
+
+
+/**
+ * Wrapper für die Win32-API-Funktion GetProp(). Gibt den Wert einer Window-Property zurück.
+ *
+ * @param  HWND  hWnd   - Fensterhandle
+ * @param  char* lpName - Property-Name
+ *
+ * @return HANDLE - Property-Value
+ */
+HANDLE WINAPI GetWindowProperty(const HWND hWnd, const char* lpName) {
+   return(GetProp(hWnd, lpName));
+   #pragma EXPORT
+}
+
+
+/**
+ * Wrapper für die Win32-API-Funktion RemoveProp(). Gibt den Wert einer Window-Property zurück und löscht sie.
+ *
+ * @param  HWND  hWnd   - Fensterhandle
+ * @param  char* lpName - Property-Name
+ *
+ * @return HANDLE - Property-Value
+ */
+HANDLE WINAPI RemoveWindowProperty(const HWND hWnd, const char* lpName) {
+   return(RemoveProp(hWnd, lpName));
+   #pragma EXPORT
+}
+
+
+/**
+ * Wrapper für die Win32-API-Funktion SetProp(). Setzt eine Window-Property.
+ *
+ * @param  HWND   hWnd   - Fensterhandle
+ * @param  char*  lpName - Property-Name
+ * @param  HANDLE value  - Property-Value
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI SetWindowProperty(const HWND hWnd, const char* lpName, const HANDLE value) {
+   return(SetProp(hWnd, lpName, value));
+   #pragma EXPORT
+}
