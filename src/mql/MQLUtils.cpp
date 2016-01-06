@@ -90,7 +90,7 @@ int WINAPI GetStringsAddress(const MqlStr values[]) {
 
 
 /**
- * Gibt die Speicheradresse eines Strings zurück.
+ * Gibt die Speicheradresse eines C-Strings zurück.
  *
  * @param  char* value - C-String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
  *
@@ -108,10 +108,10 @@ int WINAPI GetStringAddress(const char* value) {
 
 
 /**
- * Gibt den übergebenen Zeiger auf einen String selbst zurück. Wird in MQL zum Lesen eines C-Strings von
+ * Gibt den übergebenen Zeiger auf einen C-String selbst zurück. Wird in MQL zum Lesen eines Strings von
  * einer Adresse verwendet, da MetaTrader einen C-String automatisch in einen MQL-String konvertiert.
  *
- * @param  char* value - String
+ * @param  char* value - C-String
  *
  * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
  *
@@ -706,5 +706,47 @@ HANDLE WINAPI RemoveWindowProperty(const HWND hWnd, const char* lpName) {
  */
 BOOL WINAPI SetWindowProperty(const HWND hWnd, const char* lpName, const HANDLE value) {
    return(SetProp(hWnd, lpName, value));
+   #pragma EXPORT
+}
+
+
+/**
+ * Prüft, ob ein C-String initialisiert ist oder ein NULL-Pointer ist.
+ *
+ * @param  char* value - zu prüfender String
+ *
+ * @return BOOL
+ */
+BOOL StringIsNull(const char* value) {
+   return(value == NULL);
+   #pragma EXPORT
+}
+
+
+/**
+ * Vergleicht zwei C-Strings mit Berücksichtigung von Groß-/Kleinschreibung.
+ *
+ * @param  char* s1
+ * @param  char* s2
+ *
+ * @return BOOL
+ */
+BOOL StringCompare(const char* s1, const char* s2) {
+   if ( s1 ==  s2) return(TRUE);             // Sind die Pointer gleich, ist es der Inhalt auch.
+   if (!s1 || !s2) return(FALSE);            // Ist einer der beiden ein NULL-Pointer, kann der andere keiner sein.
+
+   // beide sind keine NULL-Pointer
+   size_t len1 = strlen(s1);
+   size_t len2 = strlen(s2);
+   if (len1 != len2) return(FALSE);          // beide sind unterschiedlich lang
+
+   // beide sind gleich lang
+   for (size_t i=0; i < len1; i++) {
+      if (s1[i] != s2[i])
+         return(FALSE);                      // beide sind unterschiedlich
+   }
+
+   // beide sind gleich
+   return(TRUE);
    #pragma EXPORT
 }
