@@ -724,6 +724,26 @@ BOOL StringIsNull(const char* value) {
 
 
 /**
+ * Gibt die lesbare Repräsentation eines C-Strings zurück. Für einen initialisierten String ist dies der String selbst,
+ * für einen nicht initialisierten String (NULL-Pointer) der String "NULL" (ohne Anführungszeichen).
+ *
+ * @param  char* value - String
+ *
+ * @return char* - lesbare Repräsentation
+ *
+ *
+ * NOTE: Wird diese Funktion in MQL implementiert, setzt MetaTrader bei einem NULL-Pointer den Fehler ERR_NOT_INITIALIZED_STRING
+ *       und füllt das Log mit überflüssigen "warn: not initialized string"-Einträgen.
+ */
+const char* StringToStr(const char* value) {
+   if (!value)
+      return("NULL");                        // C-Literal: Speicher muß nicht extra verwaltet werden
+   return(value);
+   #pragma EXPORT
+}
+
+
+/**
  * Vergleicht zwei C-Strings mit Berücksichtigung von Groß-/Kleinschreibung.
  *
  * @param  char* s1
