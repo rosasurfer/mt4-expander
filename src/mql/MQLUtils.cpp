@@ -554,9 +554,9 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
 
    for (int i=0; i < size; i++) {
       if (tickTimers[i].id == timerId) {
-         TICK_TIMER_DATA tt = tickTimers[i];
+         TICK_TIMER_DATA ttd = tickTimers[i];
 
-         if (tt.flags & TICK_OFFLINE_REFRESH) {
+         if (ttd.flags & TICK_OFFLINE_REFRESH) {
             RECT rect;                                                           // ermitteln, ob der Chart mindestens teilweise sichtbar ist
             HDC hDC = GetDC(hWnd);
             int rgn = GetClipBox(hDC, &rect);
@@ -573,7 +573,7 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
             PostMessageA(hWnd, MT4InternalMsg(), MT4_TICK, TICK_OFFLINE_EA);     // default tick
          }
 
-         if (tt.flags & TICK_PAUSE_ON_WEEKEND) {
+         if (ttd.flags & TICK_PAUSE_ON_WEEKEND) {
          }
          return;
       }
@@ -617,8 +617,8 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
    //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
 
    // Timerdaten speichern
-   TICK_TIMER_DATA tt = {timerId, hWnd, flags};
-   tickTimers.push_back(tt);
+   TICK_TIMER_DATA ttd = {timerId, hWnd, flags};
+   tickTimers.push_back(ttd);
 
    return(timerId);
    #pragma EXPORT
