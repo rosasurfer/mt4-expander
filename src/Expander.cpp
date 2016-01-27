@@ -65,11 +65,14 @@ BOOL onProcessDetach() {
 
 
 /**
- * Wird von den MQL-Rootfunktionen der Hauptmodule (ggf. mehrmals) aufgerufen und setzt den aktuellen EXECUTION_CONTEXT
- * eines Hauptmoduls. Der Hauptmodulkontext von Indikatoren ändert sich mit jedem init()-Cycle, der von Experts und Scripten
- * nicht.
- * Da die Funktion sofort nach RootFunction-Eintritt aufgerufen werden muß (noch bevor evt. Libraries geladen werden), ist
- * der übergebene Context ggf. noch nicht vollständig initialisiert.
+ * Wird von den MQL-Rootfunktionen der Hauptmodule aufgerufen (ggf. mehrmals) und setzt den aktuellen EXECUTION_CONTEXT
+ * eines Hauptmoduls.
+ *
+ * Bei Indikatoren wechselt die Kontextinstanz mit jedem init()-Cycle (MetaTrader alloziiert den Kontextspeicher bei jedem
+ * Indicator::init() neu). Bei Experts und Scripts gibt es während der gesamten Laufzeit nur eine Instanz.
+ *
+ * Da die Funktion sofort nach RootFunction-Eintritt aufgerufen wird (noch bevor eventuelle Libraries geladen werden), ist
+ * der übergebene Kontext u.U. noch nicht vollständig initialisiert.
  *
  * Bei jedem Aufruf wird die Context-Chain des Programms mit der übergebenen Version aktualisiert.
  *
