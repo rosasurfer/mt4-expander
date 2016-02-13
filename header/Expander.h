@@ -42,7 +42,7 @@ enum LaunchType {
 
 
 /**
- * MT4 structure MqlStr: interne Darstellung eines MQL-Strings
+ * MT4 structure MqlStr: interne Darstellung eines MQL-Strings (MetaQuotes-Terminologie)
  */
 struct MqlStr {
    int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
@@ -168,7 +168,7 @@ struct HISTORY_HEADER {                            // -- size ------- offset ---
 /**
  * MT4 structure HISTORY_BAR_400
  *
- * HistoryFile Barformat v400 (bis Build 509), entspricht dem MetaQuotes-Struct RateInfo
+ * HistoryFile Barformat v400 (bis MetaTrader Build 509)
  */
 struct HISTORY_BAR_400 {                           // -- size --- description ----------------------------------------------------------------------------------------
    uint   time;                                    //       4     Open-Time (timestamp)
@@ -179,11 +179,13 @@ struct HISTORY_BAR_400 {                           // -- size --- description --
    double ticks;                                   //       8     immer Ganzzahl
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //    = 44
+typedef HISTORY_BAR_400 RateInfo;                  // MetaQuotes-Terminologie
+
 
 /**
  * MT4 structure HISTORY_BAR_401
  *
- * HistoryFile Barformat v401 (ab Build 510), entspricht dem MetaQuotes-Struct MqlRates
+ * HistoryFile Barformat v401 (ab MetaTrader Build 510)
  */
 struct HISTORY_BAR_401 {                           // -- size --- description ----------------------------------------------------------------------------------------
    int64  time;                                    //       8     Open-Time (timestamp)
@@ -196,6 +198,8 @@ struct HISTORY_BAR_401 {                           // -- size --- description --
    uint64 volume;                                  //       8     (unbenutzt)
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //    = 60
+typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie
+
 
 /**
  * In der DLL aufgetretener Fehler.
