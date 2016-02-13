@@ -242,13 +242,16 @@ typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 
 
 // Funktionsdeklarationen
-BOOL  onProcessAttach();
-BOOL  onProcessDetach();
+BOOL onProcessAttach();
+BOOL onProcessDetach();
+uint ecc_setProgramId(pec_vector &chain, uint id);
 
-uint  ecc_setProgramId(pec_vector &chain, uint id);
+const char* WINAPI ec_setProgramName(EXECUTION_CONTEXT* ec, const char* name);
+const char* WINAPI ec_setSymbol     (EXECUTION_CONTEXT* ec, const char* symbol);
+const char* WINAPI ec_setLogFile    (EXECUTION_CONTEXT* ec, const char* fileName);
 
-BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period);
-BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period);
+BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* programName, const RootFunction rootFunction, const char* symbol, int period);
+BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec, const char* programName, const char* symbol, int period);
 
 void  WINAPI SetLogLevel(int level);
 HWND  WINAPI GetApplicationWindow();
