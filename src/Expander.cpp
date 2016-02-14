@@ -65,15 +65,12 @@ BOOL onProcessDetach() {
 
 
 /**
- * Setzt den aktuellen EXECUTION_CONTEXT eines MQL-Hauptmoduls und aktualisiert die vorhandene Context-Chain des Programms mit den
- * Daten der übergebenen Version.
+ * Setzt den aktuellen EXECUTION_CONTEXT eines MQL-Hauptmoduls und aktualisiert die Context-Chain des Programms mit den Daten der
+ * übergebenen Version. Die Funktion wird von den Rootfunktionen der MQL-Hauptmodule aufgerufen. In init() wird der Kontext teilweise
+ * in mehreren Schritten initialisiert (jeweils nachdem die entsprechenden Informationen verfügbar sind).
  *
- * Bei Experts und Scripts gibt es während der gesamten Laufzeit nur eine Kontextinstanz. Bei Indikatoren wechselt die Instanz mit
- * jedem init()-Cycle, da MetaTrader den Arrayspeicher für die Instanz während in Indicator::init() neu alloziiert.
- *
- * Die Funktion wird von den Rootfunktionen der MQL-Hauptmodule (ggf. auch mehrmals) aufgerufen. Da der erste Aufruf sofort nach
- * Rootfunktions-Eintritt erfolgt (noch bevor eventuelle Libraries geladen  werden), ist der übergebene Kontext u.U. noch nicht
- * vollständig initialisiert.
+ * Bei Experts und Scripts gibt es während ihrer Laufzeit nur eine Instanz des Hauptmodulkontextes. Bei Indikatoren ändert sich die
+ * Instanz mit jedem init()-Cycle, da MetaTrader den Arrayspeicher der Instanz in Indicator::init() jedesmal neu alloziiert.
  *
  * @param  EXECUTION_CONTEXT* ec           - Context des Hauptmoduls eines MQL-Programms
  * @param  char*              programName  - Name des Hauptmoduls (je nach MetaTrader-Version ggf. mit Pfad)
@@ -82,6 +79,15 @@ BOOL onProcessDetach() {
  * @param  int                period       - aktuelle Chart-Periode
  *
  * @return BOOL - Erfolgsstatus
+ *
+ *
+ * Notes:
+ * ------
+ * Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wiedereintritt in
+ * Indicator::init() keinen gültigen Hauptmodulkontext. Der alte Speicherblock wird sofort freigegeben, in init() wird ein neuer
+ * alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt, also die Funktionen
+ * Library::deinit() und Library::init() aufgerufen. In Indikatoren geladene Libraries dürfen daher während ihres init()-Cycles nicht
+ * auf den zu diesem Zeitpunkt ungültigen Hauptmodulkontext zugreifen (weder lesend noch schreibend).
  */
 BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* programName, const RootFunction rootFunction, const char* symbol, int period) {
    if ((uint)ec          < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
@@ -89,14 +95,9 @@ BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* programNa
    if ((uint)symbol      < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if (period <= 0)                           return(debug("ERROR:  invalid parameter period = %d", period));
 
-   //if (strcmp(programName, "TestIndicator") == 0) {
-   //   debug("ec:   %s::%s()  %s,%s", programName, RootFunctionName(rootFunction), symbol, TimeframeDescription(period));
-   //}
-   //}
-
 
    // (1) Context-Daten übernehmen
-   if (!strlen(ec->programName)) {
+   if (!*ec->programName) {
       ec_setProgramName(ec, programName);
    }
    if (rootFunction == ROOTFUNCTION_INIT) {
@@ -165,10 +166,9 @@ BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* programNa
 
 
 /**
- * Wird von MQL-Libraries in library::init() aufgerufen, wenn sie ihren lokalen EXECUTION_CONTEXT mit dem des MQL-Hauptmodules
- * synchronisieren wollen. Ist der übergebene Context bereits initialisiert (ec.programId ist gesetzt), befindet sich das Programm
- * in einem init()-Cycle.
- * Nach dem Initialisieren wird der Context der Context-Chain des MQL-Programms hinzugefügt.
+ * Synchronisiert den EXECUTION_CONTEXT einer MQL-Library mit dem Kontext ihres Hauptmodules. Wird nur von Libraries und nur in
+ * Library::init() aufgerufen. Nach dem ersten Synchronisieren (Initialisierung) wird der Library-Context zur Context-Chain des
+ * MQL-Programms hinzugefügt.
  *
  * @param  EXECUTION_CONTEXT* ec     - lokaler EXECUTION_CONTEXT einer MQL-Library
  * @param  char*              name   - Name der aufrufenden Library (je nach MetaTrader-Version ggf. mit Pfad)
@@ -178,7 +178,10 @@ BOOL WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* programNa
  * @return BOOL - Erfolgsstatus; FALSE, wenn der Context bereits initialisiert war
  *
  *
- * NOTE: Die letzte Version mit bedingungslosem Überschreiben durch den Main-Context war v1.63
+ * Notes:
+ * ------
+ * • Ist der übergebene Context bereits initialisiert (ec.programId ist gesetzt), befindet sich das Programm in einem init()-Cycle.
+ * • Die letzte Version, die bei Aufruf fälschlicherweise bedingungslos durch den Main-Context überschrieben wurde, war v1.63.
  */
 BOOL WINAPI SyncExecutionContext(EXECUTION_CONTEXT* ec, const char* name, const char* symbol, int period) {
    if ((uint)ec     < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
