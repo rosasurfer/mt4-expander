@@ -1,5 +1,5 @@
 /**
- * Ausführungskontext eines MQL-Programms für Laufzeitinformationen und Datenaustausch zwischen MQL-Modulen und DLL
+ * MQL-Funktionen zur Verwaltung eines EXECUTION_CONTEXT.
  */
 #include "stdafx.h"
 #include "global.h"
