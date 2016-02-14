@@ -214,8 +214,9 @@ char* WINAPI IntToHexStr(int value) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ModuleTypeToStr(ModuleType type) {
+const char* WINAPI ModuleTypeToStr(ModuleType type) {
    switch (type) {
+      case NULL        : return("NULL"        );
       case MT_EXPERT   : return("MT_EXPERT"   );
       case MT_SCRIPT   : return("MT_SCRIPT"   );
       case MT_INDICATOR: return("MT_INDICATOR");
@@ -223,6 +224,7 @@ const char* ModuleTypeToStr(ModuleType type) {
    }
    debug("ERROR:  unknown module type = "+ to_string(type));
    return(NULL);
+   #pragma EXPORT
 }
 
 
@@ -233,8 +235,9 @@ const char* ModuleTypeToStr(ModuleType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ModuleTypeDescription(ModuleType type) {
+const char* WINAPI ModuleTypeDescription(ModuleType type) {
    switch (type) {
+      case NULL        : return("NULL"     );
       case MT_EXPERT   : return("Expert"   );
       case MT_SCRIPT   : return("Script"   );
       case MT_INDICATOR: return("Indicator");
@@ -242,6 +245,7 @@ const char* ModuleTypeDescription(ModuleType type) {
    }
    debug("ERROR:  unknown module type = "+ to_string(type));
    return(NULL);
+   #pragma EXPORT
 }
 
 
@@ -252,7 +256,7 @@ const char* ModuleTypeDescription(ModuleType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ProgramTypeToStr(ProgramType type) {
+const char* WINAPI ProgramTypeToStr(ProgramType type) {
    switch (type) {
       case PT_EXPERT   : return("PT_EXPERT"   );
       case PT_SCRIPT   : return("PT_SCRIPT"   );
@@ -260,6 +264,7 @@ const char* ProgramTypeToStr(ProgramType type) {
    }
    debug("ERROR:  unknown program type = "+ to_string(type));
    return(NULL);
+   #pragma EXPORT
 }
 
 
@@ -270,14 +275,16 @@ const char* ProgramTypeToStr(ProgramType type) {
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
  */
-const char* ProgramTypeDescription(ProgramType type) {
+const char* WINAPI ProgramTypeDescription(ProgramType type) {
    switch (type) {
+      case NULL        : return("NULL"     );
       case PT_EXPERT   : return("Expert"   );
       case PT_SCRIPT   : return("Script"   );
       case PT_INDICATOR: return("Indicator");
    }
    debug("ERROR:  unknown program type = "+ to_string(type));
    return(NULL);
+   #pragma EXPORT
 }
 
 
@@ -286,16 +293,18 @@ const char* ProgramTypeDescription(ProgramType type) {
  *
  * @param  RootFunction id
  *
- * @return char* - Beschreibung oder NULL, falls die ID ungültig ist
+ * @return char* - Beschreibung oder ein Null-Pointer, falls die ID ungültig ist
  */
-const char* RootFunctionToStr(RootFunction id) {
+const char* WINAPI RootFunctionToStr(RootFunction id) {
    switch (id) {
+      case NULL     : return("NULL"     );
       case RF_INIT  : return("RF_INIT"  );
       case RF_START : return("RF_START" );
       case RF_DEINIT: return("RD_DEINIT");
    }
    debug("ERROR:  unknown MQL root function id = "+ to_string(id));
    return(NULL);
+   #pragma EXPORT
 }
 
 
@@ -306,14 +315,16 @@ const char* RootFunctionToStr(RootFunction id) {
  *
  * @return char* - Name oder NULL, falls die ID ungültig ist
  */
-const char* RootFunctionName(RootFunction id) {
+const char* WINAPI RootFunctionName(RootFunction id) {
    switch (id) {
+      case NULL     : return("NULL"  );
       case RF_INIT  : return("init"  );
       case RF_START : return("start" );
       case RF_DEINIT: return("deinit");
    }
    debug("ERROR:  unknown MQL root function id = "+ to_string(id));
    return(NULL);
+   #pragma EXPORT
 }
 
 
@@ -324,8 +335,9 @@ const char* RootFunctionName(RootFunction id) {
  *
  * @return char*
  */
-const char* PeriodToStr(int period) {
+const char* WINAPI PeriodToStr(int period) {
    switch (period) {
+      case NULL      : return("NULL"      );
       case PERIOD_M1 : return("PERIOD_M1" );     // 1 minute
       case PERIOD_M5 : return("PERIOD_M5" );     // 5 minutes
       case PERIOD_M15: return("PERIOD_M15");     // 15 minutes
@@ -339,6 +351,7 @@ const char* PeriodToStr(int period) {
    }
    debug("unknown timeframe id = "+ to_string(period));
    return(NULL);
+   #pragma EXPORT
 }
 
 
@@ -349,8 +362,9 @@ const char* PeriodToStr(int period) {
  *
  * @return char*
  */
-const char* PeriodDescription(int period) {
+const char* WINAPI PeriodDescription(int period) {
    switch (period) {
+      case NULL      : return("NULL");
       case PERIOD_M1 : return("M1" );     // 1 minute
       case PERIOD_M5 : return("M5" );     // 5 minutes
       case PERIOD_M15: return("M15");     // 15 minutes
@@ -362,28 +376,56 @@ const char* PeriodDescription(int period) {
       case PERIOD_MN1: return("MN1");     // 1 month
       case PERIOD_Q1 : return("Q1" );     // 1 quarter
    }
-
    int size = _scprintf("%d", period) + 1;
    char* szchar = new char[size];                                    // TODO: Speicherleck schließen
    sprintf_s(szchar, size, "%d", period);
 
    return(szchar);
+   #pragma EXPORT
 }
 
 
 /**
  * Alias
  */
-const char* TimeframeToStr(int timeframe) {
+const char* WINAPI TimeframeToStr(int timeframe) {
    return(PeriodToStr(timeframe));
+   #pragma EXPORT
 }
 
 
 /**
  * Alias
  */
-const char* TimeframeDescription(int timeframe) {
+const char* WINAPI TimeframeDescription(int timeframe) {
    return(PeriodDescription(timeframe));
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die lesbare Konstante eines UninitializeReason-Codes zurück.
+ *
+ * @param  int reason - Code
+ *
+ * @return char*
+ */
+const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
+   switch (reason) {
+      case UNINITREASON_UNDEFINED  : return("REASON_UNDEFINED"  );
+      case UNINITREASON_REMOVE     : return("REASON_REMOVE"     );
+      case UNINITREASON_RECOMPILE  : return("REASON_RECOMPILE"  );
+      case UNINITREASON_CHARTCHANGE: return("REASON_CHARTCHANGE");
+      case UNINITREASON_CHARTCLOSE : return("REASON_CHARTCLOSE" );
+      case UNINITREASON_PARAMETERS : return("REASON_PARAMETERS" );
+      case UNINITREASON_ACCOUNT    : return("REASON_ACCOUNT"    );
+      case UNINITREASON_TEMPLATE   : return("REASON_TEMPLATE"   );      // ab Build > 509
+      case UNINITREASON_INITFAILED : return("REASON_INITFAILED" );      // ...
+      case UNINITREASON_CLOSE      : return("REASON_CLOSE"      );      // ...
+   }
+   debug("unknown uninitialize reason = "+ to_string(reason));
+   return(NULL);
+   #pragma EXPORT
 }
 
 

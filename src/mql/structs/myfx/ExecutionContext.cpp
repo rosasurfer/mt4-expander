@@ -148,10 +148,13 @@ RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return int - UninitializeReason
+ * @return UninitializeReason
  */
-int WINAPI ec_UninitializeReason(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+UninitializeReason WINAPI ec_UninitializeReason(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) {
+      debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec);
+      return(UNINITREASON_UNDEFINED);
+   }
    return(ec->uninitializeReason);
    #pragma EXPORT
 }
@@ -445,12 +448,15 @@ RootFunction WINAPI ec_setRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
  * Setzt den UninitializeReason eines EXECUTION_CONTEXTs.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  int                reason
+ * @param  UninitializeReason reason
  *
- * @return int - derselbe UninitializeReason
+ * @return UninitializeReason - derselbe UninitializeReason
  */
-int WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, int reason) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+UninitializeReason WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, UninitializeReason reason) {
+   if ((uint)ec < MIN_VALID_POINTER) {
+      debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec);
+      return(UNINITREASON_UNDEFINED);
+   }
 
    switch (reason) {
       case REASON_UNDEFINED  :
@@ -465,7 +471,8 @@ int WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, int reason) {
       case REASON_INITFAILED :
       case REASON_CLOSE      : break;
       default:
-         return(debug("ERROR:  invalid parameter reason = %d (not an UninitializeReason)", reason));
+         debug("ERROR:  invalid parameter reason = %d (not an UninitializeReason)", reason);
+         return(UNINITREASON_UNDEFINED);
    }
    ec->uninitializeReason = reason;
    return(reason);

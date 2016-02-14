@@ -33,6 +33,21 @@ enum RootFunction {
 };
 
 
+// MQL-UninitializeReasons
+enum UninitializeReason {
+   UNINITREASON_UNDEFINED   = REASON_UNDEFINED,
+   UNINITREASON_REMOVE      = REASON_REMOVE,
+   UNINITREASON_RECOMPILE   = REASON_RECOMPILE,
+   UNINITREASON_CHARTCHANGE = REASON_CHARTCHANGE,
+   UNINITREASON_CHARTCLOSE  = REASON_CHARTCLOSE,
+   UNINITREASON_PARAMETERS  = REASON_PARAMETERS,
+   UNINITREASON_ACCOUNT     = REASON_ACCOUNT,
+   UNINITREASON_TEMPLATE    = REASON_TEMPLATE,     // ab Build > 509
+   UNINITREASON_INITFAILED  = REASON_INITFAILED,   // ...
+   UNINITREASON_CLOSE       = REASON_CLOSE         // ...
+};
+
+
 // Launchtypen eines MQL-Programms: via Template, via iCustom() oder von Hand
 enum LaunchType {
    LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,
@@ -221,8 +236,8 @@ struct EXECUTION_CONTEXT {                         // -- size ------- offset ---
    EXECUTION_CONTEXT* superContext;                //       4      => ec[68]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
    uint               initFlags;                   //       4      => ec[69]     init-Flags                                      (konstant)   => wie werde ich initialisiert
    uint               deinitFlags;                 //       4      => ec[70]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
-   RootFunction       rootFunction;                //       4      => ec[71]     aktuelle Rootfunktion                           (variabel)   => wo bin ich
-   uint               uninitializeReason;          //       4      => ec[72]     letzter Uninitialize-Reason                     (variabel)   => woher komme ich
+   RootFunction       rootFunction;                //       4      => ec[71]     letzte Rootfunktion des Modules                 (variabel)   => wo bin ich
+   UninitializeReason uninitializeReason;          //       4      => ec[72]     letzter Uninitialize-Reason des Modules         (variabel)   => woher komme ich
 
    char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[73]     aktuelles Symbol (szchar)                       (variabel)   => auf welchem Symbol laufe ich
    uint               timeframe;                   //       4      => ec[76]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
@@ -245,13 +260,17 @@ typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 BOOL onProcessAttach();
 BOOL onProcessDetach();
 uint ecc_setProgramId(pec_vector &chain, uint id);
+void RemoveTickTimers();
 
-const char* WINAPI ec_setProgramName(EXECUTION_CONTEXT* ec, const char* name);
-const char* WINAPI ec_setSymbol     (EXECUTION_CONTEXT* ec, const char* symbol);
-const char* WINAPI ec_setLogFile    (EXECUTION_CONTEXT* ec, const char* fileName);
+ProgramType  WINAPI ec_setProgramType (EXECUTION_CONTEXT* ec, ProgramType type);
+const char*  WINAPI ec_setProgramName (EXECUTION_CONTEXT* ec, const char* name);
+RootFunction WINAPI ec_setRootFunction(EXECUTION_CONTEXT* ec, RootFunction id);
+const char*  WINAPI ec_setSymbol      (EXECUTION_CONTEXT* ec, const char* symbol);
+      uint   WINAPI ec_setTimeframe   (EXECUTION_CONTEXT* ec, uint timeframe);
+const char*  WINAPI ec_setLogFile     (EXECUTION_CONTEXT* ec, const char* fileName);
 
-BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, const char* programName, const RootFunction rootFunction, const char* symbol, int period);
-BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec, const char* programName, const char* symbol, int period);
+BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
+BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
 
 void  WINAPI SetLogLevel(int level);
 HWND  WINAPI GetApplicationWindow();
@@ -267,16 +286,14 @@ int   WINAPI GetLastWin32Error();
 BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
 BOOL  WINAPI IsCustomTimeframe(int timeframe);
 char* WINAPI IntToHexStr(int value);
+uint  WINAPI MT4InternalMsg();
 
-const char*  ModuleTypeToStr       (ModuleType  type);
-const char*  ModuleTypeDescription (ModuleType  type);
-const char*  ProgramTypeToStr      (ProgramType type);
-const char*  ProgramTypeDescription(ProgramType type);
-const char*  RootFunctionToStr     (RootFunction id);
-const char*  RootFunctionName      (RootFunction id);
-
-const char*  PeriodToStr      (int period);  const char* TimeframeToStr      (int timeframe);   // Alias
-const char*  PeriodDescription(int period);  const char* TimeframeDescription(int timeframe);   // Alias
-
-void         RemoveTickTimers();
-uint         MT4InternalMsg();
+const char* WINAPI ModuleTypeDescription  (ModuleType  type);
+const char* WINAPI ModuleTypeToStr        (ModuleType  type);
+const char* WINAPI PeriodDescription      (int period);        const char* WINAPI TimeframeDescription(int timeframe);   // Alias
+const char* WINAPI PeriodToStr            (int period);        const char* WINAPI TimeframeToStr      (int timeframe);   // Alias
+const char* WINAPI ProgramTypeDescription (ProgramType type);
+const char* WINAPI ProgramTypeToStr       (ProgramType type);
+const char* WINAPI RootFunctionName       (RootFunction id);
+const char* WINAPI RootFunctionToStr      (RootFunction id);
+const char* WINAPI UninitializeReasonToStr(UninitializeReason reason);
