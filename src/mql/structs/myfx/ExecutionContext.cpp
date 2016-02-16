@@ -49,6 +49,34 @@ const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Gibt den Modul-Typ eines EXECUTION_CONTEXTs zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return ModuleType
+ */
+ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(ec->moduleType);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt den Modulnamen eines EXECUTION_CONTEXTs zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char* - Modulname
+ */
+const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(ec->moduleName);
+   #pragma EXPORT
+}
+
+
+/**
  * Gibt den Launch-Typ eines EXECUTION_CONTEXTs zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -333,6 +361,49 @@ const char* WINAPI ec_setProgramName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
+ * Setzt den Modul-Typ eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  ModuleType         type
+ *
+ * @return ModuleType - derselbe ModuleType
+ */
+ModuleType WINAPI ec_setModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
+   if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   switch (type) {
+      case MT_INDICATOR:
+      case MT_EXPERT   :
+      case MT_SCRIPT   :
+      case MT_LIBRARY  : break;
+      default:
+         return((ModuleType)debug("ERROR:  invalid parameter type = %d (not a ModuleType)", type));
+   }
+   ec->moduleType = type;
+   return(type);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Modulnamen eines EXECUTION_CONTEXTs.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  char*              name
+ *
+ * @return char* - derselbe Name
+ */
+const char* WINAPI ec_setModuleName(EXECUTION_CONTEXT* ec, const char* name) {
+   if ((uint)ec   < MIN_VALID_POINTER)             return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)             return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   if (!strlen(name) || strlen(name) > MAX_PATH-1) return((char*)debug("ERROR:  invalid parameter name = \"%s\" (1-%d characters)", name, MAX_PATH-1));
+
+   return(strcpy(ec->moduleName, name));
+   #pragma EXPORT
+}
+
+
+/**
  * Setzt den Launch-Typ eines EXECUTION_CONTEXTs.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -475,6 +546,7 @@ UninitializeReason WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, Uninit
          return(UNINITREASON_UNDEFINED);
    }
    ec->uninitializeReason = reason;
+
    return(reason);
    #pragma EXPORT
 }
@@ -565,7 +637,13 @@ uint WINAPI ec_setTestFlags(EXECUTION_CONTEXT* ec, uint flags) {
 
 
 /**
- * Setzt den letzten Fehler-Code eines EXECUTION_CONTEXTs.
+ * Setzt den letzten MQL-Fehler eines EXECUTION_CONTEXTs.
+ *
+ * • Zusätzlich wird der letzte MQL-Fehler des jeweiligen Hauptkontexts gesetzt (Fehlerpropagation von Libraries zum aufrufenden
+ *   Hauptmodul). Ist kein Hauptkontext verfügbar, z.B. während des init()-Cycles von Libraries, wird der letzte MQL-Fehler des
+ *   Master-Kontexts gesetzt.
+ *
+ * • Hat der Kontext einen SuperContext, wird auch dessen letzter MQL-Fehler gesetzt (Fehlerpropagation zum aufrufenden Programm).
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
@@ -576,8 +654,16 @@ int WINAPI ec_setLastError(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    ec->lastError = error;
+
+   if (ec->programId) {
+      pec_vector &chain = contextChains[ec->programId];
+      if (chain[1]) chain[1]->lastError = error;            // Fehler des Hauptkontexts oder
+      else          chain[0]->lastError = error;            // Fehler des Master-Kontexts setzen
+   }
+
    if (ec->superContext)
-      ec_setLastError(ec->superContext, error);                          // Fehler rekursiv im SuperContext setzen
+      ec->superContext->error = error;                      // Fehler im SuperContext setzen
+
    return(error);
    #pragma EXPORT
 }

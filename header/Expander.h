@@ -217,11 +217,12 @@ typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie
 
 
 /**
- * In der DLL aufgetretener Fehler.
+ * Wrapper für eine nach MQL zu übermittelnde Logmessage.
  */
-struct DLL_ERROR {
+struct LOG_MESSAGE {
+   int   level;                                    // Loglevel: L_ERROR, L_WARN oder L_INFO
    int   code;
-   char* message;                                  // szchar
+   char* text;                                     // szchar
 };
 
 
@@ -229,31 +230,48 @@ struct DLL_ERROR {
  * Ausführungskontext eines MQL-Programms für Laufzeitinformationen und Datenaustausch zwischen MQL-Modulen und DLL
  */
 struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-   uint               programId;                   //       4      => ec[ 0]     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
-   ProgramType        programType;                 //       4      => ec[ 1]     Programmtyp                                     (konstant)   => was bin ich
-   char               programName[MAX_PATH];       //     260      => ec[ 2]     Programmname (szchar)                           (konstant)   => wie heiße ich
-   LaunchType         launchType;                  //       4      => ec[67]     Launchtyp                                       (konstant)   => wie wurde ich gestartet
-   EXECUTION_CONTEXT* superContext;                //       4      => ec[68]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   uint               initFlags;                   //       4      => ec[69]     init-Flags                                      (konstant)   => wie werde ich initialisiert
-   uint               deinitFlags;                 //       4      => ec[70]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
-   RootFunction       rootFunction;                //       4      => ec[71]     letzte Rootfunktion des Modules                 (variabel)   => wo bin ich
-   UninitializeReason uninitializeReason;          //       4      => ec[72]     letzter Uninitialize-Reason des Modules         (variabel)   => woher komme ich
+   uint               programId;                   //       4     => ec[  0]     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
+   ProgramType        programType;                 //       4     => ec[  1]     Programmtyp                                     (konstant)   => was bin ich
+   char               programName[MAX_PATH];       //     260     => ec[  2]     Programmname (szchar)                           (konstant)   => wie heiße ich
+   ModuleType         moduleType;                  //       4     => ec[ 67]     Modultyp                                        (konstant)   => was bin ich
+   char               moduleName[MAX_PATH];        //     260     => ec[ 68]     Modulname (szchar)                              (konstant)   => wie heiße ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12      => ec[73]     aktuelles Symbol (szchar)                       (variabel)   => auf welchem Symbol laufe ich
-   uint               timeframe;                   //       4      => ec[76]     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChartWindow;                //       4      => ec[77]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
-   HWND               hChart;                      //       4      => ec[78]     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
-   uint               testFlags;                   //       4      => ec[79]     Test-Flags: Off|On|VisualMode|Optimization      (konstant)   => laufe ich im Tester und wenn ja, wie
+   LaunchType         launchType;                  //       4     => ec[133]     Launchtyp                                       (konstant)   => wie wurde ich gestartet
+   EXECUTION_CONTEXT* superContext;                //       4     => ec[134]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
+   uint               initFlags;                   //       4     => ec[135]     init-Flags                                      (konstant)   => wie werde ich initialisiert
+   uint               deinitFlags;                 //       4     => ec[136]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
+   RootFunction       rootFunction;                //       4     => ec[137]     letzte Rootfunktion des aktuellen Modules       (variabel)   => wo bin ich
+   UninitializeReason uninitializeReason;          //       4     => ec[138]     letzter Uninitialize-Reason (nur Hauptmodule)   (variabel)   => woher komme ich
 
-   int                lastError;                   //       4      => ec[80]     letzter MQL-Fehler                              (variabel)   => welcher MQL-Fehler ist aufgetreten
-   DLL_ERROR**        dllErrors;                   //       4      => ec[81]     Array von DLL-Fehlern                           (variabel)   => welche DLL-Fehler sind aufgetreten
-   uint               dllErrorsSize;               //       4      => ec[82]     Anzahl von DLL-Fehlern (Arraygröße)             (variabel)   => wieviele DLL-Fehler sind aufgetreten
-   BOOL               logging;                     //       4      => ec[83]     Logstatus                                       (konstant)   => was logge ich
-   char               logFile[MAX_PATH];           //     260      => ec[84]     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12     => ec[139]     aktuelles Symbol (szchar) (nicht in Libraries)  (variabel)   => auf welchem Symbol laufe ich
+   uint               timeframe;                   //       4     => ec[142]     aktuelle Bar-Periode (nicht in Libraries)       (variabel)   => mit welcher Bar-Periode laufe ich
+   HWND               hChartWindow;                //       4     => ec[143]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
+   HWND               hChart;                      //       4     => ec[144]     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
+   uint               testFlags;                   //       4     => ec[145]     Test-Flags: Off|On|VisualMode|Optimization      (konstant)   => laufe ich im Tester und wenn ja, wie
+
+   int                lastError;                   //       4     => ec[146]     letzter MQL-Fehler                              (variabel)   => welcher MQL-Fehler ist aufgetreten
+   int                error;                       //       4     => ec[147]     DLL-Fehlercode                                  (variabel)   => welcher DLL-Fehler ist aufgetreten
+   char*              errorMsg;                    //       4     => ec[148]     Text des DLL-Fehlers                            (variabel)   => ...
+   int                warn;                        //       4     => ec[149]     Code einer DLL-Warnung oder NULL                (variabel)   => ...
+   char*              warnMsg;                     //       4     => ec[150]     Text der DLL-Warnung                            (variabel)   => ...
+   int                info;                        //       4     => ec[151]     Code einer DLL-Info oder NULL                   (variabel)   => ...
+   char*              infoMsg;                     //       4     => ec[152]     Text der DLL-Info                               (variabel)   => ...
+   BOOL               logging;                     //       4     => ec[153]     Logstatus                                       (konstant)   => was logge ich
+   char               logFile[MAX_PATH];           //     260     => ec[154]     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
 };                                                 // -------------------------------------------------------------------------------------------------------------------------------
-                                                   //     596     = int[149]                                                                     warum bin ich nicht auf Ibiza
+                                                   //     876     = int[219]                                                                     warum bin ich nicht auf Ibiza
+
+ //LOG_MESSAGE**      dllErrors;                   //       4     => ec[147]     Array von Logmessages des Typs L_ERROR          (variabel)   => welche DLL-Fehler sind aufgetreten
+ //uint               dllErrorsSize;               //       4     => ec[148]     Anzahl von Logmessages (Arraygröße)             (variabel)   => wieviele DLL-Fehler sind aufgetreten
+
 
 typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
+
+
+// Deklaration Thread- und EXECUTION_CONTEXT-Verwaltung (Initialisierung in Expander.cpp)
+extern std::vector<DWORD>      threadIds;
+extern std::vector<uint>       threadIdsProgramIds;
+extern std::vector<pec_vector> contextChains;
 
 
 // Funktionsdeklarationen
@@ -264,13 +282,15 @@ void RemoveTickTimers();
 
 ProgramType  WINAPI ec_setProgramType (EXECUTION_CONTEXT* ec, ProgramType type);
 const char*  WINAPI ec_setProgramName (EXECUTION_CONTEXT* ec, const char* name);
+ModuleType   WINAPI ec_setModuleType  (EXECUTION_CONTEXT* ec, ModuleType type);
+const char*  WINAPI ec_setModuleName  (EXECUTION_CONTEXT* ec, const char* name);
 RootFunction WINAPI ec_setRootFunction(EXECUTION_CONTEXT* ec, RootFunction id);
 const char*  WINAPI ec_setSymbol      (EXECUTION_CONTEXT* ec, const char* symbol);
       uint   WINAPI ec_setTimeframe   (EXECUTION_CONTEXT* ec, uint timeframe);
 const char*  WINAPI ec_setLogFile     (EXECUTION_CONTEXT* ec, const char* fileName);
 
-BOOL  WINAPI SetMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
-BOOL  WINAPI SyncExecutionContext   (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
+BOOL  WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
+BOOL  WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);
 
 void  WINAPI SetLogLevel(int level);
 HWND  WINAPI GetApplicationWindow();
