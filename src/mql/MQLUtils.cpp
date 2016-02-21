@@ -15,7 +15,6 @@
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
- *
  * @mql-import:  int GetBoolsAddress(bool array[]);
  */
 int WINAPI GetBoolsAddress(const BOOL values[]) {
@@ -33,7 +32,6 @@ int WINAPI GetBoolsAddress(const BOOL values[]) {
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
- *
  * @mql-import:  int GetIntsAddress(int array[]);
  */
 int WINAPI GetIntsAddress(const int values[]) {
@@ -45,21 +43,11 @@ int WINAPI GetIntsAddress(const int values[]) {
 
 
 /**
- * Alias
- */
-int WINAPI GetBufferAddress(const int values[]) {
-   return(GetIntsAddress(values));
-   #pragma EXPORT
-}
-
-
-/**
  * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
  *
  * @param  double values[] - MQL-Double-Array
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
- *
  *
  * @mql-import:  int GetDoublesAddress(double array[]);
  */
@@ -78,7 +66,6 @@ int WINAPI GetDoublesAddress(const double values[]) {
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
- *
  * @mql-import:  int GetStringsAddress(string values[]);
  */
 int WINAPI GetStringsAddress(const MqlStr values[]) {
@@ -95,7 +82,6 @@ int WINAPI GetStringsAddress(const MqlStr values[]) {
  * @param  char* value - C-String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
- *
  *
  * @mql-import:  int GetStringAddress(string value);
  */
@@ -115,7 +101,6 @@ int WINAPI GetStringAddress(const char* value) {
  *
  * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
  *
- *
  * @mql-import:  string GetString(int address);
  */
 char* WINAPI GetString(const char* value) {
@@ -132,7 +117,6 @@ char* WINAPI GetString(const char* value) {
  *
  * @return int - Fehlercode
  *
- *
  * @mql-import:  int GetLastWin32Error();
  */
 int WINAPI GetLastWin32Error() {
@@ -147,7 +131,6 @@ int WINAPI GetLastWin32Error() {
  * @param  int timeframe - Timeframe-ID
  *
  * @return BOOL
- *
  *
  * @mql-import:  bool IsBuiltinTimeframe(int timeframe);
  */
@@ -175,7 +158,6 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
  *
  * @return BOOL
  *
- *
  * @mql-import:  bool IsCustomTimeframe(int timeframe);
  */
 BOOL WINAPI IsCustomTimeframe(int timeframe) {
@@ -193,7 +175,6 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
  * @param  int value - Integer (4 Byte)
  *
  * @return char* - hexadezimaler String mit 8 Zeichen
- *
  *
  * @mql-import:  string IntToHexStr(int value);
  */
@@ -213,6 +194,8 @@ char* WINAPI IntToHexStr(int value) {
  * @param  ModuleType type
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
+ *
+ * @mql-import:  string ModuleTypeToStr(int type);
  */
 const char* WINAPI ModuleTypeToStr(ModuleType type) {
    switch (type) {
@@ -234,6 +217,8 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
  * @param  ModuleType type
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
+ *
+ * @mql-import:  string ModuleTypeDescription(int type);
  */
 const char* WINAPI ModuleTypeDescription(ModuleType type) {
    switch (type) {
@@ -255,6 +240,8 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
  * @param  ProgramType type
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
+ *
+ * @mql-import:  string ProgramTypeToStr(int type);
  */
 const char* WINAPI ProgramTypeToStr(ProgramType type) {
    switch (type) {
@@ -274,6 +261,8 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
  * @param  ProgramType type
  *
  * @return char* - Beschreibung oder NULL, falls der Type ungültig ist
+ *
+ * @mql-import:  string ProgramTypeDescription(int type);
  */
 const char* WINAPI ProgramTypeDescription(ProgramType type) {
    switch (type) {
@@ -294,6 +283,8 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
  * @param  RootFunction id
  *
  * @return char* - Beschreibung oder ein Null-Pointer, falls die ID ungültig ist
+ *
+ * @mql-import:  string RootFunctionToStr(int id);
  */
 const char* WINAPI RootFunctionToStr(RootFunction id) {
    switch (id) {
@@ -314,6 +305,8 @@ const char* WINAPI RootFunctionToStr(RootFunction id) {
  * @param  RootFunction id
  *
  * @return char* - Name oder NULL, falls die ID ungültig ist
+ *
+ * @mql-import:  string RootFunctionName(int id);
  */
 const char* WINAPI RootFunctionName(RootFunction id) {
    switch (id) {
@@ -334,6 +327,8 @@ const char* WINAPI RootFunctionName(RootFunction id) {
  * @param  int period - Timeframe-ID
  *
  * @return char*
+ *
+ * @mql-import:  string PeriodToStr(int period);
  */
 const char* WINAPI PeriodToStr(int period) {
    switch (period) {
@@ -361,6 +356,8 @@ const char* WINAPI PeriodToStr(int period) {
  * @param  int period - Timeframe-ID bzw. Anzahl der Minuten je Chart-Bar
  *
  * @return char*
+ *
+ * @mql-import:  string PeriodDescription(int period);
  */
 const char* WINAPI PeriodDescription(int period) {
    switch (period) {
@@ -387,6 +384,8 @@ const char* WINAPI PeriodDescription(int period) {
 
 /**
  * Alias
+ *
+ * @mql-import:  string TimeframeToStr(int timeframe);
  */
 const char* WINAPI TimeframeToStr(int timeframe) {
    return(PeriodToStr(timeframe));
@@ -396,6 +395,8 @@ const char* WINAPI TimeframeToStr(int timeframe) {
 
 /**
  * Alias
+ *
+ * @mql-import:  string TimeframeDescription(int timeframe);
  */
 const char* WINAPI TimeframeDescription(int timeframe) {
    return(PeriodDescription(timeframe));
@@ -409,6 +410,8 @@ const char* WINAPI TimeframeDescription(int timeframe) {
  * @param  int reason - Code
  *
  * @return char*
+ *
+ * @mql-import:  string UninitializeReasonToStr(int reason);
  */
 const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
    switch (reason) {
@@ -433,6 +436,8 @@ const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
  * Gibt das Handle des Terminal-Hauptfensters zurück.
  *
  * @return HWND - Handle oder 0, falls ein Fehler auftrat
+ *
+ * @mql-import:  int GetApplicationWindow();
  */
 HWND WINAPI GetApplicationWindow() {
    static HWND hWnd;
@@ -478,6 +483,8 @@ HWND WINAPI GetApplicationWindow() {
  * Gibt die ID des Userinterface-Threads zurück.
  *
  * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
+ *
+ * @mql-import:  int GetUIThreadId();
  */
 DWORD WINAPI GetUIThreadId() {
    static DWORD uiThreadId;
@@ -496,6 +503,8 @@ DWORD WINAPI GetUIThreadId() {
  * Ob der aktuelle Thread der UI-Thread ist.
  *
  * @return BOOL
+ *
+ * @mql-import:  bool IsUIThread();
  */
 BOOL WINAPI IsUIThread() {
    return(GetCurrentThreadId() == GetUIThreadId());
@@ -507,6 +516,8 @@ BOOL WINAPI IsUIThread() {
  * Gibt die aktuelle GMT-Zeit des Systems zurück (auch im Tester).
  *
  * @return uint - Unix-Timestamp der GMT-Zeit
+ *
+ * @mql-import:  datetime GetGmtTime();
  */
 uint WINAPI GetGmtTime() {
    // @see  MSDN for manual replacement of the non-public function RtlTimeToSecondsSince1970()
@@ -533,6 +544,8 @@ uint WINAPI GetGmtTime() {
  * Gibt die aktuelle lokale Zeit zurück (auch im Tester).
  *
  * @return uint - Unix-Timestamp der lokalen Zeit
+ *
+ * @mql-import:  datetime GetLocalTime();
  */
 uint WINAPI GetLocalTime() {
    // @see  MSDN for manual replacement of the non-public function RtlTimeToSecondsSince1970()
@@ -637,6 +650,8 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
  *                                               ohne dieses Flag werden auch am Wochenende Ticks generiert (default).
  *
  * @return uint - ID des installierten Timers zur Übergabe an RemoveTickTimer() bei Deinstallation des Timers oder 0, falls ein Fehler auftrat.
+ *
+ * @mql-import:  int SetupTickTimer(int hWnd, int millis, int flags);
  */
 uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
    // Parametervalidierung
@@ -673,6 +688,8 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
  * @param  int timerId - ID des Timers, wie von SetupTickTimer() zurückgegeben.
  *
  * @return BOOL - Erfolgsstatus
+ *
+ * @mql-import:  bool RemoveTickTimer(int timerId);
  */
 BOOL WINAPI RemoveTickTimer(int timerId) {
    if (timerId <= 0) return(debug("ERROR:  invalid parameter timerId = %d", timerId));
@@ -716,6 +733,8 @@ void RemoveTickTimers() {
  * @param  char* lpName - Property-Name
  *
  * @return HANDLE - Property-Value
+ *
+ * @mql-import:  int GetWindowProperty(int hWnd, string name);
  */
 HANDLE WINAPI GetWindowProperty(const HWND hWnd, const char* lpName) {
    return(GetProp(hWnd, lpName));
@@ -730,6 +749,8 @@ HANDLE WINAPI GetWindowProperty(const HWND hWnd, const char* lpName) {
  * @param  char* lpName - Property-Name
  *
  * @return HANDLE - Property-Value
+ *
+ * @mql-import:  int RemoveWindowProperty(int hWnd, string name);
  */
 HANDLE WINAPI RemoveWindowProperty(const HWND hWnd, const char* lpName) {
    return(RemoveProp(hWnd, lpName));
@@ -745,6 +766,8 @@ HANDLE WINAPI RemoveWindowProperty(const HWND hWnd, const char* lpName) {
  * @param  HANDLE value  - Property-Value
  *
  * @return BOOL - Erfolgsstatus
+ *
+ * @mql-import:  bool SetWindowProperty(int hWnd, string name, int value);
  */
 BOOL WINAPI SetWindowProperty(const HWND hWnd, const char* lpName, const HANDLE value) {
    return(SetProp(hWnd, lpName, value));
@@ -758,6 +781,8 @@ BOOL WINAPI SetWindowProperty(const HWND hWnd, const char* lpName, const HANDLE 
  * @param  char* value - zu prüfender String
  *
  * @return BOOL
+ *
+ * @mql-import:  bool StringIsNull(string value);
  */
 BOOL StringIsNull(const char* value) {
    return(value == NULL);
@@ -772,6 +797,8 @@ BOOL StringIsNull(const char* value) {
  * @param  char* value - String
  *
  * @return char* - lesbare Repräsentation
+ *
+ * @mql-import:  string StringToStr(string value);
  *
  *
  * NOTE: Wird diese Funktion in MQL implementiert, setzt MetaTrader bei einem NULL-Pointer den Fehler ERR_NOT_INITIALIZED_STRING
@@ -792,6 +819,8 @@ const char* StringToStr(const char* value) {
  * @param  char* s2
  *
  * @return BOOL
+ *
+ * @mql-import:  bool StringCompare(string s1, string s2);
  */
 BOOL StringCompare(const char* s1, const char* s2) {
    if ( s1 ==  s2) return(TRUE);             // Sind die Pointer gleich, ist es der Inhalt auch.
