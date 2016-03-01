@@ -40,8 +40,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
  * DllMain()-Aufruf beim Laden der DLL
  */
 BOOL onProcessAttach() {
-   SetLogLevel(L_WARN);                                     // Default-Loglevel
-   //debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
+   //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
+   //SetLogLevel(L_WARN);                                     // Default-Loglevel
 
    threadIds          .resize(0);
    threadIdsProgramIds.resize(0);

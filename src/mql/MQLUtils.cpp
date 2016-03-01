@@ -784,7 +784,7 @@ BOOL WINAPI SetWindowProperty(const HWND hWnd, const char* lpName, const HANDLE 
  *
  * @mql-import:  bool StringIsNull(string value);
  */
-BOOL StringIsNull(const char* value) {
+BOOL WINAPI StringIsNull(const char* value) {
    return(value == NULL);
    #pragma EXPORT
 }
@@ -804,7 +804,7 @@ BOOL StringIsNull(const char* value) {
  * NOTE: Wird diese Funktion in MQL implementiert, setzt MetaTrader bei einem NULL-Pointer den Fehler ERR_NOT_INITIALIZED_STRING
  *       und füllt das Log mit überflüssigen "warn: not initialized string"-Einträgen.
  */
-const char* StringToStr(const char* value) {
+const char* WINAPI StringToStr(const char* value) {
    if (!value)
       return("NULL");                        // C-Literal: Speicher muß nicht extra verwaltet werden
    return(value);
@@ -822,7 +822,7 @@ const char* StringToStr(const char* value) {
  *
  * @mql-import:  bool StringCompare(string s1, string s2);
  */
-BOOL StringCompare(const char* s1, const char* s2) {
+BOOL WINAPI StringCompare(const char* s1, const char* s2) {
    if ( s1 ==  s2) return(TRUE);             // Sind die Pointer gleich, ist es der Inhalt auch.
    if (!s1 || !s2) return(FALSE);            // Ist einer der beiden ein NULL-Pointer, kann der andere keiner sein.
 
