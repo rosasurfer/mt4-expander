@@ -66,13 +66,13 @@ struct MqlStr {
 
 
 /**
- * MT4 structure SYMBOL: Dateiformat "symbols.raw"
+ * MT4 structure SYMBOL (Dateiformat "symbols.raw")
  *
  * Die Symbole in der Datei sind alphabetisch nach Symbolnamen sortiert.
  */
 struct SYMBOL {                                    // -- offset ---- size --- description ----------------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol         (szchar) z.B. "AUDCAD.mkt"
-   char   description [64];                        //        64        64     Beschreibung   (szchar)
+   char   description [64];                        //        12        64     Beschreibung   (szchar)
    char   stdName     [MAX_SYMBOL_LENGTH+1];       //        76        12     Standardsymbol (szchar) z.B. "AUDCAD" (falls ungleich 'name')
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //        88        12     Base Currency
    uint   groupIndex;                              //       100         4     Index der Symbolgruppe in "symgroups.raw"
@@ -117,83 +117,84 @@ struct SYMBOL {                                    // -- offset ---- size --- de
                                                    //              = 1936
 
 /**
- * MT4 structure SYMBOL_GROUP: Dateiformat "symgroups.raw"
+ * MT4 structure SYMBOL_GROUP (Dateiformat "symgroups.raw")
  *
  * Die Datei enthält immer 32 Gruppen, die Dateigröße ist fix 2.560 Bytes. Einzelne Gruppen können undefiniert sein.
  */
-struct SYMBOL_GROUP {                              // -- size --- description ----------------------------------------------------------------------------------------
-   char name       [16];                           //      16     Name         (szchar)
-   char description[60];                           //      60     Beschreibung (szchar)
-   uint backgroundColor;               /*custom*/  //       4     Farbe im "MarketWatch" Window
+struct SYMBOL_GROUP {                              // -- offset ---- size --- description ----------------------------------------------------------------------------
+   char name       [16];                           //         0        16     Name         (szchar)
+   char description[60];                           //        16        60     Beschreibung (szchar)
+   uint backgroundColor;               /*custom*/  //        76         4     Farbe im "MarketWatch" Window
 };                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //    = 80
+                                                   //                = 80
 
 /**
- * MT4 structure SYMBOL_SELECTED: Dateiformat "symbols.sel"
+ * MT4 structure SYMBOL_SELECTED (Dateiformat "symbols.sel")
  */
-struct SYMBOL_SELECTED {                           // -- size --- description ----------------------------------------------------------------------------------------
-   char   symbol[MAX_SYMBOL_LENGTH+1];             //      12     Symbol (szchar)
-   uint   digits;                                  //       4     Digits
+struct SYMBOL_SELECTED {                           // -- offset ---- size --- description ----------------------------------------------------------------------------
+   char   symbol[MAX_SYMBOL_LENGTH+1];             //         0        12     Symbol (szchar)
+   uint   digits;                                  //        12         4     Digits
 
-   uint   symbolIndex;                             //       4     Index des Symbols in "symbols.raw"
-   DWORD  undocumented_1;                          //       4     immer 0x0001
+   uint   symbolIndex;                             //        16         4     Index des Symbols in "symbols.raw"
+   DWORD  undocumented_1;                          //        20         4     immer 0x0001
 
-   uint   groupIndex;                              //       4     Index der Symbolgruppe in "symgroups.raw"
-   DWORD  undocumented_2;                          //       4
+   uint   groupIndex;                              //        24         4     Index der Symbolgruppe in "symgroups.raw"
+   DWORD  undocumented_2;                          //        28         4
 
-   double point;                                   //       8     Point
-   uint   fixedSpread;                             //       4     fester Spread in Points oder NULL bei variablem Spread
-   DWORD  undocumented_3;                          //       4
+   double point;                                   //        32         8     Point
+   uint   fixedSpread;                             //        40         4     fester Spread in Points oder NULL bei variablem Spread
+   DWORD  undocumented_3;                          //        44         4
 
-   uint   tickType;                                //       4     Tick-Type: 0=Uptick, 1=Downtick, 2=n/a
-   WORD   undocumented_4;                          //       2     immer 0x0100
-   WORD   undocumented_5;                          //       2     unterschiedlich (oft NULL)
+   uint   tickType;                                //        48         4     Tick-Type: 0=Uptick, 1=Downtick, 2=n/a
+   WORD   undocumented_4;                          //        52         2     immer 0x0100
+   WORD   undocumented_5;                          //        54         2     unterschiedlich (oft NULL)
 
-   uint   time;                                    //       4     Time
-   DWORD  undocumented_6;                          //       4
-   double bid;                                     //       8     Bid
-   double ask;                                     //       8     Ask
-   double sessionHigh;                             //       8     Session High
-   double sessionLow;                              //       8     Session Low
+   uint   time;                                    //        56         4     Time
+   DWORD  undocumented_6;                          //        60         4
+   double bid;                                     //        64         8     Bid
+   double ask;                                     //        72         8     Ask
+   double sessionHigh;                             //        80         8     Session High
+   double sessionLow;                              //        88         8     Session Low
 
-   BYTE   undocumented_7[16];                      //      16     unterschiedlich (oft alles NULL)
-   double bid_2;                                   //       8     Bid (Wiederholung)
-   double ask_2;                                   //       8     Ask (Wiederholung)
+   BYTE   undocumented_7[16];                      //        96        16     unterschiedlich (oft alles NULL)
+   double bid_2;                                   //       112         8     Bid (Wiederholung)
+   double ask_2;                                   //       120         8     Ask (Wiederholung)
 };                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //   = 128
+                                                   //               = 128
 
 /**
  * MT4 structure HISTORY_HEADER
  *
  * HistoryFile Header
  */
-struct HISTORY_HEADER {                            // -- size ------- offset --- description -------------------------------------------------------------------------
-   uint  format;                                   //       4      => hh[ 0]     Barformat, bis Build 509: 400, danach: 401
-   char  description[64];                          //      64      => hh[ 1]     Beschreibung (szchar)
-   char  symbol[MAX_SYMBOL_LENGTH+1];              //      12      => hh[17]     Symbol       (szchar)
-   uint  period;                                   //       4      => hh[20]     Timeframe
-   uint  digits;                                   //       4      => hh[21]     Digits
-   uint  syncMark;                                 //       4      => hh[22]     SyncMarker (timestamp), wird vom Terminal beim Refresh mit Serverversion überschrieben
-   uint  lastSync;                                 //       4      => hh[23]     LastSync   (unbenutzt), wird vom Terminal nicht überschrieben
-   uint  timezoneId;                   /*custom*/  //       4      => hh[24]     Timezone-ID (default: 0 => Server-Timezone)
-   BYTE  reserved[48];                             //      48      => hh[25]
+struct HISTORY_HEADER {                            // -- offset ---- size --- description ----------------------------------------------------------------------------
+   uint  format;                                   //         0         4     Barformat, bis Build 509: 400, danach: 401
+   char  description[64];                          //         4        64     Beschreibung (szchar)
+   char  symbol[MAX_SYMBOL_LENGTH+1];              //        68        12     Symbol       (szchar)
+   uint  period;                                   //        80         4     Timeframe in Minuten
+   uint  digits;                                   //        84         4     Digits
+   uint  syncMark;                                 //        88         4     SyncMarker (timestamp), wird vom Terminal beim Refresh mit Serverversion überschrieben
+   uint  lastSync;                                 //        92         4     LastSync   (unbenutzt), wird vom Terminal nicht überschrieben
+   uint  timezoneId;                   /*custom*/  //        96         4     Timezone-ID (default: 0 => Server-Timezone)
+   BYTE  reserved[48];                             //       100        48
 };                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //   = 148
+                                                   //               = 148
 
 /**
  * MT4 structure HISTORY_BAR_400
  *
  * HistoryFile Barformat v400 (bis MetaTrader Build 509)
  */
-struct HISTORY_BAR_400 {                           // -- size --- description ----------------------------------------------------------------------------------------
-   uint   time;                                    //       4     Open-Time (timestamp)
-   double open;                                    //       8
-   double low;                                     //       8
-   double high;                                    //       8
-   double close;                                   //       8
-   double ticks;                                   //       8     immer Ganzzahl
+struct HISTORY_BAR_400 {                           // -- offset ---- size --- description ----------------------------------------------------------------------------
+   uint   time;                                    //         0         4     Open-Time (timestamp)
+   double open;                                    //         4         8
+   double low;                                     //        12         8
+   double high;                                    //        20         8
+   double close;                                   //        28         8
+   double ticks;                                   //        36         8     immer Ganzzahl
 };                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //    = 44
+                                                   //                = 44
+
 typedef HISTORY_BAR_400 RateInfo;                  // MetaQuotes-Terminologie
 
 
@@ -202,18 +203,98 @@ typedef HISTORY_BAR_400 RateInfo;                  // MetaQuotes-Terminologie
  *
  * HistoryFile Barformat v401 (ab MetaTrader Build 510)
  */
-struct HISTORY_BAR_401 {                           // -- size --- description ----------------------------------------------------------------------------------------
-   int64  time;                                    //       8     Open-Time (timestamp)
-   double open;                                    //       8
-   double high;                                    //       8
-   double low;                                     //       8
-   double close;                                   //       8
-   uint64 ticks;                                   //       8
-   int    spread;                                  //       4     (unbenutzt)
-   uint64 volume;                                  //       8     (unbenutzt)
+struct HISTORY_BAR_401 {                           // -- offset ---- size --- description ----------------------------------------------------------------------------
+   int64  time;                                    //         0         8     Open-Time (timestamp)
+   double open;                                    //         8         8
+   double high;                                    //        16         8
+   double low;                                     //        24         8
+   double close;                                   //        32         8
+   uint64 ticks;                                   //        40         8
+   int    spread;                                  //        48         4     (unbenutzt)
+   uint64 volume;                                  //        52         8     (unbenutzt)
 };                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //    = 60
+                                                   //                = 60
+
 typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie
+
+
+/**
+ * MT4 structure FXT_HEADER
+ *
+ * TickFile Header
+ */
+struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
+   uint   version;                                 //         0         4     Header-Version (405), nicht die Version des Tickdatenformats
+   char   description[64];                         //         4        64     Beschreibung/Copyright (szchar)
+   char   serverName[128];                         //        68       128     Name des Accountservers (szchar)
+   char   symbol[MAX_SYMBOL_LENGTH+1];             //       196        12     Symbol (szchar)
+   uint   period;                                  //       208         4     Timeframe in Minuten
+   uint   modelType;                               //       212         4     0=every tick
+   uint   bars;                                    //       216         4     Anzahl der von den Ticks modellierten Bars in der Datei
+   uint   firstTickTime;                           //       220         4     Zeitpunkt des ersten Ticks
+   uint   lastTickTime;                            //       224         4     Zeitpunkt des letzten Ticks
+   BYTE   reserved_1[4];                           //       228         4     (alignment to the next double)
+   double modelQuality;                            //       232         8     max. 99.9
+
+   // common parameters                            // ----------------------------------------------------------------------------------------------------------------
+   char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //       240        12     Base currency (szchar)                    = StringLeft(symbol, 3)
+   uint   spread;                                  //       252         4     Spread in Points > 0                      = MarketInfo(MODE_SPREAD)
+   uint   digits;                                  //       256         4     Digits                                    = MarketInfo(MODE_DIGITS)
+   BYTE   reserved_2[4];                           //       260         4     (alignment to the next double)
+   double pointSize;                               //       264         8     PointSize                                 = MarketInfo(MODE_POINT)
+   uint   minLotsize;                              //       272         4     Mindest-Lotsize in Hundertsteln Lot       = MarketInfo(MODE_MINLOT)  * 100
+   uint   maxLotsize;                              //       276         4     Höchst-Lotsize in Hundertsteln Lot        = MarketInfo(MODE_MAXLOT)  * 100
+   uint   lotStepsize;                             //       280         4     Lot-Stepsize in Hundertsteln Lot          = MarketInfo(MODE_LOTSTEP) * 100
+   uint   stopsDistance;                           //       284         4     Stops distance level in Points            = MarketInfo(MODE_STOPLEVEL)
+   BOOL   pendingsGTC;                             //       288         4     are pending orders good till cancel?        @see struct SYMBOL
+   BYTE   reserved_3[4];                           //       292         4     (alignment to the next double)
+
+   // profit calculation parameters                // ----------------------------------------------------------------------------------------------------------------
+   double contractSize;                            //       296         8     units of 1 lot, ie. 100,000               = MarketInfo(MODE_LOTSIZE)
+   double tickValue;                               //       304         8     tick value in account currency, ie. 1.00  = MarketInfo(MODE_TICKVALUE)
+   double tickSize;                                //       312         8     tick size, ie. 0.0000'1                   = MarketInfo(MODE_TICKSIZE)
+   uint   profitCalculationMode;                   //       320         4     profit calculation mode                   = MarketInfo(MODE_PROFITCALCMODE)
+
+   // swap calculation parameters                  // ----------------------------------------------------------------------------------------------------------------
+   BOOL   swapEnabled;                             //       324         4     are swaps enabled?
+   uint   swapCalculationMode;                     //       328         4     swap calculation mode                     = MarketInfo(MODE_SWAPTYPE)
+   BYTE   reserved_4[4];                           //       332         4     (alignment to the next double)
+   double swapLong;                                //       336         8     long overnight swap value                 = MarketInfo(MODE_SWAPLONG)
+   double swapShort;                               //       344         8     short overnight swap values               = MarketInfo(MODE_SWAPSHORT)
+   uint   tripleRolloverDay;                       //       352         4     weekday of triple swaps                   = WEDNESDAY
+
+   // margin calculation parameters                // ----------------------------------------------------------------------------------------------------------------
+   uint   accountLeverage;                         //       356         4     account leverage                          = AccountLeverage()
+   uint   freeMarginCalculationMode;               //       360         4     free margin calculation mode              = AccountFreeMarginMode()
+
+};                                                 // ----------------------------------------------------------------------------------------------------------------
+
+/*
+int      i_margin_mode=MARGIN_CALC_FOREX;            // margin calculation mode        //  364 + 4
+int      i_margin_stopout=30;                        // margin stopout level           //  368 + 4
+int      i_margin_stopout_mode=MARGIN_TYPE_PERCENT;  // margin stopout check mode      //  372 + 4
+double   d_margin_initial=0.0;                       // margin requirements            //  376 + 8
+double   d_margin_maintenance=0.0;                                                     //  384 + 8
+double   d_margin_hedged=0.0;                                                          //  392 + 8
+double   d_margin_divider=1.0;                                                         //  400 + 8
+string   s_margin_currency;                          // 12 bytes                       //  408 + 12
+//---- commissions calculation                                                         -------
+//++++ add 4 bytes to align the next double                                            +++++++
+double   d_comm_base=0.0;                            // basic commission               //  424 + 8
+int      i_comm_type=COMM_TYPE_PIPS;                 // basic commission type          //  432 + 4
+int      i_comm_lots=COMMISSION_PER_LOT;             // commission per lot or per deal //  436 + 4
+//---- for internal use                                                                -------
+int      i_from_bar=0;                               // 'fromdate' bar number          //  440 + 4
+int      i_to_bar=0;                                 // 'todate' bar number            //  444 + 4
+int      i_start_period[6];                                                            //  448 + 24
+int      i_from=0;                                   // must be zero                   //  472 + 4
+int      i_to=0;                                     // must be zero                   //  476 + 4
+int      i_freeze_level=0;                           // order's freeze level in points //  480 + 4
+int      i_reserved[61];                             // unused                         //  484 + 244 = 728
+*/
+
+
+
 
 
 /**
@@ -229,40 +310,40 @@ struct LOG_MESSAGE {
 /**
  * Ausführungskontext eines MQL-Programms für Laufzeitinformationen und Datenaustausch zwischen MQL-Modulen und DLL
  */
-struct EXECUTION_CONTEXT {                         // -- size ------- offset --- description ----------------------------------------------------------------------------------------
-   uint               programId;                   //       4     => ec[  0]     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
-   ProgramType        programType;                 //       4     => ec[  1]     Programmtyp                                     (konstant)   => was bin ich
-   char               programName[MAX_PATH];       //     260     => ec[  2]     Programmname (szchar)                           (konstant)   => wie heiße ich
-   ModuleType         moduleType;                  //       4     => ec[ 67]     Modultyp                                        (konstant)   => was bin ich
-   char               moduleName[MAX_PATH];        //     260     => ec[ 68]     Modulname (szchar)                              (konstant)   => wie heiße ich
+struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
+   uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
+   ProgramType        programType;                 //         4         4     Programmtyp                                     (konstant)   => was bin ich
+   char               programName[MAX_PATH];       //         8       260     Programmname (szchar)                           (konstant)   => wie heiße ich
+   ModuleType         moduleType;                  //       268         4     Modultyp                                        (konstant)   => was bin ich
+   char               moduleName[MAX_PATH];        //       272       260     Modulname (szchar)                              (konstant)   => wie heiße ich
 
-   LaunchType         launchType;                  //       4     => ec[133]     Launchtyp                                       (konstant)   => wie wurde ich gestartet
-   EXECUTION_CONTEXT* superContext;                //       4     => ec[134]     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   uint               initFlags;                   //       4     => ec[135]     init-Flags                                      (konstant)   => wie werde ich initialisiert
-   uint               deinitFlags;                 //       4     => ec[136]     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
-   RootFunction       rootFunction;                //       4     => ec[137]     letzte Rootfunktion des aktuellen Modules       (variabel)   => wo bin ich
-   UninitializeReason uninitializeReason;          //       4     => ec[138]     letzter Uninitialize-Reason (nur Hauptmodule)   (variabel)   => woher komme ich
+   LaunchType         launchType;                  //       532         4     Launchtyp                                       (konstant)   => wie wurde ich gestartet
+   EXECUTION_CONTEXT* superContext;                //       536         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
+   uint               initFlags;                   //       540         4     init-Flags                                      (konstant)   => wie werde ich initialisiert
+   uint               deinitFlags;                 //       544         4     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
+   RootFunction       rootFunction;                //       548         4     letzte Rootfunktion des aktuellen Modules       (variabel)   => wo bin ich
+   UninitializeReason uninitializeReason;          //       552         4     letzter Uninitialize-Reason (nur Hauptmodule)   (variabel)   => woher komme ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //      12     => ec[139]     aktuelles Symbol (szchar) (nicht in Libraries)  (variabel)   => auf welchem Symbol laufe ich
-   uint               timeframe;                   //       4     => ec[142]     aktuelle Bar-Periode (nicht in Libraries)       (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChartWindow;                //       4     => ec[143]     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
-   HWND               hChart;                      //       4     => ec[144]     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
-   uint               testFlags;                   //       4     => ec[145]     Test-Flags: Off|On|VisualMode|Optimization      (konstant)   => laufe ich im Tester und wenn ja, wie
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       556        12     aktuelles Symbol (szchar) (nicht in Libraries)  (variabel)   => auf welchem Symbol laufe ich
+   uint               timeframe;                   //       568         4     aktuelle Bar-Periode (nicht in Libraries)       (variabel)   => mit welcher Bar-Periode laufe ich
+   HWND               hChartWindow;                //       572         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
+   HWND               hChart;                      //       576         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
+   uint               testFlags;                   //       580         4     Test-Flags: Off|On|VisualMode|Optimization      (konstant)   => laufe ich im Tester und wenn ja, wie
 
-   int                lastError;                   //       4     => ec[146]     letzter MQL-Fehler                              (variabel)   => welcher MQL-Fehler ist aufgetreten
-   int                error;                       //       4     => ec[147]     DLL-Fehlercode                                  (variabel)   => welcher DLL-Fehler ist aufgetreten
-   char*              errorMsg;                    //       4     => ec[148]     Text des DLL-Fehlers                            (variabel)   => ...
-   int                warn;                        //       4     => ec[149]     Code einer DLL-Warnung oder NULL                (variabel)   => ...
-   char*              warnMsg;                     //       4     => ec[150]     Text der DLL-Warnung                            (variabel)   => ...
-   int                info;                        //       4     => ec[151]     Code einer DLL-Info oder NULL                   (variabel)   => ...
-   char*              infoMsg;                     //       4     => ec[152]     Text der DLL-Info                               (variabel)   => ...
-   BOOL               logging;                     //       4     => ec[153]     Logstatus                                       (konstant)   => was logge ich
-   char               logFile[MAX_PATH];           //     260     => ec[154]     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
-};                                                 // -------------------------------------------------------------------------------------------------------------------------------
-                                                   //     876     = int[219]                                                                     warum bin ich nicht auf Ibiza
+   int                lastError;                   //       584         4     letzter MQL-Fehler                              (variabel)   => welcher MQL-Fehler ist aufgetreten
+   int                error;                       //       588         4     DLL-Fehlercode                                  (variabel)   => welcher DLL-Fehler ist aufgetreten
+   char*              errorMsg;                    //       592         4     Text des DLL-Fehlers                            (variabel)   => ...
+   int                warn;                        //       596         4     Code einer DLL-Warnung oder NULL                (variabel)   => ...
+   char*              warnMsg;                     //       600         4     Text der DLL-Warnung                            (variabel)   => ...
+   int                info;                        //       604         4     Code einer DLL-Info oder NULL                   (variabel)   => ...
+   char*              infoMsg;                     //       608         4     Text der DLL-Info                               (variabel)   => ...
+   BOOL               logging;                     //       612         4     Logstatus                                       (konstant)   => was logge ich
+   char               logFile[MAX_PATH];           //       616       260     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
+};                                                 // ----------------------------------------------------------------------------------------------------------------------------
+                                                   //               = 876                                                                     warum bin ich nicht auf Ibiza
 
- //LOG_MESSAGE**      dllErrors;                   //       4     => ec[147]     Array von Logmessages des Typs L_ERROR          (variabel)   => welche DLL-Fehler sind aufgetreten
- //uint               dllErrorsSize;               //       4     => ec[148]     Anzahl von Logmessages (Arraygröße)             (variabel)   => wieviele DLL-Fehler sind aufgetreten
+ //LOG_MESSAGE**      dllErrors;                   //         4               Array von Logmessages des Typs L_ERROR          (variabel)   => welche DLL-Fehler sind aufgetreten
+ //uint               dllErrorsSize;               //         4               Anzahl von Logmessages (Arraygröße)             (variabel)   => wieviele DLL-Fehler sind aufgetreten
 
 
 typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
