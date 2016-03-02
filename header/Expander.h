@@ -219,83 +219,78 @@ typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie
 
 
 /**
- * MT4 structure FXT_HEADER
+ * MT4 structure FXT_HEADER version 405
  *
- * TickFile Header
+ * Tickdatei-Header. Tickdateien ab Version 405 können je nach MetaTrader-Version unterschiedliche Tickdatenformate haben.
  */
 struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
-   uint   version;                                 //         0         4     Header-Version (405), nicht die Version des Tickdatenformats
-   char   description[64];                         //         4        64     Beschreibung/Copyright (szchar)
+   uint   version;                                 //         0         4     Header-Version                              405
+   char   description[64];                         //         4        64     z.B. Copyright (szchar)
    char   serverName[128];                         //        68       128     Name des Accountservers (szchar)
    char   symbol[MAX_SYMBOL_LENGTH+1];             //       196        12     Symbol (szchar)
    uint   period;                                  //       208         4     Timeframe in Minuten
-   uint   modelType;                               //       212         4     0=every tick
-   uint   bars;                                    //       216         4     Anzahl der von den Ticks modellierten Bars in der Datei
-   uint   firstTickTime;                           //       220         4     Zeitpunkt des ersten Ticks
-   uint   lastTickTime;                            //       224         4     Zeitpunkt des letzten Ticks
+   uint   modelingType;                            //       212         4     0=every tick
+   uint   modeledBars;                             //       216         4     Anzahl der in der Datei modellierten Bars
+   uint   firstTickTime;                           //       220         4     !!! prüfen Zeitpunkt des ersten Ticks
+   uint   lastTickTime;                            //       224         4     !!! prüfen Zeitpunkt des letzten Ticks
    BYTE   reserved_1[4];                           //       228         4     (alignment to the next double)
-   double modelQuality;                            //       232         8     max. 99.9
+   double modelingQuality;                         //       232         8     max. 99.9
 
    // common parameters                            // ----------------------------------------------------------------------------------------------------------------
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //       240        12     Base currency (szchar)                    = StringLeft(symbol, 3)
-   uint   spread;                                  //       252         4     Spread in Points > 0                      = MarketInfo(MODE_SPREAD)
+   uint   spread;                                  //       252         4     Spread in Points (> 0)                    = MarketInfo(MODE_SPREAD)
    uint   digits;                                  //       256         4     Digits                                    = MarketInfo(MODE_DIGITS)
    BYTE   reserved_2[4];                           //       260         4     (alignment to the next double)
-   double pointSize;                               //       264         8     PointSize                                 = MarketInfo(MODE_POINT)
+   double pointSize;                               //       264         8     Auflösung, z.B. 0.0000'1                  = MarketInfo(MODE_POINT)
    uint   minLotsize;                              //       272         4     Mindest-Lotsize in Hundertsteln Lot       = MarketInfo(MODE_MINLOT)  * 100
    uint   maxLotsize;                              //       276         4     Höchst-Lotsize in Hundertsteln Lot        = MarketInfo(MODE_MAXLOT)  * 100
    uint   lotStepsize;                             //       280         4     Lot-Stepsize in Hundertsteln Lot          = MarketInfo(MODE_LOTSTEP) * 100
    uint   stopsDistance;                           //       284         4     Stops distance level in Points            = MarketInfo(MODE_STOPLEVEL)
-   BOOL   pendingsGTC;                             //       288         4     are pending orders good till cancel?        @see struct SYMBOL
+   BOOL   pendingsGTC;                             //       288         4     ob PendingOrders good-till-cancel sind      @see struct SYMBOL
    BYTE   reserved_3[4];                           //       292         4     (alignment to the next double)
 
    // profit calculation parameters                // ----------------------------------------------------------------------------------------------------------------
-   double contractSize;                            //       296         8     units of 1 lot, ie. 100,000               = MarketInfo(MODE_LOTSIZE)
-   double tickValue;                               //       304         8     tick value in account currency, ie. 1.00  = MarketInfo(MODE_TICKVALUE)
-   double tickSize;                                //       312         8     tick size, ie. 0.0000'1                   = MarketInfo(MODE_TICKSIZE)
+   double contractSize;                            //       296         8     Größe eines Lots, z.B. 100000             = MarketInfo(MODE_LOTSIZE)
+   double tickValue;                               //       304         8     Tick-Value in Accountwährung, z.B. 1.00   = MarketInfo(MODE_TICKVALUE)
+   double tickSize;                                //       312         8     Tick-Größe, z.B. 0.0000'1                 = MarketInfo(MODE_TICKSIZE)
    uint   profitCalculationMode;                   //       320         4     profit calculation mode                   = MarketInfo(MODE_PROFITCALCMODE)
 
    // swap calculation parameters                  // ----------------------------------------------------------------------------------------------------------------
-   BOOL   swapEnabled;                             //       324         4     are swaps enabled?
+   BOOL   swapEnabled;                             //       324         4     ob Swaps berechnet werden
    uint   swapCalculationMode;                     //       328         4     swap calculation mode                     = MarketInfo(MODE_SWAPTYPE)
    BYTE   reserved_4[4];                           //       332         4     (alignment to the next double)
-   double swapLong;                                //       336         8     long overnight swap value                 = MarketInfo(MODE_SWAPLONG)
-   double swapShort;                               //       344         8     short overnight swap values               = MarketInfo(MODE_SWAPSHORT)
+   double swapLongValue;                           //       336         8     long overnight swap value                 = MarketInfo(MODE_SWAPLONG)
+   double swapShortValue;                          //       344         8     short overnight swap values               = MarketInfo(MODE_SWAPSHORT)
    uint   tripleRolloverDay;                       //       352         4     weekday of triple swaps                   = WEDNESDAY
 
    // margin calculation parameters                // ----------------------------------------------------------------------------------------------------------------
    uint   accountLeverage;                         //       356         4     account leverage                          = AccountLeverage()
    uint   freeMarginCalculationMode;               //       360         4     free margin calculation mode              = AccountFreeMarginMode()
+   uint   marginCalculationMode;                   //       364         4     margin calculation mode                   = MarketInfo(MODE_MARGINCALCMODE)
+   uint   marginStopoutLevel;                      //       368         4     margin stopout level                      = AccountStopoutLevel()
+   uint   marginStopoutMode;                       //       372         4     margin stopout mode                       = AccountStopoutMode()
+   double marginInit;                              //       376         8     initial margin requirement (in units)     = MarketInfo(MODE_MARGININIT)
+   double marginMaintenance;                       //       384         8     maintained margin requirement (in units)  = MarketInfo(MODE_MARGINMAINTENANCE)
+   double marginHedged;                            //       392         8     hedged margin requirement (in units)      = MarketInfo(MODE_MARGINHEDGED)
+   double marginDivider;                           //       400         8                                                 immer 1
+   char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //       408        12                                               = AccountCurrency()
+   BYTE   reserved_5[4];                           //       420         4     (alignment to the next double)
 
+   // commission calculation parameters            // ----------------------------------------------------------------------------------------------------------------
+   double  commissionValue;                        //       424         8     commission rate
+   uint    commissionCalculationMode;              //       432         4     commission calculation mode
+   uint    commissionType;                         //       436         4     commission type: round-turn or per deal   !!! prüfen
+
+   // format additions/internal use                // ----------------------------------------------------------------------------------------------------------------
+   uint    firstTickBar;                           //       440         4     bar number of 'firstTickTime'
+   uint    lastTickBar;                            //       444         4     bar number of 'lastTickTime'
+   uint    startPeriod[6];                         //       448        24     [0] = firstTickBar
+   uint    from;                                   //       472         4     must be zero
+   uint    to;                                     //       476         4     must be zero
+   uint    ordersFreezeLevel;                      //       480         4     freeze level in points                    = MarketInfo(MODE_FREEZELEVEL)
+   int     reserved_6[61];                         //       484       244     unused
 };                                                 // ----------------------------------------------------------------------------------------------------------------
-
-/*
-int      i_margin_mode=MARGIN_CALC_FOREX;            // margin calculation mode        //  364 + 4
-int      i_margin_stopout=30;                        // margin stopout level           //  368 + 4
-int      i_margin_stopout_mode=MARGIN_TYPE_PERCENT;  // margin stopout check mode      //  372 + 4
-double   d_margin_initial=0.0;                       // margin requirements            //  376 + 8
-double   d_margin_maintenance=0.0;                                                     //  384 + 8
-double   d_margin_hedged=0.0;                                                          //  392 + 8
-double   d_margin_divider=1.0;                                                         //  400 + 8
-string   s_margin_currency;                          // 12 bytes                       //  408 + 12
-//---- commissions calculation                                                         -------
-//++++ add 4 bytes to align the next double                                            +++++++
-double   d_comm_base=0.0;                            // basic commission               //  424 + 8
-int      i_comm_type=COMM_TYPE_PIPS;                 // basic commission type          //  432 + 4
-int      i_comm_lots=COMMISSION_PER_LOT;             // commission per lot or per deal //  436 + 4
-//---- for internal use                                                                -------
-int      i_from_bar=0;                               // 'fromdate' bar number          //  440 + 4
-int      i_to_bar=0;                                 // 'todate' bar number            //  444 + 4
-int      i_start_period[6];                                                            //  448 + 24
-int      i_from=0;                                   // must be zero                   //  472 + 4
-int      i_to=0;                                     // must be zero                   //  476 + 4
-int      i_freeze_level=0;                           // order's freeze level in points //  480 + 4
-int      i_reserved[61];                             // unused                         //  484 + 244 = 728
-*/
-
-
-
-
+                                                   //               = 728     warum bin ich nicht auf Ibiza
 
 /**
  * Wrapper für eine nach MQL zu übermittelnde Logmessage.
