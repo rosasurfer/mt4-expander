@@ -267,10 +267,10 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
 
    // margin calculation parameters                // ----------------------------------------------------------------------------------------------------------------
    uint   accountLeverage;                         //       356         4     account leverage                           = AccountLeverage()
-   uint   freeMarginCalculationMode;               //       360         4     free margin calculation mode               = AccountFreeMarginMode()
+   uint   freeMarginCalculationType;               //       360         4     free margin calculation type               = AccountFreeMarginMode()
    uint   marginCalculationMode;                   //       364         4     margin calculation mode                    = MarketInfo(MODE_MARGINCALCMODE)
    uint   marginStopoutLevel;                      //       368         4     margin stopout level                       = AccountStopoutLevel()
-   uint   marginStopoutMode;                       //       372         4     margin stopout mode                        = AccountStopoutMode()
+   uint   marginStopoutType;                       //       372         4     margin stopout type                        = AccountStopoutMode()
    double marginInit;                              //       376         8     initial margin requirement (in units)      = MarketInfo(MODE_MARGININIT)
    double marginMaintenance;                       //       384         8     maintainance margin requirement (in units) = MarketInfo(MODE_MARGINMAINTENANCE)
    double marginHedged;                            //       392         8     hedged margin requirement (in units)       = MarketInfo(MODE_MARGINHEDGED)
@@ -279,19 +279,19 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    BYTE   reserved_5[4];                           //       420         4     (alignment to the next double)
 
    // commission calculation parameters            // ----------------------------------------------------------------------------------------------------------------
-   double  commissionValue;                        //       424         8     commission rate
-   uint    commissionCalculationMode;              //       432         4     commission calculation mode
-   uint    commissionType;                         //       436         4     commission type: round-turn or per deal    !!! prüfen
+   double commissionValue;                         //       424         8     commission rate
+   uint   commissionCalculationMode;               //       432         4     commission calculation mode                  @see COMMISSION_MODE_*
+   uint   commissionType;                          //       436         4     commission type: round-turn or per deal    !!! prüfen
 
    // later additions                              // ----------------------------------------------------------------------------------------------------------------
-   uint    firstTickBar;                           //       440         4     bar number of 'firstTickTime'
-   uint    lastTickBar;                            //       444         4     bar number of 'lastTickTime'
-   uint    startPeriod[6];                         //       448        24     [0] = firstTickBar
-   uint    from;                                   //       472         4     must be zero
-   uint    to;                                     //       476         4     must be zero
-   uint    orderFreezeLevel;                       //       480         4     freeze level in points                     = MarketInfo(MODE_FREEZELEVEL)
-   DWORD   undocumented;                           //       484         4     Build 500: 1
-   BYTE    reserved_6[240];                        //       488       240     unused
+   uint   firstTickBar;                            //       440         4     bar number of 'firstTickTime'
+   uint   lastTickBar;                             //       444         4     bar number of 'lastTickTime'
+   uint   startPeriod[6];                          //       448        24     [0] = firstTickBar
+   uint   inputFrom;                               //       472         4     start date as specified by the user
+   uint   inputTo;                                 //       476         4     end date as specified by the user
+   uint   orderFreezeLevel;                        //       480         4     freeze level in points                     = MarketInfo(MODE_FREEZELEVEL)
+   DWORD  undocumented;                            //       484         4     Build 500: 1
+   BYTE   reserved_6[240];                         //       488       240     unused
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //               = 728     warum bin ich nicht auf Ibiza
 
