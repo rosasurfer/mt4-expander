@@ -221,9 +221,14 @@ typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie
 /**
  * MT4 structure FXT_HEADER version 405
  *
- * Tickdatei-Header. Tickdateien ab Version 405 können je nach MetaTrader-Version unterschiedliche Tickdatenformate haben.
+ * Tickdatei-Header.
  *
- * Note: FXT-Dateien enthalten keine Infos zu MODE_MARGINREQUIRED. Tests benötigen also existierende und gültige Serverinformationen.
+ *  • Tickdateien ab Version 405 haben je nach MetaTrader-Version unterschiedliche Tickdatenformate.
+ *  • Tickdateien enthalten keine Infos zu MODE_MARGINREQUIRED, Tests benötigen also existierende und gültige Serverinformationen.
+ *  • Vor den modellierten Ticks einer Datei kann sich ein History-Prolog von Bars mit ungültigen Ticks befinden, der dem Expert eine
+ *    existierende History zur Verfügung stellt. Der Original-Prolog ist 1000 Bars lang, der erste modellierte Tick befindet sich an
+ *    der 1000-und-ersten Bar. Der Expert muß prüfen, ob dieser Prolog für seine Strategie ausreichend ist und ggf. bis zum Eintreffen
+ *    ausreichender Bars warten.
  */
 struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint   version;                                 //         0         4     Header-Version                               405
@@ -231,12 +236,12 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    char   serverName[128];                         //        68       128     Name des Accountservers (szchar)
    char   symbol[MAX_SYMBOL_LENGTH+1];             //       196        12     Symbol (szchar)
    uint   period;                                  //       208         4     Timeframe in Minuten
-   uint   tickModel;                               //       212         4     0=every tick
-   uint   modeledBars;                             //       216         4     Anzahl der in der Datei modellierten Bars
-   uint   firstTickTime;                           //       220         4     !!! prüfen Zeitpunkt des ersten Ticks
-   uint   lastTickTime;                            //       224         4     !!! prüfen Zeitpunkt des letzten Ticks
+   uint   modelType;                               //       212         4     0=every tick
+   uint   modeledBars;                             //       216         4     Anzahl der modellierten Bars (nach Prolog)
+   uint   firstBarTime;                            //       220         4     OpenTime der Bar des ersten Ticks (nach Prolog)
+   uint   lastBarTime;                             //       224         4     OpenTime der Bar des letzten Ticks (nach Prolog)
    BYTE   reserved_1[4];                           //       228         4     (alignment to the next double)
-   double tickQuality;                             //       232         8     max. 99.9
+   double modelQuality;                            //       232         8     max. 99.9
 
    // common parameters                            // ----------------------------------------------------------------------------------------------------------------
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //       240        12     Base currency (szchar)                     = StringLeft(symbol, 3)
@@ -253,7 +258,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
 
    // profit calculation parameters                // ----------------------------------------------------------------------------------------------------------------
    double contractSize;                            //       296         8     Größe eines Lots, z.B. 100000              = MarketInfo(MODE_LOTSIZE)
-   double tickValue;                               //       304         8     Tick-Value in Accountwährung, z.B. 1.00    = MarketInfo(MODE_TICKVALUE)
+   double tickValue;                               //       304         8     Tick-Value in Quote-Currency ???           = MarketInfo(MODE_TICKVALUE)
    double tickSize;                                //       312         8     Tick-Größe, z.B. 0.0000'1                  = MarketInfo(MODE_TICKSIZE)
    uint   profitCalculationMode;                   //       320         4     profit calculation mode                    = MarketInfo(MODE_PROFITCALCMODE)
 
@@ -284,13 +289,13 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint   commissionType;                          //       436         4     commission type: round-turn or per deal    !!! prüfen
 
    // later additions                              // ----------------------------------------------------------------------------------------------------------------
-   uint   firstTickBar;                            //       440         4     bar number of 'firstTickTime'
-   uint   lastTickBar;                             //       444         4     bar number of 'lastTickTime'
-   uint   startPeriod[6];                          //       448        24     [0] = firstTickBar
+   uint   firstBar;                                //       440         4     bar number/index??? of first bar (nach Prolog) or 0 for first bar
+   uint   lastBar;                                 //       444         4     bar number/index??? of last bar (nach Prolog) or 0 for last bar
+   uint   startPeriod[6];                          //       448        24     [0] = firstBar
    uint   inputFrom;                               //       472         4     start date as specified by the user
    uint   inputTo;                                 //       476         4     end date as specified by the user
    uint   orderFreezeLevel;                        //       480         4     freeze level in points                     = MarketInfo(MODE_FREEZELEVEL)
-   DWORD  undocumented;                            //       484         4     Build 500: 1
+   uint   modelErrors;                             //       484         4     number of errors during model generation
    BYTE   reserved_6[240];                         //       488       240     unused
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //               = 728     warum bin ich nicht auf Ibiza
