@@ -72,47 +72,50 @@ struct MqlStr {
  */
 struct SYMBOL {                                    // -- offset ---- size --- description ----------------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol         (szchar) z.B. "AUDCAD.mkt"
-   char   description [64];                        //        12        64     Beschreibung   (szchar)
+   char   description [54];                        //        12        54     Beschreibung   (szchar)
+   char   origin      [10];                        //        66        10     pewa: ehemaliges Symbol, 10 Zeichen (szchar)
    char   altName     [MAX_SYMBOL_LENGTH+1];       //        76        12     Standardsymbol (szchar) z.B. "AUDCAD" (falls ungleich 'name')
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //        88        12     Base Currency
-   uint   groupIndex;                              //       100         4     Index der Symbolgruppe in "symgroups.raw"
+   uint   group;                                   //       100         4     Index der Symbolgruppe in "symgroups.raw"
    uint   digits;                                  //       104         4     Digits
 
    uint   undocumented_1;                          //       108         4     ?
    uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch" Window
    uint   id;                                      //       116         4     eindeutige ID des Symbols
 
-   BYTE   undocumented_2[1520];                    //       120      1520
-   double undocumented_3;                          //      1640         8     ?
-   BYTE   undocumented_4[12];                      //      1648        12
+   BYTE   undocumented_2[1508];                    //       120      1508
+   uint   undocumented_3;                          //      1628         4     ?
+   BYTE   undocumented_4[8];                       //      1632         8
+   double undocumented_5;                          //      1640         8     ?
+   BYTE   undocumented_6[12];                      //      1648        12
 
-   uint   fixedSpread;                             //      1660         4     fester Spread in Points oder NULL bei variablem Spread
-   BYTE   undocumented_5[16];                      //      1664        16
+   uint   spread;                                  //      1660         4     fester Spread in Points oder NULL bei variablem Spread
+   BYTE   undocumented_7[16];                      //      1664        16
 
    double swapLong;                                //      1680         8     Swap Long
    double swapShort;                               //      1688         8     Swap Short
 
-   uint   undocumented_6;                          //      1696         4     ?
-   DWORD  undocumented_7;                          //      1700         4
+   uint   undocumented_8;                          //      1696         4     ?
+   DWORD  undocumented_9;                          //      1700         4
    double lotSize;                                 //      1704         8     Lot Size
-   BYTE   undocumented_8[16];                      //      1712        16
+   BYTE   undocumented_10[16];                     //      1712        16
 
-   uint   stopLevel;                               //      1728         4     Stop Level
-   BYTE   undocumented_9[12];                      //      1732        12
+   uint   orderStopDistance;                       //      1728         4     Stop Level
+   BYTE   undocumented_11[12];                     //      1732        12
 
    double marginInit;                              //      1744         8     Margin Init        (wenn NULL, dann wie lotSize)
    double marginMaintenance;                       //      1752         8     Margin Maintenance (wenn NULL, dann wie lotSize)
    double marginHedged;                            //      1760         8     Margin Hedged
 
-   double undocumented_10;                         //      1768         8     ?
-   double point;                                   //      1776         8     Point Size
+   double undocumented_12;                         //      1768         8     ?
+   double pointSize;                               //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
-   BYTE   undocumented_11[24];                     //      1792        24
+   BYTE   undocumented_13[24];                     //      1792        24
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     Margin Currency (szchar)
 
-   BYTE   undocumented_12[104];                    //      1828       104
-   uint   undocumented_13;                         //      1932         4     ?
+   BYTE   undocumented_14[104];                    //      1828       104
+   uint   undocumented_15;                         //      1932         4     ?
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //              = 1936
 
