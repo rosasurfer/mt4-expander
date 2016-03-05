@@ -225,10 +225,10 @@ typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie
  *
  *  • Tickdateien ab Version 405 haben je nach MetaTrader-Version unterschiedliche Tickdatenformate.
  *  • Tickdateien enthalten keine Infos zu MODE_MARGINREQUIRED, Tests benötigen also existierende und gültige Serverinformationen.
- *  • Vor den modellierten Ticks einer Datei kann sich ein History-Prolog von Bars mit ungültigen Ticks befinden, der dem Expert eine
- *    existierende History zur Verfügung stellt. Der Original-Prolog ist 1000 Bars lang, der erste modellierte Tick befindet sich an
- *    der 1000-und-ersten Bar. Der Expert muß prüfen, ob dieser Prolog für seine Strategie ausreichend ist und ggf. bis zum Eintreffen
- *    ausreichender Bars warten.
+ *  • Vor den modellierten Ticks einer Datei kann sich ein Prolog von History-Bars mit Pseudo-Ticks befinden, der dem Expert eine
+ *    History vor dem Startzeitpunkt des Test zur Verfügung stellt. Der vom Terminal erzeugte Prolog ist 1000 Bars lang, der erste
+ *    modellierte Tick befindet sich an der 1000-und-ersten Bar. Der Expert muß prüfen, ob diese History für seine Strategie
+ *    ausreichend ist und ggf. auf das Eintreffen ausreichender Bars warten.
  */
 struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint   version;                                 //         0         4     Header-Version                               405
