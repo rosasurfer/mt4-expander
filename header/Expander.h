@@ -79,43 +79,43 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    uint   group;                                   //       100         4     Index der Symbolgruppe in "symgroups.raw"
    uint   digits;                                  //       104         4     Digits
 
-   uint   undocumented_1;                          //       108         4     ?
+   uint   tradeMode;                               //       108         4     0=No|1=Close|2=Full
    uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch" Window
    uint   id;                                      //       116         4     eindeutige ID des Symbols
 
-   BYTE   undocumented_2[1508];                    //       120      1508
-   uint   undocumented_3;                          //      1628         4     ?
-   BYTE   undocumented_4[8];                       //      1632         8
-   double undocumented_5;                          //      1640         8     ?
-   BYTE   undocumented_6[12];                      //      1648        12
+   BYTE   unknown_1[1508];                         //       120      1508
+   uint   unknown_2;                               //      1628         4     ?
+   BYTE   unknown_3[8];                            //      1632         8
+   double unknown_4;                               //      1640         8     ?
+   BYTE   unknown_5[12];                           //      1648        12
 
-   uint   spread;                                  //      1660         4     fester Spread in Points oder NULL bei variablem Spread
-   BYTE   undocumented_7[16];                      //      1664        16
+   uint   spread;                                  //      1660         4     fester Spread in Points (0=variabler Spread)
+   BYTE   unknown_6[16];                           //      1664        16
 
    double swapLong;                                //      1680         8     Swap Long
    double swapShort;                               //      1688         8     Swap Short
 
-   uint   undocumented_8;                          //      1696         4     ?
-   DWORD  undocumented_9;                          //      1700         4
-   double lotSize;                                 //      1704         8     Lot Size
-   BYTE   undocumented_10[16];                     //      1712        16
+   uint   unknown_7;                               //      1696         4     ?
+   DWORD  unknown_8;                               //      1700         4
+   double contractSize;                            //      1704         8     Lot Size
+   BYTE   unknown_9[16];                           //      1712        16
 
-   uint   orderStopDistance;                       //      1728         4     Stop Level
-   BYTE   undocumented_11[12];                     //      1732        12
+   uint   stopDistance;                            //      1728         4     Stop Level
+   BYTE   unknown_10[12];                          //      1732        12
 
-   double marginInit;                              //      1744         8     Margin Init        (wenn NULL, dann wie lotSize)
-   double marginMaintenance;                       //      1752         8     Margin Maintenance (wenn NULL, dann wie lotSize)
+   double marginInit;                              //      1744         8     Margin Init        (0=ContractSize)
+   double marginMaintenance;                       //      1752         8     Margin Maintenance (0=ContractSize)
    double marginHedged;                            //      1760         8     Margin Hedged
+   double marginDivider;                           //      1768         8     <=10: AccountLeverage/value (relativ), >10: CustomLeverage (absolut)
 
-   double undocumented_12;                         //      1768         8     ?
    double pointSize;                               //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
-   BYTE   undocumented_13[24];                     //      1792        24
+   BYTE   unknown_11[24];                          //      1792        24
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     Margin Currency (szchar)
 
-   BYTE   undocumented_14[104];                    //      1828       104
-   uint   undocumented_15;                         //      1932         4     ?
+   BYTE   unknown_12[104];                         //      1828       104
+   uint   unknown_13;                              //      1932         4     ?
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //              = 1936
 
@@ -255,7 +255,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint   minLotsize;                              //       272         4     Mindest-Lotsize in Hundertsteln Lot        = MarketInfo(MODE_MINLOT)  * 100
    uint   maxLotsize;                              //       276         4     Höchst-Lotsize in Hundertsteln Lot         = MarketInfo(MODE_MAXLOT)  * 100
    uint   lotStepsize;                             //       280         4     Lot-Stepsize in Hundertsteln Lot           = MarketInfo(MODE_LOTSTEP) * 100
-   uint   orderStopDistance;                       //       284         4     Stop distance in Points                    = MarketInfo(MODE_STOPLEVEL)
+   uint   stopDistance;                            //       284         4     Stop level in Points                       = MarketInfo(MODE_STOPLEVEL)
    BOOL   pendingsGTC;                             //       288         4     ob PendingOrders good-till-cancel sind       @see struct SYMBOL
    BYTE   reserved_3[4];                           //       292         4     (alignment to the next double)
 
@@ -297,7 +297,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint   startPeriod[6];                          //       448        24     [0] = firstBar
    uint   inputFrom;                               //       472         4     start date as specified by the user
    uint   inputTo;                                 //       476         4     end date as specified by the user
-   uint   orderFreezeLevel;                        //       480         4     freeze level in points                     = MarketInfo(MODE_FREEZELEVEL)
+   uint   freezeDistance;                          //       480         4     freeze level in points                     = MarketInfo(MODE_FREEZELEVEL)
    uint   modelErrors;                             //       484         4     number of errors during model generation
    BYTE   reserved_6[240];                         //       488       240     unused
 };                                                 // ----------------------------------------------------------------------------------------------------------------
