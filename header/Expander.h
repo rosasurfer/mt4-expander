@@ -89,7 +89,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double unknown_4;                               //      1640         8     ?
    BYTE   unknown_5[12];                           //      1648        12
 
-   uint   spread;                                  //      1660         4     fester Spread in Points (0=variabler Spread)
+   uint   spread;                                  //      1660         4     Spread in Points: 0=current spread (variable)
    BYTE   unknown_6[16];                           //      1664        16
 
    double swapLong;                                //      1680         8     Swap Long
@@ -106,7 +106,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double marginInit;                              //      1744         8     Margin Init        (0=ContractSize)
    double marginMaintenance;                       //      1752         8     Margin Maintenance (0=ContractSize)
    double marginHedged;                            //      1760         8     Margin Hedged
-   double marginDivider;                           //      1768         8     <=10: AccountLeverage/value (relativ), >10: CustomLeverage (absolut)
+   double marginDivider;                           //      1768         8     Leverage: relativ zum Account oder absolut (CustomLeverage)
 
    double pointSize;                               //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
@@ -248,7 +248,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
 
    // common parameters                            // ----------------------------------------------------------------------------------------------------------------
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //       240        12     Base currency (szchar)                     = StringLeft(symbol, 3)
-   uint   spread;                                  //       252         4     Spread in Points (> 0)                     = MarketInfo(MODE_SPREAD)
+   uint   spread;                                  //       252         4     Spread in Points: 0=current spread         = MarketInfo(MODE_SPREAD)
    uint   digits;                                  //       256         4     Digits                                     = MarketInfo(MODE_DIGITS)
    BYTE   reserved_2[4];                           //       260         4     (alignment to the next double)
    double pointSize;                               //       264         8     Auflösung, z.B. 0.0000'1                   = MarketInfo(MODE_POINT)
@@ -282,14 +282,14 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    double marginInit;                              //       376         8     initial margin requirement (in units)      = MarketInfo(MODE_MARGININIT)
    double marginMaintenance;                       //       384         8     maintainance margin requirement (in units) = MarketInfo(MODE_MARGINMAINTENANCE)
    double marginHedged;                            //       392         8     hedged margin requirement (in units)       = MarketInfo(MODE_MARGINHEDGED)
-   double marginDivider;                           //       400         8                                                  immer 1
+   double marginDivider;                           //       400         8     Leverage: relativ=zum Account, absolut=CustomLeverage
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //       408        12                                                = AccountCurrency()
    BYTE   reserved_5[4];                           //       420         4     (alignment to the next double)
 
    // commission calculation parameters            // ----------------------------------------------------------------------------------------------------------------
    double commissionValue;                         //       424         8     commission rate
-   uint   commissionCalculationMode;               //       432         4     commission calculation mode                  @see COMMISSION_MODE_*
-   uint   commissionType;                          //       436         4     commission type: round-turn or per deal    !!! prüfen
+   uint   commissionCalculationMode;               //       432         4     0=Money|1=Pips|2=Percent                     @see COMMISSION_MODE_*
+   uint   commissionType;                          //       436         4     0=RoundTurn|1=PerDeal                        @see COMMISSION_TYPE_*
 
    // later additions                              // ----------------------------------------------------------------------------------------------------------------
    uint   firstBar;                                //       440         4     bar number/index??? of first bar (nach Prolog) or 0 for first bar
