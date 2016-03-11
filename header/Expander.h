@@ -57,15 +57,6 @@ enum LaunchType {
 
 
 /**
- * MT4 structure MqlStr: interne Darstellung eines MQL-Strings (MetaQuotes-Terminologie)
- */
-struct MqlStr {
-   int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
-   char* string;
-};
-
-
-/**
  * MT4 structure SYMBOL (Dateiformat "symbols.raw")
  *
  * Die Symbole in der Datei sind alphabetisch nach Symbolnamen sortiert.
@@ -218,7 +209,16 @@ struct HISTORY_BAR_401 {                           // -- offset ---- size --- de
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //                = 60
 
-typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie
+typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie (@see ExpertSample.cpp)
+                                                   // hier jedoch anders definiert: https://docs.mql4.com/mql4changes
+
+/**
+ * MT4 structure MqlStr: interne Darstellung eines MQL-Strings (MetaQuotes-Terminologie)
+ */
+struct MqlStr {
+   int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
+   char* string;
+};
 
 
 /**
