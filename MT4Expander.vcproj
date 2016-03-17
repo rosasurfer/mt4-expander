@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="$(ProjectDir)\header"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;STDLIB_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -119,6 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="$(ProjectDir)\header"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;EXPANDER_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -182,75 +184,79 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Expander.cpp"
+				RelativePath=".\src\Expander.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\MQLUtils.cpp"
+				RelativePath=".\src\Stubs.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Stubs.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Subclassing.cpp"
+				RelativePath=".\src\Subclassing.cpp"
 				>
 			</File>
 			<Filter
-				Name="structs"
+				Name="mql"
 				>
-				<Filter
-					Name="win32"
+				<File
+					RelativePath=".\src\mql\MQLUtils.cpp"
 					>
-					<File
-						RelativePath=".\FILETIME.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\PROCESS_INFORMATION.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\SECURITY_ATTRIBUTES.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\STARTUPINFOA.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\SYSTEMTIME.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\TIME_ZONE_INFORMATION.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\WIN32_FIND_DATAA.cpp"
-						>
-					</File>
-				</Filter>
+				</File>
 				<Filter
-					Name="myfx"
+					Name="struct"
 					>
-					<File
-						RelativePath=".\CustomPosition.cpp"
+					<Filter
+						Name="win32"
 						>
-					</File>
-					<File
-						RelativePath=".\EXECUTION_CONTEXT.cpp"
+						<File
+							RelativePath=".\src\mql\struct\win32\FileTime.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\struct\win32\ProcessInformation.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\struct\win32\SecurityAttributes.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\struct\win32\StartupInfo.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\struct\win32\SystemTime.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\struct\win32\TimezoneInformation.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\struct\win32\Win32FindData.cpp"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="myfx"
 						>
-					</File>
-				</Filter>
-				<Filter
-					Name="mt4"
-					>
-					<File
-						RelativePath=".\HISTORY_HEADER.cpp"
+						<File
+							RelativePath=".\src\mql\struct\myfx\CustomPosition.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\struct\myfx\ExecutionContext.cpp"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="mt4"
 						>
-					</File>
+						<File
+							RelativePath=".\src\mql\struct\mt4\HistoryHeader.cpp"
+							>
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 		</Filter>
@@ -260,25 +266,29 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\mql4\include\shared\defines.h"
+				RelativePath=".\header\Expander.h"
 				>
 			</File>
 			<File
-				RelativePath=".\mql4\include\shared\errors.h"
+				RelativePath=".\header\global.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Expander.h"
+				RelativePath=".\header\stdafx.h"
 				>
 			</File>
-			<File
-				RelativePath=".\global.h"
+			<Filter
+				Name="mql"
 				>
-			</File>
-			<File
-				RelativePath=".\stdafx.h"
-				>
-			</File>
+				<File
+					RelativePath=".\header\mql\defines.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\mql\errors.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
