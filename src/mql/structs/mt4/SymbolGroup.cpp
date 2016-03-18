@@ -106,7 +106,7 @@ uint WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sg[], uint index) {
  * @param  SYMBOL_GROUP* sg
  * @param  char*         name
  *
- * @return char* - derselbe Name
+ * @return char* - derselbe Name oder NULL, falls ein Fehler auftrat
  */
 const char* WINAPI sg_setName(SYMBOL_GROUP* sg, const char* name) {
    if ((uint)sg   < MIN_VALID_POINTER)    return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
@@ -124,7 +124,7 @@ const char* WINAPI sg_setName(SYMBOL_GROUP* sg, const char* name) {
  * @param  uint         index - Array-Index
  * @param  char*        name  - Name
  *
- * @return char* - derselbe Name
+ * @return char* - derselbe Name oder NULL, falls ein Fehler auftrat
  */
 const char* WINAPI sgs_setName(SYMBOL_GROUP sg[], uint index, const char* name) {
    if ((uint)sg < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
@@ -140,7 +140,7 @@ const char* WINAPI sgs_setName(SYMBOL_GROUP sg[], uint index, const char* name) 
  * @param  SYMBOL_GROUP* sg
  * @param  char*         description
  *
- * @return char* - dieselbe Beschreibung
+ * @return char* - dieselbe Beschreibung oder NULL, falls ein Fehler auftrat
  */
 const char* WINAPI sg_setDescription(SYMBOL_GROUP* sg, const char* description) {
    if ((uint)sg          < MIN_VALID_POINTER)           return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
@@ -158,7 +158,7 @@ const char* WINAPI sg_setDescription(SYMBOL_GROUP* sg, const char* description) 
  * @param  uint         index       - Array-Index
  * @param  char*        description - Beschreibung
  *
- * @return char* - dieselbe Beschreibung
+ * @return char* - dieselbe Beschreibung oder NULL, falls ein Fehler auftrat
  */
 const char* WINAPI sgs_setDescription(SYMBOL_GROUP sg[], uint index, const char* description) {
    if ((uint)sg < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
@@ -174,12 +174,17 @@ const char* WINAPI sgs_setDescription(SYMBOL_GROUP sg[], uint index, const char*
  * @param  SYMBOL_GROUP* sg
  * @param  uint          color - White=0x00FFFFFF; CLR_NONE=0xFFFFFFFF
  *
- * @return uint - dieselbe Farbe
+ * @return uint - dieselbe Farbe oder EMPTY_COLOR = (uint)-2, falls ein Fehler auftrat
  */
 uint WINAPI sg_setBackgroundColor(SYMBOL_GROUP* sg, uint color) {
-   if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
-   if (color != 0xFFFFFFFF)            // höchstes Byte außer bei CLR_NONE auf 0 setzen
-      color &= 0x00FFFFFF;
+   if ((uint)sg < MIN_VALID_POINTER) {
+      debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg);
+      return(EMPTY_COLOR);
+   }
+   if (color!=0xFFFFFFFF && color & 0xFF000000) {  // das höchste Byte muß auf 0 stehen
+      debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color);
+      return(EMPTY_COLOR);
+   }
    sg->backgroundColor = color;
    return(color);
    #pragma EXPORT
