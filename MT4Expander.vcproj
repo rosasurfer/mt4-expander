@@ -256,6 +256,10 @@
 							RelativePath=".\src\mql\struct\mt4\HistoryHeader.cpp"
 							>
 						</File>
+						<File
+							RelativePath=".\src\mql\struct\mt4\SymbolGroup.cpp"
+							>
+						</File>
 					</Filter>
 				</Filter>
 			</Filter>

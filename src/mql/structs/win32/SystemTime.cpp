@@ -1,5 +1,5 @@
 /**
- * Win32 structure SYSTEMTIME
+ * MQL-Interface zum Zugriff auf ein struct SYSTEMTIME.
  *
  *
  * struct SYSTEMTIME {
@@ -11,7 +11,7 @@
  *    WORD wMinute;                 //  2
  *    WORD wSecond;                 //  2
  *    WORD wMilliseconds;           //  2
- * } st;                            // 16 byte
+ * };                               // 16 byte
  */
 #include "stdafx.h"
 #include "global.h"

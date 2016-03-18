@@ -103,7 +103,7 @@ int WINAPI GetStringAddress(const char* value) {
  *
  * @mql-import:  string GetString(int address);
  */
-char* WINAPI GetString(const char* value) {
+const char* WINAPI GetString(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER)
       return((char*) debug("ERROR:  invalid parameter value = 0x%p (not a valid pointer)", value));
    return((char*) value);
@@ -178,7 +178,7 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
  *
  * @mql-import:  string IntToHexStr(int value);
  */
-char* WINAPI IntToHexStr(int value) {
+const char* WINAPI IntToHexStr(int value) {
    int   size = 9;
    char* szchar = new char[size];                                    // TODO: Speicherleck schließen
    sprintf_s(szchar, size, "%p", value);

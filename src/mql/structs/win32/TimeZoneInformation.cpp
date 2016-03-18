@@ -1,16 +1,16 @@
 /**
- * Win32 structure SYSTEMTIME
+ * MQL-Interface zum Zugriff auf ein struct TIME_ZONE_INFORMATION.
  *
  *
  * struct TIME_ZONE_INFORMATION {
  *    LONG       Bias;                 //   4         in Minuten
- *    WCHAR      StandardName[32];     //  64         z.B. "G…T…B… …N…o…r…m…a…l…z…e…i…t", <NUL>-terminiert
+ *    WCHAR      StandardName[32];     //  64         z.B. "G…T…B… …N…o…r…m…a…l…z…e…i…t", <NUL><NUL>-terminiert
  *    SYSTEMTIME StandardDate;         //  16
  *    LONG       StandardBias;         //   4
- *    WCHAR      DaylightName[32];     //  64         z.B. "G…T…B… …S…o…m…m…e…r…z…e…i…t", <NUL>-terminiert
+ *    WCHAR      DaylightName[32];     //  64         z.B. "G…T…B… …S…o…m…m…e…r…z…e…i…t", <NUL><NUL>-terminiert
  *    SYSTEMTIME DaylightDate;         //  16
  *    LONG       DaylightBias;         //   4
- * } tzi;                              // 172 byte
+ * };                                  // 172 byte
  *
  *
  * Es gelten folgende Formeln:
@@ -48,7 +48,7 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
 char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
-   int   size  = sizeof(tzi->StandardName) + 1;
+   int   size  = sizeof(tzi->StandardName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist
    char* mbstr = new char[size];
 
    int bytes = wcstombs(mbstr, tzi->StandardName, size);
@@ -100,7 +100,7 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
 char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
-   int   size  = sizeof(tzi->DaylightName) + 1;
+   int   size  = sizeof(tzi->DaylightName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist
    char* mbstr = new char[size];
 
    int bytes = wcstombs(mbstr, tzi->DaylightName, size);

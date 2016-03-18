@@ -1,5 +1,5 @@
 /**
- * Win32 structure WIN32_FIND_DATAA
+ * MQL-Interface zum Zugriff auf ein struct WIN32_FIND_DATAA (nur Ansi-Version).
  *
  *
  * struct WIN32_FIND_DATAA {
@@ -13,7 +13,7 @@
  *    DWORD    dwReserved1;               //   4
  *    CHAR     cFileName[MAX_PATH];       // 260
  *    CHAR     cAlternateFileName[14];    //  14
- * } wfd;                                 // 318 byte
+ * };                                     // 318 byte
  */
 #include "stdafx.h"
 #include "global.h"

@@ -1,12 +1,12 @@
 /**
- * Win32 structure SECURITY_ATTRIBUTES
+ * MQL-Interface zum Zugriff auf ein struct SECURITY_ATTRIBUTES.
  *
  *
  * struct SECURITY_ATTRIBUTES {
  *    DWORD  nLength;                     //  4
  *    LPVOID lpSecurityDescriptor;        //  4
  *    BOOL   bInheritHandle;              //  4
- * } sa;                                  // 12 byte
+ * };                                     // 12 byte
  */
 #include "stdafx.h"
 #include "global.h"

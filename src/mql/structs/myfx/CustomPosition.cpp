@@ -22,8 +22,6 @@ struct POSITION_CONFIG_TERM {
    double cacheValue2;        // Speicher für Zwischenergebnisse bei Berechnung der Kennziffern von TERM_HISTORY_*
 };
 
-POSITION_CONFIG_TERM positions_config[];
-
 
 /**
  * Report-Datensatz einer Position zur Anzeige im Chart.
@@ -49,5 +47,3 @@ struct POSITION_DATA {
    double fullProfitAbs;      // gesamter P/L absolut
    double fullProfitPct;      // gesamter P/L prozentual
 };
-
-POSITION_DATA positions_data[];

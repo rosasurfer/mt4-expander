@@ -1,8 +1,5 @@
 /**
- * Header von Historydateien (Kursreihen im "history"-Verzeichnis).
- *
- *
- * @see  Definition in Expander.dll::Expander.h
+ * MQL-Interface zum Zugriff auf ein struct HISTORY_HEADER (Kursreihen im "history"-Verzeichnis).
  */
 #include "stdafx.h"
 #include "global.h"

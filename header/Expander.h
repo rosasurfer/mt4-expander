@@ -57,7 +57,7 @@ enum LaunchType {
 
 
 /**
- * MT4 structure SYMBOL (Dateiformat "symbols.raw")
+ * MT4 struct SYMBOL (Dateiformat "symbols.raw")
  *
  * Die Symbole in der Datei sind alphabetisch nach Symbolnamen sortiert.
  */
@@ -111,19 +111,19 @@ struct SYMBOL {                                    // -- offset ---- size --- de
                                                    //              = 1936
 
 /**
- * MT4 structure SYMBOL_GROUP (Dateiformat "symgroups.raw")
+ * MT4 struct SYMBOL_GROUP (Dateiformat "symgroups.raw")
  *
  * Die Datei enthält immer 32 Gruppen, die Dateigröße ist fix 2.560 Bytes. Einzelne Gruppen können undefiniert sein.
  */
 struct SYMBOL_GROUP {                              // -- offset ---- size --- description ----------------------------------------------------------------------------
    char name       [16];                           //         0        16     Name         (szchar)
    char description[60];                           //        16        60     Beschreibung (szchar)
-   uint backgroundColor;               /*custom*/  //        76         4     Farbe im "MarketWatch" Window
+   int  backgroundColor;          // custom (pewa) //        76         4     Farbe im "Market Watch" Window
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //                = 80
 
 /**
- * MT4 structure SYMBOL_SELECTED (Dateiformat "symbols.sel")
+ * MT4 struct SYMBOL_SELECTED (Dateiformat "symbols.sel")
  */
 struct SYMBOL_SELECTED {                           // -- offset ---- size --- description ----------------------------------------------------------------------------
    char   symbol[MAX_SYMBOL_LENGTH+1];             //         0        12     Symbol (szchar)
@@ -157,7 +157,7 @@ struct SYMBOL_SELECTED {                           // -- offset ---- size --- de
                                                    //               = 128
 
 /**
- * MT4 structure TICK (Dateiformat "ticks.raw")
+ * MT4 struct TICK (Dateiformat "ticks.raw")
  */
 struct TICK {                                      // -- offset ---- size --- description ----------------------------------------------------------------------------
    char   symbol[MAX_SYMBOL_LENGTH+1];             //         0        12     Symbol (szchar)
@@ -170,7 +170,7 @@ struct TICK {                                      // -- offset ---- size --- de
                                                    //                = 40
 
 /**
- * MT4 structure HISTORY_HEADER
+ * MT4 struct HISTORY_HEADER
  *
  * HistoryFile Header
  */
@@ -182,35 +182,32 @@ struct HISTORY_HEADER {                            // -- offset ---- size --- de
    uint  digits;                                   //        84         4     Digits
    uint  syncMark;                                 //        88         4     SyncMarker (timestamp), wird vom Terminal beim Refresh mit Serverversion überschrieben
    uint  lastSync;                                 //        92         4     LastSync   (unbenutzt), wird vom Terminal nicht überschrieben
-   uint  timezoneId;                   /*custom*/  //        96         4     Timezone-ID (default: 0 => Server-Timezone)
+   uint  timezoneId;              // custom (pewa) //        96         4     Timezone-ID (default: 0 => Server-Timezone)
    BYTE  reserved[48];                             //       100        48
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //               = 148
 
 /**
- * MT4 structure HISTORY_BAR_400
+ * MT4 struct HISTORY_BAR_400
  *
  * HistoryFile Barformat v400 (bis MetaTrader Build 509)
  */
-struct HISTORY_BAR_400 {                           // -- offset ---- size --- description ----------------------------------------------------------------------------
+typedef struct HISTORY_BAR_400 {                   // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint   time;                                    //         0         4     Open-Time (timestamp)
    double open;                                    //         4         8
    double low;                                     //        12         8
    double high;                                    //        20         8
    double close;                                   //        28         8
    double ticks;                                   //        36         8     immer Ganzzahl
-};                                                 // ----------------------------------------------------------------------------------------------------------------
+} RateInfo;             // MetaQuotes-Terminologie // ----------------------------------------------------------------------------------------------------------------
                                                    //                = 44
 
-typedef HISTORY_BAR_400 RateInfo;                  // MetaQuotes-Terminologie
-
-
 /**
- * MT4 structure HISTORY_BAR_401
+ * MT4 struct HISTORY_BAR_401
  *
  * HistoryFile Barformat v401 (ab MetaTrader Build 510)
  */
-struct HISTORY_BAR_401 {                           // -- offset ---- size --- description ----------------------------------------------------------------------------
+typedef struct HISTORY_BAR_401 {                   // -- offset ---- size --- description ----------------------------------------------------------------------------
    int64  time;                                    //         0         8     Open-Time (timestamp)
    double open;                                    //         8         8
    double high;                                    //        16         8
@@ -219,14 +216,14 @@ struct HISTORY_BAR_401 {                           // -- offset ---- size --- de
    uint64 ticks;                                   //        40         8
    int    spread;                                  //        48         4     (unbenutzt)
    uint64 volume;                                  //        52         8     (unbenutzt)
-};                                                 // ----------------------------------------------------------------------------------------------------------------
+} MqlRates;             // MetaQuotes-Terminologie // ----------------------------------------------------------------------------------------------------------------
                                                    //                = 60
 
-typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie (@see ExpertSample.cpp)
-                                                   // hier jedoch anders definiert: https://docs.mql4.com/mql4changes
+// @see ExpertSample.cpp, hier jedoch anders definiert: https://docs.mql4.com/mql4changes
+
 
 /**
- * MT4 structure MqlStr: interne Darstellung eines MQL-Strings (MetaQuotes-Terminologie)
+ * MT4 struct MqlStr: interne Darstellung eines MQL-Strings (MetaQuotes-Terminologie)
  */
 struct MqlStr {
    int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
@@ -235,7 +232,7 @@ struct MqlStr {
 
 
 /**
- * MT4 structure FXT_HEADER version 405
+ * MT4 struct FXT_HEADER version 405
  *
  * Tickdatei-Header.
  *
@@ -321,7 +318,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
 
 
 /**
- * Wrapper für eine nach MQL zu übermittelnde Logmessage.
+ * MyFX struct: Wrapper für eine nach MQL zu übermittelnde Logmessage.
  */
 struct LOG_MESSAGE {
    int   level;                                    // Loglevel: L_ERROR, L_WARN oder L_INFO
@@ -331,7 +328,7 @@ struct LOG_MESSAGE {
 
 
 /**
- * Ausführungskontext eines MQL-Programms für Laufzeitinformationen und Datenaustausch zwischen MQL-Modulen und DLL
+ * MyFX struct: Ausführungskontext eines MQL-Programms für Datenaustausch zwischen MQL-Modulen und DLL
  */
 struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
    uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
@@ -396,21 +393,21 @@ const char*  WINAPI ec_setLogFile     (EXECUTION_CONTEXT* ec, const char* fileNa
 BOOL  WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
 BOOL  WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);
 
-void  WINAPI SetLogLevel(int level);
-HWND  WINAPI GetApplicationWindow();
-DWORD WINAPI GetUIThreadId();
-BOOL  WINAPI IsUIThread();
-int   WINAPI GetBoolsAddress  (BOOL   values[]);
-int   WINAPI GetIntsAddress   (int    values[]);   int WINAPI GetBufferAddress(int values[]);   // Alias
-int   WINAPI GetDoublesAddress(double values[]);
-int   WINAPI GetStringsAddress(MqlStr values[]);
-int   WINAPI GetStringAddress (char*  value   );
-char* WINAPI GetString        (char*  value   );
-int   WINAPI GetLastWin32Error();
-BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
-BOOL  WINAPI IsCustomTimeframe(int timeframe);
-char* WINAPI IntToHexStr(int value);
-uint  WINAPI MT4InternalMsg();
+      void  WINAPI SetLogLevel(int level);
+      HWND  WINAPI GetApplicationWindow();
+      DWORD WINAPI GetUIThreadId();
+      BOOL  WINAPI IsUIThread();
+      int   WINAPI GetBoolsAddress  (BOOL   values[]);
+      int   WINAPI GetIntsAddress   (int    values[]);   int WINAPI GetBufferAddress(int values[]);   // Alias
+      int   WINAPI GetDoublesAddress(double values[]);
+      int   WINAPI GetStringsAddress(MqlStr values[]);
+      int   WINAPI GetStringAddress (char*  value   );
+const char* WINAPI GetString        (char*  value   );
+      int   WINAPI GetLastWin32Error();
+      BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
+      BOOL  WINAPI IsCustomTimeframe(int timeframe);
+const char* WINAPI IntToHexStr(int value);
+      uint  WINAPI MT4InternalMsg();
 
 const char* WINAPI ModuleTypeDescription  (ModuleType  type);
 const char* WINAPI ModuleTypeToStr        (ModuleType  type);

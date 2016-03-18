@@ -1,5 +1,5 @@
 /**
- * MQL-Funktionen zur Verwaltung eines EXECUTION_CONTEXT.
+ * MQL-Interface zum Zugriff auf ein struct EXECUTION_CONTEXT.
  */
 #include "stdafx.h"
 #include "global.h"
@@ -7,7 +7,7 @@
 
 
 /**
- * Gibt die Programm-ID eines EXECUTION_CONTEXTs zurück.
+ * Gibt die Programm-ID eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -21,7 +21,7 @@ uint WINAPI ec_ProgramId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den Programm-Typ eines EXECUTION_CONTEXTs zurück.
+ * Gibt den Programm-Typ eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -35,7 +35,7 @@ ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den Programmnamen eines EXECUTION_CONTEXTs zurück.
+ * Gibt den Programmnamen eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -49,7 +49,7 @@ const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den Modul-Typ eines EXECUTION_CONTEXTs zurück.
+ * Gibt den Modul-Typ eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -63,7 +63,7 @@ ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den Modulnamen eines EXECUTION_CONTEXTs zurück.
+ * Gibt den Modulnamen eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -77,7 +77,7 @@ const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den Launch-Typ eines EXECUTION_CONTEXTs zurück.
+ * Gibt den Launch-Typ eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -91,7 +91,7 @@ LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Kopiert den SuperContext eines EXECUTION_CONTEXTs in die übergebene Variable.
+ * Kopiert den SuperContext eines EXECUTION_CONTEXT in die übergebene Variable.
  *
  * @param  EXECUTION_CONTEXT* ec  - ExecutionContext
  * @param  EXECUTION_CONTEXT* sec - Variable zur Aufnahme des SuperContexts
@@ -116,7 +116,7 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec)
 
 
 /**
- * Gibt den Zeiger auf den SuperContext eines EXECUTION_CONTEXTs zurück.
+ * Gibt den Zeiger auf den SuperContext eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -130,7 +130,7 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt die Init-Flags eines EXECUTION_CONTEXTs zurück.
+ * Gibt die Init-Flags eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -144,7 +144,7 @@ uint WINAPI ec_InitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt die Deinit-Flags eines EXECUTION_CONTEXTs zurück.
+ * Gibt die Deinit-Flags eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -158,7 +158,7 @@ uint WINAPI ec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt die RootFunction eines EXECUTION_CONTEXTs zurück.
+ * Gibt die RootFunction eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -172,7 +172,7 @@ RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den UninitializeReason eines EXECUTION_CONTEXTs zurück.
+ * Gibt den UninitializeReason eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -189,7 +189,7 @@ UninitializeReason WINAPI ec_UninitializeReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt das Chartsymbol eines EXECUTION_CONTEXTs zurück.
+ * Gibt das Chartsymbol eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -203,7 +203,7 @@ const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt die Chartperiode eines EXECUTION_CONTEXTs zurück.
+ * Gibt die Chartperiode eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -301,7 +301,7 @@ const char* WINAPI ec_LogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Setzt die Programm-ID eines EXECUTION_CONTEXTs.
+ * Setzt die Programm-ID eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               id - ID größer 0
@@ -319,7 +319,7 @@ uint WINAPI ec_setProgramId(EXECUTION_CONTEXT* ec, uint id) {
 
 
 /**
- * Setzt den Programm-Typ eines EXECUTION_CONTEXTs.
+ * Setzt den Programm-Typ eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  ProgramType        type
@@ -343,7 +343,7 @@ ProgramType WINAPI ec_setProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
 
 
 /**
- * Setzt den Programmnamen eines EXECUTION_CONTEXTs.
+ * Setzt den Programmnamen eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
@@ -351,9 +351,9 @@ ProgramType WINAPI ec_setProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
  * @return char* - derselbe Name
  */
 const char* WINAPI ec_setProgramName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)             return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)             return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
-   if (!strlen(name) || strlen(name) > MAX_PATH-1) return((char*)debug("ERROR:  invalid parameter name = \"%s\" (1-%d characters)", name, MAX_PATH-1));
+   if ((uint)ec   < MIN_VALID_POINTER)                            return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)                            return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   if (!strlen(name) || strlen(name) > sizeof(ec->programName)-1) return((char*)debug("ERROR:  invalid parameter name = \"%s\" (1 to %d characters)", name, sizeof(ec->programName)-1));
 
    return(strcpy(ec->programName, name));
    #pragma EXPORT
@@ -361,7 +361,7 @@ const char* WINAPI ec_setProgramName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Setzt den Modul-Typ eines EXECUTION_CONTEXTs.
+ * Setzt den Modul-Typ eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  ModuleType         type
@@ -386,7 +386,7 @@ ModuleType WINAPI ec_setModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
 
 
 /**
- * Setzt den Modulnamen eines EXECUTION_CONTEXTs.
+ * Setzt den Modulnamen eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
@@ -394,9 +394,9 @@ ModuleType WINAPI ec_setModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
  * @return char* - derselbe Name
  */
 const char* WINAPI ec_setModuleName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)             return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)             return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
-   if (!strlen(name) || strlen(name) > MAX_PATH-1) return((char*)debug("ERROR:  invalid parameter name = \"%s\" (1-%d characters)", name, MAX_PATH-1));
+   if ((uint)ec   < MIN_VALID_POINTER)                           return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)                           return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   if (!strlen(name) || strlen(name) > sizeof(ec->moduleName)-1) return((char*)debug("ERROR:  invalid parameter name = \"%s\" (1 - %d characters)", name, sizeof(ec->moduleName)-1));
 
    return(strcpy(ec->moduleName, name));
    #pragma EXPORT
@@ -404,7 +404,7 @@ const char* WINAPI ec_setModuleName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Setzt den Launch-Typ eines EXECUTION_CONTEXTs.
+ * Setzt den Launch-Typ eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  LaunchType         type
@@ -428,7 +428,7 @@ LaunchType WINAPI ec_setLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
 
 
 /**
- * Setzt den SuperContext eines EXECUTION_CONTEXTs.
+ * Setzt den SuperContext eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec  - zu modifizierender Context
  * @param  EXECUTION_CONTEXT* sec - zu setzender SuperContext
@@ -446,7 +446,7 @@ const EXECUTION_CONTEXT* WINAPI ec_setSuperContext(EXECUTION_CONTEXT* ec, EXECUT
 
 
 /**
- * Setzt den SuperContext eines EXECUTION_CONTEXTs.
+ * Setzt den SuperContext eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec    - zu modifizierender Context
  * @param  EXECUTION_CONTEXT* lpSec - zu setzender SuperContext
@@ -460,7 +460,7 @@ const EXECUTION_CONTEXT* WINAPI ec_setLpSuperContext(EXECUTION_CONTEXT* ec, EXEC
 
 
 /**
- * Setzt die Init-Flags eines EXECUTION_CONTEXTs.
+ * Setzt die Init-Flags eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               flags
@@ -476,7 +476,7 @@ uint WINAPI ec_setInitFlags(EXECUTION_CONTEXT* ec, uint flags) {
 
 
 /**
- * Setzt die Deinit-Flags eines EXECUTION_CONTEXTs.
+ * Setzt die Deinit-Flags eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               flags
@@ -492,7 +492,7 @@ uint WINAPI ec_setDeinitFlags(EXECUTION_CONTEXT* ec, uint flags) {
 
 
 /**
- * Setzt die RootFunction-ID eines EXECUTION_CONTEXTs.
+ * Setzt die RootFunction-ID eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  RootFunction       id
@@ -516,7 +516,7 @@ RootFunction WINAPI ec_setRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
 
 
 /**
- * Setzt den UninitializeReason eines EXECUTION_CONTEXTs.
+ * Setzt den UninitializeReason eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  UninitializeReason reason
@@ -553,7 +553,7 @@ UninitializeReason WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, Uninit
 
 
 /**
- * Setzt das Symbol eines EXECUTION_CONTEXTs.
+ * Setzt das Symbol eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              symbol
@@ -561,9 +561,9 @@ UninitializeReason WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, Uninit
  * @return char* - dasselbe Symbol
  */
 const char* WINAPI ec_setSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
-   if ((uint)ec     < MIN_VALID_POINTER)                      return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)symbol < MIN_VALID_POINTER)                      return((char*)debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (!strlen(symbol) || strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)debug("ERROR:  invalid parameter symbol = \"%s\" (1-%d characters)", symbol, MAX_SYMBOL_LENGTH));
+   if ((uint)ec     < MIN_VALID_POINTER)                       return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)symbol < MIN_VALID_POINTER)                       return((char*)debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (!strlen(symbol) || strlen(symbol) > sizeof(ec->symbol)) return((char*)debug("ERROR:  invalid parameter symbol = \"%s\" (1 - %d characters)", symbol, sizeof(ec->symbol)));
 
    return(strcpy(ec->symbol, symbol));
    #pragma EXPORT
@@ -571,7 +571,7 @@ const char* WINAPI ec_setSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
 
 
 /**
- * Setzt den Chart-Timeframe eines EXECUTION_CONTEXTs.
+ * Setzt den Chart-Timeframe eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               timeframe
@@ -589,7 +589,7 @@ uint WINAPI ec_setTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
 
 /**
- * Setzt das Handle des Chart-Fensters eines EXECUTION_CONTEXTs.
+ * Setzt das Handle des Chart-Fensters eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  HWND               hWnd
@@ -605,7 +605,7 @@ HWND WINAPI ec_setHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Setzt das Handle des Chart-Frames eines EXECUTION_CONTEXTs.
+ * Setzt das Handle des Chart-Frames eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  HWND               hWnd - entspricht dem Rückgabewert von WindowHandle()
@@ -621,7 +621,7 @@ HWND WINAPI ec_setHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Setzt die Test-Flags eines EXECUTION_CONTEXTs.
+ * Setzt die Test-Flags eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               flags
@@ -637,7 +637,7 @@ uint WINAPI ec_setTestFlags(EXECUTION_CONTEXT* ec, uint flags) {
 
 
 /**
- * Setzt den letzten MQL-Fehler eines EXECUTION_CONTEXTs.
+ * Setzt den letzten MQL-Fehler eines EXECUTION_CONTEXT.
  *
  * • Zusätzlich wird der letzte MQL-Fehler des jeweiligen Hauptkontexts gesetzt (Fehlerpropagation von Libraries zum aufrufenden
  *   Hauptmodul). Ist kein Hauptkontext verfügbar, z.B. während des init()-Cycles von Libraries, wird der letzte MQL-Fehler des
@@ -670,7 +670,7 @@ int WINAPI ec_setLastError(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Setzt den Logging-Status eines EXECUTION_CONTEXTs.
+ * Setzt den Logging-Status eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
@@ -687,7 +687,7 @@ BOOL WINAPI ec_setLogging(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Setzt den Namen der Logdatei eines EXECUTION_CONTEXTs.
+ * Setzt den Namen der Logdatei eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              fileName - statt eines NULL-Pointers kann auch ein Leerstring angegeben werden
@@ -695,11 +695,11 @@ BOOL WINAPI ec_setLogging(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return char* - derselbe Dateiname
  */
 const char* WINAPI ec_setLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
-   if ((uint)ec < MIN_VALID_POINTER)          return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)                return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    if (fileName) {
-      if ((uint)fileName < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter fileName = 0x%p (not a valid pointer)", fileName));
-      if (strlen(fileName) > MAX_PATH-1)      return((char*)debug("ERROR:  invalid parameter fileName = \"%s\" (max %d characters)", fileName, MAX_PATH-1));
+      if ((uint)fileName < MIN_VALID_POINTER)       return((char*)debug("ERROR:  invalid parameter fileName = 0x%p (not a valid pointer)", fileName));
+      if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)debug("ERROR:  invalid parameter fileName = \"%s\" (1 - %d characters)", fileName, sizeof(ec->logFile)-1));
       strcpy(ec->logFile, fileName);
    }
    else {

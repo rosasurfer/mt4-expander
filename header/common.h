@@ -96,6 +96,12 @@ std::string to_string(T value) {
 }
 
 
+/**
+ * Macro, daß die Größe eines Elements eines Typs ohne vorhandene Instanz des Typs ermittelt.
+ */
+#define member_size(type, member) sizeof(((type*)0)->member)
+
+
 #ifdef EXPANDER_EXPORTS
  //#define EXPANDER_API extern "C" __declspec(dllexport)
    #define EXPANDER_API                                                             // empty define

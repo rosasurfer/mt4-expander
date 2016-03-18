@@ -1,5 +1,5 @@
 /**
- * Win32 structure PROCESS_INFORMATION
+ * MQL-Interface zum Zugriff auf ein struct PROCESS_INFORMATION.
  *
  *
  * struct PROCESS_INFORMATION {
@@ -7,7 +7,7 @@
  *    HANDLE hThread;               //  4
  *    DWORD  dwProcessId;           //  4
  *    DWORD  dwThreadId;            //  4
- * } pi;                            // 16 byte = int[4]
+ * };                               // 16 byte = int[4]
  */
 #include "stdafx.h"
 #include "global.h"

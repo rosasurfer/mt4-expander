@@ -1,11 +1,11 @@
 /**
- * Win32 structure FILETIME
+ * MQL-Interface zum Zugriff auf ein struct FILETIME.
  *
  *
  * struct FILETIME {
  *    DWORD dwLowDateTime;          //  4
  *    DWORD dwHighDateTime;         //  4
- * } ft;                            //  8 byte
+ * };                               //  8 byte
  */
 #include "stdafx.h"
 #include "global.h"
