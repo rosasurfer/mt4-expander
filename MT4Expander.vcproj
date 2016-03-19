@@ -209,31 +209,31 @@
 						Name="win32"
 						>
 						<File
-							RelativePath=".\src\mql\struct\win32\FileTime.cpp"
+							RelativePath=".\src\mql\structs\win32\FileTime.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\win32\ProcessInformation.cpp"
+							RelativePath=".\src\mql\structs\win32\ProcessInformation.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\win32\SecurityAttributes.cpp"
+							RelativePath=".\src\mql\structs\win32\SecurityAttributes.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\win32\StartupInfo.cpp"
+							RelativePath=".\src\mql\structs\win32\StartupInfo.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\win32\SystemTime.cpp"
+							RelativePath=".\src\mql\structs\win32\SystemTime.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\win32\TimezoneInformation.cpp"
+							RelativePath=".\src\mql\structs\win32\TimezoneInformation.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\win32\Win32FindData.cpp"
+							RelativePath=".\src\mql\structs\win32\Win32FindData.cpp"
 							>
 						</File>
 					</Filter>
@@ -241,11 +241,11 @@
 						Name="myfx"
 						>
 						<File
-							RelativePath=".\src\mql\struct\myfx\CustomPosition.cpp"
+							RelativePath=".\src\mql\structs\myfx\CustomPosition.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\myfx\ExecutionContext.cpp"
+							RelativePath=".\src\mql\structs\myfx\ExecutionContext.cpp"
 							>
 						</File>
 					</Filter>
@@ -253,15 +253,15 @@
 						Name="mt4"
 						>
 						<File
-							RelativePath=".\src\mql\struct\mt4\HistoryHeader.cpp"
+							RelativePath=".\src\mql\structs\mt4\HistoryHeader.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\mt4\Symbol.cpp"
+							RelativePath=".\src\mql\structs\mt4\Symbol.cpp"
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\struct\mt4\SymbolGroup.cpp"
+							RelativePath=".\src\mql\structs\mt4\SymbolGroup.cpp"
 							>
 						</File>
 					</Filter>
