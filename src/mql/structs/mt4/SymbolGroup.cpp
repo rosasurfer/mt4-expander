@@ -71,9 +71,9 @@ const char* WINAPI sgs_Description(const SYMBOL_GROUP sg[], uint index) {
  *
  * @param  SYMBOL_GROUP* sg
  *
- * @return uint - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ * @return int - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
  */
-uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
+int WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (sg->backgroundColor)
       return(sg->backgroundColor);
@@ -88,9 +88,9 @@ uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
  * @param  SYMBOL_GROUP sg[]  - Array
  * @param  uint         index - Array-Index
  *
- * @return uint - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ * @return int - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
  */
-uint WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sg[], uint index) {
+int WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sg[], uint index) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index    < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    if (sg[index].backgroundColor)
@@ -172,13 +172,13 @@ BOOL WINAPI sgs_SetDescription(SYMBOL_GROUP sg[], uint index, const char* descri
  * Setzt die Hintergrundfarbe einer SYMBOL_GROUP im "Market Watch"-Window.
  *
  * @param  SYMBOL_GROUP* sg
- * @param  uint          color - außer bei CLR_NONE (0xFFFFFFFF) muß das höchste Byte immer auf 0 stehen
+ * @param  int           color - Farbe
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, uint color) {
-   if ((uint)sg < MIN_VALID_POINTER)            return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
-   if (color!=0xFFFFFFFF && color & 0xFF000000) return(debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color));
+BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, int color) {
+   if ((uint)sg < MIN_VALID_POINTER)          return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
+   if (color!=CLR_NONE && color & 0xFF000000) return(debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color));
    sg->backgroundColor = color;
    return(TRUE);
    #pragma EXPORT
@@ -190,11 +190,11 @@ BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, uint color) {
  *
  * @param  SYMBOL_GROUP sg[]  - Array
  * @param  uint         index - Array-Index
- * @param  uint         color - außer bei CLR_NONE (0xFFFFFFFF) muß das höchste Byte immer auf 0 stehen
+ * @param  int          color - Farbe
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI sgs_SetBackgroundColor(SYMBOL_GROUP sg[], uint index, uint color) {
+BOOL WINAPI sgs_SetBackgroundColor(SYMBOL_GROUP sg[], uint index, int color) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index    < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    return(sg_SetBackgroundColor(&sg[index], color));

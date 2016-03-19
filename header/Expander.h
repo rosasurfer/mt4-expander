@@ -59,7 +59,7 @@ enum LaunchType {
 /**
  * MT4 struct SYMBOL (Dateiformat "symbols.raw")
  *
- * Die Symbole in der Datei sind alphabetisch nach Symbolnamen sortiert.
+ * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */
 struct SYMBOL {                                    // -- offset ---- size --- description ----------------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol         (szchar) z.B. "AUDCAD.mkt"

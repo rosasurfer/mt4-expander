@@ -257,6 +257,10 @@
 							>
 						</File>
 						<File
+							RelativePath=".\src\mql\struct\mt4\Symbol.cpp"
+							>
+						</File>
+						<File
 							RelativePath=".\src\mql\struct\mt4\SymbolGroup.cpp"
 							>
 						</File>
