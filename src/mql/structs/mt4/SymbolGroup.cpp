@@ -24,11 +24,11 @@ const char* WINAPI sg_Name(const SYMBOL_GROUP* sg) {
  * Gibt den Namen einer SYMBOL_GROUP inherhalb eines Arrays zurück.
  *
  * @param  SYMBOL_GROUP sg[]  - Array
- * @param  uint         index - Array-Index
+ * @param  int          index - Array-Index
  *
  * @return char* - Gruppenname
  */
-const char* WINAPI sgs_Name(const SYMBOL_GROUP sg[], uint index) {
+const char* WINAPI sgs_Name(const SYMBOL_GROUP sg[], int index) {
    if ((uint)sg < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index     < 0)                return((char*)debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    return(sg[index].name);
@@ -54,11 +54,11 @@ const char* WINAPI sg_Description(const SYMBOL_GROUP* sg) {
  * Gibt die Beschreibung einer SYMBOL_GROUP innerhalb eines Arrays zurück.
  *
  * @param  SYMBOL_GROUP sg[]  - Array
- * @param  uint         index - Array-Index
+ * @param  int          index - Array-Index
  *
  * @return char* - Gruppenbeschreibung
  */
-const char* WINAPI sgs_Description(const SYMBOL_GROUP sg[], uint index) {
+const char* WINAPI sgs_Description(const SYMBOL_GROUP sg[], int index) {
    if ((uint)sg < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index    < 0)                 return((char*)debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    return(sg[index].description);
@@ -71,9 +71,9 @@ const char* WINAPI sgs_Description(const SYMBOL_GROUP sg[], uint index) {
  *
  * @param  SYMBOL_GROUP* sg
  *
- * @return int - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ * @return uint - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
  */
-int WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
+uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (sg->backgroundColor)
       return(sg->backgroundColor);
@@ -86,11 +86,11 @@ int WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
  * Gibt die Hintergrundfarbe einer SYMBOL_GROUP innerhalb eines Arrays zurück.
  *
  * @param  SYMBOL_GROUP sg[]  - Array
- * @param  uint         index - Array-Index
+ * @param  int          index - Array-Index
  *
- * @return int - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ * @return uint - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
  */
-int WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sg[], uint index) {
+uint WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sg[], int index) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index    < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    if (sg[index].backgroundColor)
@@ -121,12 +121,12 @@ BOOL WINAPI sg_SetName(SYMBOL_GROUP* sg, const char* name) {
  * Setzt den Namen einer SYMBOL_GROUP innerhalb eines Arrays.
  *
  * @param  SYMBOL_GROUP sg[]  - Array
- * @param  uint         index - Array-Index
+ * @param  int          index - Array-Index
  * @param  char*        name  - Name
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI sgs_SetName(SYMBOL_GROUP sg[], uint index, const char* name) {
+BOOL WINAPI sgs_SetName(SYMBOL_GROUP sg[], int index, const char* name) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index    < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    return(sg_SetName(&sg[index], name));
@@ -155,12 +155,12 @@ BOOL WINAPI sg_SetDescription(SYMBOL_GROUP* sg, const char* description) {
  * Setzt die Beschreibung einer SYMBOL_GROUP innerhalb eines Arrays.
  *
  * @param  SYMBOL_GROUP sg[]        - Array
- * @param  uint         index       - Array-Index
+ * @param  int          index       - Array-Index
  * @param  char*        description - Beschreibung
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI sgs_SetDescription(SYMBOL_GROUP sg[], uint index, const char* description) {
+BOOL WINAPI sgs_SetDescription(SYMBOL_GROUP sg[], int index, const char* description) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index    < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    return(sg_SetDescription(&sg[index], description));
@@ -172,11 +172,11 @@ BOOL WINAPI sgs_SetDescription(SYMBOL_GROUP sg[], uint index, const char* descri
  * Setzt die Hintergrundfarbe einer SYMBOL_GROUP im "Market Watch"-Window.
  *
  * @param  SYMBOL_GROUP* sg
- * @param  int           color - Farbe
+ * @param  uint          color - Farbe
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, int color) {
+BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, uint color) {
    if ((uint)sg < MIN_VALID_POINTER)          return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (color!=CLR_NONE && color & 0xFF000000) return(debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color));
    sg->backgroundColor = color;
@@ -189,12 +189,12 @@ BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, int color) {
  * Setzt die Hintergrundfarbe einer SYMBOL_GROUP innerhalb eines Arrays.
  *
  * @param  SYMBOL_GROUP sg[]  - Array
- * @param  uint         index - Array-Index
- * @param  int          color - Farbe
+ * @param  int          index - Array-Index
+ * @param  uint         color - Farbe
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI sgs_SetBackgroundColor(SYMBOL_GROUP sg[], uint index, int color) {
+BOOL WINAPI sgs_SetBackgroundColor(SYMBOL_GROUP sg[], int index, uint color) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (index    < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    return(sg_SetBackgroundColor(&sg[index], color));
