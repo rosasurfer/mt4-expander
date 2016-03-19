@@ -21,6 +21,22 @@ const char* WINAPI symbol_Name(const SYMBOL* symbol) {
 
 
 /**
+ * Gibt den Namen eines SYMBOLs innerhalb eines Arrays zurück.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ *
+ * @return char* - Gruppenname
+ */
+const char* WINAPI symbols_Name(const SYMBOL symbols[], int index) {
+   if ((uint)symbols < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return((char*)debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(symbols[index].name);
+   #pragma EXPORT
+}
+
+
+/**
  * Gibt die Beschreibung eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
@@ -144,6 +160,22 @@ uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
 uint WINAPI symbol_Id(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->id);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die eindeutige ID eines SYMBOLs innerhalb eines Arrays zurück.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ *
+ * @return uint - ID
+ */
+uint WINAPI symbols_Id(const SYMBOL symbols[], int index) {
+   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(symbols[index].id);
    #pragma EXPORT
 }
 
@@ -386,7 +418,7 @@ BOOL WINAPI symbol_SetGroup(SYMBOL* symbol, int index) {
 
 
 /**
- * Setzt die Digits eines SYMBOLs.
+ * Setzt die Digits eines SYMBOLs und aktualisiert dabei die Felder SYMBOL.pointSize und SYMBOL.pointsPerUnit entsprechend.
  *
  * @param  SYMBOL* symbol
  * @param  int     digits
@@ -397,6 +429,25 @@ BOOL WINAPI symbol_SetDigits(SYMBOL* symbol, int digits) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if (digits < 0)                       return(debug("ERROR:  invalid parameter digits = %d", digits));
    symbol->digits = digits;
+
+   int pointsPerUnit     = (int)(pow(10., digits) + 0.5);
+   symbol->pointSize     = 1./pointsPerUnit;
+   symbol->pointsPerUnit = pointsPerUnit;
+
+   /*
+   float val = 37.777779f;
+   float rounded_down = floorf(val * 100) / 100;      // Result: 37.77
+   float nearest      = roundf(val * 100) / 100;      // Result: 37.78
+   float rounded_up   = ceilf (val * 100) / 100;      // Result: 37.78
+
+   http://stackoverflow.com/questions/1343890/rounding-number-to-2-decimal-places-in-c
+
+   Here's your generic macro that will work for arbitrary decimal places:
+
+   #define ROUND_TO_DECIMAL_PLACES(x, decimal_places) (roundf(x * 1e##decimal_places) / 1e##decimal_places)
+   smileyborg Mar 16 at 3:30
+   */
+
    return(TRUE);
    #pragma EXPORT
 }
@@ -420,6 +471,40 @@ BOOL WINAPI symbol_SetBackgroundColor(SYMBOL* symbol, uint color) {
 
 
 /**
+ * Setzt die eindeutige ID eines SYMBOLs.
+ *
+ * @param  SYMBOL* symbol
+ * @param  int     id
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI symbol_SetId(SYMBOL* symbol, int id) {
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (id <= 0)                          return(debug("ERROR:  invalid parameter id = %d", id));
+   symbol->id = id;
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die eindeutige ID eines SYMBOLs innerhalb eines Arrays.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ * @param  int    id
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI symbols_SetId(SYMBOL symbols[], int index, int id) {
+   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+   return(symbol_SetId(&symbols[index], id));
+   #pragma EXPORT
+}
+
+
+/**
  * Setzt die Marginwährung eines SYMBOLs.
  *
  * @param  SYMBOL* symbol
@@ -433,5 +518,51 @@ BOOL WINAPI symbol_SetMarginCurrency(SYMBOL* symbol, const char* currency) {
    int len = strlen(currency);
    if (len!=3 || len > sizeof(symbol->marginCurrency)-1) return(debug("ERROR:  invalid parameter currency = \"%s\" (3 characters)", currency));
    return((BOOL)strcpy(symbol->marginCurrency, currency));
+   #pragma EXPORT
+}
+
+
+/**
+ * Vergleicht zwei Symbole anhand ihres Namens.
+ *
+ * @param  void* a
+ * @param  void* b
+ *
+ * @return int - positiver Wert, wenn der Name von Symbol a größer als der von Symbol b ist;
+ *               negativer Wert, wenn der Name von Symbol a kleiner als der von Symbol b ist;
+ *               0, wenn die Namen beider Symbole gleich sind
+ */
+int CompareSymbols(const void* a, const void* b) {
+   if (!a || !b) {
+      if (a == b) return(0);
+      return(!a ? -1:+1);
+   }
+   SYMBOL* symbolA = (SYMBOL*) a;
+   SYMBOL* symbolB = (SYMBOL*) b;
+
+   if (!symbolA->name || !symbolB->name) {
+      if (symbolA->name == symbolB->name) return(0);
+      return(!symbolA->name ? -1:+1);
+   }
+   return(strcmp(symbolA->name, symbolB->name));
+}
+
+
+/**
+ * Sortiert das übergebene SYMBOL-Array alphabetisch.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    size      - Größe des Arrays
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI symbols_Sort(SYMBOL symbols[], int size) {
+   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (size <= 0)                         return(debug("ERROR:  invalid parameter size = %d", size));
+   if (size == 1)                   // nothing to sort
+      return(TRUE);
+
+   qsort(symbols, size, sizeof(SYMBOL), CompareSymbols);
+   return(TRUE);
    #pragma EXPORT
 }

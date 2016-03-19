@@ -2,6 +2,7 @@
 
 #include "mql/defines.h"
 #include "mql/errors.h"
+#include <math.h>
 #include <vector>
 
 
