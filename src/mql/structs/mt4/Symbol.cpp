@@ -139,13 +139,14 @@ uint WINAPI symbol_TradeMode(const SYMBOL* symbol) {
  *
  * @param  SYMBOL* symbol
  *
- * @return uint - Farbe oder CLR_NONE, wenn keine Hintergrundfarbe gesetzt ist
+ * @return uint - Farbe oder White, wenn keine Hintergrundfarbe gesetzt ist
+ *                (CLR_NONE wird vom Terminal als Black interpretiert)
  */
 uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if (symbol->backgroundColor)
       return(symbol->backgroundColor);
-   return(CLR_NONE);
+   return(White);
    #pragma EXPORT
 }
 
@@ -462,8 +463,11 @@ BOOL WINAPI symbol_SetDigits(SYMBOL* symbol, int digits) {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI symbol_SetBackgroundColor(SYMBOL* symbol, uint color) {
-   if ((uint)symbol < MIN_VALID_POINTER)      return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (color!=CLR_NONE && color & 0xFF000000) return(debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color));
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (color & 0xFF000000) {
+      if (color != CLR_NONE)             return(debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color));
+         color = White;                  // CLR_NONE wird vom Terminal als Black interpretiert
+   }
    symbol->backgroundColor = color;
    return(TRUE);
    #pragma EXPORT

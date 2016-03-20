@@ -1,5 +1,7 @@
 /**
  * MQL-Interface zum Zugriff auf ein struct SYMBOL_GROUP (Dateiformat "symgroups.raw").
+ *
+ * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
  */
 #include "stdafx.h"
 #include "global.h"
@@ -71,13 +73,14 @@ const char* WINAPI sgs_Description(const SYMBOL_GROUP sgs[], int index) {
  *
  * @param  SYMBOL_GROUP* sg
  *
- * @return uint - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ * @return uint - Farbe oder White, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ *                (CLR_NONE wird vom Terminal als Black interpretiert)
  */
 uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
    if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if (sg->backgroundColor)
       return(sg->backgroundColor);
-   return(CLR_NONE);
+   return(White);
    #pragma EXPORT
 }
 
@@ -88,14 +91,15 @@ uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
  * @param  SYMBOL_GROUP sgs[] - Array
  * @param  int          index - Array-Index
  *
- * @return uint - Farbe oder CLR_NONE, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ * @return uint - Farbe oder White, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ *                (CLR_NONE wird vom Terminal als Black interpretiert)
  */
 uint WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sgs[], int index) {
    if ((uint)sgs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
    if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    if (sgs[index].backgroundColor)
       return(sgs[index].backgroundColor);
-   return(CLR_NONE);
+   return(White);
    #pragma EXPORT
 }
 
@@ -177,8 +181,11 @@ BOOL WINAPI sgs_SetDescription(SYMBOL_GROUP sgs[], int index, const char* descri
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, uint color) {
-   if ((uint)sg < MIN_VALID_POINTER)          return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
-   if (color!=CLR_NONE && color & 0xFF000000) return(debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color));
+   if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
+   if (color & 0xFF000000) {
+      if (color != CLR_NONE)         return(debug("ERROR:  invalid parameter color = 0x%p (not a valid color)", color));
+         color = White;              // CLR_NONE wird vom Terminal als Black interpretiert
+   }
    sg->backgroundColor = color;
    return(TRUE);
    #pragma EXPORT
