@@ -21,7 +21,7 @@ const char* WINAPI symbol_Name(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Namen eines SYMBOLs innerhalb eines Arrays zurück.
+ * Gibt den Namen eines SYMBOLs in einem Array zurück.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index
@@ -152,7 +152,37 @@ uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die eindeutige ID eines SYMBOLs zurück.
+ * Gibt die Sort-ID eines SYMBOLs zurück. Der Wert kann sich ändern, wenn die Datei "symbols.raw" gespeichert wird.
+ *
+ * @param  SYMBOL* symbol
+ *
+ * @return uint - Sort-ID
+ */
+uint WINAPI symbol_SortId(const SYMBOL* symbol) {
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   return(symbol->sortId);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die Sort-ID eines SYMBOLs in einem Array zurück.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ *
+ * @return uint - Sort-ID
+ */
+uint WINAPI symbols_SortId(const SYMBOL symbols[], int index) {
+   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(symbols[index].sortId);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die eindeutige ID eines SYMBOLs zurück. Diese ID ist eine feste Eigenschaft, sie ändert sich beim Speichern von "symbols.raw" nicht.
  *
  * @param  SYMBOL* symbol
  *
@@ -166,7 +196,7 @@ uint WINAPI symbol_Id(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die eindeutige ID eines SYMBOLs innerhalb eines Arrays zurück.
+ * Gibt die eindeutige ID eines SYMBOLs in einem Array zurück.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index
@@ -484,7 +514,7 @@ BOOL WINAPI symbol_SetBackgroundColor(SYMBOL* symbol, uint color) {
  */
 BOOL WINAPI symbol_SetId(SYMBOL* symbol, int id) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (id <= 0)                          return(debug("ERROR:  invalid parameter id = %d", id));
+   if (id < 0)                           return(debug("ERROR:  invalid parameter id = %d", id));
    symbol->id = id;
    return(TRUE);
    #pragma EXPORT
@@ -492,7 +522,7 @@ BOOL WINAPI symbol_SetId(SYMBOL* symbol, int id) {
 
 
 /**
- * Setzt die eindeutige ID eines SYMBOLs innerhalb eines Arrays.
+ * Setzt die eindeutige ID eines SYMBOLs in einem Array.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index
@@ -537,17 +567,13 @@ BOOL WINAPI symbol_SetMarginCurrency(SYMBOL* symbol, const char* currency) {
  *               0, wenn die Namen beider Symbole gleich sind
  */
 int CompareSymbols(const void* a, const void* b) {
-   if (!a || !b) {
-      if (a == b) return(0);
-      return(!a ? -1:+1);
-   }
    SYMBOL* symbolA = (SYMBOL*) a;
    SYMBOL* symbolB = (SYMBOL*) b;
 
-   if (!symbolA->name || !symbolB->name) {
-      if (symbolA->name == symbolB->name) return(0);
-      return(!symbolA->name ? -1:+1);
-   }
+   if (symbolA == symbolB) return( 0);
+   if (!symbolA)           return(-1);
+   if (!symbolB)           return(+1);
+
    return(strcmp(symbolA->name, symbolB->name));
 }
 
@@ -563,10 +589,14 @@ int CompareSymbols(const void* a, const void* b) {
 BOOL WINAPI symbols_Sort(SYMBOL symbols[], int size) {
    if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
    if (size <= 0)                         return(debug("ERROR:  invalid parameter size = %d", size));
-   if (size == 1)                   // nothing to sort
+   if (size == 1)          // nothing to sort
       return(TRUE);
 
    qsort(symbols, size, sizeof(SYMBOL), CompareSymbols);
+
+   for (int i=0; i < size; i++) {            // Sort-ID's neu zuordnen
+      symbols[i].sortId = i;
+   }
    return(TRUE);
    #pragma EXPORT
 }

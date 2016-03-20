@@ -188,10 +188,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\Stubs.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\Subclassing.cpp"
 				>
 			</File>
@@ -200,6 +196,10 @@
 				>
 				<File
 					RelativePath=".\src\mql\MQLUtils.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mql\RootFunctionStubs.cpp"
 					>
 				</File>
 				<Filter

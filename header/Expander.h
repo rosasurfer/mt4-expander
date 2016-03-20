@@ -73,27 +73,28 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 
    uint   tradeMode;                               //       108         4     0=No|1=Close|2=Full
    uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch" Window
-   uint   id;                                      //       116         4     eindeutige ID des Symbols
+   uint   sortId;                                  //       116         4     eindeutige, aber variable SortOrder-ID >= 0 (nicht der Array-Index)
+   uint   id;                                      //       120         4     eindeutige und feste Symbol-ID >= 0
 
-   BYTE   unknown_1[1508];                         //       120      1508
-   uint   unknown_2;                               //      1628         4     ?
-   BYTE   unknown_3[8];                            //      1632         8
-   double unknown_4;                               //      1640         8     ?
-   BYTE   unknown_5[12];                           //      1648        12
+   BYTE   unknown1[1504];                          //       124      1504
+   int    unknown2;                                //      1628         4     ?
+   BYTE   unknown3[8];                             //      1632         8
+   double unknown4;                                //      1640         8     ?
+   BYTE   unknown5[12];                            //      1648        12
 
    uint   spread;                                  //      1660         4     Spread in Points: 0=current spread (variable)
-   BYTE   unknown_6[16];                           //      1664        16
+   BYTE   unknown6[16];                            //      1664        16
 
    double swapLong;                                //      1680         8     Swap Long
    double swapShort;                               //      1688         8     Swap Short
 
-   uint   unknown_7;                               //      1696         4     ?
-   DWORD  unknown_8;                               //      1700         4
+   int    unknown7;                                //      1696         4     ?
+   DWORD  unknown8;                                //      1700         4
    double contractSize;                            //      1704         8     Lot Size
-   BYTE   unknown_9[16];                           //      1712        16
+   BYTE   unknown9[16];                            //      1712        16
 
    uint   stopDistance;                            //      1728         4     Stop Level
-   BYTE   unknown_10[12];                          //      1732        12
+   BYTE   unknown10[12];                           //      1732        12
 
    double marginInit;                              //      1744         8     Margin Init        (0=ContractSize)
    double marginMaintenance;                       //      1752         8     Margin Maintenance (0=ContractSize)
@@ -103,11 +104,11 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double pointSize;                               //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
-   BYTE   unknown_11[24];                          //      1792        24
+   BYTE   unknown11[24];                           //      1792        24
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     Margin Currency (szchar)
 
-   BYTE   unknown_12[104];                         //      1828       104
-   uint   unknown_13;                              //      1932         4     ?
+   BYTE   unknown12[104];                          //      1828       104
+   int    unknown13;                               //      1932         4     ?
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //              = 1936
 
@@ -130,7 +131,7 @@ struct SYMBOL_SELECTED {                           // -- offset ---- size --- de
    char   symbol[MAX_SYMBOL_LENGTH+1];             //         0        12     Symbol (szchar)
    uint   digits;                                  //        12         4     Digits
 
-   uint   index;         // oder ID ?????          //        16         4     Index/ID des Symbols in "symbols.raw"
+   uint   sortId;                                  //        16         4     Sort-ID des Symbols in "symbols.raw"
    DWORD  unknown_1;                               //        20         4     immer 0x0001
 
    uint   group;                                   //        24         4     Index der Symbolgruppe in "symgroups.raw"
@@ -227,7 +228,7 @@ typedef struct HISTORY_BAR_401 {                   // -- offset ---- size --- de
  * MT4 struct MqlStr: interne Darstellung eines MQL-Strings (MetaQuotes-Terminologie)
  */
 struct MqlStr {
-   int   size;                                     // Größe des Speicherblocks oder 0, wenn der String ein intern verwaltetes C-Literal ist
+   int   sizeAlloc;                                // Größe des alloziierten Speicherblocks (0, wenn es ein intern verwaltetes C-Literal ist)
    char* string;
 };
 
