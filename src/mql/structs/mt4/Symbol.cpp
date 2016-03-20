@@ -152,31 +152,31 @@ uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Sort-ID eines SYMBOLs zurück. Der Wert kann sich ändern, wenn die Datei "symbols.raw" gespeichert wird.
+ * Gibt den Array-Key eines SYMBOLs zurück. Der Wert kann sich ändern, wenn die Datei "symbols.raw" gespeichert wird.
  *
  * @param  SYMBOL* symbol
  *
- * @return uint - Sort-ID
+ * @return uint - Array-Key
  */
-uint WINAPI symbol_SortId(const SYMBOL* symbol) {
+uint WINAPI symbol_ArrayKey(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   return(symbol->sortId);
+   return(symbol->arrayKey);
    #pragma EXPORT
 }
 
 
 /**
- * Gibt die Sort-ID eines SYMBOLs in einem Array zurück.
+ * Gibt den Array-Key eines SYMBOLs in einem Array zurück.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index
  *
- * @return uint - Sort-ID
+ * @return uint - Array-Key
  */
-uint WINAPI symbols_SortId(const SYMBOL symbols[], int index) {
+uint WINAPI symbols_ArrayKey(const SYMBOL symbols[], int index) {
    if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
    if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(symbols[index].sortId);
+   return(symbols[index].arrayKey);
    #pragma EXPORT
 }
 
@@ -594,8 +594,8 @@ BOOL WINAPI symbols_Sort(SYMBOL symbols[], int size) {
 
    qsort(symbols, size, sizeof(SYMBOL), CompareSymbols);
 
-   for (int i=0; i < size; i++) {            // Sort-ID's neu zuordnen
-      symbols[i].sortId = i;
+   for (int i=0; i < size; i++) {            // Array-Key's neu zuordnen
+      symbols[i].arrayKey = i;
    }
    return(TRUE);
    #pragma EXPORT

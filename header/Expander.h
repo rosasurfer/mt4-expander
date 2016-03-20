@@ -73,7 +73,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 
    uint   tradeMode;                               //       108         4     0=No|1=Close|2=Full
    uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch" Window
-   uint   sortId;                                  //       116         4     eindeutige, aber variable SortOrder-ID >= 0 (nicht der Array-Index)
+   uint   arrayKey;                                //       116         4     eindeutige, aber variable Array-ID >= 0 (nicht der Array-Index)
    uint   id;                                      //       120         4     eindeutige und feste Symbol-ID >= 0
 
    BYTE   unknown1[1504];                          //       124      1504
@@ -131,7 +131,7 @@ struct SYMBOL_SELECTED {                           // -- offset ---- size --- de
    char   symbol[MAX_SYMBOL_LENGTH+1];             //         0        12     Symbol (szchar)
    uint   digits;                                  //        12         4     Digits
 
-   uint   sortId;                                  //        16         4     Sort-ID des Symbols in "symbols.raw"
+   uint   arrayKey;                                //        16         4     Array-Key des Symbols in "symbols.raw"
    DWORD  unknown_1;                               //        20         4     immer 0x0001
 
    uint   group;                                   //        24         4     Index der Symbolgruppe in "symgroups.raw"
