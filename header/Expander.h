@@ -99,7 +99,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    uint   swapType;                                //      1676         4     0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency = MarketInfo(MODE_SWAPTYPE)
    double swapLong;                                //      1680         8     Swap Long
    double swapShort;                               //      1688         8     Swap Short
-   uint   tripleRolloverDay;                       //      1696         4     weekday of triple swaps = WEDNESDAY|FRIDAY
+   uint   swapTripleRolloverDay;                   //      1696         4     weekday of triple swaps = WEDNESDAY|FRIDAY
 
    DWORD  unknown9;                                //      1700         4
    double contractSize;                            //      1704         8     Lot Size
@@ -267,21 +267,21 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint   modeledBars;                             //       216         4     Anzahl der modellierten Bars (ohne Prolog)
    uint   firstBarTime;                            //       220         4     OpenTime der Bar des ersten Ticks (ohne Prolog)
    uint   lastBarTime;                             //       224         4     OpenTime der Bar des letzten Ticks (ohne Prolog)
-   BYTE   reserved_1[4];                           //       228         4     (alignment to the next double)
+   BYTE   _alignment1[4];                          //       228         4     (alignment to the next double)
    double modelQuality;                            //       232         8     max. 99.9
 
    // common parameters                            // ----------------------------------------------------------------------------------------------------------------
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //       240        12     Base currency (szchar)                     = StringLeft(symbol, 3)
    uint   spread;                                  //       252         4     Spread in Points: 0=current spread         = MarketInfo(MODE_SPREAD)
    uint   digits;                                  //       256         4     Digits                                     = MarketInfo(MODE_DIGITS)
-   BYTE   reserved_2[4];                           //       260         4     (alignment to the next double)
+   BYTE   _alignment2[4];                          //       260         4     (alignment to the next double)
    double pointSize;                               //       264         8     Auflösung, z.B. 0.0000'1                   = MarketInfo(MODE_POINT)
    uint   minLotsize;                              //       272         4     Mindest-Lotsize in Hundertsteln Lot        = MarketInfo(MODE_MINLOT)  * 100
    uint   maxLotsize;                              //       276         4     Höchst-Lotsize in Hundertsteln Lot         = MarketInfo(MODE_MAXLOT)  * 100
    uint   lotStepsize;                             //       280         4     Lot-Stepsize in Hundertsteln Lot           = MarketInfo(MODE_LOTSTEP) * 100
    uint   stopDistance;                            //       284         4     Stop level in Points                       = MarketInfo(MODE_STOPLEVEL)
    BOOL   pendingsGTC;                             //       288         4     close pending orders at end of day or GTC    @see struct SYMBOL
-   BYTE   reserved_3[4];                           //       292         4     (alignment to the next double)
+   BYTE   _alignment3[4];                          //       292         4     (alignment to the next double)
 
    // profit calculation parameters                // ----------------------------------------------------------------------------------------------------------------
    double contractSize;                            //       296         8     Größe eines Lots, z.B. 100000              = MarketInfo(MODE_LOTSIZE)
@@ -292,10 +292,10 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    // swap calculation parameters                  // ----------------------------------------------------------------------------------------------------------------
    BOOL   swapEnabled;                             //       324         4     ob Swaps berechnet werden
    uint   swapType;                                //       328         4     0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency = MarketInfo(MODE_SWAPTYPE)
-   BYTE   reserved_4[4];                           //       332         4     (alignment to the next double)
+   BYTE   _alignment4[4];                          //       332         4     (alignment to the next double)
    double swapLongValue;                           //       336         8     long overnight swap value                  = MarketInfo(MODE_SWAPLONG)
    double swapShortValue;                          //       344         8     short overnight swap values                = MarketInfo(MODE_SWAPSHORT)
-   uint   tripleRolloverDay;                       //       352         4     weekday of triple swaps                    = WEDNESDAY|FRIDAY
+   uint   swapTripleRolloverDay;                   //       352         4     weekday of triple swaps                    = WEDNESDAY|FRIDAY
 
    // margin calculation parameters                // ----------------------------------------------------------------------------------------------------------------
    uint   accountLeverage;                         //       356         4     account leverage                           = AccountLeverage()
@@ -308,7 +308,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    double marginHedged;                            //       392         8     hedged margin requirement (in units)       = MarketInfo(MODE_MARGINHEDGED)
    double marginDivider;                           //       400         8     Leverage: relativ=zum Account, absolut=CustomLeverage
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //       408        12                                                = AccountCurrency()
-   BYTE   reserved_5[4];                           //       420         4     (alignment to the next double)
+   BYTE   _alignment5[4];                          //       420         4     (alignment to the next double)
 
    // commission calculation parameters            // ----------------------------------------------------------------------------------------------------------------
    double commissionValue;                         //       424         8     commission rate
@@ -323,7 +323,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint   testerSettingTo;                         //       476         4     end date from tester settings
    uint   freezeDistance;                          //       480         4     freeze level in points                     = MarketInfo(MODE_FREEZELEVEL)
    uint   modelErrors;                             //       484         4     number of errors during model generation
-   BYTE   reserved_6[240];                         //       488       240     unused
+   BYTE   reserved[240];                           //       488       240     unused
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //               = 728     warum bin ich nicht auf Ibiza
 
