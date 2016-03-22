@@ -76,25 +76,37 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    uint   arrayKey;                                //       116         4     eindeutige, aber variable Array-ID >= 0 (nicht der Array-Index)
    uint   id;                                      //       120         4     eindeutige und feste Symbol-ID >= 0
 
-   BYTE   unknown1[1504];                          //       124      1504
-   int    unknown2;                                //      1628         4     ?
-   BYTE   unknown3[8];                             //      1632         8
-   double unknown4;                                //      1640         8     ?
-   BYTE   unknown5[12];                            //      1648        12
+   BYTE   unknown1[32];                            //       124        32
+
+   BYTE   unknownM1 [208];                         //       156       208
+   BYTE   unknownM5 [208];                         //       364       208
+   BYTE   unknownM15[208];                         //       572       208
+   BYTE   unknownM30[208];                         //       780       208
+   BYTE   unknownH1 [208];                         //       988       208
+   BYTE   unknownH4 [208];                         //      1196       208
+   BYTE   unknownD1 [208];                         //      1404       208
+
+   BYTE   unknown2[16];                            //      1612        16
+   int    unknown3;                                //      1628         4     ?
+   BYTE   unknown4[8];                             //      1632         8
+   double unknown5;                                //      1640         8     ?
+   BYTE   unknown6[12];                            //      1648        12
 
    uint   spread;                                  //      1660         4     Spread in Points: 0=current spread (variable)
-   BYTE   unknown6[16];                            //      1664        16
+   BYTE   unknown7[8];                             //      1664         8
 
+   BOOL   swapEnabled;                             //      1672         4     ob Swaps berechnet werden
+   uint   swapType;                                //      1676         4     0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency = MarketInfo(MODE_SWAPTYPE)
    double swapLong;                                //      1680         8     Swap Long
    double swapShort;                               //      1688         8     Swap Short
+   uint   tripleRolloverDay;                       //      1696         4     weekday of triple swaps = WEDNESDAY|FRIDAY
 
-   int    unknown7;                                //      1696         4     ?
-   DWORD  unknown8;                                //      1700         4
+   DWORD  unknown9;                                //      1700         4
    double contractSize;                            //      1704         8     Lot Size
-   BYTE   unknown9[16];                            //      1712        16
+   BYTE   unknown10[16];                           //      1712        16
 
    uint   stopDistance;                            //      1728         4     Stop Level
-   BYTE   unknown10[12];                           //      1732        12
+   BYTE   unknown11[12];                           //      1732        12
 
    double marginInit;                              //      1744         8     Margin Init        (0=ContractSize)
    double marginMaintenance;                       //      1752         8     Margin Maintenance (0=ContractSize)
@@ -104,11 +116,11 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double pointSize;                               //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
-   BYTE   unknown11[24];                           //      1792        24
+   BYTE   unknown12[24];                           //      1792        24
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     Margin Currency (szchar)
 
-   BYTE   unknown12[104];                          //      1828       104
-   int    unknown13;                               //      1932         4     ?
+   BYTE   unknown13[104];                          //      1828       104
+   int    unknown14;                               //      1932         4     ?
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //              = 1936
 
@@ -279,11 +291,11 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
 
    // swap calculation parameters                  // ----------------------------------------------------------------------------------------------------------------
    BOOL   swapEnabled;                             //       324         4     ob Swaps berechnet werden
-   uint   swapCalculationMode;                     //       328         4     0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency   = MarketInfo(MODE_SWAPTYPE)
+   uint   swapType;                                //       328         4     0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency = MarketInfo(MODE_SWAPTYPE)
    BYTE   reserved_4[4];                           //       332         4     (alignment to the next double)
    double swapLongValue;                           //       336         8     long overnight swap value                  = MarketInfo(MODE_SWAPLONG)
    double swapShortValue;                          //       344         8     short overnight swap values                = MarketInfo(MODE_SWAPSHORT)
-   uint   tripleRolloverDay;                       //       352         4     weekday of triple swaps                    = WEDNESDAY
+   uint   tripleRolloverDay;                       //       352         4     weekday of triple swaps                    = WEDNESDAY|FRIDAY
 
    // margin calculation parameters                // ----------------------------------------------------------------------------------------------------------------
    uint   accountLeverage;                         //       356         4     account leverage                           = AccountLeverage()
