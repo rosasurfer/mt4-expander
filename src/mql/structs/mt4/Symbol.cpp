@@ -226,15 +226,43 @@ uint WINAPI symbol_Spread(const SYMBOL* symbol) {
 
 
 /**
+ * Ob für ein SYMBOL Swaps berechnet werden.
+ *
+ * @param  SYMBOL* symbol
+ *
+ * @return BOOL
+ */
+BOOL WINAPI symbol_SwapEnabled(const SYMBOL* symbol) {
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   return(symbol->swapEnabled);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt den Swaptyp eines SYMBOLs zurück.
+ *
+ * @param  SYMBOL* symbol
+ *
+ * @return uint - SwapType entsprechend MarketInfo(MODE_SWAPTYPE)
+ */
+uint WINAPI symbol_SwapType(const SYMBOL* symbol) {
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   return(symbol->swapType);
+   #pragma EXPORT
+}
+
+
+/**
  * Gibt den Swapbetrag eines SYMBOLs für Long-Positionen zurück.
  *
  * @param  SYMBOL* symbol
  *
- * @return double - Swap-Betrag in Einheit entsprechend MarketInfo(MODE_SWAPTYPE)
+ * @return double - Swap-Betrag in Einheit entsprechend SYMBOL.swapType
  */
-double WINAPI symbol_SwapLong(const SYMBOL* symbol) {
+double WINAPI symbol_SwapLongValue(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   return(symbol->swapLong);
+   return(symbol->swapLongValue);
    #pragma EXPORT
 }
 
@@ -244,11 +272,25 @@ double WINAPI symbol_SwapLong(const SYMBOL* symbol) {
  *
  * @param  SYMBOL* symbol
  *
- * @return double - Swap-Betrag in Einheit entsprechend MarketInfo(MODE_SWAPTYPE)
+ * @return double - Swap-Betrag in Einheit entsprechend SYMBOL.swapType
  */
-double WINAPI symbol_SwapShort(const SYMBOL* symbol) {
+double WINAPI symbol_SwapShortValue(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   return(symbol->swapShort);
+   return(symbol->swapShortValue);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt den Wochentag des 3-fachen Swaps eines SYMBOLs zurück.
+ *
+ * @param  SYMBOL* symbol
+ *
+ * @return uint - Wochentag von 0 (SUNDAY) bis 6 (SATURDAY)
+ */
+uint WINAPI symbol_SwapTripleRolloverDay(const SYMBOL* symbol) {
+   if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   return(symbol->swapTripleRolloverDay);
    #pragma EXPORT
 }
 

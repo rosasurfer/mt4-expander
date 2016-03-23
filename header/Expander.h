@@ -97,8 +97,8 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 
    BOOL   swapEnabled;                             //      1672         4     ob Swaps berechnet werden
    uint   swapType;                                //      1676         4     0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency = MarketInfo(MODE_SWAPTYPE)
-   double swapLong;                                //      1680         8     Swap Long
-   double swapShort;                               //      1688         8     Swap Short
+   double swapLongValue;                           //      1680         8     Swap Long
+   double swapShortValue;                          //      1688         8     Swap Short
    uint   swapTripleRolloverDay;                   //      1696         4     weekday of triple swaps = WEDNESDAY|FRIDAY
 
    DWORD  unknown9;                                //      1700         4
