@@ -87,8 +87,9 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    BYTE   unknownD1 [208];                         //      1404       208
 
    BYTE   unknown2[16];                            //      1612        16
-   int    unknown3;                                //      1628         4     ?
-   BYTE   unknown4[8];                             //      1632         8
+   DWORD  unknown3;                                //      1628         4     ?
+   DWORD  unknown4;                                //      1632         4
+   DWORD  _alignment1;                             //      1636         4     (alignment to the next double)
    double unknown5;                                //      1640         8     ?
    BYTE   unknown6[12];                            //      1648        12
 
@@ -101,12 +102,13 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double swapShortValue;                          //      1688         8     Swap Short
    uint   swapTripleRolloverDay;                   //      1696         4     weekday of triple swaps = WEDNESDAY|FRIDAY
 
-   DWORD  unknown9;                                //      1700         4
+   DWORD  _alignment2;                             //      1700         4     (alignment to the next double)
    double contractSize;                            //      1704         8     Lot Size
-   BYTE   unknown10[16];                           //      1712        16
+   BYTE   unknown8[16];                            //      1712        16
 
    uint   stopDistance;                            //      1728         4     Stop Level
-   BYTE   unknown11[12];                           //      1732        12
+   BYTE   unknown9[8];                             //      1732         8
+   DWORD  _alignment3;                             //      1740         4     (alignment to the next double)
 
    double marginInit;                              //      1744         8     Margin Init        (0=ContractSize)
    double marginMaintenance;                       //      1752         8     Margin Maintenance (0=ContractSize)
@@ -116,11 +118,11 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double pointSize;                               //      1776         8     Point Size
    double pointsPerUnit;                           //      1784         8     Points per Unit
 
-   BYTE   unknown12[24];                           //      1792        24
+   BYTE   unknown10[24];                           //      1792        24
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     Margin Currency (szchar)
 
-   BYTE   unknown13[104];                          //      1828       104
-   int    unknown14;                               //      1932         4     ?
+   BYTE   unknown11[104];                          //      1828       104
+   int    unknown12;                               //      1932         4     ?
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //              = 1936
 
