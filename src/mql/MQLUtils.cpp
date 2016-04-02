@@ -79,7 +79,7 @@ int WINAPI GetStringsAddress(const MqlStr values[]) {
 /**
  * Gibt die Speicheradresse eines C-Strings zurück.
  *
- * @param  char* value - C-String (MetaTrader übergibt für einen MQL-String das Element MqlStr.string)
+ * @param  char* value - C-String: MetaTrader übergibt für einen MQL-String das Element MqlStr.string
  *
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
