@@ -84,6 +84,10 @@ int WINAPI GetStringsAddress(const MqlStr values[]) {
  * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  * @mql-import:  int GetStringAddress(string value);
+ *
+ * Achtung: GetStringAddress() darf in MQL nur mit Array-Elementen verwendet werden. Ist der Parameter ein einfacher String,
+ *          wird an die DLL eine Kopie dieses Strings übergeben. Diese Kopie wird u.U. sofort nach Rückkehr freigegeben und
+ *          die erhaltene Adresse ist ungültig (z.B. im Tester bei mehrfachen Tests).
  */
 int WINAPI GetStringAddress(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER)
