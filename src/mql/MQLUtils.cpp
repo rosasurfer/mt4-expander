@@ -130,15 +130,15 @@ int WINAPI GetLastWin32Error() {
 
 
 /**
- * Ob die angegebene Timeframe-ID einen eingebauten MetaTrader-Timeframe darstellt.
+ * Ob die angegebene Timeframe-ID einen MetaTrader-Standard-Timeframe darstellt.
  *
  * @param  int timeframe - Timeframe-ID
  *
  * @return BOOL
  *
- * @mql-import:  bool IsBuiltinTimeframe(int timeframe);
+ * @mql-import:  bool IsStdTimeframe(int timeframe);
  */
-BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
+BOOL WINAPI IsStdTimeframe(int timeframe) {
    switch (timeframe) {
       case PERIOD_M1 : return(TRUE);
       case PERIOD_M5 : return(TRUE);
@@ -167,7 +167,7 @@ BOOL WINAPI IsBuiltinTimeframe(int timeframe) {
 BOOL WINAPI IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
-   return(!IsBuiltinTimeframe(timeframe));
+   return(!IsStdTimeframe(timeframe));
    #pragma EXPORT
 }
 

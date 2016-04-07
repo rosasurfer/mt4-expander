@@ -420,8 +420,8 @@ BOOL  WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   c
       int   WINAPI GetStringAddress (char*  value   );
 const char* WINAPI GetString        (char*  value   );
       int   WINAPI GetLastWin32Error();
-      BOOL  WINAPI IsBuiltinTimeframe(int timeframe);
       BOOL  WINAPI IsCustomTimeframe(int timeframe);
+      BOOL  WINAPI IsStdTimeframe(int timeframe);
 const char* WINAPI IntToHexStr(int value);
       uint  WINAPI MT4InternalMsg();
 
