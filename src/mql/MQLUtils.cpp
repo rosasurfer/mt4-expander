@@ -295,7 +295,7 @@ const char* WINAPI RootFunctionToStr(RootFunction id) {
       case NULL     : return("NULL"     );
       case RF_INIT  : return("RF_INIT"  );
       case RF_START : return("RF_START" );
-      case RF_DEINIT: return("RD_DEINIT");
+      case RF_DEINIT: return("RF_DEINIT");
    }
    debug("ERROR:  unknown MQL root function id = "+ to_string(id));
    return(NULL);
