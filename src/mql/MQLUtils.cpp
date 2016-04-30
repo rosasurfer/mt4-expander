@@ -615,24 +615,32 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
       if (tickTimers[i].id == timerId) {
          TICK_TIMER_DATA ttd = tickTimers[i];
 
-         if (ttd.flags & TICK_OFFLINE_REFRESH) {
-            RECT rect;                                                           // ermitteln, ob der Chart mindestens teilweise sichtbar ist
+         if (ttd.flags & TICK_IF_VISIBLE) {
+            // skip timer event if chart not visible
+            RECT rect;                                               // ermitteln, ob der Chart mindestens teilweise sichtbar ist
             HDC hDC = GetDC(hWnd);
             int rgn = GetClipBox(hDC, &rect);
             ReleaseDC(hWnd, hDC);
 
+            if (rgn == NULLREGION)                                   // Chart ist nicht sichtbar
+               return;
             if (rgn == RGN_ERROR) {
                debug("ERROR:  GetClipBox(hDC=%p) => RGN_ERROR (win32 error %d)", hDC, GetLastError());
+               return;
             }
-            else if (rgn != NULLREGION) {                                        // Tick nur bei sichtbarem Chart verschicken
-               PostMessageA(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);              // refresh tick
-            }
+         }
+         if (ttd.flags & TICK_PAUSE_ON_WEEKEND) {
+            // skip timer event if on weekend: not yet implemented
+         }
+
+         if (ttd.flags & TICK_CHART_REFRESH) {
+            PostMessageA(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);
+         }
+         else if (ttd.flags & TICK_TESTER) {
+            PostMessageA(hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
          }
          else {
             PostMessageA(hWnd, MT4InternalMsg(), MT4_TICK, TICK_OFFLINE_EA);     // default tick
-         }
-
-         if (ttd.flags & TICK_PAUSE_ON_WEEKEND) {
          }
          return;
       }
@@ -648,10 +656,12 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
  * @param  HWND  hWnd   - Handle des Fensters, an das die Ticks geschickt werden.
  * @param  int   millis - Zeitperiode der zu generierenden Ticks in Millisekunden
  * @param  DWORD flags  - die Ticks konfigurierende Flags (default: keine)
- *                        TICK_OFFLINE_REFRESH : Mit diesem Flag wird ein die Ticks empfangener Offline-Chart bei jedem Tick refreshed,
- *                                               ohne dieses Flag wird ein gewöhnlicher synthetischer Tick generiert (default).
- *                        TICK_PAUSE_ON_WEEKEND: Mit diesem Flag werden von Samstag, 00:00 FXT bis Montag, 00:00 FXT keine Ticks generiert,
- *                                               ohne dieses Flag werden auch am Wochenende Ticks generiert (default).
+ *                        TICK_CHART_REFRESH:    Statt eines regulären Ticks wird das Command ID_CHART_REFRESH an den Chart geschickt
+ *                                               (für Offline- und synthetische Charts).
+ *                        TICK_TESTER:           Statt eines regulären Ticks wird das Command ID_CHART_STEPFORWARD an den Chart geschickt
+ *                                               (für Strategy Tester)
+ *                        TICK_IF_VISIBLE:       Ticks werden nur verschickt, wenn der Chart mindestens teilweise sichtbar ist.
+ *                        TICK_PAUSE_ON_WEEKEND: Ticks werden nur zu regulären Forex-Handelszeiten verschickt (not yet implemented).
  *
  * @return uint - ID des installierten Timers zur Übergabe an RemoveTickTimer() bei Deinstallation des Timers oder 0, falls ein Fehler auftrat.
  *
@@ -659,22 +669,23 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
  */
 uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
    // Parametervalidierung
-   DWORD threadId = GetWindowThreadProcessId(hWnd, NULL);
-   if (threadId != GetCurrentThreadId()) {
-      if (!threadId)           return(debug("ERROR:  invalid parameter hWnd = %d (not a window)", hWnd));
-                               return(debug("ERROR:  window hWnd = %d not owned by the current thread", hWnd));
+   DWORD wndThreadId = GetWindowThreadProcessId(hWnd, NULL);
+   if (wndThreadId != GetCurrentThreadId()) {
+      if (!wndThreadId)                                   return(debug("ERROR:  invalid parameter hWnd = %p (not a window)", hWnd));
+                                                          return(debug("ERROR:  window hWnd = %p not owned by the current thread", hWnd));
    }
-   if (millis <= 0)            return(debug("ERROR:  invalid parameter millis = %d", millis));
-   if (flags & TICK_PAUSE_ON_WEEKEND) debug("flag TICK_PAUSE_ON_WEEKEND not yet supported");
+   if (millis <= 0)                                       return(debug("ERROR:  invalid parameter millis = %d", millis));
+   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(debug("ERROR:  invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER"));
+   if (flags & TICK_PAUSE_ON_WEEKEND)                            debug("WARN:  flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // neue Timer-ID erzeugen
-   static uint timerId = 10000;
+   static uint timerId = 10000;                       // ID's sind mindestens 5-stellig und beginnen bei 10000
    timerId++;
 
    // Timer setzen
    uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
    if (result != timerId)                             // muß stimmen, da hWnd immer != NULL
-      return(debug("ERROR:  SetTimer(hWnd=%d, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
+      return(debug("ERROR:  SetTimer(hWnd=%p, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
    //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
 
    // Timerdaten speichern
@@ -703,14 +714,14 @@ BOOL WINAPI RemoveTickTimer(int timerId) {
    for (int i=0; i < size; i++) {
       if (tickTimers[i].id == timerId) {
          if (!KillTimer(tickTimers[i].hWnd, timerId))
-            return(debug("ERROR:  KillTimer(hWnd=%d, timerId=%d) failed", tickTimers[i].hWnd, timerId));
+            return(debug("ERROR:  KillTimer(hWnd=%p, timerId=%d) failed", tickTimers[i].hWnd, timerId));
 
-         //debug("KillTimer(hWnd=%d, timerId=%d) success", tickTimers[i].hWnd, timerId);
+         //debug("KillTimer(hWnd=%p, timerId=%d) success", tickTimers[i].hWnd, timerId);
          tickTimers.erase(tickTimers.begin() + i);
          return(TRUE);
       }
    }
-   return(debug("ERROR:  no such timer with timerId = %d", timerId));
+   return(debug("ERROR:  timer not found: id = %d", timerId));
    #pragma EXPORT
 }
 
