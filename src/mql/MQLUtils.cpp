@@ -862,7 +862,7 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
  * Shifted die Werte eines IndicatorBuffers um eine Anzahl von Bars nach hinten. Die ältesten Werte verfallen.
  *
  * @param  double buffer[]   - MQL-Double-Array (IndicatorBuffer)
- * @param  int    size       - Größe des Arrays
+ * @param  int    bufferSize - Größe des Arrays
  * @param  int    bars       - Anzahl der zu shiftenden Bars
  * @param  double emptyValue - Initialisierungswert für freiwerdende Bufferelemente
  *
@@ -870,18 +870,15 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
  *
  * @mql-import:  bool ShiftIndicatorBuffer(double buffer[], int size, int bars, double emptyValue);
  */
-BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int size, int bars, double emptyValue) {
+BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, double emptyValue) {
    if (buffer && (uint)buffer < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter buffer = 0x%p (not a valid pointer)", buffer));
-   if (size < 0)                                   return(debug("ERROR:  invalid parameter size = %d", size));
+   if (bufferSize < 0)                             return(debug("ERROR:  invalid parameter bufferSize = %d", bufferSize));
    if (bars < 0)                                   return(debug("ERROR:  invalid parameter bars = %d", bars));
-   if (!size || !bars) return(TRUE);
+   if (!bufferSize || !bars) return(TRUE);
 
-   //debug("buffer=0x%p  size=%d  buffer[%d]=%f", buffer, size, size-1, buffer[size-1]);
-   //debug("src=%d(%p)  dest=%d(%p)  elements=%d  bytes=%d", bars, &buffer[bars], 0, &buffer[0], size-bars, (size-bars)*sizeof(buffer[0]));
+   MoveMemory((void*)&buffer[0], &buffer[bars], (bufferSize-bars)*sizeof(buffer[0]));
 
-   MoveMemory((void*)&buffer[0], &buffer[bars], (size-bars)*sizeof(buffer[0]));
-
-   for (int i=size-bars; i < size; i++) {
+   for (int i=bufferSize-bars; i < bufferSize; i++) {
       buffer[i] = emptyValue;
    }
    return(TRUE);
