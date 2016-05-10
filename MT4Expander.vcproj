@@ -335,6 +335,10 @@
 							>
 						</File>
 						<File
+							RelativePath=".\header\mql\structs\win32\TimezoneInformation.h"
+							>
+						</File>
+						<File
 							RelativePath=".\header\mql\structs\win32\Win32FindData.h"
 							>
 						</File>

@@ -45,7 +45,7 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
  *
  * @return char* - Name als C-String
  */
-char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
+const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
    int   size  = sizeof(tzi->StandardName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist
@@ -97,7 +97,7 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
  *
  * @return char* - Name als C-String
  */
-char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
+const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
    int   size  = sizeof(tzi->DaylightName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist

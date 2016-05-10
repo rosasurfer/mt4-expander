@@ -19,10 +19,10 @@
  *  LocalTime + Bias = GMT
  *  GMT + Offset     = LocalTime
  */
-LONG  WINAPI tzi_Bias        (const TIME_ZONE_INFORMATION* tzi                );
-char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi                );
-void  WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st);
-LONG  WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi                );
-char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi                );
-void  WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st);
-LONG  WINAPI tzi_DaylightBias(const TIME_ZONE_INFORMATION* tzi                );
+LONG        WINAPI tzi_Bias        (const TIME_ZONE_INFORMATION* tzi                );
+const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi                );
+void        WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st);
+LONG        WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi                );
+const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi                );
+void        WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st);
+LONG        WINAPI tzi_DaylightBias(const TIME_ZONE_INFORMATION* tzi                );
