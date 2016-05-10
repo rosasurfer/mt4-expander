@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mql/defines.h"
-#include "mql/errors.h"
+#include "shared/defines.h"
+#include "shared/errors.h"
 #include <math.h>
 #include <vector>
 
