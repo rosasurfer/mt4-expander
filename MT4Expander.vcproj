@@ -314,6 +314,30 @@
 					<Filter
 						Name="win32"
 						>
+						<File
+							RelativePath=".\header\mql\structs\win32\FileTime.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\win32\ProcessInformation.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\win32\SecurityAttributes.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\win32\StartupInfo.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\win32\SystemTime.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\win32\Win32FindData.h"
+							>
+						</File>
 					</Filter>
 				</Filter>
 			</Filter>
