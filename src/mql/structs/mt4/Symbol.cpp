@@ -628,7 +628,7 @@ int CompareSymbols(const void* a, const void* b) {
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI symbols_Sort(SYMBOL symbols[], int size) {
+BOOL WINAPI SortSymbols(SYMBOL symbols[], int size) {
    if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
    if (size <= 0)                         return(debug("ERROR:  invalid parameter size = %d", size));
    if (size == 1)          // nothing to sort
