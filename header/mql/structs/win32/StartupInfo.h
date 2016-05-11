@@ -1,3 +1,6 @@
+#pragma once
+
+
 /**
  * MQL-Interface zum Zugriff auf ein struct STARTUPINFOA (Ansi-Version).
  *
