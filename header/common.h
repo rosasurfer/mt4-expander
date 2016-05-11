@@ -99,4 +99,4 @@ std::string to_string(T value) {
 /**
  * Macro, daß die Größe eines Elements eines Typs ohne vorhandene Instanz des Typs ermittelt.
  */
-#define member_size(type, member) sizeof(((type*)0)->member)
+#define sizeofMember(type, member) sizeof(((type*)NULL)->member)
