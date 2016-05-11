@@ -306,6 +306,14 @@
 					<Filter
 						Name="mt4"
 						>
+						<File
+							RelativePath=".\header\mql\structs\mt4\Symbol.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\mt4\SymbolGroup.h"
+							>
+						</File>
 					</Filter>
 					<Filter
 						Name="myfx"

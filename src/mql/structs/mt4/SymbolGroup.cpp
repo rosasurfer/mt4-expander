@@ -1,11 +1,12 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct SYMBOL_GROUP (Dateiformat "symgroups.raw").
+ * MQL-Interface zum Zugriff auf ein MT4 struct SYMBOL_GROUP (Dateiformat "symgroups.raw").
  *
  * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
  */
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/mt4/SymbolGroup.h"
 
 
 /**
@@ -18,6 +19,37 @@
 const char* WINAPI sg_Name(const SYMBOL_GROUP* sg) {
    if ((uint)sg < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    return(sg->name);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die Beschreibung einer SYMBOL_GROUP zurück.
+ *
+ * @param  SYMBOL_GROUP* sg
+ *
+ * @return char* - Gruppenbeschreibung
+ */
+const char* WINAPI sg_Description(const SYMBOL_GROUP* sg) {
+   if ((uint)sg < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
+   return(sg->description);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die Hintergrundfarbe einer SYMBOL_GROUP im "Market Watch"-Window zurück.
+ *
+ * @param  SYMBOL_GROUP* sg
+ *
+ * @return uint - Farbe oder White, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
+ *                (CLR_NONE wird vom Terminal als Black interpretiert)
+ */
+uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
+   if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
+   if (sg->backgroundColor)
+      return(sg->backgroundColor);
+   return(White);
    #pragma EXPORT
 }
 
@@ -39,20 +71,6 @@ const char* WINAPI sgs_Name(const SYMBOL_GROUP sgs[], int index) {
 
 
 /**
- * Gibt die Beschreibung einer SYMBOL_GROUP zurück.
- *
- * @param  SYMBOL_GROUP* sg
- *
- * @return char* - Gruppenbeschreibung
- */
-const char* WINAPI sg_Description(const SYMBOL_GROUP* sg) {
-   if ((uint)sg < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
-   return(sg->description);
-   #pragma EXPORT
-}
-
-
-/**
  * Gibt die Beschreibung einer SYMBOL_GROUP innerhalb eines Arrays zurück.
  *
  * @param  SYMBOL_GROUP sgs[] - Array
@@ -64,23 +82,6 @@ const char* WINAPI sgs_Description(const SYMBOL_GROUP sgs[], int index) {
    if ((uint)sgs < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
    if (index     < 0)                 return((char*)debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
    return(sgs[index].description);
-   #pragma EXPORT
-}
-
-
-/**
- * Gibt die Hintergrundfarbe einer SYMBOL_GROUP im "Market Watch"-Window zurück.
- *
- * @param  SYMBOL_GROUP* sg
- *
- * @return uint - Farbe oder White, wenn für die Gruppe keine Hintergrundfarbe gesetzt ist
- *                (CLR_NONE wird vom Terminal als Black interpretiert)
- */
-uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
-   if ((uint)sg < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
-   if (sg->backgroundColor)
-      return(sg->backgroundColor);
-   return(White);
    #pragma EXPORT
 }
 
@@ -122,23 +123,6 @@ BOOL WINAPI sg_SetName(SYMBOL_GROUP* sg, const char* name) {
 
 
 /**
- * Setzt den Namen einer SYMBOL_GROUP innerhalb eines Arrays.
- *
- * @param  SYMBOL_GROUP sgs[] - Array
- * @param  int          index - Array-Index
- * @param  char*        name  - Name
- *
- * @return BOOL - Erfolgsstatus
- */
-BOOL WINAPI sgs_SetName(SYMBOL_GROUP sgs[], int index, const char* name) {
-   if ((uint)sgs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(sg_SetName(&sgs[index], name));
-   #pragma EXPORT
-}
-
-
-/**
  * Setzt die Bechreibung einer SYMBOL_GROUP.
  *
  * @param  SYMBOL_GROUP* sg
@@ -151,23 +135,6 @@ BOOL WINAPI sg_SetDescription(SYMBOL_GROUP* sg, const char* description) {
    if ((uint)description < MIN_VALID_POINTER)           return(debug("ERROR:  invalid parameter description = 0x%p (not a valid pointer)", description));
    if (strlen(description) > sizeof(sg->description)-1) return(debug("ERROR:  invalid parameter description = \"%s\" (max %d characters)", description, sizeof(sg->description)-1));
    return((BOOL)strcpy(sg->description, description));
-   #pragma EXPORT
-}
-
-
-/**
- * Setzt die Beschreibung einer SYMBOL_GROUP innerhalb eines Arrays.
- *
- * @param  SYMBOL_GROUP sgs[]       - Array
- * @param  int          index       - Array-Index
- * @param  char*        description - Beschreibung
- *
- * @return BOOL - Erfolgsstatus
- */
-BOOL WINAPI sgs_SetDescription(SYMBOL_GROUP sgs[], int index, const char* description) {
-   if ((uint)sgs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(sg_SetDescription(&sgs[index], description));
    #pragma EXPORT
 }
 
@@ -188,6 +155,40 @@ BOOL WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, uint color) {
    }
    sg->backgroundColor = color;
    return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Namen einer SYMBOL_GROUP innerhalb eines Arrays.
+ *
+ * @param  SYMBOL_GROUP sgs[] - Array
+ * @param  int          index - Array-Index
+ * @param  char*        name  - Name
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI sgs_SetName(SYMBOL_GROUP sgs[], int index, const char* name) {
+   if ((uint)sgs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(sg_SetName(&sgs[index], name));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Beschreibung einer SYMBOL_GROUP innerhalb eines Arrays.
+ *
+ * @param  SYMBOL_GROUP sgs[]       - Array
+ * @param  int          index       - Array-Index
+ * @param  char*        description - Beschreibung
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI sgs_SetDescription(SYMBOL_GROUP sgs[], int index, const char* description) {
+   if ((uint)sgs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(sg_SetDescription(&sgs[index], description));
    #pragma EXPORT
 }
 

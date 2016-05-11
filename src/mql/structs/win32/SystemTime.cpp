@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct SYSTEMTIME.
+ * MQL-Interface zum Zugriff auf ein Win32 struct SYSTEMTIME.
  *
  *
  * struct SYSTEMTIME {

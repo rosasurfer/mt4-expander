@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct FILETIME.
+ * MQL-Interface zum Zugriff auf ein Win32 struct FILETIME.
  *
  *
  * struct FILETIME {

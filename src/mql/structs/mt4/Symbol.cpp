@@ -1,9 +1,12 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct SYMBOL (Dateiformat "symbols.raw").
+ * MQL-Interface zum Zugriff auf ein MT4 struct SYMBOL (Dateiformat "symbols.raw").
+ *
+ * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/mt4/Symbol.h"
 
 
 /**
@@ -16,22 +19,6 @@
 const char* WINAPI symbol_Name(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->name);
-   #pragma EXPORT
-}
-
-
-/**
- * Gibt den Namen eines SYMBOLs in einem Array zurück.
- *
- * @param  SYMBOL symbols[] - Array
- * @param  int    index     - Array-Index
- *
- * @return char* - Gruppenname
- */
-const char* WINAPI symbols_Name(const SYMBOL symbols[], int index) {
-   if ((uint)symbols < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
-   if (index         < 0)                 return((char*)debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(symbols[index].name);
    #pragma EXPORT
 }
 
@@ -166,22 +153,6 @@ uint WINAPI symbol_ArrayKey(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Array-Key eines SYMBOLs in einem Array zurück.
- *
- * @param  SYMBOL symbols[] - Array
- * @param  int    index     - Array-Index
- *
- * @return uint - Array-Key
- */
-uint WINAPI symbols_ArrayKey(const SYMBOL symbols[], int index) {
-   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
-   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(symbols[index].arrayKey);
-   #pragma EXPORT
-}
-
-
-/**
  * Gibt die eindeutige ID eines SYMBOLs zurück. Diese ID ist eine feste Eigenschaft, sie ändert sich beim Speichern von "symbols.raw" nicht.
  *
  * @param  SYMBOL* symbol
@@ -191,22 +162,6 @@ uint WINAPI symbols_ArrayKey(const SYMBOL symbols[], int index) {
 uint WINAPI symbol_Id(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->id);
-   #pragma EXPORT
-}
-
-
-/**
- * Gibt die eindeutige ID eines SYMBOLs in einem Array zurück.
- *
- * @param  SYMBOL symbols[] - Array
- * @param  int    index     - Array-Index
- *
- * @return uint - ID
- */
-uint WINAPI symbols_Id(const SYMBOL symbols[], int index) {
-   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
-   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(symbols[index].id);
    #pragma EXPORT
 }
 
@@ -422,6 +377,54 @@ const char* WINAPI symbol_MarginCurrency(const SYMBOL* symbol) {
 
 
 /**
+ * Gibt den Namen eines SYMBOLs in einem Array zurück.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ *
+ * @return char* - Gruppenname
+ */
+const char* WINAPI symbols_Name(const SYMBOL symbols[], int index) {
+   if ((uint)symbols < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return((char*)debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(symbols[index].name);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt den Array-Key eines SYMBOLs in einem Array zurück.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ *
+ * @return uint - Array-Key
+ */
+uint WINAPI symbols_ArrayKey(const SYMBOL symbols[], int index) {
+   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(symbols[index].arrayKey);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die eindeutige ID eines SYMBOLs in einem Array zurück.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ *
+ * @return uint - ID
+ */
+uint WINAPI symbols_Id(const SYMBOL symbols[], int index) {
+   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(symbols[index].id);
+   #pragma EXPORT
+}
+
+
+/**
  * Setzt den Namen eines SYMBOLs.
  *
  * @param  SYMBOL* symbol
@@ -520,7 +523,6 @@ BOOL WINAPI symbol_SetDigits(SYMBOL* symbol, int digits) {
    #define ROUND_TO_DECIMAL_PLACES(x, decimal_places) (roundf(x * 1e##decimal_places) / 1e##decimal_places)
    smileyborg Mar 16 at 3:30
    */
-
    return(TRUE);
    #pragma EXPORT
 }
@@ -564,23 +566,6 @@ BOOL WINAPI symbol_SetId(SYMBOL* symbol, int id) {
 
 
 /**
- * Setzt die eindeutige ID eines SYMBOLs in einem Array.
- *
- * @param  SYMBOL symbols[] - Array
- * @param  int    index     - Array-Index
- * @param  int    id
- *
- * @return BOOL - Erfolgsstatus
- */
-BOOL WINAPI symbols_SetId(SYMBOL symbols[], int index, int id) {
-   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
-   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
-   return(symbol_SetId(&symbols[index], id));
-   #pragma EXPORT
-}
-
-
-/**
  * Setzt die Marginwährung eines SYMBOLs.
  *
  * @param  SYMBOL* symbol
@@ -594,6 +579,23 @@ BOOL WINAPI symbol_SetMarginCurrency(SYMBOL* symbol, const char* currency) {
    int len = strlen(currency);
    if (len!=3 || len > sizeof(symbol->marginCurrency)-1) return(debug("ERROR:  invalid parameter currency = \"%s\" (3 characters)", currency));
    return((BOOL)strcpy(symbol->marginCurrency, currency));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die eindeutige ID eines SYMBOLs in einem Array.
+ *
+ * @param  SYMBOL symbols[] - Array
+ * @param  int    index     - Array-Index
+ * @param  int    id
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI symbols_SetId(SYMBOL symbols[], int index, int id) {
+   if ((uint)symbols < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
+   if (index         < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+   return(symbol_SetId(&symbols[index], id));
    #pragma EXPORT
 }
 

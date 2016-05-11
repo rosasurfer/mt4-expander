@@ -9,7 +9,7 @@
 #ifdef EXPANDER_EXPORTS
  //#define EXPANDER_API extern "C" __declspec(dllexport)
    #define EXPANDER_API                                                             // empty define
-   #define EXPORT       comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)     // export unmangled names w/o DEF file
+   #define EXPORT       comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)     // export unmangled names without DEF file
 #else
    #define EXPANDER_API extern "C" __declspec(dllimport)
 #endif
@@ -67,87 +67,6 @@ enum LaunchType {
 
 
 /**
- * MT4 struct SYMBOL (Dateiformat "symbols.raw")
- *
- * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
- */
-struct SYMBOL {                                    // -- offset ---- size --- description ----------------------------------------------------------------------------
-   char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol         (szchar) z.B. "AUDCAD.mkt"
-   char   description [54];                        //        12        54     Beschreibung   (szchar)
-   char   origin      [10];                        //        66        10     pewa: ehemaliges Symbol, 10 Zeichen (szchar)
-   char   altName     [MAX_SYMBOL_LENGTH+1];       //        76        12     Standardsymbol (szchar) z.B. "AUDCAD" (falls ungleich 'name')
-   char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //        88        12     Base Currency
-   uint   group;                                   //       100         4     Index der Symbolgruppe in "symgroups.raw"
-   uint   digits;                                  //       104         4     Digits
-
-   uint   tradeMode;                               //       108         4     0=No|1=Close|2=Full
-   uint   backgroundColor;                         //       112         4     Farbe im "MarketWatch" Window
-   uint   arrayKey;                                //       116         4     eindeutige, aber variable Array-ID >= 0 (nicht der Array-Index)
-   uint   id;                                      //       120         4     eindeutige und feste Symbol-ID >= 0
-
-   BYTE   unknown1[32];                            //       124        32
-
-   BYTE   unknownM1 [208];                         //       156       208
-   BYTE   unknownM5 [208];                         //       364       208
-   BYTE   unknownM15[208];                         //       572       208
-   BYTE   unknownM30[208];                         //       780       208
-   BYTE   unknownH1 [208];                         //       988       208
-   BYTE   unknownH4 [208];                         //      1196       208
-   BYTE   unknownD1 [208];                         //      1404       208
-
-   BYTE   unknown2[16];                            //      1612        16
-   DWORD  unknown3;                                //      1628         4     ?
-   DWORD  unknown4;                                //      1632         4
-   DWORD  _alignment1;                             //      1636         4     (alignment to the next double)
-   double unknown5;                                //      1640         8     ?
-   BYTE   unknown6[12];                            //      1648        12
-
-   uint   spread;                                  //      1660         4     Spread in Points: 0=current spread (variable)
-   BYTE   unknown7[8];                             //      1664         8
-
-   BOOL   swapEnabled;                             //      1672         4     ob Swaps berechnet werden
-   uint   swapType;                                //      1676         4     0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency = MarketInfo(MODE_SWAPTYPE)
-   double swapLongValue;                           //      1680         8     Swap Long
-   double swapShortValue;                          //      1688         8     Swap Short
-   uint   swapTripleRolloverDay;                   //      1696         4     weekday of triple swaps = WEDNESDAY|FRIDAY
-
-   DWORD  _alignment2;                             //      1700         4     (alignment to the next double)
-   double contractSize;                            //      1704         8     Lot Size
-   BYTE   unknown8[16];                            //      1712        16
-
-   uint   stopDistance;                            //      1728         4     Stop Level
-   BYTE   unknown9[8];                             //      1732         8
-   DWORD  _alignment3;                             //      1740         4     (alignment to the next double)
-
-   double marginInit;                              //      1744         8     Margin Init        (0=ContractSize)
-   double marginMaintenance;                       //      1752         8     Margin Maintenance (0=ContractSize)
-   double marginHedged;                            //      1760         8     Margin Hedged
-   double marginDivider;                           //      1768         8     Leverage: relativ zum Account oder absolut (CustomLeverage)
-
-   double pointSize;                               //      1776         8     Point Size
-   double pointsPerUnit;                           //      1784         8     Points per Unit
-
-   BYTE   unknown10[24];                           //      1792        24
-   char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     Margin Currency (szchar)
-
-   BYTE   unknown11[104];                          //      1828       104
-   int    unknown12;                               //      1932         4     ?
-};                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //              = 1936
-
-/**
- * MT4 struct SYMBOL_GROUP (Dateiformat "symgroups.raw")
- *
- * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
- */
-struct SYMBOL_GROUP {                              // -- offset ---- size --- description ----------------------------------------------------------------------------
-   char name       [16];                           //         0        16     Name         (szchar)
-   char description[60];                           //        16        60     Beschreibung (szchar)
-   int  backgroundColor;          // custom (pewa) //        76         4     Farbe im "Market Watch" Window
-};                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //                = 80
-
-/**
  * MT4 struct SYMBOL_SELECTED (Dateiformat "symbols.sel")
  */
 struct SYMBOL_SELECTED {                           // -- offset ---- size --- description ----------------------------------------------------------------------------
@@ -200,15 +119,15 @@ struct TICK {                                      // -- offset ---- size --- de
  * HistoryFile Header
  */
 struct HISTORY_HEADER {                            // -- offset ---- size --- description ----------------------------------------------------------------------------
-   uint  format;                                   //         0         4     Barformat, bis Build 509: 400, danach: 401
-   char  description[64];                          //         4        64     Beschreibung (szchar)
-   char  symbol[MAX_SYMBOL_LENGTH+1];              //        68        12     Symbol       (szchar)
-   uint  period;                                   //        80         4     Timeframe in Minuten
-   uint  digits;                                   //        84         4     Digits
-   uint  syncMarker;                               //        88         4     SyncMarker   (timestamp), wird vom Terminal beim Refresh mit Serverversion überschrieben
-   uint  lastSyncTime;                             //        92         4     LastSyncTime (unbenutzt), wird vom Terminal nicht überschrieben
-   uint  timezoneId;              // custom (pewa) //        96         4     Timezone-ID  (default: 0 => Server-Timezone)
-   BYTE  reserved[48];                             //       100        48
+   uint format;                                    //         0         4     Barformat, bis Build 509: 400, danach: 401
+   char description[64];                           //         4        64     Beschreibung (szchar)
+   char symbol[MAX_SYMBOL_LENGTH+1];               //        68        12     Symbol       (szchar)
+   uint period;                                    //        80         4     Timeframe in Minuten
+   uint digits;                                    //        84         4     Digits
+   uint syncMarker;                                //        88         4     SyncMarker   (timestamp), wird vom Terminal beim Refresh mit Serverversion überschrieben
+   uint lastSyncTime;                              //        92         4     LastSyncTime (unbenutzt), wird vom Terminal nicht überschrieben
+   uint timezoneId;              // custom (pewa)  //        96         4     Timezone-ID  (default: 0 => Server-Timezone)
+   BYTE reserved[48];                              //       100        48
 };                                                 // ----------------------------------------------------------------------------------------------------------------
                                                    //               = 148
 
@@ -415,31 +334,31 @@ const char*  WINAPI ec_setSymbol      (EXECUTION_CONTEXT* ec, const char* symbol
       uint   WINAPI ec_setTimeframe   (EXECUTION_CONTEXT* ec, uint timeframe);
 const char*  WINAPI ec_setLogFile     (EXECUTION_CONTEXT* ec, const char* fileName);
 
-BOOL  WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
-BOOL  WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);
+BOOL         WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
+BOOL         WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);
 
-      void  WINAPI SetLogLevel(int level);
-      HWND  WINAPI GetApplicationWindow();
-      DWORD WINAPI GetUIThreadId();
-      BOOL  WINAPI IsUIThread();
-      int   WINAPI GetBoolsAddress  (BOOL   values[]);
-      int   WINAPI GetIntsAddress   (int    values[]);   int WINAPI GetBufferAddress(int values[]);   // Alias
-      int   WINAPI GetDoublesAddress(double values[]);
-      int   WINAPI GetStringsAddress(MqlStr values[]);
-      int   WINAPI GetStringAddress (char*  value   );
-const char* WINAPI GetString        (char*  value   );
-      int   WINAPI GetLastWin32Error();
-      BOOL  WINAPI IsCustomTimeframe(int timeframe);
-      BOOL  WINAPI IsStdTimeframe(int timeframe);
-const char* WINAPI IntToHexStr(int value);
-      uint  WINAPI MT4InternalMsg();
+void         WINAPI SetLogLevel(int level);
+HWND         WINAPI GetApplicationWindow();
+DWORD        WINAPI GetUIThreadId();
+BOOL         WINAPI IsUIThread();
+int          WINAPI GetBoolsAddress  (BOOL   values[]);
+int          WINAPI GetIntsAddress   (int    values[]);   int WINAPI GetBufferAddress(int values[]);   // Alias
+int          WINAPI GetDoublesAddress(double values[]);
+int          WINAPI GetStringsAddress(MqlStr values[]);
+int          WINAPI GetStringAddress (char*  value   );
+const char*  WINAPI GetString        (char*  value   );
+int          WINAPI GetLastWin32Error();
+BOOL         WINAPI IsCustomTimeframe(int timeframe);
+BOOL         WINAPI IsStdTimeframe(int timeframe);
+const char*  WINAPI IntToHexStr(int value);
+uint         WINAPI MT4InternalMsg();
 
-const char* WINAPI ModuleTypeDescription  (ModuleType  type);
-const char* WINAPI ModuleTypeToStr        (ModuleType  type);
-const char* WINAPI PeriodDescription      (int period);        const char* WINAPI TimeframeDescription(int timeframe);   // Alias
-const char* WINAPI PeriodToStr            (int period);        const char* WINAPI TimeframeToStr      (int timeframe);   // Alias
-const char* WINAPI ProgramTypeDescription (ProgramType type);
-const char* WINAPI ProgramTypeToStr       (ProgramType type);
-const char* WINAPI RootFunctionName       (RootFunction id);
-const char* WINAPI RootFunctionToStr      (RootFunction id);
-const char* WINAPI UninitializeReasonToStr(UninitializeReason reason);
+const char*  WINAPI ModuleTypeDescription  (ModuleType  type);
+const char*  WINAPI ModuleTypeToStr        (ModuleType  type);
+const char*  WINAPI PeriodDescription      (int period);        const char* WINAPI TimeframeDescription(int timeframe);   // Alias
+const char*  WINAPI PeriodToStr            (int period);        const char* WINAPI TimeframeToStr      (int timeframe);   // Alias
+const char*  WINAPI ProgramTypeDescription (ProgramType type);
+const char*  WINAPI ProgramTypeToStr       (ProgramType type);
+const char*  WINAPI RootFunctionName       (RootFunction id);
+const char*  WINAPI RootFunctionToStr      (RootFunction id);
+const char*  WINAPI UninitializeReasonToStr(UninitializeReason reason);

@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct TIME_ZONE_INFORMATION.
+ * MQL-Interface zum Zugriff auf ein Win32 struct TIME_ZONE_INFORMATION.
  *
  *
  * struct TIME_ZONE_INFORMATION {

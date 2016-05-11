@@ -1,6 +1,7 @@
 #pragma once
+
 /**
- * MQL-Interface zum Zugriff auf ein struct PROCESS_INFORMATION.
+ * MQL-Interface zum Zugriff auf ein Win32 struct PROCESS_INFORMATION.
  *
  *
  * struct PROCESS_INFORMATION {

@@ -1,6 +1,7 @@
 #pragma once
+
 /**
- * MQL-Interface zum Zugriff auf ein struct WIN32_FIND_DATAA (Ansi-Version).
+ * MQL-Interface zum Zugriff auf ein Win32 struct WIN32_FIND_DATAA (Ansi-Version).
  *
  *
  * struct WIN32_FIND_DATAA {

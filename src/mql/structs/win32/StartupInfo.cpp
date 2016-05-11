@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct STARTUPINFOA (Ansi-Version).
+ * MQL-Interface zum Zugriff auf ein Win32 struct STARTUPINFOA (Ansi-Version).
  *
  *
  * struct STARTUPINFOA {
