@@ -81,8 +81,6 @@ BOOL onProcessDetach() {
  *
  * @return BOOL - Erfolgsstatus
  *
- * @mql-import:  bool SyncMainExecutionContext(int ec[], int programType, string programName, int rootFunction, int reason, string symbol, int period);
- *
  *
  * Notes:
  * ------
@@ -231,8 +229,6 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
  *
  * @return BOOL - Erfolgsstatus
  *
- * @mql-import:  bool SyncLibExecutionContext(int ec[], string name, int rootFunction, string symbol, int period);
- *
  *
  * Notes:
  * ------
@@ -340,8 +336,6 @@ void WINAPI SetLogLevel(int level) {
  * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".
  *
  * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
- *
- * @mql-import:  int MT4InternalMsg();
  */
 uint WINAPI MT4InternalMsg() {
    static uint msgId;
@@ -384,7 +378,7 @@ int WINAPI Test() {
    delete test;
    return(0);
 
-   debug("sizeof(EXECUTION_CONTEXT) = "+ to_string(sizeof(EXECUTION_CONTEXT)));
+   debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
    /*
    debug("error.code=%d  error.message=%s", error->code, error->message);
    error->code    = 200;

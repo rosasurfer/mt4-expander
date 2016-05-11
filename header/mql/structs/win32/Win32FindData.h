@@ -1,8 +1,6 @@
 #pragma once
-
-
 /**
- * MQL-Interface zum Zugriff auf ein struct WIN32_FIND_DATAA (nur Ansi-Version).
+ * MQL-Interface zum Zugriff auf ein struct WIN32_FIND_DATAA (Ansi-Version).
  *
  *
  * struct WIN32_FIND_DATAA {
@@ -16,11 +14,8 @@
  *    DWORD    dwReserved1;               //   4
  *    CHAR     cFileName[MAX_PATH];       // 260
  *    CHAR     cAlternateFileName[14];    //  14
- * };                                     // 318 byte
+ * } WIN32_FIND_DATA;                     // 318 byte
  */
-const char* WINAPI wfd_FileName                  (const WIN32_FIND_DATAA* wfd);
-const char* WINAPI wfd_AlternateFileName         (const WIN32_FIND_DATAA* wfd);
-
 DWORD       WINAPI wfd_FileAttributes            (const WIN32_FIND_DATAA* wfd);
 BOOL        WINAPI wfd_FileAttribute_ReadOnly    (const WIN32_FIND_DATAA* wfd);
 BOOL        WINAPI wfd_FileAttribute_Hidden      (const WIN32_FIND_DATAA* wfd);
@@ -37,3 +32,6 @@ BOOL        WINAPI wfd_FileAttribute_Offline     (const WIN32_FIND_DATAA* wfd);
 BOOL        WINAPI wfd_FileAttribute_NotIndexed  (const WIN32_FIND_DATAA* wfd);
 BOOL        WINAPI wfd_FileAttribute_Encrypted   (const WIN32_FIND_DATAA* wfd);
 BOOL        WINAPI wfd_FileAttribute_Virtual     (const WIN32_FIND_DATAA* wfd);
+//                 ...
+const char* WINAPI wfd_FileName                  (const WIN32_FIND_DATAA* wfd);
+const char* WINAPI wfd_AlternateFileName         (const WIN32_FIND_DATAA* wfd);

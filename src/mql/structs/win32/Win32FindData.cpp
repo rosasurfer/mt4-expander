@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct WIN32_FIND_DATAA (nur Ansi-Version).
+ * MQL-Interface zum Zugriff auf ein struct WIN32_FIND_DATAA (Ansi-Version).
  *
  *
  * struct WIN32_FIND_DATAA {
@@ -13,7 +13,7 @@
  *    DWORD    dwReserved1;               //   4
  *    CHAR     cFileName[MAX_PATH];       // 260
  *    CHAR     cAlternateFileName[14];    //  14
- * };                                     // 318 byte
+ * } WIN32_FIND_DATA;                     // 318 byte
  */
 #include "stdafx.h"
 #include "global.h"
@@ -21,7 +21,7 @@
 
 
 /**
- * Gibt die Dateiattribute eines WIN32_FIND_DATAA-Structs zurück.
+ * Gibt die Dateiattribute eines WIN32_FIND_DATA-Structs zurück.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -35,7 +35,7 @@ DWORD WINAPI wfd_FileAttributes(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das ReadOnly-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das ReadOnly-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -49,7 +49,7 @@ BOOL WINAPI wfd_FileAttribute_ReadOnly(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Hidden-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Hidden-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -63,7 +63,7 @@ BOOL WINAPI wfd_FileAttribute_Hidden(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das System-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das System-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -77,7 +77,7 @@ BOOL WINAPI wfd_FileAttribute_System(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Directory-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Directory-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -91,7 +91,7 @@ BOOL WINAPI wfd_FileAttribute_Directory(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Archive-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Archive-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -105,7 +105,7 @@ BOOL WINAPI wfd_FileAttribute_Archive(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Device-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Device-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -119,7 +119,7 @@ BOOL WINAPI wfd_FileAttribute_Device(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Normal-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Normal-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -133,7 +133,7 @@ BOOL WINAPI wfd_FileAttribute_Normal(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Temporary-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Temporary-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -147,7 +147,7 @@ BOOL WINAPI wfd_FileAttribute_Temporary(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das SparseFile-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das SparseFile-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -161,7 +161,7 @@ BOOL WINAPI wfd_FileAttribute_SparseFile(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das ReparsePoint-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das ReparsePoint-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -175,7 +175,7 @@ BOOL WINAPI wfd_FileAttribute_ReparsePoint(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Compressed-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Compressed-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -189,7 +189,7 @@ BOOL WINAPI wfd_FileAttribute_Compressed(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Offline-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Offline-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -203,7 +203,7 @@ BOOL WINAPI wfd_FileAttribute_Offline(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das ContentNotIndexed-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das ContentNotIndexed-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -217,7 +217,7 @@ BOOL WINAPI wfd_FileAttribute_NotIndexed(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Encrypted-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Encrypted-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -231,7 +231,7 @@ BOOL WINAPI wfd_FileAttribute_Encrypted(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Ob das Virtual-Dateiattribut eines WIN32_FIND_DATAA-Structs gesetzt ist.
+ * Ob das Virtual-Dateiattribut eines WIN32_FIND_DATA-Structs gesetzt ist.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -245,7 +245,7 @@ BOOL WINAPI wfd_FileAttribute_Virtual(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Gibt den Dateinamen eines WIN32_FIND_DATAA-Structs zurück.
+ * Gibt den Dateinamen eines WIN32_FIND_DATA-Structs zurück.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -259,7 +259,7 @@ const char* WINAPI wfd_FileName(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Gibt den alternativen Dateinamen eines WIN32_FIND_DATAA-Structs zurück.
+ * Gibt den alternativen Dateinamen eines WIN32_FIND_DATA-Structs zurück.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *

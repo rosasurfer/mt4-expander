@@ -1,6 +1,4 @@
 #pragma once
-
-
 /**
  * MQL-Interface zum Zugriff auf ein struct TIME_ZONE_INFORMATION.
  *
@@ -9,10 +7,10 @@
  *    LONG       Bias;                 //   4         in Minuten
  *    WCHAR      StandardName[32];     //  64         z.B. "G…T…B… …N…o…r…m…a…l…z…e…i…t", <NUL><NUL>-terminiert
  *    SYSTEMTIME StandardDate;         //  16
- *    LONG       StandardBias;         //   4
+ *    LONG       StandardBias;         //   4         in Minuten
  *    WCHAR      DaylightName[32];     //  64         z.B. "G…T…B… …S…o…m…m…e…r…z…e…i…t", <NUL><NUL>-terminiert
  *    SYSTEMTIME DaylightDate;         //  16
- *    LONG       DaylightBias;         //   4
+ *    LONG       DaylightBias;         //   4         in Minuten
  * };                                  // 172 byte
  *
  *

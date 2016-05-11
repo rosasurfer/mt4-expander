@@ -1,6 +1,4 @@
 #pragma once
-
-
 /**
  * MQL-Interface zum Zugriff auf ein struct SECURITY_ATTRIBUTES.
  *
