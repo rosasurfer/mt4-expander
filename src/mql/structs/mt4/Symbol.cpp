@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein MT4 struct SYMBOL (Dateiformat "symbols.raw").
+ * MT4 struct SYMBOL (Dateiformat "symbols.raw")
  *
  * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */

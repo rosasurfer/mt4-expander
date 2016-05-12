@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein Win32 struct TIME_ZONE_INFORMATION.
+ * Win32 struct TIME_ZONE_INFORMATION
  *
  *
  * struct TIME_ZONE_INFORMATION {
@@ -22,6 +22,7 @@
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/win32/TimeZoneInformation.h"
 
 
 /**

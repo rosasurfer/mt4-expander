@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein Win32 struct FILETIME.
+ * Win32 struct FILETIME
  *
  *
  * struct FILETIME {
@@ -10,6 +10,7 @@
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/win32/FileTime.h"
 
 
 /**

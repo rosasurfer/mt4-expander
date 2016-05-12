@@ -229,7 +229,7 @@
 							>
 						</File>
 						<File
-							RelativePath=".\src\mql\structs\win32\TimezoneInformation.cpp"
+							RelativePath=".\src\mql\structs\win32\TimeZoneInformation.cpp"
 							>
 						</File>
 						<File
@@ -262,6 +262,14 @@
 						</File>
 						<File
 							RelativePath=".\src\mql\structs\mt4\SymbolGroup.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\structs\mt4\SymbolSelected.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\src\mql\structs\mt4\Tick.cpp"
 							>
 						</File>
 					</Filter>
@@ -307,11 +315,23 @@
 						Name="mt4"
 						>
 						<File
+							RelativePath=".\header\mql\structs\mt4\HistoryHeader.h"
+							>
+						</File>
+						<File
 							RelativePath=".\header\mql\structs\mt4\Symbol.h"
 							>
 						</File>
 						<File
 							RelativePath=".\header\mql\structs\mt4\SymbolGroup.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\mt4\SymbolSelected.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\mt4\Tick.h"
 							>
 						</File>
 					</Filter>

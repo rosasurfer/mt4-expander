@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein Win32 struct STARTUPINFOA (Ansi-Version).
+ * Win32 struct STARTUPINFOA (Ansi-Version)
  *
  *
  * struct STARTUPINFOA {
@@ -26,6 +26,7 @@
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/win32/StartupInfo.h"
 
 
 /**

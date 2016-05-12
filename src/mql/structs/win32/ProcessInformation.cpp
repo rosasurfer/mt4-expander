@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein Win32 struct PROCESS_INFORMATION.
+ * Win32 struct PROCESS_INFORMATION
  *
  *
  * struct PROCESS_INFORMATION {
@@ -12,6 +12,7 @@
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/win32/ProcessInformation.h"
 
 
 /**

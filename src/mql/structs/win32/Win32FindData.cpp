@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein Win32 struct WIN32_FIND_DATAA (Ansi-Version).
+ * Win32 struct WIN32_FIND_DATAA (Ansi-Version)
  *
  *
  * struct WIN32_FIND_DATAA {
@@ -18,6 +18,7 @@
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/win32/Win32FindData.h"
 
 
 /**

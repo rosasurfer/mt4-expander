@@ -1,5 +1,5 @@
 /**
- * MQL-Interface zum Zugriff auf ein Win32 struct SECURITY_ATTRIBUTES.
+ * Win32 struct SECURITY_ATTRIBUTES
  *
  *
  * struct SECURITY_ATTRIBUTES {
@@ -11,6 +11,7 @@
 #include "stdafx.h"
 #include "global.h"
 #include "Expander.h"
+#include "mql/structs/win32/SecurityAttributes.h"
 
 
 /**

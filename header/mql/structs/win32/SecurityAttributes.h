@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * MQL-Interface zum Zugriff auf ein Win32 struct SECURITY_ATTRIBUTES.
+ * Win32 struct SECURITY_ATTRIBUTES
  *
  *
  * struct SECURITY_ATTRIBUTES {
