@@ -114,9 +114,10 @@ uint WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sgs[], int index) {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI sg_SetName(SYMBOL_GROUP* sg, const char* name) {
-   if ((uint)sg   < MIN_VALID_POINTER)    return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
-   if ((uint)name < MIN_VALID_POINTER)    return(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
-   if (strlen(name) > sizeof(sg->name)-1) return(debug("ERROR:  invalid parameter name = \"%s\" (max %d characters)", name, sizeof(sg->name)-1));
+   if ((uint)sg   < MIN_VALID_POINTER)   return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
+   if ((uint)name < MIN_VALID_POINTER)   return(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   int len = strlen(name);
+   if (!len || len > sizeof(sg->name)-1) return(debug("ERROR:  illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(sg->name)-1));
    return((BOOL)strcpy(sg->name, name));
    #pragma EXPORT
 }
@@ -126,14 +127,14 @@ BOOL WINAPI sg_SetName(SYMBOL_GROUP* sg, const char* name) {
  * Setzt die Bechreibung einer SYMBOL_GROUP.
  *
  * @param  SYMBOL_GROUP* sg
- * @param  char*         description
+ * @param  char*         description - eine vorhandene Beschreibung kann mit einem Leerstring gelöscht werden
  *
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI sg_SetDescription(SYMBOL_GROUP* sg, const char* description) {
    if ((uint)sg          < MIN_VALID_POINTER)           return(debug("ERROR:  invalid parameter sg = 0x%p (not a valid pointer)", sg));
    if ((uint)description < MIN_VALID_POINTER)           return(debug("ERROR:  invalid parameter description = 0x%p (not a valid pointer)", description));
-   if (strlen(description) > sizeof(sg->description)-1) return(debug("ERROR:  invalid parameter description = \"%s\" (max %d characters)", description, sizeof(sg->description)-1));
+   if (strlen(description) > sizeof(sg->description)-1) return(debug("ERROR:  illegal length of parameter description = \"%s\" (max %d characters)", description, sizeof(sg->description)-1));
    return((BOOL)strcpy(sg->description, description));
    #pragma EXPORT
 }

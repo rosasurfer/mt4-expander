@@ -433,9 +433,10 @@ uint WINAPI symbols_Id(const SYMBOL symbols[], int index) {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI symbol_SetName(SYMBOL* symbol, const char* name) {
-   if ((uint)symbol < MIN_VALID_POINTER)      return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if ((uint)name   < MIN_VALID_POINTER)      return(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
-   if (strlen(name) > sizeof(symbol->name)-1) return(debug("ERROR:  invalid parameter name = \"%s\" (max %d characters)", name, sizeof(symbol->name)-1));
+   if ((uint)symbol < MIN_VALID_POINTER)     return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if ((uint)name   < MIN_VALID_POINTER)     return(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   int len = strlen(name);
+   if (!len || len > sizeof(symbol->name)-1) return(debug("ERROR:  illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(symbol->name)-1));
    return((BOOL)strcpy(symbol->name, name));
    #pragma EXPORT
 }
@@ -445,14 +446,14 @@ BOOL WINAPI symbol_SetName(SYMBOL* symbol, const char* name) {
  * Setzt die Bechreibung eines SYMBOLs.
  *
  * @param  SYMBOL* symbol
- * @param  char*   description
+ * @param  char*   description - eine vorhandene Beschreibung kann mit einem Leerstring gelöscht werden
  *
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI symbol_SetDescription(SYMBOL* symbol, const char* description) {
    if ((uint)symbol      < MIN_VALID_POINTER)               return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((uint)description < MIN_VALID_POINTER)               return(debug("ERROR:  invalid parameter description = 0x%p (not a valid pointer)", description));
-   if (strlen(description) > sizeof(symbol->description)-1) return(debug("ERROR:  invalid parameter description = \"%s\" (max %d characters)", description, sizeof(symbol->description)-1));
+   if (strlen(description) > sizeof(symbol->description)-1) return(debug("ERROR:  illegal length of parameter description = \"%s\" (max %d characters)", description, sizeof(symbol->description)-1));
    return((BOOL)strcpy(symbol->description, description));
    #pragma EXPORT
 }
@@ -470,7 +471,7 @@ BOOL WINAPI symbol_SetBaseCurrency(SYMBOL* symbol, const char* currency) {
    if ((uint)symbol   < MIN_VALID_POINTER)             return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((uint)currency < MIN_VALID_POINTER)             return(debug("ERROR:  invalid parameter currency = 0x%p (not a valid pointer)", currency));
    int len = strlen(currency);
-   if (len!=3 || len > sizeof(symbol->baseCurrency)-1) return(debug("ERROR:  invalid parameter currency = \"%s\" (3 characters)", currency));
+   if (len!=3 || len > sizeof(symbol->baseCurrency)-1) return(debug("ERROR:  illegal length of parameter currency = \"%s\" (3 characters)", currency));
    return((BOOL)strcpy(symbol->baseCurrency, currency));
    #pragma EXPORT
 }
@@ -577,7 +578,7 @@ BOOL WINAPI symbol_SetMarginCurrency(SYMBOL* symbol, const char* currency) {
    if ((uint)symbol   < MIN_VALID_POINTER)               return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((uint)currency < MIN_VALID_POINTER)               return(debug("ERROR:  invalid parameter currency = 0x%p (not a valid pointer)", currency));
    int len = strlen(currency);
-   if (len!=3 || len > sizeof(symbol->marginCurrency)-1) return(debug("ERROR:  invalid parameter currency = \"%s\" (3 characters)", currency));
+   if (len!=3 || len > sizeof(symbol->marginCurrency)-1) return(debug("ERROR:  illegal length of parameter currency = \"%s\" (3 characters)", currency));
    return((BOOL)strcpy(symbol->marginCurrency, currency));
    #pragma EXPORT
 }

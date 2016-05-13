@@ -66,6 +66,15 @@ uint WINAPI hh_Period(const HISTORY_HEADER* hh) {
 
 
 /**
+ * Alias
+ */
+uint WINAPI hh_Timeframe(const HISTORY_HEADER* hh) {
+   return(hh_Period(hh));
+   #pragma EXPORT
+}
+
+
+/**
  * Gibt die Digits eines HISTORY_HEADERs zurück.
  *
  * @param  HISTORY_HEADER* hh
@@ -172,6 +181,15 @@ uint WINAPI hhs_Period(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
+ * Alias
+ */
+uint WINAPI hhs_Timeframe(const HISTORY_HEADER hhs[], int index) {
+   return(hhs_Period(hhs, index));
+   #pragma EXPORT
+}
+
+
+/**
  * Gibt die Digits eines HISTORY_HEADERs in einem Array zurück.
  *
  * @param  HISTORY_HEADER hhs[] - Array
@@ -236,7 +254,116 @@ BOOL WINAPI hh_SetBarFormat(HISTORY_HEADER* hh, int format) {
 }
 
 
-// --------------------------------------------------------------------------------------------------------------------------------
+/**
+ * Setzt die Bechreibung eines HISTORY_HEADERs.
+ *
+ * @param  HISTORY_HEADER* hh
+ * @param  char*           description - eine vorhandene Beschreibung kann mit einem Leerstring gelöscht werden
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hh_SetDescription(HISTORY_HEADER* hh, const char* description) {
+   if ((uint)hh          < MIN_VALID_POINTER)           return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
+   if ((uint)description < MIN_VALID_POINTER)           return(debug("ERROR:  invalid parameter description = 0x%p (not a valid pointer)", description));
+   if (strlen(description) > sizeof(hh->description)-1) return(debug("ERROR:  illegal length of parameter description = \"%s\" (max %d characters)", description, sizeof(hh->description)-1));
+   return((BOOL)strcpy(hh->description, description));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt das Symbol eines HISTORY_HEADERs.
+ *
+ * @param  HISTORY_HEADER* hh
+ * @param  char*           symbol
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hh_SetSymbol(HISTORY_HEADER* hh, const char* symbol) {
+   if ((uint)hh     < MIN_VALID_POINTER)   return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
+   if ((uint)symbol < MIN_VALID_POINTER)   return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   int len = strlen(symbol);
+   if (!len || len > sizeof(hh->symbol)-1) return(debug("ERROR:  illegal length of parameter symbol = \"%s\" (must be 1 to %d characters)", symbol, sizeof(hh->symbol)-1));
+   return((BOOL)strcpy(hh->symbol, symbol));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Periode eines HISTORY_HEADERs.
+ *
+ * @param  HISTORY_HEADER* hh
+ * @param  int             period
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hh_SetPeriod(HISTORY_HEADER* hh, int period) {
+   if ((uint)hh < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
+   if (period <= 0)                  return(debug("ERROR:  invalid parameter period = %d (must be greater than zero)", period));
+   hh->period = period;
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Alias
+ */
+BOOL WINAPI hh_SetTimeframe(HISTORY_HEADER* hh, int timeframe) {
+   return(hh_SetPeriod(hh, timeframe));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Digits eines HISTORY_HEADERs.
+ *
+ * @param  HISTORY_HEADER* hh
+ * @param  int             digits
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hh_SetDigits(HISTORY_HEADER* hh, int digits) {
+   if ((uint)hh < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
+   if (digits < 0)                   return(debug("ERROR:  invalid parameter digits = %d", digits));
+   hh->digits = digits;
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den SyncMarker eines HISTORY_HEADERs.
+ *
+ * @param  HISTORY_HEADER* hh
+ * @param  int             timestamp
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hh_SetSyncMarker(HISTORY_HEADER* hh, int timestamp) {
+   if ((uint)hh  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
+   if (timestamp < 0)                 return(debug("ERROR:  invalid parameter timestamp = %d (must be non-negative)", timestamp));
+   hh->syncMarker = timestamp;
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die LastSyncTime eines HISTORY_HEADERs.
+ *
+ * @param  HISTORY_HEADER* hh
+ * @param  int             timestamp
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hh_SetLastSyncTime(HISTORY_HEADER* hh, int timestamp) {
+   if ((uint)hh  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
+   if (timestamp < 0)                 return(debug("ERROR:  invalid parameter timestamp = %d (must be non-negative)", timestamp));
+   hh->lastSyncTime = timestamp;
+   return(TRUE);
+   #pragma EXPORT
+}
 
 
 /**
@@ -252,5 +379,116 @@ BOOL WINAPI hhs_SetBarFormat(HISTORY_HEADER hhs[], int index, int format) {
    if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
    if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
    return(hh_SetBarFormat(&hhs[index], format));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Beschreibung eines HISTORY_HEADERs innerhalb eines Arrays.
+ *
+ * @param  HISTORY_HEADER hhs[]       - Array
+ * @param  int            index       - Array-Index
+ * @param  char*          description - Beschreibung
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hhs_SetDescription(HISTORY_HEADER hhs[], int index, const char* description) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(hh_SetDescription(&hhs[index], description));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt das Symbol eines HISTORY_HEADERs innerhalb eines Arrays.
+ *
+ * @param  HISTORY_HEADER hhs[]  - Array
+ * @param  int            index  - Array-Index
+ * @param  char*          symbol - Symbol
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hhs_SetSymbol(HISTORY_HEADER hhs[], int index, const char* symbol) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+   return(hh_SetSymbol(&hhs[index], symbol));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Periode eines HISTORY_HEADERs in einem Array.
+ *
+ * @param  HISTORY_HEADER hhs[]  - Array
+ * @param  int            index  - Array-Index
+ * @param  int            period
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hhs_SetPeriod(HISTORY_HEADER hhs[], int index, int period) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+   return(hh_SetPeriod(&hhs[index], period));
+   #pragma EXPORT
+}
+
+
+/**
+ * Alias
+ */
+BOOL WINAPI hhs_SetTimeframe(HISTORY_HEADER hhs[], int index, int timeframe) {
+   return(hhs_SetPeriod(hhs, index, timeframe));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Digits eines HISTORY_HEADERs in einem Array.
+ *
+ * @param  HISTORY_HEADER hhs[]  - Array
+ * @param  int            index  - Array-Index
+ * @param  int            digits - Digits
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hhs_SetDigits(HISTORY_HEADER hhs[], int index, int digits) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+   return(hh_SetDigits(&hhs[index], digits));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den SyncMarker eines HISTORY_HEADERs in einem Array.
+ *
+ * @param  HISTORY_HEADER hhs[]     - Array
+ * @param  int            index     - Array-Index
+ * @param  int            timestamp - Zeitpunkt
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hhs_SetSyncMarker(HISTORY_HEADER hhs[], int index, int timestamp) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+   return(hh_SetSyncMarker(&hhs[index], timestamp));
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt die LastSyncTime eines HISTORY_HEADERs in einem Array.
+ *
+ * @param  HISTORY_HEADER hhs[]     - Array
+ * @param  int            index     - Array-Index
+ * @param  int            timestamp - Zeitpunkt
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI hhs_SetLastSyncTime(HISTORY_HEADER hhs[], int index, int timestamp) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
+   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+   return(hh_SetLastSyncTime(&hhs[index], timestamp));
    #pragma EXPORT
 }

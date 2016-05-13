@@ -351,9 +351,10 @@ ProgramType WINAPI ec_setProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
  * @return char* - derselbe Name
  */
 const char* WINAPI ec_setProgramName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)                            return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)                            return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
-   if (!strlen(name) || strlen(name) > sizeof(ec->programName)-1) return((char*)debug("ERROR:  invalid parameter name = \"%s\" (1 to %d characters)", name, sizeof(ec->programName)-1));
+   if ((uint)ec   < MIN_VALID_POINTER)          return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)          return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   int len = strlen(name);
+   if (!len || len > sizeof(ec->programName)-1) return((char*)debug("ERROR:  illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(ec->programName)-1));
 
    return(strcpy(ec->programName, name));
    #pragma EXPORT
@@ -394,9 +395,10 @@ ModuleType WINAPI ec_setModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
  * @return char* - derselbe Name
  */
 const char* WINAPI ec_setModuleName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)                           return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)                           return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
-   if (!strlen(name) || strlen(name) > sizeof(ec->moduleName)-1) return((char*)debug("ERROR:  invalid parameter name = \"%s\" (1 - %d characters)", name, sizeof(ec->moduleName)-1));
+   if ((uint)ec   < MIN_VALID_POINTER)         return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)         return((char*)debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name));
+   int len = strlen(name);
+   if (!len || len > sizeof(ec->moduleName)-1) return((char*)debug("ERROR:  illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(ec->moduleName)-1));
 
    return(strcpy(ec->moduleName, name));
    #pragma EXPORT
@@ -561,9 +563,10 @@ UninitializeReason WINAPI ec_setUninitializeReason(EXECUTION_CONTEXT* ec, Uninit
  * @return char* - dasselbe Symbol
  */
 const char* WINAPI ec_setSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
-   if ((uint)ec     < MIN_VALID_POINTER)                       return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)symbol < MIN_VALID_POINTER)                       return((char*)debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (!strlen(symbol) || strlen(symbol) > sizeof(ec->symbol)) return((char*)debug("ERROR:  invalid parameter symbol = \"%s\" (1 - %d characters)", symbol, sizeof(ec->symbol)));
+   if ((uint)ec     < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)symbol < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   int len = strlen(symbol);
+   if (!len || len > sizeof(ec->symbol)) return((char*)debug("ERROR:  illegal length of parameter symbol = \"%s\" (must be 1 to %d characters)", symbol, sizeof(ec->symbol)-1));
 
    return(strcpy(ec->symbol, symbol));
    #pragma EXPORT
@@ -699,12 +702,10 @@ const char* WINAPI ec_setLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
 
    if (fileName) {
       if ((uint)fileName < MIN_VALID_POINTER)       return((char*)debug("ERROR:  invalid parameter fileName = 0x%p (not a valid pointer)", fileName));
-      if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)debug("ERROR:  invalid parameter fileName = \"%s\" (1 - %d characters)", fileName, sizeof(ec->logFile)-1));
-      strcpy(ec->logFile, fileName);
+      if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)debug("ERROR:  illegal length of parameter fileName = \"%s\" (max %d characters)", fileName, sizeof(ec->logFile)-1));
+      return(strcpy(ec->logFile, fileName));
    }
-   else {
-      ec->logFile[0] = '\0';
-   }
+   ec->logFile[0] = '\0';
    return(ec->logFile);
    #pragma EXPORT
 }
