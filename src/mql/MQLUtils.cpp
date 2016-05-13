@@ -659,8 +659,6 @@ BOOL WINAPI RemoveTickTimer(int timerId) {
       if (tickTimers[i].id == timerId) {
          if (!KillTimer(tickTimers[i].hWnd, timerId))
             return(debug("ERROR:  KillTimer(hWnd=%p, timerId=%d) failed", tickTimers[i].hWnd, timerId));
-
-         //debug("KillTimer(hWnd=%p, timerId=%d) success", tickTimers[i].hWnd, timerId);
          tickTimers.erase(tickTimers.begin() + i);
          return(TRUE);
       }
