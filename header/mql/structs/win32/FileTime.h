@@ -3,7 +3,6 @@
 /**
  * Win32 struct FILETIME
  *
- *
  * struct FILETIME {
  *    DWORD dwLowDateTime;          //  4
  *    DWORD dwHighDateTime;         //  4

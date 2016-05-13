@@ -3,7 +3,6 @@
 /**
  * Win32 struct SYSTEMTIME
  *
- *
  * struct SYSTEMTIME {
  *    WORD wYear;                   //  2
  *    WORD wMonth;                  //  2
