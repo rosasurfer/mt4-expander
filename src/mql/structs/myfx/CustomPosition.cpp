@@ -7,10 +7,10 @@
 
 
 /**
- * Binäre Repräsentation eines einzelnen Konfigurationsterms einer individuellen Position. Eine Position kann aus ein
- * oder mehreren mit Kommas voneinander getrennten Termen bestehen.
+ * Binäre Repräsentation eines einzelnen Konfigurationsterms einer individuellen Position. Die Konfiguration einer CustomPosition besteht
+ * aus ein oder mehreren durch Kommas voneinander getrennten Termen.
  *
- * In positions_config[] markiert ein nicht initialisiertes Struct (pct.type=NULL) das Ende einer Position.
+ * In positions_config[] markiert ein nicht initialisiertes Struct (pct.type=NULL) das Ende einer CustomPosition.
  *
  * @see  MQL: double positions.config[][5];
  */
