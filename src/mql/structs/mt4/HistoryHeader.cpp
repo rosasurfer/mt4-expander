@@ -24,15 +24,15 @@ uint WINAPI hh_BarFormat(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt die Beschreibung eines HISTORY_HEADERs zurück.
+ * Gibt das Copyright eines HISTORY_HEADERs zurück.
  *
  * @param  HISTORY_HEADER* hh
  *
- * @return char* - Beschreibung
+ * @return char* - Copyright
  */
-const char* WINAPI hh_Description(const HISTORY_HEADER* hh) {
+const char* WINAPI hh_Copyright(const HISTORY_HEADER* hh) {
    if ((uint)hh < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   return(hh->description);
+   return(hh->copyright);
    #pragma EXPORT
 }
 
@@ -133,17 +133,17 @@ uint WINAPI hhs_BarFormat(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
- * Gibt die Beschreibung eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt das Copyright eines HISTORY_HEADERs in einem Array zurück.
  *
  * @param  HISTORY_HEADER hhs[] - Array
- * @param  int    index         - Array-Index
+ * @param  int            index - Array-Index
  *
- * @return char* - Beschreibung
+ * @return char* - Copyright
  */
-const char* WINAPI hhs_Description(const HISTORY_HEADER hhs[], int index) {
+const char* WINAPI hhs_Copyright(const HISTORY_HEADER hhs[], int index) {
    if ((uint)hhs < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
    if (index     < 0)                 return((char*)debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(hhs[index].description);
+   return(hhs[index].copyright);
    #pragma EXPORT
 }
 
@@ -255,18 +255,18 @@ BOOL WINAPI hh_SetBarFormat(HISTORY_HEADER* hh, int format) {
 
 
 /**
- * Setzt die Bechreibung eines HISTORY_HEADERs.
+ * Setzt das Copyright eines HISTORY_HEADERs.
  *
  * @param  HISTORY_HEADER* hh
- * @param  char*           description - eine vorhandene Beschreibung kann mit einem Leerstring gelöscht werden
+ * @param  char*           copyright - ein vorhandenes Copyright kann mit einem Leerstring gelöscht werden
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI hh_SetDescription(HISTORY_HEADER* hh, const char* description) {
-   if ((uint)hh          < MIN_VALID_POINTER)           return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if ((uint)description < MIN_VALID_POINTER)           return(debug("ERROR:  invalid parameter description = 0x%p (not a valid pointer)", description));
-   if (strlen(description) > sizeof(hh->description)-1) return(debug("ERROR:  illegal length of parameter description = \"%s\" (max %d characters)", description, sizeof(hh->description)-1));
-   return((BOOL)strcpy(hh->description, description));
+BOOL WINAPI hh_SetCopyright(HISTORY_HEADER* hh, const char* copyright) {
+   if ((uint)hh        < MIN_VALID_POINTER)         return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
+   if ((uint)copyright < MIN_VALID_POINTER)         return(debug("ERROR:  invalid parameter copyright = 0x%p (not a valid pointer)", copyright));
+   if (strlen(copyright) > sizeof(hh->copyright)-1) return(debug("ERROR:  illegal length of parameter copyright = \"%s\" (max %d characters)", copyright, sizeof(hh->copyright)-1));
+   return((BOOL)strcpy(hh->copyright, copyright));
    #pragma EXPORT
 }
 
@@ -384,18 +384,18 @@ BOOL WINAPI hhs_SetBarFormat(HISTORY_HEADER hhs[], int index, int format) {
 
 
 /**
- * Setzt die Beschreibung eines HISTORY_HEADERs innerhalb eines Arrays.
+ * Setzt das Copyright eines HISTORY_HEADERs innerhalb eines Arrays.
  *
- * @param  HISTORY_HEADER hhs[]       - Array
- * @param  int            index       - Array-Index
- * @param  char*          description - Beschreibung
+ * @param  HISTORY_HEADER hhs[]     - Array
+ * @param  int            index     - Array-Index
+ * @param  char*          copyright - Copyright
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI hhs_SetDescription(HISTORY_HEADER hhs[], int index, const char* description) {
+BOOL WINAPI hhs_SetCopyright(HISTORY_HEADER hhs[], int index, const char* copyright) {
    if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
    if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
-   return(hh_SetDescription(&hhs[index], description));
+   return(hh_SetCopyright(&hhs[index], copyright));
    #pragma EXPORT
 }
 
