@@ -4,7 +4,7 @@
  * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */
 #include "stdafx.h"
-#include "global.h"
+#include "common.h"
 #include "Expander.h"
 #include "mql/structs/mt4/Symbol.h"
 

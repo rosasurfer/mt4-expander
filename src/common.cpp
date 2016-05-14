@@ -1,5 +1,5 @@
 
-#include "global.h"
+#include "common.h"
 #include "stdafx.h"
 
 

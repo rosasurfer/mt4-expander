@@ -13,7 +13,7 @@
  * };                               // 16 byte
  */
 #include "stdafx.h"
-#include "global.h"
+#include "common.h"
 #include "Expander.h"
 #include "mql/structs/win32/SystemTime.h"
 

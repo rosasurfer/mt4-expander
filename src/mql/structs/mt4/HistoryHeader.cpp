@@ -4,7 +4,7 @@
  * HistoryFile Header
  */
 #include "stdafx.h"
-#include "global.h"
+#include "common.h"
 #include "Expander.h"
 #include "mql/structs/mt4/HistoryHeader.h"
 

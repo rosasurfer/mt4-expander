@@ -2,7 +2,7 @@
  * MQL-Interface zum Zugriff auf ein struct EXECUTION_CONTEXT.
  */
 #include "stdafx.h"
-#include "global.h"
+#include "common.h"
 #include "Expander.h"
 
 

@@ -7,7 +7,7 @@
  * Post-Build Event: copy "$(TargetPath)" "$(SolutionDir)..\mt4\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)"
  */
 #include "stdafx.h"
-#include "global.h"
+#include "common.h"
 #include "Expander.h"
 
 
