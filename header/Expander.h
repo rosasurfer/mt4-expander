@@ -260,14 +260,14 @@ BOOL onProcessDetach();
 uint ecc_setProgramId(pec_vector &chain, uint id);
 void RemoveTickTimers();
 
-ProgramType  WINAPI ec_setProgramType (EXECUTION_CONTEXT* ec, ProgramType type);
-const char*  WINAPI ec_setProgramName (EXECUTION_CONTEXT* ec, const char* name);
-ModuleType   WINAPI ec_setModuleType  (EXECUTION_CONTEXT* ec, ModuleType type);
-const char*  WINAPI ec_setModuleName  (EXECUTION_CONTEXT* ec, const char* name);
-RootFunction WINAPI ec_setRootFunction(EXECUTION_CONTEXT* ec, RootFunction id);
-const char*  WINAPI ec_setSymbol      (EXECUTION_CONTEXT* ec, const char* symbol);
-      uint   WINAPI ec_setTimeframe   (EXECUTION_CONTEXT* ec, uint timeframe);
-const char*  WINAPI ec_setLogFile     (EXECUTION_CONTEXT* ec, const char* fileName);
+ProgramType  WINAPI ec_SetProgramType (EXECUTION_CONTEXT* ec, ProgramType type);
+const char*  WINAPI ec_SetProgramName (EXECUTION_CONTEXT* ec, const char* name);
+ModuleType   WINAPI ec_SetModuleType  (EXECUTION_CONTEXT* ec, ModuleType type);
+const char*  WINAPI ec_SetModuleName  (EXECUTION_CONTEXT* ec, const char* name);
+RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id);
+const char*  WINAPI ec_SetSymbol      (EXECUTION_CONTEXT* ec, const char* symbol);
+      uint   WINAPI ec_SetTimeframe   (EXECUTION_CONTEXT* ec, uint timeframe);
+const char*  WINAPI ec_SetLogFile     (EXECUTION_CONTEXT* ec, const char* fileName);
 
 BOOL         WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
 BOOL         WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);

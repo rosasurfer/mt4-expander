@@ -37,20 +37,20 @@ int         WINAPI hhs_SyncMarker  (const HISTORY_HEADER hhs[], int index);
 int         WINAPI hhs_LastSyncTime(const HISTORY_HEADER hhs[], int index);
 
 // Setter
-BOOL        WINAPI hh_SetBarFormat    (HISTORY_HEADER* hh, int         format   );
-BOOL        WINAPI hh_SetCopyright    (HISTORY_HEADER* hh, const char* copyright);
-BOOL        WINAPI hh_SetSymbol       (HISTORY_HEADER* hh, const char* symbol   );
-BOOL        WINAPI hh_SetPeriod       (HISTORY_HEADER* hh, int         period   );
-BOOL        WINAPI hh_SetTimeframe    (HISTORY_HEADER* hh, int         timeframe);
-BOOL        WINAPI hh_SetDigits       (HISTORY_HEADER* hh, int         digits   );
-BOOL        WINAPI hh_SetSyncMarker   (HISTORY_HEADER* hh, int         timestamp);
-BOOL        WINAPI hh_SetLastSyncTime (HISTORY_HEADER* hh, int         timestamp);
+uint        WINAPI hh_SetBarFormat    (HISTORY_HEADER* hh, int         format   );
+const char* WINAPI hh_SetCopyright    (HISTORY_HEADER* hh, const char* copyright);
+const char* WINAPI hh_SetSymbol       (HISTORY_HEADER* hh, const char* symbol   );
+uint        WINAPI hh_SetPeriod       (HISTORY_HEADER* hh, int         period   );
+uint        WINAPI hh_SetTimeframe    (HISTORY_HEADER* hh, int         timeframe);
+uint        WINAPI hh_SetDigits       (HISTORY_HEADER* hh, int         digits   );
+int         WINAPI hh_SetSyncMarker   (HISTORY_HEADER* hh, int         timestamp);
+int         WINAPI hh_SetLastSyncTime (HISTORY_HEADER* hh, int         timestamp);
 
-BOOL        WINAPI hhs_SetBarFormat   (HISTORY_HEADER hhs[], int index, int         format   );
-BOOL        WINAPI hhs_SetCopyright   (HISTORY_HEADER hhs[], int index, const char* copyright);
-BOOL        WINAPI hhs_SetSymbol      (HISTORY_HEADER hhs[], int index, const char* symbol   );
-BOOL        WINAPI hhs_SetPeriod      (HISTORY_HEADER hhs[], int index, int         period   );
-BOOL        WINAPI hhs_SetTimeframe   (HISTORY_HEADER hhs[], int index, int         timeframe);
-BOOL        WINAPI hhs_SetDigits      (HISTORY_HEADER hhs[], int index, int         digits   );
-BOOL        WINAPI hhs_SetSyncMarker  (HISTORY_HEADER hhs[], int index, int         timestamp);
-BOOL        WINAPI hhs_SetLastSyncTime(HISTORY_HEADER hhs[], int index, int         timestamp);
+uint        WINAPI hhs_SetBarFormat   (HISTORY_HEADER hhs[], int index, int         format   );
+const char* WINAPI hhs_SetCopyright   (HISTORY_HEADER hhs[], int index, const char* copyright);
+const char* WINAPI hhs_SetSymbol      (HISTORY_HEADER hhs[], int index, const char* symbol   );
+uint        WINAPI hhs_SetPeriod      (HISTORY_HEADER hhs[], int index, int         period   );
+uint        WINAPI hhs_SetTimeframe   (HISTORY_HEADER hhs[], int index, int         timeframe);
+uint        WINAPI hhs_SetDigits      (HISTORY_HEADER hhs[], int index, int         digits   );
+int         WINAPI hhs_SetSyncMarker  (HISTORY_HEADER hhs[], int index, int         timestamp);
+int         WINAPI hhs_SetLastSyncTime(HISTORY_HEADER hhs[], int index, int         timestamp);

@@ -7,6 +7,7 @@
 
 
 #include <sstream>
+#include "stdafx.h"
 
 
 typedef unsigned   int   uint;
@@ -48,3 +49,24 @@ template <typename T> std::string to_string(T value) {
    os << value;
    return(os.str());
 }
+
+
+/**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben. Alle Parameter werden ignoriert.
+ */
+int  _NULL    (...);
+int  _CLR_NONE(...);
+BOOL _TRUE    (...);
+BOOL _FALSE   (...);
+bool _true    (...);
+bool _false   (...);
+
+
+/**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende Werte variable zurückzugeben. Alle außer dem ersten Parameter werden ignoriert.
+ */
+bool   _bool  (bool   value, ...);
+char   _char  (char   value, ...);
+int    _int   (int    value, ...);
+float  _float (float  value, ...);
+double _double(double value, ...);

@@ -121,11 +121,11 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
 
    // (1) Context aktualisieren
    if (rootFunction == RF_INIT) {
-      if (!ec->programType)  ec_setProgramType(ec, (ProgramType)moduleType);  // im Hauptkontext gilt: Module[Name|Type] = Program[Name|Type]
-      if (!*ec->programName) ec_setProgramName(ec, moduleName);
-      if (!ec->moduleType)   ec_setModuleType (ec, moduleType);
-      if (!*ec->moduleName)  ec_setModuleName (ec, moduleName);
-                             ec_setSymbol     (ec, symbol);
+      if (!ec->programType)  ec_SetProgramType(ec, (ProgramType)moduleType);  // im Hauptkontext gilt: Module[Name|Type] = Program[Name|Type]
+      if (!*ec->programName) ec_SetProgramName(ec, moduleName);
+      if (!ec->moduleType)   ec_SetModuleType (ec, moduleType);
+      if (!*ec->moduleName)  ec_SetModuleName (ec, moduleName);
+                             ec_SetSymbol     (ec, symbol);
                              ec->timeframe   = period;
    }
    ec->rootFunction       = rootFunction;
@@ -153,7 +153,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
             // (3.2) Context eines Indikators nach init-Cycle
             if (0) debug("thread=%d ui  %s::%s()  programId=0  reason=%s  lastProgramId=%d  my-init-cycle  chain[1]=%p  master=%p", GetCurrentThreadId(), moduleName, RootFunctionName(rootFunction), UninitializeReasonToStr(reason), lastProgramId, chain[1], chain[0]);
             *ec = *chain[0];                                // Master-Kontext übernehmen
-            ec_setSymbol(ec, symbol);
+            ec_SetSymbol(ec, symbol);
             ec->timeframe          = period;                // Kontext aktualisieren
             ec->rootFunction       = rootFunction;
             ec->uninitializeReason = reason;
@@ -191,7 +191,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
    pec_vector &chain = contextChains[ec->programId];           // diesen Code an nur einer Stelle zu halten.
    if (ec != chain[1]) return(debug("ERROR:  thread=%d %s  %s::%s()  programId=%d   current-ec=%p != chain[1]=%p", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), moduleName, RootFunctionName(rootFunction), ec->programId, ec, chain[1]));
    if (rootFunction == RF_INIT) {
-      ec_setSymbol(chain[0], symbol);
+      ec_SetSymbol(chain[0], symbol);
       chain[0]->timeframe = period;
    }
    chain[0]->rootFunction       = rootFunction;
@@ -268,8 +268,8 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
          if (0) debug("%s::%s::init()  übernehme ec von  programId=%d  i-am-module=%d", chain[0]->programName, moduleName, chain[0]->programId, chain.size());
          *ec = *chain[0];                                   // Master-Kontext (Index 0) übernehmen
 
-         ec_setModuleType(ec, MT_LIBRARY);                  // Context-Daten aktualisieren (Symbol und Timeframe in Libraries ignorieren)
-         ec_setModuleName(ec, moduleName);
+         ec_SetModuleType(ec, MT_LIBRARY);                  // Context-Daten aktualisieren (Symbol und Timeframe in Libraries ignorieren)
+         ec_SetModuleName(ec, moduleName);
          ec->rootFunction = rootFunction;
          ec->lastError    = NO_ERROR;
          chain.push_back(ec);                               // Context zur Programm-Chain hinzufügen
@@ -282,7 +282,7 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
          if (chain[1]) {
             if (0) debug("%s::%s::init()  programId=%d  init cycle,  setting main-ec to NULL, was chain[1]=%p  bak=%p", ec->programName, moduleName, ec->programId, chain[1], chain[0]);
             chain[1] = NULL;                                // Hauptkontext auf NULL setzen
-            ec_setSymbol(chain[0], symbol);                 // Master-Kontext aktualisieren. Dies ist der früheste Zeitpunkt, an dem das neue
+            ec_SetSymbol(chain[0], symbol);                 // Master-Kontext aktualisieren. Dies ist der früheste Zeitpunkt, an dem das neue
             chain[0]->timeframe = period;                   // Symbol/der neue Timeframe bekannt sind. Sie werden nur hier gebraucht.
          }
       }

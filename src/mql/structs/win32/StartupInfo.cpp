@@ -37,11 +37,10 @@
  * @return DWORD - dieselbe Größe
  */
 DWORD WINAPI si_setSize(STARTUPINFOA* si, DWORD size) {
-   if ((uint)si < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter si = 0x%p (not a valid pointer)", si));
-   if (size != sizeof(STARTUPINFOA)) return(debug("ERROR:  invalid parameter size = %d (must be %d)", size, sizeof(STARTUPINFOA)));
+   if ((uint)si < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter si = 0x%p (not a valid pointer)", si)));
+   if (size != sizeof(STARTUPINFOA)) return(_NULL(debug("ERROR:  invalid parameter size = %d (must be %d)", size, sizeof(STARTUPINFOA))));
 
-   si->cb = size;
-   return(size);
+   return(si->cb = size);
    #pragma EXPORT
 }
 
@@ -55,10 +54,9 @@ DWORD WINAPI si_setSize(STARTUPINFOA* si, DWORD size) {
  * @return DWORD - dieselben Flags
  */
 DWORD WINAPI si_setFlags(STARTUPINFOA* si, DWORD flags) {
-   if ((uint)si < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter si = 0x%p (not a valid pointer)", si));
+   if ((uint)si < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter si = 0x%p (not a valid pointer)", si)));
 
-   si->dwFlags = flags;
-   return(flags);
+   return(si->dwFlags = flags);
    #pragma EXPORT
 }
 
@@ -69,12 +67,11 @@ DWORD WINAPI si_setFlags(STARTUPINFOA* si, DWORD flags) {
  * @param  STARTUPINFOA* si
  * @param  WORD          cmdShow
  *
- * @return WORD - dieselbe Konstante
+ * @return WORD - dieselbe Konstante oder -1, falls ein Fehler auftrat
  */
 WORD WINAPI si_setShowWindow(STARTUPINFOA* si, WORD cmdShow) {
-   if ((uint)si < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter si = 0x%p (not a valid pointer)", si));
+   if ((uint)si < MIN_VALID_POINTER) return(_int(-1, debug("ERROR:  invalid parameter si = 0x%p (not a valid pointer)", si)));
 
-   si->wShowWindow = cmdShow;
-   return(cmdShow);
+   return(si->wShowWindow = cmdShow);
    #pragma EXPORT
 }

@@ -102,16 +102,16 @@ uint        WINAPI symbols_ArrayKey            (const SYMBOL symbols[], int inde
 uint        WINAPI symbols_Id                  (const SYMBOL symbols[], int index);
 
 // Setter
-BOOL        WINAPI symbol_SetName           (SYMBOL* symbol, const char* name       );
-BOOL        WINAPI symbol_SetDescription    (SYMBOL* symbol, const char* description);
-BOOL        WINAPI symbol_SetBaseCurrency   (SYMBOL* symbol, const char* currency   );
-BOOL        WINAPI symbol_SetGroup          (SYMBOL* symbol, int         index      );
-BOOL        WINAPI symbol_SetDigits         (SYMBOL* symbol, int         digits     );
-BOOL        WINAPI symbol_SetBackgroundColor(SYMBOL* symbol, uint        color      );
-BOOL        WINAPI symbol_SetId             (SYMBOL* symbol, int         id         );
-BOOL        WINAPI symbol_SetMarginCurrency (SYMBOL* symbol, const char* currency   );
+const char* WINAPI symbol_SetName           (SYMBOL* symbol, const char* name       );
+const char* WINAPI symbol_SetDescription    (SYMBOL* symbol, const char* description);
+const char* WINAPI symbol_SetBaseCurrency   (SYMBOL* symbol, const char* currency   );
+int         WINAPI symbol_SetGroup          (SYMBOL* symbol, int         index      );
+int         WINAPI symbol_SetDigits         (SYMBOL* symbol, int         digits     );
+int         WINAPI symbol_SetBackgroundColor(SYMBOL* symbol, int         color      );
+int         WINAPI symbol_SetId             (SYMBOL* symbol, int         id         );
+const char* WINAPI symbol_SetMarginCurrency (SYMBOL* symbol, const char* currency   );
 
-BOOL        WINAPI symbols_SetId            (SYMBOL symbols[], int index, int id);
+int         WINAPI symbols_SetId            (SYMBOL symbols[], int index, int id);
 
 // Helper
 int                CompareSymbols(const void* a, const void* b);

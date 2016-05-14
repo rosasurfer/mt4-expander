@@ -243,13 +243,12 @@ int WINAPI hhs_LastSyncTime(const HISTORY_HEADER hhs[], int index) {
  * @param  HISTORY_HEADER* hh
  * @param  int             format - bis Build 509: 400, danach: 401
  *
- * @return BOOL - Erfolgsstatus
+ * @return uint - dasselbe Barformat
  */
-BOOL WINAPI hh_SetBarFormat(HISTORY_HEADER* hh, int format) {
-   if ((uint)hh < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if (format!=400 && format!=401)   return(debug("ERROR:  invalid parameter format = %d (must be 400 or 401)", format));
-   hh->barFormat = format;
-   return(TRUE);
+uint WINAPI hh_SetBarFormat(HISTORY_HEADER* hh, int format) {
+   if ((uint)hh < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh)));
+   if (format!=400 && format!=401)   return(_NULL(debug("ERROR:  invalid parameter format = %d (must be 400 or 401)", format)));
+   return(hh->barFormat = format);
    #pragma EXPORT
 }
 
@@ -260,13 +259,13 @@ BOOL WINAPI hh_SetBarFormat(HISTORY_HEADER* hh, int format) {
  * @param  HISTORY_HEADER* hh
  * @param  char*           copyright - ein vorhandenes Copyright kann mit einem Leerstring gelöscht werden
  *
- * @return BOOL - Erfolgsstatus
+ * @return char* - das gesetzte Copyright
  */
-BOOL WINAPI hh_SetCopyright(HISTORY_HEADER* hh, const char* copyright) {
-   if ((uint)hh        < MIN_VALID_POINTER)         return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if ((uint)copyright < MIN_VALID_POINTER)         return(debug("ERROR:  invalid parameter copyright = 0x%p (not a valid pointer)", copyright));
-   if (strlen(copyright) > sizeof(hh->copyright)-1) return(debug("ERROR:  illegal length of parameter copyright = \"%s\" (max %d characters)", copyright, sizeof(hh->copyright)-1));
-   return((BOOL)strcpy(hh->copyright, copyright));
+const char* WINAPI hh_SetCopyright(HISTORY_HEADER* hh, const char* copyright) {
+   if ((uint)hh        < MIN_VALID_POINTER)         return((char*)_NULL(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh)));
+   if ((uint)copyright < MIN_VALID_POINTER)         return((char*)_NULL(debug("ERROR:  invalid parameter copyright = 0x%p (not a valid pointer)", copyright)));
+   if (strlen(copyright) > sizeof(hh->copyright)-1) return((char*)_NULL(debug("ERROR:  illegal length of parameter copyright = \"%s\" (max %d characters)", copyright, sizeof(hh->copyright)-1)));
+   return(strcpy(hh->copyright, copyright));
    #pragma EXPORT
 }
 
@@ -277,14 +276,14 @@ BOOL WINAPI hh_SetCopyright(HISTORY_HEADER* hh, const char* copyright) {
  * @param  HISTORY_HEADER* hh
  * @param  char*           symbol
  *
- * @return BOOL - Erfolgsstatus
+ * @return char* - das gesetzte Symbol
  */
-BOOL WINAPI hh_SetSymbol(HISTORY_HEADER* hh, const char* symbol) {
-   if ((uint)hh     < MIN_VALID_POINTER)   return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if ((uint)symbol < MIN_VALID_POINTER)   return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+const char* WINAPI hh_SetSymbol(HISTORY_HEADER* hh, const char* symbol) {
+   if ((uint)hh     < MIN_VALID_POINTER)   return((char*)_NULL(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh)));
+   if ((uint)symbol < MIN_VALID_POINTER)   return((char*)_NULL(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol)));
    int len = strlen(symbol);
-   if (!len || len > sizeof(hh->symbol)-1) return(debug("ERROR:  illegal length of parameter symbol = \"%s\" (must be 1 to %d characters)", symbol, sizeof(hh->symbol)-1));
-   return((BOOL)strcpy(hh->symbol, symbol));
+   if (!len || len > sizeof(hh->symbol)-1) return((char*)_NULL(debug("ERROR:  illegal length of parameter symbol = \"%s\" (must be 1 to %d characters)", symbol, sizeof(hh->symbol)-1)));
+   return(strcpy(hh->symbol, symbol));
    #pragma EXPORT
 }
 
@@ -295,13 +294,12 @@ BOOL WINAPI hh_SetSymbol(HISTORY_HEADER* hh, const char* symbol) {
  * @param  HISTORY_HEADER* hh
  * @param  int             period
  *
- * @return BOOL - Erfolgsstatus
+ * @return uint - dieselbe Periode
  */
-BOOL WINAPI hh_SetPeriod(HISTORY_HEADER* hh, int period) {
-   if ((uint)hh < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if (period <= 0)                  return(debug("ERROR:  invalid parameter period = %d (must be greater than zero)", period));
-   hh->period = period;
-   return(TRUE);
+uint WINAPI hh_SetPeriod(HISTORY_HEADER* hh, int period) {
+   if ((uint)hh < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh)));
+   if (period <= 0)                  return(_NULL(debug("ERROR:  invalid parameter period = %d (must be greater than zero)", period)));
+   return(hh->period = period);
    #pragma EXPORT
 }
 
@@ -309,7 +307,7 @@ BOOL WINAPI hh_SetPeriod(HISTORY_HEADER* hh, int period) {
 /**
  * Alias
  */
-BOOL WINAPI hh_SetTimeframe(HISTORY_HEADER* hh, int timeframe) {
+uint WINAPI hh_SetTimeframe(HISTORY_HEADER* hh, int timeframe) {
    return(hh_SetPeriod(hh, timeframe));
    #pragma EXPORT
 }
@@ -321,13 +319,12 @@ BOOL WINAPI hh_SetTimeframe(HISTORY_HEADER* hh, int timeframe) {
  * @param  HISTORY_HEADER* hh
  * @param  int             digits
  *
- * @return BOOL - Erfolgsstatus
+ * @return uint - dieselben Digits
  */
-BOOL WINAPI hh_SetDigits(HISTORY_HEADER* hh, int digits) {
-   if ((uint)hh < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if (digits < 0)                   return(debug("ERROR:  invalid parameter digits = %d", digits));
-   hh->digits = digits;
-   return(TRUE);
+uint WINAPI hh_SetDigits(HISTORY_HEADER* hh, int digits) {
+   if ((uint)hh < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh)));
+   if (digits < 0)                   return(_NULL(debug("ERROR:  invalid parameter digits = %d", digits)));
+   return(hh->digits = digits);
    #pragma EXPORT
 }
 
@@ -338,13 +335,12 @@ BOOL WINAPI hh_SetDigits(HISTORY_HEADER* hh, int digits) {
  * @param  HISTORY_HEADER* hh
  * @param  int             timestamp
  *
- * @return BOOL - Erfolgsstatus
+ * @return int - derselbe Zeitpunkt
  */
-BOOL WINAPI hh_SetSyncMarker(HISTORY_HEADER* hh, int timestamp) {
-   if ((uint)hh  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if (timestamp < 0)                 return(debug("ERROR:  invalid parameter timestamp = %d (must be non-negative)", timestamp));
-   hh->syncMarker = timestamp;
-   return(TRUE);
+int WINAPI hh_SetSyncMarker(HISTORY_HEADER* hh, int timestamp) {
+   if ((uint)hh  < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh)));
+   if (timestamp < 0)                 return(_NULL(debug("ERROR:  invalid parameter timestamp = %d (must be non-negative)", timestamp)));
+   return(hh->syncMarker = timestamp);
    #pragma EXPORT
 }
 
@@ -355,13 +351,12 @@ BOOL WINAPI hh_SetSyncMarker(HISTORY_HEADER* hh, int timestamp) {
  * @param  HISTORY_HEADER* hh
  * @param  int             timestamp
  *
- * @return BOOL - Erfolgsstatus
+ * @return int - derselbe Zeitpunkt
  */
-BOOL WINAPI hh_SetLastSyncTime(HISTORY_HEADER* hh, int timestamp) {
-   if ((uint)hh  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh));
-   if (timestamp < 0)                 return(debug("ERROR:  invalid parameter timestamp = %d (must be non-negative)", timestamp));
-   hh->lastSyncTime = timestamp;
-   return(TRUE);
+int WINAPI hh_SetLastSyncTime(HISTORY_HEADER* hh, int timestamp) {
+   if ((uint)hh  < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hh = 0x%p (not a valid pointer)", hh)));
+   if (timestamp < 0)                 return(_NULL(debug("ERROR:  invalid parameter timestamp = %d (must be non-negative)", timestamp)));
+   return(hh->lastSyncTime = timestamp);
    #pragma EXPORT
 }
 
@@ -373,11 +368,11 @@ BOOL WINAPI hh_SetLastSyncTime(HISTORY_HEADER* hh, int timestamp) {
  * @param  int            index  - Array-Index
  * @param  int            format - bis Build 509: 400, danach: 401
  *
- * @return BOOL - Erfolgsstatus
+ * @return uint - dasselbe Barformat
  */
-BOOL WINAPI hhs_SetBarFormat(HISTORY_HEADER hhs[], int index, int format) {
-   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+uint WINAPI hhs_SetBarFormat(HISTORY_HEADER hhs[], int index, int format) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs)));
+   if (index     < 0)                 return(_NULL(debug("ERROR:  invalid parameter index = %d", index)));
    return(hh_SetBarFormat(&hhs[index], format));
    #pragma EXPORT
 }
@@ -390,11 +385,11 @@ BOOL WINAPI hhs_SetBarFormat(HISTORY_HEADER hhs[], int index, int format) {
  * @param  int            index     - Array-Index
  * @param  char*          copyright - Copyright
  *
- * @return BOOL - Erfolgsstatus
+ * @return char* - das gesetzte Copyright
  */
-BOOL WINAPI hhs_SetCopyright(HISTORY_HEADER hhs[], int index, const char* copyright) {
-   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+const char* WINAPI hhs_SetCopyright(HISTORY_HEADER hhs[], int index, const char* copyright) {
+   if ((uint)hhs < MIN_VALID_POINTER) return((char*)_NULL(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs)));
+   if (index     < 0)                 return((char*)_NULL(debug("ERROR:  invalid parameter index = %d (not a valid index)", index)));
    return(hh_SetCopyright(&hhs[index], copyright));
    #pragma EXPORT
 }
@@ -407,11 +402,11 @@ BOOL WINAPI hhs_SetCopyright(HISTORY_HEADER hhs[], int index, const char* copyri
  * @param  int            index  - Array-Index
  * @param  char*          symbol - Symbol
  *
- * @return BOOL - Erfolgsstatus
+ * @return char* - das gesetzte Symbol
  */
-BOOL WINAPI hhs_SetSymbol(HISTORY_HEADER hhs[], int index, const char* symbol) {
-   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d (not a valid index)", index));
+const char* WINAPI hhs_SetSymbol(HISTORY_HEADER hhs[], int index, const char* symbol) {
+   if ((uint)hhs < MIN_VALID_POINTER) return((char*)_NULL(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs)));
+   if (index     < 0)                 return((char*)_NULL(debug("ERROR:  invalid parameter index = %d (not a valid index)", index)));
    return(hh_SetSymbol(&hhs[index], symbol));
    #pragma EXPORT
 }
@@ -424,11 +419,11 @@ BOOL WINAPI hhs_SetSymbol(HISTORY_HEADER hhs[], int index, const char* symbol) {
  * @param  int            index  - Array-Index
  * @param  int            period
  *
- * @return BOOL - Erfolgsstatus
+ * @return uint - dieselbe Periode
  */
-BOOL WINAPI hhs_SetPeriod(HISTORY_HEADER hhs[], int index, int period) {
-   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+uint WINAPI hhs_SetPeriod(HISTORY_HEADER hhs[], int index, int period) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs)));
+   if (index     < 0)                 return(_NULL(debug("ERROR:  invalid parameter index = %d", index)));
    return(hh_SetPeriod(&hhs[index], period));
    #pragma EXPORT
 }
@@ -437,7 +432,7 @@ BOOL WINAPI hhs_SetPeriod(HISTORY_HEADER hhs[], int index, int period) {
 /**
  * Alias
  */
-BOOL WINAPI hhs_SetTimeframe(HISTORY_HEADER hhs[], int index, int timeframe) {
+uint WINAPI hhs_SetTimeframe(HISTORY_HEADER hhs[], int index, int timeframe) {
    return(hhs_SetPeriod(hhs, index, timeframe));
    #pragma EXPORT
 }
@@ -450,11 +445,11 @@ BOOL WINAPI hhs_SetTimeframe(HISTORY_HEADER hhs[], int index, int timeframe) {
  * @param  int            index  - Array-Index
  * @param  int            digits - Digits
  *
- * @return BOOL - Erfolgsstatus
+ * @return uint - dieselben Digits
  */
-BOOL WINAPI hhs_SetDigits(HISTORY_HEADER hhs[], int index, int digits) {
-   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+uint WINAPI hhs_SetDigits(HISTORY_HEADER hhs[], int index, int digits) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs)));
+   if (index     < 0)                 return(_NULL(debug("ERROR:  invalid parameter index = %d", index)));
    return(hh_SetDigits(&hhs[index], digits));
    #pragma EXPORT
 }
@@ -467,11 +462,11 @@ BOOL WINAPI hhs_SetDigits(HISTORY_HEADER hhs[], int index, int digits) {
  * @param  int            index     - Array-Index
  * @param  int            timestamp - Zeitpunkt
  *
- * @return BOOL - Erfolgsstatus
+ * @return int - derselbe Zeitpunkt
  */
-BOOL WINAPI hhs_SetSyncMarker(HISTORY_HEADER hhs[], int index, int timestamp) {
-   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+int WINAPI hhs_SetSyncMarker(HISTORY_HEADER hhs[], int index, int timestamp) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs)));
+   if (index     < 0)                 return(_NULL(debug("ERROR:  invalid parameter index = %d", index)));
    return(hh_SetSyncMarker(&hhs[index], timestamp));
    #pragma EXPORT
 }
@@ -484,11 +479,11 @@ BOOL WINAPI hhs_SetSyncMarker(HISTORY_HEADER hhs[], int index, int timestamp) {
  * @param  int            index     - Array-Index
  * @param  int            timestamp - Zeitpunkt
  *
- * @return BOOL - Erfolgsstatus
+ * @return int - derselbe Zeitpunkt
  */
-BOOL WINAPI hhs_SetLastSyncTime(HISTORY_HEADER hhs[], int index, int timestamp) {
-   if ((uint)hhs < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs));
-   if (index     < 0)                 return(debug("ERROR:  invalid parameter index = %d", index));
+int WINAPI hhs_SetLastSyncTime(HISTORY_HEADER hhs[], int index, int timestamp) {
+   if ((uint)hhs < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter hhs = 0x%p (not a valid pointer)", hhs)));
+   if (index     < 0)                 return(_NULL(debug("ERROR:  invalid parameter index = %d", index)));
    return(hh_SetLastSyncTime(&hhs[index], timestamp));
    #pragma EXPORT
 }
