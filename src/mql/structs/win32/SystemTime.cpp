@@ -12,10 +12,7 @@
  *    WORD wMilliseconds;           //  2
  * };                               // 16 byte
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
-#include "mql/structs/win32/SystemTime.h"
 
 
 /**

@@ -1,7 +1,5 @@
-
-#include "stdafx.h"
 #include "common.h"
-#include "Expander.h"
+#include "stdafx.h"
 
 
 /**
@@ -65,18 +63,17 @@ void __debug(char* fileName, char* funcName, const int line, const char* format,
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben. Alle Parameter werden ignoriert.
+ * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
+ * Alle Parameter werden ignoriert.
  */
-int  _NULL    (...) { return(NULL    ); }
-int  _CLR_NONE(...) { return(CLR_NONE); }
-BOOL _TRUE    (...) { return(TRUE    ); }
-BOOL _FALSE   (...) { return(FALSE   ); }
-bool _true    (...) { return(true    ); }
-bool _false   (...) { return(false   ); }
+bool _true (...) { return(true ); }
+bool _false(...) { return(false); }
+int  _NULL (...) { return(NULL ); }
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben. Alle außer dem ersten Parameter werden ignoriert.
+ * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
+ * Außer dem ersten werden alle übergebenen Parameter ignoriert.
  */
 bool   _bool  (bool   value, ...) { return(value); }
 char   _char  (char   value, ...) { return(value); }

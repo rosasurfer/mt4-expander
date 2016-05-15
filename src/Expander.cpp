@@ -6,8 +6,6 @@
  *
  * Post-Build Event: copy "$(TargetPath)" "$(SolutionDir)..\mt4\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)"
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
 
 
@@ -15,7 +13,7 @@
 bool logDebug, logNotice, logInfo, logWarn, logError, logFatal;
 
 std::vector<DWORD>      threadIds          (64);            // alle bekannten Thread-IDs
-std::vector<uint>       threadIdsProgramIds(64);            // ID des von einem Thread zuletzt ausgeführten MQL-Programms
+std::vector<uint>       threadIdsProgramIds(64);            // ID des vom jeweiligen Thread zuletzt ausgeführten MQL-Programms
 std::vector<pec_vector> contextChains      (64);            // alle bekannten Context-Chains (Index = ProgramID)
 CRITICAL_SECTION        terminalLock;                       // Terminal-weites Lock
 
@@ -41,7 +39,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
  */
 BOOL onProcessAttach() {
    //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
-   //SetLogLevel(L_WARN);                                     // Default-Loglevel
 
    threadIds          .resize(0);
    threadIdsProgramIds.resize(0);
@@ -55,7 +52,7 @@ BOOL onProcessAttach() {
  * DllMain()-Aufruf beim Entladen der DLL
  */
 BOOL onProcessDetach() {
-   if (logDebug) debug("thread %d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
+   //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
 
    DeleteCriticalSection(&terminalLock);
    RemoveTickTimers();
@@ -298,23 +295,6 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
 
 
 /**
- * Setter ec.programId für alle Elemente einer EXECUTION_CONTEXT*-Chain
- *
- * @param pec_vector chain - Context-Chain eines MQL-Programms
- * @param uint       id    - zu setzende Programm-ID
- *
- * @return uint - dieselbe ID (for chaining)
- */
-uint ecc_setProgramId(const pec_vector &chain, uint id) {
-   int size = chain.size();
-   for (int i=0; i < size; i++) {
-      chain[i]->programId = id;
-   }
-   return(id);
-}
-
-
-/**
  *
  */
 void WINAPI SetLogLevel(int level) {
@@ -399,3 +379,8 @@ int WINAPI Test() {
 }
 
 
+/**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
+ * Alle Parameter werden ignoriert.
+ */
+int _CLR_NONE(...) { return(CLR_NONE); }

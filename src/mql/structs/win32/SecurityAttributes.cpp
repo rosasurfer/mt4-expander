@@ -7,10 +7,7 @@
  *    BOOL   bInheritHandle;              //  4
  * };                                     // 12 byte
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
-#include "mql/structs/win32/SecurityAttributes.h"
 
 
 /**

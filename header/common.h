@@ -6,8 +6,8 @@
 #pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
 
+#include "assert.h"
 #include <sstream>
-#include "stdafx.h"
 
 
 typedef unsigned   int   uint;
@@ -22,13 +22,13 @@ typedef unsigned __int64 uint64;
 
 
 /**
- * Schickt einen Text mit Tracking-Infos an die Debugger-Ausgabe.
+ * Schickt einen Text mit Location-Infos an die Debugger-Ausgabe.
  */
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int   _debug(char* fileName, char* funcName, const int line, const char*        format, ...);
-int   _debug(char* fileName, char* funcName, const int line, const std::string &format, ...);
-void __debug(char* fileName, char* funcName, const int line, const char*        format, const va_list &args);
+int   _debug(char* fileName, char* funcName, int line, const char*        format, ...);
+int   _debug(char* fileName, char* funcName, int line, const std::string &format, ...);
+void __debug(char* fileName, char* funcName, int line, const char*        format, const va_list &args);
 
 
 /**
@@ -52,18 +52,17 @@ template <typename T> std::string to_string(T value) {
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben. Alle Parameter werden ignoriert.
+ * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
+ * Alle Parameter werden ignoriert.
  */
-int  _NULL    (...);
-int  _CLR_NONE(...);
-BOOL _TRUE    (...);
-BOOL _FALSE   (...);
-bool _true    (...);
-bool _false   (...);
+bool _true (...);
+bool _false(...);
+int  _NULL (...);
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende Werte variable zurückzugeben. Alle außer dem ersten Parameter werden ignoriert.
+ * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
+ * Außer dem ersten werden alle übergebenen Parameter ignoriert.
  */
 bool   _bool  (bool   value, ...);
 char   _char  (char   value, ...);

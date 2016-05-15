@@ -14,10 +14,7 @@
  *    CHAR     cAlternateFileName[14];    //  14
  * } WIN32_FIND_DATA;                     // 318 byte
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
-#include "mql/structs/win32/Win32FindData.h"
 
 
 /**

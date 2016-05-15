@@ -3,10 +3,7 @@
  *
  * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
-#include "mql/structs/mt4/SymbolGroup.h"
 
 
 /**

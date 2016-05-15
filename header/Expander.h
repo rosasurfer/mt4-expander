@@ -1,9 +1,10 @@
 #pragma once
 
+#include "common.h"
+#include "stdafx.h"
+#include <vector>
 #include "shared/defines.h"
 #include "shared/errors.h"
-#include <math.h>
-#include <vector>
 
 
 #ifdef EXPANDER_EXPORTS
@@ -15,7 +16,7 @@
 #endif
 
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
 
 // MQL-Programmtypen
@@ -32,6 +33,14 @@ enum ModuleType {
    MT_EXPERT    = MODULETYPE_EXPERT,         // 2
    MT_SCRIPT    = MODULETYPE_SCRIPT,         // 4
    MT_LIBRARY   = MODULETYPE_LIBRARY         // 8 - Libraries sind keine eigenständigen Programme
+};
+
+
+// Launchtypen eines MQL-Programms: via Template, via iCustom() oder von Hand
+enum LaunchType {
+   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,
+   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,
+   LT_MANUAL    = LAUNCHTYPE_MANUAL
 };
 
 
@@ -58,47 +67,23 @@ enum UninitializeReason {
 };
 
 
-// Launchtypen eines MQL-Programms: via Template, via iCustom() oder von Hand
-enum LaunchType {
-   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,
-   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,
-   LT_MANUAL    = LAUNCHTYPE_MANUAL
-};
+#include "mql/structs/mt4/HistoryBar400.h"
+#include "mql/structs/mt4/HistoryBar401.h"
+#include "mql/structs/mt4/HistoryHeader.h"
+#include "mql/structs/mt4/Symbol.h"
+#include "mql/structs/mt4/SymbolGroup.h"
+#include "mql/structs/mt4/SymbolSelected.h"
+#include "mql/structs/mt4/Tick.h"
 
+#include "mql/structs/myfx/ExecutionContext.h"
 
-/**
- * MT4 struct HISTORY_BAR_400
- *
- * HistoryFile Barformat v400 (bis MetaTrader Build 509)
- */
-typedef struct HISTORY_BAR_400 {                   // -- offset ---- size --- description ----------------------------------------------------------------------------
-   uint   time;                                    //         0         4     Open-Time (timestamp)
-   double open;                                    //         4         8
-   double low;                                     //        12         8
-   double high;                                    //        20         8
-   double close;                                   //        28         8
-   double ticks;                                   //        36         8     immer Ganzzahl
-} RateInfo;             // MetaQuotes-Terminologie // ----------------------------------------------------------------------------------------------------------------
-                                                   //                = 44
-
-/**
- * MT4 struct HISTORY_BAR_401
- *
- * HistoryFile Barformat v401 (ab MetaTrader Build 510)
- */
-typedef struct HISTORY_BAR_401 {                   // -- offset ---- size --- description ----------------------------------------------------------------------------
-   int64  time;                                    //         0         8     Open-Time (timestamp)
-   double open;                                    //         8         8
-   double high;                                    //        16         8
-   double low;                                     //        24         8
-   double close;                                   //        32         8
-   uint64 ticks;                                   //        40         8
-   int    spread;                                  //        48         4     (unbenutzt)
-   uint64 volume;                                  //        52         8     (unbenutzt)
-} MqlRates;             // MetaQuotes-Terminologie // ----------------------------------------------------------------------------------------------------------------
-                                                   //                = 60
-
-// @see ExpertSample.cpp, hier jedoch anders definiert: https://docs.mql4.com/mql4changes
+#include "mql/structs/win32/FileTime.h"
+#include "mql/structs/win32/ProcessInformation.h"
+#include "mql/structs/win32/SecurityAttributes.h"
+#include "mql/structs/win32/StartupInfo.h"
+#include "mql/structs/win32/SystemTime.h"
+#include "mql/structs/win32/TimeZoneInformation.h"
+#include "mql/structs/win32/Win32FindData.h"
 
 
 /**
@@ -206,46 +191,10 @@ struct LOG_MESSAGE {
 };
 
 
-/**
- * MyFX struct: Ausführungskontext eines MQL-Programms für Datenaustausch zwischen MQL-Modulen und DLL
- */
-struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
-   uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
-   ProgramType        programType;                 //         4         4     Programmtyp                                     (konstant)   => was bin ich
-   char               programName[MAX_PATH];       //         8       260     Programmname (szchar)                           (konstant)   => wie heiße ich
-   ModuleType         moduleType;                  //       268         4     Modultyp                                        (konstant)   => was bin ich
-   char               moduleName[MAX_PATH];        //       272       260     Modulname (szchar)                              (konstant)   => wie heiße ich
-
-   LaunchType         launchType;                  //       532         4     Launchtyp                                       (konstant)   => wie wurde ich gestartet
-   EXECUTION_CONTEXT* superContext;                //       536         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   uint               initFlags;                   //       540         4     init-Flags                                      (konstant)   => wie werde ich initialisiert
-   uint               deinitFlags;                 //       544         4     deinit-Flags                                    (konstant)   => wie werde ich deinitialisiert
-   RootFunction       rootFunction;                //       548         4     letzte Rootfunktion des aktuellen Modules       (variabel)   => wo bin ich
-   UninitializeReason uninitializeReason;          //       552         4     letzter Uninitialize-Reason (nur Hauptmodule)   (variabel)   => woher komme ich
-
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       556        12     aktuelles Symbol (szchar) (nicht in Libraries)  (variabel)   => auf welchem Symbol laufe ich
-   uint               timeframe;                   //       568         4     aktuelle Bar-Periode (nicht in Libraries)       (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChartWindow;                //       572         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
-   HWND               hChart;                      //       576         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
-   uint               testFlags;                   //       580         4     Test-Flags: Off|On|VisualMode|Optimization      (konstant)   => laufe ich im Tester und wenn ja, wie
-
-   int                lastError;                   //       584         4     letzter MQL-Fehler                              (variabel)   => welcher MQL-Fehler ist aufgetreten
-   int                error;                       //       588         4     DLL-Fehlercode                                  (variabel)   => welcher DLL-Fehler ist aufgetreten
-   char*              errorMsg;                    //       592         4     Text des DLL-Fehlers                            (variabel)   => ...
-   int                warn;                        //       596         4     Code einer DLL-Warnung oder NULL                (variabel)   => ...
-   char*              warnMsg;                     //       600         4     Text der DLL-Warnung                            (variabel)   => ...
-   int                info;                        //       604         4     Code einer DLL-Info oder NULL                   (variabel)   => ...
-   char*              infoMsg;                     //       608         4     Text der DLL-Info                               (variabel)   => ...
-   BOOL               logging;                     //       612         4     Logstatus                                       (konstant)   => was logge ich
-   char               logFile[MAX_PATH];           //       616       260     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
-};                                                 // ----------------------------------------------------------------------------------------------------------------------------
-                                                   //               = 876                                                                     warum bin ich nicht auf Ibiza
-
  //LOG_MESSAGE**      dllErrors;                   //         4               Array von Logmessages des Typs L_ERROR          (variabel)   => welche DLL-Fehler sind aufgetreten
  //uint               dllErrorsSize;               //         4               Anzahl von Logmessages (Arraygröße)             (variabel)   => wieviele DLL-Fehler sind aufgetreten
 
 
-typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 
 
 // Deklaration Thread- und EXECUTION_CONTEXT-Verwaltung (Initialisierung in Expander.cpp)
@@ -257,17 +206,7 @@ extern std::vector<pec_vector> contextChains;
 // Funktionsdeklarationen
 BOOL onProcessAttach();
 BOOL onProcessDetach();
-uint ecc_setProgramId(pec_vector &chain, uint id);
 void RemoveTickTimers();
-
-ProgramType  WINAPI ec_SetProgramType (EXECUTION_CONTEXT* ec, ProgramType type);
-const char*  WINAPI ec_SetProgramName (EXECUTION_CONTEXT* ec, const char* name);
-ModuleType   WINAPI ec_SetModuleType  (EXECUTION_CONTEXT* ec, ModuleType type);
-const char*  WINAPI ec_SetModuleName  (EXECUTION_CONTEXT* ec, const char* name);
-RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id);
-const char*  WINAPI ec_SetSymbol      (EXECUTION_CONTEXT* ec, const char* symbol);
-      uint   WINAPI ec_SetTimeframe   (EXECUTION_CONTEXT* ec, uint timeframe);
-const char*  WINAPI ec_SetLogFile     (EXECUTION_CONTEXT* ec, const char* fileName);
 
 BOOL         WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
 BOOL         WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);
@@ -297,3 +236,10 @@ const char*  WINAPI ProgramTypeToStr       (ProgramType type);
 const char*  WINAPI RootFunctionName       (RootFunction id);
 const char*  WINAPI RootFunctionToStr      (RootFunction id);
 const char*  WINAPI UninitializeReasonToStr(UninitializeReason reason);
+
+
+/**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
+ * Alle Parameter werden ignoriert.
+ */
+int _CLR_NONE(...);

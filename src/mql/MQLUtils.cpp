@@ -3,8 +3,6 @@
  *
  * @author  Peter Walther
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
 
 

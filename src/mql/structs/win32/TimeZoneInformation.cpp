@@ -18,10 +18,7 @@
  *  LocalTime + Bias = GMT
  *  GMT + Offset     = LocalTime
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
-#include "mql/structs/win32/TimeZoneInformation.h"
 
 
 /**

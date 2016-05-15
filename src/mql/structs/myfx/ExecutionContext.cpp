@@ -1,8 +1,8 @@
 /**
- * MQL-Interface zum Zugriff auf ein struct EXECUTION_CONTEXT.
+ * MyFX struct EXECUTION_CONTEXT
+ *
+ * Ausführungskontext von und Kommunikation mit MQL-Programmen und DLL
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
 
 
@@ -100,8 +100,8 @@ LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
  *                FALSE, wenn der ExecutionContext keinen SuperContext enthielt oder ein Fehler auftrat
  */
 BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
-   if ((uint)ec  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)sec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter sec = 0x%p (not a valid pointer)", sec));
+   if ((uint)ec  < MIN_VALID_POINTER) return(_FALSE(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)sec < MIN_VALID_POINTER) return(_FALSE(debug("ERROR:  invalid parameter sec = 0x%p (not a valid pointer)", sec)));
 
    if (ec->superContext) {
       *sec = *ec->superContext;
@@ -431,9 +431,9 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
  * @param  EXECUTION_CONTEXT* ec  - zu modifizierender Context
  * @param  EXECUTION_CONTEXT* sec - zu setzender SuperContext
  *
- * @return EXECUTION_CONTEXT* - derselbe SuperContext
+ * @return EXECUTION_CONTEXT* - der gesetzte SuperContext
  */
-const EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
+EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
    if (       (uint)ec  < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)_NULL(debug("ERROR:  invalid parameter sec = 0x%p (not a valid pointer)", sec)));
 
@@ -448,9 +448,9 @@ const EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUT
  * @param  EXECUTION_CONTEXT* ec    - zu modifizierender Context
  * @param  EXECUTION_CONTEXT* lpSec - zu setzender SuperContext
  *
- * @return EXECUTION_CONTEXT* - derselbe SuperContext
+ * @return EXECUTION_CONTEXT* - der gesetzte SuperContext
  */
-const EXECUTION_CONTEXT* WINAPI ec_SetLpSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* lpSec) {
+EXECUTION_CONTEXT* WINAPI ec_SetLpSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* lpSec) {
    return(ec_SetSuperContext(ec, lpSec));
    #pragma EXPORT
 }
@@ -648,12 +648,11 @@ int WINAPI ec_SetLastError(EXECUTION_CONTEXT* ec, int error) {
 
    if (ec->programId) {
       pec_vector &chain = contextChains[ec->programId];
-      if (chain[1]) chain[1]->lastError = error;            // Fehler des Hauptkontexts oder
-      else          chain[0]->lastError = error;            // Fehler des Master-Kontexts setzen
+      if (chain[1]) (chain[1]!=ec) && ec_SetLastError(chain[1], error);    // Fehler ggf. im Hauptkontext...
+      else          (chain[0]!=ec) && ec_SetLastError(chain[0], error);    // ...oder im Master-Kontext setzen
    }
 
-   if (ec->superContext)
-      ec->superContext->error = error;                      // Fehler im SuperContext setzen
+   ec->superContext && ec_SetLastError(ec->superContext, error);           // Fehler ggf. im SuperContext setzen
 
    return(error);
    #pragma EXPORT
@@ -691,7 +690,28 @@ const char* WINAPI ec_SetLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
       if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)_NULL(debug("ERROR:  illegal length of parameter fileName = \"%s\" (max %d characters)", fileName, sizeof(ec->logFile)-1)));
       return(strcpy(ec->logFile, fileName));
    }
+
+   // filename ist NULL-Pointer
    ec->logFile[0] = '\0';
    return(ec->logFile);
    #pragma EXPORT
 }
+
+
+/**
+ * Setzt die Programm-ID aller Elemente eines EXECUTION_CONTEXT*-Vectors
+ *
+ * @param pec_vector chain - Vector, typischerweise die Context-Chain eines MQL-Programms
+ * @param uint       id    - zu setzende Programm-ID
+ *
+ * @return uint - dieselbe ID
+ */
+uint ecc_SetProgramId(const pec_vector &chain, uint id) {
+   int size = chain.size();
+   for (int i=0; i < size; i++) {
+      ec_SetProgramId(chain[i], id);
+   }
+   return(id);
+}
+
+

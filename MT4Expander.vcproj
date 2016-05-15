@@ -192,6 +192,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\stdafx.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Subclassing.cpp"
 				>
 			</File>
@@ -319,6 +323,14 @@
 						Name="mt4"
 						>
 						<File
+							RelativePath=".\header\mql\structs\mt4\HistoryBar400.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\mt4\HistoryBar401.h"
+							>
+						</File>
+						<File
 							RelativePath=".\header\mql\structs\mt4\HistoryHeader.h"
 							>
 						</File>
@@ -342,6 +354,10 @@
 					<Filter
 						Name="myfx"
 						>
+						<File
+							RelativePath=".\header\mql\structs\myfx\ExecutionContext.h"
+							>
+						</File>
 					</Filter>
 					<Filter
 						Name="win32"

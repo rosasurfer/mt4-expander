@@ -22,10 +22,7 @@
  *    HANDLE  hStdError;                  //  4
  * } STARTUPINFO;                         // 68 byte
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
-#include "mql/structs/win32/StartupInfo.h"
 
 
 /**

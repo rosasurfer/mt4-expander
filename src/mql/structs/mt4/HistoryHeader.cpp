@@ -3,10 +3,7 @@
  *
  * HistoryFile Header
  */
-#include "stdafx.h"
-#include "common.h"
 #include "Expander.h"
-#include "mql/structs/mt4/HistoryHeader.h"
 
 
 /**
