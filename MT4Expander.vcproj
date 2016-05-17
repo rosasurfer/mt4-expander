@@ -272,14 +272,6 @@
 							RelativePath=".\src\mql\structs\mt4\SymbolGroup.cpp"
 							>
 						</File>
-						<File
-							RelativePath=".\src\mql\structs\mt4\SymbolSelected.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\mt4\Tick.cpp"
-							>
-						</File>
 					</Filter>
 				</Filter>
 			</Filter>
@@ -323,6 +315,10 @@
 						Name="mt4"
 						>
 						<File
+							RelativePath=".\header\mql\structs\mt4\FxtHeader.h"
+							>
+						</File>
+						<File
 							RelativePath=".\header\mql\structs\mt4\HistoryBar400.h"
 							>
 						</File>
@@ -332,6 +328,10 @@
 						</File>
 						<File
 							RelativePath=".\header\mql\structs\mt4\HistoryHeader.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\mt4\MqlStr.h"
 							>
 						</File>
 						<File
@@ -356,6 +356,10 @@
 						>
 						<File
 							RelativePath=".\header\mql\structs\myfx\ExecutionContext.h"
+							>
+						</File>
+						<File
+							RelativePath=".\header\mql\structs\myfx\LogMessage.h"
 							>
 						</File>
 					</Filter>
