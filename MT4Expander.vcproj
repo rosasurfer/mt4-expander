@@ -90,7 +90,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\metatrader\mt4.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -171,7 +171,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\metatrader\mt4.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
