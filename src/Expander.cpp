@@ -381,6 +381,7 @@ int WINAPI Test() {
 
 /**
  * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
- * Alle Parameter werden ignoriert.
+ *
+ * @param  ... parameters are ignored
  */
 int _CLR_NONE(...) { return(CLR_NONE); }

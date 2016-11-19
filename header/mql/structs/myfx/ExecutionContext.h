@@ -3,14 +3,14 @@
 /**
  * MyFX struct EXECUTION_CONTEXT
  *
- * Ausführungskontext von und Kommunikation mit MQL-Programmen und DLL
+ * Ausführungskontext von MQL-Programmen zur Kommunikation zwischen MQL und DLL
  */
 struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
    uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
-   ProgramType        programType;                 //         4         4     Programmtyp                                     (konstant)   => was bin ich
-   char               programName[MAX_PATH];       //         8       260     Programmname (szchar)                           (konstant)   => wie heiße ich
-   ModuleType         moduleType;                  //       268         4     Modultyp                                        (konstant)   => was bin ich
-   char               moduleName[MAX_PATH];        //       272       260     Modulname (szchar)                              (konstant)   => wie heiße ich
+   ProgramType        programType;                 //         4         4     Programmtyp                                     (konstant)   => was für ein Programm bin ich
+   char               programName[MAX_PATH];       //         8       260     Programmname (szchar)                           (konstant)   => wie heißt es
+   ModuleType         moduleType;                  //       268         4     Modultyp                                        (konstant)   => was für ein Modul bin ich
+   char               moduleName[MAX_PATH];        //       272       260     Modulname (szchar)                              (konstant)   => wie heißt es
 
    LaunchType         launchType;                  //       532         4     Launchtyp                                       (konstant)   => wie wurde ich gestartet
    EXECUTION_CONTEXT* superContext;                //       536         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
@@ -65,6 +65,7 @@ const char*        WINAPI ec_LogFile           (const EXECUTION_CONTEXT* ec);
 
 // Setter
 uint               WINAPI ec_SetProgramId         (EXECUTION_CONTEXT* ec, uint               id       );
+uint                     ecc_SetProgramId         (pec_vector     &chain, uint               id       );
 ProgramType        WINAPI ec_SetProgramType       (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName       (EXECUTION_CONTEXT* ec, const char*        name     );
 ModuleType         WINAPI ec_SetModuleType        (EXECUTION_CONTEXT* ec, ModuleType         type     );
@@ -85,5 +86,3 @@ int                WINAPI ec_SetLastError         (EXECUTION_CONTEXT* ec, int   
 //                        ...
 BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
 const char*        WINAPI ec_SetLogFile           (EXECUTION_CONTEXT* ec, const char*        fileName );
-
-uint                      ecc_SetProgramId(pec_vector &chain, uint id);
