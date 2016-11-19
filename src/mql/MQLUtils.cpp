@@ -11,12 +11,12 @@
  *
  * @param  BOOL values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
  *
- * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
+ * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
-int WINAPI GetBoolsAddress(const BOOL values[]) {
+uint WINAPI GetBoolsAddress(const BOOL values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
       return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
-   return((int) values);
+   return((uint) values);
    #pragma EXPORT
 }
 
@@ -26,12 +26,12 @@ int WINAPI GetBoolsAddress(const BOOL values[]) {
  *
  * @param  int values[] - MQL-Integer-Array
  *
- * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
+ * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
-int WINAPI GetIntsAddress(const int values[]) {
+uint WINAPI GetIntsAddress(const int values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
       return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
-   return((int) values);
+   return((uint) values);
    #pragma EXPORT
 }
 
@@ -41,12 +41,12 @@ int WINAPI GetIntsAddress(const int values[]) {
  *
  * @param  double values[] - MQL-Double-Array
  *
- * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
+ * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
-int WINAPI GetDoublesAddress(const double values[]) {
+uint WINAPI GetDoublesAddress(const double values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
       return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
-   return((int) values);
+   return((uint) values);
    #pragma EXPORT
 }
 
@@ -56,12 +56,12 @@ int WINAPI GetDoublesAddress(const double values[]) {
  *
  * @param  MqlStr values[] - MQL-String-Array
  *
- * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
+ * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
-int WINAPI GetStringsAddress(const MqlStr values[]) {
+uint WINAPI GetStringsAddress(const MqlStr values[]) {
    if (values && (uint)values < MIN_VALID_POINTER)
       return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
-   return((int) values);
+   return((uint) values);
    #pragma EXPORT
 }
 
@@ -71,16 +71,16 @@ int WINAPI GetStringsAddress(const MqlStr values[]) {
  *
  * @param  char* value - C-String: MetaTrader übergibt für einen MQL-String das Element MqlStr.string
  *
- * @return int - Speicheradresse oder NULL, falls ein Fehler auftrat
+ * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  *
  * Achtung: GetStringAddress() darf in MQL nur mit Array-Elementen verwendet werden. Ist der Parameter ein einfacher String,
  *          wird an die DLL eine Kopie dieses Strings übergeben. Diese Kopie wird u.U. sofort nach Rückkehr freigegeben und
  *          die erhaltene Adresse ist ungültig (z.B. im Tester bei mehrfachen Tests).
  */
-int WINAPI GetStringAddress(const char* value) {
+uint WINAPI GetStringAddress(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER)
       return(debug("ERROR:  invalid parameter value = 0x%p (not a valid pointer)", value));
-   return((int) value);
+   return((uint) value);
    #pragma EXPORT
 }
 
@@ -221,6 +221,7 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
  */
 const char* WINAPI ProgramTypeToStr(ProgramType type) {
    switch (type) {
+      case NULL        : return("NULL"        );
       case PT_EXPERT   : return("PT_EXPERT"   );
       case PT_SCRIPT   : return("PT_SCRIPT"   );
       case PT_INDICATOR: return("PT_INDICATOR");
@@ -836,5 +837,106 @@ const char* WINAPI ShowWindowCmdToStr(int cmdShow) {
    }
    debug("ERROR:  unknown ShowWindow() command = %d", cmdShow);
    return(NULL);
+   #pragma EXPORT
+}
+
+
+/**
+ * Read the terminal's version numbers.
+ *
+ * @param  _Out_ uint* major  - variable holding the major version number after return
+ * @param  _Out_ uint* minor  - variable holding the minor version number after return
+ * @param  _Out_ uint* hotfix - variable holding the hotfix number after return
+ * @param  _Out_ uint* build  - variable holding the build number after return
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI GetTerminalVersionNumbers(uint* major, uint* minor, uint* hotfix, uint* build) {
+   if (!major  || (uint)major  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter major = 0x%p (not a valid pointer)", major));
+   if (!minor  || (uint)minor  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter minor = 0x%p (not a valid pointer)", minor));
+   if (!hotfix || (uint)hotfix < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hotfix = 0x%p (not a valid pointer)", hotfix));
+   if (!build  || (uint)build  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter build = 0x%p (not a valid pointer)", build));
+
+   static uint resultMajor, resultMinor, resultHotfix, resultBuild;
+
+   if (!resultMajor) {
+      // resolve the executable's full file name
+      char* fileName;
+      uint size = MAX_PATH >> 1, length=size;
+      while (length >= size) {
+         size   <<= 1;
+         fileName = (char*) alloca(size);                               // on stack
+         length   = GetModuleFileName(NULL, fileName, size);
+      }
+      if (!length) return(debug("ERROR:  GetModuleFileName() 0 chars copied [error: %d]", GetLastError()));
+
+      // get the file's version info
+      DWORD infoSize = GetFileVersionInfoSize(fileName, &infoSize);
+      if (!infoSize) return(debug("ERROR:  GetFileVersionInfoSize() returned 0 [error: %d]", GetLastError()));
+
+      char* infoBuffer = (char*) alloca(infoSize);                      // on stack
+      BOOL result = GetFileVersionInfo(fileName, NULL, infoSize, infoBuffer);
+      if (!result) return(debug("ERROR:  GetFileVersionInfo() returned FALSE [error: %d]", GetLastError()));
+
+      // query the version root values
+      VS_FIXEDFILEINFO* fileInfo;
+      uint len;
+      result = VerQueryValue(infoBuffer, "\\", (LPVOID*)&fileInfo, &len);
+      if (!result) return(debug("ERROR:  VerQueryValue() returned FALSE [error: %d]", GetLastError()));
+
+      // parse the version numbers
+      resultMajor  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
+      resultMinor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
+      resultHotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
+      resultBuild  = (fileInfo->dwFileVersionLS      ) & 0xffff;
+   }
+
+   // assign results to parameters
+   *major  = resultMajor;
+   *minor  = resultMinor;
+   *hotfix = resultHotfix;
+   *build  = resultBuild;
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Return the terminal's version string.
+ *
+ * @return char* - version or NULL pointer if an error occurred
+ */
+const char* WINAPI GetTerminalVersion() {
+   static char* version;
+
+   if (!version) {
+      // get the version numbers
+      uint major, minor, hotfix, build;
+      BOOL result = GetTerminalVersionNumbers(&major, &minor, &hotfix, &build);
+      if (!result) return((char*)debug("ERROR:  GetTerminalVersionNumbers() returned FALSE"));
+
+      // compose version string
+      char* format = "%d.%d.%d.%d";
+      uint size = _scprintf(format, major, minor, hotfix, build) + 1;   // +1 for the terminating '\0'
+      version = new char[size];                                         // on the heap
+      sprintf_s(version, size, format, major, minor, hotfix, build);
+   }
+
+   return(version);
+   #pragma EXPORT
+}
+
+
+/**
+ * Return the terminal's build number.
+ *
+ * @return uint - build number or 0 if an error occurred
+ */
+uint WINAPI GetTerminalBuild() {
+   uint build;
+   if (!GetTerminalVersionNumbers(&build, &build, &build, &build))
+      return(debug("ERROR:  GetTerminalVersionNumbers() returned FALSE"));
+   return(build);
    #pragma EXPORT
 }

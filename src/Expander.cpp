@@ -91,23 +91,23 @@ BOOL onProcessDetach() {
  *   ist immer gültig.
  *
  *
- *  Ablauf:
- *  --- Laden des Indikators ---------------------------------------------------------------------------------------------
- *  SetMainExecutionContext()  Indicator::init()              programId=0  creating new chain             set: programId=1
- *  SyncExecutionContext()     Indicator::library1::init()    programId=0  loaded by Indicator            set: programId=1
- *  SyncExecutionContext()     Indicator::library2::init()    programId=0  loaded by Indicator            set: programId=1
- *  SyncExecutionContext()     Indicator::library3::init()    programId=0  loaded by Indicator::library1  set: programId=1
- *  --- deinit() ---------------------------------------------------------------------------------------------------------
- *                             Indicator::deinit()            programId=1  Indikator zuerst
- *                             Indicator::library1::deinit()  programId=1  dann die Libraries
- *                             Indicator::library3::deinit()  programId=1  hierarchisch, nicht in Ladereihenfolge
- *                             Indicator::library2::deinit()  programId=1
- *  --- init() -----------------------------------------------------------------------------------------------------------
- *  SyncExecutionContext()     Indicator::library1::init()    programId=1  Libraries zuerst (hierarchisch)
- *  SyncExecutionContext()     Indicator::library3::init()    programId=1  neues Symbol/neuer Timeframe tauchen auf
- *  SyncExecutionContext()     Indicator::library2::init()    programId=1
- *  SetMainExecutionContext()  Indicator::init()              programId=0  zum Schluß der Indikator       set: programId=1
- *  ----------------------------------------------------------------------------------------------------------------------
+ *  init-Cycle eines Indikators:
+ *  --- erstes Laden: init() --------------------------------------------------------------------------------------------------------
+ *  Indicator::init()              programId=0  creating new chain             set: programId=1
+ *  Indicator::library1::init()    programId=0  loaded by Indicator            set: programId=1
+ *  Indicator::library2::init()    programId=0  loaded by Indicator            set: programId=1
+ *  Indicator::library3::init()    programId=0  loaded by Indicator::library1  set: programId=1
+ *  --- deinit() --------------------------------------------------------------------------------------------------------------------
+ *  Indicator::deinit()            programId=1  Indikator zuerst
+ *  Indicator::library1::deinit()  programId=1  dann die Libraries
+ *  Indicator::library3::deinit()  programId=1  hierarchisch, nicht in Ladereihenfolge
+ *  Indicator::library2::deinit()  programId=1
+ *  --- init() ----------------------------------------------------------------------------------------------------------------------
+ *  Indicator::library1::init()    programId=1  Libraries zuerst (hierarchisch)
+ *  Indicator::library3::init()    programId=1  neues Symbol/neuer Timeframe tauchen auf
+ *  Indicator::library2::init()    programId=1
+ *  Indicator::init()              programId=0  zum Schluß der Indikator       set: programId=1
+ *  ---------------------------------------------------------------------------------------------------------------------------------
  */
 BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleType, const char* moduleName, RootFunction rootFunction, UninitializeReason reason, const char* symbol, int period) {
    if ((uint)ec         < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
@@ -206,7 +206,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
    EnterCriticalSection(&terminalLock);
    threadIds          .push_back(currentThreadId);
    threadIdsProgramIds.push_back(ec->programId);
-   if (logDebug || threadIds.size() > 128) debug("thread %d %s  added (size=%d)", currentThreadId, (IsUIThread() ? "ui":"  "), threadIds.size());
+   if (logDebug || threadIds.size() > 512) debug("thread %d %s  added (size=%d)", currentThreadId, (IsUIThread() ? "ui":"  "), threadIds.size());
    LeaveCriticalSection(&terminalLock);
 
    return(TRUE);

@@ -107,11 +107,11 @@ void         WINAPI SetLogLevel(int level);
 HWND         WINAPI GetApplicationWindow();
 DWORD        WINAPI GetUIThreadId();
 BOOL         WINAPI IsUIThread();
-int          WINAPI GetBoolsAddress  (BOOL   values[]);
-int          WINAPI GetIntsAddress   (int    values[]);   int WINAPI GetBufferAddress(int values[]);   // Alias
-int          WINAPI GetDoublesAddress(double values[]);
-int          WINAPI GetStringsAddress(MqlStr values[]);
-int          WINAPI GetStringAddress (char*  value   );
+uint         WINAPI GetBoolsAddress  (BOOL   values[]);
+uint         WINAPI GetIntsAddress   (int    values[]);   int WINAPI GetBufferAddress(int values[]);   // Alias
+uint         WINAPI GetDoublesAddress(double values[]);
+uint         WINAPI GetStringsAddress(MqlStr values[]);
+uint         WINAPI GetStringAddress (char*  value   );
 const char*  WINAPI GetString        (char*  value   );
 int          WINAPI GetLastWin32Error();
 BOOL         WINAPI IsCustomTimeframe(int timeframe);
@@ -128,6 +128,10 @@ const char*  WINAPI ProgramTypeToStr       (ProgramType type);
 const char*  WINAPI RootFunctionName       (RootFunction id);
 const char*  WINAPI RootFunctionToStr      (RootFunction id);
 const char*  WINAPI UninitializeReasonToStr(UninitializeReason reason);
+
+BOOL         WINAPI GetTerminalVersionNumbers(uint* major, uint* minor, uint* hotfix, uint* build);
+const char*  WINAPI GetTerminalVersion();
+uint         WINAPI GetTerminalBuild();
 
 
 /**

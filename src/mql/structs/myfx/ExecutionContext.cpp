@@ -685,13 +685,15 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
  */
 const char* WINAPI ec_SetLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
    if ((uint)ec < MIN_VALID_POINTER)                return((char*)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+
    if (fileName) {
+      // fileName ist kein NULL-Pointer
       if ((uint)fileName < MIN_VALID_POINTER)       return((char*)_NULL(debug("ERROR:  invalid parameter fileName = 0x%p (not a valid pointer)", fileName)));
       if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)_NULL(debug("ERROR:  illegal length of parameter fileName = \"%s\" (max %d characters)", fileName, sizeof(ec->logFile)-1)));
       return(strcpy(ec->logFile, fileName));
    }
 
-   // filename ist NULL-Pointer
+   // fileName ist NULL-Pointer
    ec->logFile[0] = '\0';
    return(ec->logFile);
    #pragma EXPORT
@@ -713,5 +715,3 @@ uint ecc_SetProgramId(const pec_vector &chain, uint id) {
    }
    return(id);
 }
-
-
