@@ -28,7 +28,7 @@ int WINAPI onInit_Program() {
    #pragma EXPORT
 }
 
-int WINAPI onInit_ProgramClearTest() {
+int WINAPI onInit_ProgramAfterTest() {
    return(NO_ERROR);
    #pragma EXPORT
 }
