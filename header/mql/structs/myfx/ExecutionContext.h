@@ -25,13 +25,13 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
    HWND               hChart;                      //       576         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
    uint               testFlags;                   //       580         4     Test-Flags: Off|On|VisualMode|Optimization      (konstant)   => laufe ich im Tester und wenn ja, wie
 
-   int                lastError;                   //       584         4     letzter MQL-Fehler                              (variabel)   => welcher MQL-Fehler ist aufgetreten
-   int                error;                       //       588         4     DLL-Fehlercode                                  (variabel)   => welcher DLL-Fehler ist aufgetreten
-   char*              errorMsg;                    //       592         4     Text des DLL-Fehlers                            (variabel)   => ...
-   int                warn;                        //       596         4     Code einer DLL-Warnung oder NULL                (variabel)   => ...
-   char*              warnMsg;                     //       600         4     Text der DLL-Warnung                            (variabel)   => ...
-   int                info;                        //       604         4     Code einer DLL-Info oder NULL                   (variabel)   => ...
-   char*              infoMsg;                     //       608         4     Text der DLL-Info                               (variabel)   => ...
+   int                mqlError;                    //       584         4     Code eines aufgetretenen MQL-Fehlers            (variabel)   => welcher MQL-Fehler ist aufgetreten
+   int                dllError;                    //       588         4     Code eines aufgetretenen DLL-Fehlers            (variabel)   => welcher DLL-Fehler ist aufgetreten
+   char*              dllErrorMsg;                 //       592         4     Text des DLL-Fehlers                            (variabel)   => ...
+   int                dllWarning;                  //       596         4     Code einer aufgetretenen DLL-Warnung            (variabel)   => ...
+   char*              dllWarningMsg;               //       600         4     Text der DLL-Warnung                            (variabel)   => ...
+   int                dllInfo;                     //       604         4     Code einer aufgetretenen DLL-Info               (variabel)   => ...
+   char*              dllInfoMsg;                  //       608         4     Text der DLL-Info                               (variabel)   => ...
    BOOL               logging;                     //       612         4     Logstatus                                       (konstant)   => was logge ich
    char               logFile[MAX_PATH];           //       616       260     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
 };                                                 // ----------------------------------------------------------------------------------------------------------------------------
@@ -58,14 +58,14 @@ uint               WINAPI ec_Timeframe         (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChartWindow      (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart            (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestFlags         (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_LastError         (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_MqlError          (const EXECUTION_CONTEXT* ec);
 //                        ...
 BOOL               WINAPI ec_Logging           (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_LogFile           (const EXECUTION_CONTEXT* ec);
 
 // Setter
 uint               WINAPI ec_SetProgramId         (EXECUTION_CONTEXT* ec, uint               id       );
-uint                     ecc_SetProgramId         (pec_vector     &chain, uint               id       );
+uint               WINAPI ecc_SetProgramId        (pec_vector     &chain, uint               id       );
 ProgramType        WINAPI ec_SetProgramType       (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName       (EXECUTION_CONTEXT* ec, const char*        name     );
 ModuleType         WINAPI ec_SetModuleType        (EXECUTION_CONTEXT* ec, ModuleType         type     );
@@ -82,7 +82,7 @@ uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint  
 HWND               WINAPI ec_SetHChartWindow      (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 uint               WINAPI ec_SetTestFlags         (EXECUTION_CONTEXT* ec, uint               flags    );
-int                WINAPI ec_SetLastError         (EXECUTION_CONTEXT* ec, int                error    );
+int                WINAPI ec_SetMqlError          (EXECUTION_CONTEXT* ec, int                error    );
 //                        ...
 BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
 const char*        WINAPI ec_SetLogFile           (EXECUTION_CONTEXT* ec, const char*        fileName );

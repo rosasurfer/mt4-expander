@@ -268,12 +268,12 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
          ec_SetModuleType(ec, MT_LIBRARY);                  // Context-Daten aktualisieren (Symbol und Timeframe in Libraries ignorieren)
          ec_SetModuleName(ec, moduleName);
          ec->rootFunction = rootFunction;
-         ec->lastError    = NO_ERROR;
+         ec->mqlError     = NO_ERROR;
          chain.push_back(ec);                               // Context zur Programm-Chain hinzufügen
       }
       else {
          // (3) Library ist in init() und war bereits initialisiert, also init()-Cycle
-         ec->lastError = NO_ERROR;                          // Symbol und Timeframe in Libraries ignorieren
+         ec->mqlError = NO_ERROR;                           // Symbol und Timeframe in Libraries ignorieren
 
          pec_vector &chain = contextChains[ec->programId];  // die erste Library invalidiert den Zeiger auf den Hauptkontext
          if (chain[1]) {

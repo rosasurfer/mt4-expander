@@ -1,7 +1,7 @@
 /**
  * MyFX struct EXECUTION_CONTEXT
  *
- * Ausführungskontext von und Kommunikation mit MQL-Programmen und DLL
+ * Ausführungskontext von MQL-Programmen zur Kommunikation zwischen MQL und DLL
  */
 #include "Expander.h"
 
@@ -259,15 +259,15 @@ uint WINAPI ec_TestFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den in einem EXECUTION_CONTEXT gespeicherten letzten Fehler-Code zurück.
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten MQL-Fehler zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return int - Fehler-Code
  */
-int WINAPI ec_LastError(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   return(ec->lastError);
+   return(ec->mqlError);
    #pragma EXPORT
 }
 
@@ -314,6 +314,23 @@ uint WINAPI ec_SetProgramId(EXECUTION_CONTEXT* ec, uint id) {
 
    return(ec->programId = id);
    #pragma EXPORT
+}
+
+
+/**
+ * Setzt die Programm-ID aller Elemente eines EXECUTION_CONTEXT*-Vectors
+ *
+ * @param pec_vector chain - Vector, typischerweise die Context-Chain eines MQL-Programms
+ * @param uint       id    - zu setzende Programm-ID
+ *
+ * @return uint - dieselbe ID
+ */
+uint WINAPI ecc_SetProgramId(const pec_vector &chain, uint id) {
+   int size = chain.size();
+   for (int i=0; i < size; i++) {
+      ec_SetProgramId(chain[i], id);
+   }
+   return(id);
 }
 
 
@@ -628,31 +645,38 @@ uint WINAPI ec_SetTestFlags(EXECUTION_CONTEXT* ec, uint flags) {
 
 
 /**
- * Setzt den letzten MQL-Fehler eines EXECUTION_CONTEXT.
+ * Setzt den MQL-Fehler eines EXECUTION_CONTEXT. Diese Funktion wird nur von MQL::SetLastError() aufgerufen.
  *
- * • Zusätzlich wird der letzte MQL-Fehler des jeweiligen Hauptkontexts gesetzt (Fehlerpropagation von Libraries zum aufrufenden
- *   Hauptmodul). Ist kein Hauptkontext verfügbar, z.B. während des init()-Cycles von Libraries, wird der letzte MQL-Fehler des
- *   Master-Kontexts gesetzt.
+ * • Zusätzlich wird der MQL-Fehler des jeweiligen Hauptkontexts gesetzt (Fehlerpropagation zum aufrufenden Hauptmodul).
+ *   Ist kein Hauptkontext verfügbar, z.B. während des init()-Cycles von Libraries, wird der MQL-Fehler des Master-Kontexts
+ *   gesetzt.
  *
- * • Hat der Kontext einen SuperContext, wird auch dessen letzter MQL-Fehler gesetzt (Fehlerpropagation zum aufrufenden Programm).
+ * • Hat der Kontext einen SuperContext, wird auch dessen MQL-Fehler gesetzt (Fehlerpropagation zum aufrufenden Programm).
+ *
+ * • Fehlerpropagation findet nur beim Setzen eines Fehlers, nicht jedoch beim Zurücksetzen eines gesetzten Fehlers statt.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
  *
  * @return int - derselbe Fehler-Code
  */
-int WINAPI ec_SetLastError(EXECUTION_CONTEXT* ec, int error) {
+int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
 
-   ec->lastError = error;
+   ec->mqlError = error;
+
+   if (!error)
+      return(error);                                                       // keine Fehlerpropagation beim Zurücksetzen
 
    if (ec->programId) {
       pec_vector &chain = contextChains[ec->programId];
-      if (chain[1]) (chain[1]!=ec) && ec_SetLastError(chain[1], error);    // Fehler ggf. im Hauptkontext...
-      else          (chain[0]!=ec) && ec_SetLastError(chain[0], error);    // ...oder im Master-Kontext setzen
+      if (chain[1]) (chain[1]!=ec) && ec_SetMqlError(chain[1], error);     // Fehler im Hauptkontext...
+      else          (chain[0]!=ec) && ec_SetMqlError(chain[0], error);     // ...oder im Master-Kontext setzen
    }
 
-   ec->superContext && ec_SetLastError(ec->superContext, error);           // Fehler ggf. im SuperContext setzen
+   if (ec->superContext) {
+      ec_SetMqlError(ec->superContext, error);                             // Fehler im SuperContext setzen
+   }
 
    return(error);
    #pragma EXPORT
@@ -697,21 +721,4 @@ const char* WINAPI ec_SetLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
    ec->logFile[0] = '\0';
    return(ec->logFile);
    #pragma EXPORT
-}
-
-
-/**
- * Setzt die Programm-ID aller Elemente eines EXECUTION_CONTEXT*-Vectors
- *
- * @param pec_vector chain - Vector, typischerweise die Context-Chain eines MQL-Programms
- * @param uint       id    - zu setzende Programm-ID
- *
- * @return uint - dieselbe ID
- */
-uint ecc_SetProgramId(const pec_vector &chain, uint id) {
-   int size = chain.size();
-   for (int i=0; i < size; i++) {
-      ec_SetProgramId(chain[i], id);
-   }
-   return(id);
 }
