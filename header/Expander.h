@@ -77,8 +77,8 @@ enum UninitializeReason {
 #include "mql/structs/mt4/SymbolSelected.h"
 #include "mql/structs/mt4/Tick.h"
 
-#include "mql/structs/myfx/LogMessage.h"
-#include "mql/structs/myfx/ExecutionContext.h"        // requires: LOG_MESSAGE
+//#include "mql/structs/myfx/LogMessage.h"
+#include "mql/structs/myfx/ExecutionContext.h"
 
 #include "mql/structs/win32/FileTime.h"
 #include "mql/structs/win32/ProcessInformation.h"
