@@ -301,20 +301,6 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt die in einem EXECUTION_CONTEXT gespeicherte DLL-Info zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - Fehler-Code
- */
-int WINAPI ec_DllInfo(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   return(ec->dllInfo);
-   #pragma EXPORT
-}
-
-
-/**
  * Gibt den in einem EXECUTION_CONTEXT gespeicherten Logging-Status zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
