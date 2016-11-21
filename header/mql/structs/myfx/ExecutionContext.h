@@ -88,6 +88,7 @@ HWND               WINAPI ec_SetHChartWindow      (EXECUTION_CONTEXT* ec, HWND  
 HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 uint               WINAPI ec_SetTestFlags         (EXECUTION_CONTEXT* ec, uint               flags    );
 int                WINAPI ec_SetMqlError          (EXECUTION_CONTEXT* ec, int                error    );
+int                WINAPI ec_SetDllError          (EXECUTION_CONTEXT* ec, int                error    );
 //                        ...
 BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
 const char*        WINAPI ec_SetLogFile           (EXECUTION_CONTEXT* ec, const char*        fileName );

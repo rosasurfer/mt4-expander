@@ -42,7 +42,7 @@ void __debug(char* fileName, char* funcName, int line, const char*        format
  *
  * @return std::string
  *
- * @note   Template functions have to be declared and defined in the same file.
+ * Note: Template functions have to be declared and defined in the same file.
  */
 template <typename T> std::string to_string(T value) {
    std::ostringstream os;

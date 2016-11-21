@@ -689,13 +689,11 @@ uint WINAPI ec_SetTestFlags(EXECUTION_CONTEXT* ec, uint flags) {
 /**
  * Setzt den MQL-Fehler eines EXECUTION_CONTEXT. Diese Funktion wird nur von MQL::SetLastError() aufgerufen.
  *
- * • Zusätzlich wird der MQL-Fehler des jeweiligen Hauptkontexts gesetzt (Fehlerpropagation zum aufrufenden Hauptmodul).
+ * - Zusätzlich wird der MQL-Fehler des jeweiligen Hauptkontexts gesetzt (Fehlerpropagation zum aufrufenden Hauptmodul).
  *   Ist kein Hauptkontext verfügbar, z.B. während des init()-Cycles von Libraries, wird der MQL-Fehler des Master-Kontexts
  *   gesetzt.
- *
- * • Hat der Kontext einen SuperContext, wird auch dessen MQL-Fehler gesetzt (Fehlerpropagation zum aufrufenden Programm).
- *
- * • Fehlerpropagation findet nur beim Setzen eines Fehlers, nicht jedoch beim Zurücksetzen eines gesetzten Fehlers statt.
+ * - Hat der Kontext einen SuperContext, wird auch dessen MQL-Fehler gesetzt (Fehlerpropagation zum aufrufenden Programm).
+ * - Fehlerpropagation findet nur beim Setzen eines Fehlers, nicht jedoch beim Zurücksetzen eines gesetzten Fehlers statt.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
@@ -715,11 +713,44 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
       if (chain[1]) (chain[1]!=ec) && ec_SetMqlError(chain[1], error);     // Fehler im Hauptkontext...
       else          (chain[0]!=ec) && ec_SetMqlError(chain[0], error);     // ...oder im Master-Kontext setzen
    }
-
    if (ec->superContext) {
       ec_SetMqlError(ec->superContext, error);                             // Fehler im SuperContext setzen
    }
+   return(error);
+   #pragma EXPORT
+}
 
+
+/**
+ * Setzt den DLL-Fehler eines EXECUTION_CONTEXT.
+ *
+ * - Zusätzlich wird der DLL-Fehler des jeweiligen Hauptkontexts gesetzt (Fehlerpropagation zum aufrufenden Hauptmodul).
+ *   Ist kein Hauptkontext verfügbar, z.B. während des init()-Cycles von Libraries, wird der DLL-Fehler des Master-Kontexts
+ *   gesetzt.
+ * - Hat der Kontext einen SuperContext, wird auch dessen DLL-Fehler gesetzt (Fehlerpropagation zum aufrufenden Programm).
+ * - Fehlerpropagation findet nur beim Setzen eines Fehlers, nicht jedoch beim Zurücksetzen eines gesetzten Fehlers statt.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                error
+ *
+ * @return int - derselbe Fehler-Code
+ */
+int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+
+   ec->dllError = error;
+
+   if (!error)
+      return(error);                                                       // keine Fehlerpropagation beim Zurücksetzen
+
+   if (ec->programId) {
+      pec_vector &chain = contextChains[ec->programId];
+      if (chain[1]) (chain[1]!=ec) && ec_SetDllError(chain[1], error);     // Fehler im Hauptkontext...
+      else          (chain[0]!=ec) && ec_SetDllError(chain[0], error);     // ...oder im Master-Kontext setzen
+   }
+   if (ec->superContext) {
+      ec_SetDllError(ec->superContext, error);                             // Fehler im SuperContext setzen
+   }
    return(error);
    #pragma EXPORT
 }
