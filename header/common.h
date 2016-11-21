@@ -6,7 +6,6 @@
 #pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
 
-#include "assert.h"
 #include <sstream>
 
 
@@ -22,7 +21,7 @@ typedef unsigned __int64 uint64;
 
 
 /**
- * Schickt einen Text mit Location-Infos an die Debugger-Ausgabe.
+ * Process a debug mesage.
  */
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 

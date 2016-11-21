@@ -1,16 +1,10 @@
 /**
  * Der Expander des Fortschritts
  *
- * @author  Peter Walther
- *
- *
- * Post-Build Event: copy "$(TargetPath)" "$(SolutionDir)..\mt4\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)"
+ * Post-Build Event: copy "$(TargetPath)" "$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)"
  */
 #include "Expander.h"
 
-
-// Loglevel-Status
-bool logDebug, logNotice, logInfo, logWarn, logError, logFatal;
 
 std::vector<DWORD>      threadIds          (64);            // alle bekannten Thread-IDs
 std::vector<uint>       threadIdsProgramIds(64);            // ID des vom jeweiligen Thread zuletzt ausgeführten MQL-Programms
@@ -61,12 +55,11 @@ BOOL onProcessDetach() {
 
 
 /**
- * Synchronisiert den EXECUTION_CONTEXT eines MQL-Hauptmoduls. Wird nur von den Rootfunktionen der MQL-Hauptmodule aufgerufen.
- * In init() wird der Kontext teilweise in mehreren Schritten initialisiert (jeweils nachdem die entsprechenden Informationen
- * verfügbar sind).
+ * Synchronisiert den EXECUTION_CONTEXT eines MQL-Hauptmoduls. Wird von den Rootfunktionen der MQL-Hauptmodule aufgerufen.
+ * In init() wird der Kontext in mehreren Schritten initialisiert (nachdem die entsprechenden Informationen verfügbar sind).
  *
- * Bei Experts und Scripts gibt es während ihrer Laufzeit nur eine Instanz des Hauptmodulkontextes. Bei Indikatoren ändert sich die
- * Instanz mit jedem init()-Cycle, da MetaTrader den Arrayspeicher der Instanz in Indicator::init() jedesmal neu alloziiert.
+ * Bei Experts und Scripts gibt es während der Laufzeit nur eine Instanz des Hauptmodulkontextes. Bei Indikatoren ändert sich die
+ * Instanz mit jedem init()-Cycle, da MetaTrader den Speicher für Variablen in Indicator::init() jeweils neu alloziiert.
  *
  * @param  EXECUTION_CONTEXT* ec           - Context des Hauptmoduls eines MQL-Programms
  * @param  ModuleType         moduleType   - Modul-Typ, entspricht Programm-Typ
@@ -84,11 +77,11 @@ BOOL onProcessDetach() {
  * • Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wiedereintritt
  *   in Indicator::init() keinen gültigen Hauptmodulkontext. Der alte Speicherblock wird sofort freigegeben, in init() wird ein neuer
  *   alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt und es darf nicht auf
- *   den dann ungültigen Hauptmodulkontext zugegriffen werden.
+ *   den zu dem Zeitpunkt ungültigen Hauptmodulkontext zugegriffen werden.
  * • Nach Recompilation oder Crash einer Library wird der Speicherblock ihres Kontexts ungültig und auf ihn darf ebenfalls nicht mehr
  *   zugegriffen werden.
- * • Generell ist es empfehlenswert, lesend und schreibend nur den eigenen und den Master-Kontext zu verwenden. Der Master-Kontext
- *   ist immer gültig.
+ * • Generell wird empfohlen, nur den eigenen und den Master-Kontext zu verwenden (sowohl lesend als auch schreibend).
+ *   Der Master-Kontext ist immer gültig.
  *
  *
  *  init-Cycle eines Indikators:
@@ -123,7 +116,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
       if (!ec->moduleType)   ec_SetModuleType (ec, moduleType);
       if (!*ec->moduleName)  ec_SetModuleName (ec, moduleName);
                              ec_SetSymbol     (ec, symbol);
-                             ec->timeframe   = period;
+                             ec->timeframe = period;
    }
    ec->rootFunction       = rootFunction;
    ec->uninitializeReason = reason;
@@ -206,7 +199,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
    EnterCriticalSection(&terminalLock);
    threadIds          .push_back(currentThreadId);
    threadIdsProgramIds.push_back(ec->programId);
-   if (logDebug || threadIds.size() > 512) debug("thread %d %s  added (size=%d)", currentThreadId, (IsUIThread() ? "ui":"  "), threadIds.size());
+   if (threadIds.size() > 512) debug("thread %d %s  added (size=%d)", currentThreadId, (IsUIThread() ? "ui":"  "), threadIds.size());
    LeaveCriticalSection(&terminalLock);
 
    return(TRUE);
@@ -295,24 +288,6 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
 
 
 /**
- *
- */
-void WINAPI SetLogLevel(int level) {
-   logDebug = logNotice = logInfo = logWarn = logError = logFatal = false;
-   switch (level) {
-      case L_ALL   :
-      case L_DEBUG : logDebug  = true;
-      case L_NOTICE: logNotice = true;
-      case L_INFO  : logInfo   = true;
-      case L_WARN  : logWarn   = true;
-      case L_ERROR : logError  = true;
-      case L_FATAL : logFatal  = true;
-   }
-   #pragma EXPORT
-}
-
-
-/**
  * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".
  *
  * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
@@ -332,9 +307,166 @@ uint WINAPI MT4InternalMsg() {
 
 
 /**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
+ *
+ * @param  ... parameters are ignored
+ */
+int WINAPI _CLR_NONE(...) { return(CLR_NONE); }
+
+
+/**
+ * Process a DLL warning with a C string log message.
+ *
+ * @return int - 0 (zero)
+ */
+int _warn(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, ...) {
+   va_list args;
+   va_start(args, msgFormat);
+   __warn(fileName, funcName, line, code, msgFormat, args);
+   va_end(args);
+   return(0);
+}
+
+
+/**
+ * Process a DLL warning with a C++ string log message.
+ *
+ * @return int - 0 (zero)
+ */
+int _warn(const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...) {
+   va_list args;
+   va_start(args, msgFormat);
+   __warn(fileName, funcName, line, code, msgFormat.c_str(), args);
+   va_end(args);
+   return(0);
+}
+
+
+/**
+ * Process a DLL warning and send it to OutputDebugString(). If the warning occurred during a call from MQL the error
+ * is stored in the program's EXECUTION_CONTEXT. Must be called via the <tt>warn(...)</tt> macro.
+ *
+ * @param  char*   fileName  - file where the macro was called
+ * @param  char*   funcName  - function where the macro was called
+ * @param  int     line      - line where the macro was called
+ * @param  int     code      - error code
+ * @param  char*   msgFormat - message with format codes for further parameters
+ * @param  va_list msgArgs   - further message parameters
+ */
+void __warn(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list &msgArgs) {
+   if (!msgFormat) msgFormat = "(null)";
+
+   // create message with the specified parameters
+   int size  = _vscprintf(msgFormat, msgArgs) + 1;                                     // +1 for the terminating '\0'
+   char* msg = (char*) alloca(size);                                                   // on the stack
+   vsprintf_s(msg, size, msgFormat, msgArgs);
+
+   // extract {baseName}.{ext} from fileName
+   char baseName[_MAX_FNAME], ext[_MAX_EXT];
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
+
+   // add location infos and error details
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  WARN: %s  [%s]";
+   const char* sError   = ErrorToStr(code);
+   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg, sError) + 1;   // +1 for the terminating '\0'
+   char* buffer = (char*) alloca(size);                                                // on the stack
+   sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg, sError);
+
+   OutputDebugString(buffer);
+}
+
+
+/**
+ * Process a DLL error with a C string log message.
+ *
+ * @return int - 0 (zero)
+ */
+int _error(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, ...) {
+   va_list args;
+   va_start(args, msgFormat);
+   __error(fileName, funcName, line, code, msgFormat, args);
+   va_end(args);
+   return(0);
+}
+
+
+/**
+ * Process a DLL error with a C++ string log message.
+ *
+ * @return int - 0 (zero)
+ */
+int _error(const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...) {
+   va_list args;
+   va_start(args, msgFormat);
+   __error(fileName, funcName, line, code, msgFormat.c_str(), args);
+   va_end(args);
+   return(0);
+}
+
+
+/**
+ * Process a DLL error and send it to OutputDebugString(). If the error occurred during a call from MQL the error
+ * is stored in the program's EXECUTION_CONTEXT. Must be called via the <tt>error(...)</tt> macro.
+ *
+ * @param  char*   fileName  - file where the macro was called
+ * @param  char*   funcName  - function where the macro was called
+ * @param  int     line      - line where the macro was called
+ * @param  int     code      - error code
+ * @param  char*   msgFormat - message with format codes for further parameters
+ * @param  va_list msgArgs   - further message parameters
+ */
+void __error(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list &msgArgs) {
+   if (!msgFormat) msgFormat = "(null)";
+
+   // create message with the specified parameters
+   int size  = _vscprintf(msgFormat, msgArgs) + 1;                                     // +1 for the terminating '\0'
+   char* msg = (char*) alloca(size);                                                   // on the stack
+   vsprintf_s(msg, size, msgFormat, msgArgs);
+
+   // extract {baseName}.{ext} from fileName
+   char baseName[_MAX_FNAME], ext[_MAX_EXT];
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
+
+   // add location infos and error details
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]";
+   const char* sError   = ErrorToStr(code);
+   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg, sError) + 1;   // +1 for the terminating '\0'
+   char* buffer = (char*) alloca(size);                                                // on the stack
+   sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg, sError);
+
+   OutputDebugString(buffer);
+}
+
+
+/**
+ *
+ */
+void error_old(int error, char* message) {
+   BOOL inMqlCall;
+   if (error) {
+      //message = "ERROR:  "+ message +"  ["+ ErrorToStr(error) +"]";
+      if (inMqlCall) {
+         //ec_SetDllError   (ec, error  );
+         //ec_SetDllErrorMsg(ec, message);
+      }
+      debug(message);
+   }
+}
+
+
+/**
  *
  */
 int WINAPI Test() {
+
+   debug("GetTerminalVersionNumbers() returned FALSE");
+   warn (ERR_RUNTIME_ERROR, "GetTerminalVersionNumbers() returned FALSE");
+   error(ERR_RUNTIME_ERROR, "GetTerminalVersionNumbers() returned FALSE");
+
+   return(NULL);
+
 
    typedef std::vector<int> int_vector;
    int_vector ints(1);
@@ -377,11 +509,3 @@ int WINAPI Test() {
    return(0);
    #pragma EXPORT
 }
-
-
-/**
- * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
- *
- * @param  ... parameters are ignored
- */
-int _CLR_NONE(...) { return(CLR_NONE); }

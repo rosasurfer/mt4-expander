@@ -2,9 +2,9 @@
 
 #include "common.h"
 #include "stdafx.h"
-#include <vector>
 #include "shared/defines.h"
 #include "shared/errors.h"
+#include <vector>
 
 
 #ifdef EXPANDER_EXPORTS
@@ -96,6 +96,17 @@ extern std::vector<pec_vector> contextChains;
 
 
 // Funktionsdeklarationen
+#define warn(...)    _warn(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+
+int   _warn (const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, ...);
+int   _warn (const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...);
+void __warn (const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, const va_list &args);
+
+int   _error(const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, ...);
+int   _error(const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...);
+void __error(const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, const va_list &args);
+
 BOOL onProcessAttach();
 BOOL onProcessDetach();
 void RemoveTickTimers();
@@ -103,7 +114,7 @@ void RemoveTickTimers();
 BOOL         WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
 BOOL         WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);
 
-void         WINAPI SetLogLevel(int level);
+const char*  WINAPI ErrorToStr(int error);
 HWND         WINAPI GetApplicationWindow();
 DWORD        WINAPI GetUIThreadId();
 BOOL         WINAPI IsUIThread();
@@ -138,4 +149,4 @@ uint         WINAPI GetTerminalBuild();
  * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
  * Alle Parameter werden ignoriert.
  */
-int _CLR_NONE(...);
+int WINAPI _CLR_NONE(...);

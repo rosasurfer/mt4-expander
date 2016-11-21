@@ -3,9 +3,9 @@
 
 
 /**
- * Schickt einen C-String an die Debugger-Ausgabe. Sollte nicht direkt aufgerufen werden.
+ * Process a C string debug message.
  *
- * @return int - zur Zeit immer 0
+ * @return int - 0 (zero)
  */
 int _debug(char* fileName, char* funcName, const int line, const char* format, ...) {
    va_list args;
@@ -17,9 +17,9 @@ int _debug(char* fileName, char* funcName, const int line, const char* format, .
 
 
 /**
- * Schickt einen C++-String an die Debugger-Ausgabe. Sollte nicht direkt aufgerufen werden.
+ * Process a C++ string debug message.
  *
- * @return int - zur Zeit immer 0
+ * @return int - 0 (zero)
  */
 int _debug(char* fileName, char* funcName, const int line, const std::string &format, ...) {
    va_list args;
@@ -31,7 +31,7 @@ int _debug(char* fileName, char* funcName, const int line, const std::string &fo
 
 
 /**
- * Schickt einen Text mit Tracking-Infos an die Debugger-Ausgabe.
+ * Send a formatted string to the debugger output.
  *
  * @param  char*   fileName - Name der Datei, in der der Aufruf erfolgt
  * @param  char*   funcName - Name der Funktion, in der der Aufruf erfolgt
