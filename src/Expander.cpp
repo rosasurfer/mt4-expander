@@ -1,8 +1,3 @@
-/**
- * Der Expander des Fortschritts
- *
- * Post-Build Event: copy "$(TargetPath)" "$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)"
- */
 #include "Expander.h"
 
 
@@ -55,7 +50,31 @@ BOOL onProcessDetach() {
 
 
 /**
- * Synchronisiert den EXECUTION_CONTEXT eines MQL-Hauptmoduls. Wird von den Rootfunktionen der MQL-Hauptmodule aufgerufen.
+ * Synchronisiert die EXECUTION_CONTEXTe der Module eines MQL-Programms mit dem Master-Context in der DLL und untereinander.
+ *
+ * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben Programms
+ * und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines MQL-Programms
+ * bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der DLL verwaltet wird.
+ * An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren Contexte einer Chain sind
+ * Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ *
+ *  (1) Datenaustausch vom Hauptmodul zu den Library-Modulen:
+ *
+ *  (2) Datenaustausch von den Library-Modulen zum Hauptmodul:
+ *
+ *  (3) Datenaustausch von der DLL zum Hauptmodul:
+ *
+ *  (4) Datenaustausch vom einem Hauptmodul zu einem anderen Hauptmodul:
+ *
+ * Kontextgültigkeit: Der Master-Context einer Chain ist immer gültig. Alle anderen Kontexte der Chain können je nach Modul-Typ und
+ * Situation vorübergehend ungültig und der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell nur
+ * auf den eigenen und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und umgekehrt
+ * ist nur in Ausnahmefällen möglich.
+ *
+ *
+ *
+ *
+ * Wird von den Rootfunktionen der MQL-Hauptmodule aufgerufen.
  * In init() wird der Kontext in mehreren Schritten initialisiert (nachdem die entsprechenden Informationen verfügbar sind).
  *
  * Bei Experts und Scripts gibt es während der Laufzeit nur eine Instanz des Hauptmodulkontextes. Bei Indikatoren ändert sich die
@@ -80,8 +99,6 @@ BOOL onProcessDetach() {
  *   den zu dem Zeitpunkt ungültigen Hauptmodulkontext zugegriffen werden.
  * • Nach Recompilation oder Crash einer Library wird der Speicherblock ihres Kontexts ungültig und auf ihn darf ebenfalls nicht mehr
  *   zugegriffen werden.
- * • Generell wird empfohlen, nur den eigenen und den Master-Kontext zu verwenden (sowohl lesend als auch schreibend).
- *   Der Master-Kontext ist immer gültig.
  *
  *
  *  init-Cycle eines Indikators:
@@ -306,11 +323,63 @@ uint WINAPI MT4InternalMsg() {
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
+ * Process a C string debug message.
  *
- * @param  ... parameters are ignored
+ * @return int - 0 (zero)
  */
-int WINAPI _CLR_NONE(...) { return(CLR_NONE); }
+int _debug(const char* fileName, const char* funcName, int line, const char* format, ...) {
+   va_list args;
+   va_start(args, format);
+   __debug(fileName, funcName, line, format, args);
+   va_end(args);
+   return(0);
+}
+
+
+/**
+ * Process a C++ string debug message.
+ *
+ * @return int - 0 (zero)
+ */
+int _debug(const char* fileName, const char* funcName, int line, const std::string &format, ...) {
+   va_list args;
+   va_start(args, format);
+   __debug(fileName, funcName, line, format.c_str(), args);
+   va_end(args);
+   return(0);
+}
+
+
+/**
+ * Send a formatted string to the debugger output.
+ *
+ * @param  char*   fileName - Name der Datei, in der der Aufruf erfolgt
+ * @param  char*   funcName - Name der Funktion, in der der Aufruf erfolgt
+ * @param  int     line     - Zeile, in der der Aufruf erfolgt
+ * @param  char*   format   - Formatstring mit Platzhaltern für alle weiteren Parameter
+ * @param  va_list args     - weitere Parameter
+ */
+void __debug(const char* fileName, const char* funcName, int line, const char* format, const va_list &args) {
+   if (!format) format = "(null)";
+
+   // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab format)
+   int size  = _vscprintf(format, args) + 1;                                     // +1 für das terminierende '\0'
+   char* msg = (char*) alloca(size);                                             // auf dem Stack
+   vsprintf_s(msg, size, format, args);
+
+   // Parameter fileName zerlegen: nur der einfache Dateiname {basename.ext} wird benötigt
+   char baseName[_MAX_FNAME], ext[_MAX_EXT];
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
+
+   // (2) dann die impliziten Location-Infos vorn anfügen
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  %s";
+   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;     // +1 für das terminierende '\0'
+   char* buffer = (char*) alloca(size);                                          // auf dem Stack
+   sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);
+
+   OutputDebugString(buffer);
+}
 
 
 /**
@@ -464,15 +533,34 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
 
 
 /**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
+ *
+ * @param  ... parameters are ignored
+ */
+int  _CLR_NONE(...) { return(CLR_NONE); }
+int  _NULL    (...) { return(NULL    ); }
+bool _true    (...) { return(true    ); }
+bool _false   (...) { return(false   ); }
+BOOL _TRUE    (...) { return(TRUE    ); }
+BOOL _FALSE   (...) { return(FALSE   ); }
+
+
+/**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
+ * Außer dem ersten werden alle übergebenen Parameter ignoriert.
+ */
+bool   _bool  (bool   value, ...) { return(value); }
+char   _char  (char   value, ...) { return(value); }
+int    _int   (int    value, ...) { return(value); }
+float  _float (float  value, ...) { return(value); }
+double _double(double value, ...) { return(value); }
+BOOL   _BOOL  (BOOL   value, ...) { return(value); }
+
+
+/**
  *
  */
 int WINAPI Test() {
-
-   debug("GetTerminalVersionNumbers() returned FALSE");
-   warn (NO_ERROR, "GetTerminalVersionNumbers() returned FALSE");
-   error(ERR_RUNTIME_ERROR, "GetTerminalVersionNumbers() returned FALSE");
-
-   return(NULL);
 
 
    typedef std::vector<int> int_vector;

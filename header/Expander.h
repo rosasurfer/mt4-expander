@@ -96,8 +96,13 @@ extern std::vector<pec_vector> contextChains;
 
 
 // Funktionsdeklarationen
-#define warn(...)    _warn(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define  warn(...)    _warn(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+
+int   _debug(const char* fileName, const char* funcName, int line, const char*        format, ...);
+int   _debug(const char* fileName, const char* funcName, int line, const std::string &format, ...);
+void __debug(const char* fileName, const char* funcName, int line, const char*        format, const va_list &args);
 
 int   _warn (const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, ...);
 int   _warn (const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...);
@@ -149,4 +154,21 @@ uint         WINAPI GetTerminalBuild();
  * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
  * Alle Parameter werden ignoriert.
  */
-int WINAPI _CLR_NONE(...);
+int  _CLR_NONE(...);
+int  _NULL    (...);
+bool _true    (...);
+bool _false   (...);
+BOOL _TRUE    (...);
+BOOL _FALSE   (...);
+
+
+/**
+ * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
+ * Außer dem ersten werden alle übergebenen Parameter ignoriert.
+ */
+bool   _bool  (bool   value, ...);
+char   _char  (char   value, ...);
+int    _int   (int    value, ...);
+float  _float (float  value, ...);
+double _double(double value, ...);
+BOOL   _BOOL  (BOOL   value, ...);

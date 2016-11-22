@@ -2,18 +2,3 @@
 
 #define WIN32_LEAN_AND_MEAN         // exclude rarely-used stuff from Windows headers
 #include <windows.h>
-
-
-/**
- * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
- * Alle Parameter werden ignoriert.
- */
-BOOL _TRUE (...);
-BOOL _FALSE(...);
-
-
-/**
- * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
- * Außer dem ersten werden alle übergebenen Parameter ignoriert.
- */
-BOOL _BOOL(BOOL value, ...);
