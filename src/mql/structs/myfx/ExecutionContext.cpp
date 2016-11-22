@@ -14,7 +14,7 @@
  * @return uint - Programm-ID
  */
 uint WINAPI ec_ProgramId(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programId);
    #pragma EXPORT
 }
@@ -28,7 +28,7 @@ uint WINAPI ec_ProgramId(const EXECUTION_CONTEXT* ec) {
  * @return ProgramType
  */
 ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programType);
    #pragma EXPORT
 }
@@ -42,7 +42,7 @@ ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
  * @return char* - Programmname
  */
 const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programName);
    #pragma EXPORT
 }
@@ -56,7 +56,7 @@ const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
  * @return ModuleType
  */
 ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->moduleType);
    #pragma EXPORT
 }
@@ -70,7 +70,7 @@ ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
  * @return char* - Modulname
  */
 const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->moduleName);
    #pragma EXPORT
 }
@@ -84,7 +84,7 @@ const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
  * @return LaunchType
  */
 LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->launchType);
    #pragma EXPORT
 }
@@ -100,8 +100,8 @@ LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
  *                FALSE, wenn der ExecutionContext keinen SuperContext enthielt oder ein Fehler auftrat
  */
 BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
-   if ((uint)ec  < MIN_VALID_POINTER) return(_FALSE(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
-   if ((uint)sec < MIN_VALID_POINTER) return(_FALSE(debug("ERROR:  invalid parameter sec = 0x%p (not a valid pointer)", sec)));
+   if ((uint)ec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)sec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
 
    if (ec->superContext) {
       *sec = *ec->superContext;
@@ -123,7 +123,7 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec)
  * @return EXECUTION_CONTEXT*
  */
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->superContext);
    #pragma EXPORT
 }
@@ -137,7 +137,7 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
  * @return uint - Init-Flags
  */
 uint WINAPI ec_InitFlags(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->initFlags);
    #pragma EXPORT
 }
@@ -151,7 +151,7 @@ uint WINAPI ec_InitFlags(const EXECUTION_CONTEXT* ec) {
  * @return uint - Deinit-Flags
  */
 uint WINAPI ec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->deinitFlags);
    #pragma EXPORT
 }
@@ -165,7 +165,7 @@ uint WINAPI ec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
  * @return RootFunction
  */
 RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->rootFunction);
    #pragma EXPORT
 }
@@ -179,10 +179,7 @@ RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
  * @return UninitializeReason
  */
 UninitializeReason WINAPI ec_UninitializeReason(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) {
-      debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec);
-      return(UNINITREASON_UNDEFINED);
-   }
+   if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->uninitializeReason);
    #pragma EXPORT
 }
@@ -196,7 +193,7 @@ UninitializeReason WINAPI ec_UninitializeReason(const EXECUTION_CONTEXT* ec) {
  * @return char* - Symbol
  */
 const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->symbol);
    #pragma EXPORT
 }
@@ -210,7 +207,7 @@ const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
  * @return uint - Chartperiode
  */
 uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->timeframe);
    #pragma EXPORT
 }
@@ -224,7 +221,7 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
  * @return HWND - Handle
  */
 HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->hChartWindow);
    #pragma EXPORT
 }
@@ -238,7 +235,7 @@ HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
  * @return HWND - Handle, entspricht dem Rückgabewert der MQL-Funktion WindowHandle()
  */
 HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->hChart);
    #pragma EXPORT
 }
@@ -252,7 +249,7 @@ HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
  * @return uint - Test-Flags
  */
 uint WINAPI ec_TestFlags(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->testFlags);
    #pragma EXPORT
 }
@@ -266,7 +263,7 @@ uint WINAPI ec_TestFlags(const EXECUTION_CONTEXT* ec) {
  * @return int - Fehler-Code
  */
 int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->mqlError);
    #pragma EXPORT
 }
@@ -280,7 +277,7 @@ int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
  * @return int - Fehler-Code
  */
 int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->dllError);
    #pragma EXPORT
 }
@@ -294,7 +291,7 @@ int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
  * @return int - Fehler-Code
  */
 int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->dllWarning);
    #pragma EXPORT
 }
@@ -308,7 +305,7 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
  * @return BOOL - Status
  */
 BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->logging);
    #pragma EXPORT
 }
@@ -322,7 +319,7 @@ BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
  * @return char* - Dateiname
  */
 const char* WINAPI ec_LogFile(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->logFile);
    #pragma EXPORT
 }
@@ -337,8 +334,8 @@ const char* WINAPI ec_LogFile(const EXECUTION_CONTEXT* ec) {
  * @return uint - dieselbe ID
  */
 uint WINAPI ec_SetProgramId(EXECUTION_CONTEXT* ec, uint id) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
-   if (id <= 0)                      return(_NULL(debug("ERROR:  invalid parameter id = %d (must be greater than zero)", id)));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (id <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter id = %d (must be greater than zero)", id));
 
    return(ec->programId = id);
    #pragma EXPORT
@@ -371,13 +368,13 @@ uint WINAPI ecc_SetProgramId(const pec_vector &chain, uint id) {
  * @return ProgramType - derselbe ProgramType
  */
 ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
-   if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    switch (type) {
       case PT_INDICATOR:
       case PT_EXPERT   :
       case PT_SCRIPT   : break;
       default:
-         return((ProgramType)_NULL(debug("ERROR:  invalid parameter type = %d (not a ProgramType)", type)));
+         return((ProgramType)error(ERR_INVALID_PARAMETER, "invalid parameter type = %d (not a ProgramType)", type));
    }
 
    return(ec->programType = type);
@@ -394,10 +391,10 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
  * @return char* - der gesetzte Name
  */
 const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)          return((char*)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
-   if ((uint)name < MIN_VALID_POINTER)          return((char*)_NULL(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name)));
+   if ((uint)ec   < MIN_VALID_POINTER)          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
    int len = strlen(name);
-   if (!len || len > sizeof(ec->programName)-1) return((char*)_NULL(debug("ERROR:  illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(ec->programName)-1)));
+   if (!len || len > sizeof(ec->programName)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(ec->programName)-1));
 
    return(strcpy(ec->programName, name));
    #pragma EXPORT
@@ -413,14 +410,14 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
  * @return ModuleType - derselbe ModuleType
  */
 ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
-   if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    switch (type) {
       case MT_INDICATOR:
       case MT_EXPERT   :
       case MT_SCRIPT   :
       case MT_LIBRARY  : break;
       default:
-         return((ModuleType)_NULL(debug("ERROR:  invalid parameter type = %d (not a ModuleType)", type)));
+         return((ModuleType)error(ERR_INVALID_PARAMETER, "invalid parameter type = %d (not a ModuleType)", type));
    }
 
    return(ec->moduleType = type);
@@ -437,10 +434,10 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
  * @return char* - der gesetzte Name
  */
 const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)         return((char*)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
-   if ((uint)name < MIN_VALID_POINTER)         return((char*)_NULL(debug("ERROR:  invalid parameter name = 0x%p (not a valid pointer)", name)));
+   if ((uint)ec   < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
    int len = strlen(name);
-   if (!len || len > sizeof(ec->moduleName)-1) return((char*)_NULL(debug("ERROR:  illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(ec->moduleName)-1)));
+   if (!len || len > sizeof(ec->moduleName)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(ec->moduleName)-1));
 
    return(strcpy(ec->moduleName, name));
    #pragma EXPORT
@@ -456,13 +453,13 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
  * @return LaunchType - derselbe Launch-Typ
  */
 LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
-   if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    switch (type) {
       case LT_TEMPLATE:
       case LT_PROGRAM:
       case LT_MANUAL: break;
       default:
-         return((LaunchType)_NULL(debug("ERROR:  invalid parameter type = %d (not a LaunchType)", type)));
+         return((LaunchType)error(ERR_INVALID_PARAMETER, "invalid parameter type = %d (not a LaunchType)", type));
    }
 
    return(ec->launchType = type);
@@ -479,8 +476,8 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
  * @return EXECUTION_CONTEXT* - der gesetzte SuperContext
  */
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
-   if (       (uint)ec  < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
-   if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)_NULL(debug("ERROR:  invalid parameter sec = 0x%p (not a valid pointer)", sec)));
+   if (       (uint)ec  < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
 
    return(ec->superContext = sec);
    #pragma EXPORT
@@ -510,7 +507,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetLpSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_
  * @return uint - dieselben Init-Flags
  */
 uint WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, uint flags) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    return(ec->initFlags = flags);
    #pragma EXPORT
@@ -526,7 +523,7 @@ uint WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, uint flags) {
  * @return uint - dieselben Deinit-Flags
  */
 uint WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, uint flags) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    return(ec->deinitFlags = flags);
    #pragma EXPORT
@@ -542,13 +539,13 @@ uint WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, uint flags) {
  * @return RootFunction - dieselbe RootFunction-ID
  */
 RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
-   if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    switch (id) {
       case RF_INIT  :
       case RF_START :
       case RF_DEINIT: break;
       default:
-         return((RootFunction)_NULL(debug("ERROR:  invalid parameter id = %d (not a RootFunction)", id)));
+         return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter id = %d (not a RootFunction)", id));
    }
 
    return(ec->rootFunction = id);
@@ -565,7 +562,7 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
  * @return UninitializeReason - derselbe UninitializeReason
  */
 UninitializeReason WINAPI ec_SetUninitializeReason(EXECUTION_CONTEXT* ec, UninitializeReason reason) {
-   if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    switch (reason) {
       case REASON_UNDEFINED  :
@@ -580,7 +577,7 @@ UninitializeReason WINAPI ec_SetUninitializeReason(EXECUTION_CONTEXT* ec, Uninit
       case REASON_INITFAILED :
       case REASON_CLOSE      : break;
       default:
-         return((UninitializeReason)_NULL(debug("ERROR:  invalid parameter reason = %d (not an UninitializeReason)", reason)));
+         return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d (not an UninitializeReason)", reason));
    }
 
    return(ec->uninitializeReason = reason);
@@ -597,10 +594,10 @@ UninitializeReason WINAPI ec_SetUninitializeReason(EXECUTION_CONTEXT* ec, Uninit
  * @return char* - das gesetzte Symbol
  */
 const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
-   if ((uint)ec     < MIN_VALID_POINTER) return((char*)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
-   if ((uint)symbol < MIN_VALID_POINTER) return((char*)_NULL(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol)));
+   if ((uint)ec     < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    int len = strlen(symbol);
-   if (!len || len > sizeof(ec->symbol)) return((char*)_NULL(debug("ERROR:  illegal length of parameter symbol = \"%s\" (must be 1 to %d characters)", symbol, sizeof(ec->symbol)-1)));
+   if (!len || len > sizeof(ec->symbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol = \"%s\" (must be 1 to %d characters)", symbol, sizeof(ec->symbol)-1));
 
    return(strcpy(ec->symbol, symbol));
    #pragma EXPORT
@@ -616,8 +613,8 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
  * @return uint - derselbe Timeframe
  */
 uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
-   if (timeframe <= 0)               return(_NULL(debug("ERROR:  invalid parameter timeframe = %d (must be greater than zero)", timeframe)));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (timeframe <= 0)               return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe = %d (must be greater than zero)", timeframe));
 
    return(ec->timeframe = timeframe);
    #pragma EXPORT
@@ -633,7 +630,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
  * @return HWND - dasselbe Handle
  */
 HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    return(ec->hChartWindow = hWnd);
    #pragma EXPORT
@@ -649,7 +646,7 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
  * @return HWND - dasselbe Handle
  */
 HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    return(ec->hChart = hWnd);
    #pragma EXPORT
@@ -665,7 +662,7 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
  * @return uint - dieselben Test-Flags
  */
 uint WINAPI ec_SetTestFlags(EXECUTION_CONTEXT* ec, uint flags) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    return(ec->testFlags = flags);
    #pragma EXPORT
@@ -687,7 +684,7 @@ uint WINAPI ec_SetTestFlags(EXECUTION_CONTEXT* ec, uint flags) {
  * @return int - derselbe Fehler-Code
  */
 int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
 
    ec->mqlError = error;
 
@@ -722,7 +719,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
  * @return int - derselbe Fehler-Code
  */
 int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
 
    ec->dllError = error;
 
@@ -751,7 +748,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
  * @return BOOL - derselbe Logging-Status
  */
 BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_FALSE(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    return(ec->logging = status);
    #pragma EXPORT
@@ -767,12 +764,12 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return char* - der gesetzte Dateiname
  */
 const char* WINAPI ec_SetLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
-   if ((uint)ec < MIN_VALID_POINTER)                return((char*)_NULL(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER)                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    if (fileName) {
       // fileName ist kein NULL-Pointer
-      if ((uint)fileName < MIN_VALID_POINTER)       return((char*)_NULL(debug("ERROR:  invalid parameter fileName = 0x%p (not a valid pointer)", fileName)));
-      if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)_NULL(debug("ERROR:  illegal length of parameter fileName = \"%s\" (max %d characters)", fileName, sizeof(ec->logFile)-1)));
+      if ((uint)fileName < MIN_VALID_POINTER)       return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName = 0x%p (not a valid pointer)", fileName));
+      if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName = \"%s\" (max %d characters)", fileName, sizeof(ec->logFile)-1));
       return(strcpy(ec->logFile, fileName));
    }
 

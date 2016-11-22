@@ -103,10 +103,10 @@ BOOL onProcessDetach() {
  *  ---------------------------------------------------------------------------------------------------------------------------------
  */
 BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleType, const char* moduleName, RootFunction rootFunction, UninitializeReason reason, const char* symbol, int period) {
-   if ((uint)ec         < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)moduleName < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter moduleName = 0x%p (not a valid pointer)", moduleName));
-   if ((uint)symbol     < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (period <= 0)                          return(debug("ERROR:  invalid parameter period = %d", period));
+   if ((uint)ec         < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)moduleName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter moduleName = 0x%p (not a valid pointer)", moduleName));
+   if ((uint)symbol     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (period <= 0)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period));
 
 
    // (1) Context aktualisieren
@@ -125,16 +125,16 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
    // (2) das letzte Programm des aktuellen Threads ermitteln
    DWORD currentThreadId = GetCurrentThreadId();
    int currentThreadIndex=-1, lastProgramId=0, size=threadIds.size();
-   for (int i=0; i < size; i++) {                           // Aufwärts, damit der UI-Thread (Index 0 oder 1) schnellstmöglich gefunden wird.
-      if (threadIds[i] == currentThreadId) {
-         currentThreadIndex = i;
-         lastProgramId      = threadIdsProgramIds[i];       // Thread gefunden: Index und ID des zuletzt gelaufenen Programms merken, wird
-         break;                                             //                  später in (4) aktualisiert
+   for (int i=0; i < size; i++) {                              // Aufwärts, damit der UI-Thread (Index 0 oder 1) möglichst schnell gefunden wird.
+      if (threadIds[i] == currentThreadId) {                   // Thread gefunden
+         currentThreadIndex = i;                               // Index und ID des zuletzt gelaufenen Programms merken, es wird in (5) aktualisiert
+         lastProgramId      = threadIdsProgramIds[i];
+         break;
       }
    }
 
 
-   // (3) Prüfen, ob der Context bereits bekannt ist
+   // (3) Prüfen, ob der übergebene Context bereits bekannt ist
    if (!ec->programId) {
       // (3.1) prüfen, ob wir in einem Indikator im init-Cycle sind
       if (IsUIThread() && lastProgramId && ec->programType==PT_INDICATOR && rootFunction==RF_INIT && (reason==REASON_CHARTCHANGE || reason==REASON_PARAMETERS)) {
@@ -142,12 +142,12 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
          if (!chain[1]) {
             // (3.2) Context eines Indikators nach init-Cycle
             if (0) debug("thread=%d ui  %s::%s()  programId=0  reason=%s  lastProgramId=%d  my-init-cycle  chain[1]=%p  master=%p", GetCurrentThreadId(), moduleName, RootFunctionName(rootFunction), UninitializeReasonToStr(reason), lastProgramId, chain[1], chain[0]);
-            *ec = *chain[0];                                // Master-Kontext übernehmen
+            *ec = *chain[0];                                   // Master-Kontext übernehmen
             ec_SetSymbol(ec, symbol);
-            ec->timeframe          = period;                // Kontext aktualisieren
+            ec->timeframe          = period;                   // Kontext aktualisieren
             ec->rootFunction       = rootFunction;
             ec->uninitializeReason = reason;
-            chain[1] = ec;                                  // Kontext als Hauptmodulkontext speichern
+            chain[1] = ec;                                     // Kontext als Hauptmodulkontext speichern
          }
          else {
             // - Nach Recompilation eines Indikators werden Indikator und Libraries komplett neugeladen.
@@ -179,7 +179,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
 
    // (4) Master-Kontext aktualisieren                         // Unnötig, wenn der Kontext gerade erzeugt wurde. Es ist jedoch besser,
    pec_vector &chain = contextChains[ec->programId];           // diesen Code an nur einer Stelle zu halten.
-   if (ec != chain[1]) return(debug("ERROR:  thread=%d %s  %s::%s()  programId=%d   current-ec=%p != chain[1]=%p", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), moduleName, RootFunctionName(rootFunction), ec->programId, ec, chain[1]));
+   if (ec != chain[1]) return(error(ERR_RUNTIME_ERROR, "thread=%d %s  %s::%s()  programId=%d   current-ec=%p != chain[1]=%p", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), moduleName, RootFunctionName(rootFunction), ec->programId, ec, chain[1]));
    if (rootFunction == RF_INIT) {
       ec_SetSymbol(chain[0], symbol);
       chain[0]->timeframe = period;
@@ -226,11 +226,11 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
  * einem init()-Cycle. Zum init()-Cycle von Indikatoren: @see SetMainExecutionContext()
  */
 BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleName, RootFunction rootFunction, const char* symbol, int period) {
-   if ((uint)ec         < MIN_VALID_POINTER)             return(debug("ERROR:  invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)moduleName < MIN_VALID_POINTER)             return(debug("ERROR:  invalid parameter moduleName = 0x%p (not a valid pointer)", moduleName));
-   if (rootFunction!=RF_INIT && rootFunction!=RF_DEINIT) return(debug("ERROR:  illegal library parameter rootFunction = %s", RootFunctionToStr(rootFunction)));
-   if ((uint)symbol     < MIN_VALID_POINTER)             return(debug("ERROR:  invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if (period <= 0)                                      return(debug("ERROR:  invalid parameter period = %d", period));
+   if ((uint)ec         < MIN_VALID_POINTER)             return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)moduleName < MIN_VALID_POINTER)             return(error(ERR_INVALID_PARAMETER, "invalid parameter moduleName = 0x%p (not a valid pointer)", moduleName));
+   if (rootFunction!=RF_INIT && rootFunction!=RF_DEINIT) return(error(ERR_INVALID_PARAMETER, "illegal library parameter rootFunction = %s", RootFunctionToStr(rootFunction)));
+   if ((uint)symbol     < MIN_VALID_POINTER)             return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if (period <= 0)                                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period));
 
    ec->rootFunction = rootFunction;                         // Context-Daten aktualisieren
 
@@ -244,7 +244,7 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
          break;
       }
    }
-   if (currentThreadIndex < 0) return(debug("ERROR:  current thread %d not in known threads [ERR_ILLEGAL_STATE]", currentThreadId));
+   if (currentThreadIndex < 0) return(error(ERR_ILLEGAL_STATE, "current thread %d not in known threads", currentThreadId));
 
 
    if (rootFunction == RF_INIT) {
@@ -253,7 +253,7 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
          int lastProgramId = threadIdsProgramIds[currentThreadIndex];
 
          pec_vector &chain = contextChains[lastProgramId];
-         int size = chain.size(); if (size < 2) return(debug("ERROR:  ???::%s::init()  programId=0  lastProgramid=%d  chain.size=%d", moduleName, lastProgramId, size));
+         int size = chain.size(); if (size < 2) return(error(ERR_RUNTIME_ERROR, "???::%s::init()  programId=0  lastProgramid=%d  chain.size=%d", moduleName, lastProgramId, size));
 
          if (0) debug("%s::%s::init()  übernehme ec von  programId=%d  i-am-module=%d", chain[0]->programName, moduleName, chain[0]->programId, chain.size());
          *ec = *chain[0];                                   // Master-Kontext (Index 0) übernehmen
@@ -298,8 +298,7 @@ uint WINAPI MT4InternalMsg() {
       return(msgId);
 
    msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-   if (!msgId)
-      debug("ERROR:  RegisterWindowMessageA() failed with [%d]", GetLastError());
+   if (!msgId) return(error(ERR_WIN32_ERROR+GetLastError(), "RegisterWindowMessage() failed"));
 
    return(msgId);
    #pragma EXPORT
@@ -319,10 +318,10 @@ int WINAPI _CLR_NONE(...) { return(CLR_NONE); }
  *
  * @return int - 0 (zero)
  */
-int _warn(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, ...) {
+int _warn(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, ...) {
    va_list args;
    va_start(args, msgFormat);
-   __warn(fileName, funcName, line, code, msgFormat, args);
+   __warn(fileName, funcName, line, error, msgFormat, args);
    va_end(args);
    return(0);
 }
@@ -333,10 +332,10 @@ int _warn(const char* fileName, const char* funcName, int line, int code, const 
  *
  * @return int - 0 (zero)
  */
-int _warn(const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...) {
+int _warn(const char* fileName, const char* funcName, int line, int error, const std::string &msgFormat, ...) {
    va_list args;
    va_start(args, msgFormat);
-   __warn(fileName, funcName, line, code, msgFormat.c_str(), args);
+   __warn(fileName, funcName, line, error, msgFormat.c_str(), args);
    va_end(args);
    return(0);
 }
@@ -349,11 +348,11 @@ int _warn(const char* fileName, const char* funcName, int line, int code, const 
  * @param  char*   fileName  - file where the macro was called
  * @param  char*   funcName  - function where the macro was called
  * @param  int     line      - line where the macro was called
- * @param  int     code      - error code
+ * @param  int     error     - error code
  * @param  char*   msgFormat - message with format codes for further parameters
  * @param  va_list msgArgs   - further message parameters
  */
-void __warn(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list &msgArgs) {
+void __warn(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, const va_list &msgArgs) {
    if (!msgFormat) msgFormat = "(null)";
 
    // create message with the specified parameters
@@ -366,14 +365,32 @@ void __warn(const char* fileName, const char* funcName, int line, int code, cons
    if (!fileName) baseName[0] = ext[0] = '\0';
    else _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
-   // add location infos and error details
-   char* locationFormat = "MT4Expander::%s%s::%s(%d)  WARN: %s  [%s]";
-   const char* sError   = ErrorToStr(code);
-   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg, sError) + 1;   // +1 for the terminating '\0'
-   char* buffer = (char*) alloca(size);                                                // on the stack
-   sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg, sError);
+   // add location infos
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  WARN: %s";
+   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;           // +1 for the terminating '\0'
+   char* locationMsg = (char*) alloca(size);                                           // on the stack
+   sprintf_s(locationMsg, size, locationFormat, baseName, ext, funcName, line, msg);
 
-   OutputDebugString(buffer);
+   char* fullMsg;
+
+   // add error details (if any)
+   if (error) {
+      char* errorFormat  = "%s  [%s]";
+      const char* sError = ErrorToStr(error);
+      size = _scprintf(errorFormat, locationMsg, sError) + 1;                          // +1 for the terminating '\0'
+      fullMsg = (char*) alloca(size);                                                  // on the stack
+      sprintf_s(fullMsg, size, errorFormat, locationMsg, sError);
+   }
+   else {
+      fullMsg = locationMsg;
+   }
+
+   BOOL inMqlCall = FALSE;
+   if (inMqlCall) {
+      //ec_SetDllWarning   (ec, error  );
+      //ec_SetDllWarningMsg(ec, fullMsg);
+   }
+   OutputDebugString(fullMsg);
 }
 
 
@@ -382,10 +399,10 @@ void __warn(const char* fileName, const char* funcName, int line, int code, cons
  *
  * @return int - 0 (zero)
  */
-int _error(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, ...) {
+int _error(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, ...) {
    va_list args;
    va_start(args, msgFormat);
-   __error(fileName, funcName, line, code, msgFormat, args);
+   __error(fileName, funcName, line, error, msgFormat, args);
    va_end(args);
    return(0);
 }
@@ -396,10 +413,10 @@ int _error(const char* fileName, const char* funcName, int line, int code, const
  *
  * @return int - 0 (zero)
  */
-int _error(const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...) {
+int _error(const char* fileName, const char* funcName, int line, int error, const std::string &msgFormat, ...) {
    va_list args;
    va_start(args, msgFormat);
-   __error(fileName, funcName, line, code, msgFormat.c_str(), args);
+   __error(fileName, funcName, line, error, msgFormat.c_str(), args);
    va_end(args);
    return(0);
 }
@@ -412,11 +429,12 @@ int _error(const char* fileName, const char* funcName, int line, int code, const
  * @param  char*   fileName  - file where the macro was called
  * @param  char*   funcName  - function where the macro was called
  * @param  int     line      - line where the macro was called
- * @param  int     code      - error code
+ * @param  int     error     - error code
  * @param  char*   msgFormat - message with format codes for further parameters
  * @param  va_list msgArgs   - further message parameters
  */
-void __error(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list &msgArgs) {
+void __error(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, const va_list &msgArgs) {
+   if (!error) return;
    if (!msgFormat) msgFormat = "(null)";
 
    // create message with the specified parameters
@@ -431,28 +449,17 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
 
    // add location infos and error details
    char* locationFormat = "MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]";
-   const char* sError   = ErrorToStr(code);
+   const char* sError   = ErrorToStr(error);
    size = _scprintf(locationFormat, baseName, ext, funcName, line, msg, sError) + 1;   // +1 for the terminating '\0'
-   char* buffer = (char*) alloca(size);                                                // on the stack
-   sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg, sError);
+   char* fullMsg = (char*) alloca(size);                                               // on the stack
+   sprintf_s(fullMsg, size, locationFormat, baseName, ext, funcName, line, msg, sError);
 
-   OutputDebugString(buffer);
-}
-
-
-/**
- *
- */
-void error_old(int error, char* message) {
-   BOOL inMqlCall;
-   if (error) {
-      //message = "ERROR:  "+ message +"  ["+ ErrorToStr(error) +"]";
-      if (inMqlCall) {
-         //ec_SetDllError   (ec, error  );
-         //ec_SetDllErrorMsg(ec, message);
-      }
-      debug(message);
+   BOOL inMqlCall = FALSE;
+   if (inMqlCall) {
+      //ec_SetDllError   (ec, error  );
+      //ec_SetDllErrorMsg(ec, fullMsg);
    }
+   OutputDebugString(fullMsg);
 }
 
 
@@ -462,7 +469,7 @@ void error_old(int error, char* message) {
 int WINAPI Test() {
 
    debug("GetTerminalVersionNumbers() returned FALSE");
-   warn (ERR_RUNTIME_ERROR, "GetTerminalVersionNumbers() returned FALSE");
+   warn (NO_ERROR, "GetTerminalVersionNumbers() returned FALSE");
    error(ERR_RUNTIME_ERROR, "GetTerminalVersionNumbers() returned FALSE");
 
    return(NULL);

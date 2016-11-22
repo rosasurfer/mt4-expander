@@ -29,7 +29,7 @@
  * @return LONG - Bias in Minuten
  */
 LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
    return(tzi->Bias);
    #pragma EXPORT
 }
@@ -43,13 +43,16 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
  * @return char* - Name als C-String
  */
 const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
    int   size  = sizeof(tzi->StandardName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist
    char* mbstr = new char[size];                            // WCHAR*2 garantiert, daß mbstr groß genug ist
 
    int bytes = wcstombs(mbstr, tzi->StandardName, size);
-   if (bytes == -1) { delete mbstr; return((char*)debug("ERROR:  cannot convert WCHAR tzi->StandardName to CHAR string")); }
+   if (bytes == -1) {
+      delete[] mbstr;
+      return((char*)error(ERR_RUNTIME_ERROR, "cannot convert WCHAR tzi->StandardName to CHAR string"));
+   }
 
    mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
 
@@ -65,8 +68,8 @@ const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
  * @param  SYSTEMTIME*            st
  */
 void WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
-   if ((uint)tzi < MIN_VALID_POINTER) { debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi); return; }
-   if ((uint)st  < MIN_VALID_POINTER) { debug("ERROR:  invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
+   if ((uint)tzi < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi); return; }
+   if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
 
    *st = tzi->StandardDate;
    #pragma EXPORT
@@ -81,7 +84,7 @@ void WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
  * @return LONG - Bias in Minuten
  */
 LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
    return(tzi->StandardBias);
    #pragma EXPORT
 }
@@ -95,13 +98,16 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
  * @return char* - Name als C-String
  */
 const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return((char*)debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
    int   size  = sizeof(tzi->DaylightName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist
    char* mbstr = new char[size];                            // WCHAR*2 garantiert, daß mbstr groß genug ist
 
    int bytes = wcstombs(mbstr, tzi->DaylightName, size);
-   if (bytes == -1) { delete mbstr; return((char*)debug("ERROR:  cannot convert WCHAR tzi->StandardName to CHAR string")); }
+   if (bytes == -1) {
+      delete[] mbstr;
+      return((char*)error(ERR_RUNTIME_ERROR, "cannot convert WCHAR tzi->StandardName to CHAR string"));
+   }
 
    mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
 
@@ -117,8 +123,8 @@ const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
  * @param  SYSTEMTIME*            st
  */
 void WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
-   if ((uint)tzi < MIN_VALID_POINTER) { debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi); return; }
-   if ((uint)st  < MIN_VALID_POINTER) { debug("ERROR:  invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
+   if ((uint)tzi < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi); return; }
+   if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
 
    *st = tzi->DaylightDate;
    #pragma EXPORT
@@ -133,7 +139,7 @@ void WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
  * @return LONG - Bias in Minuten
  */
 LONG WINAPI tzi_DaylightBias(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
    return(tzi->DaylightBias);
    #pragma EXPORT
 }

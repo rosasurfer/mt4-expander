@@ -23,13 +23,12 @@ LRESULT WINAPI CustomWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
  *
  */
 BOOL WINAPI SubclassWindow(HWND hWnd) {
-   if (!IsWindow(hWnd))                    return(debug("ERROR:  invalid parameter hWnd=%d (not a window)", hWnd));
+   if (!IsWindow(hWnd))                    return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd=%d (not a window)", hWnd));
    DWORD processId; GetWindowThreadProcessId(hWnd, &processId);
-   if (processId != GetCurrentProcessId()) return(debug("ERROR:  window hWnd=%d not owned by the current process", hWnd));
+   if (processId != GetCurrentProcessId()) return(error(ERR_INVALID_PARAMETER, "window hWnd=%d not owned by the current process", hWnd));
 
    origWndProc = (WNDPROC)SetWindowLong(hWnd, GWL_WNDPROC, (LONG)CustomWndProc);
-   if (!origWndProc)
-      return(debug("ERROR: SetWindowLong() failed with error %d", GetLastError()));
+   if (!origWndProc) return(error(ERR_WIN32_ERROR+GetLastError(), "SetWindowLong() failed"));
 
    last_hWnd = hWnd;
    debug("replaced window procedure 0x%p with 0x%p", origWndProc, CustomWndProc);
@@ -42,11 +41,11 @@ BOOL WINAPI SubclassWindow(HWND hWnd) {
  *
  */
 BOOL WINAPI UnsubclassWindow(HWND hWnd) {
-   if (!hWnd)             return(debug("ERROR:  invalid parameter hWnd=%d (not a window)", hWnd));
-   if (hWnd != last_hWnd) return(debug("ERROR:  invalid parameter hWnd=%d (not a subclassed window)", hWnd));
+   if (!hWnd)             return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd=%d (not a window)", hWnd));
+   if (hWnd != last_hWnd) return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd=%d (not a subclassed window)", hWnd));
 
    if (!SetWindowLong(hWnd, GWL_WNDPROC, (LONG)origWndProc))
-      return(debug("failed to restore original window procedure with error %d", GetLastError()));
+      return(error(ERR_WIN32_ERROR+GetLastError(), "failed to restore original window procedure"));
 
    last_hWnd   = NULL;
    origWndProc = NULL;

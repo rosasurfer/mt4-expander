@@ -14,8 +14,7 @@
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetBoolsAddress(const BOOL values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPORT
 }
@@ -29,8 +28,7 @@ uint WINAPI GetBoolsAddress(const BOOL values[]) {
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetIntsAddress(const int values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPORT
 }
@@ -44,8 +42,7 @@ uint WINAPI GetIntsAddress(const int values[]) {
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetDoublesAddress(const double values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPORT
 }
@@ -59,8 +56,7 @@ uint WINAPI GetDoublesAddress(const double values[]) {
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetStringsAddress(const MqlStr values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER)
-      return(debug("ERROR:  invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPORT
 }
@@ -78,8 +74,7 @@ uint WINAPI GetStringsAddress(const MqlStr values[]) {
  *          die erhaltene Adresse ist ungültig (z.B. im Tester bei mehrfachen Tests).
  */
 uint WINAPI GetStringAddress(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER)
-      return(debug("ERROR:  invalid parameter value = 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
    return((uint) value);
    #pragma EXPORT
 }
@@ -94,8 +89,7 @@ uint WINAPI GetStringAddress(const char* value) {
  * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
  */
 const char* WINAPI GetString(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER)
-      return((char*) debug("ERROR:  invalid parameter value = 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
    return((char*) value);
    #pragma EXPORT
 }
@@ -185,7 +179,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
       case MT_INDICATOR: return("MT_INDICATOR");
       case MT_LIBRARY  : return("MT_LIBRARY"  );
    }
-   debug("ERROR:  unknown module type = "+ to_string(type));
+   error(ERR_INVALID_PARAMETER, "unknown module type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -206,7 +200,7 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
       case MT_INDICATOR: return("Indicator");
       case MT_LIBRARY  : return("Library"  );
    }
-   debug("ERROR:  unknown module type = "+ to_string(type));
+   error(ERR_INVALID_PARAMETER, "unknown module type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -226,7 +220,7 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
       case PT_SCRIPT   : return("PT_SCRIPT"   );
       case PT_INDICATOR: return("PT_INDICATOR");
    }
-   debug("ERROR:  unknown program type = "+ to_string(type));
+   error(ERR_INVALID_PARAMETER, "unknown program type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -246,7 +240,7 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
       case PT_SCRIPT   : return("Script"   );
       case PT_INDICATOR: return("Indicator");
    }
-   debug("ERROR:  unknown program type = "+ to_string(type));
+   error(ERR_INVALID_PARAMETER, "unknown program type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -266,7 +260,7 @@ const char* WINAPI RootFunctionToStr(RootFunction id) {
       case RF_START : return("RF_START" );
       case RF_DEINIT: return("RF_DEINIT");
    }
-   debug("ERROR:  unknown MQL root function id = "+ to_string(id));
+   error(ERR_INVALID_PARAMETER, "unknown MQL root function id = %d", id);
    return(NULL);
    #pragma EXPORT
 }
@@ -286,7 +280,7 @@ const char* WINAPI RootFunctionName(RootFunction id) {
       case RF_START : return("start" );
       case RF_DEINIT: return("deinit");
    }
-   debug("ERROR:  unknown MQL root function id = "+ to_string(id));
+   error(ERR_INVALID_PARAMETER, "unknown MQL root function id = %d", id);
    return(NULL);
    #pragma EXPORT
 }
@@ -313,7 +307,7 @@ const char* WINAPI PeriodToStr(int period) {
       case PERIOD_MN1: return("PERIOD_MN1");     // 1 month
       case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter
    }
-   debug("ERROR:  unknown timeframe id = %d", period);
+   error(ERR_INVALID_PARAMETER, "unknown timeframe id = %d", period);
    return(NULL);
    #pragma EXPORT
 }
@@ -387,7 +381,7 @@ const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
       case UNINITREASON_INITFAILED : return("REASON_INITFAILED" );      // ...
       case UNINITREASON_CLOSE      : return("REASON_CLOSE"      );      // ...
    }
-   debug("ERROR:  unknown uninitialize reason = "+ to_string(reason));
+   error(ERR_INVALID_PARAMETER, "unknown uninitialize reason = %d", reason);
    return(NULL);
    #pragma EXPORT
 }
@@ -414,14 +408,14 @@ HWND WINAPI GetApplicationWindow() {
             int   size = 255;
             char* className = (char*) alloca(size);            // auf dem Stack
             int   copied = GetClassName(hWndNext, className, size);
-            if (!copied) return((HWND)debug("ERROR:  GetClassName() 0 chars copied  [%d] ", GetLastError()));
+            if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
 
             while (copied >= size-1) {                         // GetClassName() gibt die Anzahl der kopierten Zeichen zurück (ohne \0).
                size <<= 1;                                     // Bei size-1 ist unklar, ob der String genau in den Buffer paßte oder nicht.
                className = (char*) alloca(size);               // auf dem Stack
                copied    = GetClassName(hWndNext, className, size);
             }
-            if (!copied) return((HWND)debug("ERROR:  GetClassName() 0 chars copied  [%d]", GetLastError()));
+            if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
 
             // Klasse mit der Klasse des Terminal-Hauptfensters vergleichen
             if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
@@ -429,7 +423,7 @@ HWND WINAPI GetApplicationWindow() {
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
-      if (!hWndNext) debug("ERROR:  cannot find application main window [%d]", GetLastError());
+      if (!hWndNext) error(ERR_RUNTIME_ERROR, "cannot find application main window");
       hWnd = hWndNext;
    }
 
@@ -479,11 +473,11 @@ uint WINAPI GetGmtTime() {
    ULARGE_INTEGER ulintNow, ulint1970;
 
    GetSystemTime(&stNow);
-   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(debug("ERROR:  SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
    ulintNow.LowPart   = ftNow.dwLowDateTime;
    ulintNow.HighPart  = ftNow.dwHighDateTime;
 
-   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(debug("ERROR:  SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
    ulint1970.LowPart  = ft1970.dwLowDateTime;
    ulint1970.HighPart = ft1970.dwHighDateTime;
 
@@ -505,11 +499,11 @@ uint WINAPI GetLocalTime() {
    ULARGE_INTEGER ulintNow, ulint1970;
 
    GetLocalTime(&stNow);
-   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(debug("ERROR:  SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
    ulintNow.LowPart   = ftNow.dwLowDateTime;
    ulintNow.HighPart  = ftNow.dwHighDateTime;
 
-   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(debug("ERROR:  SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
    ulint1970.LowPart  = ft1970.dwLowDateTime;
    ulint1970.HighPart = ft1970.dwHighDateTime;
 
@@ -572,7 +566,7 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
             if (rgn == NULLREGION)                                   // Chart ist nicht sichtbar
                return;
             if (rgn == RGN_ERROR) {
-               debug("ERROR:  GetClipBox(hDC=%p) => RGN_ERROR (win32 error %d)", hDC, GetLastError());
+               warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
                return;
             }
          }
@@ -593,7 +587,7 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
       }
    }
 
-   debug("ERROR:  timer not found, timerId = %d", timerId);
+   warn(ERR_RUNTIME_ERROR, "timer not found, timerId = %d", timerId);
 }
 
 
@@ -616,12 +610,12 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
    // Parametervalidierung
    DWORD wndThreadId = GetWindowThreadProcessId(hWnd, NULL);
    if (wndThreadId != GetCurrentThreadId()) {
-      if (!wndThreadId)                                   return(debug("ERROR:  invalid parameter hWnd = %p (not a window)", hWnd));
-                                                          return(debug("ERROR:  window hWnd = %p not owned by the current thread", hWnd));
+      if (!wndThreadId)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd = %p (not a window)", hWnd));
+                                                          return(error(ERR_INVALID_PARAMETER, "window hWnd = %p not owned by the current thread", hWnd));
    }
-   if (millis <= 0)                                       return(debug("ERROR:  invalid parameter millis = %d", millis));
-   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(debug("ERROR:  invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER"));
-   if (flags & TICK_PAUSE_ON_WEEKEND)                            debug("WARN:  flag TICK_PAUSE_ON_WEEKEND not yet implemented");
+   if (millis <= 0)                                       return(error(ERR_INVALID_PARAMETER, "invalid parameter millis = %d", millis));
+   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER"));
+   if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // neue Timer-ID erzeugen
    static uint timerId = 10000;                       // ID's sind mindestens 5-stellig und beginnen bei 10000
@@ -630,7 +624,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
    // Timer setzen
    uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
    if (result != timerId)                             // muß stimmen, da hWnd immer != NULL
-      return(debug("ERROR:  SetTimer(hWnd=%p, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
+      return(error(ERR_WIN32_ERROR+GetLastError(), "SetTimer(hWnd=%p, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
    //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
 
    // Timerdaten speichern
@@ -650,19 +644,20 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI RemoveTickTimer(int timerId) {
-   if (timerId <= 0) return(debug("ERROR:  invalid parameter timerId = %d", timerId));
+   if (timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId = %d", timerId));
 
    int size = tickTimers.size();
 
    for (int i=0; i < size; i++) {
       if (tickTimers[i].id == timerId) {
          if (!KillTimer(tickTimers[i].hWnd, timerId))
-            return(debug("ERROR:  KillTimer(hWnd=%p, timerId=%d) failed", tickTimers[i].hWnd, timerId));
+            return(error(ERR_WIN32_ERROR+GetLastError(), "KillTimer(hWnd=%p, timerId=%d) failed", tickTimers[i].hWnd, timerId));
          tickTimers.erase(tickTimers.begin() + i);
          return(TRUE);
       }
    }
-   return(debug("ERROR:  timer not found: id = %d", timerId));
+
+   return(error(ERR_RUNTIME_ERROR, "timer not found: id = %d", timerId));
    #pragma EXPORT
 }
 
@@ -676,7 +671,7 @@ void RemoveTickTimers() {
 
    for (int i=size-1; i>=0; i--) {                 // rückwärts, da der Vector in RemoveTickTimer() modifiziert wird
       uint id = tickTimers[i].id;
-      debug("WARN:  removing orphaned tickTimer with id = %d", id);
+      warn(NO_ERROR, "removing orphaned tickTimer with id = %d", id);
       RemoveTickTimer(id);
    }
 }
@@ -798,9 +793,9 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, double emptyValue) {
-   if (buffer && (uint)buffer < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter buffer = 0x%p (not a valid pointer)", buffer));
-   if (bufferSize < 0)                             return(debug("ERROR:  invalid parameter bufferSize = %d", bufferSize));
-   if (bars < 0)                                   return(debug("ERROR:  invalid parameter bars = %d", bars));
+   if (buffer && (uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer = 0x%p (not a valid pointer)", buffer));
+   if (bufferSize < 0)                             return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize = %d", bufferSize));
+   if (bars < 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter bars = %d", bars));
    if (!bufferSize || !bars) return(TRUE);
 
    MoveMemory((void*)&buffer[0], &buffer[bars], (bufferSize-bars)*sizeof(buffer[0]));
@@ -835,7 +830,7 @@ const char* WINAPI ShowWindowCmdToStr(int cmdShow) {
       case SW_SHOWDEFAULT    : return("SW_SHOWDEFAULT"    );
       case SW_FORCEMINIMIZE  : return("SW_FORCEMINIMIZE"  );
    }
-   debug("ERROR:  unknown ShowWindow() command = %d", cmdShow);
+   error(ERR_INVALID_PARAMETER, "unknown ShowWindow() command = %d", cmdShow);
    return(NULL);
    #pragma EXPORT
 }
@@ -852,10 +847,10 @@ const char* WINAPI ShowWindowCmdToStr(int cmdShow) {
  * @return BOOL - success status
  */
 BOOL WINAPI GetTerminalVersionNumbers(uint* major, uint* minor, uint* hotfix, uint* build) {
-   if (major  && (uint)major  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter major = 0x%p (not a valid pointer)", major));
-   if (minor  && (uint)minor  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter minor = 0x%p (not a valid pointer)", minor));
-   if (hotfix && (uint)hotfix < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter hotfix = 0x%p (not a valid pointer)", hotfix));
-   if (build  && (uint)build  < MIN_VALID_POINTER) return(debug("ERROR:  invalid parameter build = 0x%p (not a valid pointer)", build));
+   if (major  && (uint)major  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter major = 0x%p (not a valid pointer)", major));
+   if (minor  && (uint)minor  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter minor = 0x%p (not a valid pointer)", minor));
+   if (hotfix && (uint)hotfix < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hotfix = 0x%p (not a valid pointer)", hotfix));
+   if (build  && (uint)build  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter build = 0x%p (not a valid pointer)", build));
 
    static uint resultMajor, resultMinor, resultHotfix, resultBuild;
 
@@ -868,21 +863,21 @@ BOOL WINAPI GetTerminalVersionNumbers(uint* major, uint* minor, uint* hotfix, ui
          fileName = (char*) alloca(size);                               // on stack
          length   = GetModuleFileName(NULL, fileName, size);
       }
-      if (!length) return(debug("ERROR:  GetModuleFileName() 0 chars copied [error: %d]", GetLastError()));
+      if (!length) return(error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName() 0 chars copied"));
 
       // get the file's version info
       DWORD infoSize = GetFileVersionInfoSize(fileName, &infoSize);
-      if (!infoSize) return(debug("ERROR:  GetFileVersionInfoSize() returned 0 [error: %d]", GetLastError()));
+      if (!infoSize) return(error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize() returned 0"));
 
       char* infoBuffer = (char*) alloca(infoSize);                      // on stack
       BOOL result = GetFileVersionInfo(fileName, NULL, infoSize, infoBuffer);
-      if (!result) return(debug("ERROR:  GetFileVersionInfo() returned FALSE [error: %d]", GetLastError()));
+      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfo() returned FALSE"));
 
       // query the version root values
       VS_FIXEDFILEINFO* fileInfo;
       uint len;
       result = VerQueryValue(infoBuffer, "\\", (LPVOID*)&fileInfo, &len);
-      if (!result) return(debug("ERROR:  VerQueryValue() returned FALSE [error: %d]", GetLastError()));
+      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValue() returned FALSE"));
 
       // parse the version numbers
       resultMajor  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
@@ -914,7 +909,7 @@ const char* WINAPI GetTerminalVersion() {
       // get the version numbers
       uint major, minor, hotfix, build;
       BOOL result = GetTerminalVersionNumbers(&major, &minor, &hotfix, &build);
-      if (!result) return((char*)debug("ERROR:  GetTerminalVersionNumbers() returned FALSE"));
+      if (!result) return(NULL);
 
       // compose version string
       char* format = "%d.%d.%d.%d";
@@ -936,7 +931,7 @@ const char* WINAPI GetTerminalVersion() {
 uint WINAPI GetTerminalBuild() {
    uint dummy, build;
    if (!GetTerminalVersionNumbers(&dummy, &dummy, &dummy, &build))
-      return(debug("ERROR:  GetTerminalVersionNumbers() returned FALSE"));
+      return(NULL);
    return(build);
    #pragma EXPORT
 }
