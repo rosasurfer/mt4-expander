@@ -494,7 +494,7 @@ int WINAPI Test() {
    char* test = new char[len+1];
    str.copy(test, len);
    test[len] = '\0';
-   delete test;
+   delete[] test;
    return(0);
 
    debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
