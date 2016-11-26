@@ -108,7 +108,7 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec)
       return(TRUE);
    }
 
-   EXECUTION_CONTEXT zeroed = {};
+   static const EXECUTION_CONTEXT zeroed = {};
    *sec = zeroed;
    return(FALSE);
    #pragma EXPORT
@@ -572,7 +572,7 @@ UninitializeReason WINAPI ec_SetUninitializeReason(EXECUTION_CONTEXT* ec, Uninit
       case REASON_CHARTCLOSE :
       case REASON_PARAMETERS :
       case REASON_ACCOUNT    :
-      // builds > 509
+      // build > 509
       case REASON_TEMPLATE   :
       case REASON_INITFAILED :
       case REASON_CLOSE      : break;
@@ -776,5 +776,67 @@ const char* WINAPI ec_SetLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
    // fileName ist NULL-Pointer
    ec->logFile[0] = '\0';
    return(ec->logFile);
+   #pragma EXPORT
+}
+
+
+/**
+ * Return a human-readable version of an EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               outputDebug - whether or not to duplicate the result to OutputDebugString()
+ *                                          (default: no)
+ * @return char*
+ */
+const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug/*=FALSE*/) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   char* result = "{(empty)}";
+   static const EXECUTION_CONTEXT empty = {};
+
+   if (memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT)) != 0) {
+      std::stringstream ss; ss
+         <<  "{programId="          <<                         ec->programId
+         << ", programType="        <<        ProgramTypeToStr(ec->programType       )
+         << ", programName="        <<          DoubleQuoteStr(ec->programName       )
+         << ", moduleType="         <<         ModuleTypeToStr(ec->moduleType        )
+         << ", moduleName="         <<          DoubleQuoteStr(ec->moduleName        )
+         << ", launchType="         <<                         ec->launchType
+         << ", superContext="       <<                       (!ec->superContext ? "0" : to_string("0x") + IntToHexStr(ec->superContext))
+         << ", initFlags="          <<          InitFlagsToStr(ec->initFlags         )
+         << ", deinitFlags="        <<        DeinitFlagsToStr(ec->deinitFlags       )
+         << ", rootFunction="       <<       RootFunctionToStr(ec->rootFunction      )
+         << ", uninitializeReason=" << UninitializeReasonToStr(ec->uninitializeReason)
+         << ", symbol="             <<          DoubleQuoteStr(ec->symbol            )
+         << ", timeframe="          <<             PeriodToStr(ec->timeframe         )
+         << ", hChartWindow="       <<                       (!ec->hChartWindow ? "0" : to_string("0x") + IntToHexStr(ec->hChartWindow))
+         << ", hChart="             <<                       (!ec->hChart       ? "0" : to_string("0x") + IntToHexStr(ec->hChart      ))
+         << ", testFlags="          <<          TestFlagsToStr(ec->testFlags         )
+         << ", mqlError="           <<                       (!ec->mqlError     ? "0" : ErrorToStr(ec->mqlError    ))
+         << ", dllError="           <<                       (!ec->dllError     ? "0" : ErrorToStr(ec->dllError    ))
+         << ", dllWarning="         <<                       (!ec->dllWarning   ? "0" : ErrorToStr(ec->dllWarning  ))
+         << ", logging="            <<               BoolToStr(ec->logging           )
+         << ", logFile="            <<          DoubleQuoteStr(ec->logFile           )
+         << "}";
+      std::string str = ss.str();
+      result = strcpy(new char[str.size()+1], str.c_str());          // TODO: close memory leak
+   }
+
+   if (outputDebug) debug(result);
+   return(result);
+   #pragma EXPORT
+}
+
+
+/**
+ * Return a human-readable version of an EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               outputDebug - whether or not to duplicate the result to OutputDebugString()
+ *                                          (default: no)
+ * @return char*
+ */
+const char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug/*=FALSE*/) {
+   return(EXECUTION_CONTEXT_toStr(ec, outputDebug));
    #pragma EXPORT
 }

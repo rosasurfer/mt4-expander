@@ -1,9 +1,10 @@
 #include "Expander.h"
 
 
-std::vector<DWORD>      threadIds          (64);            // alle bekannten Thread-IDs
-std::vector<uint>       threadIdsProgramIds(64);            // ID des vom jeweiligen Thread zuletzt ausgeführten MQL-Programms
-std::vector<pec_vector> contextChains      (64);            // alle bekannten Context-Chains (Index = ProgramID)
+std::vector<pec_vector> contextChains  (64);                // alle Context-Chains (Index = ProgramID)
+std::vector<DWORD>      threads        (64);                // ID's der bekannten Non-UI-Threads
+std::vector<uint>       threadsPrograms(64);                // ID's des vom jeweiligen Thread zuletzt ausgeführten MQL-Programms
+uint                    lastUIThreadProgram = 0;            // letztes vom UI-Thread ausgeführtes MQL-Programm
 CRITICAL_SECTION        terminalLock;                       // Terminal-weites Lock
 
 
@@ -29,9 +30,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
 BOOL onProcessAttach() {
    //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
 
-   threadIds          .resize(0);
-   threadIdsProgramIds.resize(0);
-   contextChains      .resize(1);                           // Index[0] wäre keine gültige Programm-ID und bleibt daher frei
+   threads        .resize(0);
+   threadsPrograms.resize(0);
+   contextChains  .resize(1);                               // Index[0] wäre keine gültige Programm-ID und bleibt daher frei
    InitializeCriticalSection(&terminalLock);
    return(TRUE);
 }
@@ -67,9 +68,9 @@ BOOL onProcessDetach() {
  *  (4) Datenaustausch vom einem Hauptmodul zu einem anderen Hauptmodul:
  *
  * Kontextgültigkeit: Der Master-Context einer Chain ist immer gültig. Alle anderen Kontexte der Chain können je nach Modul-Typ und
- * Situation vorübergehend ungültig und der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell nur
- * auf den eigenen und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und umgekehrt
- * ist nur in Ausnahmefällen möglich.
+ * Situation ungültig bzw. der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell nur auf den eigenen
+ * und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und umgekehrt ist nur in
+ * Ausnahmefällen möglich.
  *
  *
  *
@@ -125,99 +126,119 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
    if ((uint)symbol     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if (period <= 0)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period));
 
+   //
+   // Programmablauf
+   // --------------
+   // (1) Wenn keine ProgramID gesetzt ist, prüfen, ob Programm ein Indikator im Init-Cycle ist.
+   //     • wenn Programm ein Indikator im Init-Cycle ist (immer im UI-Thread)
+   //       - Indikator-Context aus Master-Context restaurieren
+   //     • wenn Programm kein Indikator im Init-Cycle ist
+   //       - neue Context-Chain erzeugen
+   //       - neuen Master-Context erzeugen
+   //       - Master- und Hauptkontext in der Chain speichern
+   //       - ProgramID generieren und diese dem Master- und Hauptkontext zuweisen
+   //
+   // (2) Im Master- und Hauptkontext bei jedem Aufruf zu aktualisieren:
+   //     • RootFunction
+   //     • UninitializeReason
+   //
+   // (3) Im Master- und Hauptkontext nur beim Aufruf aus init() zu aktualisieren:
+   //     • Symbol
+   //     • Timeframe
+   //     • alle übrigen übergebenen Werte, sofern nicht schon gesetzt
+   //
+   // (4) Das vom aktuellen Thread zuletzt ausgeführte Programm (also das aktuelle) in global threadsPrograms[] speichern.
+   //
+   // (5) Ist der aktuelle Thread der UI-Thread, das aktuelle Programm zusätzlich in global lastUIThreadProgram speichern.
+   //
+   EXECUTION_CONTEXT* master = NULL;
 
-   // (1) Context aktualisieren
-   if (rootFunction == RF_INIT) {
-      if (!ec->programType)  ec_SetProgramType(ec, (ProgramType)moduleType);  // im Hauptkontext gilt: Module[Name|Type] = Program[Name|Type]
-      if (!*ec->programName) ec_SetProgramName(ec, moduleName);
-      if (!ec->moduleType)   ec_SetModuleType (ec, moduleType);
-      if (!*ec->moduleName)  ec_SetModuleName (ec, moduleName);
-                             ec_SetSymbol     (ec, symbol);
-                             ec->timeframe = period;
+
+   // (1) Wenn keine ProgramID gesetzt ist, prüfen, ob Programm ein Indikator im Init-Cycle ist.
+   if (!ec->programId) {
+      BOOL lastUIThreadProgramMarked = (IsUIThread() && lastUIThreadProgram && !contextChains[lastUIThreadProgram][1]);
+      uint initReason           = NULL;// = InitReason();
+      BOOL indicatorInInitCycle = (lastUIThreadProgramMarked
+                               || (moduleType==MT_INDICATOR && rootFunction==RF_INIT && (initReason==INIT_REASON_PARAMETERS || initReason==INIT_REASON_SYMBOLCHANGE || initReason==INIT_REASON_TIMEFRAMECHANGE)));
+
+      if (indicatorInInitCycle) {
+         // (1.1) Programm ist Indikator im Init-Cycle (immer im UI-Thread)
+         //   - Indikator-Context aus Master-Context restaurieren
+         master = contextChains[lastUIThreadProgram][0];
+         *ec = *master;                                                 // Master-Context übernehmen
+         contextChains[lastUIThreadProgram][1] = ec;                    // Context als Hauptkontext speichern
+
+         debug("programId=0  lastUIThreadProgramMarked=%d  indicator in init-cycle", lastUIThreadProgramMarked); if (0) debug("thread=%d UI  %s::%s()  init-cycle  programId=0  reason=%s  lastUIThreadProgram=%d", GetCurrentThreadId(), moduleName, RootFunctionName(rootFunction), UninitializeReasonToStr(reason), lastUIThreadProgram);
+      }
+      else {
+         // (1.2) Programm ist kein Indikator im Init-Cycle
+         //   - neue Context-Chain erzeugen
+         //   - neuen Master-Context erzeugen
+         //   - Master- und Hauptkontext in der Chain speichern
+         //   - ProgramID generieren und diese Master- und Hauptkontext zuweisen
+         master  = new EXECUTION_CONTEXT;                               // neuen Master-Context erzeugen
+         *master = *ec;                                                 // Hauptkontext in Master-Context kopieren
+         pec_vector chain;                                              // neue Context-Chain erzeugen
+         chain.reserve(8);
+         chain.push_back(master);                                       // Master- und Hauptkontext in der Chain speichern
+         chain.push_back(ec);
+
+         EnterCriticalSection(&terminalLock);
+         contextChains.push_back(chain);                                // Chain in der Chain-Liste speichern
+         uint size = contextChains.size();                              // contextChains.size ist immer > 1 (index[0] bleibt frei)
+         master->programId = ec->programId = size-1;                    // Index = neue ProgramID dem Master- und Hauptkontext zuweisen
+         LeaveCriticalSection(&terminalLock);
+
+         debug("programId=0  lastUIThreadProgramMarked=%d  not an indicator in init-cycle", lastUIThreadProgramMarked); if (0) debug("thread=%d %s  %s::%s()  reason=%s  creating new chain for ec=0x%p with sec=0x%p  =>  size(chains)=%d  programId=%d", GetCurrentThreadId(), (IsUIThread() ? "UI":"  "), moduleName, RootFunctionName(rootFunction), UninitializeReasonToStr(reason), ec, ec->superContext, size, ec->programId);
+      }
    }
-   ec->rootFunction       = rootFunction;
-   ec->uninitializeReason = reason;
 
 
-   // (2) das letzte Programm des aktuellen Threads ermitteln
-   DWORD currentThreadId = GetCurrentThreadId();
-   int currentThreadIndex=-1, lastProgramId=0, size=threadIds.size();
-   for (int i=0; i < size; i++) {                              // Aufwärts, damit der UI-Thread (Index 0 oder 1) möglichst schnell gefunden wird.
-      if (threadIds[i] == currentThreadId) {                   // Thread gefunden
-         currentThreadIndex = i;                               // Index und ID des zuletzt gelaufenen Programms merken, es wird in (5) aktualisiert
-         lastProgramId      = threadIdsProgramIds[i];
+   // (2) Im Master- und Hauptkontext bei jedem Aufruf zu aktualisieren:
+   //     - RootFunction
+   //     - UninitializeReason
+   !master && (master=contextChains[ec->programId][0]);
+   master->rootFunction       = ec->rootFunction       = rootFunction;  // ohne Validierung, um im Tester ein paar CPU-Cycles sparen
+   master->uninitializeReason = ec->uninitializeReason = reason;
+
+
+   // (3) Im Master- und Hauptkontext beim Aufruf aus init() zu aktualisieren:
+   //     - Symbol
+   //     - Timeframe
+   //     - alle übrigen übergebenen Werte, sofern nicht schon gesetzt
+   if (rootFunction == RF_INIT) {
+      ec_SetSymbol   (master, ec_SetSymbol   (ec, symbol));
+      ec_SetTimeframe(master, ec_SetTimeframe(ec, period));
+                                                                        // im Hauptmodul gilt: ModuleName/Type = ProgramName/Type
+      if (!ec->programType)  ec_SetProgramType(master, ec_SetProgramType(ec, (ProgramType)moduleType));
+      if (!*ec->programName) ec_SetProgramName(master, ec_SetProgramName(ec,              moduleName));
+      if (!ec->moduleType)   ec_SetModuleType (master, ec_SetModuleType (ec,              moduleType));
+      if (!*ec->moduleName)  ec_SetModuleName (master, ec_SetModuleName (ec,              moduleName));
+   }
+
+
+   // (4) Das vom aktuellen Thread zuletzt ausgeführte Programm (also das aktuelle) in global threadsPrograms[] speichern.
+   DWORD currentThread = GetCurrentThreadId();
+   int currentThreadIndex=-1, size=threads.size();
+   for (int i=0; i < size; i++) {                                    // aktuellen Thread suchen
+      if (threads[i] == currentThread) {                             // gefunden
+         currentThreadIndex = i;
+         threadsPrograms[i] = ec->programId;                         // zuletzt ausgeführtes Programm aktualisieren
          break;
       }
    }
-
-
-   // (3) Prüfen, ob der übergebene Context bereits bekannt ist
-   if (!ec->programId) {
-      // (3.1) prüfen, ob wir in einem Indikator im init-Cycle sind
-      if (IsUIThread() && lastProgramId && ec->programType==PT_INDICATOR && rootFunction==RF_INIT && (reason==REASON_CHARTCHANGE || reason==REASON_PARAMETERS)) {
-         pec_vector &chain = contextChains[lastProgramId];
-         if (!chain[1]) {
-            // (3.2) Context eines Indikators nach init-Cycle
-            if (0) debug("thread=%d ui  %s::%s()  programId=0  reason=%s  lastProgramId=%d  my-init-cycle  chain[1]=%p  master=%p", GetCurrentThreadId(), moduleName, RootFunctionName(rootFunction), UninitializeReasonToStr(reason), lastProgramId, chain[1], chain[0]);
-            *ec = *chain[0];                                   // Master-Kontext übernehmen
-            ec_SetSymbol(ec, symbol);
-            ec->timeframe          = period;                   // Kontext aktualisieren
-            ec->rootFunction       = rootFunction;
-            ec->uninitializeReason = reason;
-            chain[1] = ec;                                     // Kontext als Hauptmodulkontext speichern
-         }
-         else {
-            // - Nach Recompilation eines Indikators werden Indikator und Libraries komplett neugeladen.
-            // - Beim ersten Laden eines Indikators wird REASON_PARAMETERS gesetzt, obwohl es keinen init-Cycle gab.
-            debug("WARN:  thread=%d ui  %s::init()  programId=0  reason=%s  chain[1]=%p  new-indicator / former-recompilation / indicator-with-no-libraries???", GetCurrentThreadId(), moduleName, UninitializeReasonToStr(reason), chain[1]);
-         }
-      }
-
-      // (3.3) neuer Context: neue Context-Chain anlegen und zu den bekannten Chains hinzufügen
-      if (!ec->programId) {
-         if (0) debug("thread=%d %s  %s::%s()  programId=0  reason=%s  creating new chain", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), moduleName, RootFunctionName(rootFunction), UninitializeReasonToStr(reason));
-         EXECUTION_CONTEXT* master = new EXECUTION_CONTEXT;    // Master-Kontext erzeugen
-         *master = *ec;                                        // Daten kopieren
-
-         pec_vector chain;
-         chain.reserve(8);
-         chain.push_back(master);                              // Master-Kontext an Index 0 der Chain speichern
-         chain.push_back(ec);                                  // chain.size ist immer mindestens 2
-
-         EnterCriticalSection(&terminalLock);
-         contextChains.push_back(chain);
-         int size = contextChains.size();                      // contextChains.size ist immer größer 1 (Index[0] bleibt frei)
-         master->programId = ec->programId = size-1;           // Die ec.programId entspricht dem Index in contextChains[].
-         if (0) debug("sizeof(chains)=%d  programId=%d", size, ec->programId);
-         LeaveCriticalSection(&terminalLock);
-      }
+   if (currentThreadIndex == -1) {                                   // nicht gefunden: Thread und Programm zur Verwaltung hinzufügen
+      EnterCriticalSection(&terminalLock);
+      threads        .push_back(currentThread);
+      threadsPrograms.push_back(ec->programId);
+      if (threads.size() > 128) debug("thread %d added (size=%d)", currentThread, threads.size());
+      LeaveCriticalSection(&terminalLock);
    }
 
 
-   // (4) Master-Kontext aktualisieren                         // Unnötig, wenn der Kontext gerade erzeugt wurde. Es ist jedoch besser,
-   pec_vector &chain = contextChains[ec->programId];           // diesen Code an nur einer Stelle zu halten.
-   if (ec != chain[1]) return(error(ERR_RUNTIME_ERROR, "thread=%d %s  %s::%s()  programId=%d   current-ec=%p != chain[1]=%p", GetCurrentThreadId(), (IsUIThread() ? "ui":"  "), moduleName, RootFunctionName(rootFunction), ec->programId, ec, chain[1]));
-   if (rootFunction == RF_INIT) {
-      ec_SetSymbol(chain[0], symbol);
-      chain[0]->timeframe = period;
-   }
-   chain[0]->rootFunction       = rootFunction;
-   chain[0]->uninitializeReason = reason;
-
-
-   // (5) Programm-ID des aktuellen Threads aktualisieren
-   if (currentThreadIndex >= 0) {
-      threadIdsProgramIds[currentThreadIndex] = ec->programId;
-      return(TRUE);
-   }
-
-
-   // (6) Thread ist neu: Thread und Programm-ID zur Verwaltung hinzufügen
-   EnterCriticalSection(&terminalLock);
-   threadIds          .push_back(currentThreadId);
-   threadIdsProgramIds.push_back(ec->programId);
-   if (threadIds.size() > 512) debug("thread %d %s  added (size=%d)", currentThreadId, (IsUIThread() ? "ui":"  "), threadIds.size());
-   LeaveCriticalSection(&terminalLock);
+   // (5) Ist der aktuelle Thread der UI-Thread, das aktuelle Programm zusätzlich in global lastUIThreadProgram speichern.
+   if (IsUIThread())
+      lastUIThreadProgram = ec->programId;
 
    return(TRUE);
    #pragma EXPORT
@@ -240,7 +261,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ModuleType moduleTyp
  * Notes:
  * ------
  * Ist in Library::init() der übergebene Context bereits initialisiert (ec.programId ist gesetzt), befindet sich das Programm in
- * einem init()-Cycle. Zum init()-Cycle von Indikatoren: @see SetMainExecutionContext()
+ * einem init()-Cycle.
  */
 BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleName, RootFunction rootFunction, const char* symbol, int period) {
    if ((uint)ec         < MIN_VALID_POINTER)             return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
@@ -253,21 +274,21 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
 
 
    // (1) Index des aktuellen Threads ermitteln
-   DWORD currentThreadId = GetCurrentThreadId();
-   int currentThreadIndex=-1, size=threadIds.size();
+   DWORD currentThread = GetCurrentThreadId();
+   int currentThreadIndex=-1, size=threads.size();
    for (int i=0; i < size; i++) {                           // Aufwärts, damit der UI-Thread (Index 0 oder 1) schnellstmöglich gefunden wird.
-      if (threadIds[i] == currentThreadId) {
+      if (threads[i] == currentThread) {
          currentThreadIndex = i;                            // Thread gefunden: Index merken
          break;
       }
    }
-   if (currentThreadIndex < 0) return(error(ERR_ILLEGAL_STATE, "current thread %d not in known threads", currentThreadId));
+   if (currentThreadIndex < 0) return(error(ERR_ILLEGAL_STATE, "current thread %d not in known threads", currentThread));
 
 
    if (rootFunction == RF_INIT) {
       if (!ec->programId) {
          // (2) Library wird zum ersten mal initialisiert
-         int lastProgramId = threadIdsProgramIds[currentThreadIndex];
+         int lastProgramId = threadsPrograms[currentThreadIndex];
 
          pec_vector &chain = contextChains[lastProgramId];
          int size = chain.size(); if (size < 2) return(error(ERR_RUNTIME_ERROR, "???::%s::init()  programId=0  lastProgramid=%d  chain.size=%d", moduleName, lastProgramId, size));
@@ -297,7 +318,11 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
 
 
    // (4) Programm-ID des aktuellen Threads aktualisieren
-   threadIdsProgramIds[currentThreadIndex] = ec->programId;
+   threadsPrograms[currentThreadIndex] = ec->programId;
+
+   // Ist der aktuelle Thread der UI-Thread, das aktuelle Programm zusätzlich in global lastUIThreadProgram speichern.
+   if (IsUIThread())
+      lastUIThreadProgram = ec->programId;
 
    return(TRUE);
    #pragma EXPORT
@@ -523,11 +548,41 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
    char* fullMsg = (char*) alloca(size);                                               // on the stack
    sprintf_s(fullMsg, size, locationFormat, baseName, ext, funcName, line, msg, sError);
 
-   BOOL inMqlCall = FALSE;
-   if (inMqlCall) {
-      //ec_SetDllError   (ec, error  );
-      //ec_SetDllErrorMsg(ec, fullMsg);
+   // look-up the current thread's last associated MQL program
+   DWORD currentThread = GetCurrentThreadId();
+   int currentThreadIndex=-1, currentThreadLastProgram=0;
+   size = threads.size();
+   for (int i=0; i < size; i++) {
+      if (threads[i] == currentThread) {                             // thread found
+         currentThreadIndex       = i;                               // keep thread index and last MQL program
+         currentThreadLastProgram = threadsPrograms[i];
+         break;
+      }
    }
+
+   if (currentThreadIndex == -1) {
+      // Thread unknown/not found: Not much we can do. We could just have entered SyncMainExecutionContext() or
+      //                           we could be in a function callback called from a new thread (if that's possible).
+   }
+   else {
+      // Thread executed MQL before
+      if (IsUIThread()) {
+         // Wir sind in einer Callback-Funktion oder im letzten im UI-Thread ausgeführten Indikator und dort u.U. in einer Library
+         // oder einem via iCustom() geladenen weiteren Indikator.
+         //
+         // Vorsicht: Der Hauptkontext des letzten Root-Programms kann ungültig sein.
+      }
+      else {
+         // Wir sind im Expert oder Script des Threads und dort u.U. in einer Library oder einem via iCustom() geladenen weiteren Indikator.
+         // Auf den Hauptkontext des Root-Programms kann lesend/schreibend zugegriffen werden.
+      }
+
+      if (BOOL inMqlCall=FALSE) {
+         //ec_SetDllError   (ec, error  );
+         //ec_SetDllErrorMsg(ec, fullMsg);
+      }
+   }
+
    OutputDebugString(fullMsg);
 }
 
@@ -535,7 +590,7 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
 /**
  * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
  *
- * @param  ... parameters are ignored
+ * @param  ... all parameters are ignored
  */
 int  _CLR_NONE(...) { return(CLR_NONE); }
 int  _NULL    (...) { return(NULL    ); }
@@ -561,8 +616,6 @@ BOOL   _BOOL  (BOOL   value, ...) { return(value); }
  *
  */
 int WINAPI Test() {
-
-
    typedef std::vector<int> int_vector;
    int_vector ints(1);
 

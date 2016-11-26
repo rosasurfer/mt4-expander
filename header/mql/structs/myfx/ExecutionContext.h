@@ -67,7 +67,6 @@ const char*        WINAPI ec_LogFile           (const EXECUTION_CONTEXT* ec);
 
 // Setter
 uint               WINAPI ec_SetProgramId         (EXECUTION_CONTEXT* ec, uint               id       );
-uint               WINAPI ecc_SetProgramId        (pec_vector     &chain, uint               id       );
 ProgramType        WINAPI ec_SetProgramType       (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName       (EXECUTION_CONTEXT* ec, const char*        name     );
 ModuleType         WINAPI ec_SetModuleType        (EXECUTION_CONTEXT* ec, ModuleType         type     );
@@ -89,3 +88,7 @@ int                WINAPI ec_SetDllError          (EXECUTION_CONTEXT* ec, int   
 //                        ...
 BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
 const char*        WINAPI ec_SetLogFile           (EXECUTION_CONTEXT* ec, const char*        fileName );
+
+uint               WINAPI ecc_SetProgramId        (pec_vector     &chain, uint               id       );
+const char*        WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec, BOOL outputDebug=FALSE);
+const char*        WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug=FALSE);

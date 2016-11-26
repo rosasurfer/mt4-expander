@@ -155,11 +155,49 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
  * @return char* - hexadezimaler String mit 8 Zeichen
  */
 const char* WINAPI IntToHexStr(int value) {
-   int   size = 9;
+   uint size = 9;
    char* szchar = new char[size];                                    // TODO: Speicherleck schließen
    sprintf_s(szchar, size, "%p", value);
 
    return(szchar);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt die hexadezimale Repräsentation eines Zeigers zurück.
+ * z.B.: IntToHexStr(13465610) => "00CD780A"
+ *
+ * @param  void* value - beliebiger Zeiger
+ *
+ * @return char* - hexadezimaler String mit 8 Zeichen
+ */
+const char* WINAPI IntToHexStr(void* value) {
+   return(IntToHexStr((int)value));
+}
+
+
+/**
+ * Return a readable version of an INIT_REASON_* constant.
+ *
+ * @param  uint reason - init reason
+ *
+ * @return char* - readable version or NULL if the reason is invalid
+ */
+const char* WINAPI InitReasonToStr(uint reason) {
+   switch (reason) {
+      case NULL                         : return("NULL"                         );
+      case INIT_REASON_USER             : return("INIT_REASON_USER"             );
+      case INIT_REASON_TEMPLATE         : return("INIT_REASON_TEMPLATE"         );
+      case INIT_REASON_PROGRAM          : return("INIT_REASON_PROGRAM"          );
+      case INIT_REASON_PROGRAM_AFTERTEST: return("INIT_REASON_PROGRAM_AFTERTEST");
+      case INIT_REASON_PARAMETERS       : return("INIT_REASON_PARAMETERS"       );
+      case INIT_REASON_TIMEFRAMECHANGE  : return("INIT_REASON_TIMEFRAMECHANGE"  );
+      case INIT_REASON_SYMBOLCHANGE     : return("INIT_REASON_SYMBOLCHANGE"     );
+      case INIT_REASON_RECOMPILE        : return("INIT_REASON_RECOMPILE"        );
+   }
+   error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d", reason);
+   return(NULL);
    #pragma EXPORT
 }
 
@@ -179,7 +217,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
       case MT_INDICATOR: return("MT_INDICATOR");
       case MT_LIBRARY  : return("MT_LIBRARY"  );
    }
-   error(ERR_INVALID_PARAMETER, "unknown module type = %d", type);
+   error(ERR_INVALID_PARAMETER, "invalid parameter type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -200,7 +238,7 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
       case MT_INDICATOR: return("Indicator");
       case MT_LIBRARY  : return("Library"  );
    }
-   error(ERR_INVALID_PARAMETER, "unknown module type = %d", type);
+   error(ERR_INVALID_PARAMETER, "invalid parameter type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -220,7 +258,7 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
       case PT_SCRIPT   : return("PT_SCRIPT"   );
       case PT_INDICATOR: return("PT_INDICATOR");
    }
-   error(ERR_INVALID_PARAMETER, "unknown program type = %d", type);
+   error(ERR_INVALID_PARAMETER, "invalid parameter type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -240,7 +278,7 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
       case PT_SCRIPT   : return("Script"   );
       case PT_INDICATOR: return("Indicator");
    }
-   error(ERR_INVALID_PARAMETER, "unknown program type = %d", type);
+   error(ERR_INVALID_PARAMETER, "invalid parameter type = %d", type);
    return(NULL);
    #pragma EXPORT
 }
@@ -260,7 +298,7 @@ const char* WINAPI RootFunctionToStr(RootFunction id) {
       case RF_START : return("RF_START" );
       case RF_DEINIT: return("RF_DEINIT");
    }
-   error(ERR_INVALID_PARAMETER, "unknown MQL root function id = %d", id);
+   error(ERR_INVALID_PARAMETER, "invalid parameter id = %d", id);
    return(NULL);
    #pragma EXPORT
 }
@@ -280,7 +318,7 @@ const char* WINAPI RootFunctionName(RootFunction id) {
       case RF_START : return("start" );
       case RF_DEINIT: return("deinit");
    }
-   error(ERR_INVALID_PARAMETER, "unknown MQL root function id = %d", id);
+   error(ERR_INVALID_PARAMETER, "invalid parameter id = %d", id);
    return(NULL);
    #pragma EXPORT
 }
@@ -307,7 +345,7 @@ const char* WINAPI PeriodToStr(int period) {
       case PERIOD_MN1: return("PERIOD_MN1");     // 1 month
       case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter
    }
-   error(ERR_INVALID_PARAMETER, "unknown timeframe id = %d", period);
+   error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period);
    return(NULL);
    #pragma EXPORT
 }
@@ -381,7 +419,7 @@ const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
       case UNINITREASON_INITFAILED : return("REASON_INITFAILED" );      // ...
       case UNINITREASON_CLOSE      : return("REASON_CLOSE"      );      // ...
    }
-   error(ERR_INVALID_PARAMETER, "unknown uninitialize reason = %d", reason);
+   error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d", reason);
    return(NULL);
    #pragma EXPORT
 }
@@ -614,7 +652,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
                                                           return(error(ERR_INVALID_PARAMETER, "window hWnd = %p not owned by the current thread", hWnd));
    }
    if (millis <= 0)                                       return(error(ERR_INVALID_PARAMETER, "invalid parameter millis = %d", millis));
-   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER"));
+   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter flags combination: TICK_CHART_REFRESH & TICK_TESTER"));
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // neue Timer-ID erzeugen
@@ -830,7 +868,7 @@ const char* WINAPI ShowWindowCmdToStr(int cmdShow) {
       case SW_SHOWDEFAULT    : return("SW_SHOWDEFAULT"    );
       case SW_FORCEMINIMIZE  : return("SW_FORCEMINIMIZE"  );
    }
-   error(ERR_INVALID_PARAMETER, "unknown ShowWindow() command = %d", cmdShow);
+   error(ERR_INVALID_PARAMETER, "invalid parameter cmdShow = %d", cmdShow);
    return(NULL);
    #pragma EXPORT
 }
@@ -1141,5 +1179,119 @@ const char* WINAPI ErrorToStr(int error) {
    sprintf_s(szchar, size, szFormat, error);
 
    return(szchar);
+   #pragma EXPORT
+}
+
+
+/**
+ * Wrap a string in double quote characters.
+ *
+ * @param  char* value
+ *
+ * @return char* - resulting string or the string "NULL" if a NULL pointer was specified
+ */
+const char* WINAPI DoubleQuoteStr(const char* value) {
+   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
+   if (!value) return("NULL");
+
+   uint size = strlen(value) + 3;                                    // +2 for the quotes, +1 for the terminating '\0'
+   char* szchar = new char[size];                                    // TODO: close memory leak
+   sprintf_s(szchar, size, "\"%s\"", value);
+
+   return(szchar);
+   #pragma EXPORT
+}
+
+
+/**
+ * Return a readable version of a combination of INIT_* flags.
+ *
+ * @param  uint flags - INIT_* flags
+ *
+ * @return char*
+ */
+const char* WINAPI InitFlagsToStr(uint flags) {
+   std::stringstream ss;
+
+   if (!flags) {
+      ss << "|0";
+   }
+   else {
+      if (flags & INIT_TIMEZONE           ) ss << "|INIT_TIMEZONE";
+      if (flags & INIT_PIPVALUE           ) ss << "|INIT_PIPVALUE";
+      if (flags & INIT_BARS_ON_HIST_UPDATE) ss << "|INIT_BARS_ON_HIST_UPDATE";
+      if (flags & INIT_CUSTOMLOG          ) ss << "|INIT_CUSTOMLOG";
+      if (flags & INIT_DOESNT_REQUIRE_BARS) ss << "|INIT_DOESNT_REQUIRE_BARS";
+   }
+   std::string str = ss.str();
+   uint size = str.size();
+
+   if (!size)
+      return("");                                                    // the terminating '\0' is copied too
+   return(strcpy(new char[size], str.c_str()+1));                    // TODO: close memory leak
+   #pragma EXPORT
+}
+
+
+/**
+ * Return a readable version of a combination of DEINIT_* flags.
+ *
+ * @param  uint flags - DEINIT_* flags
+ *
+ * @return char*
+ */
+const char* WINAPI DeinitFlagsToStr(uint flags) {
+   std::stringstream ss;
+   ss << "|" << flags;                                               // atm no DEINIT flags exist
+
+   std::string str = ss.str();
+   uint size = str.size();
+
+   if (!size)
+      return("");                                                    // the terminating '\0' is copied too
+   return(strcpy(new char[size], str.c_str()+1));                    // TODO: close memory leak
+   #pragma EXPORT
+}
+
+
+/**
+ * Return a readable version of a combination of test flags.
+ *
+ * @param  uint flags - TF_* flags
+ *
+ * @return char*
+ */
+const char* WINAPI TestFlagsToStr(uint flags) {
+   std::stringstream ss;
+
+   if (!flags) {
+      ss << "|0";
+   }
+   else {
+      if ( flags & TF_TEST                                  ) ss << "|TF_TEST";
+      if ((flags & TF_VISUAL_TEST)     == TF_VISUAL_TEST    ) ss << "|TF_VISUAL_TEST";
+      if ((flags & TF_OPTIMIZING_TEST) == TF_OPTIMIZING_TEST) ss << "|TF_OPTIMIZING_TEST";
+   }
+   std::string str = ss.str();
+   uint size = str.size();
+
+   if (!size)
+      return("");                                                    // the terminating '\0' is copied too
+   return(strcpy(new char[size], str.c_str()+1));                    // TODO: close memory leak
+   #pragma EXPORT
+}
+
+
+/**
+ * Convert a BOOL value to the string "TRUE" or "FALSE".
+ *
+ * @param  BOOL value
+ *
+ * @return char*
+ */
+const char* WINAPI BoolToStr(BOOL value) {
+   if (value)
+      return("TRUE");
+   return("FALSE");
    #pragma EXPORT
 }
