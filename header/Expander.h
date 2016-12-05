@@ -52,18 +52,31 @@ enum RootFunction {
 };
 
 
+// InitializeReasons
+enum InitializeReason {
+   INITREASON_USER              = INIT_REASON_USER,
+   INITREASON_TEMPLATE          = INIT_REASON_TEMPLATE,
+   INITREASON_PROGRAM           = INIT_REASON_PROGRAM,
+   INITREASON_PROGRAM_AFTERTEST = INIT_REASON_PROGRAM_AFTERTEST,
+   INITREASON_PARAMETERS        = INIT_REASON_PARAMETERS,
+   INITREASON_TIMEFRAMECHANGE   = INIT_REASON_TIMEFRAMECHANGE,
+   INITREASON_SYMBOLCHANGE      = INIT_REASON_SYMBOLCHANGE,
+   INITREASON_RECOMPILE         = INIT_REASON_RECOMPILE
+};
+
+
 // MQL-UninitializeReasons
 enum UninitializeReason {
-   UNINITREASON_UNDEFINED   = REASON_UNDEFINED,
-   UNINITREASON_REMOVE      = REASON_REMOVE,
-   UNINITREASON_RECOMPILE   = REASON_RECOMPILE,
-   UNINITREASON_CHARTCHANGE = REASON_CHARTCHANGE,
-   UNINITREASON_CHARTCLOSE  = REASON_CHARTCLOSE,
-   UNINITREASON_PARAMETERS  = REASON_PARAMETERS,
-   UNINITREASON_ACCOUNT     = REASON_ACCOUNT,
-   UNINITREASON_TEMPLATE    = REASON_TEMPLATE,     // ab Build > 509
-   UNINITREASON_INITFAILED  = REASON_INITFAILED,   // ...
-   UNINITREASON_CLOSE       = REASON_CLOSE         // ...
+   UNINITREASON_UNDEFINED       = REASON_UNDEFINED,
+   UNINITREASON_REMOVE          = REASON_REMOVE,
+   UNINITREASON_RECOMPILE       = REASON_RECOMPILE,
+   UNINITREASON_CHARTCHANGE     = REASON_CHARTCHANGE,
+   UNINITREASON_CHARTCLOSE      = REASON_CHARTCLOSE,
+   UNINITREASON_PARAMETERS      = REASON_PARAMETERS,
+   UNINITREASON_ACCOUNT         = REASON_ACCOUNT,
+   UNINITREASON_TEMPLATE        = REASON_TEMPLATE,       // ab Build > 509
+   UNINITREASON_INITFAILED      = REASON_INITFAILED,     // ...
+   UNINITREASON_CLOSE           = REASON_CLOSE           // ...
 };
 
 
@@ -90,10 +103,10 @@ enum UninitializeReason {
 
 
 // Deklaration Thread- und EXECUTION_CONTEXT-Verwaltung (Initialisierung in Expander.cpp)
-extern std::vector<pec_vector> contextChains;
-extern std::vector<DWORD>      threads;
-extern std::vector<uint>       threadsPrograms;
-extern uint                    lastUIThreadProgram;
+extern std::vector<pec_vector> contextChains;                        // alle Context-Chains (Index = ProgramID)
+extern std::vector<DWORD>      threads;                              // ID's aller bekannten Threads
+extern std::vector<uint>       threadsPrograms;                      // ID's des vom Thread zuletzt ausgeführten MQL-Programms
+extern uint                    lastUIThreadProgram;                  // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
 
 
 // Funktionsdeklarationen
@@ -117,43 +130,48 @@ BOOL onProcessAttach();
 BOOL onProcessDetach();
 void RemoveTickTimers();
 
-BOOL         WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, const char* symbol, int period);
-BOOL         WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec,                   const char* name, RootFunction functionId,                            const char* symbol, int period);
+BOOL              WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
+BOOL              WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec, const char* name, RootFunction functionId, const char* symbol, uint period);
+BOOL              WINAPI LeaveExecutionContext   (EXECUTION_CONTEXT* ec);
 
-const char*  WINAPI BoolToStr        (BOOL value);
-const char*  WINAPI DeinitFlagsToStr (uint flags);
-const char*  WINAPI DoubleQuoteStr   (const char* value);
-const char*  WINAPI ErrorToStr       (int error);
-HWND         WINAPI GetApplicationWindow();
-DWORD        WINAPI GetUIThreadId();
-uint         WINAPI GetBoolsAddress  (const BOOL   values[]);
-uint         WINAPI GetIntsAddress   (const int    values[]);
-uint         WINAPI GetDoublesAddress(const double values[]);
-uint         WINAPI GetStringsAddress(const MqlStr values[]);
-uint         WINAPI GetStringAddress (const char*  value   );
-const char*  WINAPI GetString        (const char*  value   );
-int          WINAPI GetLastWin32Error();
-uint         WINAPI GetTerminalBuild();
-const char*  WINAPI GetTerminalVersion();
-BOOL         WINAPI GetTerminalVersionNumbers(uint* major, uint* minor, uint* hotfix, uint* build);
-const char*  WINAPI InitFlagsToStr   (uint flags );
-const char*  WINAPI InitReasonToStr  (uint reason);
-const char*  WINAPI IntToHexStr      (int   value);
-const char*  WINAPI IntToHexStr      (void* value);
-BOOL         WINAPI IsCustomTimeframe(int timeframe);
-BOOL         WINAPI IsStdTimeframe   (int timeframe);
-BOOL         WINAPI IsUIThread();
-const char*  WINAPI ModuleTypeDescription  (ModuleType  type);
-const char*  WINAPI ModuleTypeToStr        (ModuleType  type);
-uint         WINAPI MT4InternalMsg();
-const char*  WINAPI PeriodDescription      (int period);        const char* WINAPI TimeframeDescription(int timeframe);   // Alias
-const char*  WINAPI PeriodToStr            (int period);        const char* WINAPI TimeframeToStr      (int timeframe);   // Alias
-const char*  WINAPI ProgramTypeDescription (ProgramType type);
-const char*  WINAPI ProgramTypeToStr       (ProgramType type);
-const char*  WINAPI RootFunctionName       (RootFunction id);
-const char*  WINAPI RootFunctionToStr      (RootFunction id);
-const char*  WINAPI TestFlagsToStr         (uint flags);
-const char*  WINAPI UninitializeReasonToStr(UninitializeReason reason);
+const char*       WINAPI BoolToStr        (BOOL value);
+const char*       WINAPI DeinitFlagsToStr (uint flags);
+const char*       WINAPI DoubleQuoteStr   (const char* value);
+const char*       WINAPI ErrorToStr       (int error);
+int               WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason);
+HWND              WINAPI GetApplicationWindow();
+DWORD             WINAPI GetUIThreadId();
+uint              WINAPI GetBoolsAddress  (const BOOL   values[]);
+uint              WINAPI GetIntsAddress   (const int    values[]);
+uint              WINAPI GetDoublesAddress(const double values[]);
+uint              WINAPI GetStringsAddress(const MqlStr values[]);
+uint              WINAPI GetStringAddress (const char*  value   );
+const char*       WINAPI GetString        (const char*  value   );
+int               WINAPI GetLastWin32Error();
+uint              WINAPI GetTerminalBuild();
+const char*       WINAPI GetTerminalVersion();
+BOOL              WINAPI GetTerminalVersionNumbers(uint* major, uint* minor, uint* hotfix, uint* build);
+const char*       WINAPI InitFlagsToStr         (uint flags );
+InitializeReason  WINAPI InitReason             (const char* programName, ProgramType programType, UninitializeReason uninitializeReason, const char* symbol, EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec, BOOL testing, BOOL visualMode, HWND hChart, int subChartDropped);
+const char*       WINAPI InitReasonToStr        (InitializeReason reason);
+const char*       WINAPI InitializeReasonToStr  (InitializeReason reason);    // Alias
+const char*       WINAPI IntToHexStr            (int   value);
+const char*       WINAPI IntToHexStr            (void* value);
+BOOL              WINAPI IsCustomTimeframe      (int timeframe);
+BOOL              WINAPI IsStdTimeframe         (int timeframe);
+BOOL              WINAPI IsUIThread();
+const char*       WINAPI ModuleTypeDescription  (ModuleType  type);
+const char*       WINAPI ModuleTypeToStr        (ModuleType  type);
+uint              WINAPI MT4InternalMsg();
+const char*       WINAPI PeriodDescription      (int period); const char* WINAPI TimeframeDescription(int timeframe);   // Alias
+const char*       WINAPI PeriodToStr            (int period); const char* WINAPI TimeframeToStr      (int timeframe);   // Alias
+const char*       WINAPI ProgramTypeDescription (ProgramType type);
+const char*       WINAPI ProgramTypeToStr       (ProgramType type);
+const char*       WINAPI RootFunctionName       (RootFunction id);
+const char*       WINAPI RootFunctionToStr      (RootFunction id);
+const char*       WINAPI TestFlagsToStr         (uint flags);
+const char*       WINAPI UninitReasonToStr      (UninitializeReason reason);
+const char*       WINAPI UninitializeReasonToStr(UninitializeReason reason);  // Alias
 
 
 /**

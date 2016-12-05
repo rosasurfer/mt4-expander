@@ -180,11 +180,11 @@ const char* WINAPI IntToHexStr(void* value) {
 /**
  * Return a readable version of an INIT_REASON_* constant.
  *
- * @param  uint reason - init reason
+ * @param  InitializeReason reason - init reason
  *
  * @return char* - readable version or NULL if the reason is invalid
  */
-const char* WINAPI InitReasonToStr(uint reason) {
+const char* WINAPI InitReasonToStr(InitializeReason reason) {
    switch (reason) {
       case NULL                         : return("NULL"                         );
       case INIT_REASON_USER             : return("INIT_REASON_USER"             );
@@ -198,6 +198,15 @@ const char* WINAPI InitReasonToStr(uint reason) {
    }
    error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d", reason);
    return(NULL);
+   #pragma EXPORT
+}
+
+
+/**
+ * Alias
+ */
+const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
+   return(InitReasonToStr(reason));
    #pragma EXPORT
 }
 
@@ -313,10 +322,10 @@ const char* WINAPI RootFunctionToStr(RootFunction id) {
  */
 const char* WINAPI RootFunctionName(RootFunction id) {
    switch (id) {
-      case NULL     : return("NULL"  );
-      case RF_INIT  : return("init"  );
-      case RF_START : return("start" );
-      case RF_DEINIT: return("deinit");
+      case NULL     : return("(null)" );
+      case RF_INIT  : return("init"   );
+      case RF_START : return("start"  );
+      case RF_DEINIT: return("deinit" );
    }
    error(ERR_INVALID_PARAMETER, "invalid parameter id = %d", id);
    return(NULL);
@@ -402,25 +411,34 @@ const char* WINAPI TimeframeDescription(int timeframe) {
 /**
  * Gibt die lesbare Konstante eines UninitializeReason-Codes zurück.
  *
- * @param  int reason - Code
+ * @param  UninitializeReason reason - Code
  *
  * @return char*
  */
-const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
+const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
    switch (reason) {
-      case UNINITREASON_UNDEFINED  : return("REASON_UNDEFINED"  );
-      case UNINITREASON_REMOVE     : return("REASON_REMOVE"     );
-      case UNINITREASON_RECOMPILE  : return("REASON_RECOMPILE"  );
-      case UNINITREASON_CHARTCHANGE: return("REASON_CHARTCHANGE");
-      case UNINITREASON_CHARTCLOSE : return("REASON_CHARTCLOSE" );
-      case UNINITREASON_PARAMETERS : return("REASON_PARAMETERS" );
-      case UNINITREASON_ACCOUNT    : return("REASON_ACCOUNT"    );
-      case UNINITREASON_TEMPLATE   : return("REASON_TEMPLATE"   );      // ab Build > 509
-      case UNINITREASON_INITFAILED : return("REASON_INITFAILED" );      // ...
-      case UNINITREASON_CLOSE      : return("REASON_CLOSE"      );      // ...
+      case REASON_UNDEFINED  : return("REASON_UNDEFINED"  );
+      case REASON_REMOVE     : return("REASON_REMOVE"     );
+      case REASON_RECOMPILE  : return("REASON_RECOMPILE"  );
+      case REASON_CHARTCHANGE: return("REASON_CHARTCHANGE");
+      case REASON_CHARTCLOSE : return("REASON_CHARTCLOSE" );
+      case REASON_PARAMETERS : return("REASON_PARAMETERS" );
+      case REASON_ACCOUNT    : return("REASON_ACCOUNT"    );
+      case REASON_TEMPLATE   : return("REASON_TEMPLATE"   );            // ab Build > 509
+      case REASON_INITFAILED : return("REASON_INITFAILED" );            // ...
+      case REASON_CLOSE      : return("REASON_CLOSE"      );            // ...
    }
    error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d", reason);
    return(NULL);
+   #pragma EXPORT
+}
+
+
+/**
+ * Alias
+ */
+const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
+   return(UninitReasonToStr(reason));
    #pragma EXPORT
 }
 
@@ -1204,7 +1222,7 @@ const char* WINAPI DoubleQuoteStr(const char* value) {
 
 
 /**
- * Return a readable version of a combination of INIT_* flags.
+ * Return a readable version of a combination of INIT_* configuration flags.
  *
  * @param  uint flags - INIT_* flags
  *
@@ -1234,7 +1252,7 @@ const char* WINAPI InitFlagsToStr(uint flags) {
 
 
 /**
- * Return a readable version of a combination of DEINIT_* flags.
+ * Return a readable version of a combination of DEINIT_* configuration flags.
  *
  * @param  uint flags - DEINIT_* flags
  *

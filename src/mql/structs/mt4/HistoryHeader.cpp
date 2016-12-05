@@ -256,13 +256,16 @@ uint WINAPI hh_SetBarFormat(HISTORY_HEADER* hh, int format) {
  * @param  HISTORY_HEADER* hh
  * @param  char*           copyright - ein vorhandenes Copyright kann mit einem Leerstring gelöscht werden
  *
- * @return char* - das gesetzte Copyright
+ * @return char* - dasselbe Copyright
  */
 const char* WINAPI hh_SetCopyright(HISTORY_HEADER* hh, const char* copyright) {
    if ((uint)hh        < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hh = 0x%p (not a valid pointer)", hh));
    if ((uint)copyright < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter copyright = 0x%p (not a valid pointer)", copyright));
    if (strlen(copyright) > sizeof(hh->copyright)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter copyright = \"%s\" (max %d characters)", copyright, sizeof(hh->copyright)-1));
-   return(strcpy(hh->copyright, copyright));
+
+   if (!strcpy(hh->copyright, copyright))
+      return(NULL);
+   return(copyright);
    #pragma EXPORT
 }
 
@@ -273,14 +276,17 @@ const char* WINAPI hh_SetCopyright(HISTORY_HEADER* hh, const char* copyright) {
  * @param  HISTORY_HEADER* hh
  * @param  char*           symbol
  *
- * @return char* - das gesetzte Symbol
+ * @return char* - dasselbe Symbol
  */
 const char* WINAPI hh_SetSymbol(HISTORY_HEADER* hh, const char* symbol) {
    if ((uint)hh     < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hh = 0x%p (not a valid pointer)", hh));
    if ((uint)symbol < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    int len = strlen(symbol);
    if (!len || len > sizeof(hh->symbol)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol = \"%s\" (must be 1 to %d characters)", symbol, sizeof(hh->symbol)-1));
-   return(strcpy(hh->symbol, symbol));
+
+   if (!strcpy(hh->symbol, symbol))
+      return(NULL);
+   return(symbol);
    #pragma EXPORT
 }
 

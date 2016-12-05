@@ -428,14 +428,17 @@ uint WINAPI symbols_Id(const SYMBOL symbols[], int index) {
  * @param  SYMBOL* symbol
  * @param  char*   name
  *
- * @return char* - der gesetzte Name
+ * @return char* - derselbe Name
  */
 const char* WINAPI symbol_SetName(SYMBOL* symbol, const char* name) {
    if ((uint)symbol < MIN_VALID_POINTER)     return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((uint)name   < MIN_VALID_POINTER)     return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
    int len = strlen(name);
    if (!len || len > sizeof(symbol->name)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name = \"%s\" (must be 1 to %d characters)", name, sizeof(symbol->name)-1));
-   return(strcpy(symbol->name, name));
+
+   if (!strcpy(symbol->name, name))
+      return(NULL);
+   return(name);
    #pragma EXPORT
 }
 
@@ -446,13 +449,16 @@ const char* WINAPI symbol_SetName(SYMBOL* symbol, const char* name) {
  * @param  SYMBOL* symbol
  * @param  char*   description - eine vorhandene Beschreibung kann mit einem Leerstring gelöscht werden
  *
- * @return char* - die gesetzte Beschreibung
+ * @return char* - dieselbe Beschreibung
  */
 const char* WINAPI symbol_SetDescription(SYMBOL* symbol, const char* description) {
    if ((uint)symbol      < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((uint)description < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter description = 0x%p (not a valid pointer)", description));
    if (strlen(description) > sizeof(symbol->description)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter description = \"%s\" (max %d characters)", description, sizeof(symbol->description)-1));
-   return(strcpy(symbol->description, description));
+
+   if (!strcpy(symbol->description, description))
+      return(NULL);
+   return(description);
    #pragma EXPORT
 }
 
@@ -463,14 +469,17 @@ const char* WINAPI symbol_SetDescription(SYMBOL* symbol, const char* description
  * @param  SYMBOL* symbol
  * @param  char*   currency
  *
- * @return char* - die gesetzte Basiswährung
+ * @return char* - dieselbe Basiswährung
  */
 const char* WINAPI symbol_SetBaseCurrency(SYMBOL* symbol, const char* currency) {
    if ((uint)symbol   < MIN_VALID_POINTER)             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((uint)currency < MIN_VALID_POINTER)             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter currency = 0x%p (not a valid pointer)", currency));
    int len = strlen(currency);
    if (len!=3 || len > sizeof(symbol->baseCurrency)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter currency = \"%s\" (3 characters)", currency));
-   return(strcpy(symbol->baseCurrency, currency));
+
+   if (!strcpy(symbol->baseCurrency, currency))
+      return(NULL);
+   return(currency);
    #pragma EXPORT
 }
 
@@ -567,14 +576,17 @@ int WINAPI symbol_SetId(SYMBOL* symbol, int id) {
  * @param  SYMBOL* symbol
  * @param  char*   currency
  *
- * @return char* - die gesetzte Marginwährung
+ * @return char* - dieselbe Marginwährung
  */
 const char* WINAPI symbol_SetMarginCurrency(SYMBOL* symbol, const char* currency) {
    if ((uint)symbol   < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((uint)currency < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter currency = 0x%p (not a valid pointer)", currency));
    int len = strlen(currency);
    if (len!=3 || len > sizeof(symbol->marginCurrency)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter currency = \"%s\" (3 characters)", currency));
-   return(strcpy(symbol->marginCurrency, currency));
+
+   if (!strcpy(symbol->marginCurrency, currency))
+      return(NULL);
+   return(currency);
    #pragma EXPORT
 }
 
