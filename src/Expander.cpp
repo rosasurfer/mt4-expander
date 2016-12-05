@@ -601,7 +601,7 @@ int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, Uninitialize
                }
                //else debug("i=%d  %s  no indicator", i, name);
             }
-            else debug("i=%d  %s  chart mis-match  master=%d  hChart=%d", i, name, master->hChart, hChart);
+            //else debug("i=%d  %s  chart mis-match  master=%d  hChart=%d", i, name, master->hChart, hChart);
          }
          //else debug("i=%d  %s  thread mis-match  master->threadId=%d  uiThreadId=%d", i, master->programName, master->threadId, uiThreadId);
       }
