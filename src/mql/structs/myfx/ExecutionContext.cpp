@@ -576,7 +576,8 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
       case INIT_REASON_PARAMETERS       :
       case INIT_REASON_TIMEFRAMECHANGE  :
       case INIT_REASON_SYMBOLCHANGE     :
-      case INIT_REASON_RECOMPILE        : break;
+      case INIT_REASON_RECOMPILE        :                                break;
+      case NULL                         : if (ec->moduleType==MT_EXPERT) break;
       default:
          return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d (not an InitializeReason)", reason));
    }
@@ -1063,12 +1064,12 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", timeframe="    <<       PeriodToStr(ec->timeframe   )
          << ", hChart="       <<                   ec->hChart
          << ", hChartWindow=" <<                   ec->hChartWindow
-         << ", superContext=" <<                 (!ec->superContext ? "0" : IntToHexStr(ec->superContext))
+         << ", superContext=" <<             (uint)ec->superContext
          << ", threadId="     <<                   ec->threadId
          << ", ticks="        <<                   ec->ticks
-         << ", mqlError="     <<                 (!ec->mqlError     ? "0" :  ErrorToStr(ec->mqlError    ))
-         << ", dllError="     <<                 (!ec->dllError     ? "0" :  ErrorToStr(ec->dllError    ))
-         << ", dllWarning="   <<                 (!ec->dllWarning   ? "0" :  ErrorToStr(ec->dllWarning  ))
+         << ", mqlError="     <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
+         << ", dllError="     <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
+         << ", dllWarning="   <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << "}";
       std::string str = ss.str();
       result = strcpy(new char[str.size()+1], str.c_str());          // TODO: close memory leak

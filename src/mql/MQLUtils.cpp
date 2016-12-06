@@ -314,18 +314,18 @@ const char* WINAPI RootFunctionToStr(RootFunction id) {
 
 
 /**
- * Gibt den Namen einer RootFunction zurück.
+ * Gibt die Beschreibung einer RootFunction zurück (den Namen).
  *
  * @param  RootFunction id
  *
  * @return char* - Name oder NULL, falls die ID ungültig ist
  */
-const char* WINAPI RootFunctionName(RootFunction id) {
+const char* WINAPI RootFunctionDescription(RootFunction id) {
    switch (id) {
-      case NULL     : return("(null)" );
-      case RF_INIT  : return("init"   );
-      case RF_START : return("start"  );
-      case RF_DEINIT: return("deinit" );
+      case NULL     : return("(null)");
+      case RF_INIT  : return("init"  );
+      case RF_START : return("start" );
+      case RF_DEINIT: return("deinit");
    }
    error(ERR_INVALID_PARAMETER, "invalid parameter id = %d", id);
    return(NULL);

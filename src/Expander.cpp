@@ -189,7 +189,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType programT
          master = contextChains[ec->programId][0];                      // im Init-Cycle setzt InitReason() die gefundene ID
          *ec = *master;                                                 // Master-Context kopieren
          contextChains[ec->programId][1] = ec;                          // Context als Hauptkontext speichern
-         debug("%s::%s()  programId=0  init-cycle, was id=%d", programName, RootFunctionName(rootFunction), ec->programId);
+         debug("%s::%s()  programId=0  init-cycle, was id=%d  thread=%s", programName, RootFunctionDescription(rootFunction), ec->programId, IsUIThread() ? "UI": to_string(currentThread).c_str());
       }
       else {
          // (1.2) Programm ist kein Indikator im Init-Cycle
@@ -208,7 +208,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType programT
          contextChains.push_back(chain);                                // Chain in der Chain-Liste speichern
          uint size = contextChains.size();                              // contextChains.size ist immer > 1 (index[0] bleibt frei)
          master->programId = ec->programId = size-1;                    // Index = neue ProgramID dem Master- und Hauptkontext zuweisen
-         debug("%s::%s()  programId=0  %snew chain => id=%d  hChart=%d", programName, RootFunctionName(rootFunction), (IsUIThread() ? "UI  ":""), ec->programId, hChart);
+         debug("%s::%s()  programId=0  %snew chain => id=%d  thread=%s  hChart=%d", programName, RootFunctionDescription(rootFunction), (IsUIThread() ? "UI  ":""), ec->programId, IsUIThread() ? "UI":to_string(currentThread).c_str(), hChart);
          LeaveCriticalSection(&terminalLock);
       }
    }
@@ -228,20 +228,20 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType programT
        //ec_SetLaunchType (ec,             launchType );
       }
 
-      ec_SetRootFunction(ec, rootFunction);
-      ec_SetInitReason  (ec, initReason  );
-      ec_SetUninitReason(ec, uninitReason);
+      ec_SetRootFunction(ec, rootFunction );
+      ec_SetInitReason  (ec, initReason   );
+      ec_SetUninitReason(ec, uninitReason );
       ec_SetTestFlags   (ec, sec ? sec->testFlags : NULL);           // TODO: ResolveTestFlags()
 
-      ec_SetInitFlags   (ec, initFlags   );
-      ec_SetDeinitFlags (ec, deinitFlags );
+      ec_SetInitFlags   (ec, initFlags    );
+      ec_SetDeinitFlags (ec, deinitFlags  );
       ec_SetLogging     (ec, sec ? sec->logging : FALSE);            // TODO: ResolveLogging()           => benötigt This.IsTesting()
       ec_SetLogFile     (ec, sec ? sec->logFile : NULL );            // TODO: ResolveLogFile()
 
-      ec_SetSymbol      (ec, symbol      );
-      ec_SetTimeframe   (ec, period      );
-      ec_SetHChart      (ec, sec    ? sec->hChart       : hChart);   // TODO: ResolveHChart()
-      ec_SetHChartWindow(ec, hChart ? GetParent(hChart) : NULL  );
+      ec_SetSymbol      (ec, symbol       );
+      ec_SetTimeframe   (ec, period       );
+      ec_SetHChart      (ec, sec        ?          sec->hChart  : hChart); // TODO: ResolveHChart()
+      ec_SetHChartWindow(ec, ec->hChart ? GetParent(ec->hChart) : NULL  );
 
       ec_SetSuperContext(ec, sec          );
       ec_SetThreadId    (ec, currentThread);
@@ -328,7 +328,7 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
          break;
       }
    }
-   if (currentThreadIndex < 0) return(error(ERR_ILLEGAL_STATE, "current thread %d not in known threads", currentThread));
+   if (currentThreadIndex < 0) return(error(ERR_ILLEGAL_STATE, "%s::%s::%s()  programId=%d  thread %d not in known threads", ec->programName, moduleName, RootFunctionDescription(rootFunction), ec->programId, currentThread));
 
 
    if (rootFunction == RF_INIT) {
@@ -354,7 +354,7 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
 
          pec_vector &chain = contextChains[ec->programId];  // die erste Library invalidiert den Zeiger auf den Hauptkontext
          if (chain[1]) {
-            error(ERR_ILLEGAL_STATE, "%s::%s::init()  programId=%d  init cycle,  main-ec is not NULL: %p", ec->programName, moduleName, ec->programId, chain[1]);
+            warn(ERR_ILLEGAL_STATE, "%s::%s::init()  programId=%d  init cycle,  main-ec is not NULL: %p", ec->programName, moduleName, ec->programId, chain[1]);
             chain[1] = NULL;                                // Hauptkontext auf NULL setzen
          }
          ec_SetSymbol   (chain[0], symbol);                 // Master-Kontext aktualisieren. Dies ist der früheste Zeitpunkt, an dem das neue
@@ -426,8 +426,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    if ((uint)ec          < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
 
-   if (programType == PT_EXPERT) return((InitializeReason)NULL);
    if (programType == PT_SCRIPT) return(       INITREASON_USER);
+   if (programType == PT_EXPERT) return((InitializeReason)NULL);
    /*
    Init-Szenarien:
    ---------------
