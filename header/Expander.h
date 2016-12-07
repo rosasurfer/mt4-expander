@@ -2,15 +2,15 @@
 
 #include "common.h"
 #include "stdafx.h"
-#include "shared/defines.h"
-#include "shared/errors.h"
+#include "shared/defines.h"                                                      // shared between DLL and MQL
+#include "shared/errors.h"                                                       // ...
 #include <vector>
 
 
 #ifdef EXPANDER_EXPORTS
  //#define EXPANDER_API extern "C" __declspec(dllexport)
-   #define EXPANDER_API                                                             // empty define
-   #define EXPORT       comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)     // export unmangled names without DEF file
+   #define EXPANDER_API                                                          // empty define
+   #define EXPORT       comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)  // export unmangled names without DEF file
 #else
    #define EXPANDER_API extern "C" __declspec(dllimport)
 #endif
