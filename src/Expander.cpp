@@ -9,6 +9,13 @@ CRITICAL_SECTION        terminalLock;                                // Terminal
 
 
 /**
+ * DLL entry point function declarations
+ */
+BOOL onProcessAttach();
+BOOL onProcessDetach();
+
+
+/**
  * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
@@ -53,11 +60,11 @@ BOOL onProcessDetach() {
 /**
  * Synchronisiert die EXECUTION_CONTEXTe der Module eines MQL-Programms mit dem Master-Context in der DLL und untereinander.
  *
- * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben Programms
- * und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines MQL-Programms
- * bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der DLL verwaltet wird.
- * An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren Contexte einer Chain sind
- * Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
+ * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
+ * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
+ * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
+ * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
  *
  *  (1) Datenaustausch vom Hauptmodul zu den Library-Modulen:
  *
@@ -67,10 +74,10 @@ BOOL onProcessDetach() {
  *
  *  (4) Datenaustausch vom einem Hauptmodul zu einem anderen Hauptmodul:
  *
- * Kontextgültigkeit: Der Master-Context einer Chain ist immer gültig. Alle anderen Kontexte der Chain können je nach Modul-Typ und
- * Situation ungültig bzw. der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell nur auf den eigenen
- * und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und umgekehrt ist nur in
- * Ausnahmefällen möglich.
+ * Kontextgültigkeit: Der Master-Context einer Chain ist immer gültig. Alle anderen Kontexte der Chain können je nach Modul-Typ
+ * und Situation ungültig bzw. der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell nur auf
+ * den eigenen und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und umgekehrt
+ * ist nur in Ausnahmefällen möglich.
  *
  *
  *
@@ -101,53 +108,53 @@ BOOL onProcessDetach() {
  *
  * Notes:
  * ------
- * • Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wiedereintritt
- *   in Indicator::init() keinen gültigen Hauptkontext. Der alte Speicherblock wird sofort freigegeben, in init() wird ein neuer
- *   alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt und es darf nicht auf
- *   den zu dem Zeitpunkt ungültigen Hauptkontext zugegriffen werden.
- * • Nach Recompilation oder Crash einer Library wird der Speicherblock ihres Kontexts ungültig und auf ihn darf ebenfalls nicht mehr
- *   zugegriffen werden.
+ * • Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wiederein-
+ *   tritt in Indicator::init() keinen gültigen Hauptkontext. Der alte Speicherblock wird sofort freigegeben, in init() wird ein
+ *   neuer alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt und es darf
+ *   nicht auf den zu dem Zeitpunkt ungültigen Hauptkontext zugegriffen werden.
+ * • Nach Recompilation oder Crash einer Library wird der Speicherblock ihres Kontexts ungültig und auf ihn darf ebenfalls nicht
+ *   mehr zugegriffen werden.
  *
  *
  *  Init cycle of a single indicator examined:
- *  --- first load ------------------------------------------------------------------------------------------------------------------
+ *  --- first load --------------------------------------------------------------------------------------------------------------
  *  Indicator::init()              programId=0  creating new chain             set programId=1
  *  Indicator::libraryA::init()    programId=0  loaded by indicator            set programId=1
  *  Indicator::libraryB::init()    programId=0  loaded by indicator            set programId=1
  *  Indicator::libraryC::init()    programId=0  loaded by libraryA             set programId=1
- *  --- deinit() --------------------------------------------------------------------------------------------------------------------
+ *  --- deinit() ----------------------------------------------------------------------------------------------------------------
  *  Indicator::deinit()            programId=1  indicator first
  *  Indicator::libraryA::deinit()  programId=1  then libraries
  *  Indicator::libraryC::deinit()  programId=1  hierarchical (not loading order)
  *  Indicator::libraryB::deinit()  programId=1
- *  --- init() ----------------------------------------------------------------------------------------------------------------------
+ *  --- init() ------------------------------------------------------------------------------------------------------------------
  *  Indicator::libraryA::init()    programId=1  libraries first (new symbol/timeframe show up)
  *  Indicator::libraryC::init()    programId=1  hierarchical (not loading order)
  *  Indicator::libraryB::init()    programId=1
  *  Indicator::init()              programId=0  then indicator                 set programId=1
- *  ---------------------------------------------------------------------------------------------------------------------------------
+ *  -----------------------------------------------------------------------------------------------------------------------------
  *
  *
  *  Init cycle of multiple indicators examined:
- *  --- first load ------------------------------------------------------------------------------------------------------------------
+ *  --- first load --------------------------------------------------------------------------------------------------------------
  *  ChartInfos::init()             REASON_UNDEFINED    programId=0  creating new chain   set programId=1
  *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=0  loaded by indicator  set programId=1
  *
  *  SuperBars::init()              REASON_UNDEFINED    programId=0  creating new chain   set programId=2
  *  SuperBars::lib::init()         REASON_UNDEFINED    programId=0  loaded by indicator  set programId=2
- *  --- deinit() --------------------------------------------------------------------------------------------------------------------
+ *  --- deinit() ----------------------------------------------------------------------------------------------------------------
  *  ChartInfos::deinit()           REASON_CHARTCHANGE  programId=1
  *  ChartInfos::lib::deinit()      REASON_UNDEFINED    programId=1
  *
  *  SuperBars::deinit()            REASON_CHARTCHANGE  programId=2
  *  SuperBars::lib::deinit()       REASON_UNDEFINED    programId=2
- *  --- init() ----------------------------------------------------------------------------------------------------------------------
+ *  --- init() ------------------------------------------------------------------------------------------------------------------
  *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=1  set libMarker
  *  ChartInfos::init()             REASON_CHARTCHANGE  programId=0  libMarker=1          set programId=1
  *
  *  SuperBars::lib::init()         REASON_UNDEFINED    programId=2  set libMarker
  *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  libMarker=1          set programId=2
- *  ---------------------------------------------------------------------------------------------------------------------------------
+ *  -----------------------------------------------------------------------------------------------------------------------------
  */
 BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
@@ -186,9 +193,9 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType programT
       if (indicatorInInitCycle) {
          // (1.1) Programm ist Indikator im Init-Cycle (immer im UI-Thread)
          //   - Indikator-Context aus Master-Context restaurieren
-         master = contextChains[ec->programId][0];                      // im Init-Cycle setzt InitReason() die gefundene ID
-         *ec = *master;                                                 // Master-Context kopieren
-         contextChains[ec->programId][1] = ec;                          // Context als Hauptkontext speichern
+         master = contextChains[ec->programId][0];                   // im Init-Cycle setzt InitReason() die gefundene ID
+         *ec = *master;                                              // Master-Context kopieren
+         contextChains[ec->programId][1] = ec;                       // Context als Hauptkontext speichern
          debug("%s::%s()  programId=0  init-cycle, was id=%d  thread=%s", programName, RootFunctionDescription(rootFunction), ec->programId, IsUIThread() ? "UI": to_string(currentThread).c_str());
       }
       else {
@@ -197,17 +204,17 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType programT
          //   - neuen Master-Context erzeugen
          //   - Master- und Hauptkontext in der Chain speichern
          //   - ProgramID generieren und diese Master- und Hauptkontext zuweisen
-         master  = new EXECUTION_CONTEXT;                               // neuen Master-Context erzeugen
-         *master = *ec;                                                 // Hauptkontext kopieren
-         pec_vector chain;                                              // neue Context-Chain erzeugen
+         master  = new EXECUTION_CONTEXT;                            // neuen Master-Context erzeugen
+         *master = *ec;                                              // Hauptkontext kopieren
+         pec_vector chain;                                           // neue Context-Chain erzeugen
          chain.reserve(8);
-         chain.push_back(master);                                       // Master- und Hauptkontext in der Chain speichern
+         chain.push_back(master);                                    // Master- und Hauptkontext in der Chain speichern
          chain.push_back(ec);
 
          EnterCriticalSection(&terminalLock);
-         contextChains.push_back(chain);                                // Chain in der Chain-Liste speichern
-         uint size = contextChains.size();                              // contextChains.size ist immer > 1 (index[0] bleibt frei)
-         master->programId = ec->programId = size-1;                    // Index = neue ProgramID dem Master- und Hauptkontext zuweisen
+         contextChains.push_back(chain);                             // Chain in der Chain-Liste speichern
+         uint size = contextChains.size();                           // contextChains.size ist immer > 1 (index[0] bleibt frei)
+         master->programId = ec->programId = size-1;                 // Index = neue ProgramID dem Master- und Hauptkontext zuweisen
          debug("%s::%s()  programId=0  %snew chain => id=%d  thread=%s  hChart=%d", programName, RootFunctionDescription(rootFunction), (IsUIThread() ? "UI  ":""), ec->programId, IsUIThread() ? "UI":to_string(currentThread).c_str(), hChart);
          LeaveCriticalSection(&terminalLock);
       }
@@ -235,7 +242,7 @@ BOOL WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType programT
 
       ec_SetInitFlags   (ec, initFlags    );
       ec_SetDeinitFlags (ec, deinitFlags  );
-      ec_SetLogging     (ec, sec ? sec->logging : FALSE);            // TODO: ResolveLogging()           => benötigt This.IsTesting()
+      ec_SetLogging     (ec, sec ? sec->logging : FALSE);            // TODO: ResolveLogging()     => benötigt This.IsTesting()
       ec_SetLogFile     (ec, sec ? sec->logFile : NULL );            // TODO: ResolveLogFile()
 
       ec_SetSymbol      (ec, symbol       );
@@ -322,7 +329,7 @@ BOOL WINAPI SyncLibExecutionContext(EXECUTION_CONTEXT* ec, const char* moduleNam
    // (1) Index des aktuellen Threads ermitteln
    DWORD currentThread = GetCurrentThreadId();
    int currentThreadIndex=-1, size=threads.size();
-   for (int i=0; i < size; i++) {                           // Aufwärts, damit der UI-Thread (Index 0 oder 1) schnellstmöglich gefunden wird.
+   for (int i=0; i < size; i++) {
       if (threads[i] == currentThread) {
          currentThreadIndex = i;                            // Thread gefunden: Index merken
          break;
@@ -848,14 +855,14 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
    else {
       // Thread executed MQL before
       if (IsUIThread()) {
-         // Wir sind in einer Callback-Funktion oder im letzten im UI-Thread ausgeführten Indikator und dort u.U. in einer Library
-         // oder einem via iCustom() geladenen weiteren Indikator.
+         // Wir sind in einer Callback-Funktion oder im letzten im UI-Thread ausgeführten Indikator und dort u.U. in einer
+         // Library oder einem via iCustom() geladenen weiteren Indikator.
          //
          // Vorsicht: Der Hauptkontext des letzten Root-Programms kann ungültig sein.
       }
       else {
-         // Wir sind im Expert oder Script des Threads und dort u.U. in einer Library oder einem via iCustom() geladenen weiteren Indikator.
-         // Auf den Hauptkontext des Root-Programms kann lesend/schreibend zugegriffen werden.
+         // Wir sind im Expert oder Script des Threads und dort u.U. in einer Library oder einem via iCustom() geladenen weiteren
+         // Indikator. Auf den Hauptkontext des Root-Programms kann lesend/schreibend zugegriffen werden.
       }
 
       if (BOOL inMqlCall=FALSE) {

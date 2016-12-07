@@ -126,10 +126,6 @@ int   _error(const char* fileName, const char* funcName, int line, int code, con
 int   _error(const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...);
 void __error(const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, const va_list &args);
 
-BOOL onProcessAttach();
-BOOL onProcessDetach();
-void RemoveTickTimers();
-
 BOOL              WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
 BOOL              WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec, const char* name, RootFunction functionId, const char* symbol, uint period);
 BOOL              WINAPI LeaveExecutionContext   (EXECUTION_CONTEXT* ec);
@@ -167,6 +163,7 @@ const char*       WINAPI PeriodDescription      (int period); const char* WINAPI
 const char*       WINAPI PeriodToStr            (int period); const char* WINAPI TimeframeToStr      (int timeframe);   // Alias
 const char*       WINAPI ProgramTypeDescription (ProgramType type);
 const char*       WINAPI ProgramTypeToStr       (ProgramType type);
+void                     RemoveTickTimers();
 const char*       WINAPI RootFunctionDescription(RootFunction id);
 const char*       WINAPI RootFunctionToStr      (RootFunction id);
 const char*       WINAPI TestFlagsToStr         (uint flags);

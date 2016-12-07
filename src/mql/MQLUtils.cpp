@@ -1,8 +1,3 @@
-/**
- * Der Expander des Fortschritts
- *
- * @author  Peter Walther
- */
 #include "Expander.h"
 
 
@@ -466,9 +461,9 @@ HWND WINAPI GetApplicationWindow() {
             int   copied = GetClassName(hWndNext, className, size);
             if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
 
-            while (copied >= size-1) {                         // GetClassName() gibt die Anzahl der kopierten Zeichen zurück (ohne \0).
-               size <<= 1;                                     // Bei size-1 ist unklar, ob der String genau in den Buffer paßte oder nicht.
-               className = (char*) alloca(size);               // auf dem Stack
+            while (copied >= size-1) {                         // GetClassName() gibt die Anzahl der kopierten Zeichen zurück
+               size <<= 1;                                     // (ohne \0). Bei size-1 ist unklar, ob der String genau in den
+               className = (char*) alloca(size);               // Buffer paßte oder nicht.
                copied    = GetClassName(hWndNext, className, size);
             }
             if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
@@ -602,8 +597,8 @@ std::vector<TICK_TIMER_DATA> tickTimers;     // Daten aller aktiven TickTimer
  * @param  HWND     hWnd    - Handle to the window associated with the timer.
  * @param  UINT     msg     - Specifies the WM_TIMER message.
  * @param  UINT_PTR timerId - Specifies the timer's identifier.
- * @param  DWORD    time    - Specifies the number of milliseconds that have elapsed since the system was started. This is the value
- *                            returned by the GetTickCount() function.
+ * @param  DWORD    time    - Specifies the number of milliseconds that have elapsed since the system was started. This is the
+ *                            value returned by the GetTickCount() function.
  */
 VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
    int size = tickTimers.size();
@@ -653,14 +648,15 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
  * @param  HWND  hWnd   - Handle des Fensters, an das die Ticks geschickt werden.
  * @param  int   millis - Zeitperiode der zu generierenden Ticks in Millisekunden
  * @param  DWORD flags  - die Ticks konfigurierende Flags (default: keine)
- *                        TICK_CHART_REFRESH:    Statt eines regulären Ticks wird das Command ID_CHART_REFRESH an den Chart geschickt
- *                                               (für Offline- und synthetische Charts).
- *                        TICK_TESTER:           Statt eines regulären Ticks wird das Command ID_CHART_STEPFORWARD an den Chart geschickt
- *                                               (für Strategy Tester)
+ *                        TICK_CHART_REFRESH:    Statt eines regulären Ticks wird das Command ID_CHART_REFRESH an den Chart
+ *                                               geschickt (für Offline- und synthetische Charts).
+ *                        TICK_TESTER:           Statt eines regulären Ticks wird das Command ID_CHART_STEPFORWARD an den Chart
+ *                                               geschickt (für Strategy Tester).
  *                        TICK_IF_VISIBLE:       Ticks werden nur verschickt, wenn der Chart mindestens teilweise sichtbar ist.
- *                        TICK_PAUSE_ON_WEEKEND: Ticks werden nur zu regulären Forex-Handelszeiten verschickt (not yet implemented).
+ *                        TICK_PAUSE_ON_WEEKEND: Ticks werden nur zu regulären Forex-Handelszeiten verschickt (not implemented).
  *
- * @return uint - ID des installierten Timers zur Übergabe an RemoveTickTimer() bei Deinstallation des Timers oder 0, falls ein Fehler auftrat.
+ * @return uint - ID des installierten Timers zur Übergabe an RemoveTickTimer() bei Deinstallation des Timers oder 0, falls ein
+ *                Fehler auftrat.
  */
 uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
    // Parametervalidierung
