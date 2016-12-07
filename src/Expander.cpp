@@ -9,13 +9,6 @@ CRITICAL_SECTION        terminalLock;                                // Terminal
 
 
 /**
- * DLL entry point function declarations
- */
-BOOL onProcessAttach();
-BOOL onProcessDetach();
-
-
-/**
  * DLL entry point
  */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {

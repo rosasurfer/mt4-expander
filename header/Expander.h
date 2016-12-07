@@ -170,6 +170,9 @@ const char*       WINAPI TestFlagsToStr         (uint flags);
 const char*       WINAPI UninitReasonToStr      (UninitializeReason reason);
 const char*       WINAPI UninitializeReasonToStr(UninitializeReason reason);  // Alias
 
+BOOL                     onProcessAttach();
+BOOL                     onProcessDetach();
+
 
 /**
  * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
