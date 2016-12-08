@@ -488,7 +488,7 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
    }
 
    if (currentThreadIndex == -1) {
-      // Thread unknown/not found: Not much we can do. We could just have entered SyncMainExecutionContext() or
+      // Thread unknown/not found: Not much we can do. We could just have entered SyncMainContext() or
       //                           we could be in a function callback called from a new thread (if that's possible).
    }
    else {

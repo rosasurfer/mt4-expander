@@ -44,10 +44,10 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
 typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 
 
-// Management functions
-BOOL               WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
-BOOL               WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec, const char* name, RootFunction functionId, const char* symbol, uint period);
-BOOL               WINAPI LeaveExecutionContext   (EXECUTION_CONTEXT* ec);
+// Context management functions
+BOOL               WINAPI SyncMainContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
+BOOL               WINAPI SyncLibContext (EXECUTION_CONTEXT* ec, const char* name, RootFunction functionId, const char* symbol, uint period);
+BOOL               WINAPI LeaveContext   (EXECUTION_CONTEXT* ec);
 
 
 // Getters
