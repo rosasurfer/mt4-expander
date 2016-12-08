@@ -107,12 +107,14 @@ extern std::vector<pec_vector> contextChains;                        // alle Con
 extern std::vector<DWORD>      threads;                              // ID's aller bekannten Threads
 extern std::vector<uint>       threadsPrograms;                      // ID's des vom Thread zuletzt ausgeführten MQL-Programms
 extern uint                    lastUIThreadProgram;                  // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
+extern CRITICAL_SECTION        terminalLock;                         // Terminal-weites Lock
 
 
 // Funktionsdeklarationen
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define  warn(...)    _warn(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+
 
 int   _debug(const char* fileName, const char* funcName, int line, const char*        format, ...);
 int   _debug(const char* fileName, const char* funcName, int line, const std::string &format, ...);
@@ -126,9 +128,6 @@ int   _error(const char* fileName, const char* funcName, int line, int code, con
 int   _error(const char* fileName, const char* funcName, int line, int code, const std::string &msgFormat, ...);
 void __error(const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, const va_list &args);
 
-BOOL              WINAPI SyncMainExecutionContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
-BOOL              WINAPI SyncLibExecutionContext (EXECUTION_CONTEXT* ec, const char* name, RootFunction functionId, const char* symbol, uint period);
-BOOL              WINAPI LeaveExecutionContext   (EXECUTION_CONTEXT* ec);
 
 const char*       WINAPI BoolToStr        (BOOL value);
 const char*       WINAPI DeinitFlagsToStr (uint flags);
