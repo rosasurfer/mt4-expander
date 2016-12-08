@@ -718,7 +718,7 @@ BOOL WINAPI RemoveTickTimer(int timerId) {
  * Deinstalliert alle mit SetupTickTimer() installierten Timer, die nicht explizit deinstalliert wurden.
  * Wird in onProcessDetach() aufgerufen.
  */
-void RemoveTickTimers() {
+void WINAPI RemoveTickTimers() {
    int size = tickTimers.size();
 
    for (int i=size-1; i>=0; i--) {                 // rückwärts, da der Vector in RemoveTickTimer() modifiziert wird

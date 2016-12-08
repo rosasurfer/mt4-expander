@@ -27,7 +27,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
 /**
  * DllMain()-Aufruf beim Laden der DLL
  */
-BOOL onProcessAttach() {
+BOOL WINAPI onProcessAttach() {
    //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
 
    threads        .resize(0);
@@ -41,7 +41,7 @@ BOOL onProcessAttach() {
 /**
  * DllMain()-Aufruf beim Entladen der DLL
  */
-BOOL onProcessDetach() {
+BOOL WINAPI onProcessDetach() {
    //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
 
    DeleteCriticalSection(&terminalLock);

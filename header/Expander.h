@@ -162,15 +162,15 @@ const char*       WINAPI PeriodDescription      (int period); const char* WINAPI
 const char*       WINAPI PeriodToStr            (int period); const char* WINAPI TimeframeToStr      (int timeframe);   // Alias
 const char*       WINAPI ProgramTypeDescription (ProgramType type);
 const char*       WINAPI ProgramTypeToStr       (ProgramType type);
-void                     RemoveTickTimers();
+void              WINAPI RemoveTickTimers();
 const char*       WINAPI RootFunctionDescription(RootFunction id);
 const char*       WINAPI RootFunctionToStr      (RootFunction id);
 const char*       WINAPI TestFlagsToStr         (uint flags);
 const char*       WINAPI UninitReasonToStr      (UninitializeReason reason);
 const char*       WINAPI UninitializeReasonToStr(UninitializeReason reason);  // Alias
 
-BOOL                     onProcessAttach();
-BOOL                     onProcessDetach();
+BOOL              WINAPI onProcessAttach();
+BOOL              WINAPI onProcessDetach();
 
 
 /**
