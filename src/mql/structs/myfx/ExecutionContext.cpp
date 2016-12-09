@@ -41,10 +41,10 @@
  * @param  DWORD              deinitFlags     - Deinit-Konfiguration
  * @param  char*              symbol          - aktuelles Chart-Symbol
  * @param  uint               period          - aktuelle Chart-Periode
- * @param  EXECUTION_CONTEXT* sec             - supercontext as passed by the terminal            (possibly invalid)
+ * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
  * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
  * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
- * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly NULL)
+ * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly incorrect)
  * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
  *
  * @return BOOL - Erfolgsstatus
