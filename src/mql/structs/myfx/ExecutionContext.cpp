@@ -272,39 +272,19 @@ BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * @param  EXECUTION_CONTEXT* ec              - Context des Hauptmoduls eines MQL-Programms
- * @param  ProgramType        programType     - Programm-Typ
- * @param  char*              programName     - Programmname (je nach MetaTrader-Version ggf. mit Pfad)
- * @param  RootFunction       rootFunction    - MQL-RootFunction, innerhalb der der Aufruf erfolgt
- * @param  UninitializeReason uninitReason    - UninitializeReason as passed by the terminal
- * @param  DWORD              initFlags       - Init-Konfiguration
- * @param  DWORD              deinitFlags     - Deinit-Konfiguration
- * @param  char*              symbol          - aktuelles Chart-Symbol
- * @param  uint               period          - aktuelle Chart-Periode
- * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
- * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
- * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
- * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly incorrect)
- * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
+ * @param  EXECUTION_CONTEXT* ec           - Context des Hauptmoduls eines MQL-Programms
+ * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
-   if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
-   if ((uint)symbol      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
-   if ((int)period <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period));
-   if (sec && (uint)sec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
+BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (!ec->programId)               return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId = %d", ec->programId));
 
-   if (!ec->programId)                        return(error(ERR_INVALID_PARAMETER, "invalid ec.programId = %d", ec->programId));
-   if (rootFunction != RF_DEINIT)             return(error(ERR_INVALID_PARAMETER, "invalid parameter rootFunction = %s (not RF_DEINIT)", RootFunctionToStr(rootFunction)));
-
-   EXECUTION_CONTEXT* master        = contextChains[ec->programId][0];
-   InitializeReason   initReason    = ec->initReason;
-   DWORD              currentThread = GetCurrentThreadId();
+   DWORD currentThread = GetCurrentThreadId();
 
 
-   // Immer zu aktualisieren
+   // update context
    ec_SetRootFunction(ec, RF_DEINIT    );
    ec_SetUninitReason(ec, uninitReason );
    ec_SetThreadId    (ec, currentThread);
