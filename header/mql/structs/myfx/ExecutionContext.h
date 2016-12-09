@@ -45,9 +45,11 @@ typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 
 
 // Context management functions
-BOOL               WINAPI SyncMainContext(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
-BOOL               WINAPI SyncLibContext (EXECUTION_CONTEXT* ec, const char* name, RootFunction functionId, const char* symbol, uint period);
-BOOL               WINAPI LeaveContext   (EXECUTION_CONTEXT* ec);
+BOOL               WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
+BOOL               WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
+BOOL               WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, ProgramType type, const char* name, RootFunction functionId, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
+BOOL               WINAPI SyncLibContext        (EXECUTION_CONTEXT* ec, const char* name, RootFunction functionId, const char* symbol, uint period);
+BOOL               WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);
 
 
 // Getters

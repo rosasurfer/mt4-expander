@@ -100,12 +100,14 @@
  *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  libMarker=1          set programId=2
  *  -----------------------------------------------------------------------------------------------------------------------------
  */
-BOOL WINAPI SyncMainContext(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
+BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
    if ((uint)symbol      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    if ((int)period <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
+
+   if (rootFunction != RF_INIT)               return(error(ERR_INVALID_PARAMETER, "invalid parameter rootFunction = %s (not RF_INIT)", RootFunctionToStr(rootFunction)));
 
    //
    // Programmablauf
@@ -169,50 +171,32 @@ BOOL WINAPI SyncMainContext(EXECUTION_CONTEXT* ec, ProgramType programType, cons
    }
 
 
-   // (2.1) Beim Aufruf aus init() zu aktualisieren:
-   if (rootFunction == RF_INIT) {
-      if (!ec->ticks) {
-         ec_SetProgramType(ec,             programType);
-         ec_SetProgramName(ec,             programName);
-         ec_SetModuleType (ec, (ModuleType)programType);             // im Hauptmodul gilt: ProgramName/Type = ModuleName/Type
-         ec_SetModuleName (ec,             programName);
-       //ec_SetLaunchType (ec,             launchType );
-      }
-
-      ec_SetRootFunction(ec, rootFunction );
-      ec_SetInitReason  (ec, initReason   );
-      ec_SetUninitReason(ec, uninitReason );
-      ec_SetTestFlags   (ec, sec ? sec->testFlags : NULL);           // TODO: ResolveTestFlags()
-
-      ec_SetInitFlags   (ec, initFlags    );
-      ec_SetDeinitFlags (ec, deinitFlags  );
-      ec_SetLogging     (ec, sec ? sec->logging : FALSE);            // TODO: ResolveLogging()     => benötigt This.IsTesting()
-      ec_SetLogFile     (ec, sec ? sec->logFile : NULL );            // TODO: ResolveLogFile()
-
-      ec_SetSymbol      (ec, symbol       );
-      ec_SetTimeframe   (ec, period       );
-      ec_SetHChart      (ec, sec        ?          sec->hChart  : hChart); // TODO: ResolveHChart()
-      ec_SetHChartWindow(ec, ec->hChart ? GetParent(ec->hChart) : NULL  );
-
-      ec_SetSuperContext(ec, sec          );
-      ec_SetThreadId    (ec, currentThread);
+   // (2) Immer zu aktualisieren
+   if (!ec->ticks) {
+      ec_SetProgramType(ec,             programType);
+      ec_SetProgramName(ec,             programName);
+      ec_SetModuleType (ec, (ModuleType)programType);             // im Hauptmodul gilt: ProgramName/Type = ModuleName/Type
+      ec_SetModuleName (ec,             programName);
+    //ec_SetLaunchType (ec,             launchType );
    }
 
+   ec_SetRootFunction(ec, rootFunction );
+   ec_SetInitReason  (ec, initReason   );
+   ec_SetUninitReason(ec, uninitReason );
+   ec_SetTestFlags   (ec, sec ? sec->testFlags : NULL);           // TODO: ResolveTestFlags()
 
-   // (2.2) Beim Aufruf aus start() zu aktualisieren:
-   if (rootFunction == RF_START) {
-      ec_SetRootFunction(ec, rootFunction );
-      ec_SetThreadId    (ec, currentThread);
-      ec_SetTicks       (ec, ec->ticks + 1);
-   }
+   ec_SetInitFlags   (ec, initFlags    );
+   ec_SetDeinitFlags (ec, deinitFlags  );
+   ec_SetLogging     (ec, sec ? sec->logging : FALSE);            // TODO: ResolveLogging()     => benötigt This.IsTesting()
+   ec_SetLogFile     (ec, sec ? sec->logFile : NULL );            // TODO: ResolveLogFile()
 
+   ec_SetSymbol      (ec, symbol       );
+   ec_SetTimeframe   (ec, period       );
+   ec_SetHChart      (ec, sec        ?          sec->hChart  : hChart); // TODO: ResolveHChart()
+   ec_SetHChartWindow(ec, ec->hChart ? GetParent(ec->hChart) : NULL  );
 
-   // (2.3) Beim Aufruf aus deinit() zu aktualisieren:
-   if (rootFunction == RF_DEINIT) {
-      ec_SetRootFunction(ec, rootFunction );
-      ec_SetUninitReason(ec, uninitReason );
-      ec_SetThreadId    (ec, currentThread);
-   }
+   ec_SetSuperContext(ec, sec          );
+   ec_SetThreadId    (ec, currentThread);
 
 
    // (3) Das vom aktuellen Thread zuletzt ausgeführte Programm (also das aktuelle) in global threadsPrograms[] speichern.
@@ -234,6 +218,138 @@ BOOL WINAPI SyncMainContext(EXECUTION_CONTEXT* ec, ProgramType programType, cons
 
 
    // (4) Ist der aktuelle Thread der UI-Thread, das aktuelle Programm zusätzlich in global lastUIThreadProgram speichern.
+   if (IsUIThread())
+      lastUIThreadProgram = ec->programId;
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * @param  EXECUTION_CONTEXT* ec              - Context des Hauptmoduls eines MQL-Programms
+ * @param  ProgramType        programType     - Programm-Typ
+ * @param  char*              programName     - Programmname (je nach MetaTrader-Version ggf. mit Pfad)
+ * @param  RootFunction       rootFunction    - MQL-RootFunction, innerhalb der der Aufruf erfolgt
+ * @param  UninitializeReason uninitReason    - UninitializeReason as passed by the terminal
+ * @param  DWORD              initFlags       - Init-Konfiguration
+ * @param  DWORD              deinitFlags     - Deinit-Konfiguration
+ * @param  char*              symbol          - aktuelles Chart-Symbol
+ * @param  uint               period          - aktuelle Chart-Periode
+ * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
+ * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
+ * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
+ * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly incorrect)
+ * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
+   if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
+   if ((uint)symbol      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if ((int)period <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period));
+   if (sec && (uint)sec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
+
+   if (!ec->programId)                        return(error(ERR_INVALID_PARAMETER, "invalid ec.programId = %d", ec->programId));
+   if (rootFunction != RF_START)              return(error(ERR_INVALID_PARAMETER, "invalid parameter rootFunction = %s (not RF_START)", RootFunctionToStr(rootFunction)));
+
+   EXECUTION_CONTEXT* master        = contextChains[ec->programId][0];
+   InitializeReason   initReason    = ec->initReason;
+   DWORD              currentThread = GetCurrentThreadId();
+
+
+   // Immer zu aktualisieren
+   ec_SetRootFunction(ec, RF_START     );
+   ec_SetThreadId    (ec, currentThread);
+   ec_SetTicks       (ec, ec->ticks + 1);
+
+
+   // Das vom aktuellen Thread zuletzt ausgeführte Programm (also das aktuelle) in global threadsPrograms[] speichern.
+   int currentThreadIndex=-1, size=threads.size();
+   for (int i=0; i < size; i++) {                                    // aktuellen Thread suchen
+      if (threads[i] == currentThread) {                             // Thread gefunden
+         currentThreadIndex = i;
+         threadsPrograms[i] = ec->programId;                         // zuletzt ausgeführtes Programm aktualisieren
+         break;
+      }
+   }
+   if (currentThreadIndex == -1) {                                   // Thread nicht gefunden
+      EnterCriticalSection(&terminalLock);                           // Thread und Programm zur Verwaltung hinzufügen
+      threads        .push_back(currentThread);
+      threadsPrograms.push_back(ec->programId);
+      if (threads.size() > 128) debug("thread %d added (size=%d)", currentThread, threads.size());
+      LeaveCriticalSection(&terminalLock);
+   }
+
+
+   // Ist der aktuelle Thread der UI-Thread, das aktuelle Programm zusätzlich in global lastUIThreadProgram speichern.
+   if (IsUIThread())
+      lastUIThreadProgram = ec->programId;
+
+   return(TRUE);
+   #pragma EXPORT
+}
+
+
+/**
+ * @param  EXECUTION_CONTEXT* ec              - Context des Hauptmoduls eines MQL-Programms
+ * @param  ProgramType        programType     - Programm-Typ
+ * @param  char*              programName     - Programmname (je nach MetaTrader-Version ggf. mit Pfad)
+ * @param  RootFunction       rootFunction    - MQL-RootFunction, innerhalb der der Aufruf erfolgt
+ * @param  UninitializeReason uninitReason    - UninitializeReason as passed by the terminal
+ * @param  DWORD              initFlags       - Init-Konfiguration
+ * @param  DWORD              deinitFlags     - Deinit-Konfiguration
+ * @param  char*              symbol          - aktuelles Chart-Symbol
+ * @param  uint               period          - aktuelle Chart-Periode
+ * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
+ * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
+ * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
+ * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly incorrect)
+ * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
+   if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
+   if ((uint)symbol      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+   if ((int)period <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period));
+   if (sec && (uint)sec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
+
+   if (!ec->programId)                        return(error(ERR_INVALID_PARAMETER, "invalid ec.programId = %d", ec->programId));
+   if (rootFunction != RF_DEINIT)             return(error(ERR_INVALID_PARAMETER, "invalid parameter rootFunction = %s (not RF_DEINIT)", RootFunctionToStr(rootFunction)));
+
+   EXECUTION_CONTEXT* master        = contextChains[ec->programId][0];
+   InitializeReason   initReason    = ec->initReason;
+   DWORD              currentThread = GetCurrentThreadId();
+
+
+   // Immer zu aktualisieren
+   ec_SetRootFunction(ec, RF_DEINIT    );
+   ec_SetUninitReason(ec, uninitReason );
+   ec_SetThreadId    (ec, currentThread);
+
+
+   // Das vom aktuellen Thread zuletzt ausgeführte Programm (also das aktuelle) in global threadsPrograms[] speichern.
+   int currentThreadIndex=-1, size=threads.size();
+   for (int i=0; i < size; i++) {                                    // aktuellen Thread suchen
+      if (threads[i] == currentThread) {                             // Thread gefunden
+         currentThreadIndex = i;
+         threadsPrograms[i] = ec->programId;                         // zuletzt ausgeführtes Programm aktualisieren
+         break;
+      }
+   }
+   if (currentThreadIndex == -1) {                                   // Thread nicht gefunden
+      EnterCriticalSection(&terminalLock);                           // Thread und Programm zur Verwaltung hinzufügen
+      threads        .push_back(currentThread);
+      threadsPrograms.push_back(ec->programId);
+      if (threads.size() > 128) debug("thread %d added (size=%d)", currentThread, threads.size());
+      LeaveCriticalSection(&terminalLock);
+   }
+
+
+   // Ist der aktuelle Thread der UI-Thread, das aktuelle Programm zusätzlich in global lastUIThreadProgram speichern.
    if (IsUIThread())
       lastUIThreadProgram = ec->programId;
 
