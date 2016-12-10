@@ -418,32 +418,32 @@ BOOL WINAPI SyncLibContext(EXECUTION_CONTEXT* ec, const char* moduleName, RootFu
  * @return BOOL - success status
  */
 BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=%p (not a valid pointer)", ec));
    uint id = ec->programId;
-   if (!id)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.programId = %d", ec->programId));
+   if (!id)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context:  programId=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    EXECUTION_CONTEXT* master = contextChains[id][0];
 
    switch (ec->moduleType) {
       case MT_INDICATOR:
       case MT_SCRIPT:
-         if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "illegal parameter ec = 0x%p (not stored as the main context)", ec));
+         if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "illegal parameter ec=%d (not stored as main context=%d)", ec, contextChains[id][1]));
          master->rootFunction = ec->rootFunction = (RootFunction)NULL;
-         contextChains[id][1]                    = NULL;             // mark context as released (limbo)
+         contextChains[id][1]                    = NULL;             // mark context as released (going into limbo)
          break;
 
-      case MT_EXPERT:                                                // leave always-except-init-cycle
-         if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "illegal parameter ec = 0x%p (not stored as the main context)", ec));
+      case MT_EXPERT:                                                // leave always-except-in-init-cycle
+         if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "illegal parameter ec=%d (not stored as main context=%d)", ec, contextChains[id][1]));
          master->rootFunction = ec->rootFunction = (RootFunction)NULL;
          return(FALSE);
 
-      case MT_LIBRARY:                                               // leave always-except-init-cycle
-         if (ec==master || ec==contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "illegal parameter ec = 0x%p (not stored as a library context)", ec));
+      case MT_LIBRARY:                                               // leave always-except-in-init-cycle
+         if (ec==master || ec==contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "illegal parameter ec=%p (not stored as library context)", ec));
          ec->rootFunction = (RootFunction)NULL;
          return(FALSE);
 
       default:
-         return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.moduleType = %s", ModuleTypeToStr(ec->moduleType)));
+         return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.moduleType=%s", ModuleTypeToStr(ec->moduleType)));
    }
 
    return(TRUE);
