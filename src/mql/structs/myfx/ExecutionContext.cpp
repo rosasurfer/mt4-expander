@@ -6,9 +6,9 @@
  *
  * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
  * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
- * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in
- * der DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle
- * weiteren Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
+ * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
+ * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
  *
  *  (1) Datenaustausch vom Hauptmodul zu den Library-Modulen:
  *
@@ -18,10 +18,10 @@
  *
  *  (4) Datenaustausch vom einem Hauptmodul zu einem anderen Hauptmodul:
  *
- * Kontextgültigkeit: Der Master-Context einer Chain ist immer gültig. Alle anderen Kontexte der Chain können je nach Modul-
- * typ und Situation ungültig bzw. der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell
- * nur auf den eigenen und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und
- * umgekehrt ist nur in Ausnahmefällen möglich.
+ * Kontextgültigkeit: Der Master-Context einer Chain ist immer gültig. Alle anderen Kontexte der Chain können je nach Modultyp
+ * und Situation ungültig bzw. der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell nur auf
+ * den eigenen und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und umgekehrt
+ * ist nur in Ausnahmefällen möglich.
  *
  *
  *
@@ -53,61 +53,61 @@
  * Notes:
  * ------
  * • Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wieder-
- *   eintritt in Indicator::init() keinen gültigen Hauptkontext. Der alte Speicherblock wird sofort freigegeben, in init()
- *   wird ein neuer alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt
- *   und es darf nicht auf den zu dem Zeitpunkt ungültigen Hauptkontext zugegriffen werden.
+ *   eintritt in Indicator::init() keinen gültigen Hauptkontext. Der alte Speicherblock wird sofort freigegeben, in init() wird
+ *   ein neuer alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt und es
+ *   darf nicht auf den zu dem Zeitpunkt ungültigen Hauptkontext zugegriffen werden.
  * • Nach Recompilation oder Crash einer Library wird der Speicherblock ihres Kontexts ungültig und auf ihn darf ebenfalls
  *   nicht mehr zugegriffen werden.
  *
  *
  *  Init cycle of single indicator with libraries:
- *  --- first load ----------------------------------------------------------------------------------------------------------
+ *  --- first load ------------------------------------------------------------------------------------------------------------
  *  Indicator::init()              REASON_UNDEFINED    programId=0  creating new chain             set programId=1
  *  Indicator::libraryA::init()    REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
  *  Indicator::libraryB::init()    REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
  *  Indicator::libraryC::init()    REASON_UNDEFINED    programId=0  loaded by libraryA             set programId=1
- *  --- deinit() ------------------------------------------------------------------------------------------------------------
+ *  --- deinit() --------------------------------------------------------------------------------------------------------------
  *  Indicator::deinit()            REASON_CHARTCHANGE  programId=1  indicator first
  *  Indicator::libraryA::deinit()  REASON_UNDEFINED    programId=1  then libraries
  *  Indicator::libraryC::deinit()  REASON_UNDEFINED    programId=1  hierarchical (not in loading order)
  *  Indicator::libraryB::deinit()  REASON_UNDEFINED    programId=1
- *  --- init() --------------------------------------------------------------------------------------------------------------
+ *  --- init() ----------------------------------------------------------------------------------------------------------------
  *  Indicator::libraryA::init()    REASON_UNDEFINED    programId=1  libraries first (new symbol and timeframe show up)
  *  Indicator::libraryC::init()    REASON_UNDEFINED    programId=1  hierarchical (not in loading order)
  *  Indicator::libraryB::init()    REASON_UNDEFINED    programId=1
  *  Indicator::init()              REASON_CHARTCHANGE  programId=0  then indicator                 set programId=1
- *  -------------------------------------------------------------------------------------------------------------------------
+ *  ---------------------------------------------------------------------------------------------------------------------------
  *
  *
  *  Init cycle of multiple indicators with libraries:
- *  --- first load ----------------------------------------------------------------------------------------------------------
+ *  --- first load ------------------------------------------------------------------------------------------------------------
  *  ChartInfos::init()             REASON_UNDEFINED    programId=0  creating new chain             set programId=1
  *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
  *  SuperBars::init()              REASON_UNDEFINED    programId=0  creating new chain             set programId=2
  *  SuperBars::lib::init()         REASON_UNDEFINED    programId=0  loaded by indicator            set programId=2
- *  --- deinit() ------------------------------------------------------------------------------------------------------------
+ *  --- deinit() --------------------------------------------------------------------------------------------------------------
  *  ChartInfos::deinit()           REASON_CHARTCHANGE  programId=1
  *  ChartInfos::lib::deinit()      REASON_UNDEFINED    programId=1
  *  SuperBars::deinit()            REASON_CHARTCHANGE  programId=2
  *  SuperBars::lib::deinit()       REASON_UNDEFINED    programId=2
- *  --- init() --------------------------------------------------------------------------------------------------------------
+ *  --- init() ----------------------------------------------------------------------------------------------------------------
  *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=1
  *  ChartInfos::init()             REASON_CHARTCHANGE  programId=0  first indicator in limbo (1)   set programId=1
  *  SuperBars::lib::init()         REASON_UNDEFINED    programId=2
  *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  next indicator in limbo (1)    set programId=2
- *  -------------------------------------------------------------------------------------------------------------------------
+ *  ---------------------------------------------------------------------------------------------------------------------------
  *
  *
  * (1) Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife
  *     condition of those who die in original sin without being assigned to the Hell of the Damned. Remember "Inception"?
  *     Very hard to escape from.
- *     In Metatrader terms the memory allocated for an indicator (holding the EXECUTION_CONTEXT, global variables, static
- *     local variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated
- *     and all variables are initialized to zero which is the reason an indicator cannot keep state over an init cycle.
- *     Between deinit() and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have
- *     no name known only to the morons of MetaQuotes) state is kept in the master execution context which acts as a backup
- *     of the then lost main execution context. On re-entry the master context is copied back to the then newly allocated
- *     main context and state of the context survives. Voilà, it crossed the afterlife.
+ *     In Metatrader terms the memory allocated for an indicator (holding the EXECUTION_CONTEXT, global variables, static local
+ *     variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all
+ *     variables are initialized to zero which is the reason an indicator cannot keep state over an init cycle. Between deinit()
+ *     and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have no name known only
+ *     to the morons of MetaQuotes) state is kept in the master execution context which acts as a backup of the then lost main
+ *     execution context. On re-entry the master context is copied back to the then newly allocated main context and state of
+ *     the context survives. Voilà, it crossed the afterlife.
  */
 BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
