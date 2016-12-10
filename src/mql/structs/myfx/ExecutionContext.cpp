@@ -60,45 +60,54 @@
  *   mehr zugegriffen werden.
  *
  *
- *  Init cycle of a single indicator examined:
+ *  Init cycle of single indicator with libraries:
  *  --- first load --------------------------------------------------------------------------------------------------------------
- *  Indicator::init()              programId=0  creating new chain             set programId=1
- *  Indicator::libraryA::init()    programId=0  loaded by indicator            set programId=1
- *  Indicator::libraryB::init()    programId=0  loaded by indicator            set programId=1
- *  Indicator::libraryC::init()    programId=0  loaded by libraryA             set programId=1
+ *  Indicator::init()              REASON_UNDEFINED    programId=0  creating new chain             set programId=1
+ *  Indicator::libraryA::init()    REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
+ *  Indicator::libraryB::init()    REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
+ *  Indicator::libraryC::init()    REASON_UNDEFINED    programId=0  loaded by libraryA             set programId=1
  *  --- deinit() ----------------------------------------------------------------------------------------------------------------
- *  Indicator::deinit()            programId=1  indicator first
- *  Indicator::libraryA::deinit()  programId=1  then libraries
- *  Indicator::libraryC::deinit()  programId=1  hierarchical (not loading order)
- *  Indicator::libraryB::deinit()  programId=1
+ *  Indicator::deinit()            REASON_CHARTCHANGE  programId=1  indicator first
+ *  Indicator::libraryA::deinit()  REASON_UNDEFINED    programId=1  then libraries
+ *  Indicator::libraryC::deinit()  REASON_UNDEFINED    programId=1  hierarchical (not in loading order)
+ *  Indicator::libraryB::deinit()  REASON_UNDEFINED    programId=1
  *  --- init() ------------------------------------------------------------------------------------------------------------------
- *  Indicator::libraryA::init()    programId=1  libraries first (new symbol/timeframe show up)
- *  Indicator::libraryC::init()    programId=1  hierarchical (not loading order)
- *  Indicator::libraryB::init()    programId=1
- *  Indicator::init()              programId=0  then indicator                 set programId=1
+ *  Indicator::libraryA::init()    REASON_UNDEFINED    programId=1  libraries first (new symbol and timeframe show up)
+ *  Indicator::libraryC::init()    REASON_UNDEFINED    programId=1  hierarchical (not in loading order)
+ *  Indicator::libraryB::init()    REASON_UNDEFINED    programId=1
+ *  Indicator::init()              REASON_CHARTCHANGE  programId=0  then indicator                 set programId=1
  *  -----------------------------------------------------------------------------------------------------------------------------
  *
  *
- *  Init cycle of multiple indicators examined:
+ *  Init cycle of multiple indicators with libraries:
  *  --- first load --------------------------------------------------------------------------------------------------------------
- *  ChartInfos::init()             REASON_UNDEFINED    programId=0  creating new chain   set programId=1
- *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=0  loaded by indicator  set programId=1
- *
- *  SuperBars::init()              REASON_UNDEFINED    programId=0  creating new chain   set programId=2
- *  SuperBars::lib::init()         REASON_UNDEFINED    programId=0  loaded by indicator  set programId=2
+ *  ChartInfos::init()             REASON_UNDEFINED    programId=0  creating new chain             set programId=1
+ *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
+ *  SuperBars::init()              REASON_UNDEFINED    programId=0  creating new chain             set programId=2
+ *  SuperBars::lib::init()         REASON_UNDEFINED    programId=0  loaded by indicator            set programId=2
  *  --- deinit() ----------------------------------------------------------------------------------------------------------------
  *  ChartInfos::deinit()           REASON_CHARTCHANGE  programId=1
  *  ChartInfos::lib::deinit()      REASON_UNDEFINED    programId=1
- *
  *  SuperBars::deinit()            REASON_CHARTCHANGE  programId=2
  *  SuperBars::lib::deinit()       REASON_UNDEFINED    programId=2
  *  --- init() ------------------------------------------------------------------------------------------------------------------
- *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=1  set libMarker
- *  ChartInfos::init()             REASON_CHARTCHANGE  programId=0  libMarker=1          set programId=1
- *
- *  SuperBars::lib::init()         REASON_UNDEFINED    programId=2  set libMarker
- *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  libMarker=1          set programId=2
+ *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=1
+ *  ChartInfos::init()             REASON_CHARTCHANGE  programId=0  first indicator in limbo (1)   set programId=1
+ *  SuperBars::lib::init()         REASON_UNDEFINED    programId=2
+ *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  next indicator in limbo (1)    set programId=2
  *  -----------------------------------------------------------------------------------------------------------------------------
+ *
+ *
+ * (1) Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife
+ *     condition of those who die in original sin without being assigned to the Hell of the Damned. Remember "Inception"? Very
+ *     hard to escape from.
+ *     In Metatrader terms the memory allocated for an indicator (holding the EXECUTION_CONTEXT, global variables, static local
+ *     variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all
+ *     variables are initialized to zero which is the reason an indicator cannot keep state over an init cycle. Between deinit()
+ *     and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have no name known only to
+ *     the morons of MetaQuotes) state is kept in the master execution context which acts as a backup of the then lost main
+ *     execution context. On re-entry the master context is copied back to the then newly allocated main context and state of the
+ *     context survives. Voilà, it crossed the afterlife.
  */
 BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, RootFunction rootFunction, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
