@@ -163,7 +163,8 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          contextChains.push_back(chain);                             // Chain in der Chain-Liste speichern
          uint size = contextChains.size();                           // contextChains.size ist immer > 1 (index[0] bleibt frei)
          master->programId = ec->programId = size-1;                 // Index = neue ProgramID dem Master- und Hauptkontext zuweisen
-         debug("%s::init()  ec=%d  programId=0  %snew chain => id=%d  thread=%s  hChart=%d", programName, ec, (IsUIThread() ? "UI  ":""), ec->programId, IsUIThread() ? "UI":to_string(currentThread).c_str(), hChart);
+
+         if (programType!=PT_INDICATOR) debug("%s::init()  ec=%d  programId=0  %snew chain => id=%d  thread=%s  hChart=%d", programName, ec, (IsUIThread() ? "UI  ":""), ec->programId, IsUIThread() ? "UI":to_string(currentThread).c_str(), hChart);
          LeaveCriticalSection(&terminalLock);
       }
    }
@@ -171,13 +172,14 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
       master     = contextChains[ec->programId][0];
       initReason = ec->initReason;
    }
+   StoreThreadAndProgram(ec->programId);                             // store last executed program (asap)
 
 
    // (2) Immer zu aktualisieren
    if (!ec->ticks) {
       ec_SetProgramType(ec,             programType);
       ec_SetProgramName(ec,             programName);
-      ec_SetModuleType (ec, (ModuleType)programType);             // im Hauptmodul gilt: ProgramName/Type = ModuleName/Type
+      ec_SetModuleType (ec, (ModuleType)programType);                // im Hauptmodul gilt: ProgramName/Type = ModuleName/Type
       ec_SetModuleName (ec,             programName);
     //ec_SetLaunchType (ec,             launchType );
    }
@@ -185,12 +187,12 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    ec_SetRootFunction(ec, RF_INIT      );
    ec_SetInitReason  (ec, initReason   );
    ec_SetUninitReason(ec, uninitReason );
-   ec_SetTestFlags   (ec, sec ? sec->testFlags : NULL);           // TODO: ResolveTestFlags()
+   ec_SetTestFlags   (ec, sec ? sec->testFlags : NULL);              // TODO: ResolveTestFlags()
 
    ec_SetInitFlags   (ec, initFlags    );
    ec_SetDeinitFlags (ec, deinitFlags  );
-   ec_SetLogging     (ec, sec ? sec->logging : FALSE);            // TODO: ResolveLogging()     => benötigt This.IsTesting()
-   ec_SetLogFile     (ec, sec ? sec->logFile : NULL );            // TODO: ResolveLogFile()
+   ec_SetLogging     (ec, sec ? sec->logging : FALSE);               // TODO: ResolveLogging()     => benötigt This.IsTesting()
+   ec_SetLogFile     (ec, sec ? sec->logFile : NULL );               // TODO: ResolveLogFile()
 
    ec_SetSymbol      (ec, symbol       );
    ec_SetTimeframe   (ec, period       );
@@ -200,7 +202,6 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    ec_SetSuperContext(ec, sec          );
    ec_SetThreadId    (ec, currentThread);
 
-   StoreThreadProgram(ec->programId);                                // store last executed program
    //debug("%s::init()  ec@%d=%s", programName, ec, EXECUTION_CONTEXT_toStr(ec));
    return(TRUE);
    #pragma EXPORT
@@ -216,11 +217,12 @@ BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if (!ec->programId)               return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId=%d", ec->programId));
 
+   StoreThreadAndProgram(ec->programId);                             // store last executed program (asap)
+
    ec_SetRootFunction(ec, RF_START            );                     // update context
    ec_SetTicks       (ec, ec->ticks + 1       );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
-   StoreThreadProgram(ec->programId);                                // store last executed program
    return(TRUE);
    #pragma EXPORT
 }
@@ -236,11 +238,12 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
    if (!ec->programId)               return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId=%d", ec->programId));
 
+   StoreThreadAndProgram(ec->programId);                             // store last executed program (asap)
+
    ec_SetRootFunction(ec, RF_DEINIT           );                     // update context
    ec_SetUninitReason(ec, uninitReason        );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
-   StoreThreadProgram(ec->programId);                                // store last executed program
    return(TRUE);
    #pragma EXPORT
 }
@@ -287,50 +290,49 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
 
    // Ablauf
    // ------
-   // (1) Wenn keine ProgramID gesetzt ist, wird das Modul zum ersten mal geladen und der Context ist undefiniert.
-   //     • Master-Context übernehmen und Context aktualisieren
+   // (1) Wenn keine ProgramID gesetzt ist, wird die Library zum ersten mal geladen und der Context ist undefiniert.
+   //     • Master-Context übernehmen und Library-Felder im Context aktualisieren
    //
    // (2) Wenn die ProgramID gesetzt ist, prüfen, ob der Init-Cycle im Indikator (UI-Thread) oder im Expert/Tester statttfindet.
-   //     • nach REASON_CHARTCHANGE tauchen hier das neue Symbol/der neue Timeframe zuerst auf
+   //     • nach REASON_CHARTCHANGE tauchen hier das neue Symbol/der neue Timeframe auf
+   //     • Init-Cycle im Indikator
+   //       -
+   //     • Init-Cycle im Expert im Tester
+   //       -
+   //
    //
 
-   ec->rootFunction = RF_INIT;                              // Context-Daten aktualisieren
-
-   // (1) Index des aktuellen Threads ermitteln
-   DWORD currentThread = GetCurrentThreadId();
-   int currentThreadIndex=-1, size=threads.size();
-   for (int i=0; i < size; i++) {
-      if (threads[i] == currentThread) {
-         currentThreadIndex = i;                            // Thread gefunden: Index merken
-         break;
-      }
-   }
-   if (currentThreadIndex < 0) return(error(ERR_ILLEGAL_STATE, "%s::%s::init()  programId=%d  thread %d not in known threads,  ec=%s", ec->programName, moduleName, ec->programId, currentThread, EXECUTION_CONTEXT_toStr(ec)));
-
-
    if (!ec->programId) {
-      // (2) Library wird zum ersten mal initialisiert
-      uint lastProgramId = threadsPrograms[currentThreadIndex];
+      // (1) Library wird zum ersten mal geladen (vom Programm im aktuellen Thread)
+      uint index     = StoreThreadAndProgram(0);         // get index of the current thread
+      uint programId = threadsPrograms[index];
 
-      pec_vector &chain = contextChains[lastProgramId];
-      int size = chain.size(); if (size < 2) return(error(ERR_RUNTIME_ERROR, "???::%s::init()  programId=0  lastProgramid=%d  chain.size=%d", moduleName, lastProgramId, size));
+      *ec = *contextChains[programId][0];                // copy master context
 
-      *ec = *chain[0];                                   // Master-Kontext (Index 0) übernehmen
-
-      ec_SetModuleType(ec, MT_LIBRARY);                  // Context-Daten aktualisieren (Symbol und Timeframe in Libraries ignorieren)
+      ec_SetModuleType(ec, MT_LIBRARY);                  // update library specific context fields
       ec_SetModuleName(ec, moduleName);
       ec->rootFunction = RF_INIT;
       ec->mqlError     = NO_ERROR;
-      chain.push_back(ec);                               // Context zur Programm-Chain hinzufügen
-   }
-   else {
-      // (3) Library ist in init() und war bereits initialisiert, also init()-Cycle
-      ec->mqlError = NO_ERROR;
-      ec_SetSymbol   (ec, symbol);                       // Master-Kontext aktualisieren. Dies ist der früheste Zeitpunkt, an dem das neue
-      ec_SetTimeframe(ec, period);                       // Symbol/der neue Timeframe bekannt sind.
+
+      contextChains[programId].push_back(ec);            // add context to the program's context chain
    }
 
-   StoreThreadProgram(ec->programId);
+   else if (IsUIThread()) {
+      // (2) Init-Cycle eines Indikators
+      StoreThreadAndProgram(ec->programId);              // store last executed program (asap)
+
+      ec->rootFunction = RF_INIT;
+      ec->mqlError     = NO_ERROR;
+      ec_SetSymbol   (ec, symbol);                       // Master-Kontext aktualisieren. Dies ist der früheste Zeitpunkt,
+      ec_SetTimeframe(ec, period);                       // an dem das neue Symbol/der neue Timeframe bekannt sind.
+   }
+
+   else {
+      // (3) Init-Cycle eines Experts im Tester
+      debug("%s::%s::init()  ea init cycle  thread=%d  ec@%d=%s", ec->programName, ec->moduleName, GetCurrentThreadId(), ec, EXECUTION_CONTEXT_toStr(ec));
+      ec->rootFunction = RF_INIT;
+   }
+
    //debug("%s::%s::init()  ec@%d=%s", ec->programName, ec->moduleName, ec, EXECUTION_CONTEXT_toStr(ec));
    return(TRUE);
    #pragma EXPORT
@@ -353,7 +355,7 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    ec_SetUninitReason(ec, uninitReason        );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
-   StoreThreadProgram(ec->programId);                                // store last executed program
+   StoreThreadAndProgram(ec->programId);                                // store last executed program
    //debug("%s::%s::deinit()  ec@%d=%s", ec->programName, ec->moduleName, ec, EXECUTION_CONTEXT_toStr(ec));
    return(TRUE);
    #pragma EXPORT
@@ -406,39 +408,42 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Stores the specified program id as the last program executed by the current thread.
+ * Stores the specified program as executed by the current thread.
  *
- * @param  uint programId - program id to store
+ * @param  uint programId - Program id to store. If this value is 0 (zero) no program information is stored.
  *
- * @return BOOL - success status
+ * @return DWORD - index of the current thread in the stored threads or EMPTY (-1) if an error occurred
  */
-BOOL WINAPI StoreThreadProgram(int programId) {
-   if (programId < 1) return(error(ERR_INVALID_PARAMETER, "invalid parameter programId: %d", programId));
+DWORD WINAPI StoreThreadAndProgram(uint programId) {
+   if ((int)programId < 0) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter programId: %d", programId)));
 
    DWORD currentThread = GetCurrentThreadId();
 
-   // store current program in global var threadsPrograms[]
+   // look-up current thread in global threadsPrograms[]
    int currentThreadIndex=-1, size=threads.size();
-   for (int i=0; i < size; i++) {                                    // aktuellen Thread suchen
-      if (threads[i] == currentThread) {                             // Thread gefunden
+   for (int i=0; i < size; i++) {
+      if (threads[i] == currentThread) {                             // thread found
          currentThreadIndex = i;
-         threadsPrograms[i] = programId;                             // zuletzt ausgeführtes Programm aktualisieren
+         if (programId)
+            threadsPrograms[i] = programId;                          // update the last executed program if non-zero
          break;
       }
    }
-   if (currentThreadIndex == -1) {                                   // Thread nicht gefunden
-      EnterCriticalSection(&terminalLock);                           // Thread und Programm zur Verwaltung hinzufügen
-      threads        .push_back(currentThread);
-      threadsPrograms.push_back(programId);
-      if (threads.size() > 128) debug("thread %d added (size=%d)", currentThread, threads.size());
+
+   if (currentThreadIndex == -1) {                                   // thread not found
+      EnterCriticalSection(&terminalLock);
+      threads        .push_back(currentThread);                      // add thread to the list
+      threadsPrograms.push_back(programId);                          // add program to the list (0 if zero)
+      currentThreadIndex = threads.size() - 1;
+      if (currentThreadIndex > 128) debug("thread %d added (size=%d)", currentThread, threads.size());
       LeaveCriticalSection(&terminalLock);
    }
 
-   // additionally store the program in global var lastUIThreadProgram if the current thread is the UI thread
-   if (IsUIThread())
+   // additionally store the program in global lastUIThreadProgram if the current thread is the UI thread
+   if (programId && IsUIThread())
       lastUIThreadProgram = programId;
 
-   return(TRUE);
+   return(currentThreadIndex);
 }
 
 
@@ -536,6 +541,20 @@ LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
 RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->rootFunction);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten InitCycle-Status zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - Status
+ */
+BOOL WINAPI ec_InitCycle(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(ec->initCycle);
    #pragma EXPORT
 }
 
@@ -989,6 +1008,28 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
       return(ec_SetRootFunction(contextChains[pid][0], id));
 
    return(id);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den InitCycle-Status eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe InitCycle-Status
+ */
+BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   ec->initCycle = status;
+
+   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
+      return(ec_SetInitCycle(contextChains[pid][0], status));
+
+   return(status);
    #pragma EXPORT
 }
 
@@ -1489,6 +1530,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", moduleName="   <<    DoubleQuoteStr(ec->moduleName  )
          << ", launchType="   <<                   ec->launchType
          << ", rootFunction=" << RootFunctionToStr(ec->rootFunction)
+         << ", initCycle="    <<         BoolToStr(ec->initCycle   )
          << ", initReason="   <<   InitReasonToStr(ec->initReason  )
          << ", uninitReason=" << UninitReasonToStr(ec->uninitReason)
          << ", testFlags="    <<    TestFlagsToStr(ec->testFlags   )

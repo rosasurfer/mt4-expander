@@ -177,21 +177,22 @@ BOOL              WINAPI onProcessDetach();
  * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
  * Alle Parameter werden ignoriert.
  */
-int  _CLR_NONE(...);
-int  _NULL    (...);
-bool _true    (...);
-bool _false   (...);
-BOOL _TRUE    (...);
-BOOL _FALSE   (...);
+int  WINAPI _CLR_NONE(...);
+int  WINAPI _EMPTY   (...);
+int  WINAPI _NULL    (...);
+bool WINAPI _true    (...);
+bool WINAPI _false   (...);
+BOOL WINAPI _TRUE    (...);
+BOOL WINAPI _FALSE   (...);
 
 
 /**
  * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
  * Außer dem ersten werden alle übergebenen Parameter ignoriert.
  */
-bool   _bool  (bool   value, ...);
-char   _char  (char   value, ...);
-int    _int   (int    value, ...);
-float  _float (float  value, ...);
-double _double(double value, ...);
-BOOL   _BOOL  (BOOL   value, ...);
+bool   WINAPI _bool  (bool   value, ...);
+char   WINAPI _char  (char   value, ...);
+int    WINAPI _int   (int    value, ...);
+float  WINAPI _float (float  value, ...);
+double WINAPI _double(double value, ...);
+BOOL   WINAPI _BOOL  (BOOL   value, ...);

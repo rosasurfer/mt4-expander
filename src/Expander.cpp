@@ -519,24 +519,25 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
  *
  * @param  ... all parameters are ignored
  */
-int  _CLR_NONE(...) { return(CLR_NONE); }
-int  _NULL    (...) { return(NULL    ); }
-bool _true    (...) { return(true    ); }
-bool _false   (...) { return(false   ); }
-BOOL _TRUE    (...) { return(TRUE    ); }
-BOOL _FALSE   (...) { return(FALSE   ); }
+int  WINAPI _CLR_NONE(...) { return(CLR_NONE); }
+int  WINAPI _EMPTY   (...) { return(EMPTY   ); }
+int  WINAPI _NULL    (...) { return(NULL    ); }
+bool WINAPI _true    (...) { return(true    ); }
+bool WINAPI _false   (...) { return(false   ); }
+BOOL WINAPI _TRUE    (...) { return(TRUE    ); }
+BOOL WINAPI _FALSE   (...) { return(FALSE   ); }
 
 
 /**
  * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
  * Außer dem ersten werden alle übergebenen Parameter ignoriert.
  */
-bool   _bool  (bool   value, ...) { return(value); }
-char   _char  (char   value, ...) { return(value); }
-int    _int   (int    value, ...) { return(value); }
-float  _float (float  value, ...) { return(value); }
-double _double(double value, ...) { return(value); }
-BOOL   _BOOL  (BOOL   value, ...) { return(value); }
+bool   WINAPI _bool  (bool   value, ...) { return(value); }
+char   WINAPI _char  (char   value, ...) { return(value); }
+int    WINAPI _int   (int    value, ...) { return(value); }
+float  WINAPI _float (float  value, ...) { return(value); }
+double WINAPI _double(double value, ...) { return(value); }
+BOOL   WINAPI _BOOL  (BOOL   value, ...) { return(value); }
 
 
 /**
