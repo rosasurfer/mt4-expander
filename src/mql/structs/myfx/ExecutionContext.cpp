@@ -91,22 +91,10 @@
  *  SuperBars::lib::deinit()       REASON_UNDEFINED    programId=2
  *  --- init() ----------------------------------------------------------------------------------------------------------------
  *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=1
- *  ChartInfos::init()             REASON_CHARTCHANGE  programId=0  first indicator in limbo (1)   set programId=1
+ *  ChartInfos::init()             REASON_CHARTCHANGE  programId=0  first indicator in limbo       set programId=1
  *  SuperBars::lib::init()         REASON_UNDEFINED    programId=2
- *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  next indicator in limbo (1)    set programId=2
+ *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  next indicator in limbo        set programId=2
  *  ---------------------------------------------------------------------------------------------------------------------------
- *
- *
- * (1) Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife
- *     condition of those who die in original sin without being assigned to the Hell of the Damned. Remember "Inception"?
- *     Very hard to escape from.
- *     In Metatrader terms the memory allocated for indicator variables (holding the EXECUTION_CONTEXT, global variables, static
- *     local variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and
- *     all variables are initialized with zero which is the reason an indicator cannot keep state over an init cycle. Between
- *     deinit() and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have no name
- *     known only to the scammers of MetaQuotes) state is kept in the master execution context which acts as a backup of the
- *     then lost main execution context. On re-entry the master context is copied back to the then newly allocated main context
- *     and state of the context survives. Voilà, it crossed the afterlife.
  */
 BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
@@ -197,6 +185,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
 
    // Immer zu aktualisieren
    ec_SetRootFunction(ec, RF_INIT     );
+ //ec_SetInitCycle   (ec, FALSE       );
    ec_SetInitReason  (ec, initReason  );
    ec_SetUninitReason(ec, uninitReason);
    ec_SetTestFlags   (ec, sec ? sec->testFlags : isTesting);         // TODO: ResolveTestFlags()
@@ -222,11 +211,15 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
       if (lastMaster && lastMaster->initCycle) {
          pec_vector &currentChain = contextChains[ec->programId];
          pec_vector &lastChain    = contextChains[lastProgramId];
-         uint lastSize = lastChain.size();
+         uint        lastSize     = lastChain.size();
 
          for (uint i=2; i < lastSize; i++) {
             lib = lastChain[i];
-            if (lib && lib->initCycle) {
+            if (!lib) {
+               warn(ERR_ILLEGAL_STATE, "unexpected library context found (lib_%d=NULL) for lastProgramId=%d", i, lastProgramId);
+               continue;
+            }
+            if (lib->initCycle) {
                lastChain[i] = NULL;
                lib->programId = ec->programId;                       // TODO: update all relevant library context fields
                lib->initCycle = FALSE;

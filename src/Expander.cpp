@@ -218,6 +218,19 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
  *
  * @return int - the found indicator's program id or NULL if no such indicator was found;
  *               -1 if an error occurred
+ *
+ * Notes:
+ * ------
+ * Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife condition
+ * of those who die in original sin without being assigned to the Hell of the Damned. Remember "Inception"? Very hard to escape
+ * from.
+ * In Metatrader terms the memory allocated for indicator variables (holding the EXECUTION_CONTEXT, global variables, static
+ * local variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all
+ * variables are initialized with zero which is the reason an indicator cannot keep state over an init cycle. Between deinit()
+ * and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have no name known only to
+ * the scammers of MetaQuotes) state is kept in the master execution context which acts as a backup of the then lost main
+ * execution context. On re-entry the master context is copied back to the then newly allocated main context and state of the
+ * context survives. Voilà, it crossed the afterlife.
  */
 int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
    if (hChart && !IsWindow(hChart))    return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter hChart = 0x%p (not a window)", hChart)));
@@ -585,5 +598,5 @@ int WINAPI Test() {
    */
 
    return(0);
-   #pragma EXPORT
+   //#pragma EXPORT
 }
