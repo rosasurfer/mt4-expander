@@ -58,7 +58,7 @@ BOOL WINAPI onProcessDetach() {
  * @param  UninitializeReason uninitReason    - UninitializeReason as set by the terminal
  * @param  char*              symbol          - current symbol
  * @param  EXECUTION_CONTEXT* ec              - execution context as passed by the terminal       (possibly empty)
- * @param  EXECUTION_CONTEXT* sec             - supercontext as passed by the terminal            (possibly invalid)
+ * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
  * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
  * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
  * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly NULL)
@@ -125,7 +125,7 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
          programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
          if (programId < 0) return((InitializeReason)NULL);
          isProgramNew = !programId;
-         programId && ec_SetProgramId(ec, programId);                // ProgramID on-th-fly speichern
+         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-th-fly speichern
       }
       if (isProgramNew) return(INITREASON_USER      );               // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
       else              return(INITREASON_PARAMETERS);               // Parameter-Wechsel eines vorhandenen Indikators
@@ -141,7 +141,7 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
       if (!programId) {
          programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
          if (programId <= 0) return((InitializeReason)(programId < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator during %s in limbo found", programName, UninitializeReasonToStr(uninitReason))));
-         programId && ec_SetProgramId(ec, programId);                // ProgramID on-th-fly speichern
+         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-th-fly speichern
       }
       char* masterSymbol = contextChains[programId][0]->symbol;
       if (strcmp(masterSymbol, symbol)) return(INITREASON_TIMEFRAMECHANGE);
@@ -239,9 +239,9 @@ int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, Uninitialize
                            //debug("first %s indicator found in limbo: id=%d", name, master->programId);
                            return(master->programId);
                         }
-                        else debug("i=%d  %s  rootFunction not NULL:  master=%s", i, name, RootFunctionToStr(master->rootFunction));
+                        //else debug("i=%d  %s  rootFunction not NULL:  master=%s", i, name, RootFunctionToStr(master->rootFunction));
                      }
-                     else debug("i=%d  %s  uninit reason mis-match:  master=%s  reason=%s", i, name, UninitReasonToStr(master->uninitReason), UninitReasonToStr(reason));
+                     //else debug("i=%d  %s  uninit reason mis-match:  master=%s  reason=%s", i, name, UninitReasonToStr(master->uninitReason), UninitReasonToStr(reason));
                   }
                   //else debug("i=%d  %s  name mis-match", i, name);
                }
@@ -252,7 +252,9 @@ int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, Uninitialize
          //else debug("i=%d  %s  thread mis-match  master->threadId=%d  uiThreadId=%d", i, master->programName, master->threadId, uiThreadId);
       }
    }
-   return(debug("no matching %s indicator in limbo found: hChart=%d  uninitReason=%s", name, hChart, UninitializeReasonToStr(reason)));
+
+   //debug("no matching %s indicator in limbo found: hChart=%d  uninitReason=%s", name, hChart, UninitializeReasonToStr(reason))
+   return(NULL);
 }
 
 
