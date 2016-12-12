@@ -43,6 +43,7 @@
  * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
  * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
  * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
+ * @param  BOOL               isOptimization  - IsOptimzation() flag as passed by the terminal
  * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly incorrect)
  * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
  *
@@ -96,7 +97,7 @@
  *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  next indicator in limbo        set programId=2
  *  ---------------------------------------------------------------------------------------------------------------------------
  */
-BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
+BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int subChartDropped) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
    if ((uint)symbol      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
@@ -188,7 +189,9 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
  //ec_SetInitCycle   (ec, FALSE       );
    ec_SetInitReason  (ec, initReason  );
    ec_SetUninitReason(ec, uninitReason);
-   ec_SetTestFlags   (ec, sec ? sec->testFlags : isTesting);         // TODO: ResolveTestFlags()
+   ec_SetTesting     (ec, sec ? sec->testing      : isTesting     ); // TODO: ResolveTesting()
+   ec_SetVisualMode  (ec, sec ? sec->visualMode   : isVisualMode  ); // TODO: ResolveVisualMode()
+   ec_SetOptimization(ec, sec ? sec->optimization : isOptimization); // TODO: ResolveOptimization()
 
    ec_SetInitFlags   (ec, initFlags   );
    ec_SetDeinitFlags (ec, deinitFlags );
@@ -613,15 +616,43 @@ UninitializeReason WINAPI ec_UninitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt die in einem EXECUTION_CONTEXT gespeicherten Test-Flags zurück.
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten Testing-Status zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return DWORD - Test-Flags
+ * @return BOOL - Status
  */
-DWORD WINAPI ec_TestFlags(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   return(ec->testFlags);
+   return(ec->testing);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten VisualMode-Status zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - Status
+ */
+BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(ec->visualMode);
+   #pragma EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten Optimization-Status zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - Status
+ */
+BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(ec->optimization);
    #pragma EXPORT
 }
 
@@ -1134,23 +1165,67 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
 
 
 /**
- * Setzt die Test-Flags eines EXECUTION_CONTEXT.
+ * Setzt den Testing-Status eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  DWORD              flags
+ * @param  BOOL               status
  *
- * @return DWORD - dieselben Test-Flags
+ * @return BOOL - derselbe Status
  */
-DWORD WINAPI ec_SetTestFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
+BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
-   ec->testFlags = flags;
+   ec->testing = status;
 
    uint pid = ec->programId;                                         // Master-Context synchronisieren
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetTestFlags(contextChains[pid][0], flags));
+      return(ec_SetTesting(contextChains[pid][0], status));
 
-   return(flags);
+   return(status);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den VisualMode-Status eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe Status
+ */
+BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   ec->visualMode = status;
+
+   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
+      return(ec_SetVisualMode(contextChains[pid][0], status));
+
+   return(status);
+   #pragma EXPORT
+}
+
+
+/**
+ * Setzt den Optimization-Status eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe Status
+ */
+BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+
+   ec->optimization = status;
+
+   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
+      return(ec_SetOptimization(contextChains[pid][0], status));
+
+   return(status);
    #pragma EXPORT
 }
 
@@ -1558,7 +1633,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", initCycle="    <<         BoolToStr(ec->initCycle   )
          << ", initReason="   <<   InitReasonToStr(ec->initReason  )
          << ", uninitReason=" << UninitReasonToStr(ec->uninitReason)
-         << ", testFlags="    <<    TestFlagsToStr(ec->testFlags   )
+         << ", testing="      <<         BoolToStr(ec->testing     )
+         << ", visualMode="   <<         BoolToStr(ec->visualMode  )
+         << ", optimization=" <<         BoolToStr(ec->optimization)
          << ", initFlags="    <<    InitFlagsToStr(ec->initFlags   )
          << ", deinitFlags="  <<  DeinitFlagsToStr(ec->deinitFlags )
          << ", logging="      <<         BoolToStr(ec->logging     )

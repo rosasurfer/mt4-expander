@@ -1269,34 +1269,6 @@ const char* WINAPI DeinitFlagsToStr(uint flags) {
 
 
 /**
- * Return a readable version of a combination of test flags.
- *
- * @param  uint flags - TF_* flags
- *
- * @return char*
- */
-const char* WINAPI TestFlagsToStr(uint flags) {
-   std::stringstream ss;
-
-   if (!flags) {
-      ss << "|0";
-   }
-   else {
-      if ( flags & TF_TEST                                  ) ss << "|TF_TEST";
-      if ((flags & TF_VISUAL_TEST)     == TF_VISUAL_TEST    ) ss << "|TF_VISUAL_TEST";
-      if ((flags & TF_OPTIMIZING_TEST) == TF_OPTIMIZING_TEST) ss << "|TF_OPTIMIZING_TEST";
-   }
-   std::string str = ss.str();
-   uint size = str.size();
-
-   if (!size)
-      return("");                                                    // the terminating '\0' is copied too
-   return(strcpy(new char[size], str.c_str()+1));                    // TODO: close memory leak
-   #pragma EXPORT
-}
-
-
-/**
  * Convert a BOOL value to the string "TRUE" or "FALSE".
  *
  * @param  BOOL value

@@ -168,7 +168,6 @@ const char*       WINAPI ProgramTypeToStr       (ProgramType type);
 void              WINAPI RemoveTickTimers();
 const char*       WINAPI RootFunctionDescription(RootFunction id);
 const char*       WINAPI RootFunctionToStr      (RootFunction id);
-const char*       WINAPI TestFlagsToStr         (uint flags);
 const char*       WINAPI UninitReasonToStr      (UninitializeReason reason);
 const char*       WINAPI UninitializeReasonToStr(UninitializeReason reason);  // Alias
 

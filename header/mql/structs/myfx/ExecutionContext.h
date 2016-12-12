@@ -18,35 +18,37 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
    BOOL               initCycle;                   //       540         4
    InitializeReason   initReason;                  //       544         4     letzter InitializeReason                        (variabel)   => woher komme ich
    UninitializeReason uninitReason;                //       548         4     letzter MQL::UninitializeReason()               (variabel)   => woher komme/wohin gehe ich
-   DWORD              testFlags;                   //       552         4     Tester-Flags: Off|On|VisualMode|Optimization    (konstant)   => laufe ich im Tester und wenn ja, wie
+   BOOL               testing;                     //       552         4     IsTesting()-Status                              (konstant)   => laufe ich im Tester
+   BOOL               visualMode;                  //       556         4     IsVisualMode()-Status                           (konstant)   => laufe ich im Tester mit VisualMode=On
+   BOOL               optimization;                //       560         4     IsOptimization()-Status                         (konstant)   => laufe ich im Tester mit Optimization=On
 
-   DWORD              initFlags;                   //       556         4     Init-Konfiguration                              (konstant)   => wie werde ich initialisiert
-   DWORD              deinitFlags;                 //       560         4     Deinit-Konfiguration                            (konstant)   => wie werde ich deinitialisiert
-   BOOL               logging;                     //       564         4     Log-Konfiguration                               (konstant)   => was logge ich
-   char               logFile[MAX_PATH];           //       568       260     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
+   DWORD              initFlags;                   //       564         4     Init-Konfiguration                              (konstant)   => wie werde ich initialisiert
+   DWORD              deinitFlags;                 //       568         4     Deinit-Konfiguration                            (konstant)   => wie werde ich deinitialisiert
+   BOOL               logging;                     //       572         4     Log-Konfiguration                               (konstant)   => was logge ich
+   char               logFile[MAX_PATH];           //       576       260     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       828        12     aktuelles Symbol (szchar)                       (variabel)   => auf welchem Symbol laufe ich
-   uint               timeframe;                   //       840         4     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChart;                      //       844         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
-   HWND               hChartWindow;                //       848         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       836        12     aktuelles Symbol (szchar)                       (variabel)   => auf welchem Symbol laufe ich
+   uint               timeframe;                   //       848         4     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   HWND               hChart;                      //       852         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
+   HWND               hChartWindow;                //       856         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
 
-   EXECUTION_CONTEXT* superContext;                //       852         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   uint               threadId;                    //       856         4     ID des ausführenden Threads                     (variable)   => wer führt mich aus
-   uint               ticks;                       //       860         4     Anzahl der start()-Aufrufe                      (variabel)   => wie oft wurde ich ausgeführt
+   EXECUTION_CONTEXT* superContext;                //       860         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
+   uint               threadId;                    //       864         4     ID des ausführenden Threads                     (variable)   => wer führt mich aus
+   uint               ticks;                       //       868         4     Anzahl der start()-Aufrufe                      (variabel)   => wie oft wurde ich ausgeführt
 
-   int                mqlError;                    //       864         4     Error-Code eines aufgetretenen MQL-Fehlers      (variabel)   => welcher MQL-Fehler ist aufgetreten
-   int                dllError;                    //       868         4     Error-Code eines aufgetretenen DLL-Fehlers      (variabel)   => welcher DLL-Fehler ist aufgetreten
-   char*              dllErrorMsg;                 //       872         4     Text des DLL-Fehlers                            (variabel)   => ...
-   int                dllWarning;                  //       876         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
-   char*              dllWarningMsg;               //       880         4     Text der DLL-Warnung                            (variabel)   => ...
+   int                mqlError;                    //       872         4     Error-Code eines aufgetretenen MQL-Fehlers      (variabel)   => welcher MQL-Fehler ist aufgetreten
+   int                dllError;                    //       876         4     Error-Code eines aufgetretenen DLL-Fehlers      (variabel)   => welcher DLL-Fehler ist aufgetreten
+   char*              dllErrorMsg;                 //       880         4     Text des DLL-Fehlers                            (variabel)   => ...
+   int                dllWarning;                  //       884         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
+   char*              dllWarningMsg;               //       888         4     Text der DLL-Warnung                            (variabel)   => ...
 };                                                 // ----------------------------------------------------------------------------------------------------------------------------
-                                                   //               = 884                                                                     warum bin ich nicht auf Ibiza
+                                                   //               = 892                                                                     warum bin ich nicht auf Ibiza
 
 typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
 
 
 // Context management functions
-BOOL               WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped);
+BOOL               WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int subChartDropped);
 BOOL               WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec);
 BOOL               WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason reason);
 
@@ -68,7 +70,9 @@ RootFunction       WINAPI ec_RootFunction  (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_InitCycle     (const EXECUTION_CONTEXT* ec);
 InitializeReason   WINAPI ec_InitReason    (const EXECUTION_CONTEXT* ec);
 UninitializeReason WINAPI ec_UninitReason  (const EXECUTION_CONTEXT* ec);
-DWORD              WINAPI ec_TestFlags     (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_Testing       (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_VisualMode    (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_Optimization  (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_InitFlags     (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_DeinitFlags   (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Logging       (const EXECUTION_CONTEXT* ec);
@@ -99,7 +103,9 @@ RootFunction       WINAPI ec_SetRootFunction      (EXECUTION_CONTEXT* ec, RootFu
 BOOL               WINAPI ec_SetInitCycle         (EXECUTION_CONTEXT* ec, BOOL               status   );
 InitializeReason   WINAPI ec_SetInitReason        (EXECUTION_CONTEXT* ec, InitializeReason   reason   );
 UninitializeReason WINAPI ec_SetUninitReason      (EXECUTION_CONTEXT* ec, UninitializeReason reason   );
-DWORD              WINAPI ec_SetTestFlags         (EXECUTION_CONTEXT* ec, DWORD              flags    );
+BOOL               WINAPI ec_SetTesting           (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_SetVisualMode        (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_SetOptimization      (EXECUTION_CONTEXT* ec, BOOL               status   );
 DWORD              WINAPI ec_SetInitFlags         (EXECUTION_CONTEXT* ec, DWORD              flags    );
 DWORD              WINAPI ec_SetDeinitFlags       (EXECUTION_CONTEXT* ec, DWORD              flags    );
 BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
