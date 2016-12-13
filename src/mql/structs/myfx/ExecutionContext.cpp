@@ -2,40 +2,15 @@
 
 
 /**
- * Synchronisiert die EXECUTION_CONTEXTe der Module eines MQL-Programms mit dem Master-Context in der DLL und untereinander.
+ * Synchronisiert den EXECUTION_CONTEXT eines MQL-Hauptmoduls mit dem Master-Context in der DLL. Wird von der init()-Funktion
+ * der MQL-Hauptmodule aufgerufen.
  *
- * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
- * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
- * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
- * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
- * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ * For a general overview see "ExecutionContext.h".
  *
- *  (1) Datenaustausch vom Hauptmodul zu den Library-Modulen:
- *
- *  (2) Datenaustausch von den Library-Modulen zum Hauptmodul:
- *
- *  (3) Datenaustausch von der DLL zum Hauptmodul:
- *
- *  (4) Datenaustausch vom einem Hauptmodul zu einem anderen Hauptmodul:
- *
- * Kontextgültigkeit: Der Master-Context einer Chain ist immer gültig. Alle anderen Kontexte der Chain können je nach Modultyp
- * und Situation ungültig bzw. der Speicher nicht verfügbar sein (dazu später mehr). Von einem MQL-Modul darf generell nur auf
- * den eigenen und auf den Master-Context zugegriffen werden. Ein Zugriff auf den Hauptkontext aus einer Library und umgekehrt
- * ist nur in Ausnahmefällen möglich.
- *
- *
- *
- *
- * Wird von den Rootfunktionen der MQL-Hauptmodule aufgerufen.
- * In init() wird der Kontext in mehreren Schritten initialisiert (nachdem die entsprechenden Informationen verfügbar sind).
- *
- * Bei Experts und Scripts gibt es während der Laufzeit nur eine Instanz des Hauptmodulkontextes. Bei Indikatoren ändert sich
- * die Instanz mit jedem init()-Cycle, da MetaTrader den Speicher für Variablen in Indicator::init() jeweils neu alloziiert.
- *
- * @param  EXECUTION_CONTEXT* ec              - Context des Hauptmoduls eines MQL-Programms
- * @param  ProgramType        programType     - Programm-Typ
- * @param  char*              programName     - Programmname (je nach MetaTrader-Version ggf. mit Pfad)
- * @param  UninitializeReason uninitReason    - UninitializeReason as passed by the terminal
+ * @param  EXECUTION_CONTEXT* ec              - Kontext des Hauptmoduls eines MQL-Programms
+ * @param  ProgramType        programType     - Programmtyp
+ * @param  char*              programName     - Programmname (je nach Metatrader-Version ggf. mit Pfad)
+ * @param  UninitializeReason uninitReason    - uninitialize reason as passed by the terminal
  * @param  DWORD              initFlags       - Init-Konfiguration
  * @param  DWORD              deinitFlags     - Deinit-Konfiguration
  * @param  char*              symbol          - aktuelles Chart-Symbol
@@ -50,17 +25,7 @@
  * @return BOOL - Erfolgsstatus
  *
  *
- * Notes:
- * ------
- * • Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wieder-
- *   eintritt in Indicator::init() keinen gültigen Hauptkontext. Der alte Speicherblock wird sofort freigegeben, in init() wird
- *   ein neuer alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt und es
- *   darf nicht auf den zu dem Zeitpunkt ungültigen Hauptkontext zugegriffen werden.
- * • Nach Recompilation oder Crash einer Library wird der Speicherblock ihres Kontexts ungültig und auf ihn darf ebenfalls
- *   nicht mehr zugegriffen werden.
- *
- *
- *  Init cycle of single indicator with libraries:
+ *  Init cycle of a single indicator with libraries:
  *  --- first load ------------------------------------------------------------------------------------------------------------
  *  Indicator::init()              REASON_UNDEFINED    programId=0  creating new chain             set programId=1
  *  Indicator::libraryA::init()    REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
@@ -189,7 +154,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
  //ec_SetInitCycle   (ec, FALSE       );
    ec_SetInitReason  (ec, initReason  );
    ec_SetUninitReason(ec, uninitReason);
-   ec_SetTesting     (ec, sec ? sec->testing      : isTesting     ); // TODO: ResolveTesting()
+   ec_SetTesting     (ec, sec ? sec->testing      : isTesting     ); // EA: OK                        // TODO: ResolveTesting()
    ec_SetVisualMode  (ec, sec ? sec->visualMode   : isVisualMode  ); // TODO: ResolveVisualMode()
    ec_SetOptimization(ec, sec ? sec->optimization : isOptimization); // TODO: ResolveOptimization()
 

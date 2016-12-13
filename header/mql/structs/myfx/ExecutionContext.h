@@ -5,6 +5,41 @@
  * MyFX struct EXECUTION_CONTEXT
  *
  * Ausführungskontext von MQL-Programmen zur Kommunikation zwischen MQL und DLL
+ *
+ * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
+ * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
+ * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
+ * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
+ * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ *
+ *  • Data exchange between MQL program main module and DLL:
+ *    The DLL stores DLL error informations in the EXECUTION_CONTEXT for further processing by the MQL main module. The main
+ *    module then signals these errors to the user. On the other hand the main module stores price and market informations in
+ *    the context to make it available to the DLL.
+ *
+ *  • Data exchange between MQL program main module and MQL libraries:
+ *
+ *  • Data exchange between multiple MQL programs:
+ *
+ *
+ * Notes:
+ * ------
+ *  • Der Master-Context eines Programms ist immer gültig. Alle anderen Kontexte des Programms können je nach Modultyp und
+ *    Situation ungültig bzw. der Speicher nicht verfügbar sein. Von einem MQL-Modul darf generell nur auf den eigenen und auf
+ *    den Master-Context zugegriffen werden. Ein Zugriff aus einer Library auf den Hauptkontext und umgekehrt ist jedoch in
+ *    Sonderfällen möglich.
+ *
+ *  • Experts und Scripte verfügen während ihrer gesamten Laufzeit nur über eine Instanz ihres Hauptmodulkontextes. Indikatoren
+ *    hingegen erhalten nach jedem Init-Cycle eine neue Instanz, da Metatrader den Speicher für Variablen in Indicator::init()
+ *    jeweils neu alloziiert.
+ *
+ *  • Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wieder-
+ *    eintritt in Indicator::init() keinen gültigen Hauptkontext. Der alte Speicherblock wird sofort freigegeben, in init()
+ *    wird ein neuer alloziiert. Während dieser Zeitspanne wird der init()-Cycle von bereits geladenen Libraries durchgeführt
+ *    und es darf nicht auf den zu dem Zeitpunkt ungültigen Hauptkontext zugegriffen werden.
+ *
+ *  • Nach Recompilation oder Crash einer Library wird ihr ExecutionContext ungültig und auf ihn darf nicht mehr zugegriffen
+ *    werden.
  */
 struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
    uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
