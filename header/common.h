@@ -17,7 +17,7 @@ typedef          __int64 int64;
 typedef unsigned __int64 uint64;
 
 
-#define INVALID_HWND  (HWND)-1
+#define INVALID_HWND  ((HWND)-1)
 
 
 /**

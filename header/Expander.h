@@ -16,7 +16,7 @@
 #endif
 
 
-#define MAX_CHART_DESCRIPTION_LENGTH   (MAX_SYMBOL_LENGTH + 1 + 7)               // "SYMBOL,Monthly"
+#define MAX_CHART_DESCRIPTION_LENGTH   ((MAX_SYMBOL_LENGTH) + 1 + 7)             // "SYMBOL,Monthly"
 
 
 #pragma pack(push, 1)
