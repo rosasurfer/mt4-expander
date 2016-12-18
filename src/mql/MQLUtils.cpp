@@ -167,7 +167,7 @@ const char* WINAPI IntToHexStr(int value) {
  *
  * @return char* - hexadezimaler String mit 8 Zeichen
  */
-const char* WINAPI IntToHexStr(void* value) {
+const char* WINAPI IntToHexStr(const void* value) {
    return(IntToHexStr((int)value));
 }
 
@@ -331,11 +331,11 @@ const char* WINAPI RootFunctionDescription(RootFunction id) {
 /**
  * Gibt die lesbare Konstante einer Timeframe-ID zurück.
  *
- * @param  int period - Timeframe-ID
+ * @param  uint period - Timeframe-ID
  *
  * @return char*
  */
-const char* WINAPI PeriodToStr(int period) {
+const char* WINAPI PeriodToStr(uint period) {
    switch (period) {
       case NULL      : return("NULL"      );
       case PERIOD_M1 : return("PERIOD_M1" );     // 1 minute
@@ -349,7 +349,7 @@ const char* WINAPI PeriodToStr(int period) {
       case PERIOD_MN1: return("PERIOD_MN1");     // 1 month
       case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter
    }
-   error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", period);
+   error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", (int)period);
    return(NULL);
    #pragma EXPORT
 }
@@ -358,11 +358,11 @@ const char* WINAPI PeriodToStr(int period) {
 /**
  * Gibt die Beschreibung einer Timeframe-ID zurück.
  *
- * @param  int period - Timeframe-ID bzw. Anzahl der Minuten je Chart-Bar
+ * @param  uint period - Timeframe-ID bzw. Anzahl der Minuten je Chart-Bar
  *
  * @return char*
  */
-const char* WINAPI PeriodDescription(int period) {
+const char* WINAPI PeriodDescription(uint period) {
    switch (period) {
       case NULL      : return("NULL");
       case PERIOD_M1 : return("M1" );     // 1 minute
@@ -376,7 +376,7 @@ const char* WINAPI PeriodDescription(int period) {
       case PERIOD_MN1: return("MN1");     // 1 month
       case PERIOD_Q1 : return("Q1" );     // 1 quarter
    }
-   int size = _scprintf("%d", period) + 1;
+   size_t size = _scprintf("%d", period) + 1;
    char* szchar = new char[size];                                    // TODO: Speicherleck schließen
    sprintf_s(szchar, size, "%d", period);
 
@@ -388,7 +388,7 @@ const char* WINAPI PeriodDescription(int period) {
 /**
  * Alias
  */
-const char* WINAPI TimeframeToStr(int timeframe) {
+const char* WINAPI TimeframeToStr(uint timeframe) {
    return(PeriodToStr(timeframe));
    #pragma EXPORT
 }
@@ -397,7 +397,7 @@ const char* WINAPI TimeframeToStr(int timeframe) {
 /**
  * Alias
  */
-const char* WINAPI TimeframeDescription(int timeframe) {
+const char* WINAPI TimeframeDescription(uint timeframe) {
    return(PeriodDescription(timeframe));
    #pragma EXPORT
 }
@@ -658,7 +658,7 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
  * @return uint - ID des installierten Timers zur Übergabe an RemoveTickTimer() bei Deinstallation des Timers oder 0, falls ein
  *                Fehler auftrat.
  */
-uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags=NULL) {
+uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
    // Parametervalidierung
    DWORD wndThreadId = GetWindowThreadProcessId(hWnd, NULL);
    if (wndThreadId != GetCurrentThreadId()) {
@@ -737,7 +737,7 @@ void WINAPI RemoveTickTimers() {
  *
  * @return HANDLE - Property-Value
  */
-HANDLE WINAPI GetWindowProperty(const HWND hWnd, const char* lpName) {
+HANDLE WINAPI GetWindowProperty(HWND hWnd, const char* lpName) {
    return(GetProp(hWnd, lpName));
    #pragma EXPORT
 }
@@ -751,7 +751,7 @@ HANDLE WINAPI GetWindowProperty(const HWND hWnd, const char* lpName) {
  *
  * @return HANDLE - Property-Value
  */
-HANDLE WINAPI RemoveWindowProperty(const HWND hWnd, const char* lpName) {
+HANDLE WINAPI RemoveWindowProperty(HWND hWnd, const char* lpName) {
    return(RemoveProp(hWnd, lpName));
    #pragma EXPORT
 }
@@ -766,7 +766,7 @@ HANDLE WINAPI RemoveWindowProperty(const HWND hWnd, const char* lpName) {
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI SetWindowProperty(const HWND hWnd, const char* lpName, const HANDLE value) {
+BOOL WINAPI SetWindowProperty(HWND hWnd, const char* lpName, HANDLE value) {
    return(SetProp(hWnd, lpName, value));
    #pragma EXPORT
 }
@@ -780,7 +780,7 @@ BOOL WINAPI SetWindowProperty(const HWND hWnd, const char* lpName, const HANDLE 
  * @return BOOL
  */
 BOOL WINAPI StringIsNull(const char* value) {
-   return(value == NULL);
+   return(!value);
    #pragma EXPORT
 }
 
@@ -799,14 +799,14 @@ BOOL WINAPI StringIsNull(const char* value) {
  */
 const char* WINAPI StringToStr(const char* value) {
    if (!value)
-      return("NULL");                        // C-Literal: Speicher muß nicht extra verwaltet werden
+      return("NULL");
    return(value);
    #pragma EXPORT
 }
 
 
 /**
- * Vergleicht zwei C-Strings mit Berücksichtigung von Groß-/Kleinschreibung.
+ * Whether or not two strings are considered equal.
  *
  * @param  char* s1
  * @param  char* s2
@@ -814,22 +814,10 @@ const char* WINAPI StringToStr(const char* value) {
  * @return BOOL
  */
 BOOL WINAPI StringCompare(const char* s1, const char* s2) {
-   if ( s1 ==  s2) return(TRUE);             // Sind die Pointer gleich, ist es der Inhalt auch.
-   if (!s1 || !s2) return(FALSE);            // Ist einer der beiden ein NULL-Pointer, kann der andere keiner sein.
+   if ( s1 ==  s2) return(TRUE);                                     // if pointers are equal values are too
+   if (!s1 || !s2) return(FALSE);                                    // if one is a NULL pointer the other can't
 
-   // beide sind keine NULL-Pointer
-   size_t len1 = strlen(s1);
-   size_t len2 = strlen(s2);
-   if (len1 != len2) return(FALSE);          // beide sind unterschiedlich lang
-
-   // beide sind gleich lang
-   for (size_t i=0; i < len1; i++) {
-      if (s1[i] != s2[i])
-         return(FALSE);                      // beide sind unterschiedlich
-   }
-
-   // beide sind gleich
-   return(TRUE);
+   return(strcmp(s1, s2) == 0);                                      // both are not NULL pointers
    #pragma EXPORT
 }
 
@@ -898,7 +886,7 @@ const char* WINAPI ShowWindowCmdToStr(int cmdShow) {
  *
  * @return BOOL - success status
  */
-BOOL WINAPI GetTerminalVersionNumbers(uint* major, uint* minor, uint* hotfix, uint* build) {
+BOOL WINAPI GetTerminalVersions(uint* major, uint* minor, uint* hotfix, uint* build) {
    if (major  && (uint)major  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter major = 0x%p (not a valid pointer)", major));
    if (minor  && (uint)minor  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter minor = 0x%p (not a valid pointer)", minor));
    if (hotfix && (uint)hotfix < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hotfix = 0x%p (not a valid pointer)", hotfix));
@@ -960,7 +948,7 @@ const char* WINAPI GetTerminalVersion() {
    if (!version) {
       // get the version numbers
       uint major, minor, hotfix, build;
-      BOOL result = GetTerminalVersionNumbers(&major, &minor, &hotfix, &build);
+      BOOL result = GetTerminalVersions(&major, &minor, &hotfix, &build);
       if (!result) return(NULL);
 
       // compose version string
@@ -982,7 +970,7 @@ const char* WINAPI GetTerminalVersion() {
  */
 uint WINAPI GetTerminalBuild() {
    uint dummy, build;
-   if (!GetTerminalVersionNumbers(&dummy, &dummy, &dummy, &build))
+   if (!GetTerminalVersions(&dummy, &dummy, &dummy, &build))
       return(NULL);
    return(build);
    #pragma EXPORT
@@ -1280,4 +1268,105 @@ const char* WINAPI BoolToStr(BOOL value) {
       return("TRUE");
    return("FALSE");
    #pragma EXPORT
+}
+
+
+/**
+ * Copy the symbol-timeframe description as in the title bar of a chart window to the specified buffer. If the buffer is too
+ * small the string in the buffer is truncated. The string is always terminated with a NULL character.
+ *
+ * @param  char* symbol
+ * @param  uint  timeframe
+ * @param  char* buffer
+ * @param  uint  bufferSize
+ *
+ * @return uint - Amount of copied characters not counting the terminating NULL character or {bufferSize} if the buffer is
+ *                too small and the string in the buffer was truncated.
+ *                NULL in case of an error.
+ */
+uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
+   uint symbolLength = strlen(symbol);
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = %s", DoubleQuoteStr(symbol)));
+   if (!buffer)                                           return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer = %p", buffer));
+   if ((int)bufferSize <= 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize = %d", bufferSize));
+
+   char* szTimeframe;
+
+   switch (timeframe) {
+      case PERIOD_M1 : szTimeframe = "M1";      break;               // 1 minute
+      case PERIOD_M5 : szTimeframe = "M5";      break;               // 5 minutes
+      case PERIOD_M15: szTimeframe = "M15";     break;               // 15 minutes
+      case PERIOD_M30: szTimeframe = "M30";     break;               // 30 minutes
+      case PERIOD_H1 : szTimeframe = "H1";      break;               // 1 hour
+      case PERIOD_H4 : szTimeframe = "H4";      break;               // 4 hour
+      case PERIOD_D1 : szTimeframe = "Daily";   break;               // 1 day
+      case PERIOD_W1 : szTimeframe = "Weekly";  break;               // 1 week
+      case PERIOD_MN1: szTimeframe = "Monthly"; break;               // 1 month
+      default:
+         return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe = %d", timeframe));
+   }
+
+   // create the result in a temporary buffer
+   char* format = "%s,%s";
+   uint  size   = symbolLength + strlen(szTimeframe) + 2;            // symbol + 1 + timeframe + \0
+   char* result = (char*)alloca(size);                               // on the stack
+   int copied = sprintf_s(result, size, format, symbol, szTimeframe);
+   if (copied <= 0) return(error(ERR_WIN32_ERROR+GetLastError(), "sprintf_s() failed, %d chars copied", copied));
+
+   // copy the result to the destination buffer
+   uint len = strlen(result);                                        // len should be equal to size-1
+
+   if (len < bufferSize) {                                           // destination buffer is large enough
+      strncpy(buffer, result, len);
+      buffer[len] = 0;
+      return(len);
+   }
+
+   strncpy(buffer, result, bufferSize-1);                            // destination buffer is too small
+   buffer[bufferSize-1] = 0;
+   return(bufferSize);
+}
+
+
+/**
+ * Whether or not a string ends with the specified substring.
+ *
+ * @param  char* str
+ * @param  char* suffix
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
+   if (!str || !suffix)
+      return(FALSE);
+
+   size_t strLen    = strlen(str);
+   size_t suffixLen = strlen(suffix);
+
+   if (strLen >= suffixLen)
+      return(strncmp(str + strLen - suffixLen, suffix, suffixLen) == 0);
+   return(FALSE);
+   #pragma EXPORT
+}
+
+
+/**
+ * Find the chart matching the specified parameters and return its system window handle. Extended version and replacement for
+ * MQL::WindowHandle(). Works around various terminal bugs. Can explicitly find only the current program's own chart or only
+ * a chart not belonging to the current program.
+ *
+ * @param char* symbol    - Symbol of the chart to find.
+ *                          If this *and* the following parameter are both NULL the function returns the handle of the program's
+ *                          own chart or EMPTY (-1) if the program has no chart (e.g. in Strategy Tester with VisualMode=Off).
+ *                          If this *or* the following parameter are not NULL the function returns the handle of the first
+ *                          matching chart window except the program's own window (in Z order) or NULL if no such window exists.
+ * @param uint  timeframe - Timeframe of the chart to find (default: the program's current timeframe).
+ *
+ * @return HWND - System window handle or NULL if no such chart exists or an error occurred.
+ *                EMPTY (-1) if the program's own chart handle was requested and the program runs in the Startegy Tester with
+ *                VisualMode=Off.
+ */
+HWND WINAPI WindowHandle(const char* symbol, uint timeframe/*=NULL*/) {
+   return(NULL);
+   //#pragma EXPORT
 }

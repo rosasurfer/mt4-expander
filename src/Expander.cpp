@@ -125,7 +125,7 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
          programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
          if (programId < 0) return((InitializeReason)NULL);
          isProgramNew = !programId;
-         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-th-fly speichern
+         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
       }
       if (isProgramNew) return(INITREASON_USER      );               // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
       else              return(INITREASON_PARAMETERS);               // Parameter-Wechsel eines vorhandenen Indikators
@@ -141,7 +141,7 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
       if (!programId) {
          programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
          if (programId <= 0) return((InitializeReason)(programId < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator during %s in limbo found", programName, UninitializeReasonToStr(uninitReason))));
-         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-th-fly speichern
+         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
       }
       char* masterSymbol = contextChains[programId][0]->symbol;
       if (strcmp(masterSymbol, symbol)) return(INITREASON_TIMEFRAMECHANGE);
@@ -272,6 +272,131 @@ int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, Uninitialize
 
 
 /**
+ * Find the chart of the current program and return its window handle. Must be called only in SyncMainContext_init().
+ *
+ * @param  HWND               hChart       - MQL::WindowHandle() as passed by the terminal      (possibly not yet set)
+ * @param  EXECUTION_CONTEXT* sec          - super context as passed by the terminal            (possibly already released)
+ * @param  ModuleType         moduleType   - module type
+ * @param  BOOL               isTesting    - MQL::IsTesting() flag as passed by the terminal    (possibly incorrect)
+ * @param  BOOL               isVisualMode - MQL::IsVisualMode() flag as passed by the terminal (possibly incorrect)
+ * @param  char*              symbol       - current symbol as passed by the terminal
+ * @param  uint               timeframe    - current timeframe as passed by the terminal
+ *
+ * @return HWND - Window handle or NULL if the program runs in the Strategy Tester with VisualMode=Off;
+ *                INVALID_HWND (-1) if an error occurred.
+ */
+HWND WINAPI FindCurrentChart(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, BOOL isTesting, BOOL isVisualMode, const char* symbol, uint timeframe) {
+   if (hChart) return(hChart);                                       // if already defined return WindowHandle() as passed
+   if (sec) return(sec->hChart);                                     // if in a super context return the inherited chart handle
+                                                                     // (if hChart is not set the super context is always valid)
+   // Wir sind im Hauptmodul
+   // - kein SuperContext
+   // - WindowHandle() ist NULL
+
+   if (isTesting && !isVisualMode)                                   // Im Tester bei VisualMode=Off gibt es keinen Chart: Rückgabewert NULL
+      return(NULL);
+
+   // Wir sind entweder: im Tester bei VisualMode=On              aber: kein Hauptmodul hat VisualMode=On und WindowHandle=NULL
+   // oder               außerhalb des Testers
+
+   HWND hWndMain = GetApplicationWindow();
+   if (!hWndMain) return(INVALID_HWND);
+
+   HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDI_CLIENT);
+   if (!hWndMdi) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window not found (hWndMain=%p)", hWndMain)));
+
+   HWND hChartWindow = NULL;                                         // chart system window holding the chart AfxFrameOrView
+
+
+   // (1) Indikator
+   if (moduleType == MT_INDICATOR) {
+      //
+      // Wir sind entweder: normaler Template-Indikator bei Terminalstart oder LoadProfile und WindowHandle() ist noch NULL
+      // oder:              Tester-Template-Indikator im Tester bei VisualMode=Off => es gibt keinen Chart
+      // Wir sind immer:    im UIThread in init()
+      //
+      // Wir sind nicht:    in iCustom()
+      // und auch nicht:    manuell geladener Indikator im Tester-Chart => WindowHandle() wäre gesetzt
+      // und auch nicht:    getesteter Indikator eines neueren Builds   => dito
+
+      // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
+      // solange das Terminal/der Chart nicht endgültig initialisiert sind. Hat das letzte Chartfenster in Z order noch keinen
+      // Titel (es wird gerade erzeugt), ist dies das aktuelle Chartfenster. Existiert kein solches Fenster, wird der Indikator
+      // über das Tester-Template in einem Test mit VisualMode=Off geladen und wird keinen Chart haben. Die start()-Funktion
+      // wird in diesem Fall nie ausgeführt.
+      if (!IsUIThread()) return(_INVALID_HWND(error(ERR_ILLEGAL_STATE, "unknown state, non-ui thread=%d  hChart=%d  sec=%d", GetCurrentThreadId(), hChart, sec)));
+
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
+      if (!hWndChild)                                                // MDIClient has no children
+         return(NULL);                                               // there is no no chart: Tester with VisualMode=Off
+
+      HWND hWndLast = GetWindow(hWndChild, GW_HWNDLAST);             // last child window in Z order (lowest chart window)
+      if (GetWindowTextLength(hWndLast))                             // last child window already has a title
+         return(NULL);                                               // there is no chart: Tester with VisualMode=Off
+
+      hChartWindow = hWndLast;                                       // keep chart window (holding the chart AfxFrameOrView)
+   }
+
+
+   // (2) Script
+   else if (moduleType == MT_SCRIPT) {
+      // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
+      // solange das Terminal/der Chart nicht endgültig initialisiert sind. Ein laufendes Script wurde in diesem Fall über
+      // die Konfiguration in "terminal-start.ini" gestartet und läuft im ersten passenden Chart in absoluter Reihenfolge
+      // (CtrlID, nicht Z order).
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
+      if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain)));
+
+      size_t bufferSize = MAX_CHART_DESCRIPTION_LENGTH + 1;
+      char* chartDescription = (char*)alloca(bufferSize);            // on the stack
+      size_t chars = GetChartDescription(symbol, timeframe, chartDescription, bufferSize);
+      if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "GetChartDescription() failed")));
+
+      bufferSize = 128;
+      char* title = (char*)alloca(bufferSize);
+      int id = INT_MAX;
+
+      while (hWndChild) {                                            // iterate over all child windows
+         size_t titleLen = GetWindowText(hWndChild, title, bufferSize);
+         if (titleLen) {
+            if (titleLen >= bufferSize-1) {
+               bufferSize <<= 1;
+               title = (char*)alloca(bufferSize);
+               continue;
+            }
+            if (StringEndsWith(title, " (offline)"))
+               title[titleLen-10] = 0;
+            if (StringCompare(title, chartDescription)) {            // find all matching windows
+               id = std::min(id, GetDlgCtrlID(hWndChild));           // track the smallest in absolute order
+               if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
+            }
+         }
+         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);              // next child in Z order
+      }
+      if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no matching MDIClient child window found for \"%s\"", chartDescription)));
+
+      hChartWindow = GetDlgItem(hWndMdi, id);                        // keep chart window (holding the chart AfxFrameOrView)
+   }
+
+
+   // (3) Expert
+   else if (moduleType == MT_EXPERT) {
+      return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MQL::WindowHandle() => 0 in Expert::init()")));
+   }
+   else {
+      return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter moduleType = %d", moduleType)));
+   }
+
+
+   // (4) Das gefundene Chartfenster hat genau ein Child (AfxFrameOrView), welches das gesuchte Metatrader-Handle ist.
+   hChart = GetWindow(hChartWindow, GW_CHILD);
+   if (!hChart) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no Metatrader chart window inside of last MDIClient child window %p found", hChartWindow)));
+
+   return(hChart);
+}
+
+
+/**
  * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".
  *
  * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
@@ -330,7 +455,7 @@ void __debug(const char* fileName, const char* funcName, int line, const char* f
    if (!format) format = "(null)";
 
    // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab format)
-   int size  = _vscprintf(format, args) + 1;                                     // +1 für das terminierende '\0'
+   size_t size = _vscprintf(format, args) + 1;                                   // +1 für das terminierende '\0'
    char* msg = (char*) alloca(size);                                             // auf dem Stack
    vsprintf_s(msg, size, format, args);
 
@@ -392,7 +517,7 @@ void __warn(const char* fileName, const char* funcName, int line, int error, con
    if (!msgFormat) msgFormat = "(null)";
 
    // create message with the specified parameters
-   int size  = _vscprintf(msgFormat, msgArgs) + 1;                                     // +1 for the terminating '\0'
+   size_t size = _vscprintf(msgFormat, msgArgs) + 1;                                   // +1 for the terminating '\0'
    char* msg = (char*) alloca(size);                                                   // on the stack
    vsprintf_s(msg, size, msgFormat, msgArgs);
 
@@ -474,7 +599,7 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
    if (!msgFormat) msgFormat = "(null)";
 
    // create message with the specified parameters
-   int size  = _vscprintf(msgFormat, msgArgs) + 1;                                     // +1 for the terminating '\0'
+   size_t size = _vscprintf(msgFormat, msgArgs) + 1;                                   // +1 for the terminating '\0'
    char* msg = (char*) alloca(size);                                                   // on the stack
    vsprintf_s(msg, size, msgFormat, msgArgs);
 
@@ -494,7 +619,7 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
    DWORD currentThread = GetCurrentThreadId();
    int currentThreadIndex=-1, currentThreadLastProgram=0;
    size = threads.size();
-   for (int i=0; i < size; i++) {
+   for (uint i=0; i < size; i++) {
       if (threads[i] == currentThread) {                             // thread found
          currentThreadIndex       = i;                               // keep thread index and last MQL program
          currentThreadLastProgram = threadsPrograms[i];
@@ -534,13 +659,14 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
  *
  * @param  ... all parameters are ignored
  */
-int  WINAPI _CLR_NONE(...) { return(CLR_NONE); }
-int  WINAPI _EMPTY   (...) { return(EMPTY   ); }
-int  WINAPI _NULL    (...) { return(NULL    ); }
-bool WINAPI _true    (...) { return(true    ); }
-bool WINAPI _false   (...) { return(false   ); }
-BOOL WINAPI _TRUE    (...) { return(TRUE    ); }
-BOOL WINAPI _FALSE   (...) { return(FALSE   ); }
+int  WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
+int  WINAPI _EMPTY       (...) { return(EMPTY       ); }
+HWND WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
+int  WINAPI _NULL        (...) { return(NULL        ); }
+bool WINAPI _true        (...) { return(true        ); }
+bool WINAPI _false       (...) { return(false       ); }
+BOOL WINAPI _TRUE        (...) { return(TRUE        ); }
+BOOL WINAPI _FALSE       (...) { return(FALSE       ); }
 
 
 /**

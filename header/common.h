@@ -7,12 +7,17 @@
 #pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
 
+#define NOMINMAX                       // std::min<int>(3, 4);    (std::min)(3, 4);
+#include <algorithm>
 #include <sstream>
 
 
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
+
+
+#define INVALID_HWND  (HWND)-1
 
 
 /**
