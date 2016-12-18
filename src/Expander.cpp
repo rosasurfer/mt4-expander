@@ -51,17 +51,17 @@ BOOL WINAPI onProcessDetach() {
 
 
 /**
- * Resolve the specified program's current init() scenario.
+ * Resolve the given program's current init() scenario.
  *
  * @param  char*              programName     - program name
  * @param  ProgramType        programType     - program type
  * @param  UninitializeReason uninitReason    - UninitializeReason as set by the terminal
  * @param  char*              symbol          - current symbol
- * @param  EXECUTION_CONTEXT* ec              - execution context as passed by the terminal       (possibly empty)
- * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
+ * @param  EXECUTION_CONTEXT* ec              - execution context as passed by the terminal       (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly already released)
  * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
  * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
- * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly NULL)
+ * @param  HWND               hChart          - correct value of WindowHandle()
  * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
  *
  * @return InitializeReason - init reason or NULL if an error occurred
@@ -212,20 +212,20 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
 /**
  * Find the first active matching indicator with a released main EXECUTION_CONTEXT.
  *
- * @param  HWND               hChart - WindowHandle() as passed by the terminal
+ * @param  HWND               hChart - correct value of WindowHandle()
  * @param  const char*        name   - indicator name
  * @param  UninitializeReason reason
  *
- * @return int - the found indicator's program id or NULL if no such indicator was found;
- *               -1 if an error occurred
+ * @return int - The found indicator's program id or NULL if no such indicator was found;
+ *               EMPTY (-1) if an error occurred
  *
  * Notes:
  * ------
  * Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife condition
  * of those who die in original sin without being assigned to the Hell of the Damned. Remember "Inception"? Very hard to escape
  * from.
- * In Metatrader terms the memory allocated for indicator variables (holding the EXECUTION_CONTEXT, global variables, static
- * local variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all
+ * In Metatrader the memory allocated for indicator variables (holding the EXECUTION_CONTEXT, global variables, static local
+ * variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all
  * variables are initialized with zero which is the reason an indicator cannot keep state over an init cycle. Between deinit()
  * and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have no name known only to
  * the scammers of MetaQuotes) state is kept in the master execution context which acts as a backup of the then lost main
@@ -233,9 +233,6 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
  * context survives. Voilà, it crossed the afterlife.
  */
 int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
-   if (hChart && !IsWindow(hChart))    return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter hChart = 0x%p (not a window)", hChart)));
-   if ((uint)name < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name)));
-
    if (hChart) {
       EXECUTION_CONTEXT* master;
       uint size=contextChains.size(), uiThreadId=GetUIThreadId();

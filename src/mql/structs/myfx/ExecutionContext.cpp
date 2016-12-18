@@ -15,11 +15,11 @@
  * @param  DWORD              deinitFlags     - Deinit-Konfiguration
  * @param  char*              symbol          - aktuelles Chart-Symbol
  * @param  uint               period          - aktuelle Chart-Periode
- * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly invalid)
+ * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly already released)
  * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
  * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
  * @param  BOOL               isOptimization  - IsOptimzation() flag as passed by the terminal
- * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly incorrect)
+ * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly not yet set)
  * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
  *
  * @return BOOL - Erfolgsstatus
@@ -77,7 +77,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    //       - Hauptkontext aus Master-Context restaurieren
    //     • wenn Programm kein Indikator im Init-Cycle ist
    //       - neuen Master-Context erzeugen
-   //       - neue Context-Chain erzeugen und Master- und Hauptkontext darin speichern
+   //       - neue Context-Chain erzeugen und Master- und Hauptkontext speichern
    //       - resultierende ProgramID in Master- und Hauptkontext speichern
    //
    // (2) Wenn ProgramID gesetzt, dann Expert im Init-Cycle
@@ -90,6 +90,9 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    InitializeReason   initReason    = (InitializeReason)NULL;
    BOOL               isNewExpert   = FALSE;
    uint               lastProgramId = NULL;
+
+   hChart = FindCurrentChart(hChart, sec, (ModuleType)programType, isTesting, isVisualMode, symbol, period);
+   if (hChart == INVALID_HWND) return(error(ERR_RUNTIME_ERROR, "FindCurrentChart() failed"));
 
 
    if (!ec->programId) {
@@ -127,7 +130,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          LeaveCriticalSection(&terminalLock);
 
          // resolve program status and last program executed by the current thread
-         isNewExpert = (programType == PT_EXPERT);
+         isNewExpert = (programType==PT_EXPERT);
          uint index = StoreThreadAndProgram(0);
          lastProgramId = threadsPrograms[index];
          threadsPrograms[index] = ec->programId;                     // store last executed program (asap)
@@ -140,35 +143,36 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    }
 
 
-   // (3) Nur beim ersten Aufruf zu aktualisieren
+   // (3) Beim ersten Aufruf von init() zu initialisieren
    if (!ec->ticks) {
-      ec_SetProgramType(ec,             programType);
-      ec_SetProgramName(ec,             programName);
-      ec_SetModuleType (ec, (ModuleType)programType);                // im Hauptmodul gilt: ProgramName/Type = ModuleName/Type
-      ec_SetModuleName (ec,             programName);
-    //ec_SetLaunchType (ec,             launchType );
+      ec_SetProgramType (ec,             programType);
+      ec_SetProgramName (ec,             programName);
+      ec_SetModuleType  (ec, (ModuleType)programType);                  // Hauptmodul: ModuleType == ProgramType
+      ec_SetModuleName  (ec,             programName);
+    //ec_SetLaunchType  (ec,             launchType );
+
+      ec_SetTesting     (ec, sec ? sec->testing      : isTesting     ); // TODO: ResolveTesting()
+      ec_SetVisualMode  (ec, sec ? sec->visualMode   : isVisualMode  ); // TODO: ResolveVisualMode()
+      ec_SetOptimization(ec, sec ? sec->optimization : isOptimization); // TODO: ResolveOptimization()
+
+      ec_SetInitFlags   (ec, initFlags   );
+      ec_SetDeinitFlags (ec, deinitFlags );
+      ec_SetLogging     (ec, sec ? sec->logging : FALSE);               // TODO: ResolveLogging()  => benötigt This.IsTesting()
+      ec_SetLogFile     (ec, sec ? sec->logFile : NULL );               // TODO: ResolveLogFile()
+
+      ec_SetHChart      (ec, sec        ?          sec->hChart  : hChart);
+      ec_SetHChartWindow(ec, ec->hChart ? GetParent(ec->hChart) : NULL  );
+      ec_SetSuperContext(ec, sec);                                      // TODO: ResolveSuperContext()
    }
 
-   // Immer zu aktualisieren
+   // Bei jedem Aufruf von init() zu aktualisieren
    ec_SetRootFunction(ec, RF_INIT     );
  //ec_SetInitCycle   (ec, FALSE       );
    ec_SetInitReason  (ec, initReason  );
    ec_SetUninitReason(ec, uninitReason);
-   ec_SetTesting     (ec, sec ? sec->testing      : isTesting     ); // EA: OK                        // TODO: ResolveTesting()
-   ec_SetVisualMode  (ec, sec ? sec->visualMode   : isVisualMode  ); // TODO: ResolveVisualMode()
-   ec_SetOptimization(ec, sec ? sec->optimization : isOptimization); // TODO: ResolveOptimization()
-
-   ec_SetInitFlags   (ec, initFlags   );
-   ec_SetDeinitFlags (ec, deinitFlags );
-   ec_SetLogging     (ec, sec ? sec->logging : FALSE);               // TODO: ResolveLogging()     => benötigt This.IsTesting()
-   ec_SetLogFile     (ec, sec ? sec->logFile : NULL );               // TODO: ResolveLogFile()
 
    ec_SetSymbol      (ec, symbol      );
    ec_SetTimeframe   (ec, period      );
-   ec_SetHChart      (ec, sec        ?          sec->hChart  : hChart); // TODO: ResolveHChart()
-   ec_SetHChartWindow(ec, ec->hChart ? GetParent(ec->hChart) : NULL  );
-
-   ec_SetSuperContext(ec, sec         );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
 
