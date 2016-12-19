@@ -171,6 +171,11 @@ const char*       WINAPI ModuleTypeToStr          (ModuleType type);
 uint              WINAPI MT4InternalMsg();
 const char*       WINAPI PeriodDescription        (uint period);
 const char*       WINAPI PeriodToStr              (uint period);
+BOOL              WINAPI ProgramIsLogging         (const EXECUTION_CONTEXT* ec);
+BOOL              WINAPI ProgramIsOptimization    (const EXECUTION_CONTEXT* ec, BOOL isOptimization);
+BOOL              WINAPI ProgramIsTesting         (const EXECUTION_CONTEXT* ec, BOOL isTesting);
+BOOL              WINAPI ProgramIsVisualMode      (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
+const char*       WINAPI ProgramLogFile           (const EXECUTION_CONTEXT* ec);
 const char*       WINAPI ProgramTypeDescription   (ProgramType type);
 const char*       WINAPI ProgramTypeToStr         (ProgramType type);
 BOOL              WINAPI RemoveTickTimer          (int timerId);
@@ -192,7 +197,6 @@ VOID            CALLBACK TimerCallback            (HWND hWnd, UINT msg, UINT_PTR
 const char*       WINAPI UninitReasonToStr        (UninitializeReason reason);
 const char*       WINAPI UninitializeReasonToStr  (UninitializeReason reason);        // Alias
 char*             WINAPI WCharsToStr              (const WCHAR* wcstr, size_t count);
-HWND              WINAPI WindowHandle             (const char* symbol, uint timeframe=NULL);
 
 
 /**

@@ -1351,22 +1351,19 @@ BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
 
 
 /**
- * Find the chart matching the specified parameters and return its system window handle. Extended version and replacement for
- * MQL::WindowHandle(). Works around various terminal bugs. Can explicitly find only the current program's own chart or only
- * a chart not belonging to the current program.
+ * Return a terminal configuration value as a boolean. Queries the global and the local configuration with the local configu-
+ * ration superseding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
+ * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
+ * its nominal value is non-zero. Trailing configuration comments (text following the ";" character) are ignored.
  *
- * @param char* symbol    - Symbol of the chart to find.
- *                          If this *and* the following parameter are both NULL the function returns the handle of the program's
- *                          own chart or EMPTY (-1) if the program has no chart (e.g. in Strategy Tester with VisualMode=Off).
- *                          If this *or* the following parameter are not NULL the function returns the handle of the first
- *                          matching chart window except the program's own window (in Z order) or NULL if no such window exists.
- * @param uint  timeframe - Timeframe of the chart to find (default: the program's current timeframe).
+ * @param  char* section      - configuration section name
+ * @param  char* key          - configuration key
+ * @param  BOOL  defaultValue - alternative value to return if the specified value was not found
  *
- * @return HWND - System window handle or NULL if no such chart exists or an error occurred.
- *                EMPTY (-1) if the program's own chart handle was requested and the program runs in the Startegy Tester with
- *                VisualMode=Off.
+ * @return BOOL - configuration value
  */
-HWND WINAPI WindowHandle(const char* symbol, uint timeframe/*=NULL*/) {
-   return(NULL);
-   //#pragma EXPORT
+BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
+   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
+   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
+   //return(GetLocalConfigBool (section, key, result));
 }
