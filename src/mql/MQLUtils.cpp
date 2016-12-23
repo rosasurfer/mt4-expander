@@ -773,7 +773,7 @@ BOOL WINAPI SetWindowProperty(HWND hWnd, const char* lpName, HANDLE value) {
 
 
 /**
- * Prüft, ob ein C-String initialisiert ist oder ein NULL-Pointer ist.
+ * Prüft, ob ein C-String initialisiert oder ein NULL-Pointer ist.
  *
  * @param  char* value - zu prüfender String
  *
@@ -816,7 +816,6 @@ const char* WINAPI StringToStr(const char* value) {
 BOOL WINAPI StringCompare(const char* s1, const char* s2) {
    if ( s1 ==  s2) return(TRUE);                                     // if pointers are equal values are too
    if (!s1 || !s2) return(FALSE);                                    // if one is a NULL pointer the other can't
-
    return(strcmp(s1, s2) == 0);                                      // both are not NULL pointers
    #pragma EXPORT
 }
@@ -1337,11 +1336,12 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  * @return BOOL
  */
 BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
-   if (!str || !suffix)
-      return(FALSE);
+   if (!str)    return(FALSE);
+   if (!suffix) return(warn(ERR_INVALID_PARAMETER, "invalid parameter suffix=%s", suffix));
 
    size_t strLen    = strlen(str);
    size_t suffixLen = strlen(suffix);
+   if (!suffixLen) return(warn(ERR_INVALID_PARAMETER, "illegal parameter suffix=\"\""));
 
    if (strLen >= suffixLen)
       return(strncmp(str + strLen - suffixLen, suffix, suffixLen) == 0);

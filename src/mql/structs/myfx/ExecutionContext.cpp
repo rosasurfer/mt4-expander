@@ -69,9 +69,6 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    if ((int)period <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", (int)period));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
 
-   //
-   // Ablauf
-   // ------
    // (1) Wenn keine ProgramID gesetzt ist, prüfen, ob Programm ein Indikator im Init-Cycle ist.
    //     • wenn Programm ein Indikator im Init-Cycle ist (kommt nur im UI-Thread vor)
    //       - Hauptkontext aus Master-Context restaurieren
@@ -171,7 +168,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
 
    // (3.2) Bei jedem Aufruf von init() zu aktualisieren
    ec_SetRootFunction(ec, RF_INIT     );
- //ec_SetInitCycle   (ec, FALSE       );                             // TODO
+ //ec_SetInitCycle   (ec, FALSE       );
    ec_SetInitReason  (ec, initReason  );                             // TODO: wrong for experts and scripts
    ec_SetUninitReason(ec, uninitReason);
 
@@ -252,70 +249,81 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
 
 
 /**
- * Synchronize a library's EXECUTION_CONTEXT with the context of its main module. Called in Library::init(). If a library is
- * loaded the first time its context is added to the context chain of the executing program.
+ * Synchronize a library's EXECUTION_CONTEXT with the context of the executing program's main module. Called in Library::init().
+ * If a library is loaded the first time its context is added to the context chain of the program.
  *
  * @param  EXECUTION_CONTEXT* ec           - the libray's execution context
  * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
- * @param  char*              moduleName   - the library's name (according to the Metatrader version w/o path)
- * @param  char*              symbol       - current chart symbol
- * @param  uint               period       - current chart period
+ * @param  DWORD              initFlags    - init configuration
+ * @param  DWORD              deinitFlags  - deinit configuration
+ * @param  char*              moduleName   - the library's name w/o path according to the terminal version
+ * @param  char*              symbol       - current symbol
+ * @param  uint               period       - current period
  *
  * @return BOOL - success status
  *
  *
  * Notes:
  * ------
- * • Libraries loaded by scripts and experts on regular charts do not enter init cycles, libraries in indicators do. However,
- *   libraries loaded by experts in the Strategy Tester enter an init cycle between repetitive tests if the last test was not
- *   manually stopped (by clicking the "Stop" button).
+ * During init cycles libraries keep state. This can be used to distinguish between first loading and the init cycle.
+ * There are two scenarios where libraries execute init cycles.
  *
- * • During an init cycle libraries keep state. This is used to distinguish between libraries entering init() the first time
- *   and libraries entering init() as a result of an init cycle.
+ * (1) Libraries loaded by indicators during the indicator's regular init cycle.
+ *     - Library::deinit() is called after Indicator::deinit()
+ *     - Library::init() is called before Indicator::init()
  *
- * Bugs:
- * -----
- * • After an init cycle in Strategy Tester a library falsely keeps state of the former IsVisualMode() flag. This happens
- *   even if the tested symbol or the timeframe change.
- *   Workaround: Instead of the function IsVisualMode() libraries and indicators (which can be loaded by libraries) must use
- *   the corresponding flag in the execution context.
+ * (2) Libraries loaded by experts in Strategy Tester between tests if the finished test was not explicitly stopped.
  *
- * • After an init cycle in Strategy Tester a library falsely keeps state of the last order context of the former test. Order
- *   functions return wrong results.
- *   Workaround: In "include/core/library::init()" of the MQL framework the order context is manually reset.
+ *     - !!! wann wird Library::deinit() aufgerufen !!!
+ *
+ *     - Library::init() is called before Expert::init()
+ *     - Bug: In this scenario libraries falsely keep state of the former IsVisualMode() flag. This is true even if tested
+ *       symbol or tested timeframe change.
+ *       Workaround: Instead of IsVisualMode() use the corresponding flag of the execution context.
+ *     - Bug: In this scenario libraries falsely keep state of the last order context and order functions return unexpected
+ *       results.
+ *       Workaround: On test start the order context needs to be explicitly reset. @see MQL::core/library::init()
  */
-BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, const char* moduleName, const char* symbol, uint period) {
+BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period) {
    if ((uint)ec         < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
    if ((uint)moduleName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter moduleName=0x%p (not a valid pointer)", moduleName));
    if ((uint)symbol     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol=0x%p (not a valid pointer)", symbol));
    if ((int)period <= 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter period=%d", (int)period));
 
-   // (1) Wenn keine ProgramID gesetzt ist, wird die Library zum ersten mal geladen und der Context ist undefiniert.
-   //     • Master-Context übernehmen und Library-Felder im Context aktualisieren
+   // (1) If ec.ProgramID is not set: library is loaded the first time and the context is empty.
+   //     • copy master context and update library specific fields
    //
-   // (2) Wenn die ProgramID gesetzt ist, prüfen, ob der Init-Cycle im Indikator (UI-Thread) oder im Expert/Tester statttfindet.
-   //     • Init-Cycle im Indikator
-   //       -
-   //     • Init-Cycle im Expert im Tester
-   //       -
+   // (2) If ec.ProgramID is set: check if init cycle in indicator (UI thread) or in expert in Tester (not UI thread)
+   //     (2.1) init cycle in indicator
+   //     (2.2) init cycle in expert in Tester
 
    if (!ec->programId) {
-      // (1) Library wird zum ersten mal geladen (vom Programm im aktuellen Thread)
-      uint index     = StoreThreadAndProgram(0);         // get index of the current thread (last program is already set)
-      uint programId = threadsPrograms[index];
+      // (1) library is loaded the first time by the current thread's program
+      uint index     = StoreThreadAndProgram(0);         // get index of current thread (its current program is already set)
+      uint programId = threadsPrograms[index];           // get id of current program (the library loader)
 
       *ec = *contextChains[programId][0];                // copy master context
 
-      ec_SetModuleType(ec, MT_LIBRARY);                  // TODO: update library specific context fields
-      ec_SetModuleName(ec, moduleName);
-      ec->rootFunction = RF_INIT;
-      ec->mqlError     = NO_ERROR;
+      ec_SetModuleType  (ec, MT_LIBRARY            );    // update library specific fields
+      ec_SetModuleName  (ec, moduleName            );
+      ec_SetRootFunction(ec, RF_INIT               );
+      ec_SetInitCycle   (ec, FALSE                 );
+      ec_SetInitReason  (ec, (InitializeReason)NULL);
+      ec_SetUninitReason(ec, uninitReason          );
+      ec_SetInitFlags   (ec, initFlags             );
+      ec_SetDeinitFlags (ec, deinitFlags           );
+      ec_SetTicks       (ec, NULL                  );
+      ec_SetMqlError    (ec, NO_ERROR              );
+      ec_SetDllError    (ec, NO_ERROR              );
+      ec->dllErrorMsg   = NULL;                          // TODO
+      ec_SetDllWarning  (ec, NO_ERROR              );
+      ec->dllWarningMsg = NULL;                          // TODO
 
       contextChains[programId].push_back(ec);            // add context to the program's context chain
    }
 
    else if (IsUIThread()) {
-      // (2) Init-Cycle eines Indikators, called before Indicator::init()
+      // (2.1) Init-Cycle eines Indikators, called before Indicator::init()
       StoreThreadAndProgram(ec->programId);              // store last executed program (asap)
 
       ec->rootFunction = RF_INIT;                        // TODO: update library context fields
@@ -325,7 +333,7 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
    }
 
    else {
-      // (3) Init-Cycle der Library eines Experts im Tester, called before Expert::init()
+      // (2.2) Init-Cycle der Library eines Experts im Tester, called before Expert::init()
       StoreThreadAndProgram(ec->programId);              // store last executed program (asap)
 
       ec->rootFunction = RF_INIT;
@@ -508,8 +516,8 @@ HWND WINAPI FindCurrentChart(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
  * variables are initialized with zero which is the reason an indicator cannot keep state over an init cycle. Between deinit()
  * and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have no name known only to
  * the scammers of MetaQuotes) state is kept in the master execution context which acts as a backup of the then lost main
- * execution context. On re-entry the master context is copied back to the then newly allocated main context and state of the
- * context survives. Voilà, it crossed the afterlife.
+ * execution context. On re-entry the master context is copied back to the newly allocated main context and state of the context
+ * survives. Voilà, it crossed the afterlife.
  */
 int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
    if (hChart) {
@@ -1561,15 +1569,20 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
    if ((uint)ec < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    switch (reason) {
-      case INIT_REASON_USER             :
-      case INIT_REASON_TEMPLATE         :
-      case INIT_REASON_PROGRAM          :
+      case INIT_REASON_USER:
+      case INIT_REASON_TEMPLATE:
+      case INIT_REASON_PROGRAM:
       case INIT_REASON_PROGRAM_AFTERTEST:
-      case INIT_REASON_PARAMETERS       :
-      case INIT_REASON_TIMEFRAMECHANGE  :
-      case INIT_REASON_SYMBOLCHANGE     :
-      case INIT_REASON_RECOMPILE        :                                break;
-      case NULL                         : if (ec->moduleType==MT_EXPERT) break;
+      case INIT_REASON_PARAMETERS:
+      case INIT_REASON_TIMEFRAMECHANGE:
+      case INIT_REASON_SYMBOLCHANGE:
+      case INIT_REASON_RECOMPILE:
+         break;
+
+      case NULL:
+         if (ec->moduleType==MT_EXPERT ) break;
+         if (ec->moduleType==MT_LIBRARY) break;
+
       default:
          return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d (not an InitializeReason)", reason));
    }
