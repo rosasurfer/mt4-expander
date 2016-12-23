@@ -299,46 +299,48 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
 
    if (!ec->programId) {
       // (1) library is loaded the first time by the current thread's program
-      uint index     = StoreThreadAndProgram(0);         // get index of current thread (its current program is already set)
-      uint programId = threadsPrograms[index];           // get id of current program (the library loader)
+      uint index     = StoreThreadAndProgram(0);                     // get the current thread's index (current program is already set)
+      uint programId = threadsPrograms[index];                       // get the current program's id (the library loader)
 
-      *ec = *contextChains[programId][0];                // copy master context
+      *ec = *contextChains[programId][0];                            // copy master context
 
-      ec_SetModuleType  (ec, MT_LIBRARY            );    // update library specific fields
+      ec_SetModuleType  (ec, MT_LIBRARY            );                // update library specific fields
       ec_SetModuleName  (ec, moduleName            );
       ec_SetRootFunction(ec, RF_INIT               );
       ec_SetInitCycle   (ec, FALSE                 );
-      ec_SetInitReason  (ec, (InitializeReason)NULL);
+      ec_SetInitReason  (ec, (InitializeReason)NULL);                // in libraries always NULL
       ec_SetUninitReason(ec, uninitReason          );
       ec_SetInitFlags   (ec, initFlags             );
       ec_SetDeinitFlags (ec, deinitFlags           );
-      ec_SetTicks       (ec, NULL                  );
-      ec_SetMqlError    (ec, NO_ERROR              );
-      ec_SetDllError    (ec, NO_ERROR              );
-      ec->dllErrorMsg   = NULL;                          // TODO
-      ec_SetDllWarning  (ec, NO_ERROR              );
-      ec->dllWarningMsg = NULL;                          // TODO
 
-      contextChains[programId].push_back(ec);            // add context to the program's context chain
+      ec_SetTicks       (ec, NULL);                                  // in libraries always NULL
+      ec_SetMqlError    (ec, NULL);                                  // in libraries always NULL
+      ec_SetDllError    (ec, NULL);
+      ec->dllErrorMsg   =    NULL;                                   // TODO: implement getter/setter
+      ec_SetDllWarning  (ec, NULL);
+      ec->dllWarningMsg =    NULL;                                   // TODO: implement getter/setter
+
+      contextChains[programId].push_back(ec);                        // add context to the program's context chain
    }
 
    else if (IsUIThread()) {
-      // (2.1) Init-Cycle eines Indikators, called before Indicator::init()
-      StoreThreadAndProgram(ec->programId);              // store last executed program (asap)
+      // (2.1) init cycle in indicator called before Indicator::init()
+      StoreThreadAndProgram(ec->programId);                          // store last executed program (asap)
 
-      ec->rootFunction = RF_INIT;                        // TODO: update library context fields
-      ec->mqlError     = NO_ERROR;                       // TODO: check master context for changes
-      ec_SetSymbol   (ec, symbol);
-      ec_SetTimeframe(ec, period);
+      ec_SetRootFunction(ec, RF_INIT     );                          // update library specific fields
+      ec_SetInitCycle   (ec, FALSE       );                          // TODO: mark master context ???
+      ec_SetUninitReason(ec, uninitReason);
+      ec_SetSymbol      (ec, symbol      );
+      ec_SetTimeframe   (ec, period      );
    }
 
    else {
-      // (2.2) Init-Cycle der Library eines Experts im Tester, called before Expert::init()
-      StoreThreadAndProgram(ec->programId);              // store last executed program (asap)
+      // (2.2) init cycle in expert in Tester called before Expert::init()
+      StoreThreadAndProgram(ec->programId);                          // store last executed program (asap)
 
       ec->rootFunction = RF_INIT;
-      ec->initCycle    = TRUE;                           // mark library context
-      contextChains[ec->programId][0]->initCycle = TRUE; // mark master context
+      ec->initCycle    = TRUE;                                       // mark library context
+      contextChains[ec->programId][0]->initCycle = TRUE;             // mark master context
    }
 
    //debug("%s::%s::init()  ec=%s", ec->programName, ec->moduleName, EXECUTION_CONTEXT_toStr(ec));
@@ -348,7 +350,7 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
 
 
 /**
- * Synchronize a library's EXECUTION_CONTEXT with the context of its main module. Called in Library::deinit().
+ * Update a library's EXECUTION_CONTEXT. Called in Library::deinit().
  *
  * @param  EXECUTION_CONTEXT* ec           - the libray's execution context
  * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
@@ -361,9 +363,8 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
    StoreThreadAndProgram(ec->programId);                             // store last executed program (asap)
 
-   ec_SetRootFunction(ec, RF_DEINIT           );                     // update context
-   ec_SetUninitReason(ec, uninitReason        );
-   ec_SetThreadId    (ec, GetCurrentThreadId());
+   ec_SetRootFunction(ec, RF_DEINIT   );                             // update library specific context fields
+   ec_SetUninitReason(ec, uninitReason);
 
    //debug("%s::%s::deinit()  ec@%d=%s", ec->programName, ec->moduleName, ec, EXECUTION_CONTEXT_toStr(ec));
    return(TRUE);
@@ -1959,7 +1960,7 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
  */
 uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if (count <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter count = %d (must be greater than zero)", count));
+   if (count < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter count = %d (must be non-negative)", count));
 
    ec->ticks = count;
 
