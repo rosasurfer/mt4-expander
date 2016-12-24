@@ -87,7 +87,7 @@ BOOL               WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramT
 BOOL               WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec);
 BOOL               WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason reason);
 
-BOOL               WINAPI SyncLibContext_init   (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint period);
+BOOL               WINAPI SyncLibContext_init   (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint period, BOOL isOptimization);
 BOOL               WINAPI SyncLibContext_deinit (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason);
 
 BOOL               WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);

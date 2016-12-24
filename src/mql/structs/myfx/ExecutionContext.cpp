@@ -186,16 +186,24 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          pec_vector &lastChain    = contextChains[lastProgramId];
          uint        lastSize     = lastChain.size();
 
-         for (uint i=2; i < lastSize; i++) {
+         for (uint i=2; i < lastSize; i++) {                         // skip master and main context
             lib = lastChain[i];
             if (!lib) {
-               warn(ERR_ILLEGAL_STATE, "unexpected library context found (lib_%d=NULL) for lastProgramId=%d", i, lastProgramId);
+               warn(ERR_ILLEGAL_STATE, "unexpected library context found (lib=chain[%d]=NULL) for lastProgramId=%d", i, lastProgramId);
                continue;
             }
             if (lib->initCycle) {
                lastChain[i] = NULL;
-               lib->programId = ec->programId;                       // TODO: update all relevant library context fields
-               lib->initCycle = FALSE;
+
+               ec_SetProgramId   (lib, ec->programId   );            // update all relevant library context fields
+               ec_SetInitCycle   (lib, FALSE           );
+               ec_SetVisualMode  (lib, ec->visualMode  );
+               ec_SetOptimization(lib, ec->optimization);            // necessary?
+               ec_SetLogging     (lib, ec->logging     );
+               ec_SetLogFile     (lib, ec->logFile     );
+               ec_SetHChart      (lib, ec->hChart      );
+               ec_SetHChartWindow(lib, ec->hChartWindow);
+
                currentChain.push_back(lib);
             }
          }
@@ -252,13 +260,14 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
  * Synchronize a library's EXECUTION_CONTEXT with the context of the executing program's main module. Called in Library::init().
  * If a library is loaded the first time its context is added to the context chain of the program.
  *
- * @param  EXECUTION_CONTEXT* ec           - the libray's execution context
- * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
- * @param  DWORD              initFlags    - init configuration
- * @param  DWORD              deinitFlags  - deinit configuration
- * @param  char*              moduleName   - the library's name w/o path according to the terminal version
- * @param  char*              symbol       - current symbol
- * @param  uint               period       - current period
+ * @param  EXECUTION_CONTEXT* ec             - the libray's execution context
+ * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal
+ * @param  DWORD              initFlags      - init configuration
+ * @param  DWORD              deinitFlags    - deinit configuration
+ * @param  char*              moduleName     - the library's name w/o path according to the terminal version
+ * @param  char*              symbol         - current symbol
+ * @param  uint               period         - current period
+ * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminaL
  *
  * @return BOOL - success status
  *
@@ -284,7 +293,7 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
  *       results.
  *       Workaround: On test start the order context needs to be explicitly reset. @see MQL::core/library::init()
  */
-BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period) {
+BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, BOOL isOptimization) {
    if ((uint)ec         < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
    if ((uint)moduleName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter moduleName=0x%p (not a valid pointer)", moduleName));
    if ((uint)symbol     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol=0x%p (not a valid pointer)", symbol));
@@ -316,9 +325,9 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
       ec_SetTicks       (ec, NULL);                                  // in libraries always NULL
       ec_SetMqlError    (ec, NULL);                                  // in libraries always NULL
       ec_SetDllError    (ec, NULL);
-      ec->dllErrorMsg   =    NULL;                                   // TODO: implement getter/setter
+      ec->dllErrorMsg   =    NULL;                                   // TODO: implement g/setter
       ec_SetDllWarning  (ec, NULL);
-      ec->dllWarningMsg =    NULL;                                   // TODO: implement getter/setter
+      ec->dllWarningMsg =    NULL;                                   // TODO: implement g/setter
 
       contextChains[programId].push_back(ec);                        // add context to the program's context chain
    }
@@ -338,8 +347,20 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
       // (2.2) init cycle in expert in Tester called before Expert::init()
       StoreThreadAndProgram(ec->programId);                          // store last executed program (asap)
 
-      ec->rootFunction = RF_INIT;
-      ec->initCycle    = TRUE;                                       // mark library context
+      // update library specific fields: ec.programId is updated in Expert::init()
+      ec_SetRootFunction(ec, RF_INIT             );
+      ec_SetInitCycle   (ec, TRUE                );                  // mark library context
+      ec_SetUninitReason(ec, uninitReason        );
+      ec_SetVisualMode  (ec, FALSE               );                  // updated in Expert::init()
+      ec_SetOptimization(ec, isOptimization      );                  // is this always correct here?
+      ec_SetLogging     (ec, FALSE               );                  // updated in Expert::init()
+      ec_SetLogFile     (ec, NULL                );                  // updated in Expert::init()
+      ec_SetSymbol      (ec, symbol              );
+      ec_SetTimeframe   (ec, period              );
+      ec_SetHChart      (ec, NULL                );                  // updated in Expert::init()
+      ec_SetHChartWindow(ec, NULL                );                  // updated in Expert::init()
+      ec_SetThreadId    (ec, GetCurrentThreadId());
+
       contextChains[ec->programId][0]->initCycle = TRUE;             // mark master context
    }
 
@@ -726,29 +747,25 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER)  return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=%p (not a valid pointer)", ec));
    uint id = ec->programId;
    if ((int)id < 1)                   return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId=%d  ec=%s", (int)id, EXECUTION_CONTEXT_toStr(ec)));
-   //if (ec->rootFunction != RF_DEINIT) return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.rootFunction not RF_DEINIT  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   EXECUTION_CONTEXT* master = contextChains[id][0];
+   if (ec->rootFunction != RF_DEINIT) return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.rootFunction not RF_DEINIT  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    switch (ec->moduleType) {
       case MT_INDICATOR:
       case MT_SCRIPT:
          if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
-         master->rootFunction = ec->rootFunction = (RootFunction)NULL;
-         contextChains[id][1] = NULL;                                // always mark context as released
+         ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
+         contextChains[id][1] = NULL;                                // mark main context as released
          break;
 
       case MT_EXPERT:
          if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
-         master->rootFunction = ec->rootFunction = (RootFunction)NULL;
-         if (ec->uninitReason!=REASON_CHARTCHANGE && ec->uninitReason!=REASON_PARAMETERS && ec->uninitReason!=REASON_ACCOUNT) {
-            contextChains[id][1] = NULL;                             // mark context as released if not in init cycle
-         }
+         ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
+         if (ec->uninitReason!=REASON_CHARTCHANGE && ec->uninitReason!=REASON_PARAMETERS && ec->uninitReason!=REASON_ACCOUNT)
+            contextChains[id][1] = NULL;                             // mark main context as released if not in init cycle
          break;
 
       case MT_LIBRARY:
-         if (ec==master || ec==contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as library context)  ec=%s", ec->programName, ec->moduleName, ec, EXECUTION_CONTEXT_toStr(ec)));
-         ec->rootFunction = (RootFunction)NULL;
+         ec_SetRootFunction(ec, (RootFunction)NULL);                 // set library context to NULL
          return(FALSE);
 
       default:
@@ -1520,7 +1537,10 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
    switch (id) {
       case RF_INIT  :
       case RF_START :
-      case RF_DEINIT: break;
+      case RF_DEINIT:
+      case NULL     :
+         break;
+
       default:
          return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter id = %d (not a RootFunction)", id));
    }
