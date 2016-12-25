@@ -160,6 +160,12 @@ int                WINAPI ec_SetDllWarning        (EXECUTION_CONTEXT* ec, int   
 //                        ...
 
 
+// Master context getters
+RootFunction       WINAPI mec_RootFunction(const EXECUTION_CONTEXT* ec);
+UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec);
+DWORD              WINAPI mec_InitFlags   (const EXECUTION_CONTEXT* ec);
+
+
 // Helpers
 const char*        WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec, BOOL outputDebug=FALSE);
 const char*        WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug=FALSE);
