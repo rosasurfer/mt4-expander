@@ -27,39 +27,39 @@
  *
  *  Init cycle of a single indicator with libraries:
  *  --- first load ------------------------------------------------------------------------------------------------------------
- *  Indicator::init()              REASON_UNDEFINED    programId=0  creating new chain             set programId=1
- *  Indicator::libraryA::init()    REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
- *  Indicator::libraryB::init()    REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
- *  Indicator::libraryC::init()    REASON_UNDEFINED    programId=0  loaded by libraryA             set programId=1
+ *  Indicator::init()              UR_UNDEFINED    programId=0  creating new chain             set programId=1
+ *  Indicator::libraryA::init()    UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
+ *  Indicator::libraryB::init()    UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
+ *  Indicator::libraryC::init()    UR_UNDEFINED    programId=0  loaded by libraryA             set programId=1
  *  --- deinit() --------------------------------------------------------------------------------------------------------------
- *  Indicator::deinit()            REASON_CHARTCHANGE  programId=1  indicator first
- *  Indicator::libraryA::deinit()  REASON_UNDEFINED    programId=1  then libraries
- *  Indicator::libraryC::deinit()  REASON_UNDEFINED    programId=1  hierarchical (not in loading order)
- *  Indicator::libraryB::deinit()  REASON_UNDEFINED    programId=1
+ *  Indicator::deinit()            UR_CHARTCHANGE  programId=1  indicator first
+ *  Indicator::libraryA::deinit()  UR_UNDEFINED    programId=1  then libraries
+ *  Indicator::libraryC::deinit()  UR_UNDEFINED    programId=1  hierarchical (not in loading order)
+ *  Indicator::libraryB::deinit()  UR_UNDEFINED    programId=1
  *  --- init() ----------------------------------------------------------------------------------------------------------------
- *  Indicator::libraryA::init()    REASON_UNDEFINED    programId=1  libraries first (new symbol and timeframe show up)
- *  Indicator::libraryC::init()    REASON_UNDEFINED    programId=1  hierarchical (not in loading order)
- *  Indicator::libraryB::init()    REASON_UNDEFINED    programId=1
- *  Indicator::init()              REASON_CHARTCHANGE  programId=0  then indicator                 set programId=1
+ *  Indicator::libraryA::init()    UR_UNDEFINED    programId=1  libraries first (new symbol and timeframe show up)
+ *  Indicator::libraryC::init()    UR_UNDEFINED    programId=1  hierarchical (not in loading order)
+ *  Indicator::libraryB::init()    UR_UNDEFINED    programId=1
+ *  Indicator::init()              UR_CHARTCHANGE  programId=0  then indicator                 set programId=1
  *  ---------------------------------------------------------------------------------------------------------------------------
  *
  *
  *  Init cycle of multiple indicators with libraries:
  *  --- first load ------------------------------------------------------------------------------------------------------------
- *  ChartInfos::init()             REASON_UNDEFINED    programId=0  creating new chain             set programId=1
- *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=0  loaded by indicator            set programId=1
- *  SuperBars::init()              REASON_UNDEFINED    programId=0  creating new chain             set programId=2
- *  SuperBars::lib::init()         REASON_UNDEFINED    programId=0  loaded by indicator            set programId=2
+ *  ChartInfos::init()             UR_UNDEFINED    programId=0  creating new chain             set programId=1
+ *  ChartInfos::lib::init()        UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
+ *  SuperBars::init()              UR_UNDEFINED    programId=0  creating new chain             set programId=2
+ *  SuperBars::lib::init()         UR_UNDEFINED    programId=0  loaded by indicator            set programId=2
  *  --- deinit() --------------------------------------------------------------------------------------------------------------
- *  ChartInfos::deinit()           REASON_CHARTCHANGE  programId=1
- *  ChartInfos::lib::deinit()      REASON_UNDEFINED    programId=1
- *  SuperBars::deinit()            REASON_CHARTCHANGE  programId=2
- *  SuperBars::lib::deinit()       REASON_UNDEFINED    programId=2
+ *  ChartInfos::deinit()           UR_CHARTCHANGE  programId=1
+ *  ChartInfos::lib::deinit()      UR_UNDEFINED    programId=1
+ *  SuperBars::deinit()            UR_CHARTCHANGE  programId=2
+ *  SuperBars::lib::deinit()       UR_UNDEFINED    programId=2
  *  --- init() ----------------------------------------------------------------------------------------------------------------
- *  ChartInfos::lib::init()        REASON_UNDEFINED    programId=1
- *  ChartInfos::init()             REASON_CHARTCHANGE  programId=0  first indicator in limbo       set programId=1
- *  SuperBars::lib::init()         REASON_UNDEFINED    programId=2
- *  SuperBars::init()              REASON_CHARTCHANGE  programId=0  next indicator in limbo        set programId=2
+ *  ChartInfos::lib::init()        UR_UNDEFINED    programId=1
+ *  ChartInfos::init()             UR_CHARTCHANGE  programId=0  first indicator in limbo       set programId=1
+ *  SuperBars::lib::init()         UR_UNDEFINED    programId=2
+ *  SuperBars::init()              UR_CHARTCHANGE  programId=0  next indicator in limbo        set programId=2
  *  ---------------------------------------------------------------------------------------------------------------------------
  */
 BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int subChartDropped) {
@@ -620,20 +620,20 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 547-551: onInit_User()             - Broken: Wird zwei mal aufgerufen, beim zweiten mal ist der EXECUTION_CONTEXT ung¸ltig.
-   - Build  >= 654: onInit_User()             - UninitializeReason() ist REASON_UNDEFINED.
+   - Build  >= 654: onInit_User()             - UninitializeReason() ist UR_UNDEFINED.
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 577-583: onInit_Template()         - Broken: Kein Aufruf bei Terminal-Start, der Indikator wird aber geladen.
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 556-569: onInit_Program()          - Broken: Wird in- und auﬂerhalb des Testers bei jedem Tick aufgerufen.
    ------------------------------------------------------------------------------------------------------------------------------------
-   - Build  <= 229: onInit_ProgramAfterTest() - UninitializeReason() ist REASON_UNDEFINED.
+   - Build  <= 229: onInit_ProgramAfterTest() - UninitializeReason() ist UR_UNDEFINED.
    - Build     387: onInit_ProgramAfterTest() - Broken: Wird nie aufgerufen.
-   - Build 388-628: onInit_ProgramAfterTest() - UninitializeReason() ist REASON_REMOVE.
+   - Build 388-628: onInit_ProgramAfterTest() - UninitializeReason() ist UR_REMOVE.
    - Build  <= 577: onInit_ProgramAfterTest() - Wird nur nach einem automatisiertem Test aufgerufen (VisualMode=Off), der Aufruf
                                                 erfolgt vorm Start des n‰chsten Tests.
    - Build  >= 578: onInit_ProgramAfterTest() - Wird auch nach einem manuellen Test aufgerufen (VisualMode=On), nur in diesem Fall
                                                 erfolgt der Aufruf sofort nach Testende.
-   - Build  >= 633: onInit_ProgramAfterTest() - UninitializeReason() ist REASON_CHARTCLOSE.
+   - Build  >= 633: onInit_ProgramAfterTest() - UninitializeReason() ist UR_CHARTCLOSE.
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 577:     onInit_TimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
    ------------------------------------------------------------------------------------------------------------------------------------
@@ -642,8 +642,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    BOOL isUIThread = IsUIThread();
 
 
-   // (1) REASON_PARAMETERS
-   if (uninitReason == REASON_PARAMETERS) {
+   // (1) UR_PARAMETERS
+   if (uninitReason == UR_PARAMETERS) {
       // innerhalb iCustom(): nie
       if (sec)           return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // auﬂerhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
@@ -663,8 +663,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    }
 
 
-   // (2) REASON_CHARTCHANGE
-   if (uninitReason == REASON_CHARTCHANGE) {
+   // (2) UR_CHARTCHANGE
+   if (uninitReason == UR_CHARTCHANGE) {
       // innerhalb iCustom(): nie
       if (sec)               return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // auﬂerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
@@ -680,8 +680,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    }
 
 
-   // (3) REASON_UNDEFINED
-   if (uninitReason == REASON_UNDEFINED) {
+   // (3) UR_UNDEFINED
+   if (uninitReason == UR_UNDEFINED) {
       // auﬂerhalb iCustom(): je nach Umgebung
       if (!sec) {
          if (build < 654)          return(IR_TEMPLATE);              // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
@@ -697,8 +697,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    }
 
 
-   // (4) REASON_REMOVE
-   if (uninitReason == REASON_REMOVE) {
+   // (4) UR_REMOVE
+   if (uninitReason == UR_REMOVE) {
       // auﬂerhalb iCustom(): nie
       if (!sec)                                                 return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
@@ -709,8 +709,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    }
 
 
-   // (5) REASON_RECOMPILE
-   if (uninitReason == REASON_RECOMPILE) {
+   // (5) UR_RECOMPILE
+   if (uninitReason == UR_RECOMPILE) {
       // innerhalb iCustom(): nie
       if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // auﬂerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
@@ -718,8 +718,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    }
 
 
-   // (6) REASON_CHARTCLOSE
-   if (uninitReason == REASON_CHARTCLOSE) {
+   // (6) UR_CHARTCLOSE
+   if (uninitReason == UR_CHARTCLOSE) {
       // auﬂerhalb iCustom(): nie
       if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
@@ -730,10 +730,10 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
 
 
    switch (uninitReason) {
-      case REASON_ACCOUNT:       // nie
-      case REASON_TEMPLATE:      // build > 509
-      case REASON_INITFAILED:    // ...
-      case REASON_CLOSE:         // ...
+      case UR_ACCOUNT:       // nie
+      case UR_TEMPLATE:      // build > 509
+      case UR_INITFAILED:    // ...
+      case UR_CLOSE:         // ...
          return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
    }
    return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", uninitReason, sec, isTesting, isVisualMode, isUIThread, build));
@@ -764,7 +764,7 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
       case MT_EXPERT:
          if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
          ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
-         if (ec->uninitReason!=REASON_CHARTCHANGE && ec->uninitReason!=REASON_PARAMETERS && ec->uninitReason!=REASON_ACCOUNT)
+         if (ec->uninitReason!=UR_CHARTCHANGE && ec->uninitReason!=UR_PARAMETERS && ec->uninitReason!=UR_ACCOUNT)
             contextChains[id][1] = NULL;                             // mark main context as released if not in init cycle
          break;
 
@@ -1635,17 +1635,17 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
    if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    switch (reason) {
-      case REASON_UNDEFINED  :
-      case REASON_REMOVE     :
-      case REASON_RECOMPILE  :
-      case REASON_CHARTCHANGE:
-      case REASON_CHARTCLOSE :
-      case REASON_PARAMETERS :
-      case REASON_ACCOUNT    :
+      case UR_UNDEFINED  :
+      case UR_REMOVE     :
+      case UR_RECOMPILE  :
+      case UR_CHARTCHANGE:
+      case UR_CHARTCLOSE :
+      case UR_PARAMETERS :
+      case UR_ACCOUNT    :
       // build > 509
-      case REASON_TEMPLATE   :
-      case REASON_INITFAILED :
-      case REASON_CLOSE      : break;
+      case UR_TEMPLATE   :
+      case UR_INITFAILED :
+      case UR_CLOSE      : break;
       default:
          return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d (not an UninitializeReason)", reason));
    }

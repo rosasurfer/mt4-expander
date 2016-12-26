@@ -412,16 +412,16 @@ const char* WINAPI TimeframeDescription(uint timeframe) {
  */
 const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
    switch (reason) {
-      case REASON_UNDEFINED  : return("REASON_UNDEFINED"  );
-      case REASON_REMOVE     : return("REASON_REMOVE"     );
-      case REASON_RECOMPILE  : return("REASON_RECOMPILE"  );
-      case REASON_CHARTCHANGE: return("REASON_CHARTCHANGE");
-      case REASON_CHARTCLOSE : return("REASON_CHARTCLOSE" );
-      case REASON_PARAMETERS : return("REASON_PARAMETERS" );
-      case REASON_ACCOUNT    : return("REASON_ACCOUNT"    );
-      case REASON_TEMPLATE   : return("REASON_TEMPLATE"   );            // ab Build > 509
-      case REASON_INITFAILED : return("REASON_INITFAILED" );            // ...
-      case REASON_CLOSE      : return("REASON_CLOSE"      );            // ...
+      case UR_UNDEFINED  : return("UR_UNDEFINED"  );
+      case UR_REMOVE     : return("UR_REMOVE"     );
+      case UR_RECOMPILE  : return("UR_RECOMPILE"  );
+      case UR_CHARTCHANGE: return("UR_CHARTCHANGE");
+      case UR_CHARTCLOSE : return("UR_CHARTCLOSE" );
+      case UR_PARAMETERS : return("UR_PARAMETERS" );
+      case UR_ACCOUNT    : return("UR_ACCOUNT"    );
+      case UR_TEMPLATE   : return("UR_TEMPLATE"   );            // ab Build > 509
+      case UR_INITFAILED : return("UR_INITFAILED" );            // ...
+      case UR_CLOSE      : return("UR_CLOSE"      );            // ...
    }
    error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d", reason);
    return(NULL);
