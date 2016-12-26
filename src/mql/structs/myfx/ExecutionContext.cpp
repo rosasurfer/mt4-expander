@@ -95,8 +95,8 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    if (!ec->programId) {
       // (1) Wenn keine ProgramID gesetzt ist, prüfen, ob Programm ein Indikator im Init-Cycle oder nach einem Test ist.
       initReason                = InitReason(programName, programType, uninitReason, symbol, ec, sec, isTesting, isVisualMode, hChart, subChartDropped);
-      BOOL indicatorInInitCycle = programType==PT_INDICATOR && (initReason==INIT_REASON_PARAMETERS || initReason==INIT_REASON_SYMBOLCHANGE || initReason==INIT_REASON_TIMEFRAMECHANGE);
-      BOOL indicatorAfterTest   = programType==PT_INDICATOR && initReason==INITREASON_PROGRAM_AFTERTEST;
+      BOOL indicatorInInitCycle = programType==PT_INDICATOR && (initReason==IR_PARAMETERS || initReason==IR_SYMBOLCHANGE || initReason==IR_TIMEFRAMECHANGE);
+      BOOL indicatorAfterTest   = programType==PT_INDICATOR && initReason==IR_PROGRAM_AFTERTEST;
 
       if (indicatorInInitCycle) {
          StoreThreadAndProgram(ec->programId);                       // store last executed program (asap)
@@ -108,7 +108,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          //debug("%s::init()  programId=0  init-cycle, was id=%d  thread=%s", programName, ec->programId, IsUIThread() ? "UI": to_string(GetCurrentThreadId()).c_str());
       }
       else {
-         // (1.2) Programm ist kein Indikator im Init-Cycle          // TODO: on INITREASON_PROGRAM_AFTERTEST existiert ein vorheriger Context
+         // (1.2) Programm ist kein Indikator im Init-Cycle          // TODO: on IR_PROGRAM_AFTERTEST existiert ein vorheriger Context
          //   - neue Context-Chain erzeugen
          //   - neuen Master-Context erzeugen
          //   - Master- und Hauptkontext in der Chain speichern
@@ -603,7 +603,7 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    if ((uint)ec          < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
 
-   if (programType == PT_SCRIPT) return(       INITREASON_USER);
+   if (programType == PT_SCRIPT) return(               IR_USER);
    if (programType == PT_EXPERT) return((InitializeReason)NULL);
    /*
    Init-Szenarien:
@@ -658,8 +658,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
          isProgramNew = !programId;
          if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
       }
-      if (isProgramNew) return(INITREASON_USER      );               // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
-      else              return(INITREASON_PARAMETERS);               // Parameter-Wechsel eines vorhandenen Indikators
+      if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
+      else              return(IR_PARAMETERS);                       // Parameter-Wechsel eines vorhandenen Indikators
    }
 
 
@@ -675,8 +675,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
          if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
       }
       char* masterSymbol = contextChains[programId][0]->symbol;
-      if (strcmp(masterSymbol, symbol)) return(INITREASON_TIMEFRAMECHANGE);
-      else                              return(INITREASON_SYMBOLCHANGE   );
+      if (strcmp(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
+      else                              return(IR_SYMBOLCHANGE   );
    }
 
 
@@ -684,16 +684,16 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
    if (uninitReason == REASON_UNDEFINED) {
       // außerhalb iCustom(): je nach Umgebung
       if (!sec) {
-         if (build < 654)          return(INITREASON_TEMPLATE);      // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
-         if (subChartDropped >= 0) return(INITREASON_TEMPLATE);
-         else                      return(INITREASON_USER    );      // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
+         if (build < 654)          return(IR_TEMPLATE);              // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
+         if (subChartDropped >= 0) return(IR_TEMPLATE);
+         else                      return(IR_USER    );              // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
       }
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
-         if (build <= 229)         return(INITREASON_PROGRAM_AFTERTEST);
+         if (build <= 229)         return(IR_PROGRAM_AFTERTEST);
                                    return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       }
-      return(INITREASON_PROGRAM);
+      return(IR_PROGRAM);
    }
 
 
@@ -703,8 +703,8 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
       if (!sec)                                                 return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread)                            return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
-      if (!isVisualMode/*Fix*/) { if (388<=build && build<=628) return(INITREASON_PROGRAM_AFTERTEST); }
-      else                      { if (578<=build && build<=628) return(INITREASON_PROGRAM_AFTERTEST); }
+      if (!isVisualMode/*Fix*/) { if (388<=build && build<=628) return(IR_PROGRAM_AFTERTEST); }
+      else                      { if (578<=build && build<=628) return(IR_PROGRAM_AFTERTEST); }
       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
    }
 
@@ -714,7 +714,7 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
       // innerhalb iCustom(): nie
       if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // außerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
-      return(INITREASON_RECOMPILE);
+      return(IR_RECOMPILE);
    }
 
 
@@ -724,7 +724,7 @@ InitializeReason WINAPI InitReason(const char* programName, ProgramType programT
       if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
-      if (build >= 633)              return(INITREASON_PROGRAM_AFTERTEST);
+      if (build >= 633)              return(IR_PROGRAM_AFTERTEST);
       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
    }
 
@@ -1594,14 +1594,14 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
    if ((uint)ec < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    switch (reason) {
-      case INIT_REASON_USER:
-      case INIT_REASON_TEMPLATE:
-      case INIT_REASON_PROGRAM:
-      case INIT_REASON_PROGRAM_AFTERTEST:
-      case INIT_REASON_PARAMETERS:
-      case INIT_REASON_TIMEFRAMECHANGE:
-      case INIT_REASON_SYMBOLCHANGE:
-      case INIT_REASON_RECOMPILE:
+      case IR_USER:
+      case IR_TEMPLATE:
+      case IR_PROGRAM:
+      case IR_PROGRAM_AFTERTEST:
+      case IR_PARAMETERS:
+      case IR_TIMEFRAMECHANGE:
+      case IR_SYMBOLCHANGE:
+      case IR_RECOMPILE:
          break;
 
       case NULL:

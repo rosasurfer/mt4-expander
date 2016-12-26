@@ -173,7 +173,7 @@ const char* WINAPI IntToHexStr(const void* value) {
 
 
 /**
- * Return a readable version of an INIT_REASON_* constant.
+ * Return a readable version of an InitializeReason constant.
  *
  * @param  InitializeReason reason - init reason
  *
@@ -181,15 +181,15 @@ const char* WINAPI IntToHexStr(const void* value) {
  */
 const char* WINAPI InitReasonToStr(InitializeReason reason) {
    switch (reason) {
-      case NULL                         : return("NULL"                         );
-      case INIT_REASON_USER             : return("INIT_REASON_USER"             );
-      case INIT_REASON_TEMPLATE         : return("INIT_REASON_TEMPLATE"         );
-      case INIT_REASON_PROGRAM          : return("INIT_REASON_PROGRAM"          );
-      case INIT_REASON_PROGRAM_AFTERTEST: return("INIT_REASON_PROGRAM_AFTERTEST");
-      case INIT_REASON_PARAMETERS       : return("INIT_REASON_PARAMETERS"       );
-      case INIT_REASON_TIMEFRAMECHANGE  : return("INIT_REASON_TIMEFRAMECHANGE"  );
-      case INIT_REASON_SYMBOLCHANGE     : return("INIT_REASON_SYMBOLCHANGE"     );
-      case INIT_REASON_RECOMPILE        : return("INIT_REASON_RECOMPILE"        );
+      case NULL                : return("NULL"                );
+      case IR_USER             : return("IR_USER"             );
+      case IR_TEMPLATE         : return("IR_TEMPLATE"         );
+      case IR_PROGRAM          : return("IR_PROGRAM"          );
+      case IR_PROGRAM_AFTERTEST: return("IR_PROGRAM_AFTERTEST");
+      case IR_PARAMETERS       : return("IR_PARAMETERS"       );
+      case IR_TIMEFRAMECHANGE  : return("IR_TIMEFRAMECHANGE"  );
+      case IR_SYMBOLCHANGE     : return("IR_SYMBOLCHANGE"     );
+      case IR_RECOMPILE        : return("IR_RECOMPILE"        );
    }
    error(ERR_INVALID_PARAMETER, "invalid parameter reason = %d", reason);
    return(NULL);
