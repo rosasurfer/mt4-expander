@@ -1379,7 +1379,7 @@ uint WINAPI ec_SetProgramId(EXECUTION_CONTEXT* ec, uint id) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if (id <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter id = %d (must be greater than zero)", id));
 
-   ec->programId = id;                                               // Master-Context synchronisieren
+   ec->programId = id;                                               // synchronize main and master context
    if (contextChains.size() > id && ec==contextChains[id][1] && contextChains[id][0])
       return(ec_SetProgramId(contextChains[id][0], id));
 
@@ -1408,7 +1408,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
 
    ec->programType = type;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetProgramType(contextChains[pid][0], type));
 
@@ -1434,7 +1434,7 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
    if (!strcpy(ec->programName, name))
       return(NULL);
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetProgramName(contextChains[pid][0], name));
 
@@ -1464,7 +1464,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
 
    ec->moduleType = type;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetModuleType(contextChains[pid][0], type));
 
@@ -1490,7 +1490,7 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
    if (!strcpy(ec->moduleName, name))
       return(NULL);
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetModuleName(contextChains[pid][0], name));
 
@@ -1519,7 +1519,7 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
 
    ec->launchType = type;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetLaunchType(contextChains[pid][0], type));
 
@@ -1551,7 +1551,7 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
 
    ec->rootFunction = id;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetRootFunction(contextChains[pid][0], id));
 
@@ -1573,7 +1573,7 @@ BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->initCycle = status;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetInitCycle(contextChains[pid][0], status));
 
@@ -1614,7 +1614,7 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
 
    ec->initReason = reason;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetInitReason(contextChains[pid][0], reason));
 
@@ -1652,7 +1652,7 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
 
    ec->uninitReason = reason;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetUninitReason(contextChains[pid][0], reason));
 
@@ -1674,7 +1674,7 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->testing = status;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetTesting(contextChains[pid][0], status));
 
@@ -1696,7 +1696,7 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->visualMode = status;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetVisualMode(contextChains[pid][0], status));
 
@@ -1718,7 +1718,7 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->optimization = status;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetOptimization(contextChains[pid][0], status));
 
@@ -1740,7 +1740,7 @@ DWORD WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
    ec->initFlags = flags;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetInitFlags(contextChains[pid][0], flags));
 
@@ -1762,7 +1762,7 @@ DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
    ec->deinitFlags = flags;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetDeinitFlags(contextChains[pid][0], flags));
 
@@ -1784,7 +1784,7 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->logging = status;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetLogging(contextChains[pid][0], status));
 
@@ -1817,7 +1817,7 @@ const char* WINAPI ec_SetLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
       ec->logFile[0] = '\0';
    }
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetLogFile(contextChains[pid][0], fileName));
 
@@ -1843,7 +1843,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
    if (!strcpy(ec->symbol, symbol))
       return(NULL);
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetSymbol(contextChains[pid][0], symbol));
 
@@ -1866,7 +1866,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
    ec->timeframe = timeframe;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetTimeframe(contextChains[pid][0], timeframe));
 
@@ -1888,7 +1888,7 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
    ec->hChart = hWnd;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetHChart(contextChains[pid][0], hWnd));
 
@@ -1910,7 +1910,7 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
    ec->hChartWindow = hWnd;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetHChartWindow(contextChains[pid][0], hWnd));
 
@@ -1933,7 +1933,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
 
    ec->superContext = sec;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetSuperContext(contextChains[pid][0], sec));
 
@@ -1965,7 +1965,7 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
 
    ec->threadId = id;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetThreadId(contextChains[pid][0], id));
 
@@ -1988,7 +1988,7 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
 
    ec->ticks = count;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       return(ec_SetTicks(contextChains[pid][0], count));
 
@@ -1998,39 +1998,36 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
 
 
 /**
- * Setzt den MQL-Fehler eines EXECUTION_CONTEXT. Diese Funktion wird nur von MQL::SetLastError() aufgerufen.
+ * Set the MQL error code of an EXECUTION_CONTEXT. Called by MQL::SetLastError().
  *
- * Zusätzlich wird der MQL-Fehler in den jeweiligen Hauptkontext propagiert (Propagation zum aufrufenden Hauptmodul).
- * Hat der Kontext einen SuperContext, wird der Fehler auch dorthin propagiert (Propagation zum aufrufenden Programm).
- * Fehler werden nur beim Setzen propagiert, nicht beim Zurücksetzen.
+ * If called with a library context the error will bubble up to the library's main module. If called with an indicator context
+ * loaded by iCustom() the error will bubble up to the loading program. The error code NO_ERROR will never bubble up.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
  *
- * @return int - derselbe Fehler oder -1, falls ein Fehler auftrat
+ * @return int - same error or EMPTY (-1) if an error occurred
  */
 int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec)));
 
    ec->mqlError = error;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       ec_SetMqlError(contextChains[pid][0], error);
 
-   if (!error)                                                       // keine Propagation beim Zurücksetzen eines Fehlers
-      return(error);
+   if (error != NO_ERROR) {                                          // no propagation for NO_ERROR
+      if (ec->moduleType==MT_LIBRARY && pid) {                       // propagation from library to main module
+         EXECUTION_CONTEXT* master = contextChains[pid][0];
+         EXECUTION_CONTEXT* main   = contextChains[pid][1];
+         if (main) ec_SetMqlError(main,   error);                    // whichever is available
+         else      ec_SetMqlError(master, error);
+      }
 
-   if (pid && ec->moduleType==MT_LIBRARY) {                          // Fehler aus Libraries in den Hauptkontext propagieren
-      EXECUTION_CONTEXT* master = contextChains[pid][0];             // (oder den Master-Context, wenn Hauptkontext nicht verfügbar)
-      EXECUTION_CONTEXT* main   = contextChains[pid][1];
-      if (main) ec_SetMqlError(main,   error);
-      else      ec_SetMqlError(master, error);
+      if (ec->superContext)
+         ec_SetMqlError(ec->superContext, error);                    // propagation to parent program
    }
-
-   if (ec->superContext)
-      ec_SetMqlError(ec->superContext, error);                       // Fehler in einen vorhandenen SuperContext propagieren
-
    return(error);
    #pragma EXPORT
 }
@@ -2052,7 +2049,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
 
    ec->dllError = error;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       ec_SetDllError(contextChains[pid][0], error);
 
@@ -2086,7 +2083,7 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 
    ec->dllWarning = error;
 
-   uint pid = ec->programId;                                         // Master-Context synchronisieren
+   uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
       ec_SetDllWarning(contextChains[pid][0], error);
 
