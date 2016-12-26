@@ -1222,7 +1222,7 @@ const char* WINAPI InitFlagsToStr(uint flags) {
       if (flags & INIT_PIPVALUE           ) ss << "|INIT_PIPVALUE";
       if (flags & INIT_BARS_ON_HIST_UPDATE) ss << "|INIT_BARS_ON_HIST_UPDATE";
       if (flags & INIT_CUSTOMLOG          ) ss << "|INIT_CUSTOMLOG";
-      if (flags & INIT_DOESNT_REQUIRE_BARS) ss << "|INIT_DOESNT_REQUIRE_BARS";
+      if (flags & INIT_NO_BARS_REQUIRED   ) ss << "|INIT_NO_BARS_REQUIRED";
    }
    std::string str = ss.str();
    uint size = str.size();
