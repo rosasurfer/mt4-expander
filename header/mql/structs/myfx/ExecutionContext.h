@@ -44,9 +44,9 @@
 struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
    uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
    ProgramType        programType;                 //         4         4     Programmtyp                                     (konstant)   => was für ein Programm bin ich
-   char               programName[MAX_PATH];       //         8       260     Programmname (szchar)                           (konstant)   => wie heißt es
+   char               programName[MAX_PATH];       //         8       260     Programmname                                    (konstant)   => wie heißt es
    ModuleType         moduleType;                  //       268         4     Modultyp                                        (konstant)   => was für ein Modul bin ich
-   char               moduleName[MAX_PATH];        //       272       260     Modulname (szchar)                              (konstant)   => wie heißt es
+   char               moduleName[MAX_PATH];        //       272       260     Modulname                                       (konstant)   => wie heißt es
 
    LaunchType         launchType;                  //       532         4     Launchtyp                                       (konstant)   => wie wurde ich gestartet
    RootFunction       rootFunction;                //       536         4     letzte Rootfunktion des Modules                 (variabel)   => wo bin ich
@@ -60,9 +60,9 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
    DWORD              initFlags;                   //       564         4     Init-Konfiguration                              (konstant)   => wie werde ich initialisiert
    DWORD              deinitFlags;                 //       568         4     Deinit-Konfiguration                            (konstant)   => wie werde ich deinitialisiert
    BOOL               logging;                     //       572         4     Log-Konfiguration                               (konstant)   => was logge ich
-   char               logFile[MAX_PATH];           //       576       260     Name der Logdatei (szchar)                      (konstant)   => wohin logge ich
+   char               customLogFile[MAX_PATH];     //       576       260     Name der Logdatei                               (konstant)   => wohin logge ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       836        12     aktuelles Symbol (szchar)                       (variabel)   => auf welchem Symbol laufe ich
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       836        12     aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
    uint               timeframe;                   //       848         4     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
    HWND               hChart;                      //       852         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
    HWND               hChartWindow;                //       856         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
@@ -111,7 +111,7 @@ BOOL               WINAPI ec_Optimization  (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_InitFlags     (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_DeinitFlags   (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Logging       (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_LogFile       (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_CustomLogFile (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_Symbol        (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Timeframe     (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart        (const EXECUTION_CONTEXT* ec);
@@ -144,7 +144,7 @@ BOOL               WINAPI ec_SetOptimization      (EXECUTION_CONTEXT* ec, BOOL  
 DWORD              WINAPI ec_SetInitFlags         (EXECUTION_CONTEXT* ec, DWORD              flags    );
 DWORD              WINAPI ec_SetDeinitFlags       (EXECUTION_CONTEXT* ec, DWORD              flags    );
 BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
-const char*        WINAPI ec_SetLogFile           (EXECUTION_CONTEXT* ec, const char*        fileName );
+const char*        WINAPI ec_SetCustomLogFile     (EXECUTION_CONTEXT* ec, const char*        fileName );
 const char*        WINAPI ec_SetSymbol            (EXECUTION_CONTEXT* ec, const char*        symbol   );
 uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint               timeframe);
 HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );

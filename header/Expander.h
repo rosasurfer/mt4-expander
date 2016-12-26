@@ -175,7 +175,7 @@ BOOL              WINAPI ProgramIsLogging         (const EXECUTION_CONTEXT* ec);
 BOOL              WINAPI ProgramIsOptimization    (const EXECUTION_CONTEXT* ec, BOOL isOptimization);
 BOOL              WINAPI ProgramIsTesting         (const EXECUTION_CONTEXT* ec, BOOL isTesting);
 BOOL              WINAPI ProgramIsVisualMode      (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
-const char*       WINAPI ProgramLogFile           (const EXECUTION_CONTEXT* ec);
+const char*       WINAPI ProgramCustomLogFile     (const EXECUTION_CONTEXT* ec);
 const char*       WINAPI ProgramTypeDescription   (ProgramType type);
 const char*       WINAPI ProgramTypeToStr         (ProgramType type);
 BOOL              WINAPI RemoveTickTimer          (int timerId);

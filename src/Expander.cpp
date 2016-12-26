@@ -339,6 +339,9 @@ BOOL   WINAPI _BOOL  (BOOL   value, ...) { return(value); }
  *
  */
 int WINAPI Test() {
+
+
+
    typedef std::vector<int> int_vector;
    int_vector ints(1);
 

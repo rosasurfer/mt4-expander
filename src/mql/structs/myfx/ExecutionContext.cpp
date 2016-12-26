@@ -146,24 +146,24 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
 
    // (3.1) Beim ersten Aufruf von init() zu initialisieren
    if (!ec->ticks) {
-      ec_SetProgramType (ec,             programType);
-      ec_SetProgramName (ec,             programName);
-      ec_SetModuleType  (ec, (ModuleType)programType);               // Hauptmodul: ModuleType == ProgramType
-      ec_SetModuleName  (ec,             programName);
-    //ec_SetLaunchType  (ec,             launchType );
+      ec_SetProgramType  (ec,             programType);
+      ec_SetProgramName  (ec,             programName);
+      ec_SetModuleType   (ec, (ModuleType)programType);               // Hauptmodul: ModuleType == ProgramType
+      ec_SetModuleName   (ec,             programName);
+    //ec_SetLaunchType   (ec,             launchType );
 
-      ec_SetSuperContext(ec, sec   );
-      ec_SetHChart      (ec, hChart);
-      ec_SetHChartWindow(ec, hChart ? GetParent(hChart) : NULL);
+      ec_SetSuperContext (ec, sec   );
+      ec_SetHChart       (ec, hChart);
+      ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
-      ec_SetTesting     (ec, isTesting     =ProgramIsTesting     (ec, isTesting     ));
-      ec_SetVisualMode  (ec, isVisualMode  =ProgramIsVisualMode  (ec, isVisualMode  ));
-      ec_SetOptimization(ec, isOptimization=ProgramIsOptimization(ec, isOptimization));
+      ec_SetTesting      (ec, isTesting     =ProgramIsTesting     (ec, isTesting     ));
+      ec_SetVisualMode   (ec, isVisualMode  =ProgramIsVisualMode  (ec, isVisualMode  ));
+      ec_SetOptimization (ec, isOptimization=ProgramIsOptimization(ec, isOptimization));
 
-      ec_SetInitFlags   (ec, initFlags           );
-      ec_SetDeinitFlags (ec, deinitFlags         );
-      ec_SetLogging     (ec, ProgramIsLogging(ec));
-      ec_SetLogFile     (ec, ProgramLogFile  (ec));
+      ec_SetInitFlags    (ec, initFlags               );
+      ec_SetDeinitFlags  (ec, deinitFlags             );
+      ec_SetLogging      (ec, ProgramIsLogging    (ec));
+      ec_SetCustomLogFile(ec, ProgramCustomLogFile(ec));
    }
 
    // (3.2) Bei jedem Aufruf von init() zu aktualisieren
@@ -195,14 +195,14 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
             if (lib->initCycle) {
                lastChain[i] = NULL;
 
-               ec_SetProgramId   (lib, ec->programId   );            // update all relevant library context fields
-               ec_SetInitCycle   (lib, FALSE           );
-               ec_SetVisualMode  (lib, ec->visualMode  );
-               ec_SetOptimization(lib, ec->optimization);            // necessary?
-               ec_SetLogging     (lib, ec->logging     );
-               ec_SetLogFile     (lib, ec->logFile     );
-               ec_SetHChart      (lib, ec->hChart      );
-               ec_SetHChartWindow(lib, ec->hChartWindow);
+               ec_SetProgramId    (lib, ec->programId    );          // update all relevant library context fields
+               ec_SetInitCycle    (lib, FALSE            );
+               ec_SetVisualMode   (lib, ec->visualMode   );
+               ec_SetOptimization (lib, ec->optimization );          // is this necessary?
+               ec_SetLogging      (lib, ec->logging      );
+               ec_SetCustomLogFile(lib, ec->customLogFile);
+               ec_SetHChart       (lib, ec->hChart       );
+               ec_SetHChartWindow (lib, ec->hChartWindow );
 
                currentChain.push_back(lib);
             }
@@ -352,18 +352,18 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
       StoreThreadAndProgram(ec->programId);                          // store last executed program (asap)
 
       // update library specific fields                              // ec.programId gets updated in Expert::init()
-      ec_SetRootFunction(ec, RF_INIT             );
-      ec_SetInitCycle   (ec, TRUE                );                  // mark library context
-      ec_SetUninitReason(ec, uninitReason        );
-      ec_SetVisualMode  (ec, FALSE               );                  // gets updated in Expert::init()
-      ec_SetOptimization(ec, isOptimization      );                  // is this value correct?
-      ec_SetLogging     (ec, FALSE               );                  // gets updated in Expert::init()
-      ec_SetLogFile     (ec, NULL                );                  // gets updated in Expert::init()
-      ec_SetSymbol      (ec, symbol              );
-      ec_SetTimeframe   (ec, period              );
-      ec_SetHChart      (ec, NULL                );                  // gets updated in Expert::init()
-      ec_SetHChartWindow(ec, NULL                );                  // gets updated in Expert::init()
-      ec_SetThreadId    (ec, GetCurrentThreadId());
+      ec_SetRootFunction (ec, RF_INIT             );
+      ec_SetInitCycle    (ec, TRUE                );                 // mark library context
+      ec_SetUninitReason (ec, uninitReason        );
+      ec_SetVisualMode   (ec, FALSE               );                 // gets updated in Expert::init()
+      ec_SetOptimization (ec, isOptimization      );                 // is this value correct?
+      ec_SetLogging      (ec, FALSE               );                 // gets updated in Expert::init()
+      ec_SetCustomLogFile(ec, NULL                );                 // gets updated in Expert::init()
+      ec_SetSymbol       (ec, symbol              );
+      ec_SetTimeframe    (ec, period              );
+      ec_SetHChart       (ec, NULL                );                 // gets updated in Expert::init()
+      ec_SetHChartWindow (ec, NULL                );                 // gets updated in Expert::init()
+      ec_SetThreadId     (ec, GetCurrentThreadId());
 
       contextChains[ec->programId][0]->initCycle = TRUE;             // mark master context
    }
@@ -910,9 +910,9 @@ BOOL WINAPI ProgramIsLogging(const EXECUTION_CONTEXT* ec) {
  *
  * @return char*
  */
-const char* WINAPI ProgramLogFile(const EXECUTION_CONTEXT* ec) {
+const char* WINAPI ProgramCustomLogFile(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->logFile);                             // prefer an inherited status
+      return(ec->superContext->customLogFile);                       // prefer an inherited status
 
    switch (ec->programType) {
       case PT_INDICATOR:
@@ -1195,9 +1195,9 @@ BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
  *
  * @return char* - Dateiname
  */
-const char* WINAPI ec_LogFile(const EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   return(ec->logFile);
+   return(ec->customLogFile);
    #pragma EXPORT
 }
 
@@ -1801,25 +1801,25 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
  *
  * @return char* - derselbe Dateiname
  */
-const char* WINAPI ec_SetLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
-   if ((uint)ec < MIN_VALID_POINTER)                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
+   if ((uint)ec < MIN_VALID_POINTER)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    if (fileName) {
       // fileName ist kein NULL-Pointer
-      if ((uint)fileName < MIN_VALID_POINTER)       return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName = 0x%p (not a valid pointer)", fileName));
-      if (strlen(fileName) > sizeof(ec->logFile)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName = \"%s\" (max %d characters)", fileName, sizeof(ec->logFile)-1));
+      if ((uint)fileName < MIN_VALID_POINTER)             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName = 0x%p (not a valid pointer)", fileName));
+      if (strlen(fileName) > sizeof(ec->customLogFile)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName = \"%s\" (max %d characters)", fileName, sizeof(ec->customLogFile)-1));
 
-      if (!strcpy(ec->logFile, fileName))
+      if (!strcpy(ec->customLogFile, fileName))
          return(NULL);
    }
    else {
       // fileName ist NULL-Pointer
-      ec->logFile[0] = '\0';
+      ec->customLogFile[0] = '\0';
    }
 
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetLogFile(contextChains[pid][0], fileName));
+      return(ec_SetCustomLogFile(contextChains[pid][0], fileName));
 
    return(fileName);
    #pragma EXPORT
@@ -2174,33 +2174,33 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
    if (memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT)) != 0) {
       std::stringstream ss; ss
-         <<  "{programId="    <<                   ec->programId
-         << ", programType="  <<  ProgramTypeToStr(ec->programType )
-         << ", programName="  <<    DoubleQuoteStr(ec->programName )
-         << ", moduleType="   <<   ModuleTypeToStr(ec->moduleType  )
-         << ", moduleName="   <<    DoubleQuoteStr(ec->moduleName  )
-         << ", launchType="   <<                   ec->launchType
-         << ", rootFunction=" << RootFunctionToStr(ec->rootFunction)
-         << ", initCycle="    <<         BoolToStr(ec->initCycle   )
-         << ", initReason="   <<   InitReasonToStr(ec->initReason  )
-         << ", uninitReason=" << UninitReasonToStr(ec->uninitReason)
-         << ", testing="      <<         BoolToStr(ec->testing     )
-         << ", visualMode="   <<         BoolToStr(ec->visualMode  )
-         << ", optimization=" <<         BoolToStr(ec->optimization)
-         << ", initFlags="    <<    InitFlagsToStr(ec->initFlags   )
-         << ", deinitFlags="  <<  DeinitFlagsToStr(ec->deinitFlags )
-         << ", logging="      <<         BoolToStr(ec->logging     )
-         << ", logFile="      <<    DoubleQuoteStr(ec->logFile     )
-         << ", symbol="       <<    DoubleQuoteStr(ec->symbol      )
-         << ", timeframe="    <<       PeriodToStr(ec->timeframe   )
-         << ", hChart="       <<             (uint)ec->hChart
-         << ", hChartWindow=" <<             (uint)ec->hChartWindow
-         << ", superContext=" <<             (uint)ec->superContext
-         << ", threadId="     <<                   ec->threadId
-         << ", ticks="        <<                   ec->ticks
-         << ", mqlError="     <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
-         << ", dllError="     <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
-         << ", dllWarning="   <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
+         <<  "{programId="     <<                   ec->programId
+         << ", programType="   <<  ProgramTypeToStr(ec->programType  )
+         << ", programName="   <<    DoubleQuoteStr(ec->programName  )
+         << ", moduleType="    <<   ModuleTypeToStr(ec->moduleType   )
+         << ", moduleName="    <<    DoubleQuoteStr(ec->moduleName   )
+         << ", launchType="    <<                   ec->launchType
+         << ", rootFunction="  << RootFunctionToStr(ec->rootFunction )
+         << ", initCycle="     <<         BoolToStr(ec->initCycle    )
+         << ", initReason="    <<   InitReasonToStr(ec->initReason   )
+         << ", uninitReason="  << UninitReasonToStr(ec->uninitReason )
+         << ", testing="       <<         BoolToStr(ec->testing      )
+         << ", visualMode="    <<         BoolToStr(ec->visualMode   )
+         << ", optimization="  <<         BoolToStr(ec->optimization )
+         << ", initFlags="     <<    InitFlagsToStr(ec->initFlags    )
+         << ", deinitFlags="   <<  DeinitFlagsToStr(ec->deinitFlags  )
+         << ", logging="       <<         BoolToStr(ec->logging      )
+         << ", customLogFile=" <<    DoubleQuoteStr(ec->customLogFile)
+         << ", symbol="        <<    DoubleQuoteStr(ec->symbol       )
+         << ", timeframe="     <<       PeriodToStr(ec->timeframe    )
+         << ", hChart="        <<             (uint)ec->hChart
+         << ", hChartWindow="  <<             (uint)ec->hChartWindow
+         << ", superContext="  <<             (uint)ec->superContext
+         << ", threadId="      <<                   ec->threadId
+         << ", ticks="         <<                   ec->ticks
+         << ", mqlError="      <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
+         << ", dllError="      <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
+         << ", dllWarning="    <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << "}";
       std::string str = ss.str();
       result = strcpy(new char[str.size()+1], str.c_str());          // TODO: close memory leak
