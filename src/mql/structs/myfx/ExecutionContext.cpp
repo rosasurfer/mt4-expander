@@ -1333,7 +1333,7 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
  * @return int - Fehler-Code
  */
 int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->mqlError);
    #pragma EXPORT
 }
@@ -1347,7 +1347,7 @@ int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
  * @return int - Fehler-Code
  */
 int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->dllError);
    #pragma EXPORT
 }
@@ -1361,7 +1361,7 @@ int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
  * @return int - Fehler-Code
  */
 int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->dllWarning);
    #pragma EXPORT
 }
@@ -2045,7 +2045,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
  * @return int - derselbe Fehler oder -1, falls ein Fehler auftrat
  */
 int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
 
    ec->dllError = error;
 
@@ -2079,7 +2079,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
  * @return int - derselbe Fehler oder -1, falls ein Fehler auftrat
  */
 int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_int(-1, error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
 
    ec->dllWarning = error;
 
