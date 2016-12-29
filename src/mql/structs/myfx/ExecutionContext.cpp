@@ -285,17 +285,17 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
  *     - !!! wann wird Library::deinit() aufgerufen !!!
  *     - Library::init() is called before Expert::init()
  *
- *     - Bug: The init cycle itself is wrong as the library holds state of the former finished test and must not get reused.
- *       Workaround: On test start library state needs to be explicitly reset (see MQL::core/library::init). In Expert::init()
- *                   SyncMainContext_init() removes the library from the former program's context chain and attaches it to the
- *                   context chain of the current program.
+ *     - Bug: This init cycle itself is wrong as the library holds state of the former finished test and must not get re-used.
+ *            Workaround: On test start library state needs to be explicitly reset (see MQL::core/library::init).
+ *            In Expert::init() SyncMainContext_init() removes the library from the former program's context chain and attaches
+ *            it to the context chain of the current program.
  *
  *     - Bug: In this scenario libraries also keep state of the last order context and order functions return wrong results.
- *       Workaround: On test start the order context needs to be explicitly reset (see MQL::core/library::init).
+ *            Workaround: On test start the order context needs to be explicitly reset (see MQL::core/library::init).
  *
  *     - Bug: In this scenario libraries also keep state of the former IsVisualMode() flag. This is true even if tested symbol
- *       or tested timeframe change.
- *       Workaround: Instead of IsVisualMode() use the corresponding flag of the execution context.
+ *            or tested timeframe change.
+ *            Workaround: Instead of IsVisualMode() use the corresponding flag of the execution context.
  */
 BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, BOOL isOptimization) {
    if ((uint)ec         < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
