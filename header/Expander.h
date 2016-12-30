@@ -96,6 +96,7 @@ enum UninitializeReason {
 
 //#include "header/structs/myfx/LogMessage.h"
 #include "header/structs/myfx/ExecutionContext.h"
+#include "header/structs/myfx/Test.h"
 
 #include "header/structs/win32/FileTime.h"
 #include "header/structs/win32/ProcessInformation.h"

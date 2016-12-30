@@ -255,6 +255,10 @@
 						RelativePath=".\src\structs\myfx\ExecutionContext.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\src\structs\myfx\Test.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="mt4"
@@ -363,6 +367,10 @@
 					</File>
 					<File
 						RelativePath=".\header\structs\myfx\LogMessage.h"
+						>
+					</File>
+					<File
+						RelativePath=".\header\structs\myfx\Test.h"
 						>
 					</File>
 				</Filter>
