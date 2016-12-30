@@ -15,6 +15,7 @@
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
+typedef unsigned   int   datetime;
 
 
 #define INVALID_HWND  ((HWND)-1)
