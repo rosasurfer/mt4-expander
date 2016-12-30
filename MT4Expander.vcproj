@@ -121,7 +121,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="$(ProjectDir)\header"
+				AdditionalIncludeDirectories="$(ProjectDir)"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;STDLIB_EXPORTS;EXPANDER_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -186,6 +186,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\src\ContextManagement.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Expander.cpp"
 				>
 			</File>
@@ -195,6 +199,10 @@
 			</File>
 			<File
 				RelativePath=".\src\RootFunctionStubs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\String.cpp"
 				>
 			</File>
 			<File
@@ -276,11 +284,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\header\ContextManagement.h"
+				>
+			</File>
+			<File
 				RelativePath=".\header\Expander.h"
 				>
 			</File>
 			<File
 				RelativePath=".\header\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\header\String.h"
 				>
 			</File>
 			<Filter

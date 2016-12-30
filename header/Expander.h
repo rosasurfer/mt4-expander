@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common.h"
-#include "stdafx.h"
-#include "shared/defines.h"                                                      // shared between DLL and MQL
-#include "shared/errors.h"                                                       // ...
+#include "header/common.h"
+#include "header/stdafx.h"
+#include "header/shared/defines.h"                                               // shared between DLL and MQL
+#include "header/shared/errors.h"                                                // ...
 #include <vector>
 
 
@@ -22,7 +22,7 @@
 #pragma pack(push, 1)
 
 
-// MQL-Programmtypen
+// MQL program types
 enum ProgramType {
    PT_INDICATOR = PROGRAMTYPE_INDICATOR,
    PT_EXPERT    = PROGRAMTYPE_EXPERT,
@@ -30,7 +30,7 @@ enum ProgramType {
 };
 
 
-// MQL-Modultypen                            // als Flag implementiert
+// MQL module types                          // implemented as flags
 enum ModuleType {
    MT_INDICATOR = MODULETYPE_INDICATOR,      // 1
    MT_EXPERT    = MODULETYPE_EXPERT,         // 2
@@ -39,15 +39,15 @@ enum ModuleType {
 };
 
 
-// Launchtypen eines MQL-Programms: via Template, via iCustom() oder von Hand
+// MQL program launch types
 enum LaunchType {
-   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,
-   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,
-   LT_MANUAL    = LAUNCHTYPE_MANUAL
+   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,       // via template
+   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,        // via call of iCustom()
+   LT_MANUAL    = LAUNCHTYPE_MANUAL          // manually (by hand)
 };
 
 
-// MQL-Rootfunktionen
+// MQL program root functions
 enum RootFunction {
    RF_INIT      = ROOTFUNCTION_INIT,
    RF_START     = ROOTFUNCTION_START,
@@ -55,7 +55,7 @@ enum RootFunction {
 };
 
 
-// InitializeReasons
+// MQL program initialize reasons
 enum InitializeReason {
    IR_USER              = INITREASON_USER,
    IR_TEMPLATE          = INITREASON_TEMPLATE,
@@ -68,7 +68,7 @@ enum InitializeReason {
 };
 
 
-// MQL-UninitializeReasons
+// MQL program uninitialize reasons
 enum UninitializeReason {
    UR_UNDEFINED         = UNINITREASON_UNDEFINED,
    UR_REMOVE            = UNINITREASON_REMOVE,
@@ -83,29 +83,39 @@ enum UninitializeReason {
 };
 
 
-#include "structs/mt4/FxtHeader.h"
-#include "structs/mt4/HistoryBar400.h"
-#include "structs/mt4/HistoryBar401.h"
-#include "structs/mt4/HistoryHeader.h"
-#include "structs/mt4/MqlStr.h"
-#include "structs/mt4/Symbol.h"
-#include "structs/mt4/SymbolGroup.h"
-#include "structs/mt4/SymbolSelected.h"
-#include "structs/mt4/Tick.h"
+// structs
+#include "header/structs/mt4/FxtHeader.h"
+#include "header/structs/mt4/HistoryBar400.h"
+#include "header/structs/mt4/HistoryBar401.h"
+#include "header/structs/mt4/HistoryHeader.h"
+#include "header/structs/mt4/MqlStr.h"
+#include "header/structs/mt4/Symbol.h"
+#include "header/structs/mt4/SymbolGroup.h"
+#include "header/structs/mt4/SymbolSelected.h"
+#include "header/structs/mt4/Tick.h"
 
-//#include "structs/myfx/LogMessage.h"
-#include "structs/myfx/ExecutionContext.h"
+//#include "header/structs/myfx/LogMessage.h"
+#include "header/structs/myfx/ExecutionContext.h"
 
-#include "structs/win32/FileTime.h"
-#include "structs/win32/ProcessInformation.h"
-#include "structs/win32/SecurityAttributes.h"
-#include "structs/win32/StartupInfo.h"
-#include "structs/win32/SystemTime.h"
-#include "structs/win32/TimeZoneInformation.h"
-#include "structs/win32/Win32FindData.h"
+#include "header/structs/win32/FileTime.h"
+#include "header/structs/win32/ProcessInformation.h"
+#include "header/structs/win32/SecurityAttributes.h"
+#include "header/structs/win32/StartupInfo.h"
+#include "header/structs/win32/SystemTime.h"
+#include "header/structs/win32/TimeZoneInformation.h"
+#include "header/structs/win32/Win32FindData.h"
 
 
-// Deklaration Thread- und EXECUTION_CONTEXT-Verwaltung (Initialisierung in Expander.cpp)
+// app functionality
+#include "header/ContextManagement.h"
+#include "header/String.h"
+
+
+// type definitions
+typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
+
+
+// external var declarations for context management
 extern std::vector<pec_vector> contextChains;                        // alle Context-Chains (Index = ProgramID)
 extern std::vector<DWORD>      threads;                              // ID's aller bekannten Threads
 extern std::vector<uint>       threadsPrograms;                      // ID's des vom Thread zuletzt ausgeführten MQL-Programms
@@ -113,7 +123,7 @@ extern uint                    lastUIThreadProgram;                  // ID des v
 extern CRITICAL_SECTION        terminalLock;                         // Terminal-weites Lock
 
 
-// Funktionsdeklarationen
+// function declarations
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define  warn(...)    _warn(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -139,8 +149,6 @@ const char*       WINAPI BoolToStr                (BOOL value);
 const char*       WINAPI DeinitFlagsToStr         (uint flags);
 const char*       WINAPI DoubleQuoteStr           (const char* value);
 const char*       WINAPI ErrorToStr               (int error);
-HWND              WINAPI FindCurrentChart         (HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, BOOL isTesting, BOOL isVisualMode, const char* symbol, uint timeframe);
-int               WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason);
 HWND              WINAPI GetApplicationWindow();
 uint              WINAPI GetBoolsAddress          (const BOOL values[]);
 uint              WINAPI GetChartDescription      (const char* symbol, uint timeframe, char* buffer, uint bufferSize);
@@ -149,16 +157,12 @@ uint              WINAPI GetGmtTime();
 uint              WINAPI GetIntsAddress           (const int values[]);
 int               WINAPI GetLastWin32Error();
 uint              WINAPI GetLocalTime();
-const char*       WINAPI GetString                (const char* value);
-uint              WINAPI GetStringAddress         (const char* value);
-uint              WINAPI GetStringsAddress        (const MqlStr values[]);
 uint              WINAPI GetTerminalBuild();
 const char*       WINAPI GetTerminalVersion();
 BOOL              WINAPI GetTerminalVersions      (uint* major, uint* minor, uint* hotfix, uint* build);
 DWORD             WINAPI GetUIThreadId();
 HANDLE            WINAPI GetWindowProperty        (HWND hWnd, const char* lpName);
 const char*       WINAPI InitFlagsToStr           (uint flags);
-InitializeReason  WINAPI InitReason               (const char* programName, ProgramType programType, UninitializeReason uninitializeReason, const char* symbol, EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec, BOOL testing, BOOL visualMode, HWND hChart, int subChartDropped);
 const char*       WINAPI InitReasonToStr          (InitializeReason reason);
 const char*       WINAPI InitializeReasonToStr    (InitializeReason reason);          // Alias
 const char*       WINAPI IntToHexStr              (int value);
@@ -171,11 +175,6 @@ const char*       WINAPI ModuleTypeToStr          (ModuleType type);
 uint              WINAPI MT4InternalMsg();
 const char*       WINAPI PeriodDescription        (uint period);
 const char*       WINAPI PeriodToStr              (uint period);
-BOOL              WINAPI ProgramIsLogging         (const EXECUTION_CONTEXT* ec);
-BOOL              WINAPI ProgramIsOptimization    (const EXECUTION_CONTEXT* ec, BOOL isOptimization);
-BOOL              WINAPI ProgramIsTesting         (const EXECUTION_CONTEXT* ec, BOOL isTesting);
-BOOL              WINAPI ProgramIsVisualMode      (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
-const char*       WINAPI ProgramCustomLogFile     (const EXECUTION_CONTEXT* ec);
 const char*       WINAPI ProgramTypeDescription   (ProgramType type);
 const char*       WINAPI ProgramTypeToStr         (ProgramType type);
 BOOL              WINAPI RemoveTickTimer          (int timerId);
@@ -187,9 +186,6 @@ uint              WINAPI SetupTickTimer           (HWND hWnd, int millis, DWORD 
 BOOL              WINAPI SetWindowProperty        (HWND hWnd, const char* lpName, HANDLE value);
 BOOL              WINAPI ShiftIndicatorBuffer     (double buffer[], int bufferSize, int bars, double emptyValue);
 const char*       WINAPI ShowWindowCmdToStr       (int cmdShow);
-BOOL              WINAPI StringCompare            (const char* s1, const char* s2);
-BOOL              WINAPI StringEndsWith           (const char* str, const char* suffix);
-BOOL              WINAPI StringIsNull             (const char* value);
 const char*       WINAPI StringToStr              (const char* value);
 const char*       WINAPI TimeframeDescription     (uint timeframe);                   // Alias
 const char*       WINAPI TimeframeToStr           (uint timeframe);                   // Alias
@@ -200,8 +196,7 @@ char*             WINAPI WCharsToStr              (const WCHAR* wcstr, size_t co
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
- * Alle Parameter werden ignoriert.
+ * Pseudo functions return fixed values according to their name. All parameters are ignored.
  */
 int  WINAPI _CLR_NONE    (...);
 int  WINAPI _EMPTY       (...);
@@ -214,8 +209,7 @@ BOOL WINAPI _FALSE       (...);
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
- * Außer dem ersten werden alle übergebenen Parameter ignoriert.
+ * Pseudo functions return variable values according to their name. Except the first all parameters are ignored.
  */
 bool   WINAPI _bool  (bool   value, ...);
 char   WINAPI _char  (char   value, ...);
@@ -223,4 +217,3 @@ int    WINAPI _int   (int    value, ...);
 float  WINAPI _float (float  value, ...);
 double WINAPI _double(double value, ...);
 BOOL   WINAPI _BOOL  (BOOL   value, ...);
-

@@ -79,21 +79,6 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
 };                                                 // ----------------------------------------------------------------------------------------------------------------------------
                                                    //               = 892                                                                     warum bin ich nicht auf Ibiza
 
-typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
-
-
-// Context management functions
-BOOL               WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int subChartDropped);
-BOOL               WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec);
-BOOL               WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason reason);
-
-BOOL               WINAPI SyncLibContext_init   (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint period, BOOL isOptimization);
-BOOL               WINAPI SyncLibContext_deinit (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason);
-
-BOOL               WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);
-DWORD              WINAPI StoreThreadAndProgram(uint programId);
-
-
 // Getters
 uint               WINAPI ec_ProgramId     (const EXECUTION_CONTEXT* ec);
 ProgramType        WINAPI ec_ProgramType   (const EXECUTION_CONTEXT* ec);
