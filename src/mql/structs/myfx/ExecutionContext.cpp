@@ -114,7 +114,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          //   - Master- und Hauptkontext in der Chain speichern
          //   - ProgramID generieren und diese Master- und Hauptkontext zuweisen
          master  = new EXECUTION_CONTEXT;                            // neuen Master-Context erzeugen
-         *master = *ec;                                              // Hauptkontext kopieren
+         *master = *ec;                                              // Hauptkontext hineinkopieren
          pec_vector chain;                                           // neue Context-Chain erzeugen
          chain.reserve(8);
          chain.push_back(master);                                    // Master- und Hauptkontext in der Chain speichern
@@ -763,6 +763,11 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
       case MT_EXPERT:
          if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
+
+         if (ec->testing) {
+            //debug("%s::deinit()  leaving tester, ec=%s", ec->programName, EXECUTION_CONTEXT_toStr(ec));
+         }
+
          ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
          if (ec->uninitReason!=UR_CHARTCHANGE && ec->uninitReason!=UR_PARAMETERS && ec->uninitReason!=UR_ACCOUNT)
             contextChains[id][1] = NULL;                             // mark main context as released if not in init cycle
