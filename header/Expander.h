@@ -83,26 +83,26 @@ enum UninitializeReason {
 };
 
 
-#include "mql/structs/mt4/FxtHeader.h"
-#include "mql/structs/mt4/HistoryBar400.h"
-#include "mql/structs/mt4/HistoryBar401.h"
-#include "mql/structs/mt4/HistoryHeader.h"
-#include "mql/structs/mt4/MqlStr.h"
-#include "mql/structs/mt4/Symbol.h"
-#include "mql/structs/mt4/SymbolGroup.h"
-#include "mql/structs/mt4/SymbolSelected.h"
-#include "mql/structs/mt4/Tick.h"
+#include "structs/mt4/FxtHeader.h"
+#include "structs/mt4/HistoryBar400.h"
+#include "structs/mt4/HistoryBar401.h"
+#include "structs/mt4/HistoryHeader.h"
+#include "structs/mt4/MqlStr.h"
+#include "structs/mt4/Symbol.h"
+#include "structs/mt4/SymbolGroup.h"
+#include "structs/mt4/SymbolSelected.h"
+#include "structs/mt4/Tick.h"
 
-//#include "mql/structs/myfx/LogMessage.h"
-#include "mql/structs/myfx/ExecutionContext.h"
+//#include "structs/myfx/LogMessage.h"
+#include "structs/myfx/ExecutionContext.h"
 
-#include "mql/structs/win32/FileTime.h"
-#include "mql/structs/win32/ProcessInformation.h"
-#include "mql/structs/win32/SecurityAttributes.h"
-#include "mql/structs/win32/StartupInfo.h"
-#include "mql/structs/win32/SystemTime.h"
-#include "mql/structs/win32/TimeZoneInformation.h"
-#include "mql/structs/win32/Win32FindData.h"
+#include "structs/win32/FileTime.h"
+#include "structs/win32/ProcessInformation.h"
+#include "structs/win32/SecurityAttributes.h"
+#include "structs/win32/StartupInfo.h"
+#include "structs/win32/SystemTime.h"
+#include "structs/win32/TimeZoneInformation.h"
+#include "structs/win32/Win32FindData.h"
 
 
 // Deklaration Thread- und EXECUTION_CONTEXT-Verwaltung (Initialisierung in Expander.cpp)
