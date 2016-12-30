@@ -190,83 +190,79 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\MQLUtils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\RootFunctionStubs.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Subclassing.cpp"
 				>
 			</File>
 			<Filter
-				Name="mql"
+				Name="structs"
 				>
-				<File
-					RelativePath=".\src\mql\MQLUtils.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mql\RootFunctionStubs.cpp"
-					>
-				</File>
 				<Filter
-					Name="structs"
+					Name="win32"
 					>
-					<Filter
-						Name="win32"
+					<File
+						RelativePath=".\src\structs\win32\FileTime.cpp"
 						>
-						<File
-							RelativePath=".\src\mql\structs\win32\FileTime.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\win32\ProcessInformation.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\win32\SecurityAttributes.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\win32\StartupInfo.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\win32\SystemTime.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\win32\TimeZoneInformation.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\win32\Win32FindData.cpp"
-							>
-						</File>
-					</Filter>
-					<Filter
-						Name="myfx"
+					</File>
+					<File
+						RelativePath=".\src\structs\win32\ProcessInformation.cpp"
 						>
-						<File
-							RelativePath=".\src\mql\structs\myfx\CustomPosition.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\myfx\ExecutionContext.cpp"
-							>
-						</File>
-					</Filter>
-					<Filter
-						Name="mt4"
+					</File>
+					<File
+						RelativePath=".\src\structs\win32\SecurityAttributes.cpp"
 						>
-						<File
-							RelativePath=".\src\mql\structs\mt4\HistoryHeader.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\mt4\Symbol.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\src\mql\structs\mt4\SymbolGroup.cpp"
-							>
-						</File>
-					</Filter>
+					</File>
+					<File
+						RelativePath=".\src\structs\win32\StartupInfo.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\structs\win32\SystemTime.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\structs\win32\TimeZoneInformation.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\structs\win32\Win32FindData.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="myfx"
+					>
+					<File
+						RelativePath=".\src\structs\myfx\CustomPosition.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\structs\myfx\ExecutionContext.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="mt4"
+					>
+					<File
+						RelativePath=".\src\structs\mt4\HistoryHeader.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\structs\mt4\Symbol.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\structs\mt4\SymbolGroup.cpp"
+						>
+					</File>
 				</Filter>
 			</Filter>
 		</Filter>
