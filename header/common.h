@@ -45,3 +45,9 @@ template <typename T> std::string to_string(T value) {
    os << value;
    return(os.str());
 }
+
+
+/**
+ * std::getline() replacement which can handle lines with any line endings.
+ */
+std::istream& getLine(std::istream &is, std::string &str);
