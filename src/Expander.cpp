@@ -1,11 +1,11 @@
 #include "header/Expander.h"
 
 
-std::vector<pec_vector> contextChains  (64);                         // alle Context-Chains (Index = ProgramID)
-std::vector<DWORD>      threads        (64);                         // ID's aller bekannten Threads
-std::vector<uint>       threadsPrograms(64);                         // ID's des vom Thread zuletzt ausgeführten MQL-Programms
-uint                    lastUIThreadProgram;                         // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
-CRITICAL_SECTION        terminalLock;                                // Terminal-weites Lock
+std::vector<ContextChain> contextChains  (64);                       // alle Context-Chains (Index = ProgramID)
+std::vector<DWORD>        threads        (64);                       // ID's aller bekannten Threads
+std::vector<uint>         threadsPrograms(64);                       // ID's des vom Thread zuletzt ausgeführten MQL-Programms
+uint                      lastUIThreadProgram;                       // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
+CRITICAL_SECTION          terminalLock;                              // Terminal-weites Lock
 
 
 /**
@@ -340,21 +340,18 @@ BOOL   WINAPI _BOOL  (BOOL   value, ...) { return(value); }
  */
 int WINAPI Test() {
 
-
-
-   typedef std::vector<int> int_vector;
-   int_vector ints(1);
+   typedef std::vector<int> IntVector;
+   IntVector ints(1);
 
    ints.push_back(1);
    ints.push_back(1);
    ints.push_back(1);
 
-   int_vector::iterator it = ints.begin();
+   IntVector::iterator it = ints.begin();
    ints.erase(ints.begin() + 1);
 
    debug("capacity(ints)=%d  size(ints)=%d", ints.capacity(), ints.size());
    return(0);
-
 
    std::string str("Hello world");
    int len = str.length();
@@ -379,7 +376,6 @@ int WINAPI Test() {
    auto_ptr<char> p(new char(10));
    int len = strlen(p.get());
    */
-
    return(0);
    //#pragma EXPORT
 }

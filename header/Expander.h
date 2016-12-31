@@ -113,15 +113,15 @@ enum UninitializeReason {
 
 
 // type definitions
-typedef std::vector<EXECUTION_CONTEXT*> pec_vector;
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // contexts of a single program
 
 
 // external var declarations for context management
-extern std::vector<pec_vector> contextChains;                        // alle Context-Chains (Index = ProgramID)
-extern std::vector<DWORD>      threads;                              // ID's aller bekannten Threads
-extern std::vector<uint>       threadsPrograms;                      // ID's des vom Thread zuletzt ausgeführten MQL-Programms
-extern uint                    lastUIThreadProgram;                  // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
-extern CRITICAL_SECTION        terminalLock;                         // Terminal-weites Lock
+extern std::vector<ContextChain> contextChains;                      // all ContextChains = programs (index = programId)
+extern std::vector<DWORD>        threads;                            // ID's aller bekannten Threads
+extern std::vector<uint>         threadsPrograms;                    // ID's des vom Thread zuletzt ausgeführten MQL-Programms
+extern uint                      lastUIThreadProgram;                // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
+extern CRITICAL_SECTION          terminalLock;                       // Terminal-weites Lock
 
 
 // function declarations

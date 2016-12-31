@@ -115,7 +115,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          //   - ProgramID generieren und diese Master- und Hauptkontext zuweisen
          master  = new EXECUTION_CONTEXT;                            // neuen Master-Context erzeugen
          *master = *ec;                                              // Hauptkontext hineinkopieren
-         pec_vector chain;                                           // neue Context-Chain erzeugen
+         ContextChain chain;                                         // neue Context-Chain erzeugen
          chain.reserve(8);
          chain.push_back(master);                                    // Master- und Hauptkontext in der Chain speichern
          chain.push_back(ec);
@@ -182,9 +182,9 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
       EXECUTION_CONTEXT *lib, *lastMaster=contextChains[lastProgramId][0];
 
       if (lastMaster && lastMaster->initCycle) {
-         pec_vector &currentChain = contextChains[ec->programId];
-         pec_vector &lastChain    = contextChains[lastProgramId];
-         uint        lastSize     = lastChain.size();
+         ContextChain &currentChain = contextChains[ec->programId];
+         ContextChain &lastChain    = contextChains[lastProgramId];
+         uint          lastSize     = lastChain.size();
 
          for (uint i=2; i < lastSize; i++) {                         // skip master and main context
             lib = lastChain[i];
