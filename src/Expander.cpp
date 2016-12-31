@@ -1,11 +1,11 @@
 #include "header/Expander.h"
 
 
-std::vector<ContextChain> contextChains  (64);                       // alle Context-Chains (Index = ProgramID)
+std::vector<ContextChain> contextChains  (64);                       // all context chains (i.e. MQL programs, index = program id)
 std::vector<DWORD>        threads        (64);                       // ID's aller bekannten Threads
 std::vector<uint>         threadsPrograms(64);                       // ID's des vom Thread zuletzt ausgeführten MQL-Programms
 uint                      lastUIThreadProgram;                       // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
-CRITICAL_SECTION          terminalLock;                              // Terminal-weites Lock
+CRITICAL_SECTION          terminalLock;                              // application wide lock
 
 
 /**
@@ -61,7 +61,7 @@ uint WINAPI MT4InternalMsg() {
       return(msgId);
 
    msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-   if (!msgId) return(error(ERR_WIN32_ERROR+GetLastError(), "RegisterWindowMessage() failed"));
+   if (!msgId) return(error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessage() failed"));
 
    return(msgId);
    #pragma EXPORT
