@@ -7,36 +7,60 @@
 /**
  *
  */
-std::istream& getLine(std::istream &is, std::string &str) {
-   str.clear();
+std::istream& getline(std::istream &is, std::string &line) {
+   // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
+   // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
+   // tasks, such as thread synchronization and updating the stream state.
+   //
+   // @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
 
-   // The characters in the stream are read one-by-one using a std::streambuf. This is faster than reading them one-by-one
-   // using the std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs
-   // various tasks, such as thread synchronization and updating the stream state.
+   // CR     = 0D     = 13       = \r       Mac
+   // LF     = 0A     = 10       = \n       Linux
+   // CRLF   = 0D0A   = 13,10    = \r\n     Windows
+   // CRCRLF = 0D0D0A = 13,13,10 = \r\r\n   Netscape, Windows XP Notepad bug (not yet tested)
 
    std::istream::sentry se(is, true);
    std::streambuf* sb = is.rdbuf();
+   line.clear();
 
    for (;;) {
-      int c = sb->sbumpc();
-      switch (c) {
+      int ch = sb->sbumpc();
+      switch (ch) {
          case '\n':
-            break;
+            goto endloop;
 
          case '\r':
             if (sb->sgetc() == '\n')
                sb->sbumpc();
-            break;
+            goto endloop;
 
          case EOF:
             // handle the case when the last line has no line ending
-            if (str.empty())
+            if (line.empty())
                is.setstate(std::ios::eofbit);
-            break;
+            goto endloop;
 
          default:
-            str += (char)c;
+            line += (char)ch;
       }
    }
+   endloop:
    return(is);
+
+   /*
+   std::string   fileName = GetTerminalPath() +"\\tester\\"+ ec->programName +".ini";
+   std::ifstream fs(fileName.c_str());
+   if (!fs) return(error(ERR_FILE_CANNOT_OPEN, "cannot open file %s", DoubleQuoteStr(fileName.c_str())));
+
+   std::string line;
+   uint n = 0;
+
+   debug("reading file %s...", DoubleQuoteStr(fileName.c_str()));
+   while (!getline(fs, line).eof()) {
+      ++n;
+      debug("line %d: %s (%d)", n, line.c_str(), line.length());
+   }
+   fs.close();
+   debug("file contains %d line(s)", n);
+   */
 }

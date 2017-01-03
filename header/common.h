@@ -7,7 +7,8 @@
 #pragma warning(disable: 4996)         // std::basic_string<>::copy: Function call with parameters that may be unsafe
 
 
-#define NOMINMAX                       // alternativ: std::min<int>(3, 4) oder  (std::min)(3, 4);
+#define  NOMINMAX                      // alternativ: std::min<int>(3, 4) oder  (std::min)(3, 4);
+#define _USE_32BIT_TIME_T
 #include <algorithm>
 #include <sstream>
 
@@ -15,7 +16,7 @@
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
-typedef unsigned   int   datetime;
+typedef time_t           datetime;     // signed long
 
 
 #define INVALID_HWND  ((HWND)-1)
@@ -28,26 +29,22 @@ typedef unsigned   int   datetime;
 
 
 /**
- * to_string()-Ersatz für fehlenden C++11-Support in Visual Studio 2008.
- *
- * VS 2005 - not supported
- * VS 2008 - not supported
- * VS 2010 - supported
+ * std::getline() replacement for reading lines with any line endings.
+ */
+std::istream& getline(std::istream &is, std::string &line);
+
+
+/**
+ * to_string() replacement for missing C++11 support in VS 2008 (supported since VS 2010).
  *
  * @param  <typename T> value
  *
  * @return std::string
  *
- * Note: Template functions have to be declared and defined in the same file.
+ * Note: Template functions have must be declared and defined in the same place.
  */
 template <typename T> std::string to_string(T value) {
    std::ostringstream os;
    os << value;
    return(os.str());
 }
-
-
-/**
- * std::getline() replacement which can handle lines with any line endings.
- */
-std::istream& getLine(std::istream &is, std::string &str);

@@ -113,7 +113,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          //   - neuen Master-Context erzeugen
          //   - Master- und Hauptkontext in der Chain speichern
          //   - ProgramID generieren und diese Master- und Hauptkontext zuweisen
-         master  = new EXECUTION_CONTEXT;                            // neuen Master-Context erzeugen
+         master  = new EXECUTION_CONTEXT();                          // neuen Master-Context erzeugen
          *master = *ec;                                              // Hauptkontext hineinkopieren
          ContextChain chain;                                         // neue Context-Chain erzeugen
          chain.reserve(8);

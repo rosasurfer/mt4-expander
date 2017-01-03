@@ -1,6 +1,3 @@
-/**
- *
- */
 #include "header/Expander.h"
 
 

@@ -313,14 +313,15 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
  *
  * @param  ... all parameters are ignored
  */
-int  WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
-int  WINAPI _EMPTY       (...) { return(EMPTY       ); }
-HWND WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
-int  WINAPI _NULL        (...) { return(NULL        ); }
-bool WINAPI _true        (...) { return(true        ); }
-bool WINAPI _false       (...) { return(false       ); }
-BOOL WINAPI _TRUE        (...) { return(TRUE        ); }
-BOOL WINAPI _FALSE       (...) { return(FALSE       ); }
+int         WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
+int         WINAPI _EMPTY       (...) { return(EMPTY       ); }
+const char* WINAPI _EMPTY_STR   (...) { return(""          ); }
+HWND        WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
+int         WINAPI _NULL        (...) { return(NULL        ); }
+bool        WINAPI _true        (...) { return(true        ); }
+bool        WINAPI _false       (...) { return(false       ); }
+BOOL        WINAPI _TRUE        (...) { return(TRUE        ); }
+BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
 
 
 /**

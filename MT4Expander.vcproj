@@ -206,11 +206,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\String.cpp"
+				RelativePath=".\src\string.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\Subclassing.cpp"
+				RelativePath=".\src\subclassing.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\time.cpp"
 				>
 			</File>
 			<Filter
@@ -260,6 +264,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\src\structs\myfx\Order.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\src\structs\myfx\Test.cpp"
 						>
 					</File>
@@ -304,7 +312,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\header\String.h"
+				RelativePath=".\header\string.h"
+				>
+			</File>
+			<File
+				RelativePath=".\header\time.h"
 				>
 			</File>
 			<Filter
@@ -371,6 +383,10 @@
 					</File>
 					<File
 						RelativePath=".\header\structs\myfx\LogMessage.h"
+						>
+					</File>
+					<File
+						RelativePath=".\header\structs\myfx\Order.h"
 						>
 					</File>
 					<File

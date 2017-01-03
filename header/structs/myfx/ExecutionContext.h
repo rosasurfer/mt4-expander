@@ -1,5 +1,7 @@
 #pragma once
 
+#include "header/structs/myfx/Test.h"
+
 
 /**
  * MyFX struct EXECUTION_CONTEXT
@@ -56,28 +58,29 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
    BOOL               testing;                     //       552         4     IsTesting()-Status                              (konstant)   => laufe ich im Tester
    BOOL               visualMode;                  //       556         4     IsVisualMode()-Status                           (konstant)   => laufe ich im Tester mit VisualMode=On
    BOOL               optimization;                //       560         4     IsOptimization()-Status                         (konstant)   => laufe ich im Tester mit Optimization=On
+   TEST*              test;                        //       564         4     Test-Metadata                                   (konstant)   => Test-Konfiguration
 
-   DWORD              initFlags;                   //       564         4     Init-Konfiguration                              (konstant)   => wie werde ich initialisiert
-   DWORD              deinitFlags;                 //       568         4     Deinit-Konfiguration                            (konstant)   => wie werde ich deinitialisiert
-   BOOL               logging;                     //       572         4     Log-Konfiguration                               (konstant)   => was logge ich
-   char               customLogFile[MAX_PATH];     //       576       260     Name der Logdatei                               (konstant)   => wohin logge ich
+   DWORD              initFlags;                   //       568         4     Init-Konfiguration                              (konstant)   => wie werde ich initialisiert
+   DWORD              deinitFlags;                 //       572         4     Deinit-Konfiguration                            (konstant)   => wie werde ich deinitialisiert
+   BOOL               logging;                     //       576         4     Log-Konfiguration                               (konstant)   => was logge ich
+   char               customLogFile[MAX_PATH];     //       580       260     Name der Logdatei                               (konstant)   => wohin logge ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       836        12     aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
-   uint               timeframe;                   //       848         4     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChart;                      //       852         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
-   HWND               hChartWindow;                //       856         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       840        12     aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
+   uint               timeframe;                   //       852         4     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   HWND               hChart;                      //       856         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
+   HWND               hChartWindow;                //       860         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
 
-   EXECUTION_CONTEXT* superContext;                //       860         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   uint               threadId;                    //       864         4     ID des ausführenden Threads                     (variable)   => wer führt mich aus
-   uint               ticks;                       //       868         4     Anzahl der start()-Aufrufe                      (variabel)   => wie oft wurde ich ausgeführt
+   EXECUTION_CONTEXT* superContext;                //       864         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
+   uint               threadId;                    //       868         4     ID des ausführenden Threads                     (variable)   => wer führt mich aus
+   uint               ticks;                       //       872         4     Anzahl der start()-Aufrufe                      (variabel)   => wie oft wurde ich ausgeführt
 
-   int                mqlError;                    //       872         4     Error-Code eines aufgetretenen MQL-Fehlers      (variabel)   => welcher MQL-Fehler ist aufgetreten
-   int                dllError;                    //       876         4     Error-Code eines aufgetretenen DLL-Fehlers      (variabel)   => welcher DLL-Fehler ist aufgetreten
-   char*              dllErrorMsg;                 //       880         4     Text des DLL-Fehlers                            (variabel)   => ...
-   int                dllWarning;                  //       884         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
-   char*              dllWarningMsg;               //       888         4     Text der DLL-Warnung                            (variabel)   => ...
+   int                mqlError;                    //       876         4     Error-Code eines aufgetretenen MQL-Fehlers      (variabel)   => welcher MQL-Fehler ist aufgetreten
+   int                dllError;                    //       880         4     Error-Code eines aufgetretenen DLL-Fehlers      (variabel)   => welcher DLL-Fehler ist aufgetreten
+   char*              dllErrorMsg;                 //       884         4     Text des DLL-Fehlers                            (variabel)   => ...
+   int                dllWarning;                  //       888         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
+   char*              dllWarningMsg;               //       892         4     Text der DLL-Warnung                            (variabel)   => ...
 };                                                 // ----------------------------------------------------------------------------------------------------------------------------
-                                                   //               = 892                                                                     warum bin ich nicht auf Ibiza
+                                                   //               = 896                                                                     warum bin ich nicht auf Ibiza
 
 // Getters
 uint               WINAPI ec_ProgramId     (const EXECUTION_CONTEXT* ec);

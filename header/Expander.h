@@ -4,6 +4,9 @@
 #include "header/stdafx.h"
 #include "header/shared/defines.h"                                               // shared between DLL and MQL
 #include "header/shared/errors.h"                                                // ...
+#include <fstream>
+#include <string>
+#include <time.h>
 #include <vector>
 
 
@@ -108,7 +111,7 @@ enum UninitializeReason {
 
 // application functionality
 #include "header/ContextManagement.h"
-#include "header/String.h"
+#include "header/string.h"
 
 
 // type definitions
@@ -142,74 +145,78 @@ int   _error(const char* fileName, const char* funcName, int line, int code, con
 void __error(const char* fileName, const char* funcName, int line, int code, const char*        msgFormat, const va_list &args);
 
 
-BOOL         WINAPI onProcessAttach();
-BOOL         WINAPI onProcessDetach();
+BOOL               WINAPI onProcessAttach();
+BOOL               WINAPI onProcessDetach();
 
-const char*  WINAPI BoolToStr              (BOOL value);
-const char*  WINAPI DeinitFlagsToStr       (uint flags);
-const char*  WINAPI DoubleQuoteStr         (const char* value);
-const char*  WINAPI ErrorToStr             (int error);
-HWND         WINAPI GetApplicationWindow();
-uint         WINAPI GetBoolsAddress        (const BOOL values[]);
-uint         WINAPI GetChartDescription    (const char* symbol, uint timeframe, char* buffer, uint bufferSize);
-uint         WINAPI GetDoublesAddress      (const double values[]);
-uint         WINAPI GetGmtTime();
-uint         WINAPI GetIntsAddress         (const int values[]);
-int          WINAPI GetLastWin32Error();
-uint         WINAPI GetLocalTime();
-uint         WINAPI GetTerminalBuild();
-const char*  WINAPI GetTerminalVersion();
-BOOL         WINAPI GetTerminalVersions    (uint* major, uint* minor, uint* hotfix, uint* build);
-DWORD        WINAPI GetUIThreadId();
-HANDLE       WINAPI GetWindowProperty      (HWND hWnd, const char* lpName);
-const char*  WINAPI InitFlagsToStr         (uint flags);
-const char*  WINAPI InitReasonToStr        (InitializeReason reason);
-const char*  WINAPI InitializeReasonToStr  (InitializeReason reason);          // Alias
-const char*  WINAPI IntToHexStr            (int value);
-const char*  WINAPI IntToHexStr            (const void* value);
-BOOL         WINAPI IsCustomTimeframe      (int timeframe);
-BOOL         WINAPI IsStdTimeframe         (int timeframe);
-BOOL         WINAPI IsUIThread();
-const char*  WINAPI ModuleTypeDescription  (ModuleType type);
-const char*  WINAPI ModuleTypeToStr        (ModuleType type);
-uint         WINAPI MT4InternalMsg();
-const char*  WINAPI PeriodDescription      (uint period);
-const char*  WINAPI PeriodToStr            (uint period);
-const char*  WINAPI ProgramTypeDescription (ProgramType type);
-const char*  WINAPI ProgramTypeToStr       (ProgramType type);
-BOOL         WINAPI RemoveTickTimer        (int timerId);
-void         WINAPI RemoveTickTimers();
-HANDLE       WINAPI RemoveWindowProperty   (HWND hWnd, const char* lpName);
-const char*  WINAPI RootFunctionDescription(RootFunction id);
-const char*  WINAPI RootFunctionToStr      (RootFunction id);
-uint         WINAPI SetupTickTimer         (HWND hWnd, int millis, DWORD flags=NULL);
-BOOL         WINAPI SetWindowProperty      (HWND hWnd, const char* lpName, HANDLE value);
-BOOL         WINAPI ShiftIndicatorBuffer   (double buffer[], int bufferSize, int bars, double emptyValue);
-const char*  WINAPI ShowWindowCmdToStr     (int cmdShow);
-const char*  WINAPI StringToStr            (const char* value);
-const char*  WINAPI TimeframeDescription   (uint timeframe);                   // Alias
-const char*  WINAPI TimeframeToStr         (uint timeframe);                   // Alias
-VOID       CALLBACK TimerCallback          (HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time);
-const char*  WINAPI UninitReasonToStr      (UninitializeReason reason);
-const char*  WINAPI UninitializeReasonToStr(UninitializeReason reason);        // Alias
-char*        WINAPI WCharsToStr            (const WCHAR* wcstr, size_t count);
+const char*        WINAPI BoolToStr              (BOOL value);
+const char*        WINAPI DeinitFlagsToStr       (uint flags);
+const char*        WINAPI DoubleQuoteStr         (const char* value);
+std::string        WINAPI doubleQuoteStr         (const char* value);
+std::string        WINAPI doubleQuoteStr         (const std::string &value);
+const char*        WINAPI ErrorToStr             (int error);
+HWND               WINAPI GetApplicationWindow();
+uint               WINAPI GetBoolsAddress        (const BOOL values[]);
+uint               WINAPI GetChartDescription    (const char* symbol, uint timeframe, char* buffer, uint bufferSize);
+uint               WINAPI GetDoublesAddress      (const double values[]);
+uint               WINAPI GetGmtTime();
+uint               WINAPI GetIntsAddress         (const int values[]);
+int                WINAPI GetLastWin32Error();
+uint               WINAPI GetLocalTime();
+uint               WINAPI GetTerminalBuild();
+const std::string* WINAPI getTerminalPath();
+const char*        WINAPI GetTerminalVersion();
+BOOL               WINAPI GetTerminalVersions    (uint* major, uint* minor, uint* hotfix, uint* build);
+DWORD              WINAPI GetUIThreadId();
+HANDLE             WINAPI GetWindowProperty      (HWND hWnd, const char* lpName);
+const char*        WINAPI InitFlagsToStr         (uint flags);
+const char*        WINAPI InitReasonToStr        (InitializeReason reason);
+const char*        WINAPI InitializeReasonToStr  (InitializeReason reason);          // Alias
+const char*        WINAPI IntToHexStr            (int value);
+const char*        WINAPI IntToHexStr            (const void* value);
+BOOL               WINAPI IsCustomTimeframe      (int timeframe);
+BOOL               WINAPI IsStdTimeframe         (int timeframe);
+BOOL               WINAPI IsUIThread();
+const char*        WINAPI ModuleTypeDescription  (ModuleType type);
+const char*        WINAPI ModuleTypeToStr        (ModuleType type);
+uint               WINAPI MT4InternalMsg();
+const char*        WINAPI PeriodDescription      (uint period);
+const char*        WINAPI PeriodToStr            (uint period);
+const char*        WINAPI ProgramTypeDescription (ProgramType type);
+const char*        WINAPI ProgramTypeToStr       (ProgramType type);
+BOOL               WINAPI RemoveTickTimer        (int timerId);
+void               WINAPI RemoveTickTimers();
+HANDLE             WINAPI RemoveWindowProperty   (HWND hWnd, const char* lpName);
+const char*        WINAPI RootFunctionDescription(RootFunction id);
+const char*        WINAPI RootFunctionToStr      (RootFunction id);
+uint               WINAPI SetupTickTimer         (HWND hWnd, int millis, DWORD flags=NULL);
+BOOL               WINAPI SetWindowProperty      (HWND hWnd, const char* lpName, HANDLE value);
+BOOL               WINAPI ShiftIndicatorBuffer   (double buffer[], int bufferSize, int bars, double emptyValue);
+const char*        WINAPI ShowWindowCmdToStr     (int cmdShow);
+const char*        WINAPI StringToStr            (const char* value);
+const char*        WINAPI TimeframeDescription   (uint timeframe);                   // Alias
+const char*        WINAPI TimeframeToStr         (uint timeframe);                   // Alias
+VOID             CALLBACK TimerCallback          (HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time);
+const char*        WINAPI UninitReasonToStr      (UninitializeReason reason);
+const char*        WINAPI UninitializeReasonToStr(UninitializeReason reason);        // Alias
+char*              WINAPI WCharsToStr            (const WCHAR* wcstr, size_t count);
 
 
 /**
- * Pseudo functions return fixed values according to their name. All parameters are ignored.
+ * Pseudo functions returning fixed values according to their name. All parameters are ignored.
  */
-int  WINAPI _CLR_NONE    (...);
-int  WINAPI _EMPTY       (...);
-HWND WINAPI _INVALID_HWND(...);
-int  WINAPI _NULL        (...);
-bool WINAPI _true        (...);
-bool WINAPI _false       (...);
-BOOL WINAPI _TRUE        (...);
-BOOL WINAPI _FALSE       (...);
+int         WINAPI _CLR_NONE    (...);
+int         WINAPI _EMPTY       (...);
+const char* WINAPI _EMPTY_STR   (...);
+HWND        WINAPI _INVALID_HWND(...);
+int         WINAPI _NULL        (...);
+bool        WINAPI _true        (...);
+bool        WINAPI _false       (...);
+BOOL        WINAPI _TRUE        (...);
+BOOL        WINAPI _FALSE       (...);
 
 
 /**
- * Pseudo functions return variable values according to their name. Except the first all parameters are ignored.
+ * Pseudo functions returning variable values according to their name. All parameters except the first one are ignored.
  */
 bool   WINAPI _bool  (bool   value, ...);
 char   WINAPI _char  (char   value, ...);

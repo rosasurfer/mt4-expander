@@ -1109,11 +1109,11 @@ const char* WINAPI ErrorToStr(int error) {
 
 
 /**
- * Wrap a string in double quote characters.
+ * Wrap a C string in double quote characters and return a C string.
  *
  * @param  char* value
  *
- * @return char* - resulting string or the string "NULL" if a NULL pointer was specified
+ * @return char* - resulting C string or the string "NULL" if a NULL pointer was specified
  */
 const char* WINAPI DoubleQuoteStr(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
@@ -1125,6 +1125,32 @@ const char* WINAPI DoubleQuoteStr(const char* value) {
 
    return(szchar);
    #pragma EXPORT
+}
+
+
+/**
+ * Wrap a C string in double quote characters and return a std::string.
+ *
+ * @param  char* value
+ *
+ * @return std::string - resulting C string or the string "NULL" if a NULL pointer was specified
+ */
+std::string WINAPI doubleQuoteStr(const char* value) {
+   if (!value) return(std::string("NULL"));
+   return(std::string(value).insert(0, "\"").append("\""));          // Visual Assist bug
+}
+
+
+/**
+ * Wrap a std::string in double quote characters and return a std::string.
+ *
+ * @param  std::string &value
+ *
+ * @return std::string - new std::string
+ */
+std::string WINAPI doubleQuoteStr(const std::string &value) {
+   if (value.empty()) return(std::string(""));
+   return(std::string(value).insert(0, "\"").append("\""));          // Visual Assist bug
 }
 
 
@@ -1248,6 +1274,25 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
    strncpy(buffer, result, bufferSize-1);                            // destination buffer is too small
    buffer[bufferSize-1] = 0;
    return(bufferSize);
+}
+
+
+/**
+ * Return the name of the terminal's installation directory.
+ *
+ * @return std::string* - directory name (without trailing path separator)
+ */
+const std::string* WINAPI getTerminalPath() {
+   static std::string result;
+   if (result.empty()) {
+      char buffer[MAX_PATH];                                         // on the stack
+      GetModuleFileNameA(NULL, buffer, MAX_PATH);                    // TODO: handle errors
+
+      std::string fileName(buffer);
+      std::string::size_type pos = fileName.find_last_of("\\/");
+      result = fileName.substr(0, pos);
+   }
+   return(&result);
 }
 
 

@@ -899,7 +899,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
  */
 uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if (timeframe <= 0)               return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe = %d (must be greater than zero)", timeframe));
+   if ((int)timeframe <= 0)          return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe = %d (must be greater than zero)", timeframe));
 
    ec->timeframe = timeframe;
 
@@ -1209,13 +1209,13 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
    char* result = "{(empty)}";
    static const EXECUTION_CONTEXT empty = {};
 
-   if (memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT)) != 0) {
+   if (memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
       std::stringstream ss; ss
          <<  "{programId="     <<                   ec->programId
          << ", programType="   <<  ProgramTypeToStr(ec->programType  )
-         << ", programName="   <<    DoubleQuoteStr(ec->programName  )
+         << ", programName="   <<    doubleQuoteStr(ec->programName  )
          << ", moduleType="    <<   ModuleTypeToStr(ec->moduleType   )
-         << ", moduleName="    <<    DoubleQuoteStr(ec->moduleName   )
+         << ", moduleName="    <<    doubleQuoteStr(ec->moduleName   )
          << ", launchType="    <<                   ec->launchType
          << ", rootFunction="  << RootFunctionToStr(ec->rootFunction )
          << ", initCycle="     <<         BoolToStr(ec->initCycle    )
@@ -1227,8 +1227,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", initFlags="     <<    InitFlagsToStr(ec->initFlags    )
          << ", deinitFlags="   <<  DeinitFlagsToStr(ec->deinitFlags  )
          << ", logging="       <<         BoolToStr(ec->logging      )
-         << ", customLogFile=" <<    DoubleQuoteStr(ec->customLogFile)
-         << ", symbol="        <<    DoubleQuoteStr(ec->symbol       )
+         << ", customLogFile=" <<    doubleQuoteStr(ec->customLogFile)
+         << ", symbol="        <<    doubleQuoteStr(ec->symbol       )
          << ", timeframe="     <<       PeriodToStr(ec->timeframe    )
          << ", hChart="        <<             (uint)ec->hChart
          << ", hChartWindow="  <<             (uint)ec->hChartWindow
