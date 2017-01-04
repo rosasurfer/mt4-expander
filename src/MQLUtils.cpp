@@ -1133,24 +1133,24 @@ const char* WINAPI DoubleQuoteStr(const char* value) {
  *
  * @param  char* value
  *
- * @return std::string - resulting C string or the string "NULL" if a NULL pointer was specified
+ * @return string - resulting C string or the string "NULL" if a NULL pointer was specified
  */
-std::string WINAPI doubleQuoteStr(const char* value) {
-   if (!value) return(std::string("NULL"));
-   return(std::string(value).insert(0, "\"").append("\""));          // Visual Assist bug
+string WINAPI doubleQuoteStr(const char* value) {
+   if (!value) return(string("NULL"));
+   return(string(value).insert(0, "\"").append("\""));               // Visual Assist bug
 }
 
 
 /**
  * Wrap a std::string in double quote characters and return a std::string.
  *
- * @param  std::string &value
+ * @param  string &value
  *
- * @return std::string - new std::string
+ * @return string - new string
  */
-std::string WINAPI doubleQuoteStr(const std::string &value) {
-   if (value.empty()) return(std::string(""));
-   return(std::string(value).insert(0, "\"").append("\""));          // Visual Assist bug
+string WINAPI doubleQuoteStr(const string &value) {
+   if (value.empty()) return(string(""));
+   return(string(value).insert(0, "\"").append("\""));               // Visual Assist bug
 }
 
 
@@ -1174,7 +1174,7 @@ const char* WINAPI InitFlagsToStr(uint flags) {
       if (flags & INIT_CUSTOMLOG          ) ss << "|INIT_CUSTOMLOG";
       if (flags & INIT_NO_BARS_REQUIRED   ) ss << "|INIT_NO_BARS_REQUIRED";
    }
-   std::string str = ss.str();
+   string str = ss.str();
    uint size = str.size();
 
    if (!size)
@@ -1195,7 +1195,7 @@ const char* WINAPI DeinitFlagsToStr(uint flags) {
    std::stringstream ss;
    ss << "|" << flags;                                               // atm no DEINIT flags exist
 
-   std::string str = ss.str();
+   string str = ss.str();
    uint size = str.size();
 
    if (!size)
@@ -1280,16 +1280,16 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
 /**
  * Return the name of the terminal's installation directory.
  *
- * @return std::string* - directory name (without trailing path separator)
+ * @return string* - directory name (without trailing path separator)
  */
-const std::string* WINAPI getTerminalPath() {
-   static std::string result;
+const string* WINAPI getTerminalPath() {
+   static string result;
    if (result.empty()) {
       char buffer[MAX_PATH];                                         // on the stack
       GetModuleFileNameA(NULL, buffer, MAX_PATH);                    // TODO: handle errors
 
-      std::string fileName(buffer);
-      std::string::size_type pos = fileName.find_last_of("\\/");
+      string fileName(buffer);
+      string::size_type pos = fileName.find_last_of("\\/");
       result = fileName.substr(0, pos);
    }
    return(&result);

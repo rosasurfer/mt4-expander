@@ -87,7 +87,7 @@ int _debug(const char* fileName, const char* funcName, int line, const char* for
  *
  * @return int - 0 (zero)
  */
-int _debug(const char* fileName, const char* funcName, int line, const std::string &format, ...) {
+int _debug(const char* fileName, const char* funcName, int line, const string &format, ...) {
    va_list args;
    va_start(args, format);
    __debug(fileName, funcName, line, format.c_str(), args);
@@ -133,10 +133,10 @@ void __debug(const char* fileName, const char* funcName, int line, const char* f
  *
  * @return int - 0 (zero)
  */
-int _warn(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, ...) {
+int _warn(const char* fileName, const char* funcName, int line, int error, const char* format, ...) {
    va_list args;
-   va_start(args, msgFormat);
-   __warn(fileName, funcName, line, error, msgFormat, args);
+   va_start(args, format);
+   __warn(fileName, funcName, line, error, format, args);
    va_end(args);
    return(0);
 }
@@ -147,10 +147,10 @@ int _warn(const char* fileName, const char* funcName, int line, int error, const
  *
  * @return int - 0 (zero)
  */
-int _warn(const char* fileName, const char* funcName, int line, int error, const std::string &msgFormat, ...) {
+int _warn(const char* fileName, const char* funcName, int line, int error, const string &format, ...) {
    va_list args;
-   va_start(args, msgFormat);
-   __warn(fileName, funcName, line, error, msgFormat.c_str(), args);
+   va_start(args, format);
+   __warn(fileName, funcName, line, error, format.c_str(), args);
    va_end(args);
    return(0);
 }
@@ -214,10 +214,10 @@ void __warn(const char* fileName, const char* funcName, int line, int error, con
  *
  * @return int - 0 (zero)
  */
-int _error(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, ...) {
+int _error(const char* fileName, const char* funcName, int line, int error, const char* format, ...) {
    va_list args;
-   va_start(args, msgFormat);
-   __error(fileName, funcName, line, error, msgFormat, args);
+   va_start(args, format);
+   __error(fileName, funcName, line, error, format, args);
    va_end(args);
    return(0);
 }
@@ -228,10 +228,10 @@ int _error(const char* fileName, const char* funcName, int line, int error, cons
  *
  * @return int - 0 (zero)
  */
-int _error(const char* fileName, const char* funcName, int line, int error, const std::string &msgFormat, ...) {
+int _error(const char* fileName, const char* funcName, int line, int error, const string &format, ...) {
    va_list args;
-   va_start(args, msgFormat);
-   __error(fileName, funcName, line, error, msgFormat.c_str(), args);
+   va_start(args, format);
+   __error(fileName, funcName, line, error, format.c_str(), args);
    va_end(args);
    return(0);
 }
@@ -354,7 +354,7 @@ int WINAPI Test() {
    debug("capacity(ints)=%d  size(ints)=%d", ints.capacity(), ints.size());
    return(0);
 
-   std::string str("Hello world");
+   string str("Hello world");
    int len = str.length();
    char* test = new char[len+1];
    str.copy(test, len);

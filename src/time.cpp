@@ -34,9 +34,9 @@ const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
  * @param  datetime timestamp
  * @param  char*    format    - strftime() format control string
  *
- * @return std::string - local time string
+ * @return string - local time string
  */
-std::string WINAPI localTimeFormat(datetime timestamp, const char* format) {
+string WINAPI localTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp)));
    if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
 
@@ -48,7 +48,7 @@ std::string WINAPI localTimeFormat(datetime timestamp, const char* format) {
       if (strftime(buffer, size, format, localtime(&timestamp)))
          break;
    }
-   return(std::string(buffer));
+   return(string(buffer));
 }
 
 
@@ -84,9 +84,9 @@ const char* WINAPI GmTimeFormat(datetime timestamp, const char* format) {
  * @param  datetime timestamp
  * @param  char*    format    - strftime() format control string
  *
- * @return std::string - GMT time string
+ * @return string - GMT time string
  */
-std::string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
+string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp)));
    if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
 
@@ -98,7 +98,7 @@ std::string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
       if (strftime(buffer, size, format, gmtime(&timestamp)))
          break;
    }
-   return(std::string(buffer));
+   return(string(buffer));
 }
 
 
@@ -113,7 +113,7 @@ std::string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
 const char* WINAPI NumberFormat(double value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   std::string str = numberFormat(value, format);
+   string str = numberFormat(value, format);
 
    size_t size = str.length() + 1;                                   // +1 for the terminating '\0'
    char* buffer = new char[size];                                    // TODO: close memory leak
@@ -130,14 +130,14 @@ const char* WINAPI NumberFormat(double value, const char* format) {
  * @param  doube value
  * @param  char* format - printf() format control string
  *
- * @return std::string - formatted string or empty string if an error occurred
+ * @return string - formatted string or empty string if an error occurred
  */
-std::string WINAPI numberFormat(double value, const char* format) {
+string WINAPI numberFormat(double value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
 
    size_t size = _scprintf(format, value) + 1;                       // +1 for the terminating '\0'
    char* buffer = (char*) alloca(size);                              // on the stack
    sprintf_s(buffer, size, format, value);
 
-   return(std::string(buffer));
+   return(string(buffer));
 }

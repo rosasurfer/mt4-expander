@@ -2,8 +2,6 @@
 #include "header/time.h"
 #include "header/structs/myfx/Test.h"
 
-#include <stdio.h>
-#include <math.h>
 
 /**
  * Set the id of a TEST.
@@ -16,10 +14,6 @@
 uint WINAPI test_SetId(TEST* test, uint id) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (id <= 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
-
-   floor(3.0);
-   // http://stackoverflow.com/questions/485525/round-for-float-in-c
-   // http://stackoverflow.com/questions/4572556/concise-way-to-implement-round-in-c/4572877#4572877
 
    test->id = id;
    return(id);
@@ -126,8 +120,8 @@ double WINAPI test_SetSpread(TEST* test, double spread) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (spread < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter spread: %f (must be non-negative)", spread));
 
-   test->spread = spread;                                            // TODO: NormalizeDouble(spread, 1)
-   return(spread);
+   test->spread = round(spread, 1);
+   return(test->spread);
 }
 
 
@@ -177,8 +171,8 @@ double WINAPI test_SetAccountDeposit(TEST* test, double value) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (value <= 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter value: %f (not positive)", value));
 
-   test->accountDeposit = value;                                     // TODO: NormalizeDouble(spread, 2)
-   return(value);
+   test->accountDeposit = round(value, 2);
+   return(test->accountDeposit);
 }
 
 
@@ -275,59 +269,10 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", reportSymbol="    << doubleQuoteStr(test->reportSymbol)
          << ", orders="          <<               (test->orders ? to_string(test->orders->size()) : "NULL")
          << "}";
-      std::string str = ss.str();
+      string str = ss.str();
       result = strcpy(new char[str.size()+1], str.c_str());                // TODO: close memory leak
    }
 
    if (outputDebug) debug(result);
    return(result);
 }
-
-
-/**
- *
- */
-BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, double accountBalance, const char* accountCurrency, const char* reportSymbol) {
-   if ((uint)ec              < MIN_VALID_POINTER)  return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
-   if ((uint)accountCurrency < MIN_VALID_POINTER)  return(error(ERR_INVALID_PARAMETER, "invalid parameter accountCurrency=0x%p (not a valid pointer)", accountCurrency));
-   if ((uint)reportSymbol    < MIN_VALID_POINTER)  return(error(ERR_INVALID_PARAMETER, "invalid parameter reportSymbol=0x%p (not a valid pointer)", reportSymbol));
-   if (!ec->programId)                             return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId=%d", ec->programId));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_ILLEGAL_STATE, "function allowed only in experts under test"));
-
-   TEST* test;
-
-   if (ec->rootFunction == RF_START) {
-      if (ec->test) return(error(ERR_RUNTIME_ERROR, "multiple TEST initializations in %s::start()", ec->programName));
-
-      ec->test = test = new TEST();
-      test_SetTime           (test, time(NULL)      );
-      test_SetSymbol         (test, ec->symbol      );
-      test_SetTimeframe      (test, ec->timeframe   );
-      test_SetStartTime      (test, startTime       );
-      //uint tickModel;                                              // TODO
-      test_SetSpread         (test, (ask-bid)/0.0001);  // Pip       // TODO: NormalizeDouble(value/ec->pip, 1)
-      test_SetBars           (test, bars            );
-      test_SetAccountDeposit (test, accountBalance  );               //       oder aus EA.ini auslesen; NormalizeDouble(value, 2)
-      test_SetAccountCurrency(test, accountCurrency );               //       oder aus EA.ini auslesen
-      //uint tradeDirections;                                        // TODO: aus EA.ini auslesen
-      test_SetStrategy       (test, ec->programName );
-      test->orders = new OrderHistory(512);                          // reserve memory to speed-up testing
-      test->orders->resize(0);
-   }
-   else if (ec->rootFunction == RF_DEINIT) {
-      test = ec->test;
-      if (!test) return(error(ERR_RUNTIME_ERROR, "missing TEST initialization in %s::deinit()", ec->programName));
-
-      test_SetEndTime     (test, endTime              );
-      test_SetBars        (test, bars - test->bars + 1);
-      test_SetTicks       (test, ec->ticks            );
-      test_SetReportSymbol(test, reportSymbol         );
-   }
-   else return(error(ERR_ILLEGAL_STATE, "function not allowed in %s::%s()", ec->programName, RootFunctionDescription(ec->rootFunction)));
-
-   debug("%s::%s()  test=%s", ec->programName, RootFunctionDescription(ec->rootFunction), TEST_toStr(test));
-   return(TRUE);
-   #pragma EXPORT
-}
-
-

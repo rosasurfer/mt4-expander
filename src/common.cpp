@@ -1,3 +1,4 @@
+#include <header/common.h>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -7,7 +8,7 @@
 /**
  *
  */
-std::istream& getline(std::istream &is, std::string &line) {
+std::istream& getline(std::istream &is, string &line) {
    // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
    // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
    // tasks, such as thread synchronization and updating the stream state.
@@ -48,11 +49,11 @@ std::istream& getline(std::istream &is, std::string &line) {
    return(is);
 
    /*
-   std::string   fileName = GetTerminalPath() +"\\tester\\"+ ec->programName +".ini";
+   string   fileName = GetTerminalPath() +"\\tester\\"+ ec->programName +".ini";
    std::ifstream fs(fileName.c_str());
    if (!fs) return(error(ERR_FILE_CANNOT_OPEN, "cannot open file %s", DoubleQuoteStr(fileName.c_str())));
 
-   std::string line;
+   string line;
    uint n = 0;
 
    debug("reading file %s...", DoubleQuoteStr(fileName.c_str()));

@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\math.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\MQLUtils.cpp"
 				>
 			</File>
@@ -214,6 +218,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\test.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\time.cpp"
 				>
 			</File>
@@ -226,30 +234,142 @@
 					<File
 						RelativePath=".\src\structs\win32\FileTime.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\win32\ProcessInformation.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\win32\SecurityAttributes.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\win32\StartupInfo.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\win32\SystemTime.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\win32\TimeZoneInformation.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\win32\Win32FindData.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
@@ -258,18 +378,82 @@
 					<File
 						RelativePath=".\src\structs\myfx\CustomPosition.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\myfx\ExecutionContext.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\myfx\Order.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\myfx\Test.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\myfx\"
+							/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
@@ -278,14 +462,62 @@
 					<File
 						RelativePath=".\src\structs\mt4\HistoryHeader.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\mt4\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\mt4\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\mt4\Symbol.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\mt4\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\mt4\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\structs\mt4\SymbolGroup.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\mt4\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\structs\mt4\"
+							/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 			</Filter>
@@ -305,6 +537,10 @@
 			</File>
 			<File
 				RelativePath=".\header\Expander.h"
+				>
+			</File>
+			<File
+				RelativePath=".\header\math.h"
 				>
 			</File>
 			<File
