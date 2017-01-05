@@ -1,7 +1,6 @@
-/**
- *
- */
-#include "header/Expander.h"
+#pragma once
+
+#include "header/common.h"
 
 
 /**
