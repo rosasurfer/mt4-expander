@@ -22,11 +22,11 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
       test_SetTimeframe      (test, ec->timeframe   );
       test_SetStartTime      (test, startTime       );
       //uint tickModel;                                              // TODO
-      test_SetSpread         (test, (ask-bid)/0.0001);               // TODO: statt 0.0001 / Pip
+      test_SetSpread         (test, (ask-bid)/0.0001);               // TODO: statt 0.0001 Variable Pip
       test_SetBars           (test, bars            );
-      test_SetAccountDeposit (test, accountBalance  );               //  oder aus EA.ini auslesen
-      test_SetAccountCurrency(test, accountCurrency );               //  oder aus EA.ini auslesen
-      //uint tradeDirections;                                        // TODO: aus EA.ini auslesen
+      test_SetAccountDeposit (test, accountBalance  );               //  oder aus Expert.ini auslesen
+      test_SetAccountCurrency(test, accountCurrency );               //  oder aus Expert.ini auslesen
+      //uint tradeDirections;                                        // TODO: aus Expert.ini auslesen
       test_SetStrategy       (test, ec->programName );
       test->orders = new OrderHistory(512);                          // reserve memory to speed-up testing
       test->orders->resize(0);
