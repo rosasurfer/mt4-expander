@@ -112,7 +112,7 @@ enum UninitializeReason {
 // application functionality
 #include "header/context-management.h"
 #include "header/math.h"
-#include "header/string.h"
+#include "header/utils/string.h"
 
 
 // type definitions

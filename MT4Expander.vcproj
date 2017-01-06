@@ -210,10 +210,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\string.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\subclassing.cpp"
 				>
 			</File>
@@ -501,6 +497,26 @@
 				Name="utils"
 				>
 				<File
+					RelativePath=".\src\utils\string.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\src\utils\time.cpp"
 					>
 					<FileConfiguration
@@ -545,10 +561,6 @@
 			</File>
 			<File
 				RelativePath=".\header\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\header\string.h"
 				>
 			</File>
 			<Filter
@@ -666,6 +678,10 @@
 			<Filter
 				Name="utils"
 				>
+				<File
+					RelativePath=".\header\utils\string.h"
+					>
+				</File>
 				<File
 					RelativePath=".\header\utils\time.h"
 					>
