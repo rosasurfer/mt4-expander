@@ -221,10 +221,6 @@
 				RelativePath=".\src\tester.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\src\time.cpp"
-				>
-			</File>
 			<Filter
 				Name="structs"
 				>
@@ -501,6 +497,30 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="utils"
+				>
+				<File
+					RelativePath=".\src\utils\time.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header"
@@ -529,10 +549,6 @@
 			</File>
 			<File
 				RelativePath=".\header\string.h"
-				>
-			</File>
-			<File
-				RelativePath=".\header\time.h"
 				>
 			</File>
 			<Filter
@@ -646,6 +662,14 @@
 						>
 					</File>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="utils"
+				>
+				<File
+					RelativePath=".\header\utils\time.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>
