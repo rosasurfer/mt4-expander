@@ -1,5 +1,7 @@
 #pragma once
 
+#include "header/common.h"
+#include "header/Expander.h"
 #include "header/structs/myfx/Test.h"
 
 
