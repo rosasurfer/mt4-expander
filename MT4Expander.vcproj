@@ -190,7 +190,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\ContextManagement.cpp"
+				RelativePath=".\src\context-management.cpp"
 				>
 			</File>
 			<File
@@ -512,7 +512,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\header\ContextManagement.h"
+				RelativePath=".\header\context-management.h"
 				>
 			</File>
 			<File
