@@ -3,7 +3,7 @@
  *
  * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
  */
-#include "header/Expander.h"
+#include "header/expander.h"
 
 
 /**

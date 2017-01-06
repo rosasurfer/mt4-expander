@@ -22,7 +22,7 @@
  *    HANDLE  hStdError;                  //  4
  * } STARTUPINFO;                         // 68 byte
  */
-#include "header/Expander.h"
+#include "header/expander.h"
 
 
 /**

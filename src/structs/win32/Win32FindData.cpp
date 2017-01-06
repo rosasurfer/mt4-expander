@@ -14,7 +14,7 @@
  *    CHAR     cAlternateFileName[14];    //  14
  * } WIN32_FIND_DATA;                     // 318 byte
  */
-#include "header/Expander.h"
+#include "header/expander.h"
 
 
 /**

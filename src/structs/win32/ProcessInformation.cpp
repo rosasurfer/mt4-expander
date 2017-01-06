@@ -8,7 +8,7 @@
  *    DWORD  dwThreadId;            //  4
  * };                               // 16 byte = int[4]
  */
-#include "header/Expander.h"
+#include "header/expander.h"
 
 
 /**

@@ -2,7 +2,7 @@
  * Globale Stubs für MQL-Init/Deinit/Main-Funktionen. Diese können im MQL-Programm nach Bedarf durch eigene Versionen
  * überschrieben werden.
  */
-#include "header/Expander.h"
+#include "header/expander.h"
 
 
 /**
