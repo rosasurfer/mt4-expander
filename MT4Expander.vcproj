@@ -194,7 +194,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\Expander.cpp"
+				RelativePath=".\src\expander.cpp"
 				>
 			</File>
 			<File
@@ -202,11 +202,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\MQLUtils.cpp"
+				RelativePath=".\src\mql-tools.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\RootFunctionStubs.cpp"
+				RelativePath=".\src\rootfunction-stubs.cpp"
 				>
 			</File>
 			<File
@@ -516,7 +516,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\header\Expander.h"
+				RelativePath=".\header\expander.h"
 				>
 			</File>
 			<File
