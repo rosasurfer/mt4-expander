@@ -78,8 +78,8 @@ double WINAPI round(double value, int digits/*=0*/) {
       factor = pow(10., digits);
       value *= factor;
    }
-   if (value > 0) value = floor(value+0.5);                       // Adding/subtracting 0.5 fails to round to the nearest
-   else           value = ceil (value-0.5);                       // integer for several inputs including 0.49999999999999994.
+   if (value >= 0) value = floor(value+0.5);                      // Adding/subtracting 0.5 fails to round to the nearest
+   else            value = ceil (value-0.5);                      // integer for several inputs including 0.49999999999999994.
 
    if (digits) value /= factor;
 

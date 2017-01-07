@@ -1297,6 +1297,120 @@ const string* WINAPI getTerminalPath() {
 
 
 /**
+ * Return a human-readable version of an operation type as a C string.
+ *
+ * @param  int type - operation type
+ *
+ * @return char*
+ */
+const char* WINAPI OperationTypeToStr(int type) {
+   switch (type) {
+      case OP_BUY      : return("OP_BUY"      );
+      case OP_SELL     : return("OP_SELL"     );
+      case OP_BUYLIMIT : return("OP_BUYLIMIT" );
+      case OP_SELLLIMIT: return("OP_SELLLIMIT");
+      case OP_BUYSTOP  : return("OP_BUYSTOP"  );
+      case OP_SELLSTOP : return("OP_SELLSTOP" );
+      case OP_BALANCE  : return("OP_BALANCE"  );
+      case OP_CREDIT   : return("OP_CREDIT"   );
+      case OP_UNDEFINED: return("OP_UNDEFINED");
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type=%d (not an operation type)", type));
+   #pragma EXPORT
+}
+
+
+/**
+ * Alias
+ */
+const char* WINAPI OrderTypeToStr(int type) {
+   return(OperationTypeToStr(type));
+   #pragma EXPORT
+}
+
+
+/**
+ * Return a description of an operation type as a C string.
+ *
+ * @param  int type - operation type
+ *
+ * @return char*
+ */
+const char* WINAPI OperationTypeDescription(int type) {
+   switch (type) {
+      case OP_BUY      : return("Buy"       );
+      case OP_SELL     : return("Sell"      );
+      case OP_BUYLIMIT : return("Buy Limit" );
+      case OP_SELLLIMIT: return("Sell Limit");
+      case OP_BUYSTOP  : return("Stop Buy"  );
+      case OP_SELLSTOP : return("Stop Sell" );
+      case OP_BALANCE  : return("Balance"   );
+      case OP_CREDIT   : return("Credit"    );
+      case OP_UNDEFINED: return("undefined" );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type=%d (not an operation type)", type));
+   #pragma EXPORT
+}
+
+
+/**
+ * Alias
+ */
+const char* WINAPI OrderTypeDescription(int type) {
+   return(OperationTypeDescription(type));
+   #pragma EXPORT
+}
+
+
+//
+// printf() format codes:
+//
+// @see  http://www.cplusplus.com/reference/cstdio/printf/
+// @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
+
+
+/**
+ * Format a numeric value as a C string.
+ *
+ * @param  doube value
+ * @param  char* format - printf() format control string
+ *
+ * @return char* - formatted string or NULL pointer if an error occurred
+ */
+const char* WINAPI NumberFormat(double value, const char* format) {
+   if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+
+   string str = numberFormat(value, format);
+
+   size_t size = str.length() + 1;                                   // +1 for the terminating '\0'
+   char* buffer = new char[size];                                    // TODO: close memory leak
+   if (!strcpy(buffer, str.c_str()))
+      return(NULL);
+   return(buffer);
+   #pragma EXPORT
+}
+
+
+/**
+ * Format a numeric value as a std::string.
+ *
+ * @param  doube value
+ * @param  char* format - printf() format control string
+ *
+ * @return string - formatted string or empty string if an error occurred
+ */
+string WINAPI numberFormat(double value, const char* format) {
+   if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
+
+   size_t size = _scprintf(format, value) + 1;                       // +1 for the terminating '\0'
+   char* buffer = (char*) alloca(size);                              // on the stack
+   sprintf_s(buffer, size, format, value);
+
+   return(string(buffer));
+}
+
+
+/**
  * Return a terminal configuration value as a boolean. Queries the global and the local configuration with the local configu-
  * ration superseding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
  * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
