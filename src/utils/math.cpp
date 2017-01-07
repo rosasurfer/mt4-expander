@@ -38,19 +38,18 @@
  * </pre>
  */
 float WINAPI round(float value, int digits/*=0*/) {
-   double factor, dValue=value;
+   double dValue=value, factor=1;
 
    if (digits) {
       factor = pow(10., digits);
       dValue *= factor;
    }
    dValue = round(dValue);
-
    if (digits) dValue /= factor;
+   if (!value) value = 0;                                // convert -0 to +0
 
    #pragma warning(push)
    #pragma warning(disable:4244)
-
    return(dValue);                                       // C4244: conversion from 'double' to 'float', possible loss of data
    #pragma warning(pop)
 }
@@ -72,16 +71,17 @@ float WINAPI round(float value, int digits/*=0*/) {
  * </pre>
  */
 double WINAPI round(double value, int digits/*=0*/) {
-   double factor;
+   double factor = 1;
 
    if (digits) {
       factor = pow(10., digits);
       value *= factor;
    }
-   if (value >= 0) value = floor(value+0.5);                      // Adding/subtracting 0.5 fails to round to the nearest
-   else            value = ceil (value-0.5);                      // integer for several inputs including 0.49999999999999994.
+   if (value < 0) value = ceil (value-0.5);              // Adding/subtracting 0.5 fails to round to the nearest
+   else           value = floor(value+0.5);              // integer for several inputs including 0.49999999999999994.
 
    if (digits) value /= factor;
+   if (!value) value = 0;                                // convert -0 to +0
 
    return(value);
    #pragma EXPORT
