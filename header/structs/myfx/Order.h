@@ -9,6 +9,7 @@
  * Represents a Metatrader order.
  */
 struct ORDER {
+   uint     id;                                       // unique order id (positive, primary key)
    int      ticket;
    int      type;
    double   lots;

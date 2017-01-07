@@ -1,5 +1,11 @@
 #include "header/expander.h"
 #include "header/structs/myfx/Order.h"
+#include "header/utils/time.h"
+
+#include <fstream>
+
+
+BOOL WINAPI SaveTest(TEST* test);
 
 
 /**
@@ -42,6 +48,8 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
       test_SetBars        (test, bars - test->bars + 1          );
       test_SetTicks       (test, ec->ticks                      );
       test_SetReportSymbol(test, reportSymbol                   );
+
+      SaveTest(test);
    }
    else return(error(ERR_FUNC_NOT_ALLOWED, "function not allowed in %s::%s()", ec->programName, RootFunctionDescription(ec->rootFunction)));
 
@@ -75,7 +83,6 @@ BOOL WINAPI Test_OpenOrder(EXECUTION_CONTEXT* ec, int ticket, int type, double l
       strcpy(order.comment, comment);
    orders->push_back(order);
 
-   debug("");
    return(TRUE);
    #pragma EXPORT
 }
@@ -106,8 +113,7 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
          order->closeTime  = closeTime;
          order->swap       = round(swap,   2);
          order->profit     = round(profit, 2);
-
-         debug("order=%s", ORDER_toStr(order));
+         //debug("order=%s", ORDER_toStr(order));
          break;
       }
    }
@@ -115,4 +121,35 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
 
    return(TRUE);
    #pragma EXPORT
+}
+
+
+/**
+ * Save the results of a TEST.
+ *
+ * @param  TEST* test
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI SaveTest(TEST* test) {
+   string filename(getTerminalPath());
+          filename.append("/tester/files/testresults/");
+          filename.append(test->strategy);
+          filename.append(" #");
+          filename.append(string(test->reportSymbol).substr(string(test->reportSymbol).size() - 3));
+          filename.append(localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S order.log"));
+
+   std::ofstream file;
+   file.open(filename.c_str()); if (!file.is_open()) return(error(ERR_RUNTIME_ERROR, "file.open(\"%s\") failed", filename.c_str()));
+
+   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory  test.orders=0x%p", test->orders));
+   uint size = orders->size();
+
+   for (uint i=0; i < size; ++i) {
+      ORDER* order = &(*orders)[i];
+      file << "order." << i << "=" << ORDER_toStr(order) << "\n";
+   }
+   file.close();
+
+   return(TRUE);
 }

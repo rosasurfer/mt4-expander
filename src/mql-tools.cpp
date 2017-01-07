@@ -1282,7 +1282,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  *
  * @return string* - directory name (without trailing path separator)
  */
-const string* WINAPI getTerminalPath() {
+const string& WINAPI getTerminalPath() {
    static string result;
    if (result.empty()) {
       char buffer[MAX_PATH];                                         // on the stack
@@ -1292,7 +1292,7 @@ const string* WINAPI getTerminalPath() {
       string::size_type pos = fileName.find_last_of("\\/");
       result = fileName.substr(0, pos);
    }
-   return(&result);
+   return(result);
 }
 
 

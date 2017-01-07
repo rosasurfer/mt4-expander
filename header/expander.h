@@ -164,7 +164,7 @@ uint          WINAPI GetIntsAddress          (const int values[]);
 int           WINAPI GetLastWin32Error();
 uint          WINAPI GetLocalTime();
 uint          WINAPI GetTerminalBuild();
-const string* WINAPI getTerminalPath();
+const string& WINAPI getTerminalPath();
 const char*   WINAPI GetTerminalVersion();
 BOOL          WINAPI GetTerminalVersions     (uint* major, uint* minor, uint* hotfix, uint* build);
 DWORD         WINAPI GetUIThreadId();
