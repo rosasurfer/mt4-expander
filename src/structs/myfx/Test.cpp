@@ -38,6 +38,23 @@ datetime WINAPI test_SetTime(TEST* test, datetime time) {
 
 
 /**
+ * Set the duration of a TEST.
+ *
+ * @param  TEST* test
+ * @param  uint  duration - duration in milliseconds
+ *
+ * @return uint - the same duration
+ */
+uint WINAPI test_SetDuration(TEST* test, uint duration) {
+   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (duration <= 0)                  return(error(ERR_INVALID_PARAMETER, "invalid parameter duration: %d (not positive)", duration));
+
+   test->duration = duration;
+   return(duration);
+}
+
+
+/**
  * Set the symbol a TEST was run on.
  *
  * @param  TEST* test
@@ -253,7 +270,8 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if (memcmp(test, &empty, sizeof(TEST))) {
       std::stringstream ss; ss
          <<  "{id="              <<                test->id
-         << ", time="            <<               (test->time      ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", time="            <<               (test->time     ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", duration="        <<               (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
          << ", symbol="          << doubleQuoteStr(test->symbol)
          << ", timeframe="       << TimeframeToStr(test->timeframe)
          << ", startTime="       <<               (test->startTime ? doubleQuoteStr(gmTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")

@@ -11,6 +11,7 @@
 struct TEST {                                            // - size --- description --------------------------------------------
    uint          id;                                     //      4     unique test id (positive, primary key)
    datetime      time;                                   //      4     time of the test
+   uint          duration;                               //      4     duration of the test in milliseconds
    char          symbol[MAX_SYMBOL_LENGTH+1];            //     12     tested symbol
    uint          timeframe;                              //      4     tested timeframe
    datetime      startTime;                              //      4     time of the first tick of testing
@@ -26,7 +27,7 @@ struct TEST {                                            // - size --- descripti
    char          reportSymbol[MAX_SYMBOL_LENGTH+1];      //     12     generated unique symbol for charted reports
    OrderHistory* orders;                                 //      4     array of orders
 };                                                       // -------------------------------------------------------------------
-                                                         //  = 352                                warum bin ich nicht auf Ibiza
+
 
 // Getters
 
@@ -34,6 +35,7 @@ struct TEST {                                            // - size --- descripti
 // Setters
 uint        WINAPI test_SetId             (TEST* test, uint        id       );
 datetime    WINAPI test_SetTime           (TEST* test, datetime    time     );
+uint        WINAPI test_SetDuration       (TEST* test, uint        duration );
 const char* WINAPI test_SetSymbol         (TEST* test, const char* symbol   );
 uint        WINAPI test_SetTimeframe      (TEST* test, uint        timeframe);
 datetime    WINAPI test_SetStartTime      (TEST* test, datetime    time     );

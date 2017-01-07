@@ -19,6 +19,7 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
 
       ec->test = test = new TEST();
       test_SetTime           (test, time(NULL)      );
+      test_SetDuration       (test, GetTickCount()  );
       test_SetSymbol         (test, ec->symbol      );
       test_SetTimeframe      (test, ec->timeframe   );
       test_SetStartTime      (test, startTime       );
@@ -36,10 +37,11 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
       test = ec->test;
       if (!test) return(error(ERR_RUNTIME_ERROR, "missing TEST initialization in %s::deinit()", ec->programName));
 
-      test_SetEndTime     (test, endTime              );
-      test_SetBars        (test, bars - test->bars + 1);
-      test_SetTicks       (test, ec->ticks            );
-      test_SetReportSymbol(test, reportSymbol         );
+      test_SetDuration    (test, GetTickCount() - test->duration);
+      test_SetEndTime     (test, endTime                        );
+      test_SetBars        (test, bars - test->bars + 1          );
+      test_SetTicks       (test, ec->ticks                      );
+      test_SetReportSymbol(test, reportSymbol                   );
    }
    else return(error(ERR_FUNC_NOT_ALLOWED, "function not allowed in %s::%s()", ec->programName, RootFunctionDescription(ec->rootFunction)));
 
@@ -97,7 +99,7 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
 
    uint i = orders->size()-1;
 
-   for (; i >= 0; --i) {
+   for (; i >= 0; --i) {                                             // iterate in reverse order to speed-up
       ORDER* order = &(*orders)[i];
       if (order->ticket == ticket) {
          order->closePrice = round(closePrice, 5);
