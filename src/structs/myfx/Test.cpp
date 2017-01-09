@@ -7,11 +7,11 @@
  * Set the id of a TEST.
  *
  * @param  TEST* test
- * @param  uint  id - test id (positive)
+ * @param  int   id - test id (positive)
  *
- * @return uint - the same id
+ * @return int - the same id
  */
-uint WINAPI test_SetId(TEST* test, uint id) {
+int WINAPI test_SetId(TEST* test, int id) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (id <= 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
 
@@ -38,19 +38,59 @@ datetime WINAPI test_SetTime(TEST* test, datetime time) {
 
 
 /**
- * Set the duration of a TEST.
+ * Set the name of the tested strategy of a TEST.
  *
  * @param  TEST* test
- * @param  uint  duration - duration in milliseconds
+ * @param  char* name
  *
- * @return uint - the same duration
+ * @return char* - the same name
  */
-uint WINAPI test_SetDuration(TEST* test, uint duration) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (duration <= 0)                  return(error(ERR_INVALID_PARAMETER, "invalid parameter duration: %d (not positive)", duration));
+const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
+   if ((uint)test < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)name < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   int len = strlen(name);
+   if (!len || len > sizeof(test->strategy)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name \"%s\" (must be 1 to %d characters)", name, sizeof(test->strategy)-1));
 
-   test->duration = duration;
-   return(duration);
+   if (!strcpy(test->strategy, name))
+      return(NULL);
+   return(name);
+}
+
+
+/**
+ * Set the reporting id of a TEST. Used for composition of TEST.reportingSymbol.
+ *
+ * @param  TEST* test
+ * @param  int   id
+ *
+ * @return int - the same id
+ */
+int WINAPI test_SetReportingId(TEST* test, int id) {
+   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (id <= 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
+
+   test->reportingId = id;
+   return(id);
+}
+
+
+/**
+ * Set the reporting symbol of a TEST. Used for charted reports.
+ *
+ * @param  TEST* test
+ * @param  char* symbol
+ *
+ * @return char* - the same symbol
+ */
+const char* WINAPI test_SetReportingSymbol(TEST* test, const char* symbol) {
+   if ((uint)test   < MIN_VALID_POINTER)            return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)symbol < MIN_VALID_POINTER)            return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   int len = strlen(symbol);
+   if (!len || len > sizeof(test->reportingSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (must be 1 to %d characters)", symbol, sizeof(test->reportingSymbol)-1));
+
+   if (!strcpy(test->reportingSymbol, symbol))
+      return(NULL);
+   return(symbol);
 }
 
 
@@ -214,43 +254,39 @@ const char* WINAPI test_SetAccountCurrency(TEST* test, const char* currency) {
 
 
 /**
- * Set the name of the tested strategy of a TEST.
+ * Set the VisualMode status of a TEST.
  *
  * @param  TEST* test
- * @param  char* name
+ * @param  BOOL  status
  *
- * @return char* - the same name
+ * @return BOOL - the same status
  */
-const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
-   if ((uint)test < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)name < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   int len = strlen(name);
-   if (!len || len > sizeof(test->strategy)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name \"%s\" (must be 1 to %d characters)", name, sizeof(test->strategy)-1));
+BOOL WINAPI test_SetVisualMode(TEST* test, BOOL status) {
+   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
 
-   if (!strcpy(test->strategy, name))
-      return(NULL);
-   return(name);
+   test->visualMode = status;
+   return(status);
 }
 
 
 /**
- * Set the report symbol of a TEST. Used for chart reports.
+ * Set the duration of a TEST.
  *
  * @param  TEST* test
- * @param  char* symbol
+ * @param  uint  duration - duration in milliseconds
  *
- * @return char* - the same symbol
+ * @return uint - the same duration
  */
-const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   int len = strlen(symbol);
-   if (!len || len > sizeof(test->reportSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (must be 1 to %d characters)", symbol, sizeof(test->reportSymbol)-1));
+uint WINAPI test_SetDuration(TEST* test, uint duration) {
+   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (duration <= 0)                  return(error(ERR_INVALID_PARAMETER, "invalid parameter duration: %d (not positive)", duration));
 
-   if (!strcpy(test->reportSymbol, symbol))
-      return(NULL);
-   return(symbol);
+   test->duration = duration;
+   return(duration);
 }
+
+
+
 
 
 /**
@@ -270,8 +306,10 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if (memcmp(test, &empty, sizeof(TEST))) {
       std::stringstream ss; ss
          <<  "{id="              <<                test->id
-         << ", time="            <<               (test->time     ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", duration="        <<               (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
+         << ", time="            <<               (test->time ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", strategy="        << doubleQuoteStr(test->strategy)
+         << ", reportingId="     <<                test->reportingId
+         << ", reportingSymbol=" << doubleQuoteStr(test->reportingSymbol)
          << ", symbol="          << doubleQuoteStr(test->symbol)
          << ", timeframe="       << TimeframeToStr(test->timeframe)
          << ", startTime="       <<               (test->startTime ? doubleQuoteStr(gmTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
@@ -283,9 +321,9 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", accountDeposit="  <<   numberFormat(test->accountDeposit, "%.2f")
          << ", accountCurrency=" << doubleQuoteStr(test->accountCurrency)
          << ", tradeDirections=" <<                test->tradeDirections   // TODO: Long|Short|Both
-         << ", strategy="        << doubleQuoteStr(test->strategy)
-         << ", reportSymbol="    << doubleQuoteStr(test->reportSymbol)
-         << ", orders="          <<               (test->orders ? to_string(test->orders->size()) : "NULL")
+         << ", visualMode="      <<      BoolToStr(test->visualMode)
+         << ", duration="        <<               (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
+         << ", orders="          <<               (test->orders   ? to_string(test->orders->size()) : "NULL")
          << "}";
       string str = ss.str();
       result = strcpy(new char[str.size()+1], str.c_str());                // TODO: close memory leak
