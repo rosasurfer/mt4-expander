@@ -139,6 +139,7 @@ BOOL WINAPI SaveTest(TEST* test) {
    std::ofstream fs;
    fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_RUNTIME_ERROR, "fs.open(\"%s\") failed", testLogfile.c_str()));
    fs << "test=" << TEST_toStr(test) << "\n";
+   debug("test=%s", TEST_toStr(test));
 
    OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory  test.orders=0x%p", test->orders));
    uint size = orders->size();
@@ -148,7 +149,6 @@ BOOL WINAPI SaveTest(TEST* test) {
       fs << "order." << i << "=" << ORDER_toStr(order) << "\n";
    }
    fs.close();
-   debug("test=%s", TEST_toStr(test));
 
    // backup input parameters
    string paramSrcFile  = getTerminalPath() +"/tester/"+ test->strategy +".ini";
