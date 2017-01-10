@@ -133,25 +133,28 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
  * @return BOOL - success status
  */
 BOOL WINAPI SaveTest(TEST* test) {
-   string filename(getTerminalPath());
-          filename.append("/tester/files/testresults/");
-          filename.append(test->strategy);
-          filename.append(" #");
-          filename.append(to_string(test->reportingId));
-          filename.append(localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S order.log"));
-
-   std::ofstream file;
-   file.open(filename.c_str()); if (!file.is_open()) return(error(ERR_RUNTIME_ERROR, "file.open(\"%s\") failed", filename.c_str()));
-   file << "test=" << TEST_toStr(test) << "\n";
+   // save TEST to logfile
+   string testLogfile = getTerminalPath() +"/tester/files/testresults/"
+                      + test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log");
+   std::ofstream fs;
+   fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_RUNTIME_ERROR, "fs.open(\"%s\") failed", testLogfile.c_str()));
+   fs << "test=" << TEST_toStr(test) << "\n";
 
    OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory  test.orders=0x%p", test->orders));
    uint size = orders->size();
 
    for (uint i=0; i < size; ++i) {
       ORDER* order = &(*orders)[i];
-      file << "order." << i << "=" << ORDER_toStr(order) << "\n";
+      fs << "order." << i << "=" << ORDER_toStr(order) << "\n";
    }
-   file.close();
+   fs.close();
+   debug("test=%s", TEST_toStr(test));
 
+   // backup input parameters
+   string paramSrcFile  = getTerminalPath() +"/tester/"+ test->strategy +".ini";
+   string paramDestFile = getTerminalPath() +"/tester/files/testresults/"
+                        + test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
+   if (!CopyFile(paramSrcFile.c_str(), paramDestFile.c_str(), TRUE))
+      return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile() failed"));
    return(TRUE);
 }
