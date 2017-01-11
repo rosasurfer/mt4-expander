@@ -195,9 +195,6 @@ int   _error(const char* fileName, const char* funcName, int line, int code, con
 void __error(const char* fileName, const char* funcName, int line, int code, const char*   format, const va_list &args);
 
 
-BOOL          WINAPI onProcessAttach();
-BOOL          WINAPI onProcessDetach();
-
 const char*   WINAPI BoolToStr               (BOOL value);
 const char*   WINAPI DeinitFlagsToStr        (uint flags);
 const char*   WINAPI DoubleQuoteStr          (const char* value);

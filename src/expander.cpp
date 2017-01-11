@@ -5,54 +5,6 @@
 //#include <fstream>
 //#include <cstdlib>
 
-std::vector<ContextChain> contextChains  (64);                       // all context chains (i.e. MQL programs, index = program id)
-std::vector<DWORD>        threads        (64);                       // ID's aller bekannten Threads
-std::vector<uint>         threadsPrograms(64);                       // ID's des vom Thread zuletzt ausgeführten MQL-Programms
-uint                      lastUIThreadProgram;                       // ID des vom UI-Thread zuletzt ausgeführten MQL-Programm
-CRITICAL_SECTION          terminalLock;                              // application wide lock
-
-
-/**
- * DLL entry point
- */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
-   BOOL result = TRUE;
-
-   switch (fReason) {
-      case DLL_PROCESS_ATTACH: result = onProcessAttach(); break;
-      case DLL_THREAD_ATTACH :                             break;
-      case DLL_THREAD_DETACH :                             break;
-      case DLL_PROCESS_DETACH: result = onProcessDetach(); break;
-   }
-   return(result);
-}
-
-
-/**
- * DllMain()-Aufruf beim Laden der DLL
- */
-BOOL WINAPI onProcessAttach() {
-   //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
-
-   threads        .resize(0);
-   threadsPrograms.resize(0);
-   contextChains  .resize(1);                               // Index[0] wäre keine gültige Programm-ID und bleibt daher frei
-   InitializeCriticalSection(&terminalLock);
-   return(TRUE);
-}
-
-
-/**
- * DllMain()-Aufruf beim Entladen der DLL
- */
-BOOL WINAPI onProcessDetach() {
-   //debug("thread=%d %s", GetCurrentThreadId(), IsUIThread() ? "ui":"  ");
-
-   DeleteCriticalSection(&terminalLock);
-   RemoveTickTimers();
-   return(TRUE);
-}
-
 
 /**
  * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".

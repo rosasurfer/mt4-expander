@@ -190,6 +190,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\dllmain.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\expander.cpp"
 				>
 			</File>
