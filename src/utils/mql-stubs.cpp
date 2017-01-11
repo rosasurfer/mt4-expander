@@ -1,12 +1,11 @@
 /**
- * Globale Stubs für MQL-Init/Deinit/Main-Funktionen. Diese können im MQL-Programm nach Bedarf durch eigene Versionen
- * überschrieben werden.
+ * Empty function stubs for MQL init/deinit/main functions. Overridden if implemented in the MQL program.
  */
 #include "expander.h"
 
 
 /**
- * Initialisierung
+ * Initialization functions
  */
 int WINAPI onInit() {
    return(NO_ERROR);
@@ -60,7 +59,7 @@ int WINAPI afterInit() {
 
 
 /**
- * Mainfunktionen
+ * Main functions
  */
 int WINAPI onStart() {
    return(NO_ERROR);
@@ -74,7 +73,7 @@ int WINAPI onTick() {
 
 
 /**
- * Deinitialisierung
+ * Deinitialization functions
  */
 int WINAPI onDeinit() {
    return(NO_ERROR);
