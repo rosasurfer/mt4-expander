@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common.h"
-
 
 /**
  * Binäre Repräsentation eines einzelnen Konfigurationsterms einer individuellen Position. Die Konfiguration einer CustomPosition besteht
