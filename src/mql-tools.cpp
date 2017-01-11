@@ -1397,6 +1397,24 @@ string WINAPI numberFormat(double value, const char* format) {
 
 
 /**
+ * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".
+ *
+ * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
+ */
+uint WINAPI MT4InternalMsg() {
+   static uint msgId;
+   if (msgId)
+      return(msgId);
+
+   msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
+   if (!msgId) return(error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessage() failed"));
+
+   return(msgId);
+   #pragma EXPORT
+}
+
+
+/**
  * Return a terminal configuration value as a boolean. Queries the global and the local configuration with the local configu-
  * ration superseding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
  * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if

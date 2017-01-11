@@ -7,24 +7,6 @@
 
 
 /**
- * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".
- *
- * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
- */
-uint WINAPI MT4InternalMsg() {
-   static uint msgId;
-   if (msgId)
-      return(msgId);
-
-   msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-   if (!msgId) return(error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessage() failed"));
-
-   return(msgId);
-   #pragma EXPORT
-}
-
-
-/**
  * Process a C string debug message.
  *
  * @return int - 0 (zero)
