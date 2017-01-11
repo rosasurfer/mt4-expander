@@ -258,7 +258,6 @@ const char*   WINAPI TimeframeToStr          (uint timeframe);                  
 VOID        CALLBACK TimerCallback           (HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time);
 const char*   WINAPI UninitReasonToStr       (UninitializeReason reason);
 const char*   WINAPI UninitializeReasonToStr (UninitializeReason reason);        // Alias
-char*         WINAPI WCharsToStr             (const WCHAR* wcstr, size_t count);
 
 
 /**
