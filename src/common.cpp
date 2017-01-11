@@ -9,7 +9,7 @@
 /**
  *
  */
-std::istream& getline(std::istream &is, string &line) {
+std::istream& getLine(std::istream &is, string &line) {
    // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
    // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
    // tasks, such as thread synchronization and updating the stream state.
@@ -58,7 +58,7 @@ std::istream& getline(std::istream &is, string &line) {
    uint n = 0;
 
    debug("reading file %s...", DoubleQuoteStr(fileName.c_str()));
-   while (!getline(fs, line).eof()) {
+   while (!getLine(fs, line).eof()) {
       ++n;
       debug("line %d: %s (%d)", n, line.c_str(), line.length());
    }

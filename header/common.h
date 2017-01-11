@@ -8,7 +8,6 @@
 
 
 #define  NOMINMAX                      // alternativ: std::min<int>(3, 4) oder  (std::min)(3, 4);
-#define _USE_32BIT_TIME_T
 #include <algorithm>
 #include <sstream>
 
@@ -16,7 +15,8 @@
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
-typedef time_t           datetime;     // signed long
+#define _USE_32BIT_TIME_T
+typedef time_t           datetime;     // a 32-bit signed long
 typedef std::string      string;
 
 
@@ -32,7 +32,7 @@ typedef std::string      string;
 /**
  * std::getline() replacement for reading lines with any line endings.
  */
-std::istream& getline(std::istream &is, string &line);
+std::istream& getLine(std::istream &is, string &line);
 
 
 /**
@@ -42,7 +42,7 @@ std::istream& getline(std::istream &is, string &line);
  *
  * @return string
  *
- * Note: Template functions have must be declared and defined in the same place.
+ * Note: Template functions must be declared and defined in the same place.
  */
 template <typename T> string to_string(T value) {
    std::ostringstream os;
