@@ -544,7 +544,7 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
 
    for (int i=0; i < size; i++) {
       if (tickTimers[i].id == timerId) {
-         TICK_TIMER_DATA ttd = tickTimers[i];
+         TICK_TIMER_DATA &ttd = tickTimers[i];
 
          if (ttd.flags & TICK_IF_VISIBLE) {
             // skip timer event if chart not visible
