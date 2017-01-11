@@ -1,8 +1,8 @@
 #pragma once
 
-#include "header/common.h"
-#include "header/expander.h"
-#include "header/structs/myfx/Test.h"
+#include "common.h"
+#include "expander.h"
+#include "structs/myfx/Test.h"
 
 
 /**

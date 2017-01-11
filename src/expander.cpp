@@ -1,4 +1,4 @@
-#include "header/expander.h"
+#include "expander.h"
 
 
 std::vector<ContextChain> contextChains  (64);                       // all context chains (i.e. MQL programs, index = program id)

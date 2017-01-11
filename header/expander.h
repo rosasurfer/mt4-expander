@@ -1,9 +1,10 @@
 #pragma once
 
-#include "header/common.h"
-#include "header/stdafx.h"
-#include "header/shared/defines.h"                                               // shared between DLL and MQL
-#include "header/shared/errors.h"                                                // ...
+#include "common.h"
+#include "stdafx.h"
+#include "shared/defines.h"                                                      // shared between DLL and MQL
+#include "shared/errors.h"                                                       // ...
+
 #include <fstream>
 #include <string>
 #include <time.h>
@@ -86,33 +87,33 @@ enum UninitializeReason {
 // structs
 #pragma pack(push, 1)
 
-#include "header/structs/mt4/FxtHeader.h"
-#include "header/structs/mt4/HistoryBar400.h"
-#include "header/structs/mt4/HistoryBar401.h"
-#include "header/structs/mt4/HistoryHeader.h"
-#include "header/structs/mt4/MqlStr.h"
-#include "header/structs/mt4/Symbol.h"
-#include "header/structs/mt4/SymbolGroup.h"
-#include "header/structs/mt4/SymbolSelected.h"
-#include "header/structs/mt4/Tick.h"
+#include "structs/mt4/FxtHeader.h"
+#include "structs/mt4/HistoryBar400.h"
+#include "structs/mt4/HistoryBar401.h"
+#include "structs/mt4/HistoryHeader.h"
+#include "structs/mt4/MqlStr.h"
+#include "structs/mt4/Symbol.h"
+#include "structs/mt4/SymbolGroup.h"
+#include "structs/mt4/SymbolSelected.h"
+#include "structs/mt4/Tick.h"
 
-//#include "header/structs/myfx/LogMessage.h"
-#include "header/structs/myfx/ExecutionContext.h"
-#include "header/structs/myfx/Test.h"
+#include "structs/myfx/LogMessage.h"
+#include "structs/myfx/ExecutionContext.h"
+#include "structs/myfx/Test.h"
 
-#include "header/structs/win32/FileTime.h"
-#include "header/structs/win32/ProcessInformation.h"
-#include "header/structs/win32/SecurityAttributes.h"
-#include "header/structs/win32/StartupInfo.h"
-#include "header/structs/win32/SystemTime.h"
-#include "header/structs/win32/TimeZoneInformation.h"
-#include "header/structs/win32/Win32FindData.h"
+#include "structs/win32/FileTime.h"
+#include "structs/win32/ProcessInformation.h"
+#include "structs/win32/SecurityAttributes.h"
+#include "structs/win32/StartupInfo.h"
+#include "structs/win32/SystemTime.h"
+#include "structs/win32/TimeZoneInformation.h"
+#include "structs/win32/Win32FindData.h"
 
 
 // application functionality
-#include "header/context-management.h"
-#include "header/utils/math.h"
-#include "header/utils/string.h"
+#include "context-management.h"
+#include "utils/math.h"
+#include "utils/string.h"
 
 
 // type definitions

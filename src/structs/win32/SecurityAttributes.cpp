@@ -7,7 +7,7 @@
  *    BOOL   bInheritHandle;              //  4
  * };                                     // 12 byte
  */
-#include "header/expander.h"
+#include "expander.h"
 
 
 /**

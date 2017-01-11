@@ -3,7 +3,8 @@
  *
  * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */
-#include "header/expander.h"
+#include "expander.h"
+
 #include <math.h>
 
 

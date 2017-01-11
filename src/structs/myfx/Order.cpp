@@ -1,6 +1,6 @@
-#include "header/expander.h"
-#include "header/structs/myfx/Order.h"
-#include "header/utils/time.h"
+#include "expander.h"
+#include "structs/myfx/Order.h"
+#include "utils/time.h"
 
 
 /**
