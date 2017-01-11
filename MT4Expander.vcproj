@@ -202,10 +202,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\rootfunction-stubs.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\subclassing.cpp"
 				>
 			</File>
@@ -494,6 +490,26 @@
 				>
 				<File
 					RelativePath=".\src\utils\math.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\utils\mql-stubs.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
