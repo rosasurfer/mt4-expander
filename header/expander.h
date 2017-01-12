@@ -205,10 +205,10 @@ HWND          WINAPI GetApplicationWindow();
 uint          WINAPI GetBoolsAddress         (const BOOL values[]);
 uint          WINAPI GetChartDescription     (const char* symbol, uint timeframe, char* buffer, uint bufferSize);
 uint          WINAPI GetDoublesAddress       (const double values[]);
-uint          WINAPI GetGmtTime();
+datetime      WINAPI GetGmtTime();
 uint          WINAPI GetIntsAddress          (const int values[]);
 int           WINAPI GetLastWin32Error();
-uint          WINAPI GetLocalTime();
+datetime      WINAPI GetLocalTime();
 uint          WINAPI GetTerminalBuild();
 const string& WINAPI getTerminalPath();
 const char*   WINAPI GetTerminalVersion();
@@ -225,10 +225,15 @@ BOOL          WINAPI IsUIThread();
 const char*   WINAPI ModuleTypeDescription   (ModuleType type);
 const char*   WINAPI ModuleTypeToStr         (ModuleType type);
 uint          WINAPI MT4InternalMsg();
+
+// format codes:
+// @see  http://www.cplusplus.com/reference/cstdio/printf/
+// @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
 string        WINAPI numberFormat            (double value, const char* format);
 const char*   WINAPI NumberFormat            (double value, const char* format);
 string        WINAPI numberToStr             (double value, const char* format); // Alias
 const char*   WINAPI NumberToStr             (double value, const char* format); // Alias
+
 const char*   WINAPI OperationTypeToStr      (int type);
 const char*   WINAPI OperationTypeDescription(int type);
 const char*   WINAPI OrderTypeToStr          (int type);                         // Alias
