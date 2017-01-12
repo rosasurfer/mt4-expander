@@ -611,6 +611,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  */
 const string& WINAPI getTerminalPath() {
    static string result;
+
    if (result.empty()) {
       char buffer[MAX_PATH];                                         // on the stack
       GetModuleFileNameA(NULL, buffer, MAX_PATH);                    // TODO: handle errors
@@ -631,8 +632,7 @@ const string& WINAPI getTerminalPath() {
  *
  * @return char* - formatted string or NULL pointer if an error occurred
  *
- *
- * Note: printf() format codes
+ * Format codes:
  *  @see  http://www.cplusplus.com/reference/cstdio/printf/
  *  @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
@@ -657,6 +657,10 @@ const char* WINAPI NumberFormat(double value, const char* format) {
  * @param  char* format - printf() format control string
  *
  * @return string - formatted string or empty string if an error occurred
+ *
+ * Format codes:
+ *  @see  http://www.cplusplus.com/reference/cstdio/printf/
+ *  @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
 string WINAPI numberFormat(double value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));

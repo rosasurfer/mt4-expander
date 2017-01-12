@@ -283,7 +283,7 @@ std::istream& getLine(std::istream &is, string &line) {
    // tasks, such as thread synchronization and updating the stream state.
    //
    // @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
-
+   //
    // CR     = 0D     = 13       = \r       Mac
    // LF     = 0A     = 10       = \n       Linux
    // CRLF   = 0D0A   = 13,10    = \r\n     Windows
