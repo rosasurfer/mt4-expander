@@ -178,7 +178,7 @@ extern CRITICAL_SECTION          terminalLock;                       // applicat
 
 // function declarations
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define  warn(...)    _warn(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define  warn(...)   _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 
@@ -219,7 +219,6 @@ const char*   WINAPI InitFlagsToStr          (uint flags);
 const char*   WINAPI InitReasonToStr         (InitializeReason reason);
 const char*   WINAPI InitializeReasonToStr   (InitializeReason reason);          // Alias
 const char*   WINAPI IntToHexStr             (int value);
-const char*   WINAPI IntToHexStr             (const void* value);
 BOOL          WINAPI IsCustomTimeframe       (int timeframe);
 BOOL          WINAPI IsStdTimeframe          (int timeframe);
 BOOL          WINAPI IsUIThread();
@@ -239,8 +238,8 @@ const char*   WINAPI OperationTypeToStr      (int type);
 const char*   WINAPI OperationTypeDescription(int type);
 const char*   WINAPI OrderTypeToStr          (int type);                         // Alias
 const char*   WINAPI OrderTypeDescription    (int type);                         // Alias
-const char*   WINAPI PeriodDescription       (uint period);
-const char*   WINAPI PeriodToStr             (uint period);
+const char*   WINAPI PeriodDescription       (int period);
+const char*   WINAPI PeriodToStr             (int period);
 const char*   WINAPI ProgramTypeDescription  (ProgramType type);
 const char*   WINAPI ProgramTypeToStr        (ProgramType type);
 BOOL          WINAPI RemoveTickTimer         (int timerId);
@@ -253,8 +252,8 @@ BOOL          WINAPI SetWindowProperty       (HWND hWnd, const char* lpName, HAN
 BOOL          WINAPI ShiftIndicatorBuffer    (double buffer[], int bufferSize, int bars, double emptyValue);
 const char*   WINAPI ShowWindowCmdToStr      (int cmdShow);
 const char*   WINAPI StringToStr             (const char* value);
-const char*   WINAPI TimeframeDescription    (uint timeframe);                   // Alias
-const char*   WINAPI TimeframeToStr          (uint timeframe);                   // Alias
+const char*   WINAPI TimeframeDescription    (int timeframe);                    // Alias
+const char*   WINAPI TimeframeToStr          (int timeframe);                    // Alias
 VOID        CALLBACK TimerCallback           (HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time);
 const char*   WINAPI UninitReasonToStr       (UninitializeReason reason);
 const char*   WINAPI UninitializeReasonToStr (UninitializeReason reason);        // Alias

@@ -568,6 +568,26 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath=".\src\utils\to-string.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
