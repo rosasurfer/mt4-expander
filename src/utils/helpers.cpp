@@ -449,12 +449,7 @@ BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, doub
  *
  * @return BOOL - success status
  */
-BOOL WINAPI GetTerminalVersions(uint* major, uint* minor, uint* hotfix, uint* build) {
-   if (major  && (uint)major  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter major = 0x%p (not a valid pointer)", major));
-   if (minor  && (uint)minor  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter minor = 0x%p (not a valid pointer)", minor));
-   if (hotfix && (uint)hotfix < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hotfix = 0x%p (not a valid pointer)", hotfix));
-   if (build  && (uint)build  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter build = 0x%p (not a valid pointer)", build));
-
+BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build) {
    static uint resultMajor, resultMinor, resultHotfix, resultBuild;
 
    if (!resultMajor) {
@@ -463,16 +458,16 @@ BOOL WINAPI GetTerminalVersions(uint* major, uint* minor, uint* hotfix, uint* bu
       uint size = MAX_PATH >> 1, length=size;
       while (length >= size) {
          size   <<= 1;
-         fileName = (char*) alloca(size);                               // on stack
+         fileName = (char*) alloca(size);                               // on the stack
          length   = GetModuleFileName(NULL, fileName, size);
       }
-      if (!length) return(error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName() 0 chars copied"));
+      if (!length) return(error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName() failed"));
 
       // get the file's version info
       DWORD infoSize = GetFileVersionInfoSize(fileName, &infoSize);
       if (!infoSize) return(error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize() returned 0"));
 
-      char* infoBuffer = (char*) alloca(infoSize);                      // on stack
+      char* infoBuffer = (char*) alloca(infoSize);                      // on the stack
       BOOL result = GetFileVersionInfo(fileName, NULL, infoSize, infoBuffer);
       if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfo() returned FALSE"));
 
@@ -496,7 +491,6 @@ BOOL WINAPI GetTerminalVersions(uint* major, uint* minor, uint* hotfix, uint* bu
    if (build)  *build  = resultBuild;
 
    return(TRUE);
-   #pragma EXPORT
 }
 
 
@@ -506,12 +500,12 @@ BOOL WINAPI GetTerminalVersions(uint* major, uint* minor, uint* hotfix, uint* bu
  * @return char* - version or NULL pointer if an error occurred
  */
 const char* WINAPI GetTerminalVersion() {
-   static char* version;
+   static char* version = NULL;
 
    if (!version) {
       // get the version numbers
       uint major, minor, hotfix, build;
-      BOOL result = GetTerminalVersions(&major, &minor, &hotfix, &build);
+      BOOL result = GetTerminalVersion(&major, &minor, &hotfix, &build);
       if (!result) return(NULL);
 
       // compose version string
@@ -533,17 +527,11 @@ const char* WINAPI GetTerminalVersion() {
  */
 uint WINAPI GetTerminalBuild() {
    uint dummy, build;
-   if (!GetTerminalVersions(&dummy, &dummy, &dummy, &build))
+   if (!GetTerminalVersion(&dummy, &dummy, &dummy, &build))
       return(NULL);
    return(build);
    #pragma EXPORT
 }
-
-
-
-
-
-
 
 
 /**
@@ -620,55 +608,6 @@ const string& WINAPI getTerminalPath() {
       result = fileName.substr(0, pos);
    }
    return(result);
-}
-
-
-/**
- * Format a numeric value as a C string.
- *
- * @param  doube value
- * @param  char* format - printf() format control string
- *
- * @return char* - formatted string or NULL pointer if an error occurred
- *
- * Format codes:
- *  @see  http://www.cplusplus.com/reference/cstdio/printf/
- *  @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
- */
-const char* WINAPI NumberFormat(double value, const char* format) {
-   if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
-
-   string str = numberFormat(value, format);
-
-   size_t size = str.length() + 1;                                   // +1 for the terminating '\0'
-   char* buffer = new char[size];                                    // TODO: close memory leak
-   if (!strcpy(buffer, str.c_str()))
-      return(NULL);
-   return(buffer);
-   #pragma EXPORT
-}
-
-
-/**
- * Format a numeric value as a std::string.
- *
- * @param  doube value
- * @param  char* format - printf() format control string
- *
- * @return string - formatted string or empty string if an error occurred
- *
- * Format codes:
- *  @see  http://www.cplusplus.com/reference/cstdio/printf/
- *  @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
- */
-string WINAPI numberFormat(double value, const char* format) {
-   if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
-
-   size_t size = _scprintf(format, value) + 1;                       // +1 for the terminating '\0'
-   char* buffer = (char*) alloca(size);                              // on the stack
-   sprintf_s(buffer, size, format, value);
-
-   return(string(buffer));
 }
 
 

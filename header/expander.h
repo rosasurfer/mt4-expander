@@ -212,7 +212,7 @@ uint          WINAPI GetLocalTime();
 uint          WINAPI GetTerminalBuild();
 const string& WINAPI getTerminalPath();
 const char*   WINAPI GetTerminalVersion();
-BOOL          WINAPI GetTerminalVersions     (uint* major, uint* minor, uint* hotfix, uint* build);
+BOOL          WINAPI GetTerminalVersion      (uint* major, uint* minor, uint* hotfix, uint* build);
 DWORD         WINAPI GetUIThreadId();
 HANDLE        WINAPI GetWindowProperty       (HWND hWnd, const char* lpName);
 const char*   WINAPI InitFlagsToStr          (uint flags);
@@ -225,15 +225,10 @@ BOOL          WINAPI IsUIThread();
 const char*   WINAPI ModuleTypeDescription   (ModuleType type);
 const char*   WINAPI ModuleTypeToStr         (ModuleType type);
 uint          WINAPI MT4InternalMsg();
-
-//
-// printf() format codes:
-//
-// @see  http://www.cplusplus.com/reference/cstdio/printf/
-// @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
-const char*   WINAPI NumberFormat(double value, const char* format);
-string        WINAPI numberFormat(double value, const char* format);
-
+string        WINAPI numberFormat            (double value, const char* format);
+const char*   WINAPI NumberFormat            (double value, const char* format);
+string        WINAPI numberToStr             (double value, const char* format); // Alias
+const char*   WINAPI NumberToStr             (double value, const char* format); // Alias
 const char*   WINAPI OperationTypeToStr      (int type);
 const char*   WINAPI OperationTypeDescription(int type);
 const char*   WINAPI OrderTypeToStr          (int type);                         // Alias
