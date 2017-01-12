@@ -198,10 +198,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\mql-tools.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\subclassing.cpp"
 				>
 			</File>
@@ -488,6 +484,26 @@
 			<Filter
 				Name="utils"
 				>
+				<File
+					RelativePath=".\src\utils\helpers.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+				</File>
 				<File
 					RelativePath=".\src\utils\math.cpp"
 					>
