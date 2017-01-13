@@ -198,10 +198,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\subclassing.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\tester.cpp"
 				>
 			</File>
@@ -601,6 +597,30 @@
 						<Tool
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)\utils\"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="etc"
+				>
+				<File
+					RelativePath=".\src\etc\subclassing.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\etc\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\etc\"
 						/>
 					</FileConfiguration>
 				</File>
