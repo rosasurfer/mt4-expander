@@ -101,9 +101,9 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
  * @return HWND - Handle oder 0, falls ein Fehler auftrat
  */
 HWND WINAPI GetApplicationWindow() {
-   static HWND hWnd;
+   static HWND s_hWnd;
 
-   if (!hWnd) {
+   if (!s_hWnd) {
       HWND  hWndNext = GetTopWindow(NULL);
       DWORD processId, myProcessId=GetCurrentProcessId();
 
@@ -132,10 +132,10 @@ HWND WINAPI GetApplicationWindow() {
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
       if (!hWndNext) error(ERR_RUNTIME_ERROR, "cannot find application main window");
-      hWnd = hWndNext;
+      s_hWnd = hWndNext;
    }
 
-   return(hWnd);
+   return(s_hWnd);
    #pragma EXPANDER_EXPORT
 }
 
@@ -146,14 +146,14 @@ HWND WINAPI GetApplicationWindow() {
  * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
  */
 DWORD WINAPI GetUIThreadId() {
-   static DWORD uiThreadId;
+   static DWORD s_uiThreadId;
 
-   if (!uiThreadId) {
+   if (!s_uiThreadId) {
       HWND hWnd = GetApplicationWindow();
       if (hWnd)
-         uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
+         s_uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
    }
-   return(uiThreadId);
+   return(s_uiThreadId);
    #pragma EXPANDER_EXPORT
 }
 
@@ -249,9 +249,9 @@ BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, doub
  * @return BOOL - success status
  */
 BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build) {
-   static uint resultMajor, resultMinor, resultHotfix, resultBuild;
+   static uint s_resultMajor, s_resultMinor, s_resultHotfix, s_resultBuild;
 
-   if (!resultMajor) {
+   if (!s_resultMajor) {
       // resolve the executable's full file name
       char* fileName;
       uint size = MAX_PATH >> 1, length=size;
@@ -277,17 +277,17 @@ BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* bui
       if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValue() returned FALSE"));
 
       // parse the version numbers
-      resultMajor  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
-      resultMinor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
-      resultHotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
-      resultBuild  = (fileInfo->dwFileVersionLS      ) & 0xffff;
+      s_resultMajor  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
+      s_resultMinor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
+      s_resultHotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
+      s_resultBuild  = (fileInfo->dwFileVersionLS      ) & 0xffff;
    }
 
    // assign results to parameters
-   if (major)  *major  = resultMajor;
-   if (minor)  *minor  = resultMinor;
-   if (hotfix) *hotfix = resultHotfix;
-   if (build)  *build  = resultBuild;
+   if (major)  *major  = s_resultMajor;
+   if (minor)  *minor  = s_resultMinor;
+   if (hotfix) *hotfix = s_resultHotfix;
+   if (build)  *build  = s_resultBuild;
 
    return(TRUE);
 }
@@ -299,9 +299,9 @@ BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* bui
  * @return char* - version or NULL pointer if an error occurred
  */
 const char* WINAPI GetTerminalVersion() {
-   static char* version = NULL;
+   static char* s_version = NULL;
 
-   if (!version) {
+   if (!s_version) {
       // get the version numbers
       uint major, minor, hotfix, build;
       BOOL result = GetTerminalVersion(&major, &minor, &hotfix, &build);
@@ -310,11 +310,11 @@ const char* WINAPI GetTerminalVersion() {
       // compose version string
       char* format = "%d.%d.%d.%d";
       uint size = _scprintf(format, major, minor, hotfix, build) + 1;   // +1 for the terminating '\0'
-      version = new char[size];                                         // on the heap
-      sprintf_s(version, size, format, major, minor, hotfix, build);
+      s_version = new char[size];                                       // on the heap
+      sprintf_s(s_version, size, format, major, minor, hotfix, build);
    }
 
-   return(version);
+   return(s_version);
    #pragma EXPANDER_EXPORT
 }
 
@@ -396,17 +396,17 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  * @return string* - directory name (without trailing path separator)
  */
 const string& WINAPI getTerminalPath() {
-   static string result;
+   static string s_result;
 
-   if (result.empty()) {
+   if (s_result.empty()) {
       char buffer[MAX_PATH];                                         // on the stack
       GetModuleFileNameA(NULL, buffer, MAX_PATH);                    // TODO: handle errors
 
       string fileName(buffer);
       string::size_type pos = fileName.find_last_of("\\/");
-      result = fileName.substr(0, pos);
+      s_result = fileName.substr(0, pos);
    }
-   return(result);
+   return(s_result);
 }
 
 
@@ -416,14 +416,12 @@ const string& WINAPI getTerminalPath() {
  * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
  */
 uint WINAPI MT4InternalMsg() {
-   static uint msgId;
-   if (msgId)
-      return(msgId);
-
-   msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-   if (!msgId) return(error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessage() failed"));
-
-   return(msgId);
+   static uint s_msgId;
+   if (!s_msgId) {
+      s_msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
+      if (!s_msgId) return(error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessage() failed"));
+   }
+   return(s_msgId);
    #pragma EXPANDER_EXPORT
 }
 

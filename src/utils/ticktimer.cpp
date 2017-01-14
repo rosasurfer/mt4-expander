@@ -93,20 +93,20 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // neue Timer-ID erzeugen
-   static uint timerId = 10000;                       // ID's sind mindestens 5-stellig und beginnen bei 10000
-   timerId++;
+   static uint s_timerId = 10000;                     // ID's sind mindestens 5-stellig und beginnen bei 10000
+   s_timerId++;
 
    // Timer setzen
-   uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
-   if (result != timerId)                             // muﬂ stimmen, da hWnd immer != NULL
-      return(error(ERR_WIN32_ERROR+GetLastError(), "SetTimer(hWnd=%p, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
+   uint result = SetTimer(hWnd, s_timerId, millis, (TIMERPROC)TimerCallback);
+   if (result != s_timerId)                           // muﬂ stimmen, da hWnd immer != NULL
+      return(error(ERR_WIN32_ERROR+GetLastError(), "SetTimer(hWnd=%p, timerId=%d, millis=%d) failed with %d", hWnd, s_timerId, millis, result));
    //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
 
    // Timerdaten speichern
-   TICK_TIMER_DATA ttd = {timerId, hWnd, flags};
+   TICK_TIMER_DATA ttd = {s_timerId, hWnd, flags};
    tickTimers.push_back(ttd);
 
-   return(timerId);
+   return(s_timerId);
    #pragma EXPANDER_EXPORT
 }
 
