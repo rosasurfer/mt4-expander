@@ -1,6 +1,5 @@
 #pragma once
 
-#include "expander.h"
 #include "structs/myfx/Test.h"
 
 
@@ -44,6 +43,7 @@
  *  • Nach Recompilation oder Crash einer Library wird ihr ExecutionContext ungültig und auf ihn darf nicht mehr zugegriffen
  *    werden.
  */
+#pragma pack(push, 1)
 struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
    uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
    ProgramType        programType;                 //         4         4     Programmtyp                                     (konstant)   => was für ein Programm bin ich
@@ -81,7 +81,12 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
    int                dllWarning;                  //       888         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
    char*              dllWarningMsg;               //       892         4     Text der DLL-Warnung                            (variabel)   => ...
 };                                                 // ----------------------------------------------------------------------------------------------------------------------------
-                                                   //               = 896                                                                     warum bin ich nicht auf Ibiza
+#pragma pack(pop)                                  //               = 896                                                                     warum bin ich nicht auf Ibiza
+
+
+// type definition
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all contexts of a single MQL program (i.e. MQL modules)
+
 
 // Getters
 uint               WINAPI ec_ProgramId     (const EXECUTION_CONTEXT* ec);

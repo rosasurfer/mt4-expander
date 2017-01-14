@@ -1,16 +1,21 @@
 #pragma once
 
+#include "expander.h"
+
+
 /**
  * MT4 struct SYMBOL_GROUP (Dateiformat "symgroups.raw")
  *
  * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
  */
+#pragma pack(push, 1)
 struct SYMBOL_GROUP {                              // -- offset ---- size --- description ------------------
    char name       [16];                           //         0        16     Name         (szchar)
    char description[60];                           //        16        60     Beschreibung (szchar)
    int  backgroundColor;          // custom (pewa) //        76         4     Farbe im "Market Watch" Window
 };                                                 // ------------------------------------------------------
-                                                   //                = 80
+#pragma pack(pop)                                  //                = 80
+
 
 // Getter
 const char* WINAPI sg_Name            (const SYMBOL_GROUP* sg);

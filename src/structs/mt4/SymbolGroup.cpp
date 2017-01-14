@@ -4,6 +4,7 @@
  * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
  */
 #include "expander.h"
+#include "structs/mt4/SymbolGroup.h"
 
 
 /**
@@ -16,7 +17,7 @@
 const char* WINAPI sg_Name(const SYMBOL_GROUP* sg) {
    if ((uint)sg < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter sg = 0x%p (not a valid pointer)", sg));
    return(sg->name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -30,7 +31,7 @@ const char* WINAPI sg_Name(const SYMBOL_GROUP* sg) {
 const char* WINAPI sg_Description(const SYMBOL_GROUP* sg) {
    if ((uint)sg < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter sg = 0x%p (not a valid pointer)", sg));
    return(sg->description);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -47,7 +48,7 @@ uint WINAPI sg_BackgroundColor(const SYMBOL_GROUP* sg) {
    if (sg->backgroundColor)
       return(sg->backgroundColor);
    return(White);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -63,7 +64,7 @@ const char* WINAPI sgs_Name(const SYMBOL_GROUP sgs[], int index) {
    if ((uint)sgs < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
    if (index     < 0)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index));
    return(sgs[index].name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -79,7 +80,7 @@ const char* WINAPI sgs_Description(const SYMBOL_GROUP sgs[], int index) {
    if ((uint)sgs < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
    if (index     < 0)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index));
    return(sgs[index].description);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -98,7 +99,7 @@ uint WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sgs[], int index) {
    if (sgs[index].backgroundColor)
       return(sgs[index].backgroundColor);
    return(White);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -119,7 +120,7 @@ const char* WINAPI sg_SetName(SYMBOL_GROUP* sg, const char* name) {
    if (!strcpy(sg->name, name))
       return(NULL);
    return(name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -139,7 +140,7 @@ const char* WINAPI sg_SetDescription(SYMBOL_GROUP* sg, const char* description) 
    if (!strcpy(sg->description, description))
       return(NULL);
    return(description);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -158,7 +159,7 @@ int WINAPI sg_SetBackgroundColor(SYMBOL_GROUP* sg, uint color) {
       color = White;                // CLR_NONE wird vom Terminal als Black interpretiert
    }
    return(sg->backgroundColor = color);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -175,7 +176,7 @@ const char* WINAPI sgs_SetName(SYMBOL_GROUP sgs[], int index, const char* name) 
    if ((uint)sgs < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
    if (index     < 0)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index));
    return(sg_SetName(&sgs[index], name));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -192,7 +193,7 @@ const char* WINAPI sgs_SetDescription(SYMBOL_GROUP sgs[], int index, const char*
    if ((uint)sgs < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter sgs = 0x%p (not a valid pointer)", sgs));
    if (index     < 0)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index));
    return(sg_SetDescription(&sgs[index], description));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -209,5 +210,5 @@ int WINAPI sgs_SetBackgroundColor(SYMBOL_GROUP sgs[], int index, uint color) {
    if ((uint)sgs < MIN_VALID_POINTER) return(_CLR_NONE(error(ERR_INVALID_PARAMETER, "invalid parameter sgs = 0x%p (not a valid pointer)", sgs)));
    if (index     < 0)                 return(_CLR_NONE(error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index)));
    return(sg_SetBackgroundColor(&sgs[index], color));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

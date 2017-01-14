@@ -1,5 +1,9 @@
 #include "expander.h"
 #include "structs/myfx/ExecutionContext.h"
+#include "utils/toString.h"
+
+
+extern std::vector<ContextChain> contextChains;                      // all context chains (i.e. MQL programs, index = program id)
 
 
 /**
@@ -12,7 +16,7 @@
 uint WINAPI ec_ProgramId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programId);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -26,7 +30,7 @@ uint WINAPI ec_ProgramId(const EXECUTION_CONTEXT* ec) {
 ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programType);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -40,7 +44,7 @@ ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->programName);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -54,7 +58,7 @@ const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
 ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->moduleType);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -68,7 +72,7 @@ ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->moduleName);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -82,7 +86,7 @@ const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
 LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->launchType);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -96,7 +100,7 @@ LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
 RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->rootFunction);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -110,7 +114,7 @@ RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_InitCycle(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->initCycle);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -124,7 +128,7 @@ BOOL WINAPI ec_InitCycle(const EXECUTION_CONTEXT* ec) {
 InitializeReason WINAPI ec_InitReason(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->initReason);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -138,7 +142,7 @@ InitializeReason WINAPI ec_InitReason(const EXECUTION_CONTEXT* ec) {
 UninitializeReason WINAPI ec_UninitReason(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->uninitReason);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -152,7 +156,7 @@ UninitializeReason WINAPI ec_UninitReason(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->testing);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -166,7 +170,7 @@ BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->visualMode);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -180,7 +184,7 @@ BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->optimization);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -194,7 +198,7 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
 DWORD WINAPI ec_InitFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->initFlags);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -208,7 +212,7 @@ DWORD WINAPI ec_InitFlags(const EXECUTION_CONTEXT* ec) {
 DWORD WINAPI ec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->deinitFlags);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -222,7 +226,7 @@ DWORD WINAPI ec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->logging);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -236,7 +240,7 @@ BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->customLogFile);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -250,7 +254,7 @@ const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->symbol);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -264,7 +268,7 @@ const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->timeframe);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -278,7 +282,7 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
 HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->hChart);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -292,7 +296,7 @@ HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
 HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->hChartWindow);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -317,7 +321,7 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec)
    static const EXECUTION_CONTEXT zeroed = {};
    *sec = zeroed;
    return(FALSE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -331,7 +335,7 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec)
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->superContext);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -345,7 +349,7 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->threadId);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -359,7 +363,7 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->ticks);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -373,7 +377,7 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
 int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->mqlError);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -387,7 +391,7 @@ int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
 int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->dllError);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -401,7 +405,7 @@ int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
 int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec)));
    return(ec->dllWarning);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -422,7 +426,7 @@ uint WINAPI ec_SetProgramId(EXECUTION_CONTEXT* ec, uint id) {
       return(ec_SetProgramId(contextChains[id][0], id));
 
    return(id);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -451,7 +455,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
       return(ec_SetProgramType(contextChains[pid][0], type));
 
    return(type);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -477,7 +481,7 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
       return(ec_SetProgramName(contextChains[pid][0], name));
 
    return(name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -507,7 +511,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
       return(ec_SetModuleType(contextChains[pid][0], type));
 
    return(type);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -533,7 +537,7 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
       return(ec_SetModuleName(contextChains[pid][0], name));
 
    return(name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -562,7 +566,7 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
       return(ec_SetLaunchType(contextChains[pid][0], type));
 
    return(type);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -594,7 +598,7 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
       return(ec_SetRootFunction(contextChains[pid][0], id));
 
    return(id);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -616,7 +620,7 @@ BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
       return(ec_SetInitCycle(contextChains[pid][0], status));
 
    return(status);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -657,7 +661,7 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
       return(ec_SetInitReason(contextChains[pid][0], reason));
 
    return(reason);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -695,7 +699,7 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
       return(ec_SetUninitReason(contextChains[pid][0], reason));
 
    return(reason);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -717,7 +721,7 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
       return(ec_SetTesting(contextChains[pid][0], status));
 
    return(status);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -739,7 +743,7 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
       return(ec_SetVisualMode(contextChains[pid][0], status));
 
    return(status);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -761,7 +765,7 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
       return(ec_SetOptimization(contextChains[pid][0], status));
 
    return(status);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -783,7 +787,7 @@ DWORD WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
       return(ec_SetInitFlags(contextChains[pid][0], flags));
 
    return(flags);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -805,7 +809,7 @@ DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
       return(ec_SetDeinitFlags(contextChains[pid][0], flags));
 
    return(flags);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -827,7 +831,7 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
       return(ec_SetLogging(contextChains[pid][0], status));
 
    return(status);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -860,7 +864,7 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
       return(ec_SetCustomLogFile(contextChains[pid][0], fileName));
 
    return(fileName);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -886,7 +890,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
       return(ec_SetSymbol(contextChains[pid][0], symbol));
 
    return(symbol);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -909,7 +913,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
       return(ec_SetTimeframe(contextChains[pid][0], timeframe));
 
    return(timeframe);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -931,7 +935,7 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
       return(ec_SetHChart(contextChains[pid][0], hWnd));
 
    return(hWnd);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -953,7 +957,7 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
       return(ec_SetHChartWindow(contextChains[pid][0], hWnd));
 
    return(hWnd);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -976,7 +980,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
       return(ec_SetSuperContext(contextChains[pid][0], sec));
 
    return(sec);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -985,7 +989,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
  */
 EXECUTION_CONTEXT* WINAPI ec_SetLpSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* lpSec) {
    return(ec_SetSuperContext(ec, lpSec));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1008,7 +1012,7 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
       return(ec_SetThreadId(contextChains[pid][0], id));
 
    return(id);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1031,7 +1035,7 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
       return(ec_SetTicks(contextChains[pid][0], count));
 
    return(count);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1067,7 +1071,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
          ec_SetMqlError(ec->superContext, error);                    // propagation to parent program
    }
    return(error);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1101,7 +1105,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
       else      ec_SetDllError(master, error);
    }
    return(error);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1135,7 +1139,7 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
       else      ec_SetDllWarning(master, error);
    }
    return(error);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1154,7 +1158,7 @@ RootFunction WINAPI mec_RootFunction(const EXECUTION_CONTEXT* ec) {
 
    EXECUTION_CONTEXT* master = contextChains[programId][0];
    return(master->rootFunction);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1173,7 +1177,7 @@ UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec) {
 
    EXECUTION_CONTEXT* master = contextChains[programId][0];
    return(master->uninitReason);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1192,7 +1196,7 @@ DWORD WINAPI mec_InitFlags(const EXECUTION_CONTEXT* ec) {
 
    EXECUTION_CONTEXT* master = contextChains[programId][0];
    return(master->initFlags);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1246,7 +1250,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
    if (outputDebug) debug(result);
    return(result);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1255,5 +1259,5 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
  */
 const char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug/*=FALSE*/) {
    return(EXECUTION_CONTEXT_toStr(ec, outputDebug));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

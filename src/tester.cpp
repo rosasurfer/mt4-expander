@@ -1,16 +1,20 @@
 #include "expander.h"
-#include "structs/myfx/Order.h"
-#include "structs/myfx/Test.h"
-#include "utils/formatStr.h"
+#include "structs/myfx/ExecutionContext.h"
+#include "utils/helpers.h"
+#include "utils/math.h"
+#include "utils/toString.h"
+#include "utils/format.h"
 
 #include <fstream>
+#include <time.h>
 
 
+// forward declaration
 BOOL WINAPI SaveTest(TEST* test);
 
 
 /**
- *
+ * TODO: documentation
  */
 BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, double accountBalance, const char* accountCurrency, int reportingId, const char* reportingSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
@@ -55,12 +59,12 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
    else return(error(ERR_FUNC_NOT_ALLOWED, "function not allowed in %s::%s()", ec->programName, RootFunctionDescription(ec->rootFunction)));
 
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * TODO: Validierung
+ * TODO: validation
  */
 BOOL WINAPI Test_OpenOrder(EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
    if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
@@ -84,12 +88,12 @@ BOOL WINAPI Test_OpenOrder(EXECUTION_CONTEXT* ec, int ticket, int type, double l
    orders->push_back(order);
 
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * TODO: Validierung
+ * TODO: validation
  *
  * @param  int      ticket
  * @param  double   closePrice
@@ -121,7 +125,7 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
    if (i < 0) return(error(ERR_RUNTIME_ERROR, "ticket #%d not found, size(orders)=%d", ticket, orders->size()));
 
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -142,9 +146,9 @@ BOOL WINAPI SaveTest(TEST* test) {
    debug("test=%s", TEST_toStr(test));
 
    OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory  test.orders=0x%p", test->orders));
-   uint size = orders->size();
+   int size = orders->size();
 
-   for (uint i=0; i < size; ++i) {
+   for (int i=0; i < size; ++i) {
       ORDER* order = &(*orders)[i];
       fs << "order." << i << "=" << ORDER_toStr(order) << "\n";
    }

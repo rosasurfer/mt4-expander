@@ -23,7 +23,7 @@ datetime WINAPI GetGmtTime() {
 
    datetime secondsSince1970 = (datetime)((ulintNow.QuadPart - ulint1970.QuadPart)/10000000);
    return(secondsSince1970);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -49,5 +49,5 @@ datetime WINAPI GetLocalTime() {
 
    datetime secondsSince1970 = (datetime)((ulintNow.QuadPart - ulint1970.QuadPart)/10000000);
    return(secondsSince1970);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

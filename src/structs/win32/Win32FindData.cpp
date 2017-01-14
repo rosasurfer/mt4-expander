@@ -27,7 +27,7 @@
 DWORD WINAPI wfd_FileAttributes(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -41,7 +41,7 @@ DWORD WINAPI wfd_FileAttributes(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_ReadOnly(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_READONLY);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -55,7 +55,7 @@ BOOL WINAPI wfd_FileAttribute_ReadOnly(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Hidden(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_HIDDEN);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -69,7 +69,7 @@ BOOL WINAPI wfd_FileAttribute_Hidden(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_System(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_SYSTEM);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -83,7 +83,7 @@ BOOL WINAPI wfd_FileAttribute_System(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Directory(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -97,7 +97,7 @@ BOOL WINAPI wfd_FileAttribute_Directory(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Archive(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -111,7 +111,7 @@ BOOL WINAPI wfd_FileAttribute_Archive(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Device(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_DEVICE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -125,7 +125,7 @@ BOOL WINAPI wfd_FileAttribute_Device(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Normal(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_NORMAL);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -139,7 +139,7 @@ BOOL WINAPI wfd_FileAttribute_Normal(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Temporary(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -153,7 +153,7 @@ BOOL WINAPI wfd_FileAttribute_Temporary(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_SparseFile(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_SPARSE_FILE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -167,7 +167,7 @@ BOOL WINAPI wfd_FileAttribute_SparseFile(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_ReparsePoint(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -181,7 +181,7 @@ BOOL WINAPI wfd_FileAttribute_ReparsePoint(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Compressed(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_COMPRESSED);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -195,7 +195,7 @@ BOOL WINAPI wfd_FileAttribute_Compressed(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Offline(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_OFFLINE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -209,7 +209,7 @@ BOOL WINAPI wfd_FileAttribute_Offline(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_NotIndexed(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -223,7 +223,7 @@ BOOL WINAPI wfd_FileAttribute_NotIndexed(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Encrypted(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -237,7 +237,7 @@ BOOL WINAPI wfd_FileAttribute_Encrypted(const WIN32_FIND_DATAA* wfd) {
 BOOL WINAPI wfd_FileAttribute_Virtual(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->dwFileAttributes & FILE_ATTRIBUTE_VIRTUAL);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -251,7 +251,7 @@ BOOL WINAPI wfd_FileAttribute_Virtual(const WIN32_FIND_DATAA* wfd) {
 const char* WINAPI wfd_FileName(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->cFileName);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -265,5 +265,5 @@ const char* WINAPI wfd_FileName(const WIN32_FIND_DATAA* wfd) {
 const char* WINAPI wfd_AlternateFileName(const WIN32_FIND_DATAA* wfd) {
    if ((uint)wfd < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter wfd = 0x%p (not a valid pointer)", wfd));
    return(wfd->cAlternateFileName);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

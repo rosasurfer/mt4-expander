@@ -1,6 +1,7 @@
 #pragma once
 
 #include "expander.h"
+#include <vector>
 
 
 /**
@@ -8,6 +9,7 @@
  *
  * Represents a Metatrader order.
  */
+#pragma pack(push, 1)
 struct ORDER {
    uint     id;                                       // unique order id (positive, primary key)
    int      ticket;
@@ -26,6 +28,7 @@ struct ORDER {
    int      magicNumber;
    char     comment[MAX_ORDER_COMMENT_LENGTH+1];
 };
+#pragma pack(pop)
 
 
 typedef std::vector<ORDER> OrderVector;

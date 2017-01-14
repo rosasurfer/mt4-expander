@@ -1,15 +1,18 @@
 #pragma once
 
+#include "expander.h"
+#include "structs/myfx/ExecutionContext.h"
+
 
 // Context management functions
-BOOL             WINAPI SyncMainContext_init     (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int subChartDropped);
-BOOL             WINAPI SyncMainContext_start    (EXECUTION_CONTEXT* ec);
-BOOL             WINAPI SyncMainContext_deinit   (EXECUTION_CONTEXT* ec, UninitializeReason reason);
+BOOL             WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int subChartDropped);
+BOOL             WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec);
+BOOL             WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason reason);
 
-BOOL             WINAPI SyncLibContext_init      (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint period, BOOL isOptimization);
-BOOL             WINAPI SyncLibContext_deinit    (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason);
+BOOL             WINAPI SyncLibContext_init  (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint period, BOOL isOptimization);
+BOOL             WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason);
 
-BOOL             WINAPI LeaveContext             (EXECUTION_CONTEXT* ec);
+BOOL             WINAPI LeaveContext(EXECUTION_CONTEXT* ec);
 
 int              WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason);
 HWND             WINAPI ProgramFindChart         (HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, BOOL isTesting, BOOL isVisualMode, const char* symbol, uint timeframe);

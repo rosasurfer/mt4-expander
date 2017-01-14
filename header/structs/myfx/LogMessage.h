@@ -8,11 +8,13 @@
  *
  * TODO: in EXECUTION_CONTEXT integrieren
  */
+#pragma pack(push, 1)
 struct LOG_MESSAGE {
    int   level;                                    // Loglevel: L_ERROR, L_WARN oder L_INFO
    int   code;
    char* text;                                     // szchar
 };
+#pragma pack(pop)
 
 
 // in EXECUTION_CONTEXT:

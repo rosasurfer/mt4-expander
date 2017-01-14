@@ -1,15 +1,19 @@
 #include "expander.h"
+#include "utils/helpers.h"
+#include "utils/toString.h"
 
-//#include <string>
-//#include <iostream>
-//#include <fstream>
-//#include <cstdlib>
+#include <vector>
+
+
+// external declarations for error management
+extern std::vector<DWORD> threads;                                   // all known threads executing MQL programs
+extern std::vector<uint>  threadsPrograms;                           // the last MQL program executed by a thread
 
 
 /**
  * Process a C string debug message.
  *
- * @return int - 0 (zero)
+ * @return int - 0 (NULL)
  */
 int _debug(const char* fileName, const char* funcName, int line, const char* format, ...) {
    va_list args;
@@ -21,11 +25,11 @@ int _debug(const char* fileName, const char* funcName, int line, const char* for
 
 
 /**
- * Process a C++ string debug message.
+ * Process a std::string debug message.
  *
- * @return int - 0 (zero)
+ * @return int - 0 (NULL)
  */
-int _debug(const char* fileName, const char* funcName, int line, const string &format, ...) {
+int _debug(const char* fileName, const char* funcName, int line, const string& format, ...) {
    va_list args;
    va_start(args, format);
    __debug(fileName, funcName, line, format.c_str(), args);
@@ -35,57 +39,58 @@ int _debug(const char* fileName, const char* funcName, int line, const string &f
 
 
 /**
- * Send a formatted string to the debugger output.
+ * Send a formatted debug message to the debugger output.
  *
- * @param  char*   fileName - Name der Datei, in der der Aufruf erfolgt
- * @param  char*   funcName - Name der Funktion, in der der Aufruf erfolgt
- * @param  int     line     - Zeile, in der der Aufruf erfolgt
- * @param  char*   format   - Formatstring mit Platzhaltern für alle weiteren Parameter
- * @param  va_list args     - weitere Parameter
+ * @param  char*   fileName - file name of the call
+ * @param  char*   funcName - function name of the call
+ * @param  int     line     - line of the call
+ * @param  char*   format   - message with format codes for additional parameters
+ * @param  va_list args     - additional parameters
  */
-void __debug(const char* fileName, const char* funcName, int line, const char* format, const va_list &args) {
+void __debug(const char* fileName, const char* funcName, int line, const char* format, const va_list& args) {
    if (!format) format = "(null)";
 
-   // (1) zuerst alle explizit angegebenen Argumente in einen String transformieren (ab format)
-   size_t size = _vscprintf(format, args) + 1;                                   // +1 für das terminierende '\0'
-   char* msg = (char*) alloca(size);                                             // auf dem Stack
+   // format the parameters of the argument list
+   uint size = _vscprintf(format, args) + 1;                                     // +1 for the terminating '\0'
+   char* msg = (char*)alloca(size);                                              // on the stack
    vsprintf_s(msg, size, format, args);
 
-   // Parameter fileName zerlegen: nur der einfache Dateiname {basename.ext} wird benötigt
+   // get the simple file name: {basename.ext}
    char baseName[_MAX_FNAME], ext[_MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
-   // (2) dann die impliziten Location-Infos vorn anfügen
+   // insert the call location at the beginning of the message
    char* locationFormat = "Metatrader::%s%s::%s(%d)  %s";
-   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;     // +1 für das terminierende '\0'
-   char* buffer = (char*) alloca(size);                                          // auf dem Stack
+   size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;     // +1 for the terminating '\0'
+   char* buffer = (char*)alloca(size);                                           // on the stack
    sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);
 
+   // output
    OutputDebugString(buffer);
 }
 
 
 /**
- * Process a DLL warning with a C string log message.
+ * Process a C string warning.
  *
- * @return int - 0 (zero)
+ * @return int - 0 (NULL)
  */
-int _warn(const char* fileName, const char* funcName, int line, int error, const char* format, ...) {
+int _warn(const char* fileName, const char* funcName, int line, int code, const char* format, ...) {
    va_list args;
    va_start(args, format);
-   __warn(fileName, funcName, line, error, format, args);
+   __warn(fileName, funcName, line, code, format, args);
    va_end(args);
    return(0);
 }
 
 
 /**
- * Process a DLL warning with a C++ string log message.
+ * Process a std::string warning.
  *
- * @return int - 0 (zero)
+ * @return int - 0 (NULL)
  */
-int _warn(const char* fileName, const char* funcName, int line, int error, const string &format, ...) {
+int _warn(const char* fileName, const char* funcName, int line, int error, const string& format, ...) {
    va_list args;
    va_start(args, format);
    __warn(fileName, funcName, line, error, format.c_str(), args);
@@ -95,43 +100,43 @@ int _warn(const char* fileName, const char* funcName, int line, int error, const
 
 
 /**
- * Process a DLL warning and send it to OutputDebugString(). If the warning occurred during a call from MQL the error
- * is stored in the program's EXECUTION_CONTEXT. Must be called via the <tt>warn(...)</tt> macro.
+ * Send a formatted warning message to the debugger output. If the warning occurred during a call from MQL the warning is
+ * stored in the program's EXECUTION_CONTEXT.
  *
- * @param  char*   fileName  - file where the macro was called
- * @param  char*   funcName  - function where the macro was called
- * @param  int     line      - line where the macro was called
- * @param  int     error     - error code
- * @param  char*   msgFormat - message with format codes for further parameters
- * @param  va_list msgArgs   - further message parameters
+ * @param  char*   fileName  - file name of the call
+ * @param  char*   funcName  - function name of the call
+ * @param  int     line      - line of the call
+ * @param  int     code      - error code of the warning
+ * @param  char*   msgFormat - message with format codes for additional parameters
+ * @param  va_list msgArgs   - additional parameters
  */
-void __warn(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, const va_list &msgArgs) {
+void __warn(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list& msgArgs) {
    if (!msgFormat) msgFormat = "(null)";
 
    // create message with the specified parameters
-   size_t size = _vscprintf(msgFormat, msgArgs) + 1;                                   // +1 for the terminating '\0'
-   char* msg = (char*) alloca(size);                                                   // on the stack
+   uint size = _vscprintf(msgFormat, msgArgs) + 1;                                     // +1 for the terminating '\0'
+   char* msg = (char*)alloca(size);                                                    // on the stack
    vsprintf_s(msg, size, msgFormat, msgArgs);
 
-   // extract {baseName}.{ext} from fileName
+   // get the simple file name: {basename.ext}
    char baseName[_MAX_FNAME], ext[_MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
-   // add location infos
+   // insert the call location at the beginning of the message
    char* locationFormat = "Metatrader::%s%s::%s(%d)  WARN: %s";
    size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;           // +1 for the terminating '\0'
-   char* locationMsg = (char*) alloca(size);                                           // on the stack
+   char* locationMsg = (char*)alloca(size);                                            // on the stack
    sprintf_s(locationMsg, size, locationFormat, baseName, ext, funcName, line, msg);
 
    char* fullMsg;
 
    // add error details (if any)
-   if (error) {
+   if (code) {
       char* errorFormat  = "%s  [%s]";
-      const char* sError = ErrorToStr(error);
+      const char* sError = ErrorToStr(code);
       size = _scprintf(errorFormat, locationMsg, sError) + 1;                          // +1 for the terminating '\0'
-      fullMsg = (char*) alloca(size);                                                  // on the stack
+      fullMsg = (char*)alloca(size);                                                   // on the stack
       sprintf_s(fullMsg, size, errorFormat, locationMsg, sError);
    }
    else {
@@ -148,61 +153,61 @@ void __warn(const char* fileName, const char* funcName, int line, int error, con
 
 
 /**
- * Process a DLL error with a C string log message.
+ * Process a C string error.
  *
- * @return int - 0 (zero)
+ * @return int - 0 (NULL)
  */
-int _error(const char* fileName, const char* funcName, int line, int error, const char* format, ...) {
+int _error(const char* fileName, const char* funcName, int line, int code, const char* format, ...) {
    va_list args;
    va_start(args, format);
-   __error(fileName, funcName, line, error, format, args);
+   __error(fileName, funcName, line, code, format, args);
    va_end(args);
    return(0);
 }
 
 
 /**
- * Process a DLL error with a C++ string log message.
+ * Process a std::string error.
  *
- * @return int - 0 (zero)
+ * @return int - 0 (NULL)
  */
-int _error(const char* fileName, const char* funcName, int line, int error, const string &format, ...) {
+int _error(const char* fileName, const char* funcName, int line, int code, const string& format, ...) {
    va_list args;
    va_start(args, format);
-   __error(fileName, funcName, line, error, format.c_str(), args);
+   __error(fileName, funcName, line, code, format.c_str(), args);
    va_end(args);
    return(0);
 }
 
 
 /**
- * Process a DLL error and send it to OutputDebugString(). If the error occurred during a call from MQL the error
- * is stored in the program's EXECUTION_CONTEXT. Must be called via the <tt>error(...)</tt> macro.
+ * Send a formatted error message to the debugger output. If the error occurred during a call from MQL the error is stored in
+ * the program's EXECUTION_CONTEXT.
  *
- * @param  char*   fileName  - file where the macro was called
- * @param  char*   funcName  - function where the macro was called
- * @param  int     line      - line where the macro was called
- * @param  int     error     - error code
- * @param  char*   msgFormat - message with format codes for further parameters
- * @param  va_list msgArgs   - further message parameters
+ * @param  char*   fileName  - file name of the call
+ * @param  char*   funcName  - function name of the call
+ * @param  int     line      - line of the call
+ * @param  int     code      - error code
+ * @param  char*   msgFormat - message with format codes for additional parameters
+ * @param  va_list msgArgs   - additional parameters
  */
-void __error(const char* fileName, const char* funcName, int line, int error, const char* msgFormat, const va_list &msgArgs) {
-   if (!error) return;
+void __error(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list& msgArgs) {
+   if (!code) return;
    if (!msgFormat) msgFormat = "(null)";
 
    // create message with the specified parameters
-   size_t size = _vscprintf(msgFormat, msgArgs) + 1;                                   // +1 for the terminating '\0'
-   char* msg = (char*) alloca(size);                                                   // on the stack
+   int size = _vscprintf(msgFormat, msgArgs) + 1;                                      // +1 for the terminating '\0'
+   char* msg = (char*)alloca(size);                                                    // on the stack
    vsprintf_s(msg, size, msgFormat, msgArgs);
 
-   // extract {baseName}.{ext} from fileName
+   // get the simple file name: {basename.ext}
    char baseName[_MAX_FNAME], ext[_MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
-   // add location infos and error details
+   // insert the call location at the beginning of the message
    char* locationFormat = "Metatrader::%s%s::%s(%d)  ERROR: %s  [%s]";
-   const char* sError   = ErrorToStr(error);
+   const char* sError   = ErrorToStr(code);
    size = _scprintf(locationFormat, baseName, ext, funcName, line, msg, sError) + 1;   // +1 for the terminating '\0'
    char* fullMsg = (char*) alloca(size);                                               // on the stack
    sprintf_s(fullMsg, size, locationFormat, baseName, ext, funcName, line, msg, sError);
@@ -211,7 +216,7 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
    DWORD currentThread = GetCurrentThreadId();
    int currentThreadIndex=-1, currentThreadLastProgram=0;
    size = threads.size();
-   for (uint i=0; i < size; i++) {
+   for (int i=0; i < size; i++) {
       if (threads[i] == currentThread) {                             // thread found
          currentThreadIndex       = i;                               // keep thread index and last MQL program
          currentThreadLastProgram = threadsPrograms[i];
@@ -247,9 +252,7 @@ void __error(const char* fileName, const char* funcName, int line, int error, co
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende feste Werte zurückzugeben.
- *
- * @param  ... all parameters are ignored
+ * Helper functions returning fixed values. All parameters are ignored.
  */
 int         WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
 int         WINAPI _EMPTY       (...) { return(EMPTY       ); }
@@ -263,120 +266,36 @@ BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
 
 
 /**
- * Pseudo-Funktionen, die ihrem Namen entsprechende variable Werte zurückzugeben.
- * Außer dem ersten werden alle übergebenen Parameter ignoriert.
+ * Helper functions returning variable values. All parameters except the first one are ignored.
  */
-bool   WINAPI _bool  (bool   value, ...) { return(value); }
-char   WINAPI _char  (char   value, ...) { return(value); }
-int    WINAPI _int   (int    value, ...) { return(value); }
-float  WINAPI _float (float  value, ...) { return(value); }
-double WINAPI _double(double value, ...) { return(value); }
-BOOL   WINAPI _BOOL  (BOOL   value, ...) { return(value); }
+bool        WINAPI _bool        (bool   value, ...) { return(value); }
+char        WINAPI _char        (char   value, ...) { return(value); }
+int         WINAPI _int         (int    value, ...) { return(value); }
+float       WINAPI _float       (float  value, ...) { return(value); }
+double      WINAPI _double      (double value, ...) { return(value); }
+BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
 
 
-/**
- *
- */
-std::istream& getLine(std::istream &is, string &line) {
-   // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
-   // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
-   // tasks, such as thread synchronization and updating the stream state.
-   //
-   // @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
-   //
-   // CR     = 0D     = 13       = \r       Mac
-   // LF     = 0A     = 10       = \n       Linux
-   // CRLF   = 0D0A   = 13,10    = \r\n     Windows
-   // CRCRLF = 0D0D0A = 13,13,10 = \r\r\n   Netscape, Windows XP Notepad bug (not yet tested)
-
-   std::istream::sentry se(is, true);
-   std::streambuf* sb = is.rdbuf();
-   line.clear();
-
-   for (;;) {
-      int ch = sb->sbumpc();
-      switch (ch) {
-         case '\n':
-            goto endloop;
-
-         case '\r':
-            if (sb->sgetc() == '\n')
-               sb->sbumpc();
-            goto endloop;
-
-         case EOF:
-            // handle the case when the last line has no line ending
-            if (line.empty())
-               is.setstate(std::ios::eofbit);
-            goto endloop;
-
-         default:
-            line += (char)ch;
-      }
-   }
-   endloop:
-   return(is);
-
-   /*
-   string   fileName = GetTerminalPath() +"\\tester\\"+ ec->programName +".ini";
-   std::ifstream fs(fileName.c_str());
-   if (!fs) return(error(ERR_FILE_CANNOT_OPEN, "cannot open file %s", DoubleQuoteStr(fileName.c_str())));
-
-   string line;
-   uint n = 0;
-
-   debug("reading file %s...", DoubleQuoteStr(fileName.c_str()));
-   while (!getLine(fs, line).eof()) {
-      ++n;
-      debug("line %d: %s (%d)", n, line.c_str(), line.length());
-   }
-   fs.close();
-   debug("file contains %d line(s)", n);
-   */
-}
-
-
-/**
- *
- */
-int WINAPI Test() {
-
-   typedef std::vector<int> IntVector;
-   IntVector ints(1);
-
-   ints.push_back(1);
-   ints.push_back(1);
-   ints.push_back(1);
-
-   IntVector::iterator it = ints.begin();
-   ints.erase(ints.begin() + 1);
-
-   debug("capacity(ints)=%d  size(ints)=%d", ints.capacity(), ints.size());
-   return(0);
-
-   string str("Hello world");
-   int len = str.length();
-   char* test = new char[len+1];
-   str.copy(test, len);
-   test[len] = '\0';
-   delete[] test;
-   return(0);
-
-   debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
-   /*
-   debug("error.code=%d  error.message=%s", error->code, error->message);
-   error->code    = 200;
-   char* msg      = "200: OK";
-   int   bufSize  = strlen(msg)+1;
-   char* buffer   = new char[bufSize];
-   strcpy_s(buffer, bufSize, msg);
-   error->message = buffer;
-   */
-
-   /*
-   auto_ptr<char> p(new char(10));
-   int len = strlen(p.get());
-   */
-   return(0);
-   //#pragma EXPORT
-}
+/*
+HWND          WINAPI GetApplicationWindow();
+uint          WINAPI GetBoolsAddress         (const BOOL values[]);
+uint          WINAPI GetChartDescription     (const char* symbol, uint timeframe, char* buffer, uint bufferSize);
+uint          WINAPI GetDoublesAddress       (const double values[]);
+datetime      WINAPI GetGmtTime();
+uint          WINAPI GetIntsAddress          (const int values[]);
+int           WINAPI GetLastWin32Error();
+datetime      WINAPI GetLocalTime();
+uint          WINAPI GetTerminalBuild();
+const string& WINAPI getTerminalPath();
+const char*   WINAPI GetTerminalVersion();
+BOOL          WINAPI GetTerminalVersion      (uint* major, uint* minor, uint* hotfix, uint* build);
+DWORD         WINAPI GetUIThreadId();
+HANDLE        WINAPI GetWindowProperty       (HWND hWnd, const char* lpName);
+BOOL          WINAPI IsCustomTimeframe       (int timeframe);
+BOOL          WINAPI IsStdTimeframe          (int timeframe);
+BOOL          WINAPI IsUIThread();
+uint          WINAPI MT4InternalMsg();
+HANDLE        WINAPI RemoveWindowProperty    (HWND hWnd, const char* lpName);
+BOOL          WINAPI SetWindowProperty       (HWND hWnd, const char* lpName, HANDLE value);
+BOOL          WINAPI ShiftIndicatorBuffer    (double buffer[], int bufferSize, int bars, double emptyValue);
+*/

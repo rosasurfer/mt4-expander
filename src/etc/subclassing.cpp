@@ -30,7 +30,7 @@ BOOL WINAPI SubclassWindow(HWND hWnd) {
    last_hWnd = hWnd;
    debug("replaced window procedure 0x%p with 0x%p", origWndProc, CustomWndProc);
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -49,5 +49,5 @@ BOOL WINAPI UnsubclassWindow(HWND hWnd) {
 
    debug("original window procedure restored");
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

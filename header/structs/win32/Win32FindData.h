@@ -1,5 +1,8 @@
 #pragma once
 
+#include "stdafx.h"
+
+
 /**
  * Win32 struct WIN32_FIND_DATAA (Ansi-Version)
  *

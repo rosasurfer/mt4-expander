@@ -31,7 +31,7 @@
 LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
    return(tzi->Bias);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -57,7 +57,7 @@ const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
    mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
 
    return(mbstr);                                           // TODO: Speicherleck schlieﬂen
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -72,7 +72,7 @@ void WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
    if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
 
    *st = tzi->StandardDate;
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -86,7 +86,7 @@ void WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
 LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
    return(tzi->StandardBias);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -112,7 +112,7 @@ const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
    mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
 
    return(mbstr);                                           // TODO: Speicherleck schlieﬂen
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -127,7 +127,7 @@ void WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
    if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
 
    *st = tzi->DaylightDate;
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -141,5 +141,5 @@ void WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
 LONG WINAPI tzi_DaylightBias(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
    return(tzi->DaylightBias);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

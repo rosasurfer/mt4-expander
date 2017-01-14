@@ -42,13 +42,14 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="$(ProjectDir)\header"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;STDLIB_EXPORTS;EXPANDER_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;STDLIB_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				EnableEnhancedInstructionSet="2"
+				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -122,13 +123,14 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="$(ProjectDir)\header"
-				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;STDLIB_EXPORTS;EXPANDER_EXPORTS"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;STDLIB_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
+				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -481,7 +483,7 @@
 				Name="utils"
 				>
 				<File
-					RelativePath=".\src\utils\formatStr.cpp"
+					RelativePath=".\src\utils\format.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -579,6 +581,10 @@
 							ObjectFile="$(IntDir)\utils\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\utils\ticktimer.cpp"
+					>
 				</File>
 				<File
 					RelativePath=".\src\utils\time.cpp"
@@ -779,7 +785,11 @@
 				Name="utils"
 				>
 				<File
-					RelativePath=".\header\utils\formatStr.h"
+					RelativePath=".\header\utils\format.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\utils\helpers.h"
 					>
 				</File>
 				<File
@@ -788,6 +798,14 @@
 				</File>
 				<File
 					RelativePath=".\header\utils\string.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\utils\ticktimer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\utils\toString.h"
 					>
 				</File>
 			</Filter>

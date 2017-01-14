@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "structs/mt4/MqlStr.h"
 
 
 /**
@@ -11,7 +12,7 @@
 uint WINAPI GetStringsAddress(const MqlStr values[]) {
    if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -29,7 +30,7 @@ uint WINAPI GetStringsAddress(const MqlStr values[]) {
 uint WINAPI GetStringAddress(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
    return((uint) value);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -44,7 +45,7 @@ uint WINAPI GetStringAddress(const char* value) {
 const char* WINAPI GetString(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
    return((char*) value);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -57,7 +58,7 @@ const char* WINAPI GetString(const char* value) {
  */
 BOOL WINAPI StringIsNull(const char* value) {
    return(!value);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -73,7 +74,7 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
    if ( s1 ==  s2) return(TRUE);                                     // if pointers are equal values are too
    if (!s1 || !s2) return(FALSE);                                    // if one is a NULL pointer the other can't
    return(strcmp(s1, s2) == 0);                                      // both are not NULL pointers
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -96,5 +97,5 @@ BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
    if (strLen >= suffixLen)
       return(strncmp(str + strLen - suffixLen, suffix, suffixLen) == 0);
    return(FALSE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

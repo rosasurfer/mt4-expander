@@ -8,6 +8,7 @@
  *
  * Structure holding metadata of a test: Strategy Tester settings, strategy settings, order history
  */
+#pragma pack(push, 1)
 struct TEST {                                            // - size --- description --------------------------------------------
    int           id;                                     //      4     unique test id (positive, primary key)
    datetime      time;                                   //      4     time of the test
@@ -29,6 +30,7 @@ struct TEST {                                            // - size --- descripti
    uint          duration;                               //      4     duration of the test in milliseconds
    OrderHistory* orders;                                 //      4     array of orders
 };                                                       // -------------------------------------------------------------------
+#pragma pack(pop)
 
 
 // Getters

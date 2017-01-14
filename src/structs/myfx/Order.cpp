@@ -1,6 +1,7 @@
 #include "expander.h"
 #include "structs/myfx/Order.h"
-#include "utils/formatStr.h"
+#include "utils/format.h"
+#include "utils/toString.h"
 
 
 /**

@@ -1,4 +1,5 @@
 #include "expander.h"
+#include <time.h>
 
 
 /**
@@ -42,7 +43,7 @@ const char* WINAPI GmTimeFormat(datetime timestamp, const char* format) {
    if (!length)
       return(NULL);
    return(strcpy(new char[length+1], str.c_str()));                  // TODO: close memory leak
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -87,5 +88,51 @@ const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
    if (!length)
       return(NULL);
    return(strcpy(new char[length+1], str.c_str()));                  // TODO: close memory leak
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Format a numeric value as a std::string.
+ *
+ * @param  doube value
+ * @param  char* format - format control string as used for printf()
+ *
+ * @return string - formatted string or empty string if an error occurred
+ *
+ * Format codes:
+ * @see  http://www.cplusplus.com/reference/cstdio/printf/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
+ */
+string WINAPI numberFormat(double value, const char* format) {
+   if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
+
+   uint size = _scprintf(format, value) + 1;                         // +1 for the terminating '\0'
+   char* buffer = (char*) alloca(size);                              // on the stack
+   sprintf_s(buffer, size, format, value);
+
+   return(string(buffer));
+}
+
+
+/**
+ * Format a numeric value as a C string.
+ *
+ * @param  doube value
+ * @param  char* format - format control string as used for printf()
+ *
+ * @return char* - formatted string or NULL pointer if an error occurred
+ *
+ * Format codes:
+ * @see  http://www.cplusplus.com/reference/cstdio/printf/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
+ */
+const char* WINAPI NumberFormat(double value, const char* format) {
+   if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+
+   string str = numberFormat(value, format);
+   uint size  = str.length() + 1;                                   // +1 for the terminating '\0'
+
+   return(strcpy(new char[size], str.c_str()));                      // TODO: close memory leak
+   #pragma EXPANDER_EXPORT
 }

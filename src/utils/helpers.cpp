@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "utils/toString.h"
 
 
 /**
@@ -11,7 +12,7 @@
 uint WINAPI GetBoolsAddress(const BOOL values[]) {
    if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -25,7 +26,7 @@ uint WINAPI GetBoolsAddress(const BOOL values[]) {
 uint WINAPI GetIntsAddress(const int values[]) {
    if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -39,7 +40,7 @@ uint WINAPI GetIntsAddress(const int values[]) {
 uint WINAPI GetDoublesAddress(const double values[]) {
    if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
    return((uint) values);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -51,7 +52,7 @@ uint WINAPI GetDoublesAddress(const double values[]) {
  */
 int WINAPI GetLastWin32Error() {
    return(GetLastError());
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -75,7 +76,7 @@ BOOL WINAPI IsStdTimeframe(int timeframe) {
       case PERIOD_MN1: return(TRUE);
    }
    return(FALSE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -90,7 +91,7 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
    return(!IsStdTimeframe(timeframe));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -135,7 +136,7 @@ HWND WINAPI GetApplicationWindow() {
    }
 
    return(hWnd);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -153,7 +154,7 @@ DWORD WINAPI GetUIThreadId() {
          uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
    }
    return(uiThreadId);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -164,157 +165,7 @@ DWORD WINAPI GetUIThreadId() {
  */
 BOOL WINAPI IsUIThread() {
    return(GetCurrentThreadId() == GetUIThreadId());
-   #pragma EXPORT
-}
-
-
-// Verwaltungsdaten eines TickTimers
-struct TICK_TIMER_DATA {
-   uint  id;                                 // Timer-ID
-   HWND  hWnd;                               // Chartfenster, das Ticks empfängt
-   DWORD flags;                              // Timer-Flags (Tickkonfiguration)
-   DWORD userdata1;
-   DWORD userdata2;                          // event-übergreifende User-Daten (Cookies etc.)
-   DWORD userdata3;
-};
-std::vector<TICK_TIMER_DATA> tickTimers;     // Daten aller aktiven TickTimer
-
-
-/**
- * Callback function for WM_TIMER messages.
- *
- * @param  HWND     hWnd    - Handle to the window associated with the timer.
- * @param  UINT     msg     - Specifies the WM_TIMER message.
- * @param  UINT_PTR timerId - Specifies the timer's identifier.
- * @param  DWORD    time    - Specifies the number of milliseconds that have elapsed since the system was started. This is the
- *                            value returned by the GetTickCount() function.
- */
-VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
-   int size = tickTimers.size();
-
-   for (int i=0; i < size; i++) {
-      if (tickTimers[i].id == timerId) {
-         TICK_TIMER_DATA &ttd = tickTimers[i];
-
-         if (ttd.flags & TICK_IF_VISIBLE) {
-            // skip timer event if chart not visible
-            RECT rect;                                               // ermitteln, ob der Chart mindestens teilweise sichtbar ist
-            HDC hDC = GetDC(hWnd);
-            int rgn = GetClipBox(hDC, &rect);
-            ReleaseDC(hWnd, hDC);
-
-            if (rgn == NULLREGION)                                   // Chart ist nicht sichtbar
-               return;
-            if (rgn == RGN_ERROR) {
-               warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
-               return;
-            }
-         }
-         if (ttd.flags & TICK_PAUSE_ON_WEEKEND) {
-            // skip timer event if on weekend: not yet implemented
-         }
-
-         if (ttd.flags & TICK_CHART_REFRESH) {
-            PostMessageA(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);
-         }
-         else if (ttd.flags & TICK_TESTER) {
-            PostMessageA(hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-         }
-         else {
-            PostMessageA(hWnd, MT4InternalMsg(), MT4_TICK, TICK_OFFLINE_EA);     // default tick
-         }
-         return;
-      }
-   }
-
-   warn(ERR_RUNTIME_ERROR, "timer not found, timerId = %d", timerId);
-}
-
-
-/**
- * Installiert einen Timer, der dem angegebenen Fenster synthetische Ticks schickt.
- *
- * @param  HWND  hWnd   - Handle des Fensters, an das die Ticks geschickt werden.
- * @param  int   millis - Zeitperiode der zu generierenden Ticks in Millisekunden
- * @param  DWORD flags  - die Ticks konfigurierende Flags (default: keine)
- *                        TICK_CHART_REFRESH:    Statt eines regulären Ticks wird das Command ID_CHART_REFRESH an den Chart
- *                                               geschickt (für Offline- und synthetische Charts).
- *                        TICK_TESTER:           Statt eines regulären Ticks wird das Command ID_CHART_STEPFORWARD an den Chart
- *                                               geschickt (für Strategy Tester).
- *                        TICK_IF_VISIBLE:       Ticks werden nur verschickt, wenn der Chart mindestens teilweise sichtbar ist.
- *                        TICK_PAUSE_ON_WEEKEND: Ticks werden nur zu regulären Forex-Handelszeiten verschickt (not implemented).
- *
- * @return uint - ID des installierten Timers zur Übergabe an RemoveTickTimer() bei Deinstallation des Timers oder 0, falls ein
- *                Fehler auftrat.
- */
-uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
-   // Parametervalidierung
-   DWORD wndThreadId = GetWindowThreadProcessId(hWnd, NULL);
-   if (wndThreadId != GetCurrentThreadId()) {
-      if (!wndThreadId)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd = %p (not a window)", hWnd));
-                                                          return(error(ERR_INVALID_PARAMETER, "window hWnd = %p not owned by the current thread", hWnd));
-   }
-   if (millis <= 0)                                       return(error(ERR_INVALID_PARAMETER, "invalid parameter millis = %d", millis));
-   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter flags combination: TICK_CHART_REFRESH & TICK_TESTER"));
-   if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
-
-   // neue Timer-ID erzeugen
-   static uint timerId = 10000;                       // ID's sind mindestens 5-stellig und beginnen bei 10000
-   timerId++;
-
-   // Timer setzen
-   uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
-   if (result != timerId)                             // muß stimmen, da hWnd immer != NULL
-      return(error(ERR_WIN32_ERROR+GetLastError(), "SetTimer(hWnd=%p, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
-   //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
-
-   // Timerdaten speichern
-   TICK_TIMER_DATA ttd = {timerId, hWnd, flags};
-   tickTimers.push_back(ttd);
-
-   return(timerId);
-   #pragma EXPORT
-}
-
-
-/**
- * Deinstalliert einen mit SetupTickTimer() installierten Timer.
- *
- * @param  int timerId - ID des Timers, wie von SetupTickTimer() zurückgegeben.
- *
- * @return BOOL - Erfolgsstatus
- */
-BOOL WINAPI RemoveTickTimer(int timerId) {
-   if (timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId = %d", timerId));
-
-   int size = tickTimers.size();
-
-   for (int i=0; i < size; i++) {
-      if (tickTimers[i].id == timerId) {
-         if (!KillTimer(tickTimers[i].hWnd, timerId))
-            return(error(ERR_WIN32_ERROR+GetLastError(), "KillTimer(hWnd=%p, timerId=%d) failed", tickTimers[i].hWnd, timerId));
-         tickTimers.erase(tickTimers.begin() + i);
-         return(TRUE);
-      }
-   }
-
-   return(error(ERR_RUNTIME_ERROR, "timer not found: id = %d", timerId));
-   #pragma EXPORT
-}
-
-
-/**
- * Deinstalliert alle mit SetupTickTimer() installierten Timer, die nicht explizit deinstalliert wurden.
- * Wird in onProcessDetach() aufgerufen.
- */
-void WINAPI RemoveTickTimers() {
-   int size = tickTimers.size();
-
-   for (int i=size-1; i>=0; i--) {                 // rückwärts, da der Vector in RemoveTickTimer() modifiziert wird
-      uint id = tickTimers[i].id;
-      warn(NO_ERROR, "removing orphaned tickTimer with id = %d", id);
-      RemoveTickTimer(id);
-   }
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -328,7 +179,7 @@ void WINAPI RemoveTickTimers() {
  */
 HANDLE WINAPI GetWindowProperty(HWND hWnd, const char* lpName) {
    return(GetProp(hWnd, lpName));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -342,7 +193,7 @@ HANDLE WINAPI GetWindowProperty(HWND hWnd, const char* lpName) {
  */
 HANDLE WINAPI RemoveWindowProperty(HWND hWnd, const char* lpName) {
    return(RemoveProp(hWnd, lpName));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -357,7 +208,7 @@ HANDLE WINAPI RemoveWindowProperty(HWND hWnd, const char* lpName) {
  */
 BOOL WINAPI SetWindowProperty(HWND hWnd, const char* lpName, HANDLE value) {
    return(SetProp(hWnd, lpName, value));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -383,7 +234,7 @@ BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, doub
       buffer[i] = emptyValue;
    }
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -464,7 +315,7 @@ const char* WINAPI GetTerminalVersion() {
    }
 
    return(version);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -478,7 +329,7 @@ uint WINAPI GetTerminalBuild() {
    if (!GetTerminalVersion(&dummy, &dummy, &dummy, &build))
       return(NULL);
    return(build);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -573,7 +424,7 @@ uint WINAPI MT4InternalMsg() {
    if (!msgId) return(error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessage() failed"));
 
    return(msgId);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -593,4 +444,66 @@ BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValu
    // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
    //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
    //return(GetLocalConfigBool (section, key, result));
+}
+
+
+/**
+ *
+ */
+std::istream& getLine(std::istream &is, string& line) {
+   // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
+   // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
+   // tasks, such as thread synchronization and updating the stream state.
+   //
+   // @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
+   //
+   // CR     = 0D     = 13       = \r       Mac
+   // LF     = 0A     = 10       = \n       Linux
+   // CRLF   = 0D0A   = 13,10    = \r\n     Windows
+   // CRCRLF = 0D0D0A = 13,13,10 = \r\r\n   Netscape, Windows XP Notepad bug (not yet tested)
+
+   std::istream::sentry se(is, true);
+   std::streambuf* sb = is.rdbuf();
+   line.clear();
+
+   for (;;) {
+      int ch = sb->sbumpc();
+      switch (ch) {
+         case '\n':
+            goto endloop;
+
+         case '\r':
+            if (sb->sgetc() == '\n')
+               sb->sbumpc();
+            goto endloop;
+
+         case EOF:
+            // handle the case when the last line has no line ending
+            if (line.empty())
+               is.setstate(std::ios::eofbit);
+            goto endloop;
+
+         default:
+            line += (char)ch;
+      }
+   }
+   endloop:
+   return(is);
+
+   /*
+   string   fileName = GetTerminalPath() +"\\tester\\"+ ec->programName +".ini";
+   std::ifstream fs(fileName.c_str());
+   if (!fs) return(error(ERR_FILE_CANNOT_OPEN, "cannot open file %s", DoubleQuoteStr(fileName.c_str())));
+
+   string line;
+   uint n = 0;
+
+   debug("reading file %s...", DoubleQuoteStr(fileName.c_str()));
+   while (!getLine(fs, line).eof()) {
+      ++n;
+      debug("line %d: %s (%d)", n, line.c_str(), line.length());
+   }
+   fs.close();
+   debug("file contains %d line(s)", n);
+   */
 }

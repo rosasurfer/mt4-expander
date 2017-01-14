@@ -1,5 +1,8 @@
 #pragma once
 
+#include "expander.h"
+
+
 /**
  * MT4 struct FXT_HEADER (Tickdatei-Header)
  *
@@ -12,6 +15,7 @@
  *    modellierte Tick befindet sich an der 1000-und-ersten Bar. Der Expert muß prüfen, ob diese History für seine Strategie
  *    ausreichend ist und ggf. auf das Eintreffen ausreichender Bars warten.
  */
+#pragma pack(push, 1)
 struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint   version;                                 //         0         4     Header-Version                               405
    char   description[64];                         //         4        64     z.B. Copyright (szchar)
@@ -80,7 +84,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint   modelErrors;                             //       484         4     number of errors during model generation
    BYTE   reserved[240];                           //       488       240     unused
 };                                                 // ----------------------------------------------------------------------------------------------------------------
-                                                   //               = 728     Warum bin ich nicht auf Ibiza?
+#pragma pack(pop)                                  //               = 728     Warum bin ich nicht auf Ibiza?
 
 
 // Tickdata, letztes Feld: // expert flag 0-bar is modified, but expert is not run

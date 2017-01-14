@@ -20,7 +20,7 @@
 DWORD WINAPI sa_Length(const SECURITY_ATTRIBUTES* sa) {
    if ((uint)sa < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sa = 0x%p (not a valid pointer)", sa));
    return(sa->nLength);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -34,7 +34,7 @@ DWORD WINAPI sa_Length(const SECURITY_ATTRIBUTES* sa) {
 LPVOID WINAPI sa_SecurityDescriptor(const SECURITY_ATTRIBUTES* sa) {
    if ((uint)sa < MIN_VALID_POINTER) return((LPVOID)error(ERR_INVALID_PARAMETER, "invalid parameter sa = 0x%p (not a valid pointer)", sa));
    return(sa->lpSecurityDescriptor);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -48,5 +48,5 @@ LPVOID WINAPI sa_SecurityDescriptor(const SECURITY_ATTRIBUTES* sa) {
 BOOL WINAPI sa_InheritHandle(const SECURITY_ATTRIBUTES* sa) {
    if ((uint)sa < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sa = 0x%p (not a valid pointer)", sa));
    return(sa->bInheritHandle);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

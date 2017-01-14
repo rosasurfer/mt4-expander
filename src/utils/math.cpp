@@ -1,4 +1,6 @@
 #include "expander.h"
+#include "utils/math.h"
+
 #include <math.h>
 
 /**
@@ -84,5 +86,5 @@ double WINAPI round(double value, int digits/*=0*/) {
    if (!value) value = 0;                                // convert -0 to +0
 
    return(value);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }

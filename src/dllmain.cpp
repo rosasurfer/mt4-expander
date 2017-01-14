@@ -1,8 +1,12 @@
 #include "expander.h"
+#include "utils/ticktimer.h"
+#include "structs/myfx/ExecutionContext.h"
+
+#include <vector>
 
 
-std::vector<ContextChain> contextChains  (64);                       // all MQL programs (index = program id)
-std::vector<DWORD>        threads        (64);                       // all threads executing MQL programs
+std::vector<ContextChain> contextChains  (64);                       // all context chains (i.e. MQL programs, index = program id)
+std::vector<DWORD>        threads        (64);                       // all known threads executing MQL programs
 std::vector<uint>         threadsPrograms(64);                       // the last MQL program executed by a thread
 uint                      lastUIThreadProgram;                       // the last MQL program executed by the UI thread
 CRITICAL_SECTION          terminalLock;                              // application wide lock

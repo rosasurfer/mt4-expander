@@ -1,10 +1,14 @@
 #pragma once
 
+#include "expander.h"
+
+
 /**
  * MT4 struct SYMBOL (Dateiformat "symbols.raw")
  *
  * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */
+#pragma pack(push, 1)
 struct SYMBOL {                                    // -- offset ---- size --- description -------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     Symbol         (szchar) z.B. "AUDCAD.mkt"
    char   description [54];                        //        12        54     Beschreibung   (szchar)
@@ -67,7 +71,8 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    BYTE   unknown11[104];                          //      1828       104
    int    unknown12;                               //      1932         4     ?
 };                                                 // -------------------------------------------------------------------------------------------------------
-                                                   //              = 1936
+#pragma pack(pop)                                  //              = 1936
+
 
 // Getter
 const char* WINAPI symbol_Name                 (const SYMBOL* symbol);
@@ -114,5 +119,5 @@ const char* WINAPI symbol_SetMarginCurrency (SYMBOL* symbol, const char* currenc
 int         WINAPI symbols_SetId            (SYMBOL symbols[], int index, int id);
 
 // Helper
-int                CompareSymbols(const void* a, const void* b);
+int        __cdecl CompareSymbols(const void* a, const void* b);
 BOOL        WINAPI SortSymbols(SYMBOL symbols[], int size);

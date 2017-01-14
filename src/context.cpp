@@ -1,4 +1,18 @@
 #include "expander.h"
+#include "context.h"
+#include "structs/myfx/ExecutionContext.h"
+#include "utils/helpers.h"
+#include "utils/string.h"
+#include "utils/toString.h"
+
+#include <vector>
+
+
+extern std::vector<ContextChain> contextChains;                      // all context chains (i.e. MQL programs, index = program id)
+extern std::vector<DWORD>        threads;                            // all known threads executing MQL programs
+extern std::vector<uint>         threadsPrograms;                    // the last MQL program executed by a thread
+extern uint                      lastUIThreadProgram;                // the last MQL program executed by the UI thread
+extern CRITICAL_SECTION          terminalLock;                       // application wide lock
 
 
 /**
@@ -182,11 +196,11 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
       EXECUTION_CONTEXT *lib, *lastMaster=contextChains[lastProgramId][0];
 
       if (lastMaster && lastMaster->initCycle) {
-         ContextChain &currentChain = contextChains[ec->programId];
-         ContextChain &lastChain    = contextChains[lastProgramId];
-         uint          lastSize     = lastChain.size();
+         ContextChain& currentChain = contextChains[ec->programId];
+         ContextChain& lastChain    = contextChains[lastProgramId];
+         int           lastSize     = lastChain.size();
 
-         for (uint i=2; i < lastSize; i++) {                         // skip master and main context
+         for (int i=2; i < lastSize; i++) {                          // skip master and main context
             lib = lastChain[i];
             if (!lib) {
                warn(ERR_ILLEGAL_STATE, "unexpected library context found (lib=chain[%d]=NULL) for lastProgramId=%d", i, lastProgramId);
@@ -211,7 +225,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
       }
    }
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -231,7 +245,7 @@ BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec) {
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -252,7 +266,7 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -370,7 +384,7 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
 
    //debug("%s::%s::init()  ec=%s", ec->programName, ec->moduleName, EXECUTION_CONTEXT_toStr(ec));
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -393,7 +407,7 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
    //debug("%s::%s::deinit()  ec@%d=%s", ec->programName, ec->moduleName, ec, EXECUTION_CONTEXT_toStr(ec));
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -423,9 +437,9 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
    if (hChart) {
       EXECUTION_CONTEXT* master;
-      uint size=contextChains.size(), uiThreadId=GetUIThreadId();
+      int size=contextChains.size(), uiThreadId=GetUIThreadId();
 
-      for (uint i=1; i < size; i++) {                                // index[0] is never occupied
+      for (int i=1; i < size; i++) {                                 // index[0] is never occupied
          master = contextChains[i][0];
 
          if (master->threadId == uiThreadId) {
@@ -498,7 +512,7 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    }
 
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 

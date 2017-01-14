@@ -1,5 +1,8 @@
 #pragma once
 
+#include "expander.h"
+
+
 /**
  * MT4 struct HISTORY_BAR_401
  *
@@ -7,6 +10,7 @@
  *
  * @see  https://docs.mql4.com/mql4changes
  */
+#pragma pack(push, 1)
 struct HISTORY_BAR_401 {                           // -- offset ---- size --- description ---------
    int64  time;                                    //         0         8     Open-Time (timestamp)
    double open;                                    //         8         8
@@ -17,6 +21,6 @@ struct HISTORY_BAR_401 {                           // -- offset ---- size --- de
    int    spread;                                  //        48         4     (unbenutzt)
    uint64 volume;                                  //        52         8     (unbenutzt)
 };                                                 // ---------------------------------------------
-                                                   //                = 60
+#pragma pack(pop)                                  //                = 60
 
 typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes-Terminologie

@@ -4,6 +4,7 @@
  * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */
 #include "expander.h"
+#include "structs/mt4/Symbol.h"
 
 #include <math.h>
 
@@ -18,7 +19,7 @@
 const char* WINAPI symbol_Name(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -32,7 +33,7 @@ const char* WINAPI symbol_Name(const SYMBOL* symbol) {
 const char* WINAPI symbol_Description(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->description);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -46,7 +47,7 @@ const char* WINAPI symbol_Description(const SYMBOL* symbol) {
 const char* WINAPI symbol_Origin(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->origin);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -60,7 +61,7 @@ const char* WINAPI symbol_Origin(const SYMBOL* symbol) {
 const char* WINAPI symbol_AltName(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->altName);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -74,7 +75,7 @@ const char* WINAPI symbol_AltName(const SYMBOL* symbol) {
 const char* WINAPI symbol_BaseCurrency(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->baseCurrency);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -88,7 +89,7 @@ const char* WINAPI symbol_BaseCurrency(const SYMBOL* symbol) {
 uint WINAPI symbol_Group(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->group);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -102,7 +103,7 @@ uint WINAPI symbol_Group(const SYMBOL* symbol) {
 uint WINAPI symbol_Digits(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->digits);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -116,7 +117,7 @@ uint WINAPI symbol_Digits(const SYMBOL* symbol) {
 uint WINAPI symbol_TradeMode(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->tradeMode);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -133,7 +134,7 @@ uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
    if (symbol->backgroundColor)
       return(symbol->backgroundColor);
    return(White);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -147,7 +148,7 @@ uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
 uint WINAPI symbol_ArrayKey(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol)));
    return(symbol->arrayKey);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -161,7 +162,7 @@ uint WINAPI symbol_ArrayKey(const SYMBOL* symbol) {
 uint WINAPI symbol_Id(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol)));
    return(symbol->id);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -175,7 +176,7 @@ uint WINAPI symbol_Id(const SYMBOL* symbol) {
 uint WINAPI symbol_Spread(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol)));
    return(symbol->spread);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -189,7 +190,7 @@ uint WINAPI symbol_Spread(const SYMBOL* symbol) {
 BOOL WINAPI symbol_SwapEnabled(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->swapEnabled);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -203,7 +204,7 @@ BOOL WINAPI symbol_SwapEnabled(const SYMBOL* symbol) {
 uint WINAPI symbol_SwapType(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->swapType);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -217,7 +218,7 @@ uint WINAPI symbol_SwapType(const SYMBOL* symbol) {
 double WINAPI symbol_SwapLongValue(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->swapLongValue);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -231,7 +232,7 @@ double WINAPI symbol_SwapLongValue(const SYMBOL* symbol) {
 double WINAPI symbol_SwapShortValue(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->swapShortValue);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -245,7 +246,7 @@ double WINAPI symbol_SwapShortValue(const SYMBOL* symbol) {
 uint WINAPI symbol_SwapTripleRolloverDay(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->swapTripleRolloverDay);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -259,7 +260,7 @@ uint WINAPI symbol_SwapTripleRolloverDay(const SYMBOL* symbol) {
 double WINAPI symbol_ContractSize(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->contractSize);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -273,7 +274,7 @@ double WINAPI symbol_ContractSize(const SYMBOL* symbol) {
 uint WINAPI symbol_StopDistance(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->stopDistance);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -287,7 +288,7 @@ uint WINAPI symbol_StopDistance(const SYMBOL* symbol) {
 double WINAPI symbol_MarginInit(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->marginInit);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -301,7 +302,7 @@ double WINAPI symbol_MarginInit(const SYMBOL* symbol) {
 double WINAPI symbol_MarginMaintenance(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->marginMaintenance);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -315,7 +316,7 @@ double WINAPI symbol_MarginMaintenance(const SYMBOL* symbol) {
 double WINAPI symbol_MarginHedged(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->marginHedged);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -329,7 +330,7 @@ double WINAPI symbol_MarginHedged(const SYMBOL* symbol) {
 double WINAPI symbol_MarginDivider(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->marginDivider);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -343,7 +344,7 @@ double WINAPI symbol_MarginDivider(const SYMBOL* symbol) {
 double WINAPI symbol_PointSize(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->pointSize);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -357,7 +358,7 @@ double WINAPI symbol_PointSize(const SYMBOL* symbol) {
 double WINAPI symbol_PointsPerUnit(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->pointsPerUnit);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -371,7 +372,7 @@ double WINAPI symbol_PointsPerUnit(const SYMBOL* symbol) {
 const char* WINAPI symbol_MarginCurrency(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
    return(symbol->marginCurrency);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -387,7 +388,7 @@ const char* WINAPI symbols_Name(const SYMBOL symbols[], int index) {
    if ((uint)symbols < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbols = 0x%p (not a valid pointer)", symbols));
    if (index         < 0)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index));
    return(symbols[index].name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -403,7 +404,7 @@ uint WINAPI symbols_ArrayKey(const SYMBOL symbols[], int index) {
    if ((uint)symbols < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbols = 0x%p (not a valid pointer)", symbols)));
    if (index         < 0)                 return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index)));
    return(symbols[index].arrayKey);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -419,7 +420,7 @@ uint WINAPI symbols_Id(const SYMBOL symbols[], int index) {
    if ((uint)symbols < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbols = 0x%p (not a valid pointer)", symbols)));
    if (index         < 0)                 return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter index = %d (not a valid index)", index)));
    return(symbols[index].id);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -440,7 +441,7 @@ const char* WINAPI symbol_SetName(SYMBOL* symbol, const char* name) {
    if (!strcpy(symbol->name, name))
       return(NULL);
    return(name);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -460,7 +461,7 @@ const char* WINAPI symbol_SetDescription(SYMBOL* symbol, const char* description
    if (!strcpy(symbol->description, description))
       return(NULL);
    return(description);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -481,7 +482,7 @@ const char* WINAPI symbol_SetBaseCurrency(SYMBOL* symbol, const char* currency) 
    if (!strcpy(symbol->baseCurrency, currency))
       return(NULL);
    return(currency);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -497,7 +498,7 @@ int WINAPI symbol_SetGroup(SYMBOL* symbol, int index) {
    if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol)));
    if (index < 0)                        return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter index = %d", index)));
    return(symbol->group = index);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -532,7 +533,7 @@ int WINAPI symbol_SetDigits(SYMBOL* symbol, int digits) {
    smileyborg Mar 16 at 3:30
    */
    return(symbol->digits);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -551,7 +552,7 @@ int WINAPI symbol_SetBackgroundColor(SYMBOL* symbol, int color) {
       color = White;                   // CLR_NONE wird vom Terminal als Black interpretiert
    }
    return(symbol->backgroundColor = color);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -567,7 +568,7 @@ int WINAPI symbol_SetId(SYMBOL* symbol, int id) {
    if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol)));
    if (id < 0)                           return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter id = %d", id)));
    return(symbol->id = id);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -588,7 +589,7 @@ const char* WINAPI symbol_SetMarginCurrency(SYMBOL* symbol, const char* currency
    if (!strcpy(symbol->marginCurrency, currency))
       return(NULL);
    return(currency);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -605,7 +606,7 @@ int WINAPI symbols_SetId(SYMBOL symbols[], int index, int id) {
    if ((uint)symbols < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbols = 0x%p (not a valid pointer)", symbols)));
    if (index         < 0)                 return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter index = %d", index)));
    return(symbol_SetId(&symbols[index], id));
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -619,7 +620,7 @@ int WINAPI symbols_SetId(SYMBOL symbols[], int index, int id) {
  *               negativer Wert, wenn der Name von Symbol a kleiner als der von Symbol b ist;
  *               0, wenn die Namen beider Symbole gleich sind
  */
-int CompareSymbols(const void* a, const void* b) {
+int __cdecl CompareSymbols(const void* a, const void* b) {
    SYMBOL* symbolA = (SYMBOL*) a;
    SYMBOL* symbolB = (SYMBOL*) b;
 
@@ -651,5 +652,5 @@ BOOL WINAPI SortSymbols(SYMBOL symbols[], int size) {
       symbols[i].arrayKey = i;
    }
    return(TRUE);
-   #pragma EXPORT
+   #pragma EXPANDER_EXPORT
 }
