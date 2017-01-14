@@ -3,7 +3,7 @@
 #include "utils/toString.h"
 
 
-extern std::vector<ContextChain> contextChains;                      // all context chains (i.e. MQL programs, index = program id)
+extern std::vector<ContextChain> g_contextChains;                    // all context chains (i.e. MQL programs, index = program id)
 
 
 /**
@@ -422,8 +422,8 @@ uint WINAPI ec_SetProgramId(EXECUTION_CONTEXT* ec, uint id) {
    if (id <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter id = %d (must be greater than zero)", id));
 
    ec->programId = id;                                               // synchronize main and master context
-   if (contextChains.size() > id && ec==contextChains[id][1] && contextChains[id][0])
-      return(ec_SetProgramId(contextChains[id][0], id));
+   if (g_contextChains.size() > id && ec==g_contextChains[id][1] && g_contextChains[id][0])
+      return(ec_SetProgramId(g_contextChains[id][0], id));
 
    return(id);
    #pragma EXPANDER_EXPORT
@@ -451,8 +451,8 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
    ec->programType = type;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetProgramType(contextChains[pid][0], type));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetProgramType(g_contextChains[pid][0], type));
 
    return(type);
    #pragma EXPANDER_EXPORT
@@ -477,8 +477,8 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
       return(NULL);
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetProgramName(contextChains[pid][0], name));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetProgramName(g_contextChains[pid][0], name));
 
    return(name);
    #pragma EXPANDER_EXPORT
@@ -507,8 +507,8 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
    ec->moduleType = type;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetModuleType(contextChains[pid][0], type));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetModuleType(g_contextChains[pid][0], type));
 
    return(type);
    #pragma EXPANDER_EXPORT
@@ -533,8 +533,8 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
       return(NULL);
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetModuleName(contextChains[pid][0], name));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetModuleName(g_contextChains[pid][0], name));
 
    return(name);
    #pragma EXPANDER_EXPORT
@@ -562,8 +562,8 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
    ec->launchType = type;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetLaunchType(contextChains[pid][0], type));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetLaunchType(g_contextChains[pid][0], type));
 
    return(type);
    #pragma EXPANDER_EXPORT
@@ -594,8 +594,8 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
    ec->rootFunction = id;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetRootFunction(contextChains[pid][0], id));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetRootFunction(g_contextChains[pid][0], id));
 
    return(id);
    #pragma EXPANDER_EXPORT
@@ -616,8 +616,8 @@ BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->initCycle = status;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetInitCycle(contextChains[pid][0], status));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetInitCycle(g_contextChains[pid][0], status));
 
    return(status);
    #pragma EXPANDER_EXPORT
@@ -657,8 +657,8 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
    ec->initReason = reason;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetInitReason(contextChains[pid][0], reason));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetInitReason(g_contextChains[pid][0], reason));
 
    return(reason);
    #pragma EXPANDER_EXPORT
@@ -695,8 +695,8 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
    ec->uninitReason = reason;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetUninitReason(contextChains[pid][0], reason));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetUninitReason(g_contextChains[pid][0], reason));
 
    return(reason);
    #pragma EXPANDER_EXPORT
@@ -717,8 +717,8 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->testing = status;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetTesting(contextChains[pid][0], status));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetTesting(g_contextChains[pid][0], status));
 
    return(status);
    #pragma EXPANDER_EXPORT
@@ -739,8 +739,8 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->visualMode = status;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetVisualMode(contextChains[pid][0], status));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetVisualMode(g_contextChains[pid][0], status));
 
    return(status);
    #pragma EXPANDER_EXPORT
@@ -761,8 +761,8 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->optimization = status;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetOptimization(contextChains[pid][0], status));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetOptimization(g_contextChains[pid][0], status));
 
    return(status);
    #pragma EXPANDER_EXPORT
@@ -783,8 +783,8 @@ DWORD WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    ec->initFlags = flags;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetInitFlags(contextChains[pid][0], flags));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetInitFlags(g_contextChains[pid][0], flags));
 
    return(flags);
    #pragma EXPANDER_EXPORT
@@ -805,8 +805,8 @@ DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    ec->deinitFlags = flags;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetDeinitFlags(contextChains[pid][0], flags));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetDeinitFlags(g_contextChains[pid][0], flags));
 
    return(flags);
    #pragma EXPANDER_EXPORT
@@ -827,8 +827,8 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->logging = status;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetLogging(contextChains[pid][0], status));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetLogging(g_contextChains[pid][0], status));
 
    return(status);
    #pragma EXPANDER_EXPORT
@@ -860,8 +860,8 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
    }
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetCustomLogFile(contextChains[pid][0], fileName));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetCustomLogFile(g_contextChains[pid][0], fileName));
 
    return(fileName);
    #pragma EXPANDER_EXPORT
@@ -886,8 +886,8 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
       return(NULL);
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetSymbol(contextChains[pid][0], symbol));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetSymbol(g_contextChains[pid][0], symbol));
 
    return(symbol);
    #pragma EXPANDER_EXPORT
@@ -909,8 +909,8 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
    ec->timeframe = timeframe;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetTimeframe(contextChains[pid][0], timeframe));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetTimeframe(g_contextChains[pid][0], timeframe));
 
    return(timeframe);
    #pragma EXPANDER_EXPORT
@@ -931,8 +931,8 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
    ec->hChart = hWnd;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetHChart(contextChains[pid][0], hWnd));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetHChart(g_contextChains[pid][0], hWnd));
 
    return(hWnd);
    #pragma EXPANDER_EXPORT
@@ -953,8 +953,8 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
    ec->hChartWindow = hWnd;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetHChartWindow(contextChains[pid][0], hWnd));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetHChartWindow(g_contextChains[pid][0], hWnd));
 
    return(hWnd);
    #pragma EXPANDER_EXPORT
@@ -976,8 +976,8 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
    ec->superContext = sec;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetSuperContext(contextChains[pid][0], sec));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetSuperContext(g_contextChains[pid][0], sec));
 
    return(sec);
    #pragma EXPANDER_EXPORT
@@ -1008,8 +1008,8 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
    ec->threadId = id;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetThreadId(contextChains[pid][0], id));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetThreadId(g_contextChains[pid][0], id));
 
    return(id);
    #pragma EXPANDER_EXPORT
@@ -1031,8 +1031,8 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
    ec->ticks = count;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      return(ec_SetTicks(contextChains[pid][0], count));
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetTicks(g_contextChains[pid][0], count));
 
    return(count);
    #pragma EXPANDER_EXPORT
@@ -1056,13 +1056,13 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
    ec->mqlError = error;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      ec_SetMqlError(contextChains[pid][0], error);
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      ec_SetMqlError(g_contextChains[pid][0], error);
 
    if (error != NO_ERROR) {                                          // no propagation for NO_ERROR
       if (ec->moduleType==MT_LIBRARY && pid) {                       // propagation from library to main module
-         EXECUTION_CONTEXT* master = contextChains[pid][0];
-         EXECUTION_CONTEXT* main   = contextChains[pid][1];
+         EXECUTION_CONTEXT* master = g_contextChains[pid][0];
+         EXECUTION_CONTEXT* main   = g_contextChains[pid][1];
          if (main) ec_SetMqlError(main,   error);                    // whichever is available
          else      ec_SetMqlError(master, error);
       }
@@ -1092,15 +1092,15 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
    ec->dllError = error;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      ec_SetDllError(contextChains[pid][0], error);
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      ec_SetDllError(g_contextChains[pid][0], error);
 
    if (!error)                                                       // keine Propagation beim Zurücksetzen eines Fehlers
       return(error);
 
    if (pid && ec->moduleType==MT_LIBRARY) {                          // Fehler aus Libraries in den Hauptkontext propagieren
-      EXECUTION_CONTEXT* master = contextChains[pid][0];             // (oder den Master-Context, wenn Hauptkontext nicht verfügbar)
-      EXECUTION_CONTEXT* main   = contextChains[pid][1];
+      EXECUTION_CONTEXT* master = g_contextChains[pid][0];           // (oder den Master-Context, wenn Hauptkontext nicht verfügbar)
+      EXECUTION_CONTEXT* main   = g_contextChains[pid][1];
       if (main) ec_SetDllError(main,   error);
       else      ec_SetDllError(master, error);
    }
@@ -1126,15 +1126,15 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
    ec->dllWarning = error;
 
    uint pid = ec->programId;                                         // synchronize main and master context
-   if (pid && contextChains.size() > pid && ec==contextChains[pid][1] && contextChains[pid][0])
-      ec_SetDllWarning(contextChains[pid][0], error);
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      ec_SetDllWarning(g_contextChains[pid][0], error);
 
    if (!error)                                                       // keine Propagation beim Zurücksetzen eines Fehlers
       return(error);
 
    if (pid && ec->moduleType==MT_LIBRARY) {                          // Warnung aus Libraries in den Hauptkontext propagieren
-      EXECUTION_CONTEXT* master = contextChains[pid][0];             // (oder den Master-Context, wenn Hauptkontext nicht verfügbar)
-      EXECUTION_CONTEXT* main   = contextChains[pid][1];
+      EXECUTION_CONTEXT* master = g_contextChains[pid][0];           // (oder den Master-Context, wenn Hauptkontext nicht verfügbar)
+      EXECUTION_CONTEXT* main   = g_contextChains[pid][1];
       if (main) ec_SetDllWarning(main,   error);
       else      ec_SetDllWarning(master, error);
    }
@@ -1156,7 +1156,7 @@ RootFunction WINAPI mec_RootFunction(const EXECUTION_CONTEXT* ec) {
    uint programId = ec->programId;
    if (!programId) return((RootFunction)error(ERR_ILLEGAL_STATE, "illegal programId=%d in ec=%s", programId, EXECUTION_CONTEXT_toStr(ec)));
 
-   EXECUTION_CONTEXT* master = contextChains[programId][0];
+   EXECUTION_CONTEXT* master = g_contextChains[programId][0];
    return(master->rootFunction);
    #pragma EXPANDER_EXPORT
 }
@@ -1175,7 +1175,7 @@ UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec) {
    uint programId = ec->programId;
    if (!programId) return((UninitializeReason)error(ERR_ILLEGAL_STATE, "illegal programId=%d in ec=%s", programId, EXECUTION_CONTEXT_toStr(ec)));
 
-   EXECUTION_CONTEXT* master = contextChains[programId][0];
+   EXECUTION_CONTEXT* master = g_contextChains[programId][0];
    return(master->uninitReason);
    #pragma EXPANDER_EXPORT
 }
@@ -1194,7 +1194,7 @@ DWORD WINAPI mec_InitFlags(const EXECUTION_CONTEXT* ec) {
    uint programId = ec->programId;
    if (!programId) return(error(ERR_ILLEGAL_STATE, "illegal programId=%d in ec=%s", programId, EXECUTION_CONTEXT_toStr(ec)));
 
-   EXECUTION_CONTEXT* master = contextChains[programId][0];
+   EXECUTION_CONTEXT* master = g_contextChains[programId][0];
    return(master->initFlags);
    #pragma EXPANDER_EXPORT
 }

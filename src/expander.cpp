@@ -6,8 +6,8 @@
 
 
 // external declarations for error management
-extern std::vector<DWORD> threads;                                   // all known threads executing MQL programs
-extern std::vector<uint>  threadsPrograms;                           // the last MQL program executed by a thread
+extern std::vector<DWORD> g_threads;                                 // all known threads executing MQL programs
+extern std::vector<uint>  g_threadsPrograms;                         // the last MQL program executed by a thread
 
 
 /**
@@ -215,11 +215,11 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
    // look-up the current thread's last associated MQL program
    DWORD currentThread = GetCurrentThreadId();
    int currentThreadIndex=-1, currentThreadLastProgram=0;
-   size = threads.size();
+   size = g_threads.size();
    for (int i=0; i < size; i++) {
-      if (threads[i] == currentThread) {                             // thread found
+      if (g_threads[i] == currentThread) {                           // thread found
          currentThreadIndex       = i;                               // keep thread index and last MQL program
-         currentThreadLastProgram = threadsPrograms[i];
+         currentThreadLastProgram = g_threadsPrograms[i];
          break;
       }
    }

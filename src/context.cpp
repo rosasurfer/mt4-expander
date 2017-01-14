@@ -8,11 +8,11 @@
 #include <vector>
 
 
-extern std::vector<ContextChain> contextChains;                      // all context chains (i.e. MQL programs, index = program id)
-extern std::vector<DWORD>        threads;                            // all known threads executing MQL programs
-extern std::vector<uint>         threadsPrograms;                    // the last MQL program executed by a thread
-extern uint                      lastUIThreadProgram;                // the last MQL program executed by the UI thread
-extern CRITICAL_SECTION          terminalLock;                       // application wide lock
+extern std::vector<ContextChain> g_contextChains;                    // all context chains (i.e. MQL programs, index = program id)
+extern std::vector<DWORD>        g_threads;                          // all known threads executing MQL programs
+extern std::vector<uint>         g_threadsPrograms;                  // the last MQL program executed by a thread
+extern uint                      g_lastUIThreadProgram;              // the last MQL program executed by the UI thread
+extern CRITICAL_SECTION          g_terminalLock;                     // application wide lock
 
 
 /**
@@ -116,9 +116,9 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          StoreThreadAndProgram(ec->programId);                       // store last executed program (asap)
          // (1.1) Programm ist Indikator im Init-Cycle (immer im UI-Thread)
          //   - Indikator-Context aus Master-Context restaurieren
-         master = contextChains[ec->programId][0];                   // im Init-Cycle setzt ProgramInitReason() die gefundene ProgramID
+         master = g_contextChains[ec->programId][0];                 // im Init-Cycle setzt ProgramInitReason() die gefundene ProgramID
          *ec = *master;                                              // Master-Context kopieren
-         contextChains[ec->programId][1] = ec;                       // Context als Hauptkontext speichern
+         g_contextChains[ec->programId][1] = ec;                     // Context als Hauptkontext speichern
          //debug("%s::init()  programId=0  init-cycle, was id=%d  thread=%s", programName, ec->programId, IsUIThread() ? "UI": to_string(GetCurrentThreadId()).c_str());
       }
       else {
@@ -134,18 +134,18 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          chain.push_back(master);                                    // Master- und Hauptkontext in der Chain speichern
          chain.push_back(ec);
 
-         EnterCriticalSection(&terminalLock);
-         contextChains.push_back(chain);                             // Chain in der Chain-Liste speichern
-         uint size = contextChains.size();                           // contextChains.size ist immer > 1 (index[0] bleibt frei)
+         EnterCriticalSection(&g_terminalLock);
+         g_contextChains.push_back(chain);                           // Chain in der Chain-Liste speichern
+         uint size = g_contextChains.size();                         // g_contextChains.size ist immer > 1 (index[0] bleibt frei)
          master->programId = ec->programId = size-1;                 // Index = neue ProgramID dem Master- und Hauptkontext zuweisen
          //debug("%s::init()  programId=0  %snew chain => id=%d  thread=%s  hChart=%d", programName, (IsUIThread() ? "UI  ":""), ec->programId, IsUIThread() ? "UI":to_string(GetCurrentThreadId()).c_str(), hChart);
-         LeaveCriticalSection(&terminalLock);
+         LeaveCriticalSection(&g_terminalLock);
 
          // resolve program status and last program executed by the current thread
          isNewExpert = (programType==PT_EXPERT);
          uint index = StoreThreadAndProgram(0);
-         lastProgramId = threadsPrograms[index];
-         threadsPrograms[index] = ec->programId;                     // store last executed program (asap)
+         lastProgramId = g_threadsPrograms[index];
+         g_threadsPrograms[index] = ec->programId;                   // store last executed program (asap)
       }
       if (indicatorAfterTest) {
          ec_SetSuperContext(ec, sec=NULL);                           // super context (expert) was already released
@@ -193,11 +193,11 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
 
    // (4) Wenn Expert im Tester, dann ggf. dessen Libraries aus dem vorherigen Test finden und dem Expert zuordnen
    if (isNewExpert && isTesting && lastProgramId) {
-      EXECUTION_CONTEXT *lib, *lastMaster=contextChains[lastProgramId][0];
+      EXECUTION_CONTEXT *lib, *lastMaster=g_contextChains[lastProgramId][0];
 
       if (lastMaster && lastMaster->initCycle) {
-         ContextChain& currentChain = contextChains[ec->programId];
-         ContextChain& lastChain    = contextChains[lastProgramId];
+         ContextChain& currentChain = g_contextChains[ec->programId];
+         ContextChain& lastChain    = g_contextChains[lastProgramId];
          int           lastSize     = lastChain.size();
 
          for (int i=2; i < lastSize; i++) {                          // skip master and main context
@@ -327,9 +327,9 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
    if (!ec->programId) {
       // (1) library is loaded the first time by the current thread's program
       uint index     = StoreThreadAndProgram(0);                     // get the current thread's index (current program is already set)
-      uint programId = threadsPrograms[index];                       // get the current program's id (the library loader)
+      uint programId = g_threadsPrograms[index];                     // get the current program's id (the library loader)
 
-      *ec = *contextChains[programId][0];                            // copy master context
+      *ec = *g_contextChains[programId][0];                          // copy master context
 
       ec_SetModuleType  (ec, MT_LIBRARY            );                // update library specific fields
       ec_SetModuleName  (ec, moduleName            );
@@ -347,7 +347,7 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
       ec_SetDllWarning  (ec, NULL);
       ec->dllWarningMsg =    NULL;                                   // TODO: implement g/setter
 
-      contextChains[programId].push_back(ec);                        // add context to the program's context chain
+      g_contextChains[programId].push_back(ec);                      // add context to the program's context chain
    }
 
    else if (IsUIThread()) {
@@ -379,7 +379,7 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
       ec_SetHChartWindow (ec, NULL                );                 // gets updated in Expert::init()
       ec_SetThreadId     (ec, GetCurrentThreadId());
 
-      contextChains[ec->programId][0]->initCycle = TRUE;             // mark master context
+      g_contextChains[ec->programId][0]->initCycle = TRUE;           // mark master context
    }
 
    //debug("%s::%s::init()  ec=%s", ec->programName, ec->moduleName, EXECUTION_CONTEXT_toStr(ec));
@@ -437,10 +437,10 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
    if (hChart) {
       EXECUTION_CONTEXT* master;
-      int size=contextChains.size(), uiThreadId=GetUIThreadId();
+      int size=g_contextChains.size(), uiThreadId=GetUIThreadId();
 
       for (int i=1; i < size; i++) {                                 // index[0] is never occupied
-         master = contextChains[i][0];
+         master = g_contextChains[i][0];
 
          if (master->threadId == uiThreadId) {
             if (master->hChart == hChart) {
@@ -486,13 +486,13 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    switch (ec->moduleType) {
       case MT_INDICATOR:
       case MT_SCRIPT:
-         if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
+         if (ec != g_contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
          ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
-         contextChains[id][1] = NULL;                                // mark main context as released
+         g_contextChains[id][1] = NULL;                              // mark main context as released
          break;
 
       case MT_EXPERT:
-         if (ec != contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
+         if (ec != g_contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
 
          if (ec->testing) {
             //debug("%s::deinit()  leaving tester, ec=%s", ec->programName, EXECUTION_CONTEXT_toStr(ec));
@@ -500,7 +500,7 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
          ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
          if (ec->uninitReason!=UR_CHARTCHANGE && ec->uninitReason!=UR_PARAMETERS && ec->uninitReason!=UR_ACCOUNT)
-            contextChains[id][1] = NULL;                             // mark main context as released if not in init cycle
+            g_contextChains[id][1] = NULL;                           // mark main context as released if not in init cycle
          break;
 
       case MT_LIBRARY:
@@ -710,7 +710,7 @@ InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
       BOOL isProgramNew;
       int programId = ec->programId;
       if (programId) {
-         isProgramNew = !contextChains[programId][0]->ticks;         // im Master-Context nachschauen
+         isProgramNew = !g_contextChains[programId][0]->ticks;       // im Master-Context nachschauen
       }
       else {
          programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
@@ -734,7 +734,7 @@ InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
          if (programId <= 0) return((InitializeReason)(programId < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator during %s in limbo found", programName, UninitializeReasonToStr(uninitReason))));
          if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
       }
-      char* masterSymbol = contextChains[programId][0]->symbol;
+      char* masterSymbol = g_contextChains[programId][0]->symbol;
       if (strcmp(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
       else                              return(IR_SYMBOLCHANGE   );
    }
@@ -955,29 +955,29 @@ DWORD WINAPI StoreThreadAndProgram(uint programId) {
 
    DWORD currentThread = GetCurrentThreadId();
 
-   // look-up current thread in global threadsPrograms[]
-   int currentThreadIndex=-1, size=threads.size();
+   // look-up current thread in g_threadsPrograms[]
+   int currentThreadIndex=-1, size=g_threads.size();
    for (int i=0; i < size; i++) {
-      if (threads[i] == currentThread) {                             // thread found
+      if (g_threads[i] == currentThread) {                           // thread found
          currentThreadIndex = i;
          if (programId)
-            threadsPrograms[i] = programId;                          // update the last executed program if non-zero
+            g_threadsPrograms[i] = programId;                        // update the last executed program if non-zero
          break;
       }
    }
 
    if (currentThreadIndex == -1) {                                   // thread not found
-      EnterCriticalSection(&terminalLock);
-      threads        .push_back(currentThread);                      // add thread to the list
-      threadsPrograms.push_back(programId);                          // add program to the list (0 if zero)
-      currentThreadIndex = threads.size() - 1;
-      if (currentThreadIndex > 128) debug("thread %d added (size=%d)", currentThread, threads.size());
-      LeaveCriticalSection(&terminalLock);
+      EnterCriticalSection(&g_terminalLock);
+      g_threads        .push_back(currentThread);                    // add thread to the list
+      g_threadsPrograms.push_back(programId);                        // add program to the list (0 if zero)
+      currentThreadIndex = g_threads.size() - 1;
+      if (currentThreadIndex > 128) debug("thread %d added (size=%d)", currentThread, g_threads.size());
+      LeaveCriticalSection(&g_terminalLock);
    }
 
-   // additionally store the program in global lastUIThreadProgram if the current thread is the UI thread
+   // additionally store the program in g_lastUIThreadProgram if the current thread is the UI thread
    if (programId && IsUIThread())
-      lastUIThreadProgram = programId;
+      g_lastUIThreadProgram = programId;
 
    return(currentThreadIndex);
 }
