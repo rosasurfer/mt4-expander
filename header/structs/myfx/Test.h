@@ -15,7 +15,7 @@ struct TEST {                                            // - size --- descripti
    char          strategy[MAX_PATH];                     //    260     strategy name
    int           reportingId;                            //      4     reporting id (for composition of reportingSymbol)
    char          reportingSymbol[MAX_SYMBOL_LENGTH+1];   //     12     test symbol for charted reports
-   char          symbol[MAX_SYMBOL_LENGTH+1];            //     12     tested symbol
+   char          symbol         [MAX_SYMBOL_LENGTH+1];   //     12     tested symbol
    uint          timeframe;                              //      4     tested timeframe
    datetime      startTime;                              //      4     time of the first tick of testing
    datetime      endTime;                                //      4     time of the last tick of testing
@@ -26,7 +26,7 @@ struct TEST {                                            // - size --- descripti
    double        accountDeposit;                         //      8     account starting balance
    char          accountCurrency[MAX_SYMBOL_LENGTH+1];   //     12     account currency
    uint          tradeDirections;                        //      4     allowed trade directions: Long|Short|Both
-   BOOL          visualMode;                             //      4     whether or not VisualMode was enabled
+   BOOL          visualMode;                             //      4     whether or not the test was run in visual mode
    uint          duration;                               //      4     duration of the test in milliseconds
    OrderHistory* orders;                                 //      4     array of orders
 };                                                       // -------------------------------------------------------------------
