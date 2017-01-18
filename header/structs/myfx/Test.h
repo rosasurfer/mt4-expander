@@ -20,11 +20,9 @@ struct TEST {                                            // - size --- descripti
    datetime      startTime;                              //      4     time of the first tick of testing
    datetime      endTime;                                //      4     time of the last tick of testing
    uint          tickModel;                              //      4     used tick model: 0=EveryTick|1=ControlPoints|2=BarOpen
-   double        spread;                                 //      8     spread in points
+   double        spread;                                 //      8     spread in pips
    uint          bars;                                   //      4     number of tested bars
    uint          ticks;                                  //      4     number of tested ticks
-   double        accountDeposit;                         //      8     account starting balance
-   char          accountCurrency[MAX_SYMBOL_LENGTH+1];   //     12     account currency
    uint          tradeDirections;                        //      4     allowed trade directions: Long|Short|Both
    BOOL          visualMode;                             //      4     whether or not the test was run in visual mode
    uint          duration;                               //      4     duration of the test in milliseconds
@@ -50,8 +48,6 @@ datetime    WINAPI test_SetEndTime        (TEST* test, datetime    time     );
 double      WINAPI test_SetSpread         (TEST* test, double      spread   );
 uint        WINAPI test_SetBars           (TEST* test, uint        bars     );
 uint        WINAPI test_SetTicks          (TEST* test, uint        ticks    );
-double      WINAPI test_SetAccountDeposit (TEST* test, double      value    );
-const char* WINAPI test_SetAccountCurrency(TEST* test, const char* currency );
 //uint      WINAPI test_SetTradeDirections(TEST* test, uint        types    );   // TODO
 BOOL        WINAPI test_SetVisualMode     (TEST* test, BOOL        status   );
 uint        WINAPI test_SetDuration       (TEST* test, uint        duration );

@@ -219,43 +219,6 @@ uint WINAPI test_SetTicks(TEST* test, uint ticks) {
 
 
 /**
- * Set the starting balance of a TEST account.
- *
- * @param  TEST*  test
- * @param  double value - amount in units of account currency
- *
- * @return double - the same value
- */
-double WINAPI test_SetAccountDeposit(TEST* test, double value) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (value <= 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter value: %f (not positive)", value));
-
-   test->accountDeposit = round(value, 2);
-   return(test->accountDeposit);
-}
-
-
-/**
- * Set the currency of a TEST account.
- *
- * @param  TEST* test
- * @param  char* currency
- *
- * @return char* - the same currrency
- */
-const char* WINAPI test_SetAccountCurrency(TEST* test, const char* currency) {
-   if ((uint)test     < MIN_VALID_POINTER)          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)currency < MIN_VALID_POINTER)          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter currency: 0x%p (not a valid pointer)", currency));
-   int len = strlen(currency);
-   if (!len || len > sizeof(test->accountCurrency)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter currency \"%s\" (must be 1 to %d characters)", currency, sizeof(test->accountCurrency)-1));
-
-   if (!strcpy(test->accountCurrency, currency))
-      return(NULL);
-   return(currency);
-}
-
-
-/**
  * Set the VisualMode status of a TEST.
  *
  * @param  TEST* test
@@ -320,8 +283,6 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", spread="          <<   numberFormat(test->spread, "%.1f")
          << ", bars="            <<                test->bars
          << ", ticks="           <<                test->ticks
-         << ", accountDeposit="  <<   numberFormat(test->accountDeposit, "%.2f")
-         << ", accountCurrency=" << doubleQuoteStr(test->accountCurrency)
          << ", tradeDirections=" <<                test->tradeDirections   // TODO: Long|Short|Both
          << ", visualMode="      <<      BoolToStr(test->visualMode)
          << ", duration="        <<               (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")

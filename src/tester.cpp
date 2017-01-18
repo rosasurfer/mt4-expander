@@ -16,7 +16,7 @@ BOOL WINAPI SaveTest(TEST* test);
 /**
  * TODO: documentation
  */
-BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, double accountBalance, const char* accountCurrency, int reportingId, const char* reportingSymbol) {
+BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
    if (!ec->programId)                             return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId=%d", ec->programId));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
@@ -37,8 +37,6 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
       //uint tickModel;                                              // TODO
       test_SetSpread         (test, (ask-bid)/0.0001);               // TODO: statt 0.0001 Variable Pip
       test_SetBars           (test, bars            );
-      test_SetAccountDeposit (test, accountBalance  );
-      test_SetAccountCurrency(test, accountCurrency );
       //uint tradeDirections;                                        // TODO: aus Expert.ini auslesen
       test_SetVisualMode     (test, ec->visualMode  );
       test_SetDuration       (test, GetTickCount()  );
