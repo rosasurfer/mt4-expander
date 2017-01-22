@@ -23,9 +23,9 @@ struct TEST {                                            // - size --- descripti
    double        spread;                                 //      8     spread in pips
    uint          bars;                                   //      4     number of tested bars
    uint          ticks;                                  //      4     number of tested ticks
-   uint          tradeDirections;                        //      4     allowed trade directions: Long|Short|Both
+   uint          tradeDirections;                        //      4     enabled trade directions: Long|Short|Both
    BOOL          visualMode;                             //      4     whether or not the test was run in visual mode
-   uint          duration;                               //      4     duration of the test in milliseconds
+   uint          duration;                               //      4     test duration in milliseconds
    OrderHistory* orders;                                 //      4     array of orders
 };                                                       // -------------------------------------------------------------------
 #pragma pack(pop)
