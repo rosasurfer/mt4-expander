@@ -281,7 +281,7 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
  * @param  char*              moduleName     - the library's name w/o path according to the terminal version
  * @param  char*              symbol         - current symbol
  * @param  uint               period         - current period
- * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminaL
+ * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminal
  *
  * @return BOOL - success status
  *
