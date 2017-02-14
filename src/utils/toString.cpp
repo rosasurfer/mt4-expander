@@ -306,7 +306,7 @@ const char* WINAPI InitFlagsToStr(DWORD flags) {
    if (!str.length())                    str.append("|"+ to_string(flags)      );
 
    return(strcpy(new char[str.length()], str.c_str()+1));            // skip the leading "|"
-   #pragma EXPANDER_EXPORT                                                    // TODO: close memory leak
+   #pragma EXPANDER_EXPORT                                           // TODO: close memory leak
 }
 
 
@@ -324,7 +324,7 @@ const char* WINAPI DeinitFlagsToStr(DWORD flags) {
    if (!str.length())    str.append("|"+ to_string(flags));
 
    return(strcpy(new char[str.length()], str.c_str()+1));            // skip the leading "|"
-   #pragma EXPANDER_EXPORT                                                    // TODO: close memory leak
+   #pragma EXPANDER_EXPORT                                           // TODO: close memory leak
 }
 
 
