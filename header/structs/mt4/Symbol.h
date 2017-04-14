@@ -25,13 +25,13 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 
    BYTE   unknown1[32];                            //       124        32
 
-   BYTE   monday   [208];                          //       156       208
-   BYTE   tuesday  [208];                          //       364       208
-   BYTE   wednesday[208];                          //       572       208
-   BYTE   thursday [208];                          //       780       208
-   BYTE   friday   [208];                          //       988       208
-   BYTE   saturday [208];                          //      1196       208
-   BYTE   sunday   [208];                          //      1404       208
+   BYTE   sunday   [208];                          //       156       208
+   BYTE   monday   [208];                          //       364       208
+   BYTE   tuesday  [208];                          //       572       208
+   BYTE   wednesday[208];                          //       780       208
+   BYTE   thursday [208];                          //       988       208
+   BYTE   friday   [208];                          //      1196       208
+   BYTE   saturday [208];                          //      1404       208
 
    BYTE   unknown2[16];                            //      1612        16
    DWORD  unknown3;                                //      1628         4     ?
