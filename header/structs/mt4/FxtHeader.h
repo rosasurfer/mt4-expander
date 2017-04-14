@@ -6,18 +6,17 @@
 /**
  * MT4 struct FXT_HEADER (Tickdatei-Header)
  *
- * Version 405
- *
+ * Version 405:
  *  • Tickdateien ab Version 405 haben je nach MetaTrader-Version unterschiedliche Tickdatenformate.
  *  • Tickdateien enthalten keine Infos zu MODE_MARGINREQUIRED, Tests benötigen also existierende und gültige Serverinformationen.
  *  • Vor den modellierten Ticks einer Datei kann sich ein Prolog von History-Bars mit Pseudo-Ticks befinden, der dem Expert eine
  *    History vor dem Startzeitpunkt des Test zur Verfügung stellt. Der vom Terminal erzeugte Prolog ist 1000 Bars lang, der erste
- *    modellierte Tick befindet sich an der 1000-und-ersten Bar. Der Expert muß prüfen, ob diese History für seine Strategie
+ *    modellierte Tick befindet sich an der 1001-sten Bar. Der Expert muß prüfen, ob diese History für seine Strategie
  *    ausreichend ist und ggf. auf das Eintreffen ausreichender Bars warten.
  */
 #pragma pack(push, 1)
 struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
-   uint   version;                                 //         0         4     Header-Version                               405
+   uint   version;                                 //         0         4     Header-Version                             = 405
    char   description[64];                         //         4        64     z.B. Copyright (szchar)
    char   serverName[128];                         //        68       128     Name des Accountservers (szchar)
    char   symbol[MAX_SYMBOL_LENGTH+1];             //       196        12     Symbol (szchar)
