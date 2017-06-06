@@ -5,7 +5,7 @@
 
 
 /**
- * MyFX struct ORDER
+ * Xtrade struct ORDER
  *
  * Represents a Metatrader order.
  */

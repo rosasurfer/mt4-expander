@@ -4,7 +4,7 @@
 
 
 /**
- * MyFX struct TEST
+ * Xtrade struct TEST
  *
  * Structure holding metadata of a test: Strategy Tester settings, strategy settings, order history
  */

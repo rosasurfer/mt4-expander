@@ -4,7 +4,7 @@
 
 
 /**
- * MyFX struct EXECUTION_CONTEXT
+ * Xtrade struct EXECUTION_CONTEXT
  *
  * Ausführungskontext von MQL-Programmen zur Kommunikation zwischen MQL und DLL
  *
