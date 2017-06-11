@@ -19,7 +19,7 @@ struct TEST {                                            // - size --- descripti
    uint          timeframe;                              //      4     tested timeframe
    datetime      startTime;                              //      4     time of the first tick of testing
    datetime      endTime;                                //      4     time of the last tick of testing
-   uint          tickModel;                              //      4     used tick model: 0=EveryTick|1=ControlPoints|2=BarOpen
+   uint          barModel;                               //      4     used bar model: 0=EveryTick|1=ControlPoints|2=BarOpen
    double        spread;                                 //      8     spread in pips
    uint          bars;                                   //      4     number of tested bars
    uint          ticks;                                  //      4     number of tested ticks
@@ -44,7 +44,7 @@ const char* WINAPI test_SetSymbol         (TEST* test, const char* symbol   );
 uint        WINAPI test_SetTimeframe      (TEST* test, uint        timeframe);
 datetime    WINAPI test_SetStartTime      (TEST* test, datetime    time     );
 datetime    WINAPI test_SetEndTime        (TEST* test, datetime    time     );
-//uint      WINAPI test_SetTickModel      (TEST* test, uint        type     );   // TODO
+//uint      WINAPI test_SetBarModel       (TEST* test, uint        type     );   // TODO
 double      WINAPI test_SetSpread         (TEST* test, double      spread   );
 uint        WINAPI test_SetBars           (TEST* test, uint        bars     );
 uint        WINAPI test_SetTicks          (TEST* test, uint        ticks    );

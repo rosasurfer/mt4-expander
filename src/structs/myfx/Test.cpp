@@ -279,17 +279,17 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", timeframe="       << TimeframeToStr(test->timeframe)
          << ", startTime="       <<               (test->startTime ? doubleQuoteStr(gmTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", endTime="         <<               (test->endTime   ? doubleQuoteStr(gmTimeFormat(test->endTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", tickModel="       <<                test->tickModel         // TODO: EveryTick|ControlPoints|BarOpen
+         << ", barModel="        <<                test->barModel           // TODO: EveryTick|ControlPoints|BarOpen
          << ", spread="          <<   numberFormat(test->spread, "%.1f")
          << ", bars="            <<                test->bars
          << ", ticks="           <<                test->ticks
-         << ", tradeDirections=" <<                test->tradeDirections   // TODO: Long|Short|Both
+         << ", tradeDirections=" <<                test->tradeDirections    // TODO: Long|Short|Both
          << ", visualMode="      <<      BoolToStr(test->visualMode)
          << ", duration="        <<               (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
          << ", orders="          <<               (test->orders   ? to_string(test->orders->size()) : "NULL")
          << "}";
       string str = ss.str();
-      result = strcpy(new char[str.size()+1], str.c_str());                // TODO: close memory leak
+      result = strcpy(new char[str.size()+1], str.c_str());                 // TODO: close memory leak
    }
 
    if (outputDebug) debug(result);

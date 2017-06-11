@@ -34,7 +34,7 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
       test_SetSymbol         (test, ec->symbol      );
       test_SetTimeframe      (test, ec->timeframe   );
       test_SetStartTime      (test, startTime       );
-      //uint tickModel;                                              // TODO
+      //uint barModel;                                               // TODO
       test_SetSpread         (test, (ask-bid)/0.0001);               // TODO: statt 0.0001 Variable Pip
       test_SetBars           (test, bars            );
       //uint tradeDirections;                                        // TODO: aus Expert.ini auslesen
