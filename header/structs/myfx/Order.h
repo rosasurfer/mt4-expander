@@ -5,7 +5,7 @@
 
 
 /**
- * Xtrade struct ORDER
+ * XTrade struct ORDER
  *
  * Represents a Metatrader order.
  */

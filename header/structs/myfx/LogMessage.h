@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * Xtrade struct LOG_MESSAGE
+ * XTrade struct LOG_MESSAGE
  *
  * Wrapper für eine nach MQL zu übermittelnde Logmessage.
  *

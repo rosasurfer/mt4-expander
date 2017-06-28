@@ -4,7 +4,7 @@
 
 
 /**
- * Xtrade struct TEST
+ * XTrade struct TEST
  *
  * Structure holding metadata of a test: Strategy Tester settings, strategy settings, order history
  */
