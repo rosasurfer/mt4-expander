@@ -1,7 +1,7 @@
 #pragma once
 
 #include "expander.h"
-#include "structs/mt4/MqlStr.h"
+#include "struct/mt4/MqlStr.h"
 
 
 const char* WINAPI GetString        (const char* value);

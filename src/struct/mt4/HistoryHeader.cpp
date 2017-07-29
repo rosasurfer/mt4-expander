@@ -4,7 +4,7 @@
  * HistoryFile Header
  */
 #include "expander.h"
-#include "structs/mt4/HistoryHeader.h"
+#include "struct/mt4/HistoryHeader.h"
 
 
 /**

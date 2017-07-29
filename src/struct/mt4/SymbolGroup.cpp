@@ -4,7 +4,7 @@
  * Die Größe der Datei ist fix und enthält Platz für exakt 32 Gruppen. Einzelne Gruppen können undefiniert sein.
  */
 #include "expander.h"
-#include "structs/mt4/SymbolGroup.h"
+#include "struct/mt4/SymbolGroup.h"
 
 
 /**

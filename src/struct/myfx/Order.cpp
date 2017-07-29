@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "structs/myfx/Order.h"
+#include "struct/myfx/Order.h"
 #include "util/format.h"
 #include "util/toString.h"
 

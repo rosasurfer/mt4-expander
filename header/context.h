@@ -1,7 +1,7 @@
 #pragma once
 
 #include "expander.h"
-#include "structs/myfx/ExecutionContext.h"
+#include "struct/myfx/ExecutionContext.h"
 
 
 // Context management functions

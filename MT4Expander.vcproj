@@ -204,278 +204,70 @@
 				>
 			</File>
 			<Filter
-				Name="structs"
+				Name="struct"
 				>
 				<Filter
 					Name="win32"
 					>
 					<File
-						RelativePath=".\src\structs\win32\FileTime.cpp"
+						RelativePath=".\src\struct\win32\FileTime.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\win32\ProcessInformation.cpp"
+						RelativePath=".\src\struct\win32\ProcessInformation.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\win32\SecurityAttributes.cpp"
+						RelativePath=".\src\struct\win32\SecurityAttributes.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\win32\StartupInfo.cpp"
+						RelativePath=".\src\struct\win32\StartupInfo.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\win32\SystemTime.cpp"
+						RelativePath=".\src\struct\win32\SystemTime.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\win32\TimeZoneInformation.cpp"
+						RelativePath=".\src\struct\win32\TimeZoneInformation.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\win32\Win32FindData.cpp"
+						RelativePath=".\src\struct\win32\Win32FindData.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\win32\"
-							/>
-						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
 					Name="myfx"
 					>
 					<File
-						RelativePath=".\src\structs\myfx\ExecutionContext.cpp"
+						RelativePath=".\src\struct\myfx\ExecutionContext.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\myfx\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\myfx\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\myfx\Order.cpp"
+						RelativePath=".\src\struct\myfx\Order.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\myfx\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\myfx\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\myfx\Test.cpp"
+						RelativePath=".\src\struct\myfx\Test.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\myfx\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\myfx\"
-							/>
-						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
 					Name="mt4"
 					>
 					<File
-						RelativePath=".\src\structs\mt4\HistoryHeader.cpp"
+						RelativePath=".\src\struct\mt4\HistoryHeader.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\mt4\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\mt4\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\mt4\Symbol.cpp"
+						RelativePath=".\src\struct\mt4\Symbol.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\mt4\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\mt4\"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\structs\mt4\SymbolGroup.cpp"
+						RelativePath=".\src\struct\mt4\SymbolGroup.cpp"
 						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\mt4\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\structs\mt4\"
-							/>
-						</FileConfiguration>
 					</File>
 				</Filter>
 			</Filter>
@@ -570,45 +362,45 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="structs"
+				Name="struct"
 				>
 				<Filter
 					Name="mt4"
 					>
 					<File
-						RelativePath=".\header\structs\mt4\FxtHeader.h"
+						RelativePath=".\header\struct\mt4\FxtHeader.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\HistoryBar400.h"
+						RelativePath=".\header\struct\mt4\HistoryBar400.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\HistoryBar401.h"
+						RelativePath=".\header\struct\mt4\HistoryBar401.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\HistoryHeader.h"
+						RelativePath=".\header\struct\mt4\HistoryHeader.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\MqlStr.h"
+						RelativePath=".\header\struct\mt4\MqlStr.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\Symbol.h"
+						RelativePath=".\header\struct\mt4\Symbol.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\SymbolGroup.h"
+						RelativePath=".\header\struct\mt4\SymbolGroup.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\SymbolSelected.h"
+						RelativePath=".\header\struct\mt4\SymbolSelected.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\mt4\Tick.h"
+						RelativePath=".\header\struct\mt4\Tick.h"
 						>
 					</File>
 				</Filter>
@@ -616,23 +408,23 @@
 					Name="myfx"
 					>
 					<File
-						RelativePath=".\header\structs\myfx\CustomPosition.h"
+						RelativePath=".\header\struct\myfx\CustomPosition.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\myfx\ExecutionContext.h"
+						RelativePath=".\header\struct\myfx\ExecutionContext.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\myfx\LogMessage.h"
+						RelativePath=".\header\struct\myfx\LogMessage.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\myfx\Order.h"
+						RelativePath=".\header\struct\myfx\Order.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\myfx\Test.h"
+						RelativePath=".\header\struct\myfx\Test.h"
 						>
 					</File>
 				</Filter>
@@ -640,31 +432,31 @@
 					Name="win32"
 					>
 					<File
-						RelativePath=".\header\structs\win32\FileTime.h"
+						RelativePath=".\header\struct\win32\FileTime.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\win32\ProcessInformation.h"
+						RelativePath=".\header\struct\win32\ProcessInformation.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\win32\SecurityAttributes.h"
+						RelativePath=".\header\struct\win32\SecurityAttributes.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\win32\StartupInfo.h"
+						RelativePath=".\header\struct\win32\StartupInfo.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\win32\SystemTime.h"
+						RelativePath=".\header\struct\win32\SystemTime.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\win32\TimeZoneInformation.h"
+						RelativePath=".\header\struct\win32\TimeZoneInformation.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\structs\win32\Win32FindData.h"
+						RelativePath=".\header\struct\win32\Win32FindData.h"
 						>
 					</File>
 				</Filter>

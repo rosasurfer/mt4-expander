@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "structs/mt4/MqlStr.h"
+#include "struct/mt4/MqlStr.h"
 
 
 /**

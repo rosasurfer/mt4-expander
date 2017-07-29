@@ -4,7 +4,7 @@
  * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
  */
 #include "expander.h"
-#include "structs/mt4/Symbol.h"
+#include "struct/mt4/Symbol.h"
 
 #include <math.h>
 
