@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "struct/myfx/Order.h"
+#include "struct/xtrade/Order.h"
 #include "util/format.h"
 #include "util/toString.h"
 

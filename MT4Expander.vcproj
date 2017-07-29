@@ -239,18 +239,18 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="myfx"
+					Name="xtrade"
 					>
 					<File
-						RelativePath=".\src\struct\myfx\ExecutionContext.cpp"
+						RelativePath=".\src\struct\xtrade\ExecutionContext.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\src\struct\myfx\Order.cpp"
+						RelativePath=".\src\struct\xtrade\Order.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\src\struct\myfx\Test.cpp"
+						RelativePath=".\src\struct\xtrade\Test.cpp"
 						>
 					</File>
 				</Filter>
@@ -405,26 +405,26 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="myfx"
+					Name="xtrade"
 					>
 					<File
-						RelativePath=".\header\struct\myfx\CustomPosition.h"
+						RelativePath=".\header\struct\xtrade\CustomPosition.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\struct\myfx\ExecutionContext.h"
+						RelativePath=".\header\struct\xtrade\ExecutionContext.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\struct\myfx\LogMessage.h"
+						RelativePath=".\header\struct\xtrade\LogMessage.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\struct\myfx\Order.h"
+						RelativePath=".\header\struct\xtrade\Order.h"
 						>
 					</File>
 					<File
-						RelativePath=".\header\struct\myfx\Test.h"
+						RelativePath=".\header\struct\xtrade\Test.h"
 						>
 					</File>
 				</Filter>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "struct/myfx/Order.h"
+#include "struct/xtrade/Order.h"
 
 
 /**
