@@ -110,7 +110,7 @@ int   _error(const char* fileName, const char* funcName, int line, int code, con
 void __error(const char* fileName, const char* funcName, int line, int code, const char*   format, const va_list& args);
 
 
-// Helper functions returning fixed values. All parameters are ignored.
+// Helper functions returning constant values. All parameters are ignored.
 int         WINAPI _CLR_NONE    (...);
 int         WINAPI _EMPTY       (...);
 const char* WINAPI _EMPTY_STR   (...);
