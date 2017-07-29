@@ -33,3 +33,5 @@ const char* WINAPI ShowWindowCmdToStr(int cmd);
 const char* WINAPI StringToStr(const char* value);
 const char* WINAPI TimeframeDescription(int timeframe);
 const char* WINAPI TimeframeToStr(int timeframe);
+const char* WINAPI TradeDirectionDescription(int direction);
+const char* WINAPI TradeDirectionToStr(int direction);
