@@ -152,7 +152,7 @@ BOOL WINAPI SaveTest(TEST* test) {
    fs.close();
 
    // backup input parameters
-   // TODO: To initially create the .ini file the dialog "Expert properties" must be opened and confirmed at least once.
+   // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
    string paramSrcFile  = getTerminalPath() +"/tester/"+ test->strategy +".ini";
    string paramDestFile = getTerminalPath() +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(paramSrcFile.c_str(), paramDestFile.c_str(), TRUE))

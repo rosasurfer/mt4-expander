@@ -642,7 +642,7 @@ HWND WINAPI ProgramFindChart(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
 
 
 /**
- * Resolve the given program's current init() scenario.
+ * Resolve a program's current init() scenario.
  *
  * @param  EXECUTION_CONTEXT* ec              - execution context as passed by the terminal       (possibly still empty)
  * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly already released)
