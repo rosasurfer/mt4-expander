@@ -303,7 +303,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\util\helpers.cpp"
+					RelativePath=".\src\util\helper.cpp"
 					>
 				</File>
 				<File
@@ -469,7 +469,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\header\util\helpers.h"
+					RelativePath=".\header\util\helper.h"
 					>
 				</File>
 				<File
