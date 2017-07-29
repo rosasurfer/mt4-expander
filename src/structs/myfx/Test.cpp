@@ -1,8 +1,8 @@
 #include "expander.h"
 #include "structs/myfx/Test.h"
-#include "utils/format.h"
-#include "utils/math.h"
-#include "utils/toString.h"
+#include "util/format.h"
+#include "util/math.h"
+#include "util/toString.h"
 
 
 /**

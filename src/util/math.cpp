@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "utils/math.h"
+#include "util/math.h"
 
 #include <math.h>
 

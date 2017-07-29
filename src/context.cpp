@@ -1,9 +1,9 @@
 #include "expander.h"
 #include "context.h"
 #include "structs/myfx/ExecutionContext.h"
-#include "utils/helpers.h"
-#include "utils/string.h"
-#include "utils/toString.h"
+#include "util/helpers.h"
+#include "util/string.h"
+#include "util/toString.h"
 
 #include <vector>
 

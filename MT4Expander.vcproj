@@ -480,154 +480,6 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="utils"
-				>
-				<File
-					RelativePath=".\src\utils\format.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\src\utils\helpers.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\src\utils\math.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\src\utils\mql-stubs.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\src\utils\string.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\src\utils\ticktimer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\utils\time.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\src\utils\toString.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\utils\"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
-			<Filter
 				Name="etc"
 				>
 				<File
@@ -649,6 +501,42 @@
 							ObjectFile="$(IntDir)\etc\"
 						/>
 					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath=".\src\util\format.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\helpers.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\math.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\mql-stubs.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\string.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\ticktimer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\time.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\toString.cpp"
+					>
 				</File>
 			</Filter>
 		</Filter>
@@ -782,30 +670,30 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="utils"
+				Name="util"
 				>
 				<File
-					RelativePath=".\header\utils\format.h"
+					RelativePath=".\header\util\format.h"
 					>
 				</File>
 				<File
-					RelativePath=".\header\utils\helpers.h"
+					RelativePath=".\header\util\helpers.h"
 					>
 				</File>
 				<File
-					RelativePath=".\header\utils\math.h"
+					RelativePath=".\header\util\math.h"
 					>
 				</File>
 				<File
-					RelativePath=".\header\utils\string.h"
+					RelativePath=".\header\util\string.h"
 					>
 				</File>
 				<File
-					RelativePath=".\header\utils\ticktimer.h"
+					RelativePath=".\header\util\ticktimer.h"
 					>
 				</File>
 				<File
-					RelativePath=".\header\utils\toString.h"
+					RelativePath=".\header\util\toString.h"
 					>
 				</File>
 			</Filter>
