@@ -8,4 +8,5 @@
 !.gitattributes
 
 # ignore the following directories and files
+/bin/
 /*.user
