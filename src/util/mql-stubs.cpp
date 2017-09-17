@@ -1,5 +1,5 @@
 /**
- * Empty function stubs for MQL init/deinit/main functions. Can be overridden by implementations in MQL.
+ * Empty function stubs for MQL init/deinit/main functions. Can be overridden by custom MQL implementations.
  */
 #include "expander.h"
 
