@@ -971,7 +971,7 @@ DWORD WINAPI StoreThreadAndProgram(uint programId) {
       g_threads        .push_back(currentThread);                    // add thread to the list
       g_threadsPrograms.push_back(programId);                        // add program to the list (0 if zero)
       currentThreadIndex = g_threads.size() - 1;
-      if (currentThreadIndex > 128) debug("thread %d added (size=%d)", currentThread, g_threads.size());
+      if (currentThreadIndex > 511) debug("thread %d added (size=%d)", currentThread, g_threads.size());
       LeaveCriticalSection(&g_terminalLock);
    }
 
