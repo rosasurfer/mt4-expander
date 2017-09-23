@@ -1,7 +1,7 @@
 #
 # The projects rosasurfer/mt4-expander and rosasurfer/mt4-mql share some common header files. Both projects are connected 
 # via a symlink named "shared" which must be created in this directory. The symlink is not versioned to allow customization 
-# of the link target according to the local project location and is used by the versioned symlink at "header/shared". 
+# of the link target according to the local project location and is used by the versioned symlink "header/shared". 
 #
 # The symlink "shared" in this directory must point to the local installation of "{rosasurfer/mt4-mql}/mql4/include/shared".  
 # 
