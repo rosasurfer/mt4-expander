@@ -25,6 +25,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description=""
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -92,7 +94,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
+				Description="Post-build event:"
+				CommandLine="echo Backup shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*&quot; &quot;$(ProjectDir)header\shared.bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -105,6 +108,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description=""
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -175,7 +180,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(ProjectDir)header\shared\*&quot; &quot;$(ProjectDir)header\shared.bak\&quot;&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
+				Description="Post-build event:"
+				CommandLine="echo Backup shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*&quot; &quot;$(ProjectDir)header\shared.bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;"
 			/>
 		</Configuration>
 	</Configurations>

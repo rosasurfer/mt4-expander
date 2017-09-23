@@ -10,4 +10,5 @@
 #  
 # To enable Git support of symbolic links on Windows you must add "core.symlinks = true" to your Git configuration.  
 #
+/shared/
 /shared
