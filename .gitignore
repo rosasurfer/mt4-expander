@@ -4,9 +4,12 @@
 /.buildpath
 /.project*
 
-# do not ignore the following files (globally)
-!.gitattributes
 
 # ignore the following directories and files
 /bin/
 /*.user
+
+
+# never ignore the following files
+!.gitattributes
+!/bin/Release/MT4Expander.dll
