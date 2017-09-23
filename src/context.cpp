@@ -230,11 +230,15 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
 
 
 /**
- * @param  EXECUTION_CONTEXT* ec - Context des Hauptmoduls eines MQL-Programms
+ * @param  EXECUTION_CONTEXT* ec     - main module context of a program
+ * @param  datetime           time   - server time of the current tick
+ * @param  double             bid    - bid price of the current tick
+ * @param  double             ask    - ask price of the current tick
+ * @param  uint               volume - volume of the current tick
  *
  * @return BOOL - Erfolgsstatus
  */
-BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec) {
+BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double bid, double ask, uint volume) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if (!ec->programId)               return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId=%d", ec->programId));
 
