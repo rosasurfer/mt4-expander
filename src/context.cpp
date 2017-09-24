@@ -244,9 +244,11 @@ BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double b
 
    StoreThreadAndProgram(ec->programId);                             // store last executed program (asap)
 
-   ec_SetRootFunction(ec, RF_START            );                     // update context
-   ec_SetTicks       (ec, ec->ticks + 1       );
-   ec_SetThreadId    (ec, GetCurrentThreadId());
+   ec_SetRootFunction    (ec, RF_START            );                 // update context
+   ec_SetThreadId        (ec, GetCurrentThreadId());
+   ec_SetTicks           (ec, ec->ticks + 1       );
+   ec_SetPreviousTickTime(ec, ec->currentTickTime );
+   ec_SetCurrentTickTime (ec, time                );
 
    return(TRUE);
    #pragma EXPANDER_EXPORT

@@ -1,5 +1,6 @@
 #include "expander.h"
 #include "struct/xtrade/ExecutionContext.h"
+#include "util/format.h"
 #include "util/toString.h"
 
 
@@ -354,7 +355,7 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's number of times start() was called.
+ * Return the number of times an EXECUTION_CONTEXT's start() function was called.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -363,6 +364,35 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    return(ec->ticks);
+   #pragma EXPANDER_EXPORT
+}
+
+
+
+/**
+ * Return an EXECUTION_CONTEXT's current tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - server time
+ */
+datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(ec->currentTickTime);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's previous tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - server time
+ */
+datetime WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   return(ec->previousTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -424,9 +454,7 @@ uint WINAPI ec_SetProgramId(EXECUTION_CONTEXT* ec, uint id) {
    ec->programId = id;                                               // synchronize main and master context
    if (g_contextChains.size() > id && ec==g_contextChains[id][1] && g_contextChains[id][0])
       return(ec_SetProgramId(g_contextChains[id][0], id));
-
    return(id);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -453,9 +481,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetProgramType(g_contextChains[pid][0], type));
-
    return(type);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -479,9 +505,7 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetProgramName(g_contextChains[pid][0], name));
-
    return(name);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -509,9 +533,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetModuleType(g_contextChains[pid][0], type));
-
    return(type);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -535,9 +557,7 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetModuleName(g_contextChains[pid][0], name));
-
    return(name);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -564,9 +584,7 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetLaunchType(g_contextChains[pid][0], type));
-
    return(type);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -596,7 +614,6 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetRootFunction(g_contextChains[pid][0], id));
-
    return(id);
    #pragma EXPANDER_EXPORT
 }
@@ -618,9 +635,7 @@ BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetInitCycle(g_contextChains[pid][0], status));
-
    return(status);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -659,9 +674,7 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetInitReason(g_contextChains[pid][0], reason));
-
    return(reason);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -697,9 +710,7 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetUninitReason(g_contextChains[pid][0], reason));
-
    return(reason);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -719,9 +730,7 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetTesting(g_contextChains[pid][0], status));
-
    return(status);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -741,9 +750,7 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetVisualMode(g_contextChains[pid][0], status));
-
    return(status);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -763,9 +770,7 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetOptimization(g_contextChains[pid][0], status));
-
    return(status);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -785,9 +790,7 @@ DWORD WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetInitFlags(g_contextChains[pid][0], flags));
-
    return(flags);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -807,9 +810,7 @@ DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetDeinitFlags(g_contextChains[pid][0], flags));
-
    return(flags);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -829,7 +830,6 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetLogging(g_contextChains[pid][0], status));
-
    return(status);
    #pragma EXPANDER_EXPORT
 }
@@ -862,9 +862,7 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetCustomLogFile(g_contextChains[pid][0], fileName));
-
    return(fileName);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -888,9 +886,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetSymbol(g_contextChains[pid][0], symbol));
-
    return(symbol);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -911,9 +907,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetTimeframe(g_contextChains[pid][0], timeframe));
-
    return(timeframe);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -933,9 +927,7 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetHChart(g_contextChains[pid][0], hWnd));
-
    return(hWnd);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -955,9 +947,7 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetHChartWindow(g_contextChains[pid][0], hWnd));
-
    return(hWnd);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -978,18 +968,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetSuperContext(g_contextChains[pid][0], sec));
-
    return(sec);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias (imported differently in MQL)
- */
-EXECUTION_CONTEXT* WINAPI ec_SetLpSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* lpSec) {
-   return(ec_SetSuperContext(ec, lpSec));
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1010,9 +989,7 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetThreadId(g_contextChains[pid][0], id));
-
    return(id);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1033,9 +1010,49 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
    uint pid = ec->programId;                                         // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetTicks(g_contextChains[pid][0], count));
-
    return(count);
-   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's current tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  datetime           time - server time
+ *
+ * @return datetime - the same time
+ */
+datetime WINAPI ec_SetCurrentTickTime(EXECUTION_CONTEXT* ec, datetime time) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time = %d (must be non-negative)", time));
+
+   ec->currentTickTime = time;
+
+   uint pid = ec->programId;                                         // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetCurrentTickTime(g_contextChains[pid][0], time));
+   return(time);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's previous tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  datetime           time - server time
+ *
+ * @return datetime - the same time
+ */
+datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
+   if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time = %d (must be non-negative)", time));
+
+   ec->previousTickTime = time;
+
+   uint pid = ec->programId;                                         // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetPreviousTickTime(g_contextChains[pid][0], time));
+   return(time);
 }
 
 
@@ -1139,7 +1156,6 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
       else      ec_SetDllWarning(master, error);
    }
    return(error);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1216,33 +1232,35 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
    if (memcmp(ec, &s_empty, sizeof(EXECUTION_CONTEXT))) {
       std::stringstream ss; ss
-         <<  "{programId="     <<                   ec->programId
-         << ", programType="   <<  ProgramTypeToStr(ec->programType  )
-         << ", programName="   <<    doubleQuoteStr(ec->programName  )
-         << ", moduleType="    <<   ModuleTypeToStr(ec->moduleType   )
-         << ", moduleName="    <<    doubleQuoteStr(ec->moduleName   )
-         << ", launchType="    <<                   ec->launchType
-         << ", rootFunction="  << RootFunctionToStr(ec->rootFunction )
-         << ", initCycle="     <<         BoolToStr(ec->initCycle    )
-         << ", initReason="    <<   InitReasonToStr(ec->initReason   )
-         << ", uninitReason="  << UninitReasonToStr(ec->uninitReason )
-         << ", testing="       <<         BoolToStr(ec->testing      )
-         << ", visualMode="    <<         BoolToStr(ec->visualMode   )
-         << ", optimization="  <<         BoolToStr(ec->optimization )
-         << ", initFlags="     <<    InitFlagsToStr(ec->initFlags    )
-         << ", deinitFlags="   <<  DeinitFlagsToStr(ec->deinitFlags  )
-         << ", logging="       <<         BoolToStr(ec->logging      )
-         << ", customLogFile=" <<    doubleQuoteStr(ec->customLogFile)
-         << ", symbol="        <<    doubleQuoteStr(ec->symbol       )
-         << ", timeframe="     <<       PeriodToStr(ec->timeframe    )
-         << ", hChart="        <<             (uint)ec->hChart
-         << ", hChartWindow="  <<             (uint)ec->hChartWindow
-         << ", superContext="  <<             (uint)ec->superContext
-         << ", threadId="      <<                   ec->threadId
-         << ", ticks="         <<                   ec->ticks
-         << ", mqlError="      <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
-         << ", dllError="      <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
-         << ", dllWarning="    <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
+         <<  "{programId="        <<                   ec->programId
+         << ", programType="      <<  ProgramTypeToStr(ec->programType  )
+         << ", programName="      <<    doubleQuoteStr(ec->programName  )
+         << ", moduleType="       <<   ModuleTypeToStr(ec->moduleType   )
+         << ", moduleName="       <<    doubleQuoteStr(ec->moduleName   )
+         << ", launchType="       <<                   ec->launchType
+         << ", rootFunction="     << RootFunctionToStr(ec->rootFunction )
+         << ", initCycle="        <<         BoolToStr(ec->initCycle    )
+         << ", initReason="       <<   InitReasonToStr(ec->initReason   )
+         << ", uninitReason="     << UninitReasonToStr(ec->uninitReason )
+         << ", testing="          <<         BoolToStr(ec->testing      )
+         << ", visualMode="       <<         BoolToStr(ec->visualMode   )
+         << ", optimization="     <<         BoolToStr(ec->optimization )
+         << ", initFlags="        <<    InitFlagsToStr(ec->initFlags    )
+         << ", deinitFlags="      <<  DeinitFlagsToStr(ec->deinitFlags  )
+         << ", logging="          <<         BoolToStr(ec->logging      )
+         << ", customLogFile="    <<    doubleQuoteStr(ec->customLogFile)
+         << ", symbol="           <<    doubleQuoteStr(ec->symbol       )
+         << ", timeframe="        <<       PeriodToStr(ec->timeframe    )
+         << ", hChart="           <<             (uint)ec->hChart
+         << ", hChartWindow="     <<             (uint)ec->hChartWindow
+         << ", superContext="     <<             (uint)ec->superContext
+         << ", threadId="         <<                   ec->threadId
+         << ", ticks="            <<                   ec->ticks
+         << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", mqlError="         <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
+         << ", dllError="         <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
+         << ", dllWarning="       <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << "}";
       string str = ss.str();
       result = strcpy(new char[str.size()+1], str.c_str());          // TODO: close memory leak

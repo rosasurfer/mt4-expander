@@ -66,22 +66,24 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
    BOOL               logging;                     //       576         4     Log-Konfiguration                               (konstant)   => was logge ich
    char               customLogFile[MAX_PATH];     //       580       260     Name der Logdatei                               (konstant)   => wohin logge ich
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       840        12     aktuelles Symbol                                (variabel)   => auf welchem Symbol laufe ich
-   uint               timeframe;                   //       852         4     aktuelle Bar-Periode                            (variabel)   => mit welcher Bar-Periode laufe ich
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       840        12     current symbol                                  (variabel)   => auf welchem Symbol laufe ich
+   uint               timeframe;                   //       852         4     current chart period                            (variabel)   => mit welcher Bar-Periode laufe ich
    HWND               hChart;                      //       856         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
    HWND               hChartWindow;                //       860         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
 
    EXECUTION_CONTEXT* superContext;                //       864         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
    uint               threadId;                    //       868         4     ID des ausführenden Threads                     (variable)   => wer führt mich aus
    uint               ticks;                       //       872         4     Anzahl der start()-Aufrufe                      (variabel)   => wie oft wurde ich ausgeführt
+   datetime           currentTickTime;             //       876         4     server time of the current tick                 (variabel)
+   datetime           previousTickTime;            //       880         4     server time of the previous tick                (variabel)
 
-   int                mqlError;                    //       876         4     Error-Code eines aufgetretenen MQL-Fehlers      (variabel)   => welcher MQL-Fehler ist aufgetreten
-   int                dllError;                    //       880         4     Error-Code eines aufgetretenen DLL-Fehlers      (variabel)   => welcher DLL-Fehler ist aufgetreten
-   char*              dllErrorMsg;                 //       884         4     Text des DLL-Fehlers                            (variabel)   => ...
-   int                dllWarning;                  //       888         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
-   char*              dllWarningMsg;               //       892         4     Text der DLL-Warnung                            (variabel)   => ...
+   int                mqlError;                    //       884         4     Error-Code eines aufgetretenen MQL-Fehlers      (variabel)   => welcher MQL-Fehler ist aufgetreten
+   int                dllError;                    //       888         4     Error-Code eines aufgetretenen DLL-Fehlers      (variabel)   => welcher DLL-Fehler ist aufgetreten
+   char*              dllErrorMsg;                 //       892         4     Text des DLL-Fehlers                            (variabel)   => ...
+   int                dllWarning;                  //       896         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
+   char*              dllWarningMsg;               //       900         4     Text der DLL-Warnung                            (variabel)   => ...
 };                                                 // ----------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //               = 896                                                                     warum bin ich nicht auf Ibiza
+#pragma pack(pop)                                  //               = 904
 
 
 // type definition
@@ -89,35 +91,37 @@ typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all cont
 
 
 // Getters
-uint               WINAPI ec_ProgramId     (const EXECUTION_CONTEXT* ec);
-ProgramType        WINAPI ec_ProgramType   (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_ProgramName   (const EXECUTION_CONTEXT* ec);
-ModuleType         WINAPI ec_ModuleType    (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_ModuleName    (const EXECUTION_CONTEXT* ec);
-LaunchType         WINAPI ec_LaunchType    (const EXECUTION_CONTEXT* ec);
-RootFunction       WINAPI ec_RootFunction  (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_InitCycle     (const EXECUTION_CONTEXT* ec);
-InitializeReason   WINAPI ec_InitReason    (const EXECUTION_CONTEXT* ec);
-UninitializeReason WINAPI ec_UninitReason  (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_Testing       (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_VisualMode    (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_Optimization  (const EXECUTION_CONTEXT* ec);
-DWORD              WINAPI ec_InitFlags     (const EXECUTION_CONTEXT* ec);
-DWORD              WINAPI ec_DeinitFlags   (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_Logging       (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_CustomLogFile (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_Symbol        (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_Timeframe     (const EXECUTION_CONTEXT* ec);
-HWND               WINAPI ec_hChart        (const EXECUTION_CONTEXT* ec);
-HWND               WINAPI ec_hChartWindow  (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_SuperContext  (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec);
-EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_ThreadId      (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_Ticks         (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_MqlError      (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_DllError      (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_ProgramId       (const EXECUTION_CONTEXT* ec);
+ProgramType        WINAPI ec_ProgramType     (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_ProgramName     (const EXECUTION_CONTEXT* ec);
+ModuleType         WINAPI ec_ModuleType      (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_ModuleName      (const EXECUTION_CONTEXT* ec);
+LaunchType         WINAPI ec_LaunchType      (const EXECUTION_CONTEXT* ec);
+RootFunction       WINAPI ec_RootFunction    (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_InitCycle       (const EXECUTION_CONTEXT* ec);
+InitializeReason   WINAPI ec_InitReason      (const EXECUTION_CONTEXT* ec);
+UninitializeReason WINAPI ec_UninitReason    (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_Testing         (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_VisualMode      (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_Optimization    (const EXECUTION_CONTEXT* ec);
+DWORD              WINAPI ec_InitFlags       (const EXECUTION_CONTEXT* ec);
+DWORD              WINAPI ec_DeinitFlags     (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_Logging         (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_CustomLogFile   (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_Symbol          (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_Timeframe       (const EXECUTION_CONTEXT* ec);
+HWND               WINAPI ec_hChart          (const EXECUTION_CONTEXT* ec);
+HWND               WINAPI ec_hChartWindow    (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_SuperContext    (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec);
+EXECUTION_CONTEXT* WINAPI ec_lpSuperContext  (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_ThreadId        (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_Ticks           (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_CurrentTickTime (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_MqlError        (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_DllError        (const EXECUTION_CONTEXT* ec);
 //                        ...
-int                WINAPI ec_DllWarning    (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_DllWarning      (const EXECUTION_CONTEXT* ec);
 //                        ...
 
 
@@ -144,9 +148,10 @@ uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint  
 HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 HWND               WINAPI ec_SetHChartWindow      (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext      (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
-EXECUTION_CONTEXT* WINAPI ec_SetLpSuperContext    (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* lpSec    );
 uint               WINAPI ec_SetThreadId          (EXECUTION_CONTEXT* ec, uint               id       );
 uint               WINAPI ec_SetTicks             (EXECUTION_CONTEXT* ec, uint               count    );
+datetime           WINAPI ec_SetCurrentTickTime   (EXECUTION_CONTEXT* ec, datetime           time     );
+datetime           WINAPI ec_SetPreviousTickTime  (EXECUTION_CONTEXT* ec, datetime           time     );
 int                WINAPI ec_SetMqlError          (EXECUTION_CONTEXT* ec, int                error    );
 int                WINAPI ec_SetDllError          (EXECUTION_CONTEXT* ec, int                error    );
 //                        ...
