@@ -8,7 +8,7 @@ update the files in the backup directory (only after a successful build).
 
 - - -
 
-A comfortable way to manage symbolic links on Windows is the [Link Shell Extension]
-(http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html) by Hermann Schinagl.
+A comfortable way to manage symbolic links on Windows is the [Link Shell Extension](http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html)
+by Hermann Schinagl.
 
 To enable Git support of symbolic links on Windows you must add ```core.symlinks = true``` to your Git configuration.
