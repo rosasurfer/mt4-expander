@@ -471,7 +471,7 @@ int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, Uninitialize
       }
    }
 
-   //debug("no matching %s indicator in limbo found: hChart=%d  uninitReason=%s", name, hChart, UninitializeReasonToStr(reason))
+   //debug("no matching %s indicator found in limbo: hChart=%d  uninitReason=%s", name, hChart, UninitializeReasonToStr(reason))
    return(NULL);
 }
 
@@ -737,7 +737,7 @@ InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
       int programId = ec->programId;
       if (!programId) {
          programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
-         if (programId <= 0) return((InitializeReason)(programId < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator during %s in limbo found", programName, UninitializeReasonToStr(uninitReason))));
+         if (programId <= 0) return((InitializeReason)(programId < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo during %s", programName, UninitializeReasonToStr(uninitReason))));
          if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
       }
       char* masterSymbol = g_contextChains[programId][0]->symbol;
