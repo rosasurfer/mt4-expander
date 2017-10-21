@@ -61,7 +61,7 @@ void __debug(const char* fileName, const char* funcName, int line, const char* f
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
    // insert the call location at the beginning of the message
-   char* locationFormat = "Metatrader::%s%s::%s(%d)  %s";
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  %s";
    size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;     // +1 for the terminating '\0'
    char* buffer = (char*)alloca(size);                                           // on the stack
    sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);
