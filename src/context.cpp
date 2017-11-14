@@ -8,75 +8,77 @@
 #include <vector>
 
 
-extern std::vector<ContextChain> g_contextChains;                    // all context chains (i.e. MQL programs, index = program id)
-extern std::vector<DWORD>        g_threads;                          // all known threads executing MQL programs
-extern std::vector<uint>         g_threadsPrograms;                  // the last MQL program executed by a thread
-extern uint                      g_lastUIThreadProgram;              // the last MQL program executed by the UI thread
-extern CRITICAL_SECTION          g_terminalLock;                     // application wide lock
+extern std::vector<ContextChain> g_contextChains;              // all context chains (= MQL programs, index = program id)
+extern std::vector<DWORD>        g_threads;                    // all known threads executing MQL programs
+extern std::vector<uint>         g_threadsPrograms;            // the last MQL program executed by a thread
+extern uint                      g_lastUIThreadProgram;        // the last MQL program executed by the UI thread
+extern CRITICAL_SECTION          g_terminalLock;               // application wide lock
 
 
 /**
- * Synchronisiert den EXECUTION_CONTEXT eines MQL-Hauptmoduls mit dem Master-Context in der DLL. Wird von der init()-Funktion
- * der MQL-Hauptmodule aufgerufen.
- *
- * For a general overview see "ExecutionContext.h".
- *
- * @param  EXECUTION_CONTEXT* ec              - Kontext des Hauptmoduls eines MQL-Programms
- * @param  ProgramType        programType     - Programmtyp
- * @param  char*              programName     - Programmname (je nach Metatrader-Version ggf. mit Pfad)
- * @param  UninitializeReason uninitReason    - uninitialize reason as passed by the terminal
- * @param  DWORD              initFlags       - Init-Konfiguration
- * @param  DWORD              deinitFlags     - Deinit-Konfiguration
- * @param  char*              symbol          - aktuelles Chart-Symbol
- * @param  uint               period          - aktuelle Chart-Periode
- * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly already released)
- * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
- * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
- * @param  BOOL               isOptimization  - IsOptimzation() flag as passed by the terminal
- * @param  HWND               hChart          - WindowHandle() as passed by the terminal          (possibly not yet set)
- * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
- *
- * @return BOOL - Erfolgsstatus
- *
- *
- *  Init cycle of a single indicator with libraries:
- *  --- first load ------------------------------------------------------------------------------------------------------------
+ *  Init cycle of a single indicator using simple and nested library calls:
+ *  --- first load ----------------------------------------------------------------------------------------------------------
  *  Indicator::init()              UR_UNDEFINED    programId=0  creating new chain             set programId=1
  *  Indicator::libraryA::init()    UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
  *  Indicator::libraryB::init()    UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
  *  Indicator::libraryC::init()    UR_UNDEFINED    programId=0  loaded by libraryA             set programId=1
- *  --- deinit() --------------------------------------------------------------------------------------------------------------
+ *  --- deinit() ------------------------------------------------------------------------------------------------------------
  *  Indicator::deinit()            UR_CHARTCHANGE  programId=1  indicator first
  *  Indicator::libraryA::deinit()  UR_UNDEFINED    programId=1  then libraries
  *  Indicator::libraryC::deinit()  UR_UNDEFINED    programId=1  hierarchical (not in loading order)
  *  Indicator::libraryB::deinit()  UR_UNDEFINED    programId=1
- *  --- init() ----------------------------------------------------------------------------------------------------------------
+ *  --- init() --------------------------------------------------------------------------------------------------------------
  *  Indicator::libraryA::init()    UR_UNDEFINED    programId=1  libraries first (new symbol and timeframe show up)
  *  Indicator::libraryC::init()    UR_UNDEFINED    programId=1  hierarchical (not in loading order)
  *  Indicator::libraryB::init()    UR_UNDEFINED    programId=1
  *  Indicator::init()              UR_CHARTCHANGE  programId=0  then indicator                 set programId=1
- *  ---------------------------------------------------------------------------------------------------------------------------
+ *  -------------------------------------------------------------------------------------------------------------------------
  *
  *
- *  Init cycle of multiple indicators with libraries:
- *  --- first load ------------------------------------------------------------------------------------------------------------
+ *  Init cycle of multiple indicators using simple library calls:
+ *  --- first load ----------------------------------------------------------------------------------------------------------
  *  ChartInfos::init()             UR_UNDEFINED    programId=0  creating new chain             set programId=1
  *  ChartInfos::lib::init()        UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
  *  SuperBars::init()              UR_UNDEFINED    programId=0  creating new chain             set programId=2
  *  SuperBars::lib::init()         UR_UNDEFINED    programId=0  loaded by indicator            set programId=2
- *  --- deinit() --------------------------------------------------------------------------------------------------------------
+ *  --- deinit() ------------------------------------------------------------------------------------------------------------
  *  ChartInfos::deinit()           UR_CHARTCHANGE  programId=1
  *  ChartInfos::lib::deinit()      UR_UNDEFINED    programId=1
  *  SuperBars::deinit()            UR_CHARTCHANGE  programId=2
  *  SuperBars::lib::deinit()       UR_UNDEFINED    programId=2
- *  --- init() ----------------------------------------------------------------------------------------------------------------
+ *  --- init() --------------------------------------------------------------------------------------------------------------
  *  ChartInfos::lib::init()        UR_UNDEFINED    programId=1
  *  ChartInfos::init()             UR_CHARTCHANGE  programId=0  first indicator in limbo       set programId=1
  *  SuperBars::lib::init()         UR_UNDEFINED    programId=2
  *  SuperBars::init()              UR_CHARTCHANGE  programId=0  next indicator in limbo        set programId=2
- *  ---------------------------------------------------------------------------------------------------------------------------
+ *  -------------------------------------------------------------------------------------------------------------------------
  */
-BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int subChartDropped) {
+
+
+/**
+ * Synchronize an MQL program's EXECUTION_CONTEXT with the master context stored in this DLL. Called by the init() functions
+ * of the MQL main modules. For a general overview see "header/struct/xtrade/ExecutionContext.h".
+ *
+ * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context
+ * @param  ProgramType        programType    - program type
+ * @param  char*              programName    - program name (with or without filepath according to the terminal version)
+ * @param  UninitializeReason uninitReason   - uninitialize reason as passed by the terminal
+ * @param  DWORD              initFlags      - init configuration
+ * @param  DWORD              deinitFlags    - deinit configuration
+ * @param  char*              symbol         - current chart symbol
+ * @param  uint               period         - current chart period
+ * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
+ * @param  BOOL               isTesting      - return value of IsTesting() as passed by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - return value of IsVisualMode() as passed by the terminal (possibly incorrect)
+ * @param  BOOL               isOptimization - return value of IsOptimzation() as passed by the terminal
+ * @param  HWND               hChart         - return value of WindowHandle() as passed by the terminal (possibly not yet set)
+ * @param  int                droppedOnChart - return value of WindowOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - return value of WindowXOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - return value of WindowYOnDropped() as passed by the terminal (possibly incorrect)
+ *
+ * @return BOOL - Erfolgsstatus
+ */
+BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
    if ((uint)symbol      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
@@ -108,7 +110,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
 
    if (!ec->programId) {
       // (1) Wenn keine ProgramID gesetzt ist, prüfen, ob Programm ein Indikator im Init-Cycle oder nach einem Test ist.
-      initReason                = ProgramInitReason(ec, sec, programName, programType, uninitReason, symbol, isTesting, isVisualMode, hChart, subChartDropped);
+      initReason                = ProgramInitReason(ec, sec, programName, programType, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart);
       BOOL indicatorInInitCycle = programType==PT_INDICATOR && (initReason==IR_PARAMETERS || initReason==IR_SYMBOLCHANGE || initReason==IR_TIMEFRAMECHANGE);
       BOOL indicatorAfterTest   = programType==PT_INDICATOR && initReason==IR_PROGRAM_AFTERTEST;
 
@@ -650,20 +652,20 @@ HWND WINAPI ProgramFindChart(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
 /**
  * Resolve a program's current init() scenario.
  *
- * @param  EXECUTION_CONTEXT* ec              - execution context as passed by the terminal       (possibly still empty)
- * @param  EXECUTION_CONTEXT* sec             - super context as passed by the terminal           (possibly already released)
- * @param  char*              programName     - program name
- * @param  ProgramType        programType     - program type
- * @param  UninitializeReason uninitReason    - UninitializeReason as set by the terminal
- * @param  char*              symbol          - current symbol
- * @param  BOOL               isTesting       - IsTesting() flag as passed by the terminal        (possibly incorrect)
- * @param  BOOL               isVisualMode    - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
- * @param  HWND               hChart          - correct value of WindowHandle()
- * @param  int                subChartDropped - WindowOnDropped() index as passed by the terminal
+ * @param  EXECUTION_CONTEXT* ec             - execution context as passed by the terminal       (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec            - super context as passed by the terminal           (possibly already released)
+ * @param  char*              programName    - program name
+ * @param  ProgramType        programType    - program type
+ * @param  UninitializeReason uninitReason   - UninitializeReason as set by the terminal
+ * @param  char*              symbol         - current symbol
+ * @param  BOOL               isTesting      - IsTesting() flag as passed by the terminal        (possibly incorrect)
+ * @param  BOOL               isVisualMode   - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
+ * @param  HWND               hChart         - correct value of WindowHandle()
+ * @param  int                droppedOnChart - WindowOnDropped() index as passed by the terminal
  *
  * @return InitializeReason - init reason or NULL if an error occurred
  */
-InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, ProgramType programType, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int subChartDropped) {
+InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, ProgramType programType, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart) {
    if ((uint)ec          < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
    if ((uint)programName < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
@@ -750,9 +752,9 @@ InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
    if (uninitReason == UR_UNDEFINED) {
       // außerhalb iCustom(): je nach Umgebung
       if (!sec) {
-         if (build < 654)          return(IR_TEMPLATE);              // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
-         if (subChartDropped >= 0) return(IR_TEMPLATE);
-         else                      return(IR_USER    );              // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
+         if (build < 654)         return(IR_TEMPLATE);               // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
+         if (droppedOnChart >= 0) return(IR_TEMPLATE);
+         else                     return(IR_USER    );               // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
       }
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
