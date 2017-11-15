@@ -9,17 +9,22 @@ BOOL             WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramTyp
 BOOL             WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec, datetime time, double bid, double ask, uint volume);
 BOOL             WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason reason);
 
-BOOL             WINAPI SyncLibContext_init  (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint period, BOOL isOptimization);
-BOOL             WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason);
+BOOL             WINAPI SyncLibContext_init   (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint period, BOOL isOptimization);
+BOOL             WINAPI SyncLibContext_deinit (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason);
 
-BOOL             WINAPI LeaveContext(EXECUTION_CONTEXT* ec);
+BOOL             WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);
 
-int              WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason);
-HWND             WINAPI ProgramFindChart         (HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, BOOL isTesting, BOOL isVisualMode, const char* symbol, uint timeframe);
-InitializeReason WINAPI ProgramInitReason        (      EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, ProgramType programType, UninitializeReason uninitializeReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int subChartDropped);
-BOOL             WINAPI ProgramIsLogging         (const EXECUTION_CONTEXT* ec);
-BOOL             WINAPI ProgramIsOptimization    (const EXECUTION_CONTEXT* ec, BOOL isOptimization);
-BOOL             WINAPI ProgramIsTesting         (const EXECUTION_CONTEXT* ec, BOOL isTesting);
-BOOL             WINAPI ProgramIsVisualMode      (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
-const char*      WINAPI ProgramCustomLogFile     (const EXECUTION_CONTEXT* ec);
-DWORD            WINAPI StoreThreadAndProgram    (uint programId);
+int              WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason);
+HWND             WINAPI FindWindowHandle    (HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode);
+
+InitializeReason WINAPI InitReason          (EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originalProgramId);
+InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec,                          const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart,                                       uint& originalProgramId);
+InitializeReason WINAPI InitReason_expert   (EXECUTION_CONTEXT* ec,                                                                                 UninitializeReason uninitReason, const char* symbol, BOOL testing,                                                   int droppedOnPosX, int droppedOnPosY);
+InitializeReason WINAPI InitReason_script();
+
+BOOL             WINAPI ProgramIsLogging      (const EXECUTION_CONTEXT* ec);
+BOOL             WINAPI ProgramIsOptimization (const EXECUTION_CONTEXT* ec, BOOL isOptimization);
+BOOL             WINAPI ProgramIsTesting      (const EXECUTION_CONTEXT* ec, BOOL isTesting);
+BOOL             WINAPI ProgramIsVisualMode   (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
+const char*      WINAPI ProgramCustomLogFile  (const EXECUTION_CONTEXT* ec);
+DWORD            WINAPI StoreThreadAndProgram (uint programId);

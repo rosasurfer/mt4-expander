@@ -1,5 +1,5 @@
 /**
- * Empty function stubs for MQL init/deinit/main functions. Can be overridden by custom MQL implementations.
+ * Empty function stubs for MQL init/deinit/main functions. May be overridden by custom MQL event handlers.
  */
 #include "expander.h"
 
@@ -37,12 +37,12 @@ int WINAPI onInit_Parameters() {
    #pragma EXPANDER_EXPORT
 }
 
-int WINAPI onInit_TimeframeChange() {
+int WINAPI onInit_SymbolChange() {
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
-int WINAPI onInit_SymbolChange() {
+int WINAPI onInit_TimeframeChange() {
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }

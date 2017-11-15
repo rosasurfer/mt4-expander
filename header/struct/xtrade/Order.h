@@ -7,7 +7,7 @@
 /**
  * XTrade struct ORDER
  *
- * Represents a Metatrader order.
+ * Represents a MetaTrader order.
  */
 #pragma pack(push, 1)
 struct ORDER {

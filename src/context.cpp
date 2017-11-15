@@ -16,7 +16,7 @@ extern CRITICAL_SECTION          g_terminalLock;               // application wi
 
 
 /**
- *  Init cycle of a single indicator using simple and nested library calls:
+ *  Init cycle of a single indicator using single and nested library calls:
  *  --- first load ----------------------------------------------------------------------------------------------------------
  *  Indicator::init()              UR_UNDEFINED    programId=0  creating new chain             set programId=1
  *  Indicator::libraryA::init()    UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
@@ -35,7 +35,7 @@ extern CRITICAL_SECTION          g_terminalLock;               // application wi
  *  -------------------------------------------------------------------------------------------------------------------------
  *
  *
- *  Init cycle of multiple indicators using simple library calls:
+ *  Init cycle of multiple indicators using single library calls:
  *  --- first load ----------------------------------------------------------------------------------------------------------
  *  ChartInfos::init()             UR_UNDEFINED    programId=0  creating new chain             set programId=1
  *  ChartInfos::lib::init()        UR_UNDEFINED    programId=0  loaded by indicator            set programId=1
@@ -61,22 +61,22 @@ extern CRITICAL_SECTION          g_terminalLock;               // application wi
  *
  * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context
  * @param  ProgramType        programType    - program type
- * @param  char*              programName    - program name (with or without filepath according to the terminal version)
- * @param  UninitializeReason uninitReason   - uninitialize reason as passed by the terminal
+ * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
- * @param  char*              symbol         - current chart symbol
- * @param  uint               period         - current chart period
+ * @param  char*              symbol         - current symbol
+ * @param  uint               period         - current period
  * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
- * @param  BOOL               isTesting      - return value of IsTesting() as passed by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode   - return value of IsVisualMode() as passed by the terminal (possibly incorrect)
- * @param  BOOL               isOptimization - return value of IsOptimzation() as passed by the terminal
- * @param  HWND               hChart         - return value of WindowHandle() as passed by the terminal (possibly not yet set)
- * @param  int                droppedOnChart - return value of WindowOnDropped() as passed by the terminal (possibly incorrect)
- * @param  int                droppedOnPosX  - return value of WindowXOnDropped() as passed by the terminal (possibly incorrect)
- * @param  int                droppedOnPosY  - return value of WindowYOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
+ * @param  HWND               hChart         - value of WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  *
- * @return BOOL - Erfolgsstatus
+ * @return BOOL - success status
  */
 BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
@@ -85,40 +85,46 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    if ((int)period <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period = %d", (int)period));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
 
-   // (1) Wenn keine ProgramID gesetzt ist, prüfen, ob Programm ein Indikator im Init-Cycle ist.
-   //     • wenn Programm ein Indikator im Init-Cycle ist (kommt nur im UI-Thread vor)
-   //       - Hauptkontext aus Master-Context restaurieren
-   //     • wenn Programm kein Indikator im Init-Cycle ist
-   //       - neuen Master-Context erzeugen
-   //       - neue Context-Chain erzeugen und Master- und Hauptkontext speichern
-   //       - resultierende ProgramID in Master- und Hauptkontext speichern
-   //
-   // (2) Wenn ProgramID gesetzt, dann Expert im Init-Cycle
-   //
-   // (3) Hauptkontext aktualisieren
-   //
-   // (4) Wenn Expert im Tester ggf. dessen Libraries aus dem vorherigen Test finden und zuordnen
-   //
-   EXECUTION_CONTEXT* master        = NULL;
-   InitializeReason   initReason    = (InitializeReason)NULL;
-   BOOL               isNewExpert   = FALSE;
-   uint               lastProgramId = NULL;
+   if (ec->programId)
+      StoreThreadAndProgram(ec->programId);                          // store the last executed program (asap for error handling)
 
-   hChart = ProgramFindChart(hChart, sec, (ModuleType)programType, isTesting, isVisualMode, symbol, period);
-   if (hChart == INVALID_HWND) return(error(ERR_RUNTIME_ERROR, "ProgramFindChart() failed"));
+   // (1) if ProgramID is not set: check if indicator in init cycle or after test
+   //     • if indicator in init cycle (only in UI thread) or after test:
+   //       - restore main context from master context
+   //     • if not indicator in init cycle (new indicator, expert or script):
+   //       - create new master context
+   //       - create new context chain and store master and main context in it
+   //       - store resulting ProgramID in master and main context
+   //
+   // (2) update main context
+   //
+   // (3) if expert in Strategy Tester: find and re-assign loaded libraries of a previous test
+
+   EXECUTION_CONTEXT* master            = NULL;
+   uint               originalProgramId = NULL;
+   uint               lastProgramId     = NULL;
+   InitializeReason   initReason        = InitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, originalProgramId);
+   BOOL               isNewExpert       = FALSE;
+   //if (programType == PT_EXPERT) debug("resolved init reason: %s", InitReasonToStr(initReason));
+
+   hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
+   if (hChart == INVALID_HWND) return(error(ERR_RUNTIME_ERROR, "FindWindowHandle() failed"));
 
 
    if (!ec->programId) {
-      // (1) Wenn keine ProgramID gesetzt ist, prüfen, ob Programm ein Indikator im Init-Cycle oder nach einem Test ist.
-      initReason                = ProgramInitReason(ec, sec, programName, programType, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart);
+      if (originalProgramId) {
+         ec_SetProgramId(ec, originalProgramId);
+         StoreThreadAndProgram(ec->programId);                       // asap: store last executed program
+      }
+
+      // (1) if ProgramID was not set: check if indicator in init cycle or after test
       BOOL indicatorInInitCycle = programType==PT_INDICATOR && (initReason==IR_PARAMETERS || initReason==IR_SYMBOLCHANGE || initReason==IR_TIMEFRAMECHANGE);
       BOOL indicatorAfterTest   = programType==PT_INDICATOR && initReason==IR_PROGRAM_AFTERTEST;
 
       if (indicatorInInitCycle) {
-         StoreThreadAndProgram(ec->programId);                       // store last executed program (asap)
          // (1.1) Programm ist Indikator im Init-Cycle (immer im UI-Thread)
          //   - Indikator-Context aus Master-Context restaurieren
-         master = g_contextChains[ec->programId][0];                 // im Init-Cycle setzt ProgramInitReason() die gefundene ProgramID
+         master = g_contextChains[ec->programId][0];
          *ec = *master;                                              // Master-Context kopieren
          g_contextChains[ec->programId][1] = ec;                     // Context als Hauptkontext speichern
          //debug("%s::init()  programId=0  init-cycle, was id=%d  thread=%s", programName, ec->programId, IsUIThread() ? "UI": to_string(GetCurrentThreadId()).c_str());
@@ -143,24 +149,19 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          //debug("%s::init()  programId=0  %snew chain => id=%d  thread=%s  hChart=%d", programName, (IsUIThread() ? "UI  ":""), ec->programId, IsUIThread() ? "UI":to_string(GetCurrentThreadId()).c_str(), hChart);
          LeaveCriticalSection(&g_terminalLock);
 
-         // resolve program status and last program executed by the current thread
-         isNewExpert = (programType==PT_EXPERT);
+         // get last program executed by the current thread and store the currently executed one (asap)
          uint index = StoreThreadAndProgram(0);
          lastProgramId = g_threadsPrograms[index];
-         g_threadsPrograms[index] = ec->programId;                   // store last executed program (asap)
+         g_threadsPrograms[index] = ec->programId;
+         isNewExpert = (programType==PT_EXPERT);
       }
       if (indicatorAfterTest) {
-         ec_SetSuperContext(ec, sec=NULL);                           // super context (expert) was already released
+         ec_SetSuperContext(ec, sec=NULL);                           // super context (expert) has already been released
       }
    }
-   else {
-      // (2) ProgramID gesetzt: Expert im Init-Cycle
-      StoreThreadAndProgram(ec->programId);                          // store last executed program (asap)
-      initReason = ec->initReason;                                   // TODO: wrong
-   }
 
 
-   // (3.1) Beim ersten Aufruf von init() zu initialisieren
+   // (2.1) Beim ersten Aufruf von init() zu initialisieren
    if (!ec->ticks) {
       ec_SetProgramType  (ec,             programType);
       ec_SetProgramName  (ec,             programName);
@@ -182,10 +183,10 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
       ec_SetCustomLogFile(ec, ProgramCustomLogFile(ec));
    }
 
-   // (3.2) Bei jedem Aufruf von init() zu aktualisieren
+   // (2.2) Bei jedem Aufruf von init() zu aktualisieren
    ec_SetRootFunction(ec, RF_INIT     );                             // TODO: wrong for init() calls from start()
  //ec_SetInitCycle   (ec, FALSE       );
-   ec_SetInitReason  (ec, initReason  );                             // TODO: wrong for experts and scripts
+   ec_SetInitReason  (ec, initReason  );
    ec_SetUninitReason(ec, uninitReason);
 
    ec_SetSymbol      (ec, symbol      );
@@ -193,7 +194,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
 
-   // (4) Wenn Expert im Tester, dann ggf. dessen Libraries aus dem vorherigen Test finden und dem Expert zuordnen
+   // (3) Wenn Expert im Tester, dann ggf. dessen Libraries aus dem vorherigen Test finden und dem Expert zuordnen
    if (isNewExpert && isTesting && lastProgramId) {
       EXECUTION_CONTEXT *lib, *lastMaster=g_contextChains[lastProgramId][0];
 
@@ -420,7 +421,7 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
 
 /**
- * Find the first active matching indicator with a released main EXECUTION_CONTEXT.
+ * Find the first matching and still active indicator with a released main EXECUTION_CONTEXT in memory.
  *
  * @param  HWND               hChart - correct value of WindowHandle()
  * @param  const char*        name   - indicator name
@@ -434,15 +435,19 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife condition
  * of those who die in original sin without being assigned to the Hell of the Damned. Remember "Inception"? Very hard to escape
  * from.
- * In Metatrader the memory allocated for indicator variables (holding the EXECUTION_CONTEXT, global variables, static local
- * variables etc.) is released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all
- * variables are initialized with zero which is the reason an indicator cannot keep state over an init cycle. Between deinit()
- * and init() when the indicator enters the state of "limbo" (a mysterious land where the streets have no name known only to
- * the scammers of MetaQuotes) state is kept in the master execution context which acts as a backup of the then lost main
- * execution context. On re-entry the master context is copied back to the newly allocated main context and state of the context
+ *
+ * In MetaTrader the memory allocated for global indicator variables (static and non-static, i.e. the EXECUTION_CONTEXT) is
+ * released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all variables are initialized
+ * with zero which is the reason an indicator cannot keep state over init cycles.
+ *
+ * Between deinit() and init() when the indicator enters the state of "limbo" (a mysterious land known only to the programmers
+ * of MetaQuotes) the framework keeps state in the master execution context which acts as a backup of the then lost main execution
+ * context. On re-entry the master context is copied back to the newly allocated main context and thus state of the context
  * survives. Voilà, it crossed the afterlife.
+ *
+ * As a result the framework allows also indicators to keep state over init cycles.
  */
-int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
+int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
    if (hChart) {
       EXECUTION_CONTEXT* master;
       int size=g_contextChains.size(), uiThreadId=GetUIThreadId();
@@ -453,7 +458,7 @@ int WINAPI FindFirstIndicatorInLimbo(HWND hChart, const char* name, Uninitialize
          if (master->threadId == uiThreadId) {
             if (master->hChart == hChart) {
                if (master->programType == MT_INDICATOR) {
-                  if (!strcmp(master->programName, name)) {
+                  if (strcmp(master->programName, name) == 0) {
                      if (master->uninitReason == reason) {
                         if (master->rootFunction == NULL) {          // limbo = init cycle
                            //debug("first %s indicator found in limbo: id=%d", name, master->programId);
@@ -494,7 +499,7 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    switch (ec->moduleType) {
       case MT_INDICATOR:
       case MT_SCRIPT:
-         if (ec != g_contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
+         if (ec != g_contextChains[id][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (doesn't match the stored main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[id][1], EXECUTION_CONTEXT_toStr(ec)));
          ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
          g_contextChains[id][1] = NULL;                              // mark main context as released
          break;
@@ -525,20 +530,23 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Find the chart of the current program and return its window handle. Must be called only in SyncMainContext_init().
+ * Find the chart of the current program and return its window handle. Replacement for the broken MQL function WindowHandle().
+ * Also returns the correct window handle when the MQL function fails.
  *
- * @param  HWND               hChart       - MQL::WindowHandle() as passed by the terminal      (possibly not yet set)
- * @param  EXECUTION_CONTEXT* sec          - super context as passed by the terminal            (possibly already released)
+ * Must be called only in SyncMainContext_init(), after that use the window handle stored in the program's EXECUTION_CONTEXT.
+ *
+ * @param  HWND               hChart       - value of WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  EXECUTION_CONTEXT* sec          - super context as managed by the terminal (memory possibly already released)
  * @param  ModuleType         moduleType   - module type
- * @param  BOOL               isTesting    - MQL::IsTesting() flag as passed by the terminal    (possibly incorrect)
- * @param  BOOL               isVisualMode - MQL::IsVisualMode() flag as passed by the terminal (possibly incorrect)
- * @param  char*              symbol       - current symbol as passed by the terminal
- * @param  uint               timeframe    - current timeframe as passed by the terminal
+ * @param  char*              symbol       - current symbol
+ * @param  uint               timeframe    - current timeframe
+ * @param  BOOL               isTesting    - value of IsTesting() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  *
  * @return HWND - Window handle or NULL if the program runs in the Strategy Tester with VisualMode=Off;
  *                INVALID_HWND (-1) if an error occurred.
  */
-HWND WINAPI ProgramFindChart(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, BOOL isTesting, BOOL isVisualMode, const char* symbol, uint timeframe) {
+HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode) {
    if (hChart) return(hChart);                                       // if already defined return WindowHandle() as passed
    if (sec) return(sec->hChart);                                     // if a super context exists return the inherited chart handle
                                                                      // (if hChart is not set the super context is always valid)
@@ -641,50 +649,62 @@ HWND WINAPI ProgramFindChart(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
    }
 
 
-   // (4) Das gefundene Chartfenster hat genau ein Child (AfxFrameOrView), welches das gesuchte Metatrader-Handle ist.
+   // (4) Das gefundene Chartfenster hat genau ein Child (AfxFrameOrView), welches das gesuchte MetaTrader-Handle ist.
    hChart = GetWindow(hChartWindow, GW_CHILD);
-   if (!hChart) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no Metatrader chart window inside of last MDIClient child window %p found", hChartWindow)));
+   if (!hChart) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no MetaTrader chart window inside of last MDIClient child window %p found", hChartWindow)));
 
    return(hChart);
 }
 
 
 /**
- * Resolve a program's current init() scenario.
+ * Resolve a program's current init() reason.
  *
- * @param  EXECUTION_CONTEXT* ec             - execution context as passed by the terminal       (possibly still empty)
- * @param  EXECUTION_CONTEXT* sec            - super context as passed by the terminal           (possibly already released)
- * @param  char*              programName    - program name
- * @param  ProgramType        programType    - program type
- * @param  UninitializeReason uninitReason   - UninitializeReason as set by the terminal
- * @param  char*              symbol         - current symbol
- * @param  BOOL               isTesting      - IsTesting() flag as passed by the terminal        (possibly incorrect)
- * @param  BOOL               isVisualMode   - IsVisualMode() flag as passed by the terminal     (possibly incorrect)
- * @param  HWND               hChart         - correct value of WindowHandle()
- * @param  int                droppedOnChart - WindowOnDropped() index as passed by the terminal
+ * @param  EXECUTION_CONTEXT* ec                - an MQL program's main module execution context (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec               - super context as managed by the terminal (memory possibly already released)
+ * @param  ProgramType        programType       - program type
+ * @param  char*              programName       - program name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason      - value of UninitializeReason() as returned by the terminal
+ * @param  char*              symbol            - current symbol
+ * @param  BOOL               isTesting         - value of IsTesting() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode      - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  HWND               hChart            - correct WindowHandle() value
+ * @param  int                droppedOnChart    - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX     - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY     - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  uint&              originalProgramId - variable receiving the original program id of an indicator in init cycle
  *
  * @return InitializeReason - init reason or NULL if an error occurred
  */
-InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, ProgramType programType, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart) {
-   if ((uint)ec          < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
-   if (sec && (uint)sec  < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter sec = 0x%p (not a valid pointer)", sec));
-   if ((uint)programName < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programName = 0x%p (not a valid pointer)", programName));
-   if ((uint)symbol      < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter symbol = 0x%p (not a valid pointer)", symbol));
+InitializeReason WINAPI InitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originalProgramId) {
+   originalProgramId = NULL;
 
-   if (programType == PT_SCRIPT) return(               IR_USER);
-   if (programType == PT_EXPERT) return((InitializeReason)NULL);
+   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramId));
+   if (programType == PT_EXPERT)    return(InitReason_expert(ec, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   if (programType == PT_SCRIPT)    return(InitReason_script());
+
+   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (not a ProgramType)", programType));
+}
+
+
+/**
+ * Resolve an indicator's current init() reason.
+ *
+ * @param  EXECUTION_CONTEXT* ec                - an MQL program's main module execution context (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec               - super context as managed by the terminal (memory possibly already released)
+ * @param  char*              programName       - program name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason      - value of UninitializeReason() as returned by the terminal
+ * @param  char*              symbol            - current symbol
+ * @param  BOOL               isTesting         - value of IsTesting() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode      - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  HWND               hChart            - correct WindowHandle() value
+ * @param  int                droppedOnChart    - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  uint&              originalProgramId - variable receiving the original program id of an indicator in init cycle
+ *
+ * @return InitializeReason - init reason or NULL if an error occurred
+ */
+InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& originalProgramId) {
    /*
-   Init-Szenarien:
-   ---------------
-   - onInit_User()             - bei Laden durch den User                               -      Input-Dialog
-   - onInit_Template()         - bei Laden durch ein Template (auch bei Terminal-Start) - kein Input-Dialog
-   - onInit_Program()          - bei Laden durch iCustom()                              - kein Input-Dialog
-   - onInit_ProgramAfterTest() - bei Laden durch iCustom() nach Testende                - kein Input-Dialog
-   - onInit_Parameters()       - nach Änderung der Indikatorparameter                   -      Input-Dialog
-   - onInit_TimeframeChange()  - nach Timeframewechsel des Charts                       - kein Input-Dialog
-   - onInit_SymbolChange()     - nach Symbolwechsel des Charts                          - kein Input-Dialog
-   - onInit_Recompile()        - bei Reload nach Recompilation                          - kein Input-Dialog
-
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 547-551: onInit_User()             - Broken: Wird zwei mal aufgerufen, beim zweiten mal ist der EXECUTION_CONTEXT ungültig.
@@ -721,10 +741,10 @@ InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
          isProgramNew = !g_contextChains[programId][0]->ticks;       // im Master-Context nachschauen
       }
       else {
-         programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
+         programId = FindIndicatorInLimbo(hChart, programName, uninitReason);
          if (programId < 0) return((InitializeReason)NULL);
-         isProgramNew = !programId;
-         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
+         originalProgramId =  programId;
+         isProgramNew      = !programId;
       }
       if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
       else              return(IR_PARAMETERS);                       // Parameter-Wechsel eines vorhandenen Indikators
@@ -738,13 +758,13 @@ InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
       // außerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
       int programId = ec->programId;
       if (!programId) {
-         programId = FindFirstIndicatorInLimbo(hChart, programName, uninitReason);
+         programId = FindIndicatorInLimbo(hChart, programName, uninitReason);
          if (programId <= 0) return((InitializeReason)(programId < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo during %s", programName, UninitializeReasonToStr(uninitReason))));
-         if (programId) ec_SetProgramId(ec, programId);              // ProgramID on-the-fly speichern
+         originalProgramId = programId;
       }
       char* masterSymbol = g_contextChains[programId][0]->symbol;
-      if (strcmp(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
-      else                              return(IR_SYMBOLCHANGE   );
+      if (strcmp(masterSymbol, symbol) == 0) return(IR_TIMEFRAMECHANGE);
+      else                                   return(IR_SYMBOLCHANGE   );
    }
 
 
@@ -804,7 +824,91 @@ InitializeReason WINAPI ProgramInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
       case UR_CLOSE:         // ...
          return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
    }
+
    return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", uninitReason, sec, isTesting, isVisualMode, isUIThread, build));
+}
+
+
+/**
+ * Resolve an expert's current init() reason.
+ *
+ * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
+ * @param  UninitializeReason uninitReason  - value of UninitializeReason() as returned by the terminal
+ * @param  char*              symbol        - current symbol
+ * @param  BOOL               isTesting     - value of IsTesting() as returned by the terminal
+ * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
+ * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
+ *
+ * @return InitializeReason - init reason or NULL if an error occurred
+ */
+InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
+   uint build = GetTerminalBuild();
+   //debug("uninitReason=%s  testing=%d  droppedX=%d  droppedY=%d  build=%d", UninitReasonToStr(uninitReason), isTesting, droppedOnPosX, droppedOnPosY, build);
+
+
+   // UR_PARAMETERS                                      // input parameters changed
+   if (uninitReason == UR_PARAMETERS) {
+      return(IR_PARAMETERS);
+   }
+
+   // UR_CHARTCHANGE                                     // chart symbol or period changed
+   if (uninitReason == UR_CHARTCHANGE) {
+      int programId = ec->programId;
+      if (!programId) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.programId=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
+      char* masterSymbol = g_contextChains[programId][0]->symbol;
+      debug("masterSymbol=%s  symbol=%s", masterSymbol, symbol);
+      if (strcmp(masterSymbol, symbol) == 0) return(IR_TIMEFRAMECHANGE);
+      else                                   return(IR_SYMBOLCHANGE);
+   }
+
+   // UR_RECOMPILE                                       // re-loaded after recompilation
+   if (uninitReason == UR_RECOMPILE) {
+      return(IR_RECOMPILE);
+   }
+
+   // UR_CHARTCLOSE                                      // loaded into an existing chart after new template was loaded
+   if (uninitReason == UR_CHARTCLOSE) {                  // (old builds only, corresponds to UR_TEMPLATE of new builds)
+      if (build > 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
+      return(IR_USER);
+   }
+
+   // UR_UNDEFINED                                       // loaded into a new chart (also at terminal start and in Strategy Tester)
+   if (uninitReason == UR_UNDEFINED) {
+      if (isTesting)          return(IR_USER);
+      if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      else                    return(IR_TEMPLATE);
+   }
+
+   // UR_REMOVE                                          // loaded into an existing chart after a previously loaded one was removed manually
+   if (uninitReason == UR_REMOVE) {
+      if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      else                    return(IR_TEMPLATE);
+   }
+
+   // UR_TEMPLATE                                        // loaded into an existing chart after a previously loaded one was removed by LoadTemplate()
+   if (uninitReason == UR_TEMPLATE) {
+      if (build <= 509)       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
+      if (droppedOnPosX >= 0) return(IR_USER);
+      else                    return(IR_TEMPLATE);       // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+   }
+
+   switch (uninitReason) {
+      case UR_ACCOUNT:
+      case UR_CLOSE:
+      case UR_INITFAILED:
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
+   }
+   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d (Testing=%d  build=%d)", uninitReason, isTesting, build));
+}
+
+
+/**
+ * Resolve a script's init() reason.
+ *
+ * @return InitializeReason - init reason or NULL if an error occurred
+ */
+InitializeReason WINAPI InitReason_script() {
+   return(IR_USER);
 }
 
 
@@ -952,9 +1056,9 @@ const char* WINAPI ProgramCustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Stores the specified program as executed by the current thread.
+ * Marks the specified program as executed by the current thread.
  *
- * @param  uint programId - Program id to store. If this value is 0 (zero) no program information is stored.
+ * @param  uint programId - Program id to store. If this value is 0 (zero) the program information of the current thread is reset.
  *
  * @return DWORD - index of the current thread in the stored threads or EMPTY (-1) if an error occurred
  */
@@ -963,21 +1067,21 @@ DWORD WINAPI StoreThreadAndProgram(uint programId) {
 
    DWORD currentThread = GetCurrentThreadId();
 
-   // look-up current thread in g_threadsPrograms[]
+   // look-up current thread in g_threads[]
    int currentThreadIndex=-1, size=g_threads.size();
    for (int i=0; i < size; i++) {
-      if (g_threads[i] == currentThread) {                           // thread found
+      if (g_threads[i] == currentThread) {                           // current thread found
          currentThreadIndex = i;
          if (programId)
-            g_threadsPrograms[i] = programId;                        // update the last executed program if non-zero
+            g_threadsPrograms[i] = programId;                        // update the thread's last executed program if non-zero
          break;
       }
    }
 
-   if (currentThreadIndex == -1) {                                   // thread not found
+   if (currentThreadIndex == -1) {                                   // current thread not found
       EnterCriticalSection(&g_terminalLock);
-      g_threads        .push_back(currentThread);                    // add thread to the list
-      g_threadsPrograms.push_back(programId);                        // add program to the list (0 if zero)
+      g_threads        .push_back(currentThread);                    // add current thread to the list
+      g_threadsPrograms.push_back(programId);                        // add the program or zero to the list
       currentThreadIndex = g_threads.size() - 1;
       if (currentThreadIndex > 511) debug("thread %d added (size=%d)", currentThread, g_threads.size());
       LeaveCriticalSection(&g_terminalLock);

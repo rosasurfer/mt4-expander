@@ -49,9 +49,9 @@ enum ModuleType {
 
 // MQL program launch types
 enum LaunchType {
-   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,                               // launched via template
-   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,                                // launched via call of iCustom()
-   LT_MANUAL    = LAUNCHTYPE_MANUAL                                  // launched manually (by hand)
+   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,                      // launched via template
+   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,                       // launched via call of iCustom()
+   LT_MANUAL    = LAUNCHTYPE_MANUAL                         // launched manually (by hand)
 };
 
 
@@ -64,16 +64,16 @@ enum RootFunction {
 
 
 // MQL program initialize reasons
-enum InitializeReason {
-   IR_USER              = INITREASON_USER,
-   IR_TEMPLATE          = INITREASON_TEMPLATE,
-   IR_PROGRAM           = INITREASON_PROGRAM,
-   IR_PROGRAM_AFTERTEST = INITREASON_PROGRAM_AFTERTEST,
-   IR_PARAMETERS        = INITREASON_PARAMETERS,
-   IR_TIMEFRAMECHANGE   = INITREASON_TIMEFRAMECHANGE,
-   IR_SYMBOLCHANGE      = INITREASON_SYMBOLCHANGE,
-   IR_RECOMPILE         = INITREASON_RECOMPILE
-};
+enum InitializeReason {                                     // +-- reason -------------------------------------+-- ui -----------+-- applies --+
+   IR_USER              = INITREASON_USER,                  // | loaded by the user                            |    input dialog |   I, E, S   |   I = indicators
+   IR_TEMPLATE          = INITREASON_TEMPLATE,              // | loaded by a template (also at terminal start) | no input dialog |   I, E      |   E = experts
+   IR_PROGRAM           = INITREASON_PROGRAM,               // | loaded by iCustom()                           | no input dialog |   I         |   S = scripts
+   IR_PROGRAM_AFTERTEST = INITREASON_PROGRAM_AFTERTEST,     // | loaded by iCustom() after end of test         | no input dialog |   I         |
+   IR_PARAMETERS        = INITREASON_PARAMETERS,            // | input parameters changed                      |    input dialog |   I, E      |
+   IR_TIMEFRAMECHANGE   = INITREASON_TIMEFRAMECHANGE,       // | chart period changed                          | no input dialog |   I, E      |
+   IR_SYMBOLCHANGE      = INITREASON_SYMBOLCHANGE,          // | chart symbol changed                          | no input dialog |   I, E      |
+   IR_RECOMPILE         = INITREASON_RECOMPILE              // | reloaded after recompilation                  | no input dialog |   I, E      |
+};                                                          // +-----------------------------------------------+-----------------+-------------+
 
 
 // MQL program uninitialize reasons

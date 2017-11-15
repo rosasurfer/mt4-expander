@@ -32,7 +32,7 @@
  *    Sonderfällen möglich.
  *
  *  • Experts und Scripte verfügen während ihrer gesamten Laufzeit nur über eine Instanz ihres Hauptmodulkontextes. Indikatoren
- *    hingegen erhalten nach jedem Init-Cycle eine neue Instanz, da Metatrader den Speicher für Variablen in Indicator::init()
+ *    hingegen erhalten nach jedem Init-Cycle eine neue Instanz, da MetaTrader den Speicher für Variablen in Indicator::init()
  *    jeweils neu alloziiert.
  *
  *  • Im Indikator gibt es während eines init()-Cycles in der Zeitspanne vom Verlassen von Indicator::deinit() bis zum Wieder-
