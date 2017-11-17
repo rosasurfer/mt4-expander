@@ -856,7 +856,6 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
       int programId = ec->programId;
       if (!programId) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.programId=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
       char* masterSymbol = g_contextChains[programId][0]->symbol;
-      debug("masterSymbol=%s  symbol=%s", masterSymbol, symbol);
       if (strcmp(masterSymbol, symbol) == 0) return(IR_TIMEFRAMECHANGE);
       else                                   return(IR_SYMBOLCHANGE);
    }
