@@ -1,9 +1,8 @@
 # enforce Unix line endings
-.gitattributes text eol=lf
-.gitignore     text eol=lf
-*.cpp          text eol=lf
-*.h            text eol=lf
+*.cpp text eol=lf
+*.h   text eol=lf
+.git* text eol=lf
 
 
 # enforce Windows line endings
-*.bat          text eol=crlf
+*.bat text eol=crlf
