@@ -98,6 +98,9 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_ORDER_LOCKED               : return("ERR_ORDER_LOCKED"               ); //    139
       case ERR_LONG_POSITIONS_ONLY_ALLOWED: return("ERR_LONG_POSITIONS_ONLY_ALLOWED"); //    140
       case ERR_TOO_MANY_REQUESTS          : return("ERR_TOO_MANY_REQUESTS"          ); //    141
+      case ERR_ORDER_QUEUED               : return("ERR_ORDER_QUEUED"               ); //    142
+      case ERR_ORDER_ACCEPTED             : return("ERR_ORDER_ACCEPTED"             ); //    143
+      case ERR_ORDER_DISCARDED            : return("ERR_ORDER_DISCARDED"            ); //    144
       case ERR_TRADE_MODIFY_DENIED        : return("ERR_TRADE_MODIFY_DENIED"        ); //    145
       case ERR_TRADE_CONTEXT_BUSY         : return("ERR_TRADE_CONTEXT_BUSY"         ); //    146
       case ERR_TRADE_EXPIRATION_DENIED    : return("ERR_TRADE_EXPIRATION_DENIED"    ); //    147
