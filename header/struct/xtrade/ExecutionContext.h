@@ -45,11 +45,11 @@
  */
 #pragma pack(push, 1)
 struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
-   uint               programId;                   //         0         4     eindeutige Programm-ID (größer 0)               (konstant)   => Index in programs[i]
-   ProgramType        programType;                 //         4         4     Programmtyp                                     (konstant)   => was für ein Programm bin ich
-   char               programName[MAX_PATH];       //         8       260     Programmname                                    (konstant)   => wie heißt es
-   ModuleType         moduleType;                  //       268         4     Modultyp                                        (konstant)   => was für ein Modul bin ich
-   char               moduleName[MAX_PATH];        //       272       260     Modulname                                       (konstant)   => wie heißt es
+   uint               programIndex;                //         0         4     MQL program index starting from 1               (constant)   => Index in programs[i]
+   ProgramType        programType;                 //         4         4     MQL program type                                (constant)   => was für ein Programm bin ich
+   char               programName[MAX_PATH];       //         8       260     MQL program name                                (constant)   => wie heißt es
+   ModuleType         moduleType;                  //       268         4     MQL module type                                 (constant)   => was für ein Modul bin ich
+   char               moduleName[MAX_PATH];        //       272       260     MQL module name = MQL::WindowExpertName()       (constant)   => wie heißt es
 
    LaunchType         launchType;                  //       532         4     Launchtyp                                       (konstant)   => wie wurde ich gestartet
    RootFunction       rootFunction;                //       536         4     letzte Rootfunktion des Modules                 (variabel)   => wo bin ich
@@ -68,7 +68,7 @@ struct EXECUTION_CONTEXT {                         // -- offset ---- size --- de
 
    char               symbol[MAX_SYMBOL_LENGTH+1]; //       840        12     current symbol                                  (variabel)   => auf welchem Symbol laufe ich
    uint               timeframe;                   //       852         4     current chart period                            (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChart;                      //       856         4     Chart-Frame:   MQL::WindowHandle()              (konstant)   => ...
+   HWND               hChart;                      //       856         4     Chart-Frame = MQL::WindowHandle()               (constant)   => ...
    HWND               hChartWindow;                //       860         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
 
    EXECUTION_CONTEXT* superContext;                //       864         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
@@ -91,7 +91,7 @@ typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all cont
 
 
 // Getters
-uint               WINAPI ec_ProgramId       (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_ProgramIndex    (const EXECUTION_CONTEXT* ec);
 ProgramType        WINAPI ec_ProgramType     (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_ProgramName     (const EXECUTION_CONTEXT* ec);
 ModuleType         WINAPI ec_ModuleType      (const EXECUTION_CONTEXT* ec);
@@ -126,7 +126,7 @@ int                WINAPI ec_DllWarning      (const EXECUTION_CONTEXT* ec);
 
 
 // Setters
-uint               WINAPI ec_SetProgramId         (EXECUTION_CONTEXT* ec, uint               id       );
+uint               WINAPI ec_SetProgramIndex      (EXECUTION_CONTEXT* ec, uint               index    );
 ProgramType        WINAPI ec_SetProgramType       (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName       (EXECUTION_CONTEXT* ec, const char*        name     );
 ModuleType         WINAPI ec_SetModuleType        (EXECUTION_CONTEXT* ec, ModuleType         type     );

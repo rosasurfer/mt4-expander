@@ -18,7 +18,7 @@ BOOL WINAPI SaveTest(TEST* test);
  */
 BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
-   if (!ec->programId)                             return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programId=%d", ec->programId));
+   if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programIndex=%d", ec->programIndex));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
    TEST* test;
