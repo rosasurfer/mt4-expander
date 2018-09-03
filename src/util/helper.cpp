@@ -402,6 +402,8 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  * @return char* - MD5 hash or a NULL pointer if an error occurred
  */
 const char* WINAPI GetMD5Hash(const char* input, uint inputSize) {
+   if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
+
    MD5_CTX md5ctx;
    MD5_INIT(&md5ctx);
    MD5_UPDATE(&md5ctx, input, inputSize);
@@ -415,8 +417,6 @@ const char* WINAPI GetMD5Hash(const char* input, uint inputSize) {
    }
    string str = ss.str();
    char* result = strcpy(new char[str.size()+1], str.c_str());    // TODO: close memory leak
-
-   debug("md5(%s) = %s", input, result);
 
    return(result);
    #pragma EXPANDER_EXPORT
