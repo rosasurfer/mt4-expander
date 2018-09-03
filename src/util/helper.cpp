@@ -1,5 +1,8 @@
 #include "expander.h"
 #include "util/toString.h"
+extern "C" {
+   #include "util/md5.h"
+}
 
 
 /**
@@ -388,6 +391,37 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
    buffer[bufferSize-1] = 0;
    return(bufferSize);
 }
+
+
+/**
+ * Calculate the MD5 hash of the input.
+ *
+ * @param  char* input     - buffer with binary input to calculate a MD5 hash from
+ * @param  uint  inputSize - length of the input
+ *
+ * @return char* - MD5 hash or a NULL pointer if an error occurred
+ */
+const char* WINAPI GetMD5Hash(const char* input, uint inputSize) {
+   MD5_CTX md5ctx;
+   MD5_INIT(&md5ctx);
+   MD5_UPDATE(&md5ctx, input, inputSize);
+   uchar buffer[16];                                              // on the stack
+   MD5_FINAL((uchar*)&buffer, &md5ctx);                           // fill buffer with binary MD5 hash (16 bytes)
+
+   std::stringstream ss;                                          // convert hash to hex string (32 chars)
+   ss << std::hex;
+   for (uint i=0; i < 16; i++) {
+      ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
+   }
+   string str = ss.str();
+   char* result = strcpy(new char[str.size()+1], str.c_str());    // TODO: close memory leak
+
+   debug("md5(%s) = %s", input, result);
+
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
 
 
 /**

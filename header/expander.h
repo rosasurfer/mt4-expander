@@ -12,6 +12,7 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 
 // export unmangled names without a DEF file
@@ -19,6 +20,7 @@
 
 
 // type aliases
+typedef unsigned   char  uchar;
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
