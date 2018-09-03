@@ -315,6 +315,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\util\md5.c"
+					>
+				</File>
+				<File
 					RelativePath=".\src\util\mql-stubs.cpp"
 					>
 				</File>
@@ -478,6 +482,10 @@
 				</File>
 				<File
 					RelativePath=".\header\util\math.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\util\md5.h"
 					>
 				</File>
 				<File
