@@ -260,8 +260,8 @@ const char* WINAPI _EMPTY_STR   (...) { return(""          ); }
 HWND        WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
 int         WINAPI _NULL        (...) { return(NULL        ); }
 bool        WINAPI _true        (...) { return(true        ); }
-bool        WINAPI _false       (...) { return(false       ); }
 BOOL        WINAPI _TRUE        (...) { return(TRUE        ); }
+bool        WINAPI _false       (...) { return(false       ); }
 BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
 
 
@@ -269,33 +269,8 @@ BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
  * Helper functions returning variable values. All parameters except the first one are ignored.
  */
 bool        WINAPI _bool        (bool   value, ...) { return(value); }
+BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
 char        WINAPI _char        (char   value, ...) { return(value); }
 int         WINAPI _int         (int    value, ...) { return(value); }
 float       WINAPI _float       (float  value, ...) { return(value); }
 double      WINAPI _double      (double value, ...) { return(value); }
-BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
-
-
-/*
-HWND          WINAPI GetApplicationWindow();
-uint          WINAPI GetBoolsAddress         (const BOOL values[]);
-uint          WINAPI GetChartDescription     (const char* symbol, uint timeframe, char* buffer, uint bufferSize);
-uint          WINAPI GetDoublesAddress       (const double values[]);
-datetime      WINAPI GetGmtTime();
-uint          WINAPI GetIntsAddress          (const int values[]);
-int           WINAPI GetLastWin32Error();
-datetime      WINAPI GetLocalTime();
-uint          WINAPI GetTerminalBuild();
-const string& WINAPI getTerminalPath();
-const char*   WINAPI GetTerminalVersion();
-BOOL          WINAPI GetTerminalVersion      (uint* major, uint* minor, uint* hotfix, uint* build);
-DWORD         WINAPI GetUIThreadId();
-HANDLE        WINAPI GetWindowProperty       (HWND hWnd, const char* lpName);
-BOOL          WINAPI IsCustomTimeframe       (int timeframe);
-BOOL          WINAPI IsStdTimeframe          (int timeframe);
-BOOL          WINAPI IsUIThread();
-uint          WINAPI MT4InternalMsg();
-HANDLE        WINAPI RemoveWindowProperty    (HWND hWnd, const char* lpName);
-BOOL          WINAPI SetWindowProperty       (HWND hWnd, const char* lpName, HANDLE value);
-BOOL          WINAPI ShiftIndicatorBuffer    (double buffer[], int bufferSize, int bars, double emptyValue);
-*/

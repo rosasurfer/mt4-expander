@@ -266,9 +266,9 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if (!test) return("NULL");
 
    char* result = "{(empty)}";
-   static const TEST s_empty = {};
+   static const TEST empty = {};
 
-   if (memcmp(test, &s_empty, sizeof(TEST))) {
+   if (memcmp(test, &empty, sizeof(TEST))) {
       std::stringstream ss; ss
          <<  "{id="              <<                test->id
          << ", time="            <<               (test->time ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")

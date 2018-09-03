@@ -16,9 +16,9 @@ const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
    if (!order) return("NULL");
 
    char* result = "{(empty)}";
-   static const ORDER s_empty = {};
+   static const ORDER empty = {};
 
-   if (memcmp(order, &s_empty, sizeof(ORDER))) {
+   if (memcmp(order, &empty, sizeof(ORDER))) {
       std::stringstream ss; ss
          <<  "{id="          <<                order->id
          << ", ticket="      <<                order->ticket
