@@ -396,31 +396,19 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
 /**
  * Calculate the MD5 hash of the input.
  *
- * @param  char* input     - buffer with binary input to calculate a MD5 hash from
- * @param  uint  inputSize - length of the input
+ * @param  char*  input     - buffer with binary input
+ * @param  size_t inputSize - length of the input
  *
  * @return char* - MD5 hash or a NULL pointer if an error occurred
- *
- *
- * @see  https://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
- *
- * @see  Compute MD5 hash value by c++ WinAPI
- *       [https://stackoverflow.com/questions/13256446/compute-md5-hash-value-by-c-winapi]
- *
- * @see  Example C Program: Creating an MD5 Hash from File Content
- *       [https://docs.microsoft.com/en-us/windows/desktop/seccrypto/example-c-program--creating-an-md-5-hash-from-file-content}]
- *
- * @see  Hashing using the Win32 Crypto API
- *       [https://www.codeproject.com/Articles/11070/Hashing-using-the-Win32-Crypto-API]
  */
-const char* WINAPI GetMD5Hash(const char* input, uint inputSize) {
+const char* WINAPI MD5Hash(const char* input, size_t inputSize) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
 
-   MD5_CTX md5ctx;
-   MD5_INIT(&md5ctx);
-   MD5_UPDATE(&md5ctx, input, inputSize);
+   MD5_CTX context;
+   MD5_INIT(&context);
+   MD5_UPDATE(&context, input, inputSize);
    uchar buffer[16];                                              // on the stack
-   MD5_FINAL((uchar*)&buffer, &md5ctx);                           // fill buffer with binary MD5 hash (16 bytes)
+   MD5_FINAL((uchar*)&buffer, &context);                          // fill buffer with binary MD5 hash (16 bytes)
 
    std::stringstream ss;                                          // convert hash to hex string (32 chars)
    ss << std::hex;
@@ -434,6 +422,34 @@ const char* WINAPI GetMD5Hash(const char* input, uint inputSize) {
    #pragma EXPANDER_EXPORT
 }
 
+
+/**
+ * Calculate the MD5 hash of a C string (ANSI).
+ *
+ * @param  char* input - ANSI input string
+ *
+ * @return char* - MD5 hash as a C string (ANSI) or a NULL pointer if an error occurred
+ */
+const char* WINAPI MD5HashA(const char* input) {
+   if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
+
+   MD5_CTX context;
+   MD5_INIT(&context);
+   MD5_UPDATE(&context, input, strlen(input));
+   uchar buffer[16];                                              // on the stack
+   MD5_FINAL((uchar*)&buffer, &context);                          // fill buffer with binary MD5 hash (16 bytes)
+
+   std::stringstream ss;                                          // convert hash to hex string (32 chars)
+   ss << std::hex;
+   for (uint i=0; i < 16; i++) {
+      ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
+   }
+   string str = ss.str();
+   char* result = strcpy(new char[str.size()+1], str.c_str());    // TODO: close memory leak
+
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
 
 
 /**

@@ -20,7 +20,8 @@ BOOL          WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, 
 const char*   WINAPI GetTerminalVersion();
 uint          WINAPI GetTerminalBuild();
 uint          WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize);
-const char*   WINAPI GetMD5Hash(const char* input, uint inputSize);
 const string& WINAPI getTerminalPath();
+const char*   WINAPI MD5Hash (const char* input, uint inputSize);
+const char*   WINAPI MD5HashA(const char* input);
 uint          WINAPI MT4InternalMsg();
 std::istream&        getLine(std::istream& is, string& line);
