@@ -400,6 +400,18 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  * @param  uint  inputSize - length of the input
  *
  * @return char* - MD5 hash or a NULL pointer if an error occurred
+ *
+ *
+ * @see  https://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
+ *
+ * @see  Compute MD5 hash value by c++ WinAPI
+ *       [https://stackoverflow.com/questions/13256446/compute-md5-hash-value-by-c-winapi]
+ *
+ * @see  Example C Program: Creating an MD5 Hash from File Content
+ *       [https://docs.microsoft.com/en-us/windows/desktop/seccrypto/example-c-program--creating-an-md-5-hash-from-file-content}]
+ *
+ * @see  Hashing using the Win32 Crypto API
+ *       [https://www.codeproject.com/Articles/11070/Hashing-using-the-Win32-Crypto-API]
  */
 const char* WINAPI GetMD5Hash(const char* input, uint inputSize) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
