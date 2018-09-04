@@ -1,7 +1,7 @@
 #include "expander.h"
 #include "util/toString.h"
 extern "C" {
-   #include "util/md5.h"
+#include "util/md5.h"
 }
 
 
@@ -394,22 +394,46 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
 
 
 /**
+ * Dump data form a buffer to the debugger output.
+ *
+ * @return int - 0 (NULL)
+ */
+int dump(const void* data, size_t size) {
+   if ((uint)data < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter data: 0x%p (not a valid pointer)", data));
+   if (size < 1)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+
+   char* bytes = (char*) data;
+
+   std::stringstream ss;
+   ss << std::hex;
+   for (uint i=0; i < size; i++) {
+      ss << std::setw(2) << std::setfill('0') << (int) bytes[i];
+   }
+
+   debug("%s", ss.str().c_str());
+   return(0);
+}
+
+
+/**
  * Calculate the MD5 hash of the input.
  *
- * @param  char*  input     - buffer with binary input
- * @param  size_t inputSize - length of the input
+ * @param  char* input  - buffer with binary input
+ * @param  uint  length - length of the input in bytes
  *
  * @return char* - MD5 hash or a NULL pointer if an error occurred
  */
-const char* WINAPI MD5Hash(const char* input, size_t inputSize) {
+const char* WINAPI MD5Hash(const char* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
-   if (inputSize < 1)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter inputSize: %d", inputSize));
+   if (length < 1)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
 
    MD5_CTX context;
    MD5_INIT(&context);
-   MD5_UPDATE(&context, input, inputSize);
+   MD5_UPDATE(&context, input, length);
    uchar buffer[16];                                              // on the stack
    MD5_FINAL((uchar*)&buffer, &context);                          // fill buffer with binary MD5 hash (16 bytes)
+
+   dump(&buffer, 16);
 
    std::stringstream ss;                                          // convert hash to hex string (32 chars)
    ss << std::hex;
@@ -427,28 +451,14 @@ const char* WINAPI MD5Hash(const char* input, size_t inputSize) {
 /**
  * Calculate the MD5 hash of a C string (ANSI).
  *
- * @param  char* input - ANSI input string
+ * @param  char* input - C input string
  *
  * @return char* - MD5 hash as a C string (ANSI) or a NULL pointer if an error occurred
  */
 const char* WINAPI MD5HashA(const char* input) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
 
-   MD5_CTX context;
-   MD5_INIT(&context);
-   MD5_UPDATE(&context, input, strlen(input));
-   uchar buffer[16];                                              // on the stack
-   MD5_FINAL((uchar*)&buffer, &context);                          // fill buffer with binary MD5 hash (16 bytes)
-
-   std::stringstream ss;                                          // convert hash to hex string (32 chars)
-   ss << std::hex;
-   for (uint i=0; i < 16; i++) {
-      ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
-   }
-   string str = ss.str();
-   char* result = strcpy(new char[str.size()+1], str.c_str());    // TODO: close memory leak
-
-   return(result);
+   return(MD5Hash(input, strlen(input)));
    #pragma EXPANDER_EXPORT
 }
 
