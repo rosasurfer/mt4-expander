@@ -11,7 +11,60 @@ extern std::vector<uint>  g_threadsPrograms;                         // the last
 
 
 /**
- * Process a C string debug message.
+ * Dump data from a buffer to the debugger output console.
+ *
+ * @param  char* fileName        - name of the file where the dump operation occurred
+ * @param  char* funcName        - name of the function where the dump operation occurred
+ * @param  int   line            - line number in the file where the dump operation occurred
+ * @param  void* data            - pointer to the data to dump
+ * @param  uint  size            - size of data in byte
+ * @param  uint  mode [optional] - mode controling the way of dumping (default: char dump)
+ *                                 DUMPMODE_HEX:  output a hex dump
+ *                                 DUMPMODE_CHAR: output a readable character representation
+ * @return int - 0 (NULL)
+ */
+int _dump(const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode/*=DUMPMODE_CHAR*/) {
+   if ((uint)data < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter data: 0x%p (not a valid pointer)", data));
+   if (size < 1)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+
+   char* bytes = (char*) data;
+   std::stringstream ss;
+
+   switch (mode) {
+      case DUMPMODE_HEX:
+         ss << std::hex << std::uppercase;
+         for (uint i=0; i < size; i++) {
+            ss << std::setw(2) << std::setfill('0') << (int) bytes[i] << " ";
+            if (i%4 == 3)
+               ss << " ";
+         }
+         break;
+
+      case DUMPMODE_CHAR:
+         for (uint i=0; i < size; i++) {
+            char c = bytes[i];
+            if      (c == 0) c = '…';           // substitute NUL characters
+            else if (c < 33) c = '•';           // substitute CTRL characters
+            ss << c;
+         }
+         break;
+
+      default:
+         return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: %d (not a valid dump mode)", mode));
+   }
+   ss << std::dec << std::nouppercase << " (" << (int)size << " bytes)";
+
+   _debug(fileName, funcName, line, "%s", ss.str().c_str());
+   return(0);
+}
+
+
+/**
+ * Print a C string to the debugger output console.
+ *
+ * @param  char* fileName - name of the file where the debug operation occurred
+ * @param  char* funcName - name of the function where the debug operation occurred
+ * @param  int   line     - line number in the file where the debug operation occurred
  *
  * @return int - 0 (NULL)
  */
@@ -25,7 +78,11 @@ int _debug(const char* fileName, const char* funcName, int line, const char* for
 
 
 /**
- * Process a std::string debug message.
+ * Print a std::string to the debugger output console.
+ *
+ * @param  char* fileName - name of the file where the debug operation occurred
+ * @param  char* funcName - name of the function where the debug operation occurred
+ * @param  int   line     - line number in the file where the debug operation occurred
  *
  * @return int - 0 (NULL)
  */
@@ -39,12 +96,12 @@ int _debug(const char* fileName, const char* funcName, int line, const string& f
 
 
 /**
- * Send a formatted debug message to the debugger output.
+ * Print a formatted string to the debugger output console.
  *
- * @param  char*   fileName - file name of the call
- * @param  char*   funcName - function name of the call
- * @param  int     line     - line of the call
- * @param  char*   format   - message with format codes for additional parameters
+ * @param  char*   fileName - name of the file where the debug operation occurred
+ * @param  char*   funcName - name of the function where the debug operation occurred
+ * @param  int     line     - line number in the file where the debug operation occurred
+ * @param  char*   format   - string with codes to format additional parameters
  * @param  va_list args     - additional parameters
  */
 void __debug(const char* fileName, const char* funcName, int line, const char* format, const va_list& args) {

@@ -394,28 +394,6 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
 
 
 /**
- * Dump data form a buffer to the debugger output.
- *
- * @return int - 0 (NULL)
- */
-int dump(const void* data, size_t size) {
-   if ((uint)data < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter data: 0x%p (not a valid pointer)", data));
-   if (size < 1)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
-
-   char* bytes = (char*) data;
-
-   std::stringstream ss;
-   ss << std::hex;
-   for (uint i=0; i < size; i++) {
-      ss << std::setw(2) << std::setfill('0') << (int) bytes[i];
-   }
-
-   debug("%s", ss.str().c_str());
-   return(0);
-}
-
-
-/**
  * Calculate the MD5 hash of the input.
  *
  * @param  char* input  - buffer with binary input
@@ -432,8 +410,6 @@ const char* WINAPI MD5Hash(const char* input, uint length) {
    MD5_UPDATE(&context, input, length);
    uchar buffer[16];                                              // on the stack
    MD5_FINAL((uchar*)&buffer, &context);                          // fill buffer with binary MD5 hash (16 bytes)
-
-   dump(&buffer, 16);
 
    std::stringstream ss;                                          // convert hash to hex string (32 chars)
    ss << std::hex;
