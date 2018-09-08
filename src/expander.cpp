@@ -17,8 +17,8 @@ extern std::vector<uint>  g_threadsPrograms;                         // the last
  * @param  char* funcName        - name of the function where the dump operation occurred
  * @param  int   line            - line number in the file where the dump operation occurred
  * @param  void* data            - pointer to the data to dump
- * @param  uint  size            - size of data in byte
- * @param  uint  mode [optional] - mode controling the way of dumping (default: char dump)
+ * @param  uint  size            - size of the data to dump in bytes
+ * @param  uint  mode [optional] - mode controling the way of dumping (default: human-readable character dump)
  *                                 DUMPMODE_HEX:  output a hex dump
  *                                 DUMPMODE_CHAR: output a readable character representation
  * @return int - 0 (NULL)
