@@ -3,6 +3,7 @@
 #include "expander.h"
 
 
+uint        WINAPI AnsiToWChar(const char* source, WCHAR* target, uint targetSize);
 const char* WINAPI BoolToStr(BOOL value);
 string      WINAPI doubleQuoteStr(const string& value);
 string      WINAPI doubleQuoteStr(const char* value);
