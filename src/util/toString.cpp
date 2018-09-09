@@ -809,26 +809,29 @@ const char* WINAPI TradeDirectionToStr(int direction) {
 
 
 /**
- * Convert an ANSI string to a wide-charcter UTF-16 string.
+ * Convert an ANSI string to a wide-character string (UTF-16). Conversion stops at the end of the ANSI string or when the
+ * size limit of the target buffer is hit, whichever comes first. The resulting string is always NUL terminated.
  *
  * @param  _In_  char*  source     - single-byte ANSI or multi-byte UTF-8 source string
- * @param  _Out_ WCHAR* target     - wide-character target string (UTF-16)
- * @param  _In_  uint   targetSize - size of the target buffer in wide-characters (including a NUL termination character)
+ * @param  _Out_ WCHAR* target     - buffer the converted wide-character string is written to
+ * @param  _In_  uint   targetSize - size of the target buffer in bytes
  *
- * @return uint - Number of converted source characters. The converted string is always NUL terminated.
+ * @return uint - number of converted characters (equal to the WCHAR length of the resulting string)
  */
-uint WINAPI AnsiToWChar(const char* source, WCHAR* target, uint targetSize) {
+uint WINAPI AnsiToWCharStr(const char* source, WCHAR* target, uint targetSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
    if ((uint)target < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter target: 0x%p (not a valid pointer)", target));
    if (targetSize < 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter targetSize: %d (must be non-negative)", targetSize));
 
+   uint wchars         = targetSize >> 1;
+   uint charsToConvert = wchars - 1;
    uint convertedChars = 0;
 
-   if (targetSize) {
-      if (targetSize > 1)
-         convertedChars = mbstowcs(target, source, targetSize-1);
+   if (charsToConvert)
+      convertedChars = mbstowcs(target, source, charsToConvert);
+
+   if (wchars)
       target[convertedChars] = '\0';
-   }
 
    return(convertedChars);
    #pragma EXPANDER_EXPORT
