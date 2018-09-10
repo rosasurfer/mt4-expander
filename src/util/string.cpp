@@ -99,3 +99,79 @@ BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
    return(FALSE);
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Convert a C string to lower-case.
+ *
+ * @param  _In_Out_ char* str
+ */
+void WINAPI StrToLower(char* str) {
+   string s(str);
+   for (std::basic_string<char>::iterator i=s.begin(); i != s.end(); ++i) {
+      *i = tolower(*i);
+   }
+   strcpy(str, s.c_str());
+}
+
+
+/**
+ * Convert a std::string to lower-case.
+ *
+ * @param  _In_Out_ string& str
+ */
+void WINAPI StrToLower(std::basic_string<char>& str) {
+   for (std::basic_string<char>::iterator i=str.begin(); i != str.end(); ++i) {
+      *i = tolower(*i);
+   }
+}
+
+
+/**
+ * Convert a std::wstring to lower-case.
+ *
+ * @param  _In_Out_ wstring& str
+ */
+void WINAPI StrToLower(std::basic_string<wchar_t>& str) {
+   for (std::basic_string<wchar_t>::iterator i=str.begin(); i != str.end(); ++i) {
+      *i = towlower(*i);
+   }
+}
+
+
+/**
+ * Convert a C string to upper-case.
+ *
+ * @param  _In_Out_ char* str
+ */
+void WINAPI StrToUpper(char* str) {
+   string s(str);
+   for (std::basic_string<char>::iterator i=s.begin(); i != s.end(); ++i) {
+      *i = toupper(*i);
+   }
+   strcpy(str, s.c_str());
+}
+
+
+/**
+ * Convert a std::string to upper-case.
+ *
+ * @param  _In_Out_ string& str
+ */
+void WINAPI StrToUpper(std::basic_string<char>& str) {
+   for (std::basic_string<char>::iterator i=str.begin(); i != str.end(); ++i) {
+      *i = toupper(*i);
+   }
+}
+
+
+/**
+ * Convert a std::wstring to upper-case.
+ *
+ * @param  _In_Out_ wstring& str
+ */
+void WINAPI StrToUpper(std::basic_string<wchar_t>& str) {
+   for (std::basic_string<wchar_t>::iterator i=str.begin(); i != str.end(); ++i) {
+      *i = towupper(*i);
+   }
+}
