@@ -1065,7 +1065,7 @@ datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
  *
- * @return int - same error or EMPTY (-1) if an error occurred
+ * @return int - same error or EMPTY (-1) in case of errors
  */
 int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec)));

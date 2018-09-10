@@ -299,7 +299,7 @@ BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* bui
 /**
  * Return the terminal's version string.
  *
- * @return char* - version or NULL pointer if an error occurred
+ * @return char* - version or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalVersion() {
    static char* version = NULL;
@@ -325,7 +325,7 @@ const char* WINAPI GetTerminalVersion() {
 /**
  * Return the terminal's build number.
  *
- * @return uint - build number or 0 if an error occurred
+ * @return uint - build number or 0 in case of errors
  */
 uint WINAPI GetTerminalBuild() {
    uint dummy, build;
@@ -396,12 +396,12 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
 /**
  * Calculate the MD5 hash of the input.
  *
- * @param  char* input  - buffer with binary input
- * @param  uint  length - length of the input in bytes
+ * @param  void* input  - buffer with binary content
+ * @param  uint  length - length of the content in bytes
  *
- * @return char* - MD5 hash or a NULL pointer if an error occurred
+ * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-const char* WINAPI MD5Hash(const char* input, uint length) {
+const char* WINAPI MD5Hash(const void* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
    if (length < 1)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
 
@@ -429,7 +429,7 @@ const char* WINAPI MD5Hash(const char* input, uint length) {
  *
  * @param  char* input - C input string
  *
- * @return char* - MD5 hash as a C string (ANSI) or a NULL pointer if an error occurred
+ * @return char* - MD5 hash or a NULL pointer in case of errors
  */
 const char* WINAPI MD5HashA(const char* input) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
@@ -449,7 +449,7 @@ const string& WINAPI getTerminalPath() {
 
    if (result.empty()) {
       char buffer[MAX_PATH];                                         // on the stack
-      GetModuleFileNameA(NULL, buffer, MAX_PATH);                    // TODO: handle errors
+      GetModuleFileName(NULL, buffer, MAX_PATH);                     // TODO: handle errors
 
       string fileName(buffer);
       string::size_type pos = fileName.find_last_of("\\/");
@@ -534,6 +534,7 @@ std::istream& getLine(std::istream &is, string& line) {
             line += (char)ch;
       }
    }
+
    endloop:
    return(is);
 
@@ -552,5 +553,28 @@ std::istream& getLine(std::istream &is, string& line) {
    }
    fs.close();
    debug("file contains %d line(s)", n);
+   */
+}
+
+
+/**
+ * Return the full path of the data directory the terminal currently uses.
+ *
+ * @return char* - directory name (without trailing path separator) or a NULL pointer in case of errors
+ */
+const char* WINAPI GetTerminalDataDirectory(const char* relHstPath, char* absHstPath, uint absHstPathSize) {
+   static char* result = NULL;
+
+   if (!result) {
+      /*
+      */
+   }
+   return(result);
+   /*
+   #include "shlobj.h"
+   char szPath[MAX_PATH];                                         // on the stack
+   if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, szPath))) {
+      dump(szPath, 60);
+   }
    */
 }

@@ -28,10 +28,13 @@ typedef time_t           datetime;                                   // a 32-bit
 typedef std::string      string;
 
 
+#define CLR_NONE             0xFFFFFFFFL                             // different types in MQL and C++
+#define NO_ERROR                      0L                             // different types in MQL and C++
+
 #define DUMPMODE_HEX                   1
 #define DUMPMODE_CHAR                  2
 #define INVALID_HWND                   ((HWND)-1)
-#define MAX_CHART_DESCRIPTION_LENGTH   ((MAX_SYMBOL_LENGTH) + 1 + 7) // "SYMBOL,Monthly"
+#define MAX_CHARTDESCRIPTION_LENGTH    ((MAX_SYMBOL_LENGTH) + 1 + 7) // "SYMBOL,Monthly"
 
 
 // MQL program types (flags)

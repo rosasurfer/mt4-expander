@@ -98,7 +98,7 @@ const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
  * @param  doube value
  * @param  char* format - format control string as used for printf()
  *
- * @return string - formatted string or empty string if an error occurred
+ * @return string - formatted string or an empty string in case of errors
  *
  * Format codes:
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
@@ -121,7 +121,7 @@ string WINAPI numberFormat(double value, const char* format) {
  * @param  doube value
  * @param  char* format - format control string as used for printf()
  *
- * @return char* - formatted string or NULL pointer if an error occurred
+ * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Format codes:
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
