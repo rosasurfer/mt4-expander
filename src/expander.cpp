@@ -11,7 +11,60 @@ extern std::vector<uint>  g_threadsPrograms;                         // the last
 
 
 /**
- * Process a C string debug message.
+ * Dump data from a buffer to the debugger output console.
+ *
+ * @param  char* fileName        - name of the file where the dump operation occurred
+ * @param  char* funcName        - name of the function where the dump operation occurred
+ * @param  int   line            - line number in the file where the dump operation occurred
+ * @param  void* data            - pointer to the data to dump
+ * @param  uint  size            - size of the data to dump in bytes
+ * @param  uint  mode [optional] - mode controling the way of dumping (default: human-readable character dump)
+ *                                 DUMPMODE_HEX:  output a hex dump
+ *                                 DUMPMODE_CHAR: output a readable character representation
+ * @return int - 0 (NULL)
+ */
+int _dump(const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode/*=DUMPMODE_CHAR*/) {
+   if ((uint)data < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter data: 0x%p (not a valid pointer)", data));
+   if (size < 1)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+
+   char* bytes = (char*) data;
+   std::stringstream ss;
+
+   switch (mode) {
+      case DUMPMODE_HEX:
+         ss << std::hex << std::uppercase;
+         for (uint i=0; i < size; i++) {
+            ss << std::setw(2) << std::setfill('0') << (int) bytes[i] << " ";
+            if (i%4 == 3)
+               ss << " ";
+         }
+         break;
+
+      case DUMPMODE_CHAR:
+         for (uint i=0; i < size; i++) {
+            char c = bytes[i];
+            if      (c == 0) c = '…';           // substitute NUL characters
+            else if (c < 33) c = '•';           // substitute CTRL characters
+            ss << c;
+         }
+         break;
+
+      default:
+         return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: %d (not a valid dump mode)", mode));
+   }
+   ss << std::dec << std::nouppercase << " (" << (int)size << " bytes)";
+
+   _debug(fileName, funcName, line, "%s", ss.str().c_str());
+   return(0);
+}
+
+
+/**
+ * Print a C string to the debugger output console.
+ *
+ * @param  char* fileName - name of the file where the debug operation occurred
+ * @param  char* funcName - name of the function where the debug operation occurred
+ * @param  int   line     - line number in the file where the debug operation occurred
  *
  * @return int - 0 (NULL)
  */
@@ -25,7 +78,11 @@ int _debug(const char* fileName, const char* funcName, int line, const char* for
 
 
 /**
- * Process a std::string debug message.
+ * Print a std::string to the debugger output console.
+ *
+ * @param  char* fileName - name of the file where the debug operation occurred
+ * @param  char* funcName - name of the function where the debug operation occurred
+ * @param  int   line     - line number in the file where the debug operation occurred
  *
  * @return int - 0 (NULL)
  */
@@ -39,12 +96,12 @@ int _debug(const char* fileName, const char* funcName, int line, const string& f
 
 
 /**
- * Send a formatted debug message to the debugger output.
+ * Print a formatted string to the debugger output console.
  *
- * @param  char*   fileName - file name of the call
- * @param  char*   funcName - function name of the call
- * @param  int     line     - line of the call
- * @param  char*   format   - message with format codes for additional parameters
+ * @param  char*   fileName - name of the file where the debug operation occurred
+ * @param  char*   funcName - name of the function where the debug operation occurred
+ * @param  int     line     - line number in the file where the debug operation occurred
+ * @param  char*   format   - string with codes to format additional parameters
  * @param  va_list args     - additional parameters
  */
 void __debug(const char* fileName, const char* funcName, int line, const char* format, const va_list& args) {
@@ -260,8 +317,8 @@ const char* WINAPI _EMPTY_STR   (...) { return(""          ); }
 HWND        WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
 int         WINAPI _NULL        (...) { return(NULL        ); }
 bool        WINAPI _true        (...) { return(true        ); }
-bool        WINAPI _false       (...) { return(false       ); }
 BOOL        WINAPI _TRUE        (...) { return(TRUE        ); }
+bool        WINAPI _false       (...) { return(false       ); }
 BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
 
 
@@ -269,33 +326,8 @@ BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
  * Helper functions returning variable values. All parameters except the first one are ignored.
  */
 bool        WINAPI _bool        (bool   value, ...) { return(value); }
+BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
 char        WINAPI _char        (char   value, ...) { return(value); }
 int         WINAPI _int         (int    value, ...) { return(value); }
 float       WINAPI _float       (float  value, ...) { return(value); }
 double      WINAPI _double      (double value, ...) { return(value); }
-BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
-
-
-/*
-HWND          WINAPI GetApplicationWindow();
-uint          WINAPI GetBoolsAddress         (const BOOL values[]);
-uint          WINAPI GetChartDescription     (const char* symbol, uint timeframe, char* buffer, uint bufferSize);
-uint          WINAPI GetDoublesAddress       (const double values[]);
-datetime      WINAPI GetGmtTime();
-uint          WINAPI GetIntsAddress          (const int values[]);
-int           WINAPI GetLastWin32Error();
-datetime      WINAPI GetLocalTime();
-uint          WINAPI GetTerminalBuild();
-const string& WINAPI getTerminalPath();
-const char*   WINAPI GetTerminalVersion();
-BOOL          WINAPI GetTerminalVersion      (uint* major, uint* minor, uint* hotfix, uint* build);
-DWORD         WINAPI GetUIThreadId();
-HANDLE        WINAPI GetWindowProperty       (HWND hWnd, const char* lpName);
-BOOL          WINAPI IsCustomTimeframe       (int timeframe);
-BOOL          WINAPI IsStdTimeframe          (int timeframe);
-BOOL          WINAPI IsUIThread();
-uint          WINAPI MT4InternalMsg();
-HANDLE        WINAPI RemoveWindowProperty    (HWND hWnd, const char* lpName);
-BOOL          WINAPI SetWindowProperty       (HWND hWnd, const char* lpName, HANDLE value);
-BOOL          WINAPI ShiftIndicatorBuffer    (double buffer[], int bufferSize, int bars, double emptyValue);
-*/

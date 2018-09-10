@@ -806,3 +806,33 @@ const char* WINAPI TradeDirectionToStr(int direction) {
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Convert an ANSI string to a wide-character string (UTF-16). Conversion stops at the end of the ANSI string or when the
+ * size limit of the target buffer is hit, whichever comes first. The resulting string is always NUL terminated.
+ *
+ * @param  _In_  char*  source     - single-byte ANSI or multi-byte UTF-8 source string
+ * @param  _Out_ WCHAR* target     - buffer the converted wide-character string is written to
+ * @param  _In_  uint   targetSize - size of the target buffer in bytes
+ *
+ * @return uint - number of converted characters (equal to the WCHAR length of the resulting string)
+ */
+uint WINAPI AnsiToWCharStr(const char* source, WCHAR* target, uint targetSize) {
+   if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
+   if ((uint)target < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter target: 0x%p (not a valid pointer)", target));
+   if (targetSize < 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter targetSize: %d (must be non-negative)", targetSize));
+
+   uint wchars         = targetSize >> 1;
+   uint charsToConvert = wchars - 1;
+   uint convertedChars = 0;
+
+   if (charsToConvert)
+      convertedChars = mbstowcs(target, source, charsToConvert);
+
+   if (wchars)
+      target[convertedChars] = '\0';
+
+   return(convertedChars);
+   #pragma EXPANDER_EXPORT
+}

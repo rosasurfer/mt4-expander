@@ -319,8 +319,8 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec)
       return(TRUE);
    }
 
-   static const EXECUTION_CONTEXT s_empty = {};
-   *sec = s_empty;
+   static const EXECUTION_CONTEXT empty = {};
+   *sec = empty;
    return(FALSE);
    #pragma EXPANDER_EXPORT
 }
@@ -1228,9 +1228,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec = 0x%p (not a valid pointer)", ec));
 
    char* result = "{(empty)}";
-   static const EXECUTION_CONTEXT s_empty = {};
+   static const EXECUTION_CONTEXT empty = {};
 
-   if (memcmp(ec, &s_empty, sizeof(EXECUTION_CONTEXT))) {
+   if (memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
       std::stringstream ss; ss
          <<  "{programIndex="     <<                   ec->programIndex
          << ", programType="      <<  ProgramTypeToStr(ec->programType  )

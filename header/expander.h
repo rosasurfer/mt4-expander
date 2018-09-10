@@ -12,6 +12,7 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 
 // export unmangled names without a DEF file
@@ -19,6 +20,7 @@
 
 
 // type aliases
+typedef unsigned   char  uchar;
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
@@ -26,6 +28,8 @@ typedef time_t           datetime;                                   // a 32-bit
 typedef std::string      string;
 
 
+#define DUMPMODE_HEX                   1
+#define DUMPMODE_CHAR                  2
 #define INVALID_HWND                   ((HWND)-1)
 #define MAX_CHART_DESCRIPTION_LENGTH   ((MAX_SYMBOL_LENGTH) + 1 + 7) // "SYMBOL,Monthly"
 
@@ -92,10 +96,13 @@ enum UninitializeReason {
 };
 
 
-// Debugging & error handling.
+// Debugging and error handling.
+#define dump(...)    _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define warn(...)    _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+
+int   _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_CHAR);
 
 int   _debug(const char* fileName, const char* funcName, int line, const char*   format, ...                );
 int   _debug(const char* fileName, const char* funcName, int line, const string& format, ...                );
@@ -124,17 +131,11 @@ BOOL        WINAPI _FALSE       (...);
 
 // Helper functions returning variable values. All parameters except the first one are ignored.
 bool        WINAPI _bool        (bool   value, ...);
+BOOL        WINAPI _BOOL        (BOOL   value, ...);
 char        WINAPI _char        (char   value, ...);
 int         WINAPI _int         (int    value, ...);
 float       WINAPI _float       (float  value, ...);
 double      WINAPI _double      (double value, ...);
-BOOL        WINAPI _BOOL        (BOOL   value, ...);
-
-
-/**
- * Return the size of a type member without an actual instance.
- */
-#define sizeofMember(type, member) sizeof(((type*)NULL)->member)
 
 
 /**
