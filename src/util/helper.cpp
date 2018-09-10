@@ -1,6 +1,7 @@
 #include "expander.h"
 #include "util/string.h"
 #include "util/toString.h"
+#include "shlobj.h"
 extern "C" {
 #include "util/md5.h"
 }
@@ -409,16 +410,16 @@ const char* WINAPI MD5Hash(const void* input, uint length) {
    MD5_CTX context;
    MD5_INIT(&context);
    MD5_UPDATE(&context, input, length);
-   uchar buffer[16];                                              // on the stack
-   MD5_FINAL((uchar*)&buffer, &context);                          // fill buffer with binary MD5 hash (16 bytes)
+   uchar buffer[16];                                                 // on the stack
+   MD5_FINAL((uchar*)&buffer, &context);                             // fill buffer with binary MD5 hash (16 bytes)
 
-   std::stringstream ss;                                          // convert hash to hex string (32 chars)
+   std::stringstream ss;                                             // convert hash to hex string (32 chars)
    ss << std::hex;
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
    string str = ss.str();
-   char* result = strcpy(new char[str.size()+1], str.c_str());    // TODO: close memory leak
+   char* result = strcpy(new char[str.length()+1], str.c_str());     // TODO: close memory leak
 
    return(result);
    #pragma EXPANDER_EXPORT
@@ -595,19 +596,12 @@ const char* WINAPI GetTerminalDataDirectory(const char* hstPath) {
    if (!result) {
    }
    return(result);
-   /*
-   #include "shlobj.h"
-   char szPath[MAX_PATH];                                         // on the stack
-   if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, szPath))) {
-      dump(szPath, 60);
-   }
-   */
 }
 
 
 /**
- * Return the full path of the roaming data directory which might currently not be in use. See GetTerminalDataDirectory() for
- * the path of the data directory currently in use.
+ * Return the full path of the terminal's roaming data directory. If the terminal operates in portable mode the roaming
+ * directory might currently not be in use. Use GetTerminalDataDirectory() to get the path of the data directory currently in use.
  *
  * @return char* - directory name (without a trailing path separator) or a NULL pointer in case of errors
  */
@@ -615,16 +609,19 @@ const char* WINAPI GetTerminalRoamingDataDirectory() {
    static char* result = NULL;
 
    if (!result) {
-      wstring path = getTerminalPathW();                             // get terminal installation path
-      StrToUpper(path);                                              // convert to upper case
-      string md5(MD5Hash(path.c_str(), path.size()*2));              // calculate MD5 hash
-      StrToUpper(md5);                                               // convert to upper case
+      wstring terminalPath = getTerminalPathW();                           // get terminal installation path
+      StrToUpper(terminalPath);                                            // convert to upper case
+      string md5(MD5Hash(terminalPath.c_str(), terminalPath.length()*2));  // calculate MD5 hash
+      StrToUpper(md5);                                                     // convert to upper case
 
-      debug(md5.c_str());
+      char appDataPath[MAX_PATH];                                          // resolve CSIDL_APPDATA
+      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
 
-      // resolve SHGetFolderPathA(CSIDL_APPDATA)
-      // compose the resulting directory path
-      // store it in static variable
+      string directory(appDataPath);                                       // compose the resulting path
+      directory.append("\\MetaQuotes\\Terminal\\");                        // %USERPROFILE%\AppData\Roaming\MetaQuotes\Terminal\{installationId}
+      directory.append(md5);
+      result = strcpy(new char[directory.length()+1], directory.c_str());  // cache it on the heap    TODO: close memory leak
    }
    return(result);
    #pragma EXPANDER_EXPORT
