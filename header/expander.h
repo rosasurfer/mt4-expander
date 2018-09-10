@@ -26,6 +26,7 @@ typedef          __int64 int64;
 typedef unsigned __int64 uint64;
 typedef time_t           datetime;                                   // a 32-bit signed long
 typedef std::string      string;
+typedef std::wstring     wstring;
 
 
 #define CLR_NONE             0xFFFFFFFFL                             // different types in MQL and C++

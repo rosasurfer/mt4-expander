@@ -36,3 +36,4 @@ const char* WINAPI TimeframeDescription(int timeframe);
 const char* WINAPI TimeframeToStr(int timeframe);
 const char* WINAPI TradeDirectionDescription(int direction);
 const char* WINAPI TradeDirectionToStr(int direction);
+uint        WINAPI WCharToAnsiStr(const WCHAR* source, char* target, uint targetSize);
