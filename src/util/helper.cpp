@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "util/string.h"
 #include "util/toString.h"
 extern "C" {
 #include "util/md5.h"
@@ -442,17 +443,37 @@ const char* WINAPI MD5HashA(const char* input) {
 /**
  * Return the name of the terminal's installation directory.
  *
- * @return string* - directory name (without trailing path separator)
+ * @return string* - directory name without trailing path separator
  */
-const string& WINAPI getTerminalPath() {
+const string& WINAPI getTerminalPathA() {
    static string result;
 
    if (result.empty()) {
       char buffer[MAX_PATH];                                         // on the stack
-      GetModuleFileName(NULL, buffer, MAX_PATH);                     // TODO: handle errors
+      GetModuleFileNameA(NULL, buffer, MAX_PATH);                     // TODO: handle errors
 
       string fileName(buffer);
       string::size_type pos = fileName.find_last_of("\\/");
+      result = fileName.substr(0, pos);
+   }
+   return(result);
+}
+
+
+/**
+ * Return the name of the terminal's installation directory.
+ *
+ * @return wstring* - directory name without trailing path separator
+ */
+const wstring& WINAPI getTerminalPathW() {
+   static wstring result;
+
+   if (result.empty()) {
+      wchar_t buffer[MAX_PATH];                                      // on the stack
+      GetModuleFileNameW(NULL, buffer, MAX_PATH);                    // TODO: handle errors
+
+      wstring fileName(buffer);
+      wstring::size_type pos = fileName.find_last_of(L"\\/");
       result = fileName.substr(0, pos);
    }
    return(result);
@@ -558,16 +579,20 @@ std::istream& getLine(std::istream &is, string& line) {
 
 
 /**
- * Return the full path of the data directory the terminal currently uses.
+ * Return the full path of the data directory the terminal currently uses. See GetTerminalRoamingDataDirectory() for the path
+ * of the roaming data directory which might currently not be in use.
  *
- * @return char* - directory name (without trailing path separator) or a NULL pointer in case of errors
+ * @param  _In_ char* hstPath - path to a guiding history file; may be NULL if the terminal's data directory has already been
+ *                              resolved before
+ *
+ * @return char* - Directory name (without a trailing path separator) or a NULL pointer to signal an error condition. If NULL
+ *                 is returned and GetLastError() doesn't indicate an actual error the terminal's data directory cannot be
+ *                 resolved without a guiding history file in the parameter hstPath.
  */
-const char* WINAPI GetTerminalDataDirectory(const char* relHstPath, char* absHstPath, uint absHstPathSize) {
+const char* WINAPI GetTerminalDataDirectory(const char* hstPath) {
    static char* result = NULL;
 
    if (!result) {
-      /*
-      */
    }
    return(result);
    /*
@@ -578,3 +603,31 @@ const char* WINAPI GetTerminalDataDirectory(const char* relHstPath, char* absHst
    }
    */
 }
+
+
+/**
+ * Return the full path of the roaming data directory which might currently not be in use. See GetTerminalDataDirectory() for
+ * the path of the data directory currently in use.
+ *
+ * @return char* - directory name (without a trailing path separator) or a NULL pointer in case of errors
+ */
+const char* WINAPI GetTerminalRoamingDataDirectory() {
+   static char* result = NULL;
+
+   if (!result) {
+      wstring path = getTerminalPathW();                             // get terminal installation path
+      StrToUpper(path);                                              // convert to upper case
+      string md5(MD5Hash(path.c_str(), path.size()*2));              // calculate MD5 hash
+      StrToUpper(md5);                                               // convert to upper case
+
+      debug(md5.c_str());
+
+      // resolve SHGetFolderPathA(CSIDL_APPDATA)
+      // compose the resulting directory path
+      // store it in static variable
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
