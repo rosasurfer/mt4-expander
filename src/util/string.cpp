@@ -107,11 +107,11 @@ BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
  * @param  _In_Out_ char* str
  */
 void WINAPI StrToLower(char* str) {
-   string s(str);
-   for (std::basic_string<char>::iterator i=s.begin(); i != s.end(); ++i) {
-      *i = tolower(*i);
+   char* c = str;
+   while (*c) {
+      *c = tolower(*c);
+      ++c;
    }
-   strcpy(str, s.c_str());
 }
 
 
@@ -120,8 +120,8 @@ void WINAPI StrToLower(char* str) {
  *
  * @param  _In_Out_ string& str
  */
-void WINAPI StrToLower(std::basic_string<char>& str) {
-   for (std::basic_string<char>::iterator i=str.begin(); i != str.end(); ++i) {
+void WINAPI StrToLower(string& str) {
+   for (string::iterator i=str.begin(); i != str.end(); ++i) {
       *i = tolower(*i);
    }
 }
@@ -132,8 +132,8 @@ void WINAPI StrToLower(std::basic_string<char>& str) {
  *
  * @param  _In_Out_ wstring& str
  */
-void WINAPI StrToLower(std::basic_string<wchar_t>& str) {
-   for (std::basic_string<wchar_t>::iterator i=str.begin(); i != str.end(); ++i) {
+void WINAPI StrToLower(wstring& str) {
+   for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
       *i = towlower(*i);
    }
 }
@@ -145,11 +145,11 @@ void WINAPI StrToLower(std::basic_string<wchar_t>& str) {
  * @param  _In_Out_ char* str
  */
 void WINAPI StrToUpper(char* str) {
-   string s(str);
-   for (std::basic_string<char>::iterator i=s.begin(); i != s.end(); ++i) {
-      *i = toupper(*i);
+   char* c = str;
+   while (*c) {
+      *c = toupper(*c);
+      ++c;
    }
-   strcpy(str, s.c_str());
 }
 
 
@@ -158,8 +158,8 @@ void WINAPI StrToUpper(char* str) {
  *
  * @param  _In_Out_ string& str
  */
-void WINAPI StrToUpper(std::basic_string<char>& str) {
-   for (std::basic_string<char>::iterator i=str.begin(); i != str.end(); ++i) {
+void WINAPI StrToUpper(string& str) {
+   for (string::iterator i=str.begin(); i != str.end(); ++i) {
       *i = toupper(*i);
    }
 }
@@ -170,8 +170,8 @@ void WINAPI StrToUpper(std::basic_string<char>& str) {
  *
  * @param  _In_Out_ wstring& str
  */
-void WINAPI StrToUpper(std::basic_string<wchar_t>& str) {
-   for (std::basic_string<wchar_t>::iterator i=str.begin(); i != str.end(); ++i) {
+void WINAPI StrToUpper(wstring& str) {
+   for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
       *i = towupper(*i);
    }
 }
