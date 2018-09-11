@@ -403,7 +403,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  *
  * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-const char* WINAPI MD5Hash(const void* input, uint length) {
+char* WINAPI MD5Hash(const void* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
    if (length < 1)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
 
@@ -433,7 +433,7 @@ const char* WINAPI MD5Hash(const void* input, uint length) {
  *
  * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-const char* WINAPI MD5HashA(const char* input) {
+char* WINAPI MD5HashA(const char* input) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
 
    return(MD5Hash(input, strlen(input)));
@@ -611,8 +611,7 @@ const char* WINAPI GetTerminalRoamingDataDirectory() {
    if (!result) {
       wstring terminalPath = getTerminalPathW();                           // get terminal installation path
       StrToUpper(terminalPath);                                            // convert to upper case
-      string md5(MD5Hash(terminalPath.c_str(), terminalPath.length()*2));  // calculate MD5 hash
-      StrToUpper(md5);                                                     // convert to upper case
+      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*2);  // calculate MD5 hash
 
       char appDataPath[MAX_PATH];                                          // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
@@ -620,7 +619,7 @@ const char* WINAPI GetTerminalRoamingDataDirectory() {
 
       string directory(appDataPath);                                       // compose the resulting path
       directory.append("\\MetaQuotes\\Terminal\\");                        // %USERPROFILE%\AppData\Roaming\MetaQuotes\Terminal\{installationId}
-      directory.append(md5);
+      directory.append(StrToUpper(md5));
       result = strcpy(new char[directory.length()+1], directory.c_str());  // cache it on the heap    TODO: close memory leak
    }
    return(result);

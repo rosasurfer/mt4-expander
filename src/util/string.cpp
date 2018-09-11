@@ -105,13 +105,16 @@ BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
  * Convert a C string to lower-case.
  *
  * @param  _In_Out_ char* str
+ *
+ * @return char* - the same string
  */
-void WINAPI StrToLower(char* str) {
+char* WINAPI StrToLower(char* str) {
    char* c = str;
    while (*c) {
       *c = tolower(*c);
       ++c;
    }
+   return(str);
 }
 
 
@@ -119,11 +122,14 @@ void WINAPI StrToLower(char* str) {
  * Convert a std::string to lower-case.
  *
  * @param  _In_Out_ string& str
+ *
+ * @return string& - the same string
  */
-void WINAPI StrToLower(string& str) {
+string& WINAPI StrToLower(string& str) {
    for (string::iterator i=str.begin(); i != str.end(); ++i) {
       *i = tolower(*i);
    }
+   return(str);
 }
 
 
@@ -131,11 +137,14 @@ void WINAPI StrToLower(string& str) {
  * Convert a std::wstring to lower-case.
  *
  * @param  _In_Out_ wstring& str
+ *
+ * @return wstring& - the same string
  */
-void WINAPI StrToLower(wstring& str) {
+wstring& WINAPI StrToLower(wstring& str) {
    for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
       *i = towlower(*i);
    }
+   return(str);
 }
 
 
@@ -143,13 +152,16 @@ void WINAPI StrToLower(wstring& str) {
  * Convert a C string to upper-case.
  *
  * @param  _In_Out_ char* str
+ *
+ * @return char* - the same string
  */
-void WINAPI StrToUpper(char* str) {
+char* WINAPI StrToUpper(char* str) {
    char* c = str;
    while (*c) {
       *c = toupper(*c);
       ++c;
    }
+   return(str);
 }
 
 
@@ -157,11 +169,14 @@ void WINAPI StrToUpper(char* str) {
  * Convert a std::string to upper-case.
  *
  * @param  _In_Out_ string& str
+ *
+ * @return string& - the same string
  */
-void WINAPI StrToUpper(string& str) {
+string& WINAPI StrToUpper(string& str) {
    for (string::iterator i=str.begin(); i != str.end(); ++i) {
       *i = toupper(*i);
    }
+   return(str);
 }
 
 
@@ -169,9 +184,12 @@ void WINAPI StrToUpper(string& str) {
  * Convert a std::wstring to upper-case.
  *
  * @param  _In_Out_ wstring& str
+ *
+ * @return wstring& - the same string
  */
-void WINAPI StrToUpper(wstring& str) {
+wstring& WINAPI StrToUpper(wstring& str) {
    for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
       *i = towupper(*i);
    }
+   return(str);
 }
