@@ -601,7 +601,6 @@ const char* WINAPI GetTerminalDataDirectory(const char* hstPath) {
    if (!result) {
       if (!hstPath) return(NULL);
    }
-   //GetFileAttributes(hstPath);
    return(result);
    #pragma EXPANDER_EXPORT
 }
