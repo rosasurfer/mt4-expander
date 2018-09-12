@@ -4,7 +4,7 @@
 /**
  * Whether or not the specified directory exists and is not a regular file. Symbolic links and junctions are supported.
  *
- * @param  char* name - full directory name with support for forward and backward slashes
+ * @param  char* name - full directory name with support for forward, backward and trailing slashes
  *
  * @return BOOL
  */
