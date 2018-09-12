@@ -583,25 +583,33 @@ std::istream& getLine(std::istream &is, string& line) {
  * Return the full path of the data directory the terminal currently uses. See GetTerminalRoamingDataDirectory() for the path
  * of the roaming data directory which might currently not be in use.
  *
- * @param  _In_ char* hstPath - path to a guiding history file; may be NULL if the terminal's data directory has already been
- *                              resolved before
+ * @param  _In_ char* hstPath - path to a guiding history file; may not be needed if the terminal's data directory has already
+ *                              been resolved before
  *
- * @return char* - Directory name (without a trailing path separator) or a NULL pointer to signal an error condition. If NULL
- *                 is returned and GetLastError() doesn't indicate an actual error the terminal's data directory cannot be
- *                 resolved without a guiding history file in the parameter hstPath.
+ * @return char* - Directory name (without a trailing path separator) or a NULL pointer to signal an error condition. This
+ *                 function always resets EXECUTION_CONTEXT.dllError. If NULL is returned and EXECUTION_CONTEXT.dllError
+ *                 doesn't indicate an actual error the terminal's data directory cannot be resolved without a guiding
+ *                 history file in parameter hstPath.
  */
 const char* WINAPI GetTerminalDataDirectory(const char* hstPath) {
+   if (hstPath && (uint)hstPath < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hstPath = 0x%p (not a valid pointer)", hstPath));
+
+   // reset EXECUTION_CONTEXT.dllError
+
    static char* result = NULL;
 
    if (!result) {
+      if (!hstPath) return(NULL);
    }
+   //GetFileAttributes(hstPath);
    return(result);
+   #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Return the full path of the terminal's roaming data directory. If the terminal operates in portable mode the roaming
- * directory might currently not be in use. Use GetTerminalDataDirectory() to get the path of the data directory currently in use.
+ * Return the full path of the terminal's roaming data directory. The returned directory might currently not be in use if the
+ * terminal operates in portable mode. Use GetTerminalDataDirectory() to get the path of the data directory currently in use.
  *
  * @return char* - directory name (without a trailing path separator) or a NULL pointer in case of errors
  */
@@ -609,19 +617,19 @@ const char* WINAPI GetTerminalRoamingDataDirectory() {
    static char* result = NULL;
 
    if (!result) {
-      wstring terminalPath = getTerminalPathW();                           // get terminal installation path
-      StrToUpper(terminalPath);                                            // convert to upper case
-      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*2);  // calculate MD5 hash
-
       char appDataPath[MAX_PATH];                                          // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
 
-      string directory(appDataPath);                                       // compose the resulting path
-      directory.append("\\MetaQuotes\\Terminal\\");                        // %USERPROFILE%\AppData\Roaming\MetaQuotes\Terminal\{installationId}
-      directory.append(StrToUpper(md5));
-      result = strcpy(new char[directory.length()+1], directory.c_str());  // cache it on the heap    TODO: close memory leak
-   }
+      wstring terminalPath = getTerminalPathW();                           // get terminal installation path
+      StrToUpper(terminalPath);                                            // convert to upper case
+      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*2);  // calculate MD5 hash
+
+      string dir(appDataPath);                                             // compose the resulting path
+      dir.append("\\MetaQuotes\\Terminal\\");                              // %USERPROFILE%\AppData\Roaming\MetaQuotes\Terminal\{installationId}
+      dir.append(StrToUpper(md5));
+      result = strcpy(new char[dir.length()+1], dir.c_str());              // on the heap
+   }                                                                       // TODO: close memory leak
    return(result);
    #pragma EXPANDER_EXPORT
 }

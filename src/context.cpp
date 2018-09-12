@@ -679,9 +679,9 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
 InitializeReason WINAPI InitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originalProgramIndex) {
    originalProgramIndex = NULL;
 
-   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
-   if (programType == PT_EXPERT)    return(InitReason_expert(ec, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
-   if (programType == PT_SCRIPT)    return(InitReason_script());
+   if      (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
+   else if (programType == PT_EXPERT)    return(InitReason_expert(ec, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   else if (programType == PT_SCRIPT)    return(InitReason_script());
 
    return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (not a ProgramType)", programType));
 }
@@ -1055,9 +1055,10 @@ const char* WINAPI ProgramCustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Marks the specified program as executed by the current thread.
+ * Marks the specified MQL program as executed by the current thread.
  *
- * @param  uint programIndex - Program index to store. If this value is 0 (zero) the program information of the current thread is reset.
+ * @param  uint programIndex - MQL program index to store. If this value is 0 (zero) the program information of the current
+ *                             thread is reset.
  *
  * @return DWORD - index of the current thread in the stored threads or EMPTY (-1) in case of errors
  */
@@ -1066,7 +1067,7 @@ DWORD WINAPI StoreThreadAndProgram(uint programIndex) {
 
    DWORD currentThread = GetCurrentThreadId();
 
-   // look-up current thread in g_threads[]
+   // look-up the current thread in g_threads[]
    int currentThreadIndex=-1, size=g_threads.size();
    for (int i=0; i < size; i++) {
       if (g_threads[i] == currentThread) {                           // current thread found

@@ -1,13 +1,15 @@
 #include "expander.h"
 #include "util/helper.h"
 #include "util/toString.h"
+#include "struct/xtrade/ExecutionContext.h"
 
 #include <vector>
 
 
 // external declarations for error management
-extern std::vector<DWORD> g_threads;                                 // all known threads executing MQL programs
-extern std::vector<uint>  g_threadsPrograms;                         // the last MQL program executed by a thread
+extern std::vector<ContextChain> g_contextChains;                    // all context chains (= MQL programs, index = program id)
+extern std::vector<DWORD>        g_threads;                          // all known threads executing MQL programs
+extern std::vector<uint>         g_threadsPrograms;                  // the last MQL program executed by a thread
 
 
 /**
@@ -271,39 +273,43 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
 
    // look-up the current thread's last associated MQL program
    DWORD currentThread = GetCurrentThreadId();
-   int currentThreadIndex=-1, currentThreadLastProgram=0;
+   uint currentThreadIndex=-1, currentThreadLastProgramIndex=0;
    size = g_threads.size();
    for (int i=0; i < size; i++) {
       if (g_threads[i] == currentThread) {                           // thread found
-         currentThreadIndex       = i;                               // keep thread index and last MQL program
-         currentThreadLastProgram = g_threadsPrograms[i];
+         currentThreadIndex            = i;                          // keep thread index and last MQL program
+         currentThreadLastProgramIndex = g_threadsPrograms[i];
          break;
       }
    }
 
+   // We only store an error in the EXECUTION_CONTEXT if this context is the current or last context processed by the DLL.
+   BOOL contextAccessible = FALSE;
+
    if (currentThreadIndex == -1) {
-      // Thread unknown/not found: Not much we can do. We could just have entered SyncMainContext() or
-      //                           we could be in a function callback called from a new thread (if that's possible).
+      // thread unknown/not found: Not much we can do. We could just have entered SyncMainContext_init() or we could be in a
+      //                           function callback called from a non-MQL thread (if that's possible).
    }
    else {
-      // Thread executed MQL before
+      // the current thread executed MQL before
       if (IsUIThread()) {
-         // Wir sind in einer Callback-Funktion oder im letzten im UI-Thread ausgeführten Indikator und dort u.U. in einer
-         // Library oder einem via iCustom() geladenen weiteren Indikator.
-         //
-         // Vorsicht: Der Hauptkontext des letzten Root-Programms kann ungültig sein.
+         // We are in a function callback executed in the UI thread or in a MQL indicator (or one of it's submodules).
+         // If in a function callback the main context of the indicator may be invalid (during init cycle).
+         //contextAccessible = TRUE;                       // let's see if/when this crashes
       }
       else {
-         // Wir sind im Expert oder Script des Threads und dort u.U. in einer Library oder einem via iCustom() geladenen weiteren
-         // Indikator. Auf den Hauptkontext des Root-Programms kann lesend/schreibend zugegriffen werden.
+         // We are in an expert or a script (or one of it's submodules) with read/write access to the main context.
+         //contextAccessible = TRUE;
       }
 
-      if (BOOL inMqlCall=FALSE) {
-         //ec_SetDllError   (ec, error  );
-         //ec_SetDllErrorMsg(ec, fullMsg);
+      if (contextAccessible) {
+         if (g_contextChains.size() > currentThreadLastProgramIndex && g_contextChains[currentThreadLastProgramIndex][0]) {
+            EXECUTION_CONTEXT* ec = g_contextChains[currentThreadLastProgramIndex][0];
+            ec_SetDllError(ec, code);
+            //ec_SetDllErrorMsg(ec, fullMsg);
+         }
       }
    }
-
    OutputDebugString(fullMsg);
 }
 
