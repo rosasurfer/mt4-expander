@@ -1,5 +1,7 @@
 #include "expander.h"
+#include "util/string.h"
 #include "util/toString.h"
+#include "shlobj.h"
 extern "C" {
 #include "util/md5.h"
 }
@@ -299,7 +301,7 @@ BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* bui
 /**
  * Return the terminal's version string.
  *
- * @return char* - version or NULL pointer if an error occurred
+ * @return char* - version or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalVersion() {
    static char* version = NULL;
@@ -325,7 +327,7 @@ const char* WINAPI GetTerminalVersion() {
 /**
  * Return the terminal's build number.
  *
- * @return uint - build number or 0 if an error occurred
+ * @return uint - build number or 0 in case of errors
  */
 uint WINAPI GetTerminalBuild() {
    uint dummy, build;
@@ -396,28 +398,28 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
 /**
  * Calculate the MD5 hash of the input.
  *
- * @param  char* input  - buffer with binary input
- * @param  uint  length - length of the input in bytes
+ * @param  void* input  - buffer with binary content
+ * @param  uint  length - length of the content in bytes
  *
- * @return char* - MD5 hash or a NULL pointer if an error occurred
+ * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-const char* WINAPI MD5Hash(const char* input, uint length) {
+char* WINAPI MD5Hash(const void* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
    if (length < 1)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
 
    MD5_CTX context;
    MD5_INIT(&context);
    MD5_UPDATE(&context, input, length);
-   uchar buffer[16];                                              // on the stack
-   MD5_FINAL((uchar*)&buffer, &context);                          // fill buffer with binary MD5 hash (16 bytes)
+   uchar buffer[16];                                                 // on the stack
+   MD5_FINAL((uchar*)&buffer, &context);                             // fill buffer with binary MD5 hash (16 bytes)
 
-   std::stringstream ss;                                          // convert hash to hex string (32 chars)
+   std::stringstream ss;                                             // convert hash to hex string (32 chars)
    ss << std::hex;
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
    string str = ss.str();
-   char* result = strcpy(new char[str.size()+1], str.c_str());    // TODO: close memory leak
+   char* result = strcpy(new char[str.length()+1], str.c_str());     // TODO: close memory leak
 
    return(result);
    #pragma EXPANDER_EXPORT
@@ -429,9 +431,9 @@ const char* WINAPI MD5Hash(const char* input, uint length) {
  *
  * @param  char* input - C input string
  *
- * @return char* - MD5 hash as a C string (ANSI) or a NULL pointer if an error occurred
+ * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-const char* WINAPI MD5HashA(const char* input) {
+char* WINAPI MD5HashA(const char* input) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
 
    return(MD5Hash(input, strlen(input)));
@@ -442,17 +444,37 @@ const char* WINAPI MD5HashA(const char* input) {
 /**
  * Return the name of the terminal's installation directory.
  *
- * @return string* - directory name (without trailing path separator)
+ * @return string* - directory name without trailing path separator
  */
-const string& WINAPI getTerminalPath() {
+const string& WINAPI getTerminalPathA() {
    static string result;
 
    if (result.empty()) {
       char buffer[MAX_PATH];                                         // on the stack
-      GetModuleFileNameA(NULL, buffer, MAX_PATH);                    // TODO: handle errors
+      GetModuleFileNameA(NULL, buffer, MAX_PATH);                     // TODO: handle errors
 
       string fileName(buffer);
       string::size_type pos = fileName.find_last_of("\\/");
+      result = fileName.substr(0, pos);
+   }
+   return(result);
+}
+
+
+/**
+ * Return the name of the terminal's installation directory.
+ *
+ * @return wstring* - directory name without trailing path separator
+ */
+const wstring& WINAPI getTerminalPathW() {
+   static wstring result;
+
+   if (result.empty()) {
+      wchar_t buffer[MAX_PATH];                                      // on the stack
+      GetModuleFileNameW(NULL, buffer, MAX_PATH);                    // TODO: handle errors
+
+      wstring fileName(buffer);
+      wstring::size_type pos = fileName.find_last_of(L"\\/");
       result = fileName.substr(0, pos);
    }
    return(result);
@@ -534,6 +556,7 @@ std::istream& getLine(std::istream &is, string& line) {
             line += (char)ch;
       }
    }
+
    endloop:
    return(is);
 
@@ -554,3 +577,60 @@ std::istream& getLine(std::istream &is, string& line) {
    debug("file contains %d line(s)", n);
    */
 }
+
+
+/**
+ * Return the full path of the data directory the terminal currently uses. See GetTerminalRoamingDataDirectory() for the path
+ * of the roaming data directory which might currently not be in use.
+ *
+ * @param  _In_ char* hstPath - path to a guiding history file; may not be needed if the terminal's data directory has already
+ *                              been resolved before
+ *
+ * @return char* - Directory name (without a trailing path separator) or a NULL pointer to signal an error condition. This
+ *                 function always resets EXECUTION_CONTEXT.dllError. If NULL is returned and EXECUTION_CONTEXT.dllError
+ *                 doesn't indicate an actual error the terminal's data directory cannot be resolved without a guiding
+ *                 history file in parameter hstPath.
+ */
+const char* WINAPI GetTerminalDataDirectory(const char* hstPath) {
+   if (hstPath && (uint)hstPath < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hstPath = 0x%p (not a valid pointer)", hstPath));
+
+   // reset EXECUTION_CONTEXT.dllError
+
+   static char* result = NULL;
+
+   if (!result) {
+      if (!hstPath) return(NULL);
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the terminal's roaming data directory. The returned directory might currently not be in use if the
+ * terminal operates in portable mode. Use GetTerminalDataDirectory() to get the path of the data directory currently in use.
+ *
+ * @return char* - directory name (without a trailing path separator) or a NULL pointer in case of errors
+ */
+const char* WINAPI GetTerminalRoamingDataDirectory() {
+   static char* result = NULL;
+
+   if (!result) {
+      char appDataPath[MAX_PATH];                                          // resolve CSIDL_APPDATA
+      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
+
+      wstring terminalPath = getTerminalPathW();                           // get terminal installation path
+      StrToUpper(terminalPath);                                            // convert to upper case
+      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*2);  // calculate MD5 hash
+
+      string dir(appDataPath);                                             // compose the resulting path
+      dir.append("\\MetaQuotes\\Terminal\\");                              // %USERPROFILE%\AppData\Roaming\MetaQuotes\Terminal\{installationId}
+      dir.append(StrToUpper(md5));
+      result = strcpy(new char[dir.length()+1], dir.c_str());              // on the heap
+   }                                                                       // TODO: close memory leak
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+

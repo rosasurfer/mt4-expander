@@ -1065,7 +1065,7 @@ datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
  *
- * @return int - same error or EMPTY (-1) if an error occurred
+ * @return int - same error or EMPTY (-1) in case of errors
  */
 int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec)));
@@ -1076,7 +1076,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       ec_SetMqlError(g_contextChains[pid][0], error);
 
-   if (error != NO_ERROR) {                                          // no propagation for NO_ERROR
+   if (error) {                                                      // no propagation for NO_ERROR
       if (ec->moduleType==MT_LIBRARY && pid) {                       // propagation from library to main module
          EXECUTION_CONTEXT* master = g_contextChains[pid][0];
          EXECUTION_CONTEXT* main   = g_contextChains[pid][1];
@@ -1108,18 +1108,20 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
 
    ec->dllError = error;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      ec_SetDllError(g_contextChains[pid][0], error);
-
-   if (!error)                                                       // keine Propagation beim Zurücksetzen eines Fehlers
-      return(error);
-
-   if (pid && ec->moduleType==MT_LIBRARY) {                          // Fehler aus Libraries in den Hauptkontext propagieren
-      EXECUTION_CONTEXT* master = g_contextChains[pid][0];           // (oder den Master-Context, wenn Hauptkontext nicht verfügbar)
+   uint pid = ec->programIndex;
+   if (pid && g_contextChains.size() > pid) {
+      EXECUTION_CONTEXT* master = g_contextChains[pid][0];
       EXECUTION_CONTEXT* main   = g_contextChains[pid][1];
-      if (main) ec_SetDllError(main,   error);
-      else      ec_SetDllError(master, error);
+
+      if (ec==main && master)                                        // synchronize main and master context
+         ec_SetDllError(master, error);
+
+      if (error) {                                                   // no propagation for NO_ERROR
+         if (ec->moduleType==MT_LIBRARY) {
+            if (main) ec_SetDllError(main,   error);                 // Fehler aus Libraries in den Main-Context propagieren
+            else      ec_SetDllError(master, error);                 // oder den Master-Context, falls Main-Context nicht verfügbar
+         }
+      }
    }
    return(error);
    #pragma EXPANDER_EXPORT

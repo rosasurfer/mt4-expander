@@ -428,7 +428,7 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @param  UninitializeReason reason
  *
  * @return int - The found indicator's program id or NULL if no such indicator was found;
- *               EMPTY (-1) if an error occurred
+ *               EMPTY (-1) in case of errors
  *
  * Notes:
  * ------
@@ -544,7 +544,7 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
  * @param  BOOL               isVisualMode - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  *
  * @return HWND - Window handle or NULL if the program runs in the Strategy Tester with VisualMode=Off;
- *                INVALID_HWND (-1) if an error occurred.
+ *                INVALID_HWND (-1) in case of errors.
  */
 HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode) {
    if (hChart) return(hChart);                                       // if already defined return WindowHandle() as passed
@@ -608,7 +608,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain)));
 
-      size_t bufferSize = MAX_CHART_DESCRIPTION_LENGTH + 1;
+      size_t bufferSize = MAX_CHARTDESCRIPTION_LENGTH + 1;
       char* chartDescription = (char*)alloca(bufferSize);            // on the stack
       size_t chars = GetChartDescription(symbol, timeframe, chartDescription, bufferSize);
       if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "GetChartDescription() failed")));
@@ -674,14 +674,14 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
  * @param  int                droppedOnPosY        - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  * @param  uint&              originalProgramIndex - variable receiving the original program index of an indicator in init cycle
  *
- * @return InitializeReason - init reason or NULL if an error occurred
+ * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI InitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originalProgramIndex) {
    originalProgramIndex = NULL;
 
-   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
-   if (programType == PT_EXPERT)    return(InitReason_expert(ec, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
-   if (programType == PT_SCRIPT)    return(InitReason_script());
+   if      (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
+   else if (programType == PT_EXPERT)    return(InitReason_expert(ec, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   else if (programType == PT_SCRIPT)    return(InitReason_script());
 
    return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (not a ProgramType)", programType));
 }
@@ -701,7 +701,7 @@ InitializeReason WINAPI InitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEX
  * @param  int                droppedOnChart       - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
  * @param  uint&              originalProgramIndex - variable receiving the original program index of an indicator in init cycle
  *
- * @return InitializeReason - init reason or NULL if an error occurred
+ * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& originalProgramIndex) {
    /*
@@ -839,7 +839,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
  * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
  * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
  *
- * @return InitializeReason - init reason or NULL if an error occurred
+ * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
    uint build = GetTerminalBuild();
@@ -904,7 +904,7 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
 /**
  * Resolve a script's init() reason.
  *
- * @return InitializeReason - init reason or NULL if an error occurred
+ * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI InitReason_script() {
    return(IR_USER);
@@ -1055,18 +1055,19 @@ const char* WINAPI ProgramCustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Marks the specified program as executed by the current thread.
+ * Marks the specified MQL program as executed by the current thread.
  *
- * @param  uint programIndex - Program index to store. If this value is 0 (zero) the program information of the current thread is reset.
+ * @param  uint programIndex - MQL program index to store. If this value is 0 (zero) the program information of the current
+ *                             thread is reset.
  *
- * @return DWORD - index of the current thread in the stored threads or EMPTY (-1) if an error occurred
+ * @return DWORD - index of the current thread in the stored threads or EMPTY (-1) in case of errors
  */
 DWORD WINAPI StoreThreadAndProgram(uint programIndex) {
    if ((int)programIndex < 0) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter programIndex: %d", programIndex)));
 
    DWORD currentThread = GetCurrentThreadId();
 
-   // look-up current thread in g_threads[]
+   // look-up the current thread in g_threads[]
    int currentThreadIndex=-1, size=g_threads.size();
    for (int i=0; i < size; i++) {
       if (g_threads[i] == currentThread) {                           // current thread found

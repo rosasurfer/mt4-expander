@@ -136,7 +136,7 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
  */
 BOOL WINAPI SaveTest(TEST* test) {
    // save TEST to logfile
-   string testLogfile = getTerminalPath() +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log");
+   string testLogfile = getTerminalPathA() +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log");
    std::ofstream fs;
    fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_RUNTIME_ERROR, "fs.open(\"%s\") failed", testLogfile.c_str()));
    fs << "test=" << TEST_toStr(test) << "\n";
@@ -153,8 +153,8 @@ BOOL WINAPI SaveTest(TEST* test) {
 
    // backup input parameters
    // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
-   string paramSrcFile  = getTerminalPath() +"/tester/"+ test->strategy +".ini";
-   string paramDestFile = getTerminalPath() +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
+   string paramSrcFile  = getTerminalPathA() +"/tester/"+ test->strategy +".ini";
+   string paramDestFile = getTerminalPathA() +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(paramSrcFile.c_str(), paramDestFile.c_str(), TRUE))
       return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile() failed"));
    return(TRUE);
