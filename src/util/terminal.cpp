@@ -146,8 +146,8 @@ const wstring& WINAPI GetTerminalPathWs() {
  * TerminalInfoString(TERMINAL_COMMONDATA_PATH)) introduced by MQL4.5. The common data directory is shared between all
  * terminals installed by a user. The function does not check if the returned path exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
- *                 i.e. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
+ *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
    static char* result = NULL;
