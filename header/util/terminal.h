@@ -4,6 +4,7 @@
 
 
 uint           WINAPI GetTerminalBuild();
+const char*    WINAPI GetTerminalCommonDataPathA();
 const char*    WINAPI GetTerminalDataPathA();
 const char*    WINAPI GetTerminalPathA();
 const wstring& WINAPI GetTerminalPathWs();
