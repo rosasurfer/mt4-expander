@@ -1,5 +1,6 @@
 #pragma once
 
+
 /**
  * XTrade struct LOG_MESSAGE
  *

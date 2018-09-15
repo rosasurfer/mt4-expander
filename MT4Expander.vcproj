@@ -331,6 +331,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\util\terminal.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\util\ticktimer.cpp"
 					>
 				</File>
@@ -498,6 +502,10 @@
 				</File>
 				<File
 					RelativePath=".\header\util\string.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\util\terminal.h"
 					>
 				</File>
 				<File
