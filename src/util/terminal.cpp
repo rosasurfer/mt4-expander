@@ -142,30 +142,6 @@ const wstring& WINAPI GetTerminalPathWs() {
 
 
 /**
- * Return the full path of the terminal's common data directory. This function emulates the functionality of
- * TerminalInfoString(TERMINAL_COMMONDATA_PATH)) introduced by MQL4.5. The common data directory is shared between all
- * terminals installed by a user. The function does not check if the returned path exists.
- *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
- *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
- */
-const char* WINAPI GetTerminalCommonDataPathA() {
-   static char* result = NULL;
-
-   if (!result) {
-      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
-
-      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
-      result = strcpy(new char[dir.length()+1], dir.c_str());                          // on the heap
-   }
-   return(result);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the full path of the data directory the terminal currently uses.
  *
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
@@ -246,6 +222,30 @@ const char* WINAPI GetTerminalDataPathA() {
    //
    // @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
 
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the terminal's common data directory. This function emulates the functionality of
+ * TerminalInfoString(TERMINAL_COMMONDATA_PATH)) introduced by MQL4.5. The common data directory is shared between all
+ * terminals installed by a user. The function does not check if the returned path exists.
+ *
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
+ *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
+ */
+const char* WINAPI GetTerminalCommonDataPathA() {
+   static char* result = NULL;
+
+   if (!result) {
+      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
+      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
+
+      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
+      result = strcpy(new char[dir.length()+1], dir.c_str());                          // on the heap
+   }
+   return(result);
    #pragma EXPANDER_EXPORT
 }
 
