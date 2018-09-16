@@ -57,20 +57,16 @@ BOOL WINAPI IsSymlink(const char* name) {
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_REPARSE_POINT)) {
          char* _name = strcpy(new char[strlen(name)+1], name);                // on the heap
 
-         int pos = -1;
-         while (_name[++pos]) {                                               // convert forward slashes
-            if (_name[pos] == '/')
-               _name[pos] = '\\';
-         }
          if (attrib & FILE_ATTRIBUTE_DIRECTORY) {
+            int pos = strlen(_name);
             while (--pos >=0 && _name[pos]=='\\') {                           // trim trailing backslashes
                _name[pos] = '\0';
-            }                                                                 // TODO: completely canonicalize path
+            }
          }
 
          WIN32_FIND_DATA wfd = {};
          HANDLE hFind = FindFirstFile(_name, &wfd);
-         if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR+GetLastError(), "cannot find file \"%s\"", _name);
+         if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR+GetLastError(), "cannot find path \"%s\"", _name);
          else {
             FindClose(hFind);
             result = (wfd.dwReserved0 == IO_REPARSE_TAG_SYMLINK);
