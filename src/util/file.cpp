@@ -114,3 +114,44 @@ BOOL WINAPI IsSymlinkA(const char* name) {
    return(result);
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Get a path's final name. This function resolves all reparse points in the path (symlinks, junctions, mount points, subst).
+ *
+ * @param  char* name - path
+ *
+ * @return char* - resolved name in "\\?\" or UNC format or a NULL pointer in case of errors
+ */
+const char* WINAPI GetFinalPathNameA(const char* name) {
+   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+
+   HANDLE hFile = CreateFile(name,                                                     // file name
+                             GENERIC_READ, FILE_SHARE_READ,                            // open for shared reading
+                             NULL,                                                     // default security
+                             OPEN_EXISTING,                                            // open existing file only
+                             FILE_ATTRIBUTE_NORMAL,                                    // normal file
+                             NULL);                                                    // no attribute template
+   if (hFile == INVALID_HANDLE_VALUE) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
+
+   uint size = MAX_PATH;
+   char* path;
+   DWORD len;
+
+   while (true) {
+      path = new char[size];                                                           // on the heap
+      len  = GetFinalPathNameByHandle(hFile, path, size, VOLUME_NAME_DOS|FILE_NAME_OPENED);
+      if (len < size)
+         break;
+      size <<= 2;                                                                      // increase buffer size
+      delete[] path;
+   }
+   CloseHandle(hFile);
+
+   if (!len) {
+      delete[] path;
+      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle() failed"));
+   }
+   return(path);                                                                       // TODO: close memory leak
+   #pragma EXPANDER_EXPORT
+}
