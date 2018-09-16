@@ -59,7 +59,7 @@ BOOL WINAPI IsSymlink(const char* name) {
 
          if (attrib & FILE_ATTRIBUTE_DIRECTORY) {
             int pos = strlen(_name);
-            while (--pos >=0 && _name[pos]=='\\') {                           // trim trailing backslashes
+            while (--pos >=0 && (_name[pos]=='\\' || _name[pos]=='/')) {      // trim trailing backslashes
                _name[pos] = '\0';
             }
          }
