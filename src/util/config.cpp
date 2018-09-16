@@ -1,6 +1,7 @@
 #include "expander.h"
 #include "util/file.h"
 #include "util/terminal.h"
+#include "util/toString.h"
 
 #include "shlobj.h"
 
@@ -23,26 +24,27 @@ const char* WINAPI GetGlobalConfigPathA() {
       configPath = strcpy(new char[iniFile.length()+1], iniFile.c_str());           // on the heap
 
       if (!IsFile(configPath)) {
-         // try to create the file
          int error = NO_ERROR;
-         if (!IsDirectory(commonPath)) {
-            error = SHCreateDirectoryEx(NULL, commonPath, NULL);                    // create directory
-            if (error == ERROR_ACCESS_DENIED) {
-               debug("access denied while trying to create \"%s\"", commonPath);    // log access errors but don't fail
+
+         if (!IsDirectory(commonPath)) {                                            // create the directory if needed
+            error = SHCreateDirectoryEx(NULL, commonPath, NULL);
+            if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) {        // log access errors but don't fail
+               debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStr(ERR_WIN32_ERROR+error));
             }
             else if (error) {                                                       // signal hard errors but don't fail
-               error(ERR_WIN32_ERROR+GetLastError(), "creation of path \"%s\" failed", commonPath);
+               error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", commonPath);
             }
          }
-         if (!error) {
+
+         if (!error) {                                                              // try to create the file
             HFILE hFile = _lcreat(configPath, FILE_ATTRIBUTE_NORMAL);
             if (hFile == HFILE_ERROR) {
                error = GetLastError();
-               if (error == ERROR_ACCESS_DENIED) {
-                  debug("access denied while trying to create \"%s\"", configPath); // log access errors but don't fail
+               if (error == ERROR_ACCESS_DENIED) {                                  // log access errors but don't fail
+                  debug("cannot create file \"%s\"  [%s]", configPath, ErrorToStr(ERR_WIN32_ERROR+error));
                }
                else {                                                               // signal hard errors but don't fail
-                  error(ERR_WIN32_ERROR+error, "creation of file \"%s\" failed", configPath);
+                  error(ERR_WIN32_ERROR+error, "cannot create file \"%s\"", configPath);
                }
             }
          }

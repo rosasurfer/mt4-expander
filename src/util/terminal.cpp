@@ -295,5 +295,5 @@ void WINAPI Test() {
    }
 
    debug("path: %s", path);
-   #pragma EXPANDER_EXPORT
+   //#pragma EXPANDER_EXPORT
 }
