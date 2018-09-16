@@ -303,6 +303,10 @@
 				Name="util"
 				>
 				<File
+					RelativePath=".\src\util\config.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\util\file.cpp"
 					>
 				</File>
@@ -328,6 +332,10 @@
 				</File>
 				<File
 					RelativePath=".\src\util\string.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\util\terminal.cpp"
 					>
 				</File>
 				<File
@@ -477,6 +485,10 @@
 				Name="util"
 				>
 				<File
+					RelativePath=".\header\util\config.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\util\file.h"
 					>
 				</File>
@@ -498,6 +510,10 @@
 				</File>
 				<File
 					RelativePath=".\header\util\string.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\util\terminal.h"
 					>
 				</File>
 				<File

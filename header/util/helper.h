@@ -3,6 +3,7 @@
 #include "expander.h"
 #include <istream>
 
+
 HWND           WINAPI GetApplicationWindow();
 uint           WINAPI GetBoolsAddress(const BOOL values[]);
 uint           WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize);
@@ -10,13 +11,6 @@ uint           WINAPI GetDoublesAddress(const double values[]);
 uint           WINAPI GetIntsAddress(const int values[]);
 int            WINAPI GetLastWin32Error();
 std::istream&         getLine(std::istream& is, string& line);
-uint           WINAPI GetTerminalBuild();
-const char*    WINAPI GetTerminalDataDirectory(const char* hstPath);
-const string&  WINAPI getTerminalPathA();
-const wstring& WINAPI getTerminalPathW();
-const char*    WINAPI GetTerminalRoamingDataDirectory();
-const char*    WINAPI GetTerminalVersion();
-BOOL           WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build);
 DWORD          WINAPI GetUIThreadId();
 HANDLE         WINAPI GetWindowProperty(HWND hWnd, const char* lpName);
 BOOL           WINAPI IsCustomTimeframe(int timeframe);
