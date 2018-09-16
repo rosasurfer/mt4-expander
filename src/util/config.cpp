@@ -23,10 +23,10 @@ const char* WINAPI GetGlobalConfigPathA() {
       string iniFile = string(commonPath).append("\\global-config.ini");
       configPath = strcpy(new char[iniFile.length()+1], iniFile.c_str());           // on the heap
 
-      if (!IsFile(configPath)) {
+      if (!IsFileA(configPath)) {
          int error = NO_ERROR;
 
-         if (!IsDirectory(commonPath)) {                                            // create the directory if needed
+         if (!IsDirectoryA(commonPath)) {                                           // create the directory if needed
             error = SHCreateDirectoryEx(NULL, commonPath, NULL);
             if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) {        // log access errors but don't fail
                debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStr(ERR_WIN32_ERROR+error));

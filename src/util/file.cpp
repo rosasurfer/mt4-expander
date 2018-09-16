@@ -8,7 +8,7 @@
  *
  * @return BOOL
  */
-BOOL WINAPI IsDirectory(const char* name) {
+BOOL WINAPI IsDirectoryA(const char* name) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
 
@@ -27,7 +27,7 @@ BOOL WINAPI IsDirectory(const char* name) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsFile(const char* name) {
+BOOL WINAPI IsFileA(const char* name) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
 
@@ -46,7 +46,7 @@ BOOL WINAPI IsFile(const char* name) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsJunction(const char* name) {
+BOOL WINAPI IsJunctionA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
@@ -83,7 +83,7 @@ BOOL WINAPI IsJunction(const char* name) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsSymlink(const char* name) {
+BOOL WINAPI IsSymlinkA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
