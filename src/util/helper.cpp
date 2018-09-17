@@ -3,7 +3,7 @@
 #include "util/toString.h"
 
 extern "C" {
-#include "util/md5.h"
+#include "etc/md5.h"
 }
 
 
