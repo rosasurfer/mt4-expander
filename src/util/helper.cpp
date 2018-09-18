@@ -1,5 +1,4 @@
 #include "expander.h"
-#include "util/helper.h"
 #include "util/toString.h"
 
 extern "C" {
@@ -384,7 +383,7 @@ BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValu
 /**
  *
  */
-std::istream& getLine(std::istream &is, string& line) {
+std::istream& getLine(std::istream& is, string& line) {
    // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
    // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
    // tasks, such as thread synchronization and updating the stream state.

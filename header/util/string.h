@@ -16,3 +16,9 @@ wstring&    WINAPI StrToLower(wstring& str);
 char*       WINAPI StrToUpper(char* str);
 string&     WINAPI StrToUpper(string& str);
 wstring&    WINAPI StrToUpper(wstring& str);
+
+uint        WINAPI AnsiToWCharStr(const char* source, wchar_t* dest, size_t destSize);
+uint        WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize);
+char*              wchartombs(const wchar_t* str);
+char*              wchartombs(const wchar_t* sequence, size_t count);
+char*              wchartombs(const wstring& str);

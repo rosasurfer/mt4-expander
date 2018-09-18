@@ -1,5 +1,6 @@
 #include "expander.h"
 #include "struct/mt4/MqlStr.h"
+#include "util/string.h"
 
 
 /**
@@ -192,4 +193,117 @@ wstring& WINAPI StrToUpper(wstring& str) {
       *i = towupper(*i);
    }
    return(str);
+}
+
+
+/**
+ * Convert a C ANSI string to a unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
+ * limit of the destination buffer is hit, whichever comes first. The resulting string is always NULL terminated.
+ *
+ * @param  _In_  char*    source   - C ANSI or multi-byte UTF-8 source string
+ * @param  _Out_ wchar_t* dest     - buffer the converted unicode string is written to
+ * @param  _In_  size_t   destSize - size of the destination buffer in bytes
+ *
+ * @return uint - number of converted characters (equal to the wide-character length of the resulting string)
+ */
+uint WINAPI AnsiToWCharStr(const char* source, wchar_t* dest, size_t destSize) {
+   if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
+   if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
+   if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
+
+   uint wchars         = destSize >> 1;
+   uint charsToConvert = wchars - 1;
+   uint convertedChars = 0;
+
+   if (charsToConvert)
+      convertedChars = mbstowcs(dest, source, charsToConvert);
+
+   if (wchars)
+      dest[convertedChars] = 0;
+
+   return(convertedChars);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Convert a unicode string (UTF-16) to a C ANSI string. Conversion stops at the end of the unicode string or when the
+ * size limit of the destination buffer is hit, whichever comes first. The resulting string is always NULL terminated.
+ *
+ * @param  _In_  wchar_t* source   - unicode source string
+ * @param  _Out_ char*    dest     - destination buffer the converted ANSI string is written to
+ * @param  _In_  size_t   destSize - size of the destination buffer in bytes
+ *
+ * @return uint - the single-byte character length of the resulting string
+ */
+uint WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize) {
+   if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
+   if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
+   if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
+
+   uint destLength = 0;
+
+   if (destSize) {
+      if (destSize > 1)
+         wcstombs(dest, source, destSize);
+      dest[destSize-1] = 0;
+      destLength = strlen(dest);
+   }
+   return(destLength);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Convert a unicode string (UTF-16) to a C multi-byte string.
+ *
+ * @param  wchar_t* str - NULL terminated unicode string
+ *
+ * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ */
+char* wchartombs(const wchar_t* str) {
+   return(wchartombs(str, wcslen(str)));
+}
+
+
+/**
+ * Convert a sequence of unicode characters (UTF-16) to a C multi-byte string.
+ *
+ * @param  wchar_t* sequence - sequence of wide characters
+ * @param  size_t   count    - number of wide characters
+ *
+ * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ */
+char* wchartombs(const wchar_t* sequence, size_t count) {
+   wchar_t* source = wcsncpy(new wchar_t[count+1], sequence, count);
+   source[count] = 0;
+
+   size_t size = (count << 1) + 1;
+   char* dest = new char[size];
+
+   uint bytes = wcstombs(dest, source, size);
+
+   if (bytes == -1) {
+      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert unicode to multi-byte characters");
+      delete[] dest;
+      dest = NULL;
+   }
+   else {
+      dest[size-1] = 0;
+   }
+
+   delete[] source;
+   return(dest);
+}
+
+
+/**
+ * Convert a unicode string (UTF-16) to a C multi-byte string.
+ *
+ * @param  wstring& str
+ *
+ * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ */
+char* wchartombs(const wstring& str) {
+   return(wchartombs(str.c_str(), str.length()));
 }

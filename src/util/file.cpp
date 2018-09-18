@@ -8,6 +8,8 @@
  */
 #include "expander.h"
 #include "util/file.h"
+#include "util/string.h"
+
 #include "winioctl.h"
 
 
@@ -213,23 +215,13 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
          size_t offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
-         wstring name(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
-
-         size_t size = (len << 1) + 1;
-         target = new char[size];                                       // TODO: close memory leak
-         wcstombs(target, name.c_str(), size);
-         target[size-1] = '\0';
+         target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);       // TODO: close memory leak
          //debug("mount point to \"%s\"", target);
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
          size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
-         wstring name(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
-
-         size_t size = (len << 1) + 1;
-         target = new char[size];                                       // TODO: close memory leak
-         wcstombs(target, name.c_str(), size);
-         target[size-1] = '\0';
+         target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);     // TODO: close memory leak
          //debug("%s symlink to \"%s\"", rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE ? "relative":"absolute", target);
       }
       else error(ERR_WIN32_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);

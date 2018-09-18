@@ -3,7 +3,6 @@
 #include "expander.h"
 
 
-uint        WINAPI AnsiToWCharStr(const char* source, WCHAR* target, uint targetSize);
 const char* WINAPI BoolToStr(BOOL value);
 string      WINAPI doubleQuoteStr(const string& value);
 string      WINAPI doubleQuoteStr(const char* value);
@@ -36,4 +35,3 @@ const char* WINAPI TimeframeDescription(int timeframe);
 const char* WINAPI TimeframeToStr(int timeframe);
 const char* WINAPI TradeDirectionDescription(int direction);
 const char* WINAPI TradeDirectionToStr(int direction);
-uint        WINAPI WCharToAnsiStr(const WCHAR* source, char* target, uint targetSize);
