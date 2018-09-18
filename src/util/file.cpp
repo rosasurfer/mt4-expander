@@ -1,4 +1,14 @@
+/**
+ * The Definitive Guide on Win32 to NT Path Conversion
+ * @see  https://googleprojectzero.blogspot.com/2016/02/the-definitive-guide-on-win32-to-nt.html
+ *
+ *
+ * Naming Files, Paths, and Namespaces
+ * @see  https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file
+ */
 #include "expander.h"
+#include "util/file.h"
+#include "winioctl.h"
 
 
 /**
@@ -45,6 +55,8 @@ BOOL WINAPI IsFileA(const char* name) {
  * @param  char* name - full directory name with support for forward and backward slashes
  *
  * @return BOOL
+ *
+ * TODO: distinguish between junctions and volume mount points
  */
 BOOL WINAPI IsJunctionA(const char* name) {
    BOOL result = FALSE;
@@ -143,7 +155,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
       len  = GetFinalPathNameByHandle(hFile, path, size, VOLUME_NAME_DOS|FILE_NAME_OPENED);
       if (len < size)
          break;
-      size <<= 2;                                                                      // increase buffer size
+      size <<= 1;                                                                      // increase buffer size
       delete[] path;
    }
    CloseHandle(hFile);
@@ -158,25 +170,80 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
 
 /**
+ * Resolve the target of a Windows reparse point (a symlink, junction or volume mount point).
  *
+ * @param  char* name - path
+ *
+ * @return char* - resolved target path or a NULL pointer in case of errors
+ *
+ *
+ * @see  http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
+ * @see  https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
  */
-void WINAPI Test() {
-   char path[MAX_PATH];
-   debug("path: %s", path);
-   //#pragma EXPANDER_EXPORT
+const char* WINAPI GetReparsePointTargetA(const char* name) {
+   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+
+   // open the reparse point
+   HANDLE hFile = CreateFile(name,                                                     // file name
+                             FILE_READ_EA,                                             // request reading of extended attributes
+                             FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,       // open for shared access
+                             NULL,                                                     // default security
+                             OPEN_EXISTING,                                            // open existing file only
+                             FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,  // open reparse point itself
+                             NULL);                                                    // no attribute template
+   if (hFile == INVALID_HANDLE_VALUE) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
+
+   // create a reparse data structure
+   DWORD bufferSize = MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
+   REPARSE_DATA_BUFFER* rdata = (REPARSE_DATA_BUFFER*) malloc(bufferSize);             // on the heap
+
+   // query the reparse data
+   DWORD bytesReturned;
+   BOOL success = DeviceIoControl(hFile, FSCTL_GET_REPARSE_POINT, NULL, 0, rdata, bufferSize, &bytesReturned, NULL);
+   CloseHandle(hFile);
+   if (!success) {
+      free(rdata);
+      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name));
+   }
+
+   char* target = NULL;
+
+   // read the reparse data
+   if (IsReparseTagMicrosoft(rdata->ReparseTag)) {
+      if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
+         size_t offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
+         size_t len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
+         wstring name(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
+
+         size_t size = (len << 1) + 1;
+         target = new char[size];                                       // TODO: close memory leak
+         wcstombs(target, name.c_str(), size);
+         target[size-1] = '\0';
+         //debug("mount point to \"%s\"", target);
+      }
+      else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
+         size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
+         size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
+         wstring name(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
+
+         size_t size = (len << 1) + 1;
+         target = new char[size];                                       // TODO: close memory leak
+         wcstombs(target, name.c_str(), size);
+         target[size-1] = '\0';
+         //debug("%s symlink to \"%s\"", rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE ? "relative":"absolute", target);
+      }
+      else error(ERR_WIN32_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
+   }
+   else error(ERR_WIN32_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
+
+   free(rdata);
+   return(target);
+   #pragma EXPANDER_EXPORT
 }
 
 
 // @see  PathCanonicalize()
 // @see  https://stackoverflow.com/questions/1816691/how-do-i-resolve-a-canonical-filename-in-windows
 // @see  http://pdh11.blogspot.com/2009/05/pathcanonicalize-versus-what-it-says-on.html
-// @see  PathCanonicalize()
 //
-// @see  https://stackoverflow.com/questions/221417/how-do-i-programmatically-access-the-target-path-of-a-windows-symbolic-link
-// @see  https://stackoverflow.com/questions/46383428/get-the-immediate-target-path-from-symlink-reparse-point
-// @see  https://www.codeproject.com/Articles/58950/How-to-develop-a-virtual-disk-for-Windows?msg=5371595
-// @see  https://msdn.microsoft.com/en-us/library/cc232006.aspx
-//
-// @see  http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
-// @see  http://www.flexhex.com/docs/articles/hard-links.phtml
-// @see  https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
+// @see  https://stackoverflow.com/questions/2487237/detect-symbolic-links-junction-points-mount-points-and-hard-links
