@@ -279,6 +279,10 @@
 				Name="etc"
 				>
 				<File
+					RelativePath=".\src\etc\md5.c"
+					>
+				</File>
+				<File
 					RelativePath=".\src\etc\subclassing.cpp"
 					>
 					<FileConfiguration
@@ -320,10 +324,6 @@
 				</File>
 				<File
 					RelativePath=".\src\util\math.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\util\md5.c"
 					>
 				</File>
 				<File
@@ -505,10 +505,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\header\util\md5.h"
-					>
-				</File>
-				<File
 					RelativePath=".\header\util\string.h"
 					>
 				</File>
@@ -526,6 +522,14 @@
 				</File>
 				<File
 					RelativePath=".\header\util\toString.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="etc"
+				>
+				<File
+					RelativePath=".\header\etc\md5.h"
 					>
 				</File>
 			</Filter>

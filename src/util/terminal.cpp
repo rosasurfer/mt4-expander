@@ -206,23 +206,12 @@ const char* WINAPI GetTerminalDataPathA() {
       debug("successfully opened the logfile with OF_READWRITE|OF_SHARE_EXCLUSIVE");
    }
    return(result);
-
+   #pragma EXPANDER_EXPORT
    // @see  https://stackoverflow.com/questions/95510/how-to-detect-whether-vista-uac-is-enabled
    // @see  http://www.itwriting.com/blog/198-c-code-to-detect-uac-elevation-on-vista.html
    // @see  https://gist.github.com/cstrahan/1174974/3b7171830b9fc45b838551f628d647d410c3a99f
    // @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
-   //
-   // @see  https://stackoverflow.com/questions/1816691/how-do-i-resolve-a-canonical-filename-in-windows
-   // @see  http://pdh11.blogspot.com/2009/05/pathcanonicalize-versus-what-it-says-on.html
-   // @see  PathCanonicalize()
-   // @see  GetFinalPathNameByHandle();
-   //
-   // @see  https://blogs.msdn.microsoft.com/oldnewthing/20100212-00/?p=14963
-   // @see  https://stackoverflow.com/questions/221417/how-do-i-programmatically-access-the-target-path-of-a-windows-symbolic-link
-   //
    // @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
-
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -278,22 +267,4 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    }
    return(result);
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- *
- * @return char*
- */
-void WINAPI Test() {
-
-   char path[MAX_PATH];
-
-   if (FAILED(SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES, NULL, SHGFP_TYPE_CURRENT, path))) {
-      error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed");
-      return;
-   }
-
-   debug("path: %s", path);
-   //#pragma EXPANDER_EXPORT
 }

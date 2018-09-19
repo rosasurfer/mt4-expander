@@ -19,6 +19,7 @@
  *  GMT + Offset     = LocalTime
  */
 #include "expander.h"
+#include "util/string.h"
 
 
 /**
@@ -45,18 +46,7 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
 const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
-   int   size  = sizeof(tzi->StandardName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist
-   char* mbstr = new char[size];                            // on the heap
-
-   int bytes = wcstombs(mbstr, tzi->StandardName, size);
-   if (bytes == -1) {
-      delete[] mbstr;
-      return((char*)error(ERR_RUNTIME_ERROR, "cannot convert WCHAR string tzi->StandardName to ANSI string"));
-   }
-
-   mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
-
-   return(mbstr);                                           // TODO: Speicherleck schließen
+   return(wchartombs(tzi->StandardName, sizeof(tzi->StandardName)));       // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -100,18 +90,7 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
 const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
 
-   int   size  = sizeof(tzi->DaylightName) + 1;             // +1, damit bei fehlendem <NUL> im Struct Platz für ein weiteres Zeichen ist
-   char* mbstr = new char[size];                            // on the heap
-
-   int bytes = wcstombs(mbstr, tzi->DaylightName, size);
-   if (bytes == -1) {
-      delete[] mbstr;
-      return((char*)error(ERR_RUNTIME_ERROR, "cannot convert WCHAR string tzi->StandardName to ANSI string"));
-   }
-
-   mbstr[size-1] = '\0';                                    // String auch bei fehlendem <NUL> im Struct korrekt terminieren
-
-   return(mbstr);                                           // TODO: Speicherleck schließen
+   return(wchartombs(tzi->DaylightName, sizeof(tzi->DaylightName)));    // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
