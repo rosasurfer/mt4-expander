@@ -7,8 +7,8 @@
  * @see  https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file
  */
 #include "expander.h"
-#include "util/file.h"
-#include "util/string.h"
+#include "lib/file.h"
+#include "lib/string.h"
 
 #include "winioctl.h"
 

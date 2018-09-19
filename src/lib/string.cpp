@@ -1,6 +1,6 @@
 #include "expander.h"
+#include "lib/string.h"
 #include "struct/mt4/MqlStr.h"
-#include "util/string.h"
 
 
 /**

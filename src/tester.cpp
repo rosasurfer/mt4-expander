@@ -1,9 +1,9 @@
 #include "expander.h"
+#include "lib/conversion.h"
+#include "lib/format.h"
+#include "lib/math.h"
+#include "lib/terminal.h"
 #include "struct/xtrade/ExecutionContext.h"
-#include "util/conversion.h"
-#include "util/format.h"
-#include "util/math.h"
-#include "util/terminal.h"
 
 #include <fstream>
 #include <time.h>

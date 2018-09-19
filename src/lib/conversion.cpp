@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "util/format.h"
+#include "lib/format.h"
 
 
 /**

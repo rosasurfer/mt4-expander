@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "util/string.h"
+#include "lib/string.h"
 
 extern "C" {
 #include "etc/md5.h"
