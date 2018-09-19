@@ -4,6 +4,10 @@
 #include "struct/mt4/MqlStr.h"
 
 
+const char* WINAPI DoubleQuoteStr(const char* value);
+string      WINAPI doubleQuoteStr(const char* value);
+string      WINAPI doubleQuoteStr(const string& value);
+
 const char* WINAPI GetString(const char* value);
 uint        WINAPI GetStringAddress(const char* value);
 uint        WINAPI GetStringsAddress(const MqlStr values[]);

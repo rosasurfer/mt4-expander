@@ -1,7 +1,8 @@
 #include "expander.h"
 #include "struct/xtrade/Order.h"
+#include "util/conversion.h"
 #include "util/format.h"
-#include "util/toString.h"
+#include "util/string.h"
 
 
 /**

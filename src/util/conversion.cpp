@@ -16,52 +16,6 @@ const char* WINAPI BoolToStr(BOOL value) {
 
 
 /**
- * Wrap a std::string in double quote characters and return a std::string.
- *
- * @param  string& value
- *
- * @return string - new string
- */
-string WINAPI doubleQuoteStr(const string& value) {
-   return(string("\"").append(value).append("\""));                  // Visual Assist bug
-}
-
-
-/**
- * Wrap a C string in double quote characters and return a std::string.
- *
- * @param  char* value
- *
- * @return string - new string; the string "NULL" if a NULL pointer was specified
- */
-string WINAPI doubleQuoteStr(const char* value) {
-   if (!value)
-      return(string("NULL"));
-   return(doubleQuoteStr(string(value)));
-}
-
-
-/**
- * Wrap a C string in double quote characters and return a C string.
- *
- * @param  char* value
- *
- * @return char* - new C string; the string "NULL" if a NULL pointer was specified
- */
-const char* WINAPI DoubleQuoteStr(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   if (!value) return("NULL");
-
-   uint size = strlen(value) + 3;                                    // +2 for the quotes, +1 for the terminating '\0'
-   char* buffer = new char[size];                                    // TODO: close memory leak
-   sprintf_s(buffer, size, "\"%s\"", value);
-
-   return(buffer);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return a readable version of an MQL error code.
  *
  * @param  int error

@@ -311,6 +311,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\util\conversion.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\util\file.cpp"
 					>
 				</File>
@@ -344,10 +348,6 @@
 				</File>
 				<File
 					RelativePath=".\src\util\time.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\util\toString.cpp"
 					>
 				</File>
 			</Filter>
@@ -489,6 +489,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\util\conversion.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\util\file.h"
 					>
 				</File>
@@ -518,10 +522,6 @@
 				</File>
 				<File
 					RelativePath=".\header\util\time.h"
-					>
-				</File>
-				<File
-					RelativePath=".\header\util\toString.h"
 					>
 				</File>
 			</Filter>

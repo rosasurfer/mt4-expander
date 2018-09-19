@@ -1,7 +1,8 @@
 #include "expander.h"
 #include "struct/xtrade/ExecutionContext.h"
+#include "util/conversion.h"
 #include "util/format.h"
-#include "util/toString.h"
+#include "util/string.h"
 
 
 extern std::vector<ContextChain> g_contextChains;                    // all context chains (i.e. MQL programs, index = program id)
