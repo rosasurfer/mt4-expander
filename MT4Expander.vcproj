@@ -315,6 +315,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\util\datetime.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\util\file.cpp"
 					>
 				</File>
@@ -340,14 +344,6 @@
 				</File>
 				<File
 					RelativePath=".\src\util\terminal.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\util\ticktimer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\util\time.cpp"
 					>
 				</File>
 			</Filter>
@@ -493,6 +489,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\util\datetime.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\util\file.h"
 					>
 				</File>
@@ -514,14 +514,6 @@
 				</File>
 				<File
 					RelativePath=".\header\util\terminal.h"
-					>
-				</File>
-				<File
-					RelativePath=".\header\util\ticktimer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\header\util\time.h"
 					>
 				</File>
 			</Filter>
