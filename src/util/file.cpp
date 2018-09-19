@@ -172,7 +172,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
 
 /**
- * Resolve the target of a Windows reparse point (a symlink, junction or volume mount point).
+ * Resolve the target path of a Windows reparse point (a symlink, junction or volume mount point).
  *
  * @param  char* name - path
  *
@@ -215,21 +215,39 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
          size_t offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
-         target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);       // TODO: close memory leak
+         target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
          //debug("mount point to \"%s\"", target);
+
+         char* prefix = "\\??\\";
+         if (strncmp(target, prefix, strlen(prefix))) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (junction target doesn't start with \"%s\"): \"%s\"", prefix, target);
+         else                                         target += strlen(prefix);
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
          size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
-         target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);     // TODO: close memory leak
-         //debug("%s symlink to \"%s\"", rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE ? "relative":"absolute", target);
+         target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
+         BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
+         //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target);
+
+         if (isRelative) {
+            char drive[_MAX_DRIVE], dir[_MAX_DIR];
+            _splitpath(name, drive, dir, NULL, NULL);
+            string s = string(drive).append(dir).append(target);
+            delete[] target;
+            target = strcpy(new char[s.length()+1], s.c_str());
+         }
+         else {
+            char* prefix = "\\??\\";
+            if (strncmp(target, prefix, strlen(prefix))) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (absolute symlink target doesn't start with \"%s\"): \"%s\"", prefix, target);
+            else                                         target += strlen(prefix);
+         }
       }
-      else error(ERR_WIN32_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
+      else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
    }
-   else error(ERR_WIN32_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
+   else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
 
    free(rdata);
-   return(target);
+   return(target);                                                                           // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 

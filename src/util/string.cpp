@@ -88,8 +88,9 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
  * @return BOOL
  */
 BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
-   if (!str)    return(FALSE);
-   if (!prefix) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
+   if (!str)          return(FALSE);
+   if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
+   if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
 
    size_t strLen    = strlen(str);
    size_t prefixLen = strlen(prefix);
@@ -111,8 +112,9 @@ BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
  * @return BOOL
  */
 BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
-   if (!str)    return(FALSE);
-   if (!suffix) return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
+   if (!str)          return(FALSE);
+   if (!suffix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
+   if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
 
    size_t strLen    = strlen(str);
    size_t suffixLen = strlen(suffix);
