@@ -10,6 +10,7 @@ uint        WINAPI GetStringsAddress(const MqlStr values[]);
 BOOL        WINAPI StringCompare(const char* s1, const char* s2);
 BOOL        WINAPI StringEndsWith(const char* str, const char* suffix);
 BOOL        WINAPI StringIsNull(const char* value);
+BOOL        WINAPI StringStartsWith(const char* str, const char* prefix);
 char*       WINAPI StrToLower(char* str);
 string&     WINAPI StrToLower(string& str);
 wstring&    WINAPI StrToLower(wstring& str);

@@ -80,6 +80,29 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
 
 
 /**
+ * Whether or not a string starts with the specified substring.
+ *
+ * @param  char* str
+ * @param  char* prefix
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
+   if (!str)    return(FALSE);
+   if (!prefix) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
+
+   size_t strLen    = strlen(str);
+   size_t prefixLen = strlen(prefix);
+   if (!prefixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
+
+   if (strLen >= prefixLen)
+      return(strncmp(str, prefix, prefixLen) == 0);
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether or not a string ends with the specified substring.
  *
  * @param  char* str
@@ -89,14 +112,14 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
  */
 BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
    if (!str)    return(FALSE);
-   if (!suffix) return(warn(ERR_INVALID_PARAMETER, "invalid parameter suffix=%s", suffix));
+   if (!suffix) return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
 
    size_t strLen    = strlen(str);
    size_t suffixLen = strlen(suffix);
-   if (!suffixLen) return(warn(ERR_INVALID_PARAMETER, "illegal parameter suffix=\"\""));
+   if (!suffixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
 
    if (strLen >= suffixLen)
-      return(strncmp(str + strLen - suffixLen, suffix, suffixLen) == 0);
+      return(strcmp(str + strLen - suffixLen, suffix) == 0);
    return(FALSE);
    #pragma EXPANDER_EXPORT
 }
