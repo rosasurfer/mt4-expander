@@ -94,7 +94,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;echo Copying DLL to MQL destination folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;"
+				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;echo Copying DLL to MQL runtime libraries folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -179,7 +179,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;echo Copying DLL to MQL destination folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;"
+				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;echo Copying DLL to MetaTrader runtime libraries folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\myfx.mql\mql4\libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
