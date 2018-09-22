@@ -1,7 +1,7 @@
 #include "expander.h"
-#include "util/helper.h"
-#include "util/string.h"
-#include "util/terminal.h"
+#include "lib/helper.h"
+#include "lib/string.h"
+#include "lib/terminal.h"
 
 #include "shlobj.h"
 

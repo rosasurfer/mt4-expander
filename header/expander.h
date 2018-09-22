@@ -35,7 +35,7 @@ typedef std::wstring     wstring;
 #define DUMPMODE_HEX                   1
 #define DUMPMODE_CHAR                  2
 #define INVALID_HWND                   ((HWND)-1)
-#define MAX_CHARTDESCRIPTION_LENGTH    ((MAX_SYMBOL_LENGTH) + 1 + 7) // "SYMBOL,Monthly"
+#define MAX_CHARTDESCRIPTION_LENGTH    ((MAX_SYMBOL_LENGTH) + 1 + 7) // e.g. "SYMBOL,Monthly"
 
 
 // MQL program types (flags)

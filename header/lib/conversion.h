@@ -4,9 +4,6 @@
 
 
 const char* WINAPI BoolToStr(BOOL value);
-string      WINAPI doubleQuoteStr(const string& value);
-string      WINAPI doubleQuoteStr(const char* value);
-const char* WINAPI DoubleQuoteStr(const char* value);
 const char* WINAPI ErrorToStr(int error);
 const char* WINAPI IntToHexStr(int value);
 const char* WINAPI InitFlagsToStr(DWORD flags);

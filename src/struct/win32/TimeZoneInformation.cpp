@@ -19,7 +19,7 @@
  *  GMT + Offset     = LocalTime
  */
 #include "expander.h"
-#include "util/string.h"
+#include "lib/string.h"
 
 
 /**
