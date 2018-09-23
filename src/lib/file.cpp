@@ -68,7 +68,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
 
       DWORD attrib = GetFileAttributes(name);
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
-         char* _name = strcpy(new char[strlen(name)+1], name);                // on the heap
+         char* _name = copychars(name);                                       // on the heap
 
          int pos = strlen(_name);
          while (--pos >=0 && (_name[pos]=='\\' || _name[pos]=='/')) {         // cut-off trailing slashes
@@ -106,7 +106,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
       DWORD attrib = GetFileAttributes(name);
 
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_REPARSE_POINT)) {
-         char* _name = strcpy(new char[strlen(name)+1], name);                // on the heap
+         char* _name = copychars(name);                                       // on the heap
 
          if (attrib & FILE_ATTRIBUTE_DIRECTORY) {
             int pos = strlen(_name);
@@ -234,7 +234,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
             _splitpath(name, drive, dir, NULL, NULL);
             string s = string(drive).append(dir).append(target);
             delete[] target;
-            target = strcpy(new char[s.length()+1], s.c_str());
+            target = copychars(s);
          }
          else {
             char* prefix = "\\??\\";

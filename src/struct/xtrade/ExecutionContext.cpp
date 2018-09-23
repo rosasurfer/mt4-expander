@@ -1265,8 +1265,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", dllError="         <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="       <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << "}";
-      string str = ss.str();
-      result = strcpy(new char[str.size()+1], str.c_str());          // TODO: close memory leak
+      result = copychars(ss.str());                                  // TODO: close memory leak
    }
 
    if (outputDebug) debug(result);
