@@ -22,12 +22,12 @@ const char* WINAPI GetGlobalConfigPathA() {
       if (!commonPath) return(NULL);
 
       string iniFile = string(commonPath).append("\\global-config.ini");
-      configPath = strcpy(new char[iniFile.length()+1], iniFile.c_str());           // on the heap
+      configPath = copychars(iniFile);                                              // on the heap
 
       if (!IsFileA(configPath)) {
          int error = NO_ERROR;
 
-         if (!IsDirectoryA(commonPath)) {                                           // create the directory if needed
+         if (!IsDirectoryA(commonPath)) {                                           // make sure the directory exists
             error = SHCreateDirectoryEx(NULL, commonPath, NULL);
             if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) {        // log access errors but don't fail
                debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStr(ERR_WIN32_ERROR+error));
@@ -77,19 +77,19 @@ const char* WINAPI GetLocalConfigPathA() {
    static char* configPath = NULL;
 
    // 1. check if a config file exists in the roaming data directory
-   // 1.1  yes => use it (log permission errors but don't fail)
+   // 1.1  yes => use it
    // 1.2  no
-   //     2.  check if the terminal was launched in portable mode
-   //     2.1  yes
-   //          3.  check if a config file exists in the terminal's installation directory
-   //          3.1  yes => use it (log permission errors but don't fail)
-   //          3.2  no  => request write permission
-   //               4.1  permission granted => create a file in the terminal's installation directory and use it
-   //               4.2  permission denied  => create a file in the user's roaming data directory and use it
-   //     2.2  no
-   //          5.  check if the terminal is installed in the system's program folder
-   //          5.1  yes => continue with 4.2
-   //          5.2  no => continue with 3.
+   //      2. check if the terminal was launched in portable mode
+   //      2.1  yes
+   //           3. check if a config file exists in the terminal's installation directory
+   //           3.1  yes => use it
+   //           3.2  no  => check write permission
+   //                4.1  permission granted => create a file in the terminal's installation directory and use it
+   //                4.2  permission denied  => create a file in the user's roaming data directory and use it
+   //      2.2  no
+   //           5. check if the terminal is installed in the system's program folder
+   //           5.1  yes => continue with 4.2
+   //           5.2  no  => continue with 3.
    //
 
    if (!configPath) {
@@ -108,10 +108,18 @@ const char* WINAPI GetLocalConfigPathA() {
                if (hFile == HFILE_ERROR) {
                   debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                   // 4.2 permission denied => create a file in the roaming data directory
-                  filename = string(roamingDataPath).append("\\local-config.ini");
-                  hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
-                  if (hFile == HFILE_ERROR) debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
-                  else                      _lclose(hFile);
+                  int error = NO_ERROR;
+                  if (!IsDirectoryA(roamingDataPath)) {                                      // make sure the directory exists
+                     error = SHCreateDirectoryEx(NULL, roamingDataPath, NULL);               // log errors but continue
+                     if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
+                     else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
+                  }
+                  if (!error) {
+                     filename = string(roamingDataPath).append("\\local-config.ini");
+                     hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
+                     if (hFile == HFILE_ERROR) debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
+                     else                      _lclose(hFile);
+                  }
                }
                else _lclose(hFile); // 4.1 permission granted
             }
@@ -139,10 +147,18 @@ const char* WINAPI GetLocalConfigPathA() {
                   if (hFile == HFILE_ERROR) {
                      debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                      // 4.2 permission denied => create a file in the roaming data directory
-                     filename = string(roamingDataPath).append("\\local-config.ini");
-                     hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
-                     if (hFile == HFILE_ERROR) debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
-                     else                      _lclose(hFile);
+                     int error = NO_ERROR;
+                     if (!IsDirectoryA(roamingDataPath)) {                                   // make sure the directory exists
+                        error = SHCreateDirectoryEx(NULL, roamingDataPath, NULL);            // log errors but continue
+                        if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
+                        else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
+                     }
+                     if (!error) {
+                        filename = string(roamingDataPath).append("\\local-config.ini");
+                        hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
+                        if (hFile == HFILE_ERROR) debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
+                        else                      _lclose(hFile);
+                     }
                   }
                   else _lclose(hFile); // 4.1 permission granted
                }
