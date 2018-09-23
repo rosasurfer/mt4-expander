@@ -70,23 +70,23 @@ BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* bui
       while (length >= size) {
          size   <<= 1;
          fileName = (char*) alloca(size);                               // on the stack
-         length   = GetModuleFileName(NULL, fileName, size);
+         length   = GetModuleFileName(NULL, fileName, size);            // may return a path longer than MAX_PATH
       }
-      if (!length) return(error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName() failed"));
+      if (!length) return(error(ERR_WIN32_ERROR+GetLastError(), "=> GetModuleFileName()"));
 
       // get the file's version info
       DWORD infoSize = GetFileVersionInfoSize(fileName, &infoSize);
-      if (!infoSize) return(error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize() returned 0"));
+      if (!infoSize) return(error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfoSize()"));
 
       char* infoBuffer = (char*) alloca(infoSize);                      // on the stack
       BOOL result = GetFileVersionInfo(fileName, NULL, infoSize, infoBuffer);
-      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfo() returned FALSE"));
+      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfo()"));
 
       // query the version root values
       VS_FIXEDFILEINFO* fileInfo;
       uint len;
       result = VerQueryValue(infoBuffer, "\\", (LPVOID*)&fileInfo, &len);
-      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValue() returned FALSE"));
+      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "=> VerQueryValue()"));
 
       // parse the version numbers
       resultMajor  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
@@ -114,12 +114,18 @@ const char* WINAPI GetTerminalPathA() {
    static char* result = NULL;
 
    if (!result) {
-      result = new char[MAX_PATH];                                   // on the heap
-      GetModuleFileName(NULL, result, MAX_PATH);                     // TODO: handle errors
+      char* fileName;
+      uint size = MAX_PATH >> 1, length=size;
+      while (length >= size) {
+         size   <<= 1;
+         fileName = (char*) alloca(size);                            // on the stack
+         length   = GetModuleFileName(NULL, fileName, size);         // may return a path longer than MAX_PATH
+      }
+      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetModuleFileName()"));
 
+      result = copychars(fileName);                                  // on the heap
       string name(result);
-      string::size_type pos = name.find_last_of("\\");
-      result[pos] = '\0';
+      result[name.find_last_of("\\")] = 0;
    }
    return(result);
 }
@@ -134,12 +140,19 @@ const wstring& WINAPI GetTerminalPathWs() {
    static wstring result;
 
    if (result.empty()) {
-      wchar_t buffer[MAX_PATH];                                      // on the stack
-      GetModuleFileNameW(NULL, buffer, MAX_PATH);                    // TODO: handle errors
-
-      wstring name(buffer);
-      wstring::size_type pos = name.find_last_of(L"\\");
-      result = name.substr(0, pos);
+      wchar_t* fileName;
+      uint size = MAX_PATH >> 1, length=size;
+      while (length >= size) {
+         size   <<= 1;
+         fileName = (wchar_t*) alloca(size);                         // on the stack
+         length   = GetModuleFileNameW(NULL, fileName, size);        // may return a path longer than MAX_PATH
+      }
+      if (!length) {
+         error(ERR_WIN32_ERROR+GetLastError(), "=> GetModuleFileName()");
+         return(result);
+      }
+      wstring str(fileName);
+      result = str.substr(0, str.find_last_of(L"\\"));
    }
    return(result);
 }
@@ -148,23 +161,15 @@ const wstring& WINAPI GetTerminalPathWs() {
 /**
  * Return the full path of the data directory the terminal currently uses.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @param  _In_     char* filename - path to a guiding data file in the "files" directory accessible to MQL
+ * @param  _In_Out_ int*  status   - in:  MQL error status when creating the file
+ *                                   out: error status indicating the error detail of the function (if any)
  *
- *
- * @see  https://www.mql5.com/en/articles/1388
- * @see  GetTerminalRoamingDataPath() to get the path of the roaming data directory (which might currently not be in use)
+ * @return char* - data directory name or a NULL pointer in case of errors with parameter error containing the error detail
  */
-const char* WINAPI GetTerminalDataPathA() {
-   //if (hstPath && (uint)hstPath < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hstPath = 0x%p (not a valid pointer)", hstPath));
-   //
-   // @param  _In_ char* hstPath - path to a guiding history file; may not be needed if the terminal's data directory has already
-   //                              been resolved before
-   //
-   // @return char* - Directory name without trailing path separator or a NULL pointer in case of errors. The function always
-   //                 resets EXECUTION_CONTEXT.dllError. If NULL is returned and EXECUTION_CONTEXT.dllError doesn't indicate an
-   //                 actual error the terminal's data directory cannot be resolved without a guiding history file in parameter
-   //                 hstPath.
-   //
+const char* WINAPI GetTerminalDataPathA(const char* filename, int* status) {
+   if (filename && (uint)filename < MIN_VALID_POINTER) return((char*)error(*status=ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+   if (status   && (uint)status   < MIN_VALID_POINTER) return((char*)error(        ERR_INVALID_PARAMETER, "invalid parameter status: 0x%p (not a valid pointer)", status));
    //
    // VirtualStore: File and Registry Virtualization (since Vista)
    // ============================================================
@@ -172,9 +177,9 @@ const char* WINAPI GetTerminalDataPathA() {
    // - Affected programs cannot tell the difference between their native folder and the VirtualStore.
    // - File changes are redirected to %UserProfile%\AppData\Local\VirtualStore.
    // - Protected file system locations (including subfolders):
-   //   %ProgramFiles%    (e.g. C:\Program Files)
-   //   %AllUsersProfile% (e.g. C:\ProgramData – was previously C:\Documents and Settings\All Users)
-   //   %SystemRoot%      (e.g. C:\Windows)
+   //   %ProgramFiles%     e.g. "C:\Program Files"
+   //   %AllUsersProfile%  e.g. "C:\ProgramData" (previously "C:\Documents and Settings\All Users")
+   //   %SystemRoot%       e.g. "C:\Windows"
    //
    //
    // Roaming Data Directory (since Terminal build 600)
@@ -184,38 +189,49 @@ const char* WINAPI GetTerminalDataPathA() {
    //   • If the current user has limited rights to write data to the installation directory.
    // - If none of the above conditions is met terminal data is stored in the installation directory.
    //
+   //
+   // @see  https://www.mql5.com/en/articles/1388
+   // @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
+   // @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
+   //
+   *status = ERROR_SUCCESS;
 
 
-   // old builds: installation directory or VirtualStore => we rely on virtualization
-   if (GetTerminalBuild() <= 509)
+   // old builds and new builds in portable mode: installation directory or virtual store (we rely on WoW64 redirection)
+   if (TerminalIsPortableMode())
       return(GetTerminalPathA());
 
+   // new builds: installation directory, on restricted access roaming data directory
 
-   // new builds: installation directory or roaming data directory
-   static char* result = NULL;
-   if (!result) {
-      debug("build %d", GetTerminalBuild());
-
-      const char* terminalPath = GetTerminalPathA();
-      debug("installation path: %s", terminalPath);
-
-      const char* roamingDataPath = GetTerminalRoamingDataPathA();
-      debug("roaming data path: %s", roamingDataPath);
-
-      string logfile = string(roamingDataPath) +"\\logs\\20180915.log";
-
-      HFILE hFile = _lopen(logfile.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
-      if (hFile == HFILE_ERROR) return((char*)warn(ERR_WIN32_ERROR+GetLastError(), "error opening logfile with OF_READWRITE|OF_SHARE_EXCLUSIVE"));
-      _lclose(hFile);
-      debug("successfully opened the logfile with OF_READWRITE|OF_SHARE_EXCLUSIVE");
+   /*
+   if (!IsFile(terminalModule)) {
+      // MetaTrader tries to delete links by removing it's own parent directory
+      // data path is roaming directory
    }
-   return(result);
+   else {
+   }
+
+
+
+   if (installDirInProgramFiles) {
+   }
+   else {
+   }
+
+
+   const char* terminalPath    = GetTerminalPathA();
+   const char* roamingDataPath = GetTerminalRoamingDataPathA();
+
+   string logfile = string(roamingDataPath) +"\\logs\\20180915.log";
+
+   HFILE hFile = _lopen(logfile.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
+   if (hFile == HFILE_ERROR) return((char*)warn(ERR_WIN32_ERROR+GetLastError(), "error opening logfile with OF_READWRITE|OF_SHARE_EXCLUSIVE"));
+   _lclose(hFile);
+   debug("successfully opened the logfile with OF_READWRITE|OF_SHARE_EXCLUSIVE");
+   */
+
+   return(NULL);
    #pragma EXPANDER_EXPORT
-   // @see  https://stackoverflow.com/questions/95510/how-to-detect-whether-vista-uac-is-enabled
-   // @see  http://www.itwriting.com/blog/198-c-code-to-detect-uac-elevation-on-vista.html
-   // @see  https://gist.github.com/cstrahan/1174974/3b7171830b9fc45b838551f628d647d410c3a99f
-   // @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
-   // @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
 }
 
 
@@ -233,7 +249,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
       result = copychars(dir);                                                         // on the heap
@@ -258,7 +274,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
 
       wstring terminalPath = GetTerminalPathWs();                                      // get terminal installation path
       StrToUpper(terminalPath);                                                        // convert to upper case
