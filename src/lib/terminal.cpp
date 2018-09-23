@@ -3,8 +3,8 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
-#include "shellapi.h"
-#include "shlobj.h"
+#include <shellapi.h>
+#include <shlobj.h>
 
 
 /**
@@ -288,7 +288,7 @@ BOOL WINAPI TerminalIsPortableMode() {
 
    if (result < 0) {
       if (GetTerminalBuild() <= 509) {
-         result = TRUE;                                        // always TRUE, on access errors the system use virtualization
+         result = TRUE;                                        // always TRUE, on access errors the system uses virtualization
       }
       else {
          int argc;

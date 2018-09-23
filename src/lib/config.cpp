@@ -4,7 +4,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
-#include "shlobj.h"
+#include <shlobj.h>
 
 
 /**
