@@ -3,6 +3,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
+#include "shellapi.h"
 #include "shlobj.h"
 
 
@@ -244,7 +245,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * Depending on terminal version and runtime mode the currently used data directory may differ.
  *
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
- *                 i.e. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installationId}
+ *                 i.e. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}"
  *
  * @see  GetTerminalDataPath() to get the path of the data directory currently used
  */
@@ -264,6 +265,36 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
                                       .append(StrToUpper(md5));
       delete[] md5;
       result = strcpy(new char[dir.length()+1], dir.c_str());                          // on the heap
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not the terminal was launched in portable mode.
+ *
+ * Bug: The terminal's command line parser checks parameters incorrectly. It also enables the "portable mode" switch if one
+ *      of the command line parameters *starts* with the string "/portable" (e.g. "/portablepoo" enables portable mode too).
+ *      The logic of this function mirrors the bug.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI TerminalIsPortableMode() {
+   static int result = -1;
+   if (result < 0) {
+      const wchar_t* cmdLine = GetCommandLineW();
+      int argc;
+      LPWSTR* argv = CommandLineToArgvW(cmdLine, &argc);
+
+      for (int i=1; i < argc; ++i) {
+         if (StringStartsWith(argv[i], L"/portable")) {           // StartsWith() instead of Compare()
+            result = TRUE;
+            break;
+         }
+      }
+      if (result < 0)
+         result = FALSE;
    }
    return(result);
    #pragma EXPANDER_EXPORT

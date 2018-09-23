@@ -150,6 +150,30 @@ BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
 
 
 /**
+ * Whether or not a string starts with the specified substring.
+ *
+ * @param  wchar_t* str
+ * @param  wchar_t* prefix
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
+   if (!str)          return(FALSE);
+   if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
+   if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
+
+   size_t strLen    = wcslen(str);
+   size_t prefixLen = wcslen(prefix);
+   if (!prefixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
+
+   if (strLen >= prefixLen)
+      return(wcsncmp(str, prefix, prefixLen) == 0);
+   return(FALSE);
+   //#pragma EXPANDER_EXPORT                                         // not exported
+}
+
+
+/**
  * Whether or not a string ends with the specified substring.
  *
  * @param  char* str

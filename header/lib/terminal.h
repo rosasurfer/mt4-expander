@@ -11,3 +11,4 @@ const wstring& WINAPI GetTerminalPathWs();
 const char*    WINAPI GetTerminalRoamingDataPathA();
 const char*    WINAPI GetTerminalVersion();
 BOOL           WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build);
+BOOL           WINAPI TerminalIsPortableMode();

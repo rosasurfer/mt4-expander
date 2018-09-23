@@ -16,6 +16,7 @@ BOOL        WINAPI StringIsNull(const char* value);
 BOOL        WINAPI StringCompare(const char* s1, const char* s2);
 BOOL        WINAPI StringEndsWith(const char* str, const char* suffix);
 BOOL        WINAPI StringStartsWith(const char* str, const char* prefix);
+BOOL        WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix);
 
 char*       WINAPI StrToLower(char* str);
 string&     WINAPI StrToLower(string& str);
@@ -29,3 +30,7 @@ uint        WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t dest
 char*              wchartombs(const wchar_t* str);
 char*              wchartombs(const wchar_t* sequence, size_t count);
 char*              wchartombs(const wstring& str);
+
+inline char*       copychars(const char*   str) { return(strcpy(new char[strlen(str)+1 ], str));         };
+inline char*       copychars(const string& str) { return(strcpy(new char[str.length()+1], str.c_str())); };
+
