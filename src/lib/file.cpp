@@ -5,12 +5,49 @@
  *
  * Naming Files, Paths, and Namespaces
  * @see  https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file
+ *
  */
 #include "expander.h"
 #include "lib/file.h"
 #include "lib/string.h"
 
+#include <shlobj.h>
 #include <winioctl.h>
+
+
+/**
+ * Create a directory recursively. No error is returned if the directory already exists.
+ *
+ * @param  char* path - full directory path
+ *
+ * @return int - ERROR_SUCCESS or an error code
+ */
+int WINAPI CreateDirectoryRecursive(const char* path) {
+   if ((uint)path < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+
+   int error = SHCreateDirectoryEx(NULL, path, NULL);
+
+   if (error==ERROR_FILE_EXISTS || error==ERROR_ALREADY_EXISTS)
+      error = ERROR_SUCCESS;
+   return(error);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Create a directory recursively. No error is returned if the directory already exists.
+ *
+ * @param  string& path - full directory path
+ *
+ * @return int - ERROR_SUCCESS or an error code
+ */
+int WINAPI CreateDirectoryRecursive(const string& path) {
+   int error = SHCreateDirectoryEx(NULL, path.c_str(), NULL);
+
+   if (error==ERROR_FILE_EXISTS || error==ERROR_ALREADY_EXISTS)
+      error = ERROR_SUCCESS;
+   return(error);
+}
 
 
 /**

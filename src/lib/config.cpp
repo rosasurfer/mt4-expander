@@ -25,28 +25,16 @@ const char* WINAPI GetGlobalConfigPathA() {
       configPath = copychars(iniFile);                                              // on the heap
 
       if (!IsFileA(configPath)) {
-         int error = NO_ERROR;
-
-         if (!IsDirectoryA(commonPath)) {                                           // make sure the directory exists
-            error = SHCreateDirectoryEx(NULL, commonPath, NULL);
-            if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) {        // log access errors but don't fail
-               debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStr(ERR_WIN32_ERROR+error));
-            }
-            else if (error) {                                                       // signal hard errors but don't fail
-               error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", commonPath);
-            }
-         }
+         int error = CreateDirectoryRecursive(commonPath);                          // make sure the directory exists
+         if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStr(ERR_WIN32_ERROR+error));
+         else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", commonPath);
 
          if (!error) {                                                              // try to create the file
             HFILE hFile = _lcreat(configPath, FILE_ATTRIBUTE_NORMAL);
             if (hFile == HFILE_ERROR) {
-               error = GetLastError();
-               if (error == ERROR_ACCESS_DENIED) {                                  // log access errors but don't fail
-                  debug("cannot create file \"%s\"  [%s]", configPath, ErrorToStr(ERR_WIN32_ERROR+error));
-               }
-               else {                                                               // signal hard errors but don't fail
-                  error(ERR_WIN32_ERROR+error, "cannot create file \"%s\"", configPath);
-               }
+               error = GetLastError();                                              // log errors but continue
+               if (error == ERROR_ACCESS_DENIED) debug("cannot create file \"%s\"  [%s]", configPath, ErrorToStr(ERR_WIN32_ERROR+error));
+               else                              error(ERR_WIN32_ERROR+error, "cannot create file \"%s\"", configPath);
             }
             else _lclose(hFile);
          }
@@ -108,12 +96,9 @@ const char* WINAPI GetLocalConfigPathA() {
                if (hFile == HFILE_ERROR) {
                   debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                   // 4.2 permission denied => create a file in the roaming data directory
-                  int error = NO_ERROR;
-                  if (!IsDirectoryA(roamingDataPath)) {                                      // make sure the directory exists
-                     error = SHCreateDirectoryEx(NULL, roamingDataPath, NULL);               // log errors but continue
-                     if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
-                     else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
-                  }
+                  int error = CreateDirectoryRecursive(roamingDataPath);                     // make sure the directory exists
+                  if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
+                  else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
                   if (!error) {
                      filename = string(roamingDataPath).append("\\local-config.ini");
                      hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
@@ -131,7 +116,7 @@ const char* WINAPI GetLocalConfigPathA() {
             if (FAILED(SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES, NULL, SHGFP_TYPE_CURRENT, programFilesPath)))
                return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
 
-            // TODO: resolve symlinks/junctions in TerminalPath() before Comparison
+            // TODO: resolve reparse points in TerminalPath() before comparison
 
             if (StringStartsWith(GetTerminalPathA(), programFilesPath)) {
                // 5.1 yes => continue with 4.2 => create a file in the roaming data directory
@@ -147,12 +132,9 @@ const char* WINAPI GetLocalConfigPathA() {
                   if (hFile == HFILE_ERROR) {
                      debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                      // 4.2 permission denied => create a file in the roaming data directory
-                     int error = NO_ERROR;
-                     if (!IsDirectoryA(roamingDataPath)) {                                   // make sure the directory exists
-                        error = SHCreateDirectoryEx(NULL, roamingDataPath, NULL);            // log errors but continue
-                        if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
-                        else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
-                     }
+                     int error = CreateDirectoryRecursive(roamingDataPath);                  // make sure the directory exists
+                     if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
+                     else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
                      if (!error) {
                         filename = string(roamingDataPath).append("\\local-config.ini");
                         hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
