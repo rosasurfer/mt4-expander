@@ -5,7 +5,7 @@
 
 uint           WINAPI GetTerminalBuild();
 const char*    WINAPI GetTerminalCommonDataPathA();
-const char*    WINAPI GetTerminalDataPathA();
+const char*    WINAPI GetTerminalDataPathA(const char* filename, int* status);
 const char*    WINAPI GetTerminalPathA();
 const wstring& WINAPI GetTerminalPathWs();
 const char*    WINAPI GetTerminalRoamingDataPathA();

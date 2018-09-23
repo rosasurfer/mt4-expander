@@ -59,7 +59,7 @@ int WINAPI CreateDirectoryRecursive(const string& path) {
  */
 BOOL WINAPI IsDirectoryA(const char* name) {
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
       return(attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY));
@@ -78,7 +78,7 @@ BOOL WINAPI IsDirectoryA(const char* name) {
  */
 BOOL WINAPI IsFileA(const char* name) {
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
       return(attrib!=INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
@@ -101,7 +101,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
@@ -138,7 +138,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
 
@@ -175,7 +175,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
  * @return char* - resolved name in "\\?\" or UNC format or a NULL pointer in case of errors
  */
 const char* WINAPI GetFinalPathNameA(const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    HANDLE hFile = CreateFile(name,                                                     // file name
                              GENERIC_READ, FILE_SHARE_READ,                            // open for shared reading
@@ -201,7 +201,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
    if (!len) {
       delete[] path;
-      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle() failed"));
+      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFinalPathNameByHandle()"));
    }
    return(path);                                                                       // TODO: close memory leak
    #pragma EXPANDER_EXPORT

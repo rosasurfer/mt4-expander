@@ -17,11 +17,11 @@ datetime WINAPI GetGmtTime() {
    ULARGE_INTEGER ulintNow, ulint1970;
 
    GetSystemTime(&stNow);
-   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(error(ERR_WIN32_ERROR+GetLastError(), "=> SystemTimeToFileTime()"));
    ulintNow.LowPart   = ftNow.dwLowDateTime;
    ulintNow.HighPart  = ftNow.dwHighDateTime;
 
-   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(error(ERR_WIN32_ERROR+GetLastError(), "=> SystemTimeToFileTime()"));
    ulint1970.LowPart  = ft1970.dwLowDateTime;
    ulint1970.HighPart = ft1970.dwHighDateTime;
 
@@ -43,11 +43,11 @@ datetime WINAPI GetLocalTime() {
    ULARGE_INTEGER ulintNow, ulint1970;
 
    GetLocalTime(&stNow);
-   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&stNow, &ftNow))   return(error(ERR_WIN32_ERROR+GetLastError(), "=> SystemTimeToFileTime()"));
    ulintNow.LowPart   = ftNow.dwLowDateTime;
    ulintNow.HighPart  = ftNow.dwHighDateTime;
 
-   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToFileTime() failed"));
+   if (!SystemTimeToFileTime(&st1970, &ft1970)) return(error(ERR_WIN32_ERROR+GetLastError(), "=> SystemTimeToFileTime()"));
    ulint1970.LowPart  = ft1970.dwLowDateTime;
    ulint1970.HighPart = ft1970.dwHighDateTime;
 
@@ -105,7 +105,7 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
          return;
       }
    }
-   warn(ERR_RUNTIME_ERROR, "timer not found, timerId = %d", timerId);
+   warn(ERR_RUNTIME_ERROR, "timer not found, timerId: %d", timerId);
 }
 
 
@@ -129,10 +129,10 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
    // Parametervalidierung
    DWORD wndThreadId = GetWindowThreadProcessId(hWnd, NULL);
    if (wndThreadId != GetCurrentThreadId()) {
-      if (!wndThreadId)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd = %p (not a window)", hWnd));
-                                                          return(error(ERR_INVALID_PARAMETER, "window hWnd = %p not owned by the current thread", hWnd));
+      if (!wndThreadId)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %p (not a window)", hWnd));
+                                                          return(error(ERR_INVALID_PARAMETER, "window hWnd=%p not owned by the current thread", hWnd));
    }
-   if (millis <= 0)                                       return(error(ERR_INVALID_PARAMETER, "invalid parameter millis = %d", millis));
+   if (millis <= 0)                                       return(error(ERR_INVALID_PARAMETER, "invalid parameter millis: %d", millis));
    if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter flags combination: TICK_CHART_REFRESH & TICK_TESTER"));
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
@@ -143,7 +143,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
    // Timer setzen
    uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
    if (result != timerId)                             // muß stimmen, da hWnd immer != NULL
-      return(error(ERR_WIN32_ERROR+GetLastError(), "SetTimer(hWnd=%p, timerId=%d, millis=%d) failed with %d", hWnd, timerId, millis, result));
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=> SetTimer(hWnd=%p, timerId=%d, millis=%d) => %d", hWnd, timerId, millis, result));
    //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
 
    // Timerdaten speichern
@@ -163,19 +163,19 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI RemoveTickTimer(int timerId) {
-   if (timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId = %d", timerId));
+   if (timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId: %d", timerId));
    int size = tickTimers.size();
 
    for (int i=0; i < size; i++) {
       if (tickTimers[i].id == timerId) {
          if (!KillTimer(tickTimers[i].hWnd, timerId))
-            return(error(ERR_WIN32_ERROR+GetLastError(), "KillTimer(hWnd=%p, timerId=%d) failed", tickTimers[i].hWnd, timerId));
+            return(error(ERR_WIN32_ERROR+GetLastError(), "=> KillTimer(hWnd=%p, timerId=%d)", tickTimers[i].hWnd, timerId));
          tickTimers.erase(tickTimers.begin() + i);
          return(TRUE);
       }
    }
 
-   return(error(ERR_RUNTIME_ERROR, "timer not found: id = %d", timerId));
+   return(error(ERR_RUNTIME_ERROR, "timer not found, id: %d", timerId));
    #pragma EXPANDER_EXPORT
 }
 
@@ -189,7 +189,7 @@ void WINAPI RemoveTickTimers() {
 
    for (int i=size-1; i>=0; i--) {                 // rückwärts, da der Vector in RemoveTickTimer() modifiziert wird
       uint id = tickTimers[i].id;
-      warn(NO_ERROR, "removing orphaned tickTimer with id = %d", id);
+      warn(NO_ERROR, "removing orphaned tickTimer with id: %d", id);
       RemoveTickTimer(id);
    }
 }
