@@ -13,6 +13,9 @@
  * @return uint - build number or 0 in case of errors
  */
 uint WINAPI GetTerminalBuild() {
+
+   // TODO: some old builds don't use the standard version string format "major.minor.hotfix.build"
+
    uint dummy, build;
    if (!GetTerminalVersion(&dummy, &dummy, &dummy, &build))
       return(NULL);
@@ -233,7 +236,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath() failed"));
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
-      result = strcpy(new char[dir.length()+1], dir.c_str());                          // on the heap
+      result = copychars(dir);                                                         // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
@@ -263,8 +266,8 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
                                       .append(StrToUpper(md5));
+      result = copychars(dir);                                                         // on the heap
       delete[] md5;
-      result = strcpy(new char[dir.length()+1], dir.c_str());                          // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
@@ -282,19 +285,24 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
  */
 BOOL WINAPI TerminalIsPortableMode() {
    static int result = -1;
-   if (result < 0) {
-      const wchar_t* cmdLine = GetCommandLineW();
-      int argc;
-      LPWSTR* argv = CommandLineToArgvW(cmdLine, &argc);
 
-      for (int i=1; i < argc; ++i) {
-         if (StringStartsWith(argv[i], L"/portable")) {           // StartsWith() instead of Compare()
-            result = TRUE;
-            break;
-         }
+   if (result < 0) {
+      if (GetTerminalBuild() <= 509) {
+         result = TRUE;                                        // always TRUE, on access errors the system use virtualization
       }
-      if (result < 0)
-         result = FALSE;
+      else {
+         int argc;
+         LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+         for (int i=1; i < argc; ++i) {
+            if (StringStartsWith(argv[i], L"/portable")) {     // StartsWith() instead of Compare()
+               result = TRUE;
+               break;
+            }
+         }
+         if (result < 0)
+            result = FALSE;
+      }
    }
    return(result);
    #pragma EXPANDER_EXPORT
