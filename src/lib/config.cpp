@@ -62,8 +62,7 @@ const char* WINAPI GetGlobalConfigPathA() {
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\1DAFD9A7C67DC84FE37EAA1FC1E5CF75\local-config.ini".
  */
 const char* WINAPI GetLocalConfigPathA() {
-   static char* configPath = NULL;
-
+   //
    // 1. check if a config file exists in the roaming data directory
    // 1.1  yes => use it
    // 1.2  no
@@ -79,6 +78,7 @@ const char* WINAPI GetLocalConfigPathA() {
    //           5.1  yes => continue with 4.2
    //           5.2  no  => continue with 3.
    //
+   static char* configPath = NULL;
 
    if (!configPath) {
       // 1. check if a config file exists in the roaming data directory
@@ -96,7 +96,7 @@ const char* WINAPI GetLocalConfigPathA() {
                if (hFile == HFILE_ERROR) {
                   debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                   // 4.2 permission denied => create a file in the roaming data directory
-                  int error = CreateDirectoryRecursive(roamingDataPath);                     // make sure the directory exists
+                  int error = CreateDirectoryRecursive(roamingDataPath);                  // make sure the directory exists
                   if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
                   else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
                   if (!error) {
@@ -112,7 +112,7 @@ const char* WINAPI GetLocalConfigPathA() {
          else {
             // 2.2 terminal was not launched in portable mode
             //  => 5. check if the terminal is installed in the system's program folder
-            char programFilesPath[MAX_PATH];             // resolve CSIDL_PROGRAM_FILES
+            char programFilesPath[MAX_PATH];                                              // resolve CSIDL_PROGRAM_FILES
             if (FAILED(SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES, NULL, SHGFP_TYPE_CURRENT, programFilesPath)))
                return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
 
@@ -127,12 +127,13 @@ const char* WINAPI GetLocalConfigPathA() {
             else {
                // 5.2 no => continue with 3 => check if a config file exists in the installation directory
                filename = string(GetTerminalPathA()).append("\\local-config.ini");
-               if (!IsFileA(filename.c_str())) {   // use it or 3.2 no => 4. attempt to create it
+               if (!IsFileA(filename.c_str())) {
+                  // use it or 3.2 no => 4. attempt to create it
                   HFILE hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
                   if (hFile == HFILE_ERROR) {
                      debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                      // 4.2 permission denied => create a file in the roaming data directory
-                     int error = CreateDirectoryRecursive(roamingDataPath);                  // make sure the directory exists
+                     int error = CreateDirectoryRecursive(roamingDataPath);               // make sure the directory exists
                      if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
                      else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
                      if (!error) {

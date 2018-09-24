@@ -31,6 +31,6 @@ char*              wchartombs(const wchar_t* str);
 char*              wchartombs(const wchar_t* sequence, size_t count);
 char*              wchartombs(const wstring& str);
 
-inline char*       copychars(const char*   str) { return(strcpy(new char[strlen(str)+1 ], str));         };
+inline char*       copychars(const char*   str) { return(strcpy(new char[strlen(str) +1], str));         };
 inline char*       copychars(const string& str) { return(strcpy(new char[str.length()+1], str.c_str())); };
-
+inline WCHAR*      copywchars(const WCHAR* str) { return(wcscpy(new WCHAR[wcslen(str)+1], str));         };

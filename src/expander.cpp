@@ -125,7 +125,7 @@ void __debug(const char* fileName, const char* funcName, int line, const char* f
    char* buffer = (char*)alloca(size);                                           // on the stack
    sprintf_s(buffer, size, locationFormat, baseName, ext, funcName, line, msg);
 
-   // output
+   // @see  http://www.unixwiz.net/techtips/outputdebugstring.html
    OutputDebugString(buffer);
 }
 
@@ -183,7 +183,7 @@ void __warn(const char* fileName, const char* funcName, int line, int code, cons
    else _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
    // insert the call location at the beginning of the message
-   char* locationFormat = "MetaTrader::%s%s::%s(%d)  WARN: %s";
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  WARN: %s";
    size = _scprintf(locationFormat, baseName, ext, funcName, line, msg) + 1;           // +1 for the terminating '\0'
    char* locationMsg = (char*)alloca(size);                                            // on the stack
    sprintf_s(locationMsg, size, locationFormat, baseName, ext, funcName, line, msg);
@@ -265,7 +265,7 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
    else _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, _MAX_FNAME, ext, _MAX_EXT);
 
    // insert the call location at the beginning of the message
-   char* locationFormat = "MetaTrader::%s%s::%s(%d)  ERROR: %s  [%s]";
+   char* locationFormat = "MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]";
    const char* sError   = ErrorToStr(code);
    size = _scprintf(locationFormat, baseName, ext, funcName, line, msg, sError) + 1;   // +1 for the terminating '\0'
    char* fullMsg = (char*) alloca(size);                                               // on the stack
