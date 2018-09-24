@@ -134,7 +134,7 @@ const char* WINAPI GetTerminalPathA() {
 /**
  * Return the name of the terminal's installation directory.
  *
- * @return wstring* - directory name without trailing path separator
+ * @return wstring& - directory name without trailing path separator
  */
 const wstring& WINAPI GetTerminalPathWs() {
    static wstring result;
@@ -144,7 +144,7 @@ const wstring& WINAPI GetTerminalPathWs() {
       uint size = MAX_PATH >> 1, length=size;
       while (length >= size) {
          size   <<= 1;
-         fileName = (wchar_t*) alloca(size);                         // on the stack
+         fileName = (wchar_t*) alloca(size * sizeof(WCHAR));         // on the stack
          length   = GetModuleFileNameW(NULL, fileName, size);        // may return a path longer than MAX_PATH
       }
       if (!length) {
