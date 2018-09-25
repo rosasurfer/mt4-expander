@@ -13,7 +13,7 @@ extern std::vector<ContextChain> g_contextChains;              // all context ch
 extern std::vector<DWORD>        g_threads;                    // all known threads executing MQL programs
 extern std::vector<uint>         g_threadsPrograms;            // the last MQL program executed by a thread
 extern uint                      g_lastUIThreadProgram;        // the last MQL program executed by the UI thread
-extern CRITICAL_SECTION          g_terminalLock;               // application wide lock
+extern CRITICAL_SECTION          g_terminalMutex;              // mutex for application-wide locking
 
 
 /**
@@ -143,12 +143,15 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          chain.push_back(master);                                    // Master- und Hauptkontext in der Chain speichern
          chain.push_back(ec);
 
-         EnterCriticalSection(&g_terminalLock);
+         if (!TryEnterCriticalSection(&g_terminalMutex)) {
+            debug("waiting to aquire lock on: g_terminalMutex");
+            EnterCriticalSection(&g_terminalMutex);
+         }
          g_contextChains.push_back(chain);                           // Chain in der Chain-Liste speichern
          uint size = g_contextChains.size();                         // g_contextChains.size ist immer > 1 (index[0] bleibt frei)
          master->programIndex = ec->programIndex = size-1;           // neuen Programm-Index dem Master- und Hauptkontext zuweisen
          //debug("%s::init()  programIndex=0  %snew chain => index=%d  thread=%s  hChart=%d", programName, (IsUIThread() ? "UI  ":""), ec->programIndex, IsUIThread() ? "UI":to_string(GetCurrentThreadId()).c_str(), hChart);
-         LeaveCriticalSection(&g_terminalLock);
+         LeaveCriticalSection(&g_terminalMutex);
 
          // get last program executed by the current thread and store the currently executed one (asap)
          uint index = StoreThreadAndProgram(0);
@@ -1080,12 +1083,15 @@ DWORD WINAPI StoreThreadAndProgram(uint programIndex) {
    }
 
    if (currentThreadIndex == -1) {                                   // current thread not found
-      EnterCriticalSection(&g_terminalLock);
+      if (!TryEnterCriticalSection(&g_terminalMutex)) {
+         debug("waiting to aquire lock on: g_terminalMutex");
+         EnterCriticalSection(&g_terminalMutex);
+      }
       g_threads        .push_back(currentThread);                    // add current thread to the list
       g_threadsPrograms.push_back(programIndex);                     // add the program or zero to the list
       currentThreadIndex = g_threads.size() - 1;
       if (currentThreadIndex > 511) debug("thread %d added (size=%d)", currentThread, g_threads.size());
-      LeaveCriticalSection(&g_terminalLock);
+      LeaveCriticalSection(&g_terminalMutex);
    }
 
    // additionally store the program in g_lastUIThreadProgram if the current thread is the UI thread
