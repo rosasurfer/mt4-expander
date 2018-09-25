@@ -119,9 +119,9 @@ const char* WINAPI GetTerminalVersion() {
  */
 BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build) {
    //
-   // TODO: read version info from the PE image in memory, not from the file (it may disappear)
+   // TODO: read version info from the PE image in memory, not from the file which may disappear.
    //
-   // HRSRC res = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+   //       HRSRC res = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
    //
    static uint resultMajor, resultMinor, resultHotfix, resultBuild;
 
@@ -139,7 +139,7 @@ BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* bui
       // query the version root values
       VS_FIXEDFILEINFO* fileInfo;
       uint len;
-      result = VerQueryValue(infoBuffer, "\\", (LPVOID*)&fileInfo, &len);
+      result = VerQueryValue(infoBuffer, "\\", (void**)&fileInfo, &len);
       if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "=> VerQueryValue()"));
 
       // parse the version numbers
