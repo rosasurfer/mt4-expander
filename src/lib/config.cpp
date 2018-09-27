@@ -21,7 +21,7 @@ const char* WINAPI GetGlobalConfigPathA() {
       const char* commonPath = GetTerminalCommonDataPathA();
       if (!commonPath) return(NULL);
 
-      string iniFile = string(commonPath).append("\\global-config.ini");
+      string iniFile = string(commonPath).append("\\Files\\global-config.ini");
       configPath = copychars(iniFile);                                              // on the heap
 
       if (!IsFileA(configPath)) {

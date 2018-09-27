@@ -440,7 +440,7 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * of those who die in original sin without being assigned to the Hell of the Damned. Remember "Inception"? Very hard to escape
  * from.
  *
- * In MetaTrader the memory allocated for global indicator variables (static and non-static, i.e. the EXECUTION_CONTEXT) is
+ * In MetaTrader the memory allocated for global indicator variables (static and non-static, e.g. the EXECUTION_CONTEXT) is
  * released after the indicator leaves deinit(). On re-entry in init() new memory is allocated and all variables are initialized
  * with zero which is the reason an indicator cannot keep state over init cycles.
  *
