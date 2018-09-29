@@ -21,18 +21,18 @@ const char* WINAPI GetGlobalConfigPathA() {
       const char* commonPath = GetTerminalCommonDataPathA();
       if (!commonPath) return(NULL);
 
-      string iniFile = string(commonPath).append("\\Files\\global-config.ini");
-      configPath = copychars(iniFile);                                                 // on the heap
+      string iniFile = string(commonPath).append("\\global-config.ini");
+      configPath = copychars(iniFile);                                              // on the heap
 
       if (!IsFileA(configPath)) {
-         int error = CreateDirectoryRecursive(string(commonPath).append("\\Files"));   // make sure the directory exists
+         int error = CreateDirectoryRecursive(string(commonPath));                  // make sure the directory exists
          if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStr(ERR_WIN32_ERROR+error));
          else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", commonPath);
 
-         if (!error) {                                                                 // try to create the file
+         if (!error) {                                                              // try to create the file
             HFILE hFile = _lcreat(configPath, FILE_ATTRIBUTE_NORMAL);
             if (hFile == HFILE_ERROR) {
-               error = GetLastError();                                                 // log errors but continue
+               error = GetLastError();                                              // log errors but continue
                if (error == ERROR_ACCESS_DENIED) debug("cannot create file \"%s\"  [%s]", configPath, ErrorToStr(ERR_WIN32_ERROR+error));
                else                              error(ERR_WIN32_ERROR+error, "cannot create file \"%s\"", configPath);
             }
