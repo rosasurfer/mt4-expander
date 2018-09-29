@@ -5,12 +5,49 @@
  *
  * Naming Files, Paths, and Namespaces
  * @see  https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file
+ *
  */
 #include "expander.h"
 #include "lib/file.h"
 #include "lib/string.h"
 
-#include "winioctl.h"
+#include <shlobj.h>
+#include <winioctl.h>
+
+
+/**
+ * Create a directory recursively. No error is returned if the directory already exists.
+ *
+ * @param  char* path - full directory path
+ *
+ * @return int - ERROR_SUCCESS or an error code
+ */
+int WINAPI CreateDirectoryRecursive(const char* path) {
+   if ((uint)path < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+
+   int error = SHCreateDirectoryEx(NULL, path, NULL);
+
+   if (error==ERROR_FILE_EXISTS || error==ERROR_ALREADY_EXISTS)
+      error = ERROR_SUCCESS;
+   return(error);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Create a directory recursively. No error is returned if the directory already exists.
+ *
+ * @param  string& path - full directory path
+ *
+ * @return int - ERROR_SUCCESS or an error code
+ */
+int WINAPI CreateDirectoryRecursive(const string& path) {
+   int error = SHCreateDirectoryEx(NULL, path.c_str(), NULL);
+
+   if (error==ERROR_FILE_EXISTS || error==ERROR_ALREADY_EXISTS)
+      error = ERROR_SUCCESS;
+   return(error);
+}
 
 
 /**
@@ -22,7 +59,7 @@
  */
 BOOL WINAPI IsDirectoryA(const char* name) {
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
       return(attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY));
@@ -41,7 +78,7 @@ BOOL WINAPI IsDirectoryA(const char* name) {
  */
 BOOL WINAPI IsFileA(const char* name) {
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
       return(attrib!=INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
@@ -64,11 +101,11 @@ BOOL WINAPI IsJunctionA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
-         char* _name = strcpy(new char[strlen(name)+1], name);                // on the heap
+         char* _name = copychars(name);                                       // on the heap
 
          int pos = strlen(_name);
          while (--pos >=0 && (_name[pos]=='\\' || _name[pos]=='/')) {         // cut-off trailing slashes
@@ -101,12 +138,12 @@ BOOL WINAPI IsSymlinkA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attrib = GetFileAttributes(name);
 
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_REPARSE_POINT)) {
-         char* _name = strcpy(new char[strlen(name)+1], name);                // on the heap
+         char* _name = copychars(name);                                       // on the heap
 
          if (attrib & FILE_ATTRIBUTE_DIRECTORY) {
             int pos = strlen(_name);
@@ -138,7 +175,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
  * @return char* - resolved name in "\\?\" or UNC format or a NULL pointer in case of errors
  */
 const char* WINAPI GetFinalPathNameA(const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name = 0x%p (not a valid pointer)", name));
+   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    HANDLE hFile = CreateFile(name,                                                     // file name
                              GENERIC_READ, FILE_SHARE_READ,                            // open for shared reading
@@ -164,7 +201,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
    if (!len) {
       delete[] path;
-      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle() failed"));
+      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFinalPathNameByHandle()"));
    }
    return(path);                                                                       // TODO: close memory leak
    #pragma EXPANDER_EXPORT
@@ -234,7 +271,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
             _splitpath(name, drive, dir, NULL, NULL);
             string s = string(drive).append(dir).append(target);
             delete[] target;
-            target = strcpy(new char[s.length()+1], s.c_str());
+            target = copychars(s);
          }
          else {
             char* prefix = "\\??\\";

@@ -4,3 +4,4 @@
 
 
 const char* WINAPI GetGlobalConfigPathA();
+const char* WINAPI GetLocalConfigPathA();

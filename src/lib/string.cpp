@@ -57,7 +57,7 @@ string WINAPI doubleQuoteStr(const string& value) {
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetStringsAddress(const MqlStr values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
@@ -75,7 +75,7 @@ uint WINAPI GetStringsAddress(const MqlStr values[]) {
  *          die erhaltene Adresse ist ungültig (z.B. im Tester bei mehrfachen Tests).
  */
 uint WINAPI GetStringAddress(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    return((uint) value);
    #pragma EXPANDER_EXPORT
 }
@@ -90,7 +90,7 @@ uint WINAPI GetStringAddress(const char* value) {
  * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
  */
 const char* WINAPI GetString(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value = 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    return((char*) value);
    #pragma EXPANDER_EXPORT
 }
@@ -146,6 +146,30 @@ BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
       return(strncmp(str, prefix, prefixLen) == 0);
    return(FALSE);
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a string starts with the specified substring.
+ *
+ * @param  wchar_t* str
+ * @param  wchar_t* prefix
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
+   if (!str)          return(FALSE);
+   if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
+   if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
+
+   size_t strLen    = wcslen(str);
+   size_t prefixLen = wcslen(prefix);
+   if (!prefixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
+
+   if (strLen >= prefixLen)
+      return(wcsncmp(str, prefix, prefixLen) == 0);
+   return(FALSE);
+   //#pragma EXPANDER_EXPORT                                         // not exported
 }
 
 

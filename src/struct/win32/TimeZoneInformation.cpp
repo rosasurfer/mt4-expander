@@ -30,7 +30,7 @@
  * @return LONG - Bias in Minuten
  */
 LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
    return(tzi->Bias);
    #pragma EXPANDER_EXPORT
 }
@@ -44,7 +44,7 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
  * @return char* - Name als C-String
  */
 const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
 
    return(wchartombs(tzi->StandardName, sizeof(tzi->StandardName)));       // TODO: close memory leak
    #pragma EXPANDER_EXPORT
@@ -58,8 +58,8 @@ const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
  * @param  SYSTEMTIME*            st
  */
 void WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
-   if ((uint)tzi < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi); return; }
-   if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
+   if ((uint)tzi < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi); return; }
+   if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st: 0x%p (not a valid pointer)" , st ); return; }
 
    *st = tzi->StandardDate;
    #pragma EXPANDER_EXPORT
@@ -74,7 +74,7 @@ void WINAPI tzi_StandardDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
  * @return LONG - Bias in Minuten
  */
 LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
    return(tzi->StandardBias);
    #pragma EXPANDER_EXPORT
 }
@@ -88,7 +88,7 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
  * @return char* - Name als C-String
  */
 const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
 
    return(wchartombs(tzi->DaylightName, sizeof(tzi->DaylightName)));    // TODO: close memory leak
    #pragma EXPANDER_EXPORT
@@ -102,8 +102,8 @@ const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
  * @param  SYSTEMTIME*            st
  */
 void WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
-   if ((uint)tzi < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi); return; }
-   if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st = 0x%p (not a valid pointer)" , st ); return; }
+   if ((uint)tzi < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi); return; }
+   if ((uint)st  < MIN_VALID_POINTER) { error(ERR_INVALID_PARAMETER, "invalid parameter st: 0x%p (not a valid pointer)" , st ); return; }
 
    *st = tzi->DaylightDate;
    #pragma EXPANDER_EXPORT
@@ -118,7 +118,7 @@ void WINAPI tzi_DaylightDate(const TIME_ZONE_INFORMATION* tzi, SYSTEMTIME* st) {
  * @return LONG - Bias in Minuten
  */
 LONG WINAPI tzi_DaylightBias(const TIME_ZONE_INFORMATION* tzi) {
-   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi = 0x%p (not a valid pointer)", tzi));
+   if ((uint)tzi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
    return(tzi->DaylightBias);
    #pragma EXPANDER_EXPORT
 }

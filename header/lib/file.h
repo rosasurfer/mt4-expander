@@ -36,6 +36,8 @@ struct REPARSE_DATA_BUFFER {
 #define SYMLINK_FLAG_RELATIVE    0x00000001
 
 
+int         WINAPI CreateDirectoryRecursive(const char* path);
+int         WINAPI CreateDirectoryRecursive(const string& path);
 const char* WINAPI GetFinalPathNameA(const char* name);
 const char* WINAPI GetReparsePointTargetA(const char* name);
 BOOL        WINAPI IsDirectoryA(const char* name);

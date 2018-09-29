@@ -1,4 +1,6 @@
 #include "expander.h"
+#include "lib/string.h"
+
 #include <time.h>
 
 
@@ -38,11 +40,10 @@ const char* WINAPI GmTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   string str  = gmTimeFormat(timestamp, format);
-   uint length = str.length();
-   if (!length)
+   string str = gmTimeFormat(timestamp, format);
+   if (!str.length())
       return(NULL);
-   return(strcpy(new char[length+1], str.c_str()));                  // TODO: close memory leak
+   return(copychars(str));                                           // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -83,11 +84,10 @@ const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   string str  = localTimeFormat(timestamp, format);
-   uint length = str.length();
-   if (!length)
+   string str = localTimeFormat(timestamp, format);
+   if (!str.length())
       return(NULL);
-   return(strcpy(new char[length+1], str.c_str()));                  // TODO: close memory leak
+   return(copychars(str));                                           // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -130,9 +130,6 @@ string WINAPI numberFormat(double value, const char* format) {
 const char* WINAPI NumberFormat(double value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   string str = numberFormat(value, format);
-   uint size  = str.length() + 1;                                   // +1 for the terminating '\0'
-
-   return(strcpy(new char[size], str.c_str()));                      // TODO: close memory leak
+   return(copychars(numberFormat(value, format)));                   // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }

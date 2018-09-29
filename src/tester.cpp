@@ -17,8 +17,8 @@ BOOL WINAPI SaveTest(TEST* test);
  * TODO: documentation
  */
 BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
-   if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context:  ec.programIndex=%d", ec->programIndex));
+   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
    TEST* test;
@@ -65,11 +65,11 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
  * TODO: validation
  */
 BOOL WINAPI Test_OpenOrder(EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
-   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
-   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization,  ec.test=0x%p", ec->test));
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization,  test.orders=0x%p", test->orders));
+   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization, ec.test: 0x%p", ec->test));
+   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", test->orders));
 
    ORDER order = {};
       order.ticket      = ticket;
@@ -102,11 +102,11 @@ BOOL WINAPI Test_OpenOrder(EXECUTION_CONTEXT* ec, int ticket, int type, double l
  * @return BOOL - success status
  */
 BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice, datetime closeTime, double swap, double profit) {
-   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec=0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
-   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization,  ec.test=0x%p", ec->test));
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization,  test.orders=0x%p", test->orders));
+   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization, ec.test: 0x%p", ec->test));
+   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", test->orders));
 
    uint i = orders->size()-1;
 
@@ -138,11 +138,11 @@ BOOL WINAPI SaveTest(TEST* test) {
    // save TEST to logfile
    string testLogfile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log");
    std::ofstream fs;
-   fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_RUNTIME_ERROR, "fs.open(\"%s\") failed", testLogfile.c_str()));
+   fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "=> fs.open(\"%s\")", testLogfile.c_str()));
    fs << "test=" << TEST_toStr(test) << "\n";
    debug("test=%s", TEST_toStr(test));
 
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory  test.orders=0x%p", test->orders));
+   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory, test.orders: 0x%p", test->orders));
    int size = orders->size();
 
    for (int i=0; i < size; ++i) {
@@ -156,6 +156,6 @@ BOOL WINAPI SaveTest(TEST* test) {
    string paramSrcFile  = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
    string paramDestFile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(paramSrcFile.c_str(), paramDestFile.c_str(), TRUE))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile() failed"));
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
    return(TRUE);
 }

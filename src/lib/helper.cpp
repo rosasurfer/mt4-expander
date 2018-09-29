@@ -14,7 +14,7 @@ extern "C" {
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetBoolsAddress(const BOOL values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
@@ -28,7 +28,7 @@ uint WINAPI GetBoolsAddress(const BOOL values[]) {
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetIntsAddress(const int values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
@@ -42,7 +42,7 @@ uint WINAPI GetIntsAddress(const int values[]) {
  * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
 uint WINAPI GetDoublesAddress(const double values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values = 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
@@ -227,9 +227,9 @@ BOOL WINAPI SetWindowProperty(HWND hWnd, const char* lpName, HANDLE value) {
  * @return BOOL - Erfolgsstatus
  */
 BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, double emptyValue) {
-   if (buffer && (uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer = 0x%p (not a valid pointer)", buffer));
-   if (bufferSize < 0)                             return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize = %d", bufferSize));
-   if (bars < 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter bars = %d", bars));
+   if (buffer && (uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
+   if (bufferSize < 0)                             return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d", bufferSize));
+   if (bars < 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d", bars));
    if (!bufferSize || !bars) return(TRUE);
 
    MoveMemory((void*)&buffer[0], &buffer[bars], (bufferSize-bars)*sizeof(buffer[0]));
@@ -257,9 +257,9 @@ BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, doub
  */
 uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
    uint symbolLength = strlen(symbol);
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol = %s", DoubleQuoteStr(symbol)));
-   if (!buffer)                                           return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer = %p", buffer));
-   if ((int)bufferSize <= 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize = %d", bufferSize));
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: %s", DoubleQuoteStr(symbol)));
+   if (!buffer)                                           return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: %p", buffer));
+   if ((int)bufferSize <= 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d", bufferSize));
 
    char* szTimeframe;
 
@@ -274,7 +274,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
       case PERIOD_W1 : szTimeframe = "Weekly";  break;               // 1 week
       case PERIOD_MN1: szTimeframe = "Monthly"; break;               // 1 month
       default:
-         return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe = %d", timeframe));
+         return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe));
    }
 
    // create the result in a temporary buffer
@@ -282,7 +282,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
    uint  size   = symbolLength + strlen(szTimeframe) + 2;            // symbol + 1 + timeframe + \0
    char* result = (char*)alloca(size);                               // on the stack
    int copied = sprintf_s(result, size, format, symbol, szTimeframe);
-   if (copied <= 0) return(error(ERR_WIN32_ERROR+GetLastError(), "sprintf_s() failed, %d chars copied", copied));
+   if (copied <= 0) return(error(ERR_WIN32_ERROR+GetLastError(), "=> sprintf_s() => %d chars copied", copied));
 
    // copy the result to the destination buffer
    uint len = strlen(result);                                        // len should be equal to size-1
@@ -322,10 +322,7 @@ char* WINAPI MD5Hash(const void* input, uint length) {
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
-   string str = ss.str();
-   char* result = strcpy(new char[str.length()+1], str.c_str());     // TODO: close memory leak
-
-   return(result);
+   return(copychars(ss.str()));                                      // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -354,7 +351,7 @@ uint WINAPI MT4InternalMsg() {
    static uint msgId;
    if (!msgId) {
       msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-      if (!msgId) return(error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessage() failed"));
+      if (!msgId) return(error(ERR_WIN32_ERROR+GetLastError(), "=> RegisterWindowMessage()"));
    }
    return(msgId);
    #pragma EXPANDER_EXPORT

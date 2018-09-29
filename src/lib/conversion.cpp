@@ -603,7 +603,7 @@ const char* WINAPI OperationTypeDescription(int type) {
       case OP_CREDIT   : return("Credit"    );
       case OP_UNDEFINED: return("undefined" );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type=%d (not an operation type)", type));
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
    #pragma EXPANDER_EXPORT
 }
 

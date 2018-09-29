@@ -19,7 +19,7 @@
  * @return HANDLE
  */
 HANDLE WINAPI pi_hProcess(const PROCESS_INFORMATION* pi) {
-   if ((uint)pi < MIN_VALID_POINTER) return((HANDLE)error(ERR_INVALID_PARAMETER, "invalid parameter pi = 0x%p (not a valid pointer)", pi));
+   if ((uint)pi < MIN_VALID_POINTER) return((HANDLE)error(ERR_INVALID_PARAMETER, "invalid parameter pi: 0x%p (not a valid pointer)", pi));
    return(pi->hProcess);
    #pragma EXPANDER_EXPORT
 }
@@ -33,7 +33,7 @@ HANDLE WINAPI pi_hProcess(const PROCESS_INFORMATION* pi) {
  * @return HANDLE
  */
 HANDLE WINAPI pi_hThread(const PROCESS_INFORMATION* pi) {
-   if ((uint)pi < MIN_VALID_POINTER) return((HANDLE)error(ERR_INVALID_PARAMETER, "invalid parameter pi = 0x%p (not a valid pointer)", pi));
+   if ((uint)pi < MIN_VALID_POINTER) return((HANDLE)error(ERR_INVALID_PARAMETER, "invalid parameter pi: 0x%p (not a valid pointer)", pi));
    return(pi->hThread);
    #pragma EXPANDER_EXPORT
 }
@@ -47,7 +47,7 @@ HANDLE WINAPI pi_hThread(const PROCESS_INFORMATION* pi) {
  * @return DWORD
  */
 DWORD WINAPI pi_ProcessId(const PROCESS_INFORMATION* pi) {
-   if ((uint)pi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter pi = 0x%p (not a valid pointer)", pi));
+   if ((uint)pi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter pi: 0x%p (not a valid pointer)", pi));
    return(pi->dwProcessId);
    #pragma EXPANDER_EXPORT
 }
@@ -61,7 +61,7 @@ DWORD WINAPI pi_ProcessId(const PROCESS_INFORMATION* pi) {
  * @return DWORD
  */
 DWORD WINAPI pi_ThreadId(const PROCESS_INFORMATION* pi) {
-   if ((uint)pi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter pi = 0x%p (not a valid pointer)", pi));
+   if ((uint)pi < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter pi: 0x%p (not a valid pointer)", pi));
    return(pi->dwThreadId);
    #pragma EXPANDER_EXPORT
 }
