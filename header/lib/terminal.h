@@ -9,7 +9,7 @@ const char*    WINAPI GetTerminalDataPathA();
 const char*    WINAPI GetTerminalModuleFileNameA();
 const WCHAR*   WINAPI GetTerminalModuleFileNameW();
 const char*    WINAPI GetTerminalPathA();
-const wstring& WINAPI GetTerminalPathWs();
+const wstring& WINAPI GetTerminalPathWS();
 const char*    WINAPI GetTerminalRoamingDataPathA();
 const char*    WINAPI GetTerminalVersion();
 BOOL           WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build);

@@ -17,7 +17,7 @@ const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
    if (!order) return("NULL");
 
    char* result = "{(empty)}";
-   static const ORDER empty = {};
+   const ORDER empty = {};
 
    if (memcmp(order, &empty, sizeof(ORDER))) {
       std::stringstream ss; ss

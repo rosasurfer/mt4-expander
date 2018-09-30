@@ -107,7 +107,7 @@ int _debug(const char* fileName, const char* funcName, int line, const string& f
  * @param  va_list args     - additional parameters
  */
 void __debug(const char* fileName, const char* funcName, int line, const char* format, const va_list& args) {
-   if (!format) format = "(null)";
+   if (!format) format = "NULL";
 
    // format the parameters of the argument list
    uint size = _vscprintf(format, args) + 1;                                     // +1 for the terminating '\0'
@@ -170,7 +170,7 @@ int _warn(const char* fileName, const char* funcName, int line, int error, const
  * @param  va_list msgArgs   - additional parameters
  */
 void __warn(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list& msgArgs) {
-   if (!msgFormat) msgFormat = "(null)";
+   if (!msgFormat) msgFormat = "NULL";
 
    // create message with the specified parameters
    uint size = _vscprintf(msgFormat, msgArgs) + 1;                                     // +1 for the terminating '\0'
@@ -252,7 +252,7 @@ int _error(const char* fileName, const char* funcName, int line, int code, const
  */
 void __error(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list& msgArgs) {
    if (!code) return;
-   if (!msgFormat) msgFormat = "(null)";
+   if (!msgFormat) msgFormat = "NULL";
 
    // create message with the specified parameters
    int size = _vscprintf(msgFormat, msgArgs) + 1;                                      // +1 for the terminating '\0'

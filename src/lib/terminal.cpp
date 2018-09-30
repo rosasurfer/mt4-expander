@@ -182,7 +182,7 @@ const char* WINAPI GetTerminalPathA() {
  *
  * @return wstring& - directory name or an empty string in case of errors
  */
-const wstring& WINAPI GetTerminalPathWs() {
+const wstring& WINAPI GetTerminalPathWS() {
    static wstring path;
 
    if (path.empty()) {
@@ -334,7 +334,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
 
-      wstring terminalPath = GetTerminalPathWs();                                      // get terminal installation path
+      wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
       StrToUpper(terminalPath);                                                        // convert to upper case
       char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()* sizeof(WCHAR)); // calculate MD5 hash
 
