@@ -1,10 +1,9 @@
 
-The files in this directory are shared with the project ```rosasurfer/mt4-mql```. This is accomplished by symlinking the files 
+The files in this directory are shared with the project ```rosasurfer/mt4-mql```. This is accomplished by symlinking the files
 in ```{rosasurfer/mt4-mql}/mql4/include/shared``` to this directory.
 
-If the MT4Expander build script doesn't find symlinked files in this directory it uses the backed-up files in
-```{rosasurfer/mt4-expander}/header/shared/bak``` for compilation. If it finds symlinked files in this directory it will
-use those for compilation and update the files in the backup directory after a successful build.
+If the MT4Expander build script doesn't find symlinked files here it uses backups from ```{rosasurfer/mt4-expander}/header/shared/bak```
+for compilation. If it finds symlinked files it will use them and update the backup files after a successful build.
 
 - - -
 
