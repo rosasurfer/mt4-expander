@@ -18,14 +18,13 @@
  */
 uint WINAPI GetTerminalBuild() {
    static uint build = 0;
+
    if (!build) {
+      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
+      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
+      if (!fileInfo) return(NULL);
 
-      // TODO: some old builds don't use the standard version string format "major.minor.hotfix.build"
-
-      uint dummy, b;
-      if (!GetTerminalVersion(&dummy, &dummy, &dummy, &b))
-         return(NULL);
-      build = b;
+      build = fileInfo->dwFileVersionLS & 0xffff;
    }
    return(build);
    #pragma EXPANDER_EXPORT
@@ -91,9 +90,14 @@ const char* WINAPI GetTerminalVersion() {
 
    if (!version) {
       // get the version numbers
-      uint major, minor, hotfix, build;
-      BOOL result = GetTerminalVersion(&major, &minor, &hotfix, &build);
-      if (!result) return(NULL);
+      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
+      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
+      if (!fileInfo) return(NULL);
+
+      uint major  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
+      uint minor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
+      uint hotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
+      uint build  = (fileInfo->dwFileVersionLS      ) & 0xffff;
 
       // compose version string
       char* format = "%d.%d.%d.%d";
@@ -101,61 +105,63 @@ const char* WINAPI GetTerminalVersion() {
       version = new char[size];                                         // on the heap
       sprintf_s(version, size, format, major, minor, hotfix, build);
    }
-
    return(version);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Read the terminal's version numbers.
+ * Read the terminal's version infos from file.
  *
- * @param  _Out_ uint* major  - variable holding the major version number after return
- * @param  _Out_ uint* minor  - variable holding the minor version number after return
- * @param  _Out_ uint* hotfix - variable holding the hotfix number after return
- * @param  _Out_ uint* build  - variable holding the build number after return
- *
- * @return BOOL - success status
+ * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
  */
-BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build) {
-   //
-   // TODO: read version info from the PE image in memory, not from the file which may disappear.
-   //
-   //       HRSRC res = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-   //
-   static uint resultMajor, resultMinor, resultHotfix, resultBuild;
+const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
+   static VS_FIXEDFILEINFO* fileInfo = NULL;
 
-   if (!resultMajor) {
+   if (!fileInfo) {
       const char* fileName = GetTerminalModuleFileNameA();
+      DWORD fileInfoSize = GetFileVersionInfoSize(fileName, &fileInfoSize);
+      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfoSize()"));
 
-      // get the file's version info
-      DWORD infoSize = GetFileVersionInfoSize(fileName, &infoSize);
-      if (!infoSize) return(error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfoSize()"));
+      char* infos = (char*) alloca(fileInfoSize);                       // on the stack
+      BOOL result = GetFileVersionInfo(fileName, NULL, fileInfoSize, infos);
+      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfo()"));
 
-      char* infoBuffer = (char*) alloca(infoSize);                      // on the stack
-      BOOL result = GetFileVersionInfo(fileName, NULL, infoSize, infoBuffer);
-      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfo()"));
-
-      // query the version root values
-      VS_FIXEDFILEINFO* fileInfo;
       uint len;
-      result = VerQueryValue(infoBuffer, "\\", (void**)&fileInfo, &len);
-      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "=> VerQueryValue()"));
-
-      // parse the version numbers
-      resultMajor  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
-      resultMinor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
-      resultHotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
-      resultBuild  = (fileInfo->dwFileVersionLS      ) & 0xffff;
+      result = VerQueryValue(infos, "\\", (void**)&fileInfo, &len);
+      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> VerQueryValue()"));
    }
+   return(fileInfo);
+}
 
-   // assign results to parameters
-   if (major)  *major  = resultMajor;
-   if (minor)  *minor  = resultMinor;
-   if (hotfix) *hotfix = resultHotfix;
-   if (build)  *build  = resultBuild;
 
-   return(TRUE);
+/**
+ * Read the terminal's version infos from the PE image in memory.
+ *
+ * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
+ */
+const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
+   static VS_FIXEDFILEINFO* fileInfo = NULL;
+
+   if (!fileInfo) {
+      HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+      if (!hRes) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> FindResource()"));
+
+      void* infos = LoadResource(NULL, hRes);
+      if (!infos) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> LoadResource()"));
+
+      int offset = 6;
+      if (!wcscmp((wchar_t*)((char*)infos + offset), L"VS_VERSION_INFO")) {
+         offset += sizeof(L"VS_VERSION_INFO");
+         offset += offset % 4;                        // align to 32 bit
+         fileInfo = (VS_FIXEDFILEINFO*)((char*)infos + offset);
+         if (fileInfo->dwSignature != 0xfeef04bd) {
+            debug("unknown VS_FIXEDFILEINFO signature: dwSignature = 0x%p", fileInfo->dwSignature);
+            fileInfo = NULL;
+         }
+      }
+   }
+   return(fileInfo);
 }
 
 

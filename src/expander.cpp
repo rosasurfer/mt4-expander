@@ -34,15 +34,17 @@ int _dump(const char* fileName, const char* funcName, int line, const void* data
 
    switch (mode) {
       case DUMPMODE_HEX:
+         ss << "dumping " << (int)size << " bytes:\n";
          ss << std::hex << std::uppercase;
          for (uint i=0; i < size; i++) {
             ss << std::setw(2) << std::setfill('0') << (int) bytes[i] << " ";
-            if (i%4 == 3)
-               ss << " ";
+            if      (i%16 == 15) ss << "\n";
+            else if (i% 4 ==  3) ss << " ";
          }
          break;
 
       case DUMPMODE_CHAR:
+         ss << "dumping " << (int)size << " chars:\n";
          for (uint i=0; i < size; i++) {
             char c = bytes[i];
             if      (c == 0) c = '…';           // substitute NUL characters
@@ -54,7 +56,6 @@ int _dump(const char* fileName, const char* funcName, int line, const void* data
       default:
          return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: %d (not a valid dump mode)", mode));
    }
-   ss << std::dec << std::nouppercase << " (" << (int)size << " bytes)";
 
    _debug(fileName, funcName, line, "%s", ss.str().c_str());
    return(0);
