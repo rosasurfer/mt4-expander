@@ -6,6 +6,7 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/lock/Locker.h"
 
 #include <shellapi.h>
 #include <shlobj.h>
@@ -17,14 +18,14 @@
  * @return uint - build number or 0 in case of errors
  */
 uint WINAPI GetTerminalBuild() {
-   static uint build = 0;
+   static uint build;
 
    if (!build) {
       const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
       if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
-      if (!fileInfo) return(NULL);
-
-      build = fileInfo->dwFileVersionLS & 0xffff;
+      if (fileInfo) {
+         build = fileInfo->dwFileVersionLS & 0xffff;
+      }
    }
    return(build);
    #pragma EXPANDER_EXPORT
@@ -37,7 +38,7 @@ uint WINAPI GetTerminalBuild() {
  * @return char* - filename or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalModuleFileNameA() {
-   static char* filename = NULL;
+   static char* filename;
 
    if (!filename) {
       char* buffer;
@@ -62,7 +63,7 @@ const char* WINAPI GetTerminalModuleFileNameA() {
  * @return WCHAR* - filename or a NULL pointer in case of errors
  */
 const WCHAR* WINAPI GetTerminalModuleFileNameW() {
-   static WCHAR* filename = NULL;
+   static WCHAR* filename;
 
    if (!filename) {
       WCHAR* buffer;
@@ -86,7 +87,7 @@ const WCHAR* WINAPI GetTerminalModuleFileNameW() {
  * @return char* - version or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalVersion() {
-   static char* version = NULL;
+   static char* version;
 
    if (!version) {
       // get the version numbers
@@ -116,7 +117,7 @@ const char* WINAPI GetTerminalVersion() {
  * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
  */
 const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
-   static VS_FIXEDFILEINFO* fileInfo = NULL;
+   static VS_FIXEDFILEINFO* fileInfo;
 
    if (!fileInfo) {
       const char* fileName = GetTerminalModuleFileNameA();
@@ -141,7 +142,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
  * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
  */
 const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
-   static VS_FIXEDFILEINFO* fileInfo = NULL;
+   static VS_FIXEDFILEINFO* fileInfo;
 
    if (!fileInfo) {
       HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
@@ -156,7 +157,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
          offset += offset % 4;                        // align to 32 bit
          fileInfo = (VS_FIXEDFILEINFO*)((char*)infos + offset);
          if (fileInfo->dwSignature != 0xfeef04bd) {
-            debug("unknown VS_FIXEDFILEINFO signature: dwSignature = 0x%p", fileInfo->dwSignature);
+            debug("unknown VS_FIXEDFILEINFO signature: 0x%p", fileInfo->dwSignature);
             fileInfo = NULL;
          }
       }
@@ -171,7 +172,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  * @return char* - directory name without trailing path separator
  */
 const char* WINAPI GetTerminalPathA() {
-   static char* path = NULL;
+   static char* path;
 
    if (!path) {
       path = copychars(GetTerminalModuleFileNameA());                // on the heap
@@ -247,7 +248,7 @@ const char* WINAPI GetTerminalDataPathA() {
    //              4.1  permission granted => use the directory
    //              4.2  permission denied  => use roaming data directory
    //
-   static char* dataPath = NULL;
+   static char* dataPath;
 
    if (!dataPath) {
       const char* terminalPath    = GetTerminalPathA();
@@ -308,7 +309,7 @@ const char* WINAPI GetTerminalDataPathA() {
  *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
-   static char* result = NULL;
+   static char* result;
 
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
@@ -333,7 +334,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * @see  GetTerminalDataPath() to get the path of the data directory currently used
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
-   static char* result = NULL;
+   static char* result;
 
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
@@ -355,7 +356,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
 
 /**
- * Whether or not the terminal has write permission in the specified directory.
+ * Whether or not the terminal has write permission to the specified directory.
  *
  * @param  char* dir - directory name
  *
@@ -369,14 +370,12 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
 
    char tmpFilename[MAX_PATH];
 
-   if (!GetTempFileName(dir, "rsf", 0, tmpFilename)) {
-      //debug("GetTempFileName()  [%s]", ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
+   if (!GetTempFileName(dir, "rsf", 0, tmpFilename))
       return(FALSE);
-   }
-   if (!DeleteFile(tmpFilename)) {
-      error(ERR_WIN32_ERROR+GetLastError(), "=> DeleteFile(%s)", tmpFilename);
-      return(FALSE);
-   }
+
+   if (!DeleteFile(tmpFilename))
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=> DeleteFile(%s)", tmpFilename));
+
    return(TRUE);
 }
 
@@ -445,5 +444,18 @@ BOOL WINAPI TerminalIsPortableMode() {
       }
    }
    return(isPortable);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   { synchronize();
+
+   debug("inside synchronized block");
+   }
+   return(0);
    #pragma EXPANDER_EXPORT
 }

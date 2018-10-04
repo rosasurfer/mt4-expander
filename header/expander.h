@@ -24,9 +24,11 @@ typedef unsigned   char  uchar;
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
+typedef DWORD            color;                                      // MQL type color
 typedef time_t           datetime;                                   // a 32-bit signed long
-typedef std::string      string;
-typedef std::wstring     wstring;
+
+using std::string;
+using std::wstring;
 
 
 #define CLR_NONE             0xFFFFFFFFL                             // different types in MQL and C++
@@ -122,28 +124,30 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
 
 
 // Helper functions returning constant values. All parameters are ignored.
-int         WINAPI _CLR_NONE    (...);
-int         WINAPI _EMPTY       (...);
-const char* WINAPI _EMPTY_STR   (...);
-HWND        WINAPI _INVALID_HWND(...);
-int         WINAPI _NULL        (...);
-bool        WINAPI _true        (...);
-bool        WINAPI _false       (...);
-BOOL        WINAPI _TRUE        (...);
-BOOL        WINAPI _FALSE       (...);
+inline int         WINAPI _EMPTY       (...) { return(EMPTY       ); }
+inline const char* WINAPI _EMPTY_STR   (...) { return(""          ); }
+inline HWND        WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
+inline int         WINAPI _NULL        (...) { return(NULL        ); }
+inline bool        WINAPI _true        (...) { return(true        ); }
+inline BOOL        WINAPI _TRUE        (...) { return(TRUE        ); }
+inline bool        WINAPI _false       (...) { return(false       ); }
+inline BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
+inline color       WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
+inline color       WINAPI _NaC         (...) { return(NaC         ); }
+inline datetime    WINAPI _NaT         (...) { return(NaT         ); }
 
 
 // Helper functions returning variable values. All parameters except the first one are ignored.
-bool        WINAPI _bool        (bool   value, ...);
-BOOL        WINAPI _BOOL        (BOOL   value, ...);
-char        WINAPI _char        (char   value, ...);
-int         WINAPI _int         (int    value, ...);
-float       WINAPI _float       (float  value, ...);
-double      WINAPI _double      (double value, ...);
+inline bool        WINAPI _bool        (bool   value, ...) { return(value); }
+inline BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
+inline char        WINAPI _char        (char   value, ...) { return(value); }
+inline int         WINAPI _int         (int    value, ...) { return(value); }
+inline float       WINAPI _float       (float  value, ...) { return(value); }
+inline double      WINAPI _double      (double value, ...) { return(value); }
 
 
 /**
- * to_string() replacement for missing C++11 support in VS 2008.
+ * C++11 to_string() replacement for VS 2008.
  *
  * @param  <typename T> value
  *

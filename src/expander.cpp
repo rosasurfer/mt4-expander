@@ -313,28 +313,3 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
    }
    OutputDebugString(fullMsg);
 }
-
-
-/**
- * Helper functions returning fixed values. All parameters are ignored.
- */
-int         WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
-int         WINAPI _EMPTY       (...) { return(EMPTY       ); }
-const char* WINAPI _EMPTY_STR   (...) { return(""          ); }
-HWND        WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
-int         WINAPI _NULL        (...) { return(NULL        ); }
-bool        WINAPI _true        (...) { return(true        ); }
-BOOL        WINAPI _TRUE        (...) { return(TRUE        ); }
-bool        WINAPI _false       (...) { return(false       ); }
-BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
-
-
-/**
- * Helper functions returning variable values. All parameters except the first one are ignored.
- */
-bool        WINAPI _bool        (bool   value, ...) { return(value); }
-BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
-char        WINAPI _char        (char   value, ...) { return(value); }
-int         WINAPI _int         (int    value, ...) { return(value); }
-float       WINAPI _float       (float  value, ...) { return(value); }
-double      WINAPI _double      (double value, ...) { return(value); }

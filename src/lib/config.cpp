@@ -15,7 +15,7 @@
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini".
  */
 const char* WINAPI GetGlobalConfigPathA() {
-   static char* configPath = NULL;
+   static char* configPath;
 
    if (!configPath) {
       const char* commonPath = GetTerminalCommonDataPathA();
@@ -78,7 +78,7 @@ const char* WINAPI GetLocalConfigPathA() {
    //           5.1  yes => continue with 4.2
    //           5.2  no  => continue with 3.
    //
-   static char* configPath = NULL;
+   static char* configPath;
 
    if (!configPath) {
       // 1. check if a config file exists in the roaming data directory
