@@ -1,5 +1,4 @@
 #pragma once
-
 #include "expander.h"
 
 
@@ -18,8 +17,8 @@ string      WINAPI numberToStr(double value, const char* format);
 const char* WINAPI NumberToStr(double value, const char* format);
 const char* WINAPI ProgramTypeDescription(ProgramType type);
 const char* WINAPI ProgramTypeToStr(ProgramType type);
-const char* WINAPI RootFunctionDescription(RootFunction fn);
-const char* WINAPI RootFunctionToStr(RootFunction fn);
+const char* WINAPI RootFunctionDescription(RootFunction func);
+const char* WINAPI RootFunctionToStr(RootFunction func);
 const char* WINAPI OperationTypeDescription(int type);
 const char* WINAPI OperationTypeToStr(int type);
 const char* WINAPI OrderTypeDescription(int type);

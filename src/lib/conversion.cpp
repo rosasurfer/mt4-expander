@@ -549,18 +549,18 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
 /**
  * Return a description of a RootFunction (the name).
  *
- * @param  RootFunction fn
+ * @param  RootFunction func
  *
  * @return char* - name or NULL if the parameter is invalid
  */
-const char* WINAPI RootFunctionDescription(RootFunction fn) {
-   switch (fn) {
-      case NULL     : return("(null)");
+const char* WINAPI RootFunctionDescription(RootFunction func) {
+   switch (func) {
+      case NULL     : return("NULL"  );
       case RF_INIT  : return("init"  );
       case RF_START : return("start" );
       case RF_DEINIT: return("deinit");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fn: %d (not a RootFunction)", fn));
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a RootFunction)", func));
    #pragma EXPANDER_EXPORT
 }
 
@@ -568,18 +568,18 @@ const char* WINAPI RootFunctionDescription(RootFunction fn) {
 /**
  * Return a readable version of a RootFunction.
  *
- * @param  RootFunction fn
+ * @param  RootFunction func
  *
  * @return char* - readable version or NULL if the parameter is invalid
  */
-const char* WINAPI RootFunctionToStr(RootFunction fn) {
-   switch (fn) {
+const char* WINAPI RootFunctionToStr(RootFunction func) {
+   switch (func) {
       case NULL     : return("NULL"     );
       case RF_INIT  : return("RF_INIT"  );
       case RF_START : return("RF_START" );
       case RF_DEINIT: return("RF_DEINIT");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fn: %d (not a RootFunction)", fn));
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a RootFunction)", func));
    #pragma EXPANDER_EXPORT
 }
 

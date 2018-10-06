@@ -34,15 +34,17 @@ int _dump(const char* fileName, const char* funcName, int line, const void* data
 
    switch (mode) {
       case DUMPMODE_HEX:
+         ss << "dumping " << (int)size << " bytes:\n";
          ss << std::hex << std::uppercase;
          for (uint i=0; i < size; i++) {
             ss << std::setw(2) << std::setfill('0') << (int) bytes[i] << " ";
-            if (i%4 == 3)
-               ss << " ";
+            if      (i%16 == 15) ss << "\n";
+            else if (i% 4 ==  3) ss << " ";
          }
          break;
 
       case DUMPMODE_CHAR:
+         ss << "dumping " << (int)size << " chars:\n";
          for (uint i=0; i < size; i++) {
             char c = bytes[i];
             if      (c == 0) c = '…';           // substitute NUL characters
@@ -54,7 +56,6 @@ int _dump(const char* fileName, const char* funcName, int line, const void* data
       default:
          return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: %d (not a valid dump mode)", mode));
    }
-   ss << std::dec << std::nouppercase << " (" << (int)size << " bytes)";
 
    _debug(fileName, funcName, line, "%s", ss.str().c_str());
    return(0);
@@ -107,7 +108,7 @@ int _debug(const char* fileName, const char* funcName, int line, const string& f
  * @param  va_list args     - additional parameters
  */
 void __debug(const char* fileName, const char* funcName, int line, const char* format, const va_list& args) {
-   if (!format) format = "(null)";
+   if (!format) format = "NULL";
 
    // format the parameters of the argument list
    uint size = _vscprintf(format, args) + 1;                                     // +1 for the terminating '\0'
@@ -170,7 +171,7 @@ int _warn(const char* fileName, const char* funcName, int line, int error, const
  * @param  va_list msgArgs   - additional parameters
  */
 void __warn(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list& msgArgs) {
-   if (!msgFormat) msgFormat = "(null)";
+   if (!msgFormat) msgFormat = "NULL";
 
    // create message with the specified parameters
    uint size = _vscprintf(msgFormat, msgArgs) + 1;                                     // +1 for the terminating '\0'
@@ -252,7 +253,7 @@ int _error(const char* fileName, const char* funcName, int line, int code, const
  */
 void __error(const char* fileName, const char* funcName, int line, int code, const char* msgFormat, const va_list& msgArgs) {
    if (!code) return;
-   if (!msgFormat) msgFormat = "(null)";
+   if (!msgFormat) msgFormat = "NULL";
 
    // create message with the specified parameters
    int size = _vscprintf(msgFormat, msgArgs) + 1;                                      // +1 for the terminating '\0'
@@ -312,28 +313,3 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
    }
    OutputDebugString(fullMsg);
 }
-
-
-/**
- * Helper functions returning fixed values. All parameters are ignored.
- */
-int         WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
-int         WINAPI _EMPTY       (...) { return(EMPTY       ); }
-const char* WINAPI _EMPTY_STR   (...) { return(""          ); }
-HWND        WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
-int         WINAPI _NULL        (...) { return(NULL        ); }
-bool        WINAPI _true        (...) { return(true        ); }
-BOOL        WINAPI _TRUE        (...) { return(TRUE        ); }
-bool        WINAPI _false       (...) { return(false       ); }
-BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
-
-
-/**
- * Helper functions returning variable values. All parameters except the first one are ignored.
- */
-bool        WINAPI _bool        (bool   value, ...) { return(value); }
-BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
-char        WINAPI _char        (char   value, ...) { return(value); }
-int         WINAPI _int         (int    value, ...) { return(value); }
-float       WINAPI _float       (float  value, ...) { return(value); }
-double      WINAPI _double      (double value, ...) { return(value); }

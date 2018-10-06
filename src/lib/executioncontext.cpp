@@ -1,6 +1,6 @@
 #include "expander.h"
-#include "context.h"
 #include "lib/conversion.h"
+#include "lib/executioncontext.h"
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
@@ -9,11 +9,11 @@
 #include <vector>
 
 
-extern std::vector<ContextChain> g_contextChains;              // all context chains (= MQL programs, index = program id)
-extern std::vector<DWORD>        g_threads;                    // all known threads executing MQL programs
-extern std::vector<uint>         g_threadsPrograms;            // the last MQL program executed by a thread
-extern uint                      g_lastUIThreadProgram;        // the last MQL program executed by the UI thread
-extern CRITICAL_SECTION          g_terminalMutex;              // mutex for application-wide locking
+std::vector<ContextChain> g_contextChains  (128);        // all context chains (= MQL programs, index = program id)
+std::vector<DWORD>        g_threads        (128);        // all known threads executing MQL programs
+std::vector<uint>         g_threadsPrograms(128);        // the last MQL program executed by a thread
+uint                      g_lastUIThreadProgram;         // the last MQL program executed by the UI thread
+CRITICAL_SECTION          g_terminalMutex;               // mutex for application-wide locking
 
 
 /**
@@ -77,14 +77,14 @@ extern CRITICAL_SECTION          g_terminalMutex;              // mutex for appl
  * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
  * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  *
- * @return BOOL - success status
+ * @return int - error status
  */
-BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
-   if ((uint)ec          < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
-   if ((uint)symbol      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if ((int)period <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period));
-   if (sec && (uint)sec  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec));
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+   if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
+   if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if ((int)period <= 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
+   if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
 
    if (ec->programIndex)
       StoreThreadAndProgram(ec->programIndex);                       // store the last executed program (asap for error handling)
@@ -109,7 +109,10 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
    //if (programType == PT_EXPERT) debug("resolved init reason: %s", InitReasonToStr(initReason));
 
    hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
-   if (hChart == INVALID_HWND) return(error(ERR_WIN32_ERROR+GetLastError(), "=> FindWindowHandle()"));
+   if (hChart == INVALID_HWND) {
+      int error = ERR_WIN32_ERROR+GetLastError();
+      return(_int(error, error(error, "=> FindWindowHandle()")));
+   }
 
 
    if (!ec->programIndex) {
@@ -231,7 +234,7 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
          lastMaster->initCycle = FALSE;
       }
    }
-   return(TRUE);
+   return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
@@ -243,11 +246,11 @@ BOOL WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType,
  * @param  double             ask    - ask price of the current tick
  * @param  uint               volume - volume of the current tick
  *
- * @return BOOL - Erfolgsstatus
+ * @return int - error status
  */
-BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double bid, double ask, uint volume) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->programIndex)            return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
+int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double bid, double ask, uint volume) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
@@ -257,7 +260,7 @@ BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double b
    ec_SetPreviousTickTime(ec, ec->currentTickTime );
    ec_SetCurrentTickTime (ec, time                );
 
-   return(TRUE);
+   return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
@@ -266,11 +269,11 @@ BOOL WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double b
  * @param  EXECUTION_CONTEXT* ec           - Context des Hauptmoduls eines MQL-Programms
  * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
  *
- * @return BOOL - Erfolgsstatus
+ * @return int - error status
  */
-BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->programIndex)            return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
+int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
@@ -278,7 +281,7 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
    ec_SetUninitReason(ec, uninitReason        );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
-   return(TRUE);
+   return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
@@ -296,7 +299,7 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
  * @param  uint               period         - current period
  * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminal
  *
- * @return BOOL - success status
+ * @return int - error status
  *
  *
  * Notes:
@@ -324,11 +327,11 @@ BOOL WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uni
  *            or tested timeframe change.
  *            Workaround: Instead of IsVisualMode() use the corresponding flag of the execution context.
  */
-BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, BOOL isOptimization) {
-   if ((uint)ec         < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)moduleName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName));
-   if ((uint)symbol     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if ((int)period <= 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period));
+int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, BOOL isOptimization) {
+   if ((uint)ec         < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)moduleName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
+   if ((uint)symbol     < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if ((int)period <= 0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
 
    // (1) If ec.programIndex is not set: library is loaded the first time and the context is empty.
    //     - copy master context and update library specific fields
@@ -396,7 +399,7 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
    }
 
    //debug("%s::%s::init()  ec=%s", ec->programName, ec->moduleName, EXECUTION_CONTEXT_toStr(ec));
-   return(TRUE);
+   return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
@@ -407,11 +410,11 @@ BOOL WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninit
  * @param  EXECUTION_CONTEXT* ec           - the libray's execution context
  * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
  *
- * @return BOOL - success status
+ * @return int - error status
  */
-BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->programIndex)            return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
+int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
@@ -419,7 +422,7 @@ BOOL WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    ec_SetUninitReason(ec, uninitReason);
 
    //debug("%s::%s::deinit()  ec@%d=%s", ec->programName, ec->moduleName, ec, EXECUTION_CONTEXT_toStr(ec));
-   return(TRUE);
+   return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
@@ -492,24 +495,24 @@ int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReaso
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return BOOL - success status
+ * @return int - error status
  */
-BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER)  return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: %p (not a valid pointer)", ec));
+int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER)  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: %p (not a valid pointer)", ec)));
    uint index = ec->programIndex;
-   if ((int)index < 1)                return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.programIndex=%d)  ec=%s", (int)index, EXECUTION_CONTEXT_toStr(ec)));
-   if (ec->rootFunction != RF_DEINIT) return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.rootFunction not RF_DEINIT)  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if ((int)index < 1)                return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.programIndex=%d)  ec=%s", (int)index, EXECUTION_CONTEXT_toStr(ec))));
+   if (ec->rootFunction != RF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.rootFunction not RF_DEINIT)  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
 
    switch (ec->moduleType) {
       case MT_INDICATOR:
       case MT_SCRIPT:
-         if (ec != g_contextChains[index][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (doesn't match the stored main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[index][1], EXECUTION_CONTEXT_toStr(ec)));
+         if (ec != g_contextChains[index][1]) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (doesn't match the stored main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[index][1], EXECUTION_CONTEXT_toStr(ec))));
          ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
          g_contextChains[index][1] = NULL;                           // mark main context as released
          break;
 
       case MT_EXPERT:
-         if (ec != g_contextChains[index][1]) return(error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[index][1], EXECUTION_CONTEXT_toStr(ec)));
+         if (ec != g_contextChains[index][1]) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[index][1], EXECUTION_CONTEXT_toStr(ec))));
 
          if (ec->testing) {
             //debug("%s::deinit()  leaving tester, ec=%s", ec->programName, EXECUTION_CONTEXT_toStr(ec));
@@ -521,14 +524,15 @@ BOOL WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
          break;
 
       case MT_LIBRARY:
+         // TODO: This could be kind of critical as the main module already called LeaveContext() before.
          ec_SetRootFunction(ec, (RootFunction)NULL);                 // set library context to NULL
-         return(FALSE);
+         break;
 
       default:
-         return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.moduleType: %s", ModuleTypeToStr(ec->moduleType)));
+         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.moduleType: %s", ModuleTypeToStr(ec->moduleType))));
    }
 
-   return(TRUE);
+   return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 

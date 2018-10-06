@@ -1,5 +1,4 @@
 #pragma once
-
 #include "expander.h"
 #include <vector>
 
@@ -35,4 +34,4 @@ typedef std::vector<ORDER> OrderVector;
 typedef OrderVector        OrderHistory;
 
 
-const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug=FALSE);
+const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);

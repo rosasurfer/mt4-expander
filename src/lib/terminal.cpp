@@ -6,6 +6,7 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/lock/Locker.h"
 
 #include <shellapi.h>
 #include <shlobj.h>
@@ -17,15 +18,14 @@
  * @return uint - build number or 0 in case of errors
  */
 uint WINAPI GetTerminalBuild() {
-   static uint build = 0;
+   static uint build;
+
    if (!build) {
-
-      // TODO: some old builds don't use the standard version string format "major.minor.hotfix.build"
-
-      uint dummy, b;
-      if (!GetTerminalVersion(&dummy, &dummy, &dummy, &b))
-         return(NULL);
-      build = b;
+      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
+      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
+      if (fileInfo) {
+         build = fileInfo->dwFileVersionLS & 0xffff;
+      }
    }
    return(build);
    #pragma EXPANDER_EXPORT
@@ -38,7 +38,7 @@ uint WINAPI GetTerminalBuild() {
  * @return char* - filename or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalModuleFileNameA() {
-   static char* filename = NULL;
+   static char* filename;
 
    if (!filename) {
       char* buffer;
@@ -63,7 +63,7 @@ const char* WINAPI GetTerminalModuleFileNameA() {
  * @return WCHAR* - filename or a NULL pointer in case of errors
  */
 const WCHAR* WINAPI GetTerminalModuleFileNameW() {
-   static WCHAR* filename = NULL;
+   static WCHAR* filename;
 
    if (!filename) {
       WCHAR* buffer;
@@ -87,13 +87,18 @@ const WCHAR* WINAPI GetTerminalModuleFileNameW() {
  * @return char* - version or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalVersion() {
-   static char* version = NULL;
+   static char* version;
 
    if (!version) {
       // get the version numbers
-      uint major, minor, hotfix, build;
-      BOOL result = GetTerminalVersion(&major, &minor, &hotfix, &build);
-      if (!result) return(NULL);
+      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
+      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
+      if (!fileInfo) return(NULL);
+
+      uint major  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
+      uint minor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
+      uint hotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
+      uint build  = (fileInfo->dwFileVersionLS      ) & 0xffff;
 
       // compose version string
       char* format = "%d.%d.%d.%d";
@@ -101,61 +106,63 @@ const char* WINAPI GetTerminalVersion() {
       version = new char[size];                                         // on the heap
       sprintf_s(version, size, format, major, minor, hotfix, build);
    }
-
    return(version);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Read the terminal's version numbers.
+ * Read the terminal's version infos from file.
  *
- * @param  _Out_ uint* major  - variable holding the major version number after return
- * @param  _Out_ uint* minor  - variable holding the minor version number after return
- * @param  _Out_ uint* hotfix - variable holding the hotfix number after return
- * @param  _Out_ uint* build  - variable holding the build number after return
- *
- * @return BOOL - success status
+ * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
  */
-BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* build) {
-   //
-   // TODO: read version info from the PE image in memory, not from the file which may disappear.
-   //
-   //       HRSRC res = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-   //
-   static uint resultMajor, resultMinor, resultHotfix, resultBuild;
+const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
+   static VS_FIXEDFILEINFO* fileInfo;
 
-   if (!resultMajor) {
+   if (!fileInfo) {
       const char* fileName = GetTerminalModuleFileNameA();
+      DWORD fileInfoSize = GetFileVersionInfoSize(fileName, &fileInfoSize);
+      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfoSize()"));
 
-      // get the file's version info
-      DWORD infoSize = GetFileVersionInfoSize(fileName, &infoSize);
-      if (!infoSize) return(error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfoSize()"));
+      char* infos = (char*) alloca(fileInfoSize);                       // on the stack
+      BOOL result = GetFileVersionInfo(fileName, NULL, fileInfoSize, infos);
+      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfo()"));
 
-      char* infoBuffer = (char*) alloca(infoSize);                      // on the stack
-      BOOL result = GetFileVersionInfo(fileName, NULL, infoSize, infoBuffer);
-      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfo()"));
-
-      // query the version root values
-      VS_FIXEDFILEINFO* fileInfo;
       uint len;
-      result = VerQueryValue(infoBuffer, "\\", (void**)&fileInfo, &len);
-      if (!result) return(error(ERR_WIN32_ERROR+GetLastError(), "=> VerQueryValue()"));
-
-      // parse the version numbers
-      resultMajor  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
-      resultMinor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
-      resultHotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
-      resultBuild  = (fileInfo->dwFileVersionLS      ) & 0xffff;
+      result = VerQueryValue(infos, "\\", (void**)&fileInfo, &len);
+      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> VerQueryValue()"));
    }
+   return(fileInfo);
+}
 
-   // assign results to parameters
-   if (major)  *major  = resultMajor;
-   if (minor)  *minor  = resultMinor;
-   if (hotfix) *hotfix = resultHotfix;
-   if (build)  *build  = resultBuild;
 
-   return(TRUE);
+/**
+ * Read the terminal's version infos from the PE image in memory.
+ *
+ * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
+ */
+const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
+   static VS_FIXEDFILEINFO* fileInfo;
+
+   if (!fileInfo) {
+      HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+      if (!hRes) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> FindResource()"));
+
+      void* infos = LoadResource(NULL, hRes);
+      if (!infos) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> LoadResource()"));
+
+      int offset = 6;
+      if (!wcscmp((wchar_t*)((char*)infos + offset), L"VS_VERSION_INFO")) {
+         offset += sizeof(L"VS_VERSION_INFO");
+         offset += offset % 4;                        // align to 32 bit
+         fileInfo = (VS_FIXEDFILEINFO*)((char*)infos + offset);
+         if (fileInfo->dwSignature != 0xfeef04bd) {
+            debug("unknown VS_FIXEDFILEINFO signature: 0x%p", fileInfo->dwSignature);
+            fileInfo = NULL;
+         }
+      }
+   }
+   return(fileInfo);
 }
 
 
@@ -165,7 +172,7 @@ BOOL WINAPI GetTerminalVersion(uint* major, uint* minor, uint* hotfix, uint* bui
  * @return char* - directory name without trailing path separator
  */
 const char* WINAPI GetTerminalPathA() {
-   static char* path = NULL;
+   static char* path;
 
    if (!path) {
       path = copychars(GetTerminalModuleFileNameA());                // on the heap
@@ -182,7 +189,7 @@ const char* WINAPI GetTerminalPathA() {
  *
  * @return wstring& - directory name or an empty string in case of errors
  */
-const wstring& WINAPI GetTerminalPathWs() {
+const wstring& WINAPI GetTerminalPathWS() {
    static wstring path;
 
    if (path.empty()) {
@@ -241,7 +248,7 @@ const char* WINAPI GetTerminalDataPathA() {
    //              4.1  permission granted => use the directory
    //              4.2  permission denied  => use roaming data directory
    //
-   static char* dataPath = NULL;
+   static char* dataPath;
 
    if (!dataPath) {
       const char* terminalPath    = GetTerminalPathA();
@@ -302,7 +309,7 @@ const char* WINAPI GetTerminalDataPathA() {
  *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
-   static char* result = NULL;
+   static char* result;
 
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
@@ -327,14 +334,14 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * @see  GetTerminalDataPath() to get the path of the data directory currently used
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
-   static char* result = NULL;
+   static char* result;
 
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
 
-      wstring terminalPath = GetTerminalPathWs();                                      // get terminal installation path
+      wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
       StrToUpper(terminalPath);                                                        // convert to upper case
       char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()* sizeof(WCHAR)); // calculate MD5 hash
 
@@ -349,7 +356,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
 
 /**
- * Whether or not the terminal has write permission in the specified directory.
+ * Whether or not the terminal has write permission to the specified directory.
  *
  * @param  char* dir - directory name
  *
@@ -363,14 +370,12 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
 
    char tmpFilename[MAX_PATH];
 
-   if (!GetTempFileName(dir, "rsf", 0, tmpFilename)) {
-      //debug("GetTempFileName()  [%s]", ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
+   if (!GetTempFileName(dir, "rsf", 0, tmpFilename))
       return(FALSE);
-   }
-   if (!DeleteFile(tmpFilename)) {
-      error(ERR_WIN32_ERROR+GetLastError(), "=> DeleteFile(%s)", tmpFilename);
-      return(FALSE);
-   }
+
+   if (!DeleteFile(tmpFilename))
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=> DeleteFile(%s)", tmpFilename));
+
    return(TRUE);
 }
 
@@ -439,5 +444,18 @@ BOOL WINAPI TerminalIsPortableMode() {
       }
    }
    return(isPortable);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   { synchronize();
+
+   debug("inside synchronized block");
+   }
+   return(0);
    #pragma EXPANDER_EXPORT
 }
