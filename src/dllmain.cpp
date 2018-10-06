@@ -3,18 +3,13 @@
 #include "lib/lock/Lock.h"
 #include "struct/xtrade/ExecutionContext.h"
 
-#include <map>
-#include <vector>
 
+extern std::vector<ContextChain> g_contextChains;                    // all context chains (i.e. MQL programs, index = program id)
+extern std::vector<DWORD>        g_threads;                          // all known threads executing MQL programs
+extern std::vector<uint>         g_threadsPrograms;                  // the last MQL program executed by a thread
 
-std::vector<ContextChain> g_contextChains  (64);                     // all context chains (i.e. MQL programs, index = program id)
-std::vector<DWORD>        g_threads        (64);                     // all known threads executing MQL programs
-std::vector<uint>         g_threadsPrograms(64);                     // the last MQL program executed by a thread
-uint                      g_lastUIThreadProgram;                     // the last MQL program executed by the UI thread
-CRITICAL_SECTION          g_terminalMutex;                           // mutex for application-wide locking
-
-typedef std::map<char*, Lock*> Locks;
-extern Locks g_locks;                                                // a map holding pointers to fine-granular locks
+extern CRITICAL_SECTION          g_terminalMutex;                    // mutex for application-wide locking
+extern Locks                     g_locks;                            // a map holding pointers to fine-granular locks
 
 
 //

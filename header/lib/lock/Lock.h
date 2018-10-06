@@ -1,5 +1,6 @@
 #pragma once
 #include "expander.h"
+#include <map>
 
 
 /**
@@ -7,10 +8,22 @@
  */
 class Lock {
 
-   protected:  Lock() {};
-   public:
-      virtual ~Lock() {};
+   /**
+    * Constructor
+    */
+   protected: Lock() {
+   };
 
-      virtual void lock()   = 0;
-      virtual void unlock() = 0;
+   /**
+    * Destructor
+    */
+   public: virtual ~Lock() {
+   };
+
+   public:
+      virtual void lock()   abstract;
+      virtual void unlock() abstract;
 };
+
+
+typedef std::map<char*, Lock*> Locks;                                // a map holding pointers to fine-granular locks

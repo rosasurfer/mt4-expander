@@ -9,11 +9,11 @@
 #include <vector>
 
 
-extern std::vector<ContextChain> g_contextChains;              // all context chains (= MQL programs, index = program id)
-extern std::vector<DWORD>        g_threads;                    // all known threads executing MQL programs
-extern std::vector<uint>         g_threadsPrograms;            // the last MQL program executed by a thread
-extern uint                      g_lastUIThreadProgram;        // the last MQL program executed by the UI thread
-extern CRITICAL_SECTION          g_terminalMutex;              // mutex for application-wide locking
+std::vector<ContextChain> g_contextChains  (128);        // all context chains (= MQL programs, index = program id)
+std::vector<DWORD>        g_threads        (128);        // all known threads executing MQL programs
+std::vector<uint>         g_threadsPrograms(128);        // the last MQL program executed by a thread
+uint                      g_lastUIThreadProgram;         // the last MQL program executed by the UI thread
+CRITICAL_SECTION          g_terminalMutex;               // mutex for application-wide locking
 
 
 /**
