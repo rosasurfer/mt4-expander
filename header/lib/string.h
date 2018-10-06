@@ -1,5 +1,4 @@
 #pragma once
-
 #include "expander.h"
 #include "struct/mt4/MqlStr.h"
 

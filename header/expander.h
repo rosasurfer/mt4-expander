@@ -10,9 +10,9 @@
 #include "shared/defines.h"                                          // definitions shared between C++ and MQL
 #include "shared/errors.h"                                           // error codes shared between C++ and MQL
 
+#include <iomanip>
 #include <string>
 #include <sstream>
-#include <iomanip>
 
 
 // export unmangled names without a DEF file
@@ -26,6 +26,7 @@ typedef          __int64 int64;
 typedef unsigned __int64 uint64;
 typedef DWORD            color;                                      // MQL type color
 typedef time_t           datetime;                                   // a 32-bit signed long
+
 
 using std::string;
 using std::wstring;

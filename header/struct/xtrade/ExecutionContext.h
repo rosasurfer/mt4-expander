@@ -1,5 +1,4 @@
 #pragma once
-
 #include "struct/xtrade/Test.h"
 
 

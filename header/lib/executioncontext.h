@@ -1,5 +1,4 @@
 #pragma once
-
 #include "expander.h"
 #include "struct/xtrade/ExecutionContext.h"
 
