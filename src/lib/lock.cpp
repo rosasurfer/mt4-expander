@@ -14,7 +14,7 @@ Locks g_locks;                                              // a map holding poi
  *
  * @return Lock*
  */
-Lock* WINAPI GetScopedLock(char* file, uint line) {
+Lock* WINAPI GetLocalizedLock(char* file, uint line) {
    // generate the mapping key
    char* format = "%s#%p";
    size_t size = strlen(file) + 10;                         // file +"#FFFFFFFF"<NUL>: 1 + 8 + 1
@@ -39,6 +39,6 @@ Lock* WINAPI GetScopedLock(char* file, uint line) {
  *
  * @return Lock*
  */
-Lock* WINAPI GetScopedLock(char* file, uint line, Lock& lock) {
+Lock* WINAPI GetLocalizedLock(char* file, uint line, Lock& lock) {
    return(&lock);
 }

@@ -33,7 +33,7 @@ class Locker {
 
 
 // convenient helper to synchronize access to a scoped code block
-#define synchronize(...)  Locker __lock__(*GetScopedLock(__FILE__, __LINE__, __VA_ARGS__));
+#define synchronize(...)  Locker __lock__(*GetLocalizedLock(__FILE__, __LINE__, __VA_ARGS__));
 
-Lock* WINAPI GetScopedLock(char* file, uint line);
-Lock* WINAPI GetScopedLock(char* file, uint line, Lock& lock);
+Lock* WINAPI GetLocalizedLock(char* file, uint line);
+Lock* WINAPI GetLocalizedLock(char* file, uint line, Lock& lock);
