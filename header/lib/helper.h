@@ -9,7 +9,6 @@ uint           WINAPI GetChartDescription(const char* symbol, uint timeframe, ch
 uint           WINAPI GetDoublesAddress(const double values[]);
 uint           WINAPI GetIntsAddress(const int values[]);
 int            WINAPI GetLastWin32Error();
-std::istream&         getLine(std::istream& is, string& line);
 DWORD          WINAPI GetUIThreadId();
 HANDLE         WINAPI GetWindowProperty(HWND hWnd, const char* lpName);
 BOOL           WINAPI IsCustomTimeframe(int timeframe);
