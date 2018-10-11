@@ -241,7 +241,7 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
+BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
    if (!str)          return(FALSE);
    if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
@@ -265,7 +265,7 @@ BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
+BOOL WINAPI StrStartsWith(const wchar_t* str, const wchar_t* prefix) {
    if (!str)          return(FALSE);
    if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
@@ -277,7 +277,6 @@ BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
    if (strLen >= prefixLen)
       return(wcsncmp(str, prefix, prefixLen) == 0);
    return(FALSE);
-   //#pragma EXPANDER_EXPORT                                         // not exported
 }
 
 

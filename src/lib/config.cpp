@@ -118,7 +118,7 @@ const char* WINAPI GetLocalConfigPathA() {
 
             // TODO: resolve reparse points in TerminalPath() before comparison
 
-            if (StringStartsWith(GetTerminalPathA(), programFilesPath)) {
+            if (StrStartsWith(GetTerminalPathA(), programFilesPath)) {
                // 5.1 yes => continue with 4.2 => create a file in the roaming data directory
                HFILE hFile = _lcreat(filename.c_str(), FILE_ATTRIBUTE_NORMAL);
                if (hFile == HFILE_ERROR) debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
