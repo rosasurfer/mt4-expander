@@ -289,7 +289,7 @@ BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
+BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
    if (!str)          return(FALSE);
    if (!suffix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
    if (str == suffix) return(TRUE);                                  // if pointers are equal values are too

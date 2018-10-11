@@ -633,7 +633,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
                title = (char*)alloca(bufferSize);
                continue;
             }
-            if (StringEndsWith(title, " (offline)"))
+            if (StrEndsWith(title, " (offline)"))
                title[titleLen-10] = 0;
             if (StringCompare(title, chartDescription)) {            // find all matching windows
                id = std::min(id, GetDlgCtrlID(hWndChild));           // track the smallest in absolute order
@@ -952,7 +952,7 @@ BOOL WINAPI ProgramIsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
 
          char* title = (char*)alloca(titleLen+1);                    // on the stack
          GetWindowText(hWnd, title, titleLen+1);
-         return(StringEndsWith(title, "(visual)"));                  // all remaining cases according to "(visual)" in title
+         return(StrEndsWith(title, "(visual)"));                     // all remaining cases according to "(visual)" in title
       }
 
       // experts
@@ -969,7 +969,7 @@ BOOL WINAPI ProgramIsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
                bufferSize <<= 1;
                title = (char*)alloca(bufferSize);
             }
-            return(StringEndsWith(title, "(visual)"));
+            return(StrEndsWith(title, "(visual)"));
          }
          return(error(ERR_ILLEGAL_STATE, "script without a chart:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
       }
