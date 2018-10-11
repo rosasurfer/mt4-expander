@@ -69,7 +69,7 @@ std::istream& getline(std::istream& is, string& line) {
    // CRLF   = 0D0A   = 13,10    = \r\n     Windows
    // CRCRLF = 0D0D0A = 13,13,10 = \r\r\n   TODO: Netscape, Windows XP Notepad bug
 
-   std::istream::sentry se(is, true);
+   //std::istream::sentry se(is, true);
    std::streambuf* sb = is.rdbuf();
    line.clear();
 
