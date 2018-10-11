@@ -322,7 +322,8 @@ char* WINAPI MD5Hash(const void* input, uint length) {
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
-   return(copychars(ss.str()));                                      // TODO: close memory leak
+
+   return(strdup(ss.str().c_str()));                                 // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 

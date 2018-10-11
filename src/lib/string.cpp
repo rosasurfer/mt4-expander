@@ -199,7 +199,7 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
       diff.append("ADDED ").append(lineCurrent).append("\n");
    }
 
-   return(copychars(diff.c_str()));
+   return(strdup(diff.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
@@ -463,6 +463,10 @@ uint WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize) {
  * @param  wchar_t* str - NULL terminated unicode string
  *
  * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ *
+ *
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
+ *       application must use free() to do so.
  */
 char* wchartombs(const wchar_t* str) {
    return(wchartombs(str, wcslen(str)));
@@ -476,19 +480,23 @@ char* wchartombs(const wchar_t* str) {
  * @param  size_t   count    - number of wide characters
  *
  * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ *
+ *
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
+ *       application must use free() to do so.
  */
 char* wchartombs(const wchar_t* sequence, size_t count) {
    wchar_t* source = wcsncpy(new wchar_t[count+1], sequence, count);
    source[count] = 0;
 
    size_t size = (count << 1) + 1;
-   char* dest = new char[size];
+   char* dest = (char*)malloc(size);
 
    uint bytes = wcstombs(dest, source, size);
 
    if (bytes == -1) {
       error(ERR_WIN32_ERROR+GetLastError(), "cannot convert unicode to multi-byte characters");
-      delete[] dest;
+      free(dest);
       dest = NULL;
    }
    else {
@@ -506,6 +514,10 @@ char* wchartombs(const wchar_t* sequence, size_t count) {
  * @param  wstring& str
  *
  * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ *
+ *
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
+ *       application must use free() to do so.
  */
 char* wchartombs(const wstring& str) {
    return(wchartombs(str.c_str(), str.length()));

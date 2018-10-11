@@ -50,7 +50,7 @@ const char* WINAPI GetTerminalModuleFileNameA() {
       }
       if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetModuleFileName()"));
 
-      filename = copychars(buffer);                                  // on the heap
+      filename = strdup(buffer);                                     // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -175,7 +175,7 @@ const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
-      path = copychars(GetTerminalModuleFileNameA());                // on the heap
+      path = strdup(GetTerminalModuleFileNameA());                   // on the heap
       string str(path);
       path[str.find_last_of("\\")] = 0;
    }
@@ -258,7 +258,7 @@ const char* WINAPI GetTerminalDataPathA() {
       if (TerminalIsPortableMode()) {
          // 1.1 yes => use installation directory (WoW64 redirection of old builds to the virtual store)
          //debug("1.1  TerminalIsPortableMode() = TRUE");
-         dataPath = copychars(terminalPath);                            // on the heap
+         dataPath = strdup(terminalPath);                               // on the heap
       }
       else {
          // 1.2 no => new build in standard mode => 2. check if the executable was removed (the terminal removed a reparse point)
@@ -271,12 +271,12 @@ const char* WINAPI GetTerminalDataPathA() {
             if (TerminalIsLockedLogfile(string(terminalPath).append(localTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log")))) {
                // 3.1 yes => use the directory (write permission must exist)
                //debug("3.1  a locked logfile exists");
-               dataPath = copychars(terminalPath);                      // on the heap
+               dataPath = strdup(terminalPath);                         // on the heap
             }
             else {
                // 3.2 no => use roaming data directory
                //debug("3.2  a locked logfile doesn't exist");
-               dataPath = copychars(roamingDataPath);                   // on the heap
+               dataPath = strdup(roamingDataPath);                      // on the heap
             }
          }
          else {
@@ -285,12 +285,12 @@ const char* WINAPI GetTerminalDataPathA() {
             if (TerminalHasWritePermission(terminalPath)) {
                // 4.1 permission granted => use the directory
                //debug("4.1  write permission in %s", terminalPath);
-               dataPath = copychars(terminalPath);                      // on the heap
+               dataPath = strdup(terminalPath);                         // on the heap
             }
             else {
                // 4.2 permission denied => use roaming data directory
                //debug("4.2  no write permission in %s", terminalPath);
-               dataPath = copychars(roamingDataPath);                   // on the heap
+               dataPath = strdup(roamingDataPath);                      // on the heap
             }
          }
       }
@@ -317,7 +317,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
-      result = copychars(dir);                                                         // on the heap
+      result = strdup(dir.c_str());                                                    // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
@@ -347,8 +347,8 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
                                       .append(StrToUpper(md5));
-      result = copychars(dir);                                                         // on the heap
-      delete[] md5;
+      free(md5);
+      result = strdup(dir.c_str());                                                    // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
