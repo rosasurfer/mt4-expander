@@ -2,6 +2,8 @@
 #include "expander.h"
 
 
+const char* WINAPI BarModelDescription(int id);
+const char* WINAPI BarModelToStr(int id);
 const char* WINAPI BoolToStr(BOOL value);
 const char* WINAPI ErrorToStr(int error);
 const char* WINAPI IntToHexStr(int value);

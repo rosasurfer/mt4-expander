@@ -214,3 +214,35 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Get the bar model currently selected in the tester. If the tester window wasn't yet opened by the user the function
+ * returns EMPTY (-1).
+ *
+ * @return int - bar model id or EMPTY (-1) in case of errors
+ */
+int WINAPI Tester_GetBarModel() {
+   HWND hWndTester = FindTesterWindow();
+   if (!hWndTester) return(EMPTY);
+
+   HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
+   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  tab \"Settings\" in tester window not found")));
+
+   HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
+   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control \"Model\" in tab \"Settings\" of tester window not found")));
+
+   uint bufSize = 20;                                                // big enough to hold the string "Open prices only"
+   char* text = (char*) alloca(bufSize);                             // on the stack
+
+   int len = GetWindowText(hWndBarModel, text, bufSize);
+   if (!len) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetWindowText()  0 chars copied")));
+
+   if (StrStartsWith(text, "Every tick"))       return(BARMODEL_EVERYTICK);
+   if (StrStartsWith(text, "Control points"))   return(BARMODEL_CONTROLPOINTS);
+   if (StrStartsWith(text, "Open prices only")) return(BARMODEL_BAROPEN);
+
+   error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\"", text);
+   return(EMPTY);
+   #pragma EXPANDER_EXPORT
+}

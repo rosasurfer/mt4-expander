@@ -3,6 +3,42 @@
 
 
 /**
+ * Return a description of a Strategy Tester's bar model id.
+ *
+ * @param  int id
+ *
+ * @return char* - description or NULL if the parameter is invalid
+ */
+const char* WINAPI BarModelDescription(int id) {
+   switch (id) {
+      case BARMODEL_EVERYTICK:     return("every tick"    );
+      case BARMODEL_CONTROLPOINTS: return("control points");
+      case BARMODEL_BAROPEN:       return("bar open"      );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a readable version of a Strategy Tester's bar model id.
+ *
+ * @param  int id
+ *
+ * @return char* - readable version or NULL if the parameter is invalid
+ */
+const char* WINAPI BarModelToStr(int id) {
+   switch (id) {
+      case BARMODEL_EVERYTICK:     return("BARMODEL_EVERYTICK"    );
+      case BARMODEL_CONTROLPOINTS: return("BARMODEL_CONTROLPOINTS");
+      case BARMODEL_BAROPEN:       return("BARMODEL_BAROPEN"      );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Convert a BOOL value to the string "TRUE" or "FALSE".
  *
  * @param  BOOL value

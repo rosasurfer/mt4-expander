@@ -57,7 +57,7 @@ HWND WINAPI GetTerminalMainWindow() {
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
-      if (!hWndNext) return((HWND)error(ERR_RUNTIME_ERROR, "cannot find terminal main window"));
+      if (!hWndNext) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "cannot find terminal main window"));
 
       hWndMain = hWndNext;
    }
