@@ -14,6 +14,7 @@
  *    ausreichend ist und ggf. auf das Eintreffen ausreichender Bars warten.
  */
 #pragma pack(push, 1)
+
 struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint   version;                                 //         0         4     Header-Version                             = 405
    char   description[64];                         //         4        64     z.B. Copyright (szchar)
@@ -69,7 +70,7 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
 
    // commission calculation parameters            // ----------------------------------------------------------------------------------------------------------------
    double commissionValue;                         //       424         8     commission rate
-   uint   commissionCalculationMode;               //       432         4     0=Money|1=Pips|2=Percent                     @see COMMISSION_MODE_*
+   uint   commissionCalculationMode;               //       432         4     0=Money|1=Pip|2=Percent                      @see COMMISSION_MODE_*
    uint   commissionType;                          //       436         4     0=RoundTurn|1=PerDeal                        @see COMMISSION_TYPE_*
 
    // later additions                              // ----------------------------------------------------------------------------------------------------------------

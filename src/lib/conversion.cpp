@@ -23,6 +23,9 @@ const char* WINAPI BoolToStr(BOOL value) {
  * @return char*
  */
 const char* WINAPI ErrorToStr(int error) {
+   //
+   // for Win32 error codes see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
+   //
    switch (error) {
       case NO_ERROR                                         : return("NO_ERROR"                             );    //      0
 
@@ -307,6 +310,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_WIN32_ERROR + ERROR_MOD_NOT_FOUND            : return("win32:ERROR_MOD_NOT_FOUND"            );    // 100000 +  126
       case ERR_WIN32_ERROR + ERROR_PROC_NOT_FOUND           : return("win32:ERROR_PROC_NOT_FOUND"           );    // 100000 +  127
       // ...
+      case ERR_WIN32_ERROR + ERROR_CONTROL_ID_NOT_FOUND     : return("win32:ERROR_CONTROL_ID_NOT_FOUND"     );    // 100000 + 1421
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT      : return("win32:ERROR_NOT_A_REPARSE_POINT"      );    // 100000 + 4390
    }
 

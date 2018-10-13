@@ -2,15 +2,12 @@
 #include "lib/conversion.h"
 #include "lib/format.h"
 #include "lib/math.h"
+#include "lib/string.h"
 #include "lib/terminal.h"
-#include "struct/xtrade/ExecutionContext.h"
+#include "lib/tester.h"
 
 #include <fstream>
 #include <time.h>
-
-
-// forward declaration
-BOOL WINAPI SaveTest(TEST* test);
 
 
 /**
@@ -58,6 +55,98 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Find the window handle of the Stratetgy Tester's main window. The function returns NULL if the window doesn't yet exist
+ * (i.e. before a floating tester window was openend by the user the first time).
+ *
+ * @return HWND - handle or NULL (0) in case of errors
+ */
+HWND WINAPI FindTesterWindow() {
+   static HWND hWndTester;
+
+   if (!hWndTester) {
+      // The window may be (1) docked at the terminal main window or it may (2) float in an independent top-level window.
+      // In both cases the handle is the same.
+      // (last version using a dynamic classname for resolution: https://github.com/rosasurfer/mt4-mql CVS commit v1.498)
+
+      // (1) check for a tester window docked at the terminal main window
+      HWND hWndMain = GetTerminalMainWindow();
+      if (!hWndMain) return(NULL);
+
+      HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKABLES_CONTAINER);        // top-level container for docked terminal windows
+      if (!hWnd) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  cannot find top-level window for docked terminal windows"));
+
+      hWndTester = GetDlgItem(hWnd, IDC_TESTER);
+      if (hWndTester) return(hWndTester);
+      SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
+
+
+      // (2) check for a floating tester window owned by the current process
+      DWORD processId, self = GetCurrentProcessId();
+      uint bufSize = 12;                                                // big enough to hold the string "Tester"
+      char* wndTitle = (char*) alloca(bufSize);                         // on the stack: buffer for window title
+      HWND hWndNext = GetTopWindow(NULL);
+      if (!hWndNext) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetTopWindow(NULL)"));
+
+      while (hWndNext) {                                                // iterate over all top-level windows
+         GetWindowThreadProcessId(hWndNext, &processId);
+         if (processId == self) {                                       // the window belongs to us
+            int len = GetWindowText(hWndNext, wndTitle, bufSize);
+            if (!len) if (int error=GetLastError()) return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+
+            if (StrStartsWith(wndTitle, "Tester")) {
+               hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);     // container for floating tester window
+               if (!hWnd) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  container for floating tester window not found"));
+
+               hWndTester = GetDlgItem(hWnd, IDC_TESTER);
+               if (!hWndTester) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  no tester window found in container for floating tester window"));
+               break;
+            }
+         }
+         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+      }
+
+      if (!hWndTester) debug("Tester window not found");                // the window doesn't yet exist
+   }
+   return(hWndTester);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Save the results of a test.
+ *
+ * @param  TEST* test
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI SaveTest(TEST* test) {
+   // save TEST to logfile
+   string testLogfile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log");
+   std::ofstream fs;
+   fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "=> fs.open(\"%s\")", testLogfile.c_str()));
+   fs << "test=" << TEST_toStr(test) << "\n";
+   debug("test=%s", TEST_toStr(test));
+
+   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory, test.orders: 0x%p", test->orders));
+   int size = orders->size();
+
+   for (int i=0; i < size; ++i) {
+      ORDER* order = &(*orders)[i];
+      fs << "order." << i << "=" << ORDER_toStr(order) << "\n";
+   }
+   fs.close();
+
+   // backup input parameters
+   // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
+   string paramSrcFile  = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
+   string paramDestFile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
+   if (!CopyFile(paramSrcFile.c_str(), paramDestFile.c_str(), TRUE))
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
+   return(TRUE);
 }
 
 
@@ -124,38 +213,4 @@ BOOL WINAPI Test_CloseOrder(EXECUTION_CONTEXT* ec, int ticket, double closePrice
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Save the results of a TEST.
- *
- * @param  TEST* test
- *
- * @return BOOL - success status
- */
-BOOL WINAPI SaveTest(TEST* test) {
-   // save TEST to logfile
-   string testLogfile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log");
-   std::ofstream fs;
-   fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "=> fs.open(\"%s\")", testLogfile.c_str()));
-   fs << "test=" << TEST_toStr(test) << "\n";
-   debug("test=%s", TEST_toStr(test));
-
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory, test.orders: 0x%p", test->orders));
-   int size = orders->size();
-
-   for (int i=0; i < size; ++i) {
-      ORDER* order = &(*orders)[i];
-      fs << "order." << i << "=" << ORDER_toStr(order) << "\n";
-   }
-   fs.close();
-
-   // backup input parameters
-   // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
-   string paramSrcFile  = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
-   string paramDestFile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
-   if (!CopyFile(paramSrcFile.c_str(), paramDestFile.c_str(), TRUE))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
-   return(TRUE);
 }

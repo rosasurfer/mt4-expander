@@ -41,7 +41,7 @@ HWND WINAPI GetTerminalMainWindow() {
    static HWND hWndMain;
 
    if (!hWndMain) {
-      DWORD processId, myProcessId = GetCurrentProcessId();
+      DWORD processId, self = GetCurrentProcessId();
       uint size = 255;
       char* className = (char*) alloca(size);                        // on the stack: buffer for window class name
 
@@ -49,7 +49,7 @@ HWND WINAPI GetTerminalMainWindow() {
 
       while (hWndNext) {                                             // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == myProcessId) {
+         if (processId == self) {
             if (!GetClassName(hWndNext, className, size))            // get each window's class name
                return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
             if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
@@ -57,8 +57,7 @@ HWND WINAPI GetTerminalMainWindow() {
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
-      if (!hWndNext)
-         return((HWND)error(ERR_RUNTIME_ERROR, "cannot find terminal main window"));
+      if (!hWndNext) return((HWND)error(ERR_RUNTIME_ERROR, "cannot find terminal main window"));
 
       hWndMain = hWndNext;
    }
