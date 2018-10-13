@@ -3,6 +3,42 @@
 
 
 /**
+ * Return a description of a Strategy Tester's bar model id.
+ *
+ * @param  int id
+ *
+ * @return char* - description or NULL if the parameter is invalid
+ */
+const char* WINAPI BarModelDescription(int id) {
+   switch (id) {
+      case BARMODEL_EVERYTICK:     return("every tick"    );
+      case BARMODEL_CONTROLPOINTS: return("control points");
+      case BARMODEL_BAROPEN:       return("bar open"      );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a readable version of a Strategy Tester's bar model id.
+ *
+ * @param  int id
+ *
+ * @return char* - readable version or NULL if the parameter is invalid
+ */
+const char* WINAPI BarModelToStr(int id) {
+   switch (id) {
+      case BARMODEL_EVERYTICK:     return("BARMODEL_EVERYTICK"    );
+      case BARMODEL_CONTROLPOINTS: return("BARMODEL_CONTROLPOINTS");
+      case BARMODEL_BAROPEN:       return("BARMODEL_BAROPEN"      );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Convert a BOOL value to the string "TRUE" or "FALSE".
  *
  * @param  BOOL value
@@ -23,6 +59,9 @@ const char* WINAPI BoolToStr(BOOL value) {
  * @return char*
  */
 const char* WINAPI ErrorToStr(int error) {
+   //
+   // for Win32 error codes see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
+   //
    switch (error) {
       case NO_ERROR                                         : return("NO_ERROR"                             );    //      0
 
@@ -307,6 +346,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_WIN32_ERROR + ERROR_MOD_NOT_FOUND            : return("win32:ERROR_MOD_NOT_FOUND"            );    // 100000 +  126
       case ERR_WIN32_ERROR + ERROR_PROC_NOT_FOUND           : return("win32:ERROR_PROC_NOT_FOUND"           );    // 100000 +  127
       // ...
+      case ERR_WIN32_ERROR + ERROR_CONTROL_ID_NOT_FOUND     : return("win32:ERROR_CONTROL_ID_NOT_FOUND"     );    // 100000 + 1421
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT      : return("win32:ERROR_NOT_A_REPARSE_POINT"      );    // 100000 + 4390
    }
 

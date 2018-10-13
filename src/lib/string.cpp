@@ -50,6 +50,69 @@ string WINAPI doubleQuoteStr(const string& value) {
 
 
 /**
+ * Dropin-replacement for std::getline(). Read the next line from an input stream auto-detecting standard line endings.
+ *
+ * @param  istream& is   - input stream
+ * @param  string&  line - string into which the next line is read
+ *
+ * @return istream& - the same input stream
+ */
+std::istream& getline(std::istream& is, string& line) {
+   // CR     = 0D     = 13       = \r       Mac
+   // LF     = 0A     = 10       = \n       Linux
+   // CRLF   = 0D0A   = 13,10    = \r\n     Windows
+   // CRCRLF = 0D0D0A = 13,13,10 = \r\r\n   TODO: Netscape, Windows XP Notepad bug
+   //
+   // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
+   // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
+   // tasks, such as thread synchronization and updating the stream state.
+   //
+   // @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
+   //
+   std::istream::sentry se(is, true);                    // without it even a single thread might run into an infinite loop
+   std::streambuf* sb = is.rdbuf();
+   line.clear();
+
+   for (;;) {
+      int ch = sb->sbumpc();
+
+      if (ch == '\n')
+         break;
+      if (ch == '\r') {
+         if (sb->sgetc() == '\n') sb->sbumpc();
+         break;
+      }
+      if (ch == EOF) {                                   // handle the case when the last line has no line ending
+         if (line.empty()) is.setstate(std::ios::eofbit);
+         break;
+      }
+      line += (char)ch;
+   }
+   return(is);
+
+   /*
+   char* fileName = "local-config.ini";
+   std::ifstream fs(fileName);
+   if (fs) {
+      string line;
+      uint n = 0;
+
+      debug("reading file \"%s\"...", fileName);
+      while (!getline(fs, line).eof()) {
+         ++n;
+         debug("line %d: %s (%d)", n, line.c_str(), line.length());
+      }
+      fs.close();
+      debug("file contains %d line(s)", n);
+   }
+   else {
+      error(ERR_FILE_CANNOT_OPEN, "cannot open file \"%s\"", fileName);
+   }
+   */
+}
+
+
+/**
  * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
  *
  * @param  MqlStr values[] - MQL-String-Array
@@ -97,6 +160,44 @@ const char* WINAPI GetString(const char* value) {
 
 
 /**
+ * Resolve and return the difference between the passed string representations of input parameters.
+ *
+ * @param  char* initial - initial input parameters
+ * @param  char* current - current input parameters
+ *
+ * @return char* - modified input parameters
+ */
+const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
+   if (initial && (uint)initial < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter initial: 0x%p (not a valid pointer)", initial));
+   if (           (uint)current < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter current: 0x%p (not a valid pointer)", current));
+
+   if (!initial || !strlen(initial))         // all current parameters
+      return(current);
+
+   // diff input strings
+   std::stringstream stInitial(initial), stCurrent(current);
+   string lineInitial, lineCurrent, diff;
+
+   while (getline(stInitial, lineInitial)) {
+      if (getline(stCurrent, lineCurrent)) {
+         if (lineInitial != lineCurrent)
+            diff.append(lineCurrent).append("\n");
+      }
+      else {
+         diff.append("REMOVED ").append(lineInitial).append("\n");
+      }
+   }
+
+   while (getline(stCurrent, lineCurrent)) {
+      diff.append("ADDED ").append(lineCurrent).append("\n");
+   }
+
+   return(strdup(diff.c_str()));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Prüft, ob ein C-String initialisiert oder ein NULL-Pointer ist.
  *
  * @param  char* value - zu prüfender String
@@ -133,7 +234,7 @@ BOOL WINAPI StringCompare(const char* s1, const char* s2) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
+BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
    if (!str)          return(FALSE);
    if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
@@ -157,7 +258,7 @@ BOOL WINAPI StringStartsWith(const char* str, const char* prefix) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
+BOOL WINAPI StrStartsWith(const wchar_t* str, const wchar_t* prefix) {
    if (!str)          return(FALSE);
    if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
@@ -169,7 +270,6 @@ BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
    if (strLen >= prefixLen)
       return(wcsncmp(str, prefix, prefixLen) == 0);
    return(FALSE);
-   //#pragma EXPANDER_EXPORT                                         // not exported
 }
 
 
@@ -181,7 +281,7 @@ BOOL WINAPI StringStartsWith(const wchar_t* str, const wchar_t* prefix) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringEndsWith(const char* str, const char* suffix) {
+BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
    if (!str)          return(FALSE);
    if (!suffix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
    if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
@@ -355,6 +455,10 @@ uint WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize) {
  * @param  wchar_t* str - NULL terminated unicode string
  *
  * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ *
+ *
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
+ *       application must use free() to do so.
  */
 char* wchartombs(const wchar_t* str) {
    return(wchartombs(str, wcslen(str)));
@@ -368,19 +472,23 @@ char* wchartombs(const wchar_t* str) {
  * @param  size_t   count    - number of wide characters
  *
  * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ *
+ *
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
+ *       application must use free() to do so.
  */
 char* wchartombs(const wchar_t* sequence, size_t count) {
    wchar_t* source = wcsncpy(new wchar_t[count+1], sequence, count);
    source[count] = 0;
 
    size_t size = (count << 1) + 1;
-   char* dest = new char[size];
+   char* dest = (char*)malloc(size);
 
    uint bytes = wcstombs(dest, source, size);
 
    if (bytes == -1) {
       error(ERR_WIN32_ERROR+GetLastError(), "cannot convert unicode to multi-byte characters");
-      delete[] dest;
+      free(dest);
       dest = NULL;
    }
    else {
@@ -398,6 +506,10 @@ char* wchartombs(const wchar_t* sequence, size_t count) {
  * @param  wstring& str
  *
  * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ *
+ *
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
+ *       application must use free() to do so.
  */
 char* wchartombs(const wstring& str) {
    return(wchartombs(str.c_str(), str.length()));

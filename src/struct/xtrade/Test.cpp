@@ -289,7 +289,7 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", duration="        <<               (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
          << ", orders="          <<               (test->orders   ? to_string(test->orders->size()) : "NULL")
          << "}";
-      result = copychars(ss.str());                                        // TODO: close memory leak
+      result = strdup(ss.str().c_str());                                   // TODO: close memory leak
    }
 
    if (outputDebug) debug(result);

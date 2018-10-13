@@ -53,4 +53,4 @@ uint        WINAPI test_SetDuration       (TEST* test, uint        duration );
 
 
 // Helpers
-const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug=FALSE);
+const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug = FALSE);

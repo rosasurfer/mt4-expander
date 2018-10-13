@@ -105,11 +105,11 @@ BOOL WINAPI IsJunctionA(const char* name) {
 
       DWORD attrib = GetFileAttributes(name);
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
-         char* _name = copychars(name);                                       // on the heap
+         char* _name = strdup(name);                                          // on the heap
 
          int pos = strlen(_name);
          while (--pos >=0 && (_name[pos]=='\\' || _name[pos]=='/')) {         // cut-off trailing slashes
-            _name[pos] = '\0';
+            _name[pos] = 0;
          }
 
          WIN32_FIND_DATA wfd = {};
@@ -119,7 +119,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
             FindClose(hFind);
             result = (wfd.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT);
          }
-         delete[] _name;
+         free(_name);
       }
    }
    return(result);
@@ -143,7 +143,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
       DWORD attrib = GetFileAttributes(name);
 
       if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_REPARSE_POINT)) {
-         char* _name = copychars(name);                                       // on the heap
+         char* _name = strdup(name);                                          // on the heap
 
          if (attrib & FILE_ATTRIBUTE_DIRECTORY) {
             int pos = strlen(_name);
@@ -159,7 +159,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
             FindClose(hFind);
             result = (wfd.dwReserved0 == IO_REPARSE_TAG_SYMLINK);
          }
-         delete[] _name;
+         free(_name);
       }
    }
    return(result);
@@ -216,6 +216,9 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
  * @return char* - resolved target path or a NULL pointer in case of errors
  *
  *
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
+ *       application must use free() to do so.
+ *
  * @see  http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
  * @see  https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
  */
@@ -245,24 +248,25 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
       return((char*)error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name));
    }
 
-   char* target = NULL;
+   char* target=NULL, *result=NULL;
 
    // read the reparse data
    if (IsReparseTagMicrosoft(rdata->ReparseTag)) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
          size_t offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
-         target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
+         result = target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
          //debug("mount point to \"%s\"", target);
 
          char* prefix = "\\??\\";
-         if (strncmp(target, prefix, strlen(prefix))) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (junction target doesn't start with \"%s\"): \"%s\"", prefix, target);
-         else                                         target += strlen(prefix);
+         len = strlen(prefix);
+         if (strncmp(target, prefix, len)) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (junction target doesn't start with \"%s\"): \"%s\"", prefix, target);
+         else                              result = target + len;
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
          size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
-         target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
+         result = target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
          BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
          //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target);
 
@@ -270,13 +274,13 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
             char drive[_MAX_DRIVE], dir[_MAX_DIR];
             _splitpath(name, drive, dir, NULL, NULL);
             string s = string(drive).append(dir).append(target);
-            delete[] target;
-            target = copychars(s);
+            result = strdup(s.c_str());
          }
          else {
             char* prefix = "\\??\\";
-            if (strncmp(target, prefix, strlen(prefix))) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (absolute symlink target doesn't start with \"%s\"): \"%s\"", prefix, target);
-            else                                         target += strlen(prefix);
+            len = strlen(prefix);
+            if (strncmp(target, prefix, len)) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (absolute symlink target doesn't start with \"%s\"): \"%s\"", prefix, target);
+            else                              result = target + len;
          }
       }
       else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
@@ -284,7 +288,8 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
 
    free(rdata);
-   return(target);                                                                           // TODO: close memory leak
+   free(target);
+   return(result);                                                                           // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 

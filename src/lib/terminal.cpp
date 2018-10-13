@@ -33,6 +33,40 @@ uint WINAPI GetTerminalBuild() {
 
 
 /**
+ * Return the window handle of the application's main window.
+ *
+ * @return HWND - handle or NULL (0) in case of errors
+ */
+HWND WINAPI GetTerminalMainWindow() {
+   static HWND hWndMain;
+
+   if (!hWndMain) {
+      DWORD processId, self = GetCurrentProcessId();
+      uint size = 255;
+      char* className = (char*) alloca(size);                        // on the stack: buffer for window class name
+
+      HWND hWndNext = GetTopWindow(NULL);
+
+      while (hWndNext) {                                             // iterate over all top-level windows
+         GetWindowThreadProcessId(hWndNext, &processId);
+         if (processId == self) {
+            if (!GetClassName(hWndNext, className, size))            // get each window's class name
+               return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
+            if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
+               break;
+         }
+         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+      }
+      if (!hWndNext) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "cannot find terminal main window"));
+
+      hWndMain = hWndNext;
+   }
+   return(hWndMain);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the full filename of the executable the terminal was launched from.
  *
  * @return char* - filename or a NULL pointer in case of errors
@@ -50,7 +84,7 @@ const char* WINAPI GetTerminalModuleFileNameA() {
       }
       if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetModuleFileName()"));
 
-      filename = copychars(buffer);                                  // on the heap
+      filename = strdup(buffer);                                     // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -175,7 +209,7 @@ const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
-      path = copychars(GetTerminalModuleFileNameA());                // on the heap
+      path = strdup(GetTerminalModuleFileNameA());                   // on the heap
       string str(path);
       path[str.find_last_of("\\")] = 0;
    }
@@ -258,7 +292,7 @@ const char* WINAPI GetTerminalDataPathA() {
       if (TerminalIsPortableMode()) {
          // 1.1 yes => use installation directory (WoW64 redirection of old builds to the virtual store)
          //debug("1.1  TerminalIsPortableMode() = TRUE");
-         dataPath = copychars(terminalPath);                            // on the heap
+         dataPath = strdup(terminalPath);                               // on the heap
       }
       else {
          // 1.2 no => new build in standard mode => 2. check if the executable was removed (the terminal removed a reparse point)
@@ -271,12 +305,12 @@ const char* WINAPI GetTerminalDataPathA() {
             if (TerminalIsLockedLogfile(string(terminalPath).append(localTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log")))) {
                // 3.1 yes => use the directory (write permission must exist)
                //debug("3.1  a locked logfile exists");
-               dataPath = copychars(terminalPath);                      // on the heap
+               dataPath = strdup(terminalPath);                         // on the heap
             }
             else {
                // 3.2 no => use roaming data directory
                //debug("3.2  a locked logfile doesn't exist");
-               dataPath = copychars(roamingDataPath);                   // on the heap
+               dataPath = strdup(roamingDataPath);                      // on the heap
             }
          }
          else {
@@ -285,12 +319,12 @@ const char* WINAPI GetTerminalDataPathA() {
             if (TerminalHasWritePermission(terminalPath)) {
                // 4.1 permission granted => use the directory
                //debug("4.1  write permission in %s", terminalPath);
-               dataPath = copychars(terminalPath);                      // on the heap
+               dataPath = strdup(terminalPath);                         // on the heap
             }
             else {
                // 4.2 permission denied => use roaming data directory
                //debug("4.2  no write permission in %s", terminalPath);
-               dataPath = copychars(roamingDataPath);                   // on the heap
+               dataPath = strdup(roamingDataPath);                      // on the heap
             }
          }
       }
@@ -317,7 +351,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
-      result = copychars(dir);                                                         // on the heap
+      result = strdup(dir.c_str());                                                    // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
@@ -347,8 +381,8 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
                                       .append(StrToUpper(md5));
-      result = copychars(dir);                                                         // on the heap
-      delete[] md5;
+      free(md5);
+      result = strdup(dir.c_str());                                                    // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
@@ -363,8 +397,6 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
  * @return BOOL
  */
 BOOL WINAPI TerminalHasWritePermission(const char* dir) {
-   //debug("checking dir: %s", dir);
-
    if (!IsDirectoryA(dir))
       return(FALSE);
 
@@ -381,7 +413,7 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
 
 
 /**
- * Whether or not the specified file exists and is locked with the sharing modes of a logfile. This function canot see which
+ * Whether or not the specified file exists and is locked with the sharing modes of a logfile. This function cannot see which
  * process is holding the lock.
  *
  * @param  string& filename - full filename
@@ -389,8 +421,6 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
  * @return BOOL
  */
 BOOL WINAPI TerminalIsLockedLogfile(const string& filename) {
-   //debug("checking: %s", filename.c_str());
-
    if (IsFileA(filename.c_str())) {
       // OF_READWRITE|OF_SHARE_COMPAT must succeed
       HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
@@ -434,7 +464,7 @@ BOOL WINAPI TerminalIsPortableMode() {
          LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
          for (int i=1; i < argc; ++i) {
-            if (StringStartsWith(argv[i], L"/portable")) {     // StartsWith() instead of Compare()
+            if (StrStartsWith(argv[i], L"/portable")) {        // StartsWith() instead of Compare()
                isPortable = TRUE;
                break;
             }
@@ -451,11 +481,34 @@ BOOL WINAPI TerminalIsPortableMode() {
 /**
  * @return int
  */
-int WINAPI Test() {
+int WINAPI Test_synchronize() {
    { synchronize();
-
    debug("inside synchronized block");
    }
+   return(0);
+}
+
+
+#include "struct/mt4/FxtHeader.h"
+#include <fstream>
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   using namespace std;
+
+   string fileName = string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
+   ifstream fs(fileName.c_str(), ios::binary);
+   if (!fs) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fileName.c_str()));
+
+   FXT_HEADER fxt = {};
+   fs.read((char*)&fxt, sizeof(FXT_HEADER));
+   fs.close(); if (fs.fail()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fileName.c_str()));
+
+   debug("fxt: symbol=%s  commission=%f  swap=%f/%f", fxt.symbol, fxt.commissionValue, fxt.swapLongValue, fxt.swapShortValue);
+
    return(0);
    #pragma EXPANDER_EXPORT
 }

@@ -38,7 +38,7 @@ const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
          << ", magicNumber=" <<                order->magicNumber
          << ", comment="     << doubleQuoteStr(order->comment)
          << "}";
-      result = copychars(ss.str());                                  // TODO: close memory leak
+      result = strdup(ss.str().c_str());                             // TODO: close memory leak
    }
    if (outputDebug) debug(result);
    return(result);

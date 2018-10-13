@@ -5,6 +5,7 @@
 uint                    WINAPI GetTerminalBuild();
 const char*             WINAPI GetTerminalCommonDataPathA();
 const char*             WINAPI GetTerminalDataPathA();
+HWND                    WINAPI GetTerminalMainWindow();
 const char*             WINAPI GetTerminalModuleFileNameA();
 const WCHAR*            WINAPI GetTerminalModuleFileNameW();
 const char*             WINAPI GetTerminalPathA();

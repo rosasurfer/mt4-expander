@@ -1,5 +1,6 @@
 #include "expander.h"
 #include "lib/string.h"
+#include "lib/terminal.h"
 
 extern "C" {
 #include "etc/md5.h"
@@ -100,51 +101,6 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
 
 
 /**
- * Gibt das Handle des Terminal-Hauptfensters zurück.
- *
- * @return HWND - Handle oder 0, falls ein Fehler auftrat
- */
-HWND WINAPI GetApplicationWindow() {
-   static HWND hWnd;
-
-   if (!hWnd) {
-      HWND  hWndNext = GetTopWindow(NULL);
-      DWORD processId, myProcessId=GetCurrentProcessId();
-
-      // alle Top-Level-Windows durchlaufen
-      while (hWndNext) {
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == myProcessId) {
-
-            // ClassName des Fensters ermitteln
-            int   size = 255;
-            char* className = (char*) alloca(size);            // auf dem Stack
-            int   copied = GetClassName(hWndNext, className, size);
-            if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
-
-            while (copied >= size-1) {                         // GetClassName() gibt die Anzahl der kopierten Zeichen zurück
-               size <<= 1;                                     // (ohne \0). Bei size-1 ist unklar, ob der String genau in den
-               className = (char*) alloca(size);               // Buffer paßte oder nicht.
-               copied    = GetClassName(hWndNext, className, size);
-            }
-            if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
-
-            // Klasse mit der Klasse des Terminal-Hauptfensters vergleichen
-            if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
-               break;
-         }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-      }
-      if (!hWndNext) error(ERR_RUNTIME_ERROR, "cannot find application main window");
-      hWnd = hWndNext;
-   }
-
-   return(hWnd);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Gibt die ID des Userinterface-Threads zurück.
  *
  * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
@@ -153,7 +109,7 @@ DWORD WINAPI GetUIThreadId() {
    static DWORD uiThreadId;
 
    if (!uiThreadId) {
-      HWND hWnd = GetApplicationWindow();
+      HWND hWnd = GetTerminalMainWindow();
       if (hWnd)
          uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
    }
@@ -322,7 +278,8 @@ char* WINAPI MD5Hash(const void* input, uint length) {
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
-   return(copychars(ss.str()));                                      // TODO: close memory leak
+
+   return(strdup(ss.str().c_str()));                                 // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -374,67 +331,4 @@ BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValu
    // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
    //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
    //return(GetLocalConfigBool (section, key, result));
-}
-
-
-/**
- *
- */
-std::istream& getLine(std::istream& is, string& line) {
-   // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
-   // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
-   // tasks, such as thread synchronization and updating the stream state.
-   //
-   // @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
-   //
-   // CR     = 0D     = 13       = \r       Mac
-   // LF     = 0A     = 10       = \n       Linux
-   // CRLF   = 0D0A   = 13,10    = \r\n     Windows
-   // CRCRLF = 0D0D0A = 13,13,10 = \r\r\n   Netscape, Windows XP Notepad bug (not yet tested)
-
-   std::istream::sentry se(is, true);
-   std::streambuf* sb = is.rdbuf();
-   line.clear();
-
-   for (;;) {
-      int ch = sb->sbumpc();
-      switch (ch) {
-         case '\n':
-            goto endloop;
-
-         case '\r':
-            if (sb->sgetc() == '\n')
-               sb->sbumpc();
-            goto endloop;
-
-         case EOF:
-            // handle the case when the last line has no line ending
-            if (line.empty())
-               is.setstate(std::ios::eofbit);
-            goto endloop;
-
-         default:
-            line += (char)ch;
-      }
-   }
-
-   endloop:
-   return(is);
-
-   /*
-   string   fileName = GetTerminalPath() +"\\tester\\"+ ec->programName +".ini";
-   std::ifstream fs(fileName.c_str());
-   if (!fs) return(error(ERR_FILE_CANNOT_OPEN, "cannot open file %s", DoubleQuoteStr(fileName.c_str())));
-
-   string line;
-   uint n = 0;
-
-   debug("reading file %s...", DoubleQuoteStr(fileName.c_str()));
-   while (!getLine(fs, line).eof()) {
-      ++n;
-      debug("line %d: %s (%d)", n, line.c_str(), line.length());
-   }
-   fs.close();
-   debug("file contains %d line(s)", n);
-   */
 }

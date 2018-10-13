@@ -43,7 +43,7 @@ const char* WINAPI GmTimeFormat(datetime timestamp, const char* format) {
    string str = gmTimeFormat(timestamp, format);
    if (!str.length())
       return(NULL);
-   return(copychars(str));                                           // TODO: close memory leak
+   return(strdup(str.c_str()));                                      // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -87,7 +87,7 @@ const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
    string str = localTimeFormat(timestamp, format);
    if (!str.length())
       return(NULL);
-   return(copychars(str));                                           // TODO: close memory leak
+   return(strdup(str.c_str()));                                      // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -130,6 +130,6 @@ string WINAPI numberFormat(double value, const char* format) {
 const char* WINAPI NumberFormat(double value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   return(copychars(numberFormat(value, format)));                   // TODO: close memory leak
+   return(strdup(numberFormat(value, format).c_str()));              // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
