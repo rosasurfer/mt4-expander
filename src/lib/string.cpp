@@ -50,51 +50,44 @@ string WINAPI doubleQuoteStr(const string& value) {
 
 
 /**
- * Dropin-replacement for std::getline(). Read the next line from an input stream handling all standard line endings.
+ * Dropin-replacement for std::getline(). Read the next line from an input stream auto-detecting standard line endings.
  *
  * @param  istream& is   - input stream
  * @param  string&  line - string into which the next line is read
  *
- * @return istream& - the (same) passed input stream
- *
- * @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
+ * @return istream& - the same input stream
  */
 std::istream& getline(std::istream& is, string& line) {
-   // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
-   // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
-   // tasks, such as thread synchronization and updating the stream state.
-   //
    // CR     = 0D     = 13       = \r       Mac
    // LF     = 0A     = 10       = \n       Linux
    // CRLF   = 0D0A   = 13,10    = \r\n     Windows
    // CRCRLF = 0D0D0A = 13,13,10 = \r\r\n   TODO: Netscape, Windows XP Notepad bug
-
-   //std::istream::sentry se(is, true);
+   //
+   // The characters in the stream are read one-by-one using std::streambuf. This is faster than reading them one-by-one using
+   // std::istream. Code that uses streambuf this way must be guarded by a sentry object. The sentry object performs various
+   // tasks, such as thread synchronization and updating the stream state.
+   //
+   // @see  http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf/6089413#6089413
+   //
+   std::istream::sentry se(is, true);                    // without it even a single thread might run into an infinite loop
    std::streambuf* sb = is.rdbuf();
    line.clear();
 
    for (;;) {
       int ch = sb->sbumpc();
-      switch (ch) {
-         case '\n':
-            goto endloop;
 
-         case '\r':
-            if (sb->sgetc() == '\n')
-               sb->sbumpc();
-            goto endloop;
-
-         case EOF:                     // handle the case when the last line has no line ending
-            if (line.empty())
-               is.setstate(std::ios::eofbit);
-            goto endloop;
-
-         default:
-            line += (char)ch;
+      if (ch == '\n')
+         break;
+      if (ch == '\r') {
+         if (sb->sgetc() == '\n') sb->sbumpc();
+         break;
       }
+      if (ch == EOF) {                                   // handle the case when the last line has no line ending
+         if (line.empty()) is.setstate(std::ios::eofbit);
+         break;
+      }
+      line += (char)ch;
    }
-
-   endloop:
    return(is);
 
    /*
