@@ -568,7 +568,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
    // Wir sind entweder: im Tester bei VisualMode=On              aber: kein Hauptmodul hat VisualMode=On und WindowHandle=NULL
    // oder               auﬂerhalb des Testers
 
-   HWND hWndMain = GetApplicationWindow();
+   HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return(INVALID_HWND);
 
    HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDI_CLIENT);

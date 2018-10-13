@@ -1,5 +1,6 @@
 #include "expander.h"
 #include "lib/string.h"
+#include "lib/terminal.h"
 
 extern "C" {
 #include "etc/md5.h"
@@ -100,51 +101,6 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
 
 
 /**
- * Gibt das Handle des Terminal-Hauptfensters zurück.
- *
- * @return HWND - Handle oder 0, falls ein Fehler auftrat
- */
-HWND WINAPI GetApplicationWindow() {
-   static HWND hWnd;
-
-   if (!hWnd) {
-      HWND  hWndNext = GetTopWindow(NULL);
-      DWORD processId, myProcessId=GetCurrentProcessId();
-
-      // alle Top-Level-Windows durchlaufen
-      while (hWndNext) {
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == myProcessId) {
-
-            // ClassName des Fensters ermitteln
-            int   size = 255;
-            char* className = (char*) alloca(size);            // auf dem Stack
-            int   copied = GetClassName(hWndNext, className, size);
-            if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
-
-            while (copied >= size-1) {                         // GetClassName() gibt die Anzahl der kopierten Zeichen zurück
-               size <<= 1;                                     // (ohne \0). Bei size-1 ist unklar, ob der String genau in den
-               className = (char*) alloca(size);               // Buffer paßte oder nicht.
-               copied    = GetClassName(hWndNext, className, size);
-            }
-            if (!copied) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
-
-            // Klasse mit der Klasse des Terminal-Hauptfensters vergleichen
-            if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
-               break;
-         }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-      }
-      if (!hWndNext) error(ERR_RUNTIME_ERROR, "cannot find application main window");
-      hWnd = hWndNext;
-   }
-
-   return(hWnd);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Gibt die ID des Userinterface-Threads zurück.
  *
  * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
@@ -153,7 +109,7 @@ DWORD WINAPI GetUIThreadId() {
    static DWORD uiThreadId;
 
    if (!uiThreadId) {
-      HWND hWnd = GetApplicationWindow();
+      HWND hWnd = GetTerminalMainWindow();
       if (hWnd)
          uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
    }

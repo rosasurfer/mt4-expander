@@ -33,6 +33,41 @@ uint WINAPI GetTerminalBuild() {
 
 
 /**
+ * Return the window handle of the application's main window.
+ *
+ * @return HWND - handle or NULL (0) in case of errors
+ */
+HWND WINAPI GetTerminalMainWindow() {
+   static HWND hWndMain;
+
+   if (!hWndMain) {
+      DWORD processId, myProcessId = GetCurrentProcessId();
+      uint size = 255;
+      char* className = (char*) alloca(size);                        // on the stack: buffer for window class name
+
+      HWND hWndNext = GetTopWindow(NULL);
+
+      while (hWndNext) {                                             // iterate over all top-level windows
+         GetWindowThreadProcessId(hWndNext, &processId);
+         if (processId == myProcessId) {
+            if (!GetClassName(hWndNext, className, size))            // get each window's class name
+               return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
+            if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
+               break;
+         }
+         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+      }
+      if (!hWndNext)
+         return((HWND)error(ERR_RUNTIME_ERROR, "cannot find terminal main window"));
+
+      hWndMain = hWndNext;
+   }
+   return(hWndMain);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the full filename of the executable the terminal was launched from.
  *
  * @return char* - filename or a NULL pointer in case of errors
@@ -363,8 +398,6 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
  * @return BOOL
  */
 BOOL WINAPI TerminalHasWritePermission(const char* dir) {
-   //debug("checking dir: %s", dir);
-
    if (!IsDirectoryA(dir))
       return(FALSE);
 
@@ -381,7 +414,7 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
 
 
 /**
- * Whether or not the specified file exists and is locked with the sharing modes of a logfile. This function canot see which
+ * Whether or not the specified file exists and is locked with the sharing modes of a logfile. This function cannot see which
  * process is holding the lock.
  *
  * @param  string& filename - full filename
@@ -389,8 +422,6 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
  * @return BOOL
  */
 BOOL WINAPI TerminalIsLockedLogfile(const string& filename) {
-   //debug("checking: %s", filename.c_str());
-
    if (IsFileA(filename.c_str())) {
       // OF_READWRITE|OF_SHARE_COMPAT must succeed
       HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
@@ -451,11 +482,34 @@ BOOL WINAPI TerminalIsPortableMode() {
 /**
  * @return int
  */
-int WINAPI Test() {
+int WINAPI Test_synchronize() {
    { synchronize();
-
    debug("inside synchronized block");
    }
+   return(0);
+}
+
+
+#include "struct/mt4/FxtHeader.h"
+#include <fstream>
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   using namespace std;
+
+   string fileName = string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
+   ifstream fs(fileName.c_str(), ios::binary);
+   if (!fs) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fileName.c_str()));
+
+   FXT_HEADER fxt = {};
+   fs.read((char*)&fxt, sizeof(FXT_HEADER));
+   fs.close(); if (fs.fail()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fileName.c_str()));
+
+   debug("fxt: symbol=%s  commission=%f  swap=%f/%f", fxt.symbol, fxt.commissionValue, fxt.swapLongValue, fxt.swapShortValue);
+
    return(0);
    #pragma EXPANDER_EXPORT
 }
