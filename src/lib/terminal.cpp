@@ -486,29 +486,5 @@ int WINAPI Test_synchronize() {
    debug("inside synchronized block");
    }
    return(0);
-}
-
-
-#include "struct/mt4/FxtHeader.h"
-#include <fstream>
-
-
-/**
- * @return int
- */
-int WINAPI Test() {
-   using namespace std;
-
-   string fileName = string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
-   ifstream fs(fileName.c_str(), ios::binary);
-   if (!fs) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fileName.c_str()));
-
-   FXT_HEADER fxt = {};
-   fs.read((char*)&fxt, sizeof(FXT_HEADER));
-   fs.close(); if (fs.fail()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fileName.c_str()));
-
-   debug("fxt: symbol=%s  commission=%f  swap=%f/%f", fxt.symbol, fxt.commissionValue, fxt.swapLongValue, fxt.swapShortValue);
-
-   return(0);
    #pragma EXPANDER_EXPORT
 }

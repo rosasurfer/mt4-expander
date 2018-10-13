@@ -1,10 +1,12 @@
 #include "expander.h"
 #include "lib/conversion.h"
+#include "lib/file.h"
 #include "lib/format.h"
 #include "lib/math.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/tester.h"
+#include "struct/mt4/FxtHeader.h"
 
 #include <fstream>
 #include <time.h>
@@ -244,5 +246,45 @@ int WINAPI Tester_GetBarModel() {
 
    error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\"", text);
    return(EMPTY);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get the commission value for the given lotsize as defined for the specified symbol under test. Opposite to life trading in
+ * the Strategy Tester commission can be set to a custom value per test (in the tester's history file). In order for this
+ * function to work a tester history file for the specified symbol, timeframe and bar model must exist.
+ *
+ * @param  char*  symbol          - symbol under test
+ * @param  uint   timeframe       - test timeframe
+ * @param  uint   barModel        - test bar model: BARMODEL_EVERYTICK | BARMODEL_CONTROLPOINTS | BARMODEL_BAROPEN
+ * @param  double lots [optional] - lotsize to calculate commission for (default: 1 lot)
+ *
+ * @return double - commission value or EMPTY (-1) in case of errors
+ */
+double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint barModel, double lots/*=1.0*/) {
+   if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if ((int)timeframe <= 0)              return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   using namespace std;
+
+   // e.g. string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
+   string fxtFile = string(GetTerminalDataPathA()).append("\\tester\\history\\")
+                                                  .append(symbol)
+                                                  .append(to_string(timeframe))
+                                                  .append("_")
+                                                  .append(to_string(barModel))
+                                                  .append(".fxt");
+   if (!IsFileA(fxtFile)) return(_EMPTY(error(ERR_INVALID_PARAMETER, "tester history file not found: \"%s\"", fxtFile.c_str())));
+
+   ifstream fs(fxtFile.c_str(), ios::binary);
+   if (!fs) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str())));
+
+   FXT_HEADER fxt = {};
+   fs.read((char*)&fxt, sizeof(FXT_HEADER));
+   fs.close(); if (fs.fail()) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str())));
+
+   if (lots == 1)
+      return(fxt.commissionValue);
+   return(fxt.commissionValue * lots);
    #pragma EXPANDER_EXPORT
 }

@@ -41,5 +41,6 @@ const char* WINAPI GetFinalPathNameA(const char* name);
 const char* WINAPI GetReparsePointTargetA(const char* name);
 BOOL        WINAPI IsDirectoryA(const char* name);
 BOOL        WINAPI IsFileA(const char* name);
+BOOL        WINAPI IsFileA(const string& name);
 BOOL        WINAPI IsJunctionA(const char* name);
 BOOL        WINAPI IsSymlinkA(const char* name);
