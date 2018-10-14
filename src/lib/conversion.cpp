@@ -11,9 +11,9 @@
  */
 const char* WINAPI BarModelDescription(int id) {
    switch (id) {
-      case BARMODEL_EVERYTICK:     return("every tick"    );
-      case BARMODEL_CONTROLPOINTS: return("control points");
-      case BARMODEL_BAROPEN:       return("bar open"      );
+      case BARMODEL_EVERYTICK:     return("EveryTick"    );
+      case BARMODEL_CONTROLPOINTS: return("ControlPoints");
+      case BARMODEL_BAROPEN:       return("BarOpen"      );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
