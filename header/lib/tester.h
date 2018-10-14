@@ -3,7 +3,7 @@
 #include "struct/xtrade/ExecutionContext.h"
 
 
-BOOL   WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol);
+BOOL   WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, int barModel, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol);
 HWND   WINAPI FindTesterWindow();
 BOOL   WINAPI SaveTest(TEST* test);
 BOOL   WINAPI Test_OpenOrder(EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment);

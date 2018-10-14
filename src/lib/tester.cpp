@@ -15,7 +15,7 @@
 /**
  * TODO: documentation
  */
-BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol) {
+BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, int barModel, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
@@ -33,7 +33,7 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
       test_SetSymbol         (test, ec->symbol      );
       test_SetTimeframe      (test, ec->timeframe   );
       test_SetStartTime      (test, startTime       );
-      //uint barModel;                                               // TODO
+      test_SetBarModel       (test, barModel        );
       test_SetSpread         (test, (ask-bid)/0.0001);               // TODO: statt 0.0001 Variable Pip
       test_SetBars           (test, bars            );
       //uint tradeDirections;                                        // TODO: aus Expert.ini auslesen
@@ -51,7 +51,7 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
       test_SetTicks   (test, ec->ticks                      );
       test_SetDuration(test, GetTickCount() - test->duration);
 
-      SaveTest(test);
+      SaveTest(test);                                                // TODO: close memory leak => TEST, OrderHistory
    }
    else return(error(ERR_FUNC_NOT_ALLOWED, "function not allowed in %s::%s()", ec->programName, RootFunctionDescription(ec->rootFunction)));
 

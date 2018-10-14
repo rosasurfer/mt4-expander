@@ -43,7 +43,7 @@ const char* WINAPI test_SetSymbol         (TEST* test, const char* symbol   );
 uint        WINAPI test_SetTimeframe      (TEST* test, uint        timeframe);
 datetime    WINAPI test_SetStartTime      (TEST* test, datetime    time     );
 datetime    WINAPI test_SetEndTime        (TEST* test, datetime    time     );
-//uint      WINAPI test_SetBarModel       (TEST* test, uint        type     );   // TODO
+int         WINAPI test_SetBarModel       (TEST* test, int         type     );
 double      WINAPI test_SetSpread         (TEST* test, double      spread   );
 uint        WINAPI test_SetBars           (TEST* test, uint        bars     );
 uint        WINAPI test_SetTicks          (TEST* test, uint        ticks    );
