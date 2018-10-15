@@ -169,6 +169,28 @@ datetime WINAPI test_SetEndTime(TEST* test, datetime time) {
 
 
 /**
+ * Set the bar model used for a test.
+ *
+ * @param  TEST* test
+ * @param  int   type - bar model type
+ *
+ * @return int - the same bar model type or EMPTY (-1) in case of errors
+ */
+int WINAPI test_SetBarModel(TEST* test, int type) {
+   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+
+   switch (type) {
+      case BARMODEL_EVERYTICK:
+      case BARMODEL_CONTROLPOINTS:
+      case BARMODEL_BAROPEN:
+         test->barModel = type;
+         return(type);
+   }
+   return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a bar model)", type)));
+}
+
+
+/**
  * Set the spread used in a TEST.
  *
  * @param  TEST*  test
@@ -271,25 +293,25 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
 
    if (memcmp(test, &empty, sizeof(TEST))) {
       std::stringstream ss; ss
-         <<  "{id="              <<                test->id
-         << ", time="            <<               (test->time ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", strategy="        << doubleQuoteStr(test->strategy)
-         << ", reportingId="     <<                test->reportingId
-         << ", reportingSymbol=" << doubleQuoteStr(test->reportingSymbol)
-         << ", symbol="          << doubleQuoteStr(test->symbol)
-         << ", timeframe="       << TimeframeToStr(test->timeframe)
-         << ", startTime="       <<               (test->startTime ? doubleQuoteStr(gmTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", endTime="         <<               (test->endTime   ? doubleQuoteStr(gmTimeFormat(test->endTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", barModel="        <<                test->barModel           // TODO: EveryTick|ControlPoints|BarOpen
-         << ", spread="          <<   numberFormat(test->spread, "%.1f")
-         << ", bars="            <<                test->bars
-         << ", ticks="           <<                test->ticks
-         << ", tradeDirections=" <<                test->tradeDirections    // TODO: Long|Short|Both
-         << ", visualMode="      <<      BoolToStr(test->visualMode)
-         << ", duration="        <<               (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
-         << ", orders="          <<               (test->orders   ? to_string(test->orders->size()) : "NULL")
+         <<  "{id="              <<                     test->id
+         << ", time="            <<                    (test->time ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", strategy="        <<      doubleQuoteStr(test->strategy)
+         << ", reportingId="     <<                     test->reportingId
+         << ", reportingSymbol=" <<      doubleQuoteStr(test->reportingSymbol)
+         << ", symbol="          <<      doubleQuoteStr(test->symbol)
+         << ", timeframe="       <<      TimeframeToStr(test->timeframe)
+         << ", startTime="       <<                    (test->startTime ? doubleQuoteStr(gmTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", endTime="         <<                    (test->endTime   ? doubleQuoteStr(gmTimeFormat(test->endTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", barModel="        << BarModelDescription(test->barModel)
+         << ", spread="          <<        numberFormat(test->spread, "%.1f")
+         << ", bars="            <<                     test->bars
+         << ", ticks="           <<                     test->ticks
+         << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
+         << ", visualMode="      <<           BoolToStr(test->visualMode)
+         << ", duration="        <<                    (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
+         << ", orders="          <<                    (test->orders   ? to_string(test->orders->size()) : "NULL")
          << "}";
-      result = strdup(ss.str().c_str());                                   // TODO: close memory leak
+      result = strdup(ss.str().c_str());                                         // TODO: close memory leak
    }
 
    if (outputDebug) debug(result);

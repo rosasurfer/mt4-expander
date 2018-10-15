@@ -1,4 +1,5 @@
 #pragma once
+#include "expander.h"
 
 
 /**
@@ -8,6 +9,8 @@
  * @see  https://docs.mql4.com/basis/types/stringconst
  */
 struct MqlStr {
-   int   sizeAlloc;                                // size of allocated memory; 0 if an internal C literal (in string pool)
-   char* string;
-};                                                 // TODO: check struct alignment
+   uint  bufsize;                               // size of allocated buffer; 0 (zero) if it's an internally stored C literal
+   char* value;
+};
+
+// TODO: check struct alignment
