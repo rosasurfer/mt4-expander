@@ -488,3 +488,19 @@ int WINAPI Test_synchronize() {
    return(0);
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+
+   char* s1 = "Hello";
+   char* s2 = " world";
+
+   char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
+
+   return(0);
+}
+
+
