@@ -318,20 +318,6 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's current tick time.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return datetime - server time
- */
-datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->currentTickTime);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an EXECUTION_CONTEXT's previous tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -341,6 +327,20 @@ datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
 datetime WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->previousTickTime);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's current tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - server time
+ */
+datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->currentTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -953,12 +953,33 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's number of times start() was called.
+ * Set an EXECUTION_CONTEXT's amount of bars (the number of price bars in the chart).
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               count
  *
- * @return uint - dieselbe Anzahl
+ * @return uint - the same number
+ */
+uint WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, uint count) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (count < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be non-negative)", count));
+
+   ec->bars = count;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetBars(g_contextChains[pid][0], count));
+   return(count);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's amount of ticks (the number of times start() was called).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               count
+ *
+ * @return uint - the same number
  */
 uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -970,6 +991,27 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetTicks(g_contextChains[pid][0], count));
    return(count);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's previous tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  datetime           time - server time
+ *
+ * @return datetime - the same time
+ */
+datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
+
+   ec->previousTickTime = time;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetPreviousTickTime(g_contextChains[pid][0], time));
+   return(time);
 }
 
 
@@ -995,23 +1037,44 @@ datetime WINAPI ec_SetCurrentTickTime(EXECUTION_CONTEXT* ec, datetime time) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's previous tick time.
+ * Set an EXECUTION_CONTEXT's current bid price.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  datetime           time - server time
+ * @param  double             price - bid price
  *
- * @return datetime - the same time
+ * @return double - the same price
  */
-datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
+double WINAPI ec_SetBid(EXECUTION_CONTEXT* ec, double price) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
+   if (price <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be positive)", price));
 
-   ec->previousTickTime = time;
+   ec->bid = price;
 
    uint pid = ec->programIndex;                                      // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetPreviousTickTime(g_contextChains[pid][0], time));
-   return(time);
+      return(ec_SetBid(g_contextChains[pid][0], price));
+   return(price);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's current ask price.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  double             price - ask price
+ *
+ * @return double - the same price
+ */
+double WINAPI ec_SetAsk(EXECUTION_CONTEXT* ec, double price) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (price <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be positive)", price));
+
+   ec->ask = price;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetAsk(g_contextChains[pid][0], price));
+   return(price);
 }
 
 
@@ -1260,8 +1323,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", rates="            <<             (uint)ec->rates
          << ", bars="             <<                   ec->bars
          << ", ticks="            <<                   ec->ticks
-         << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
          << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
          << ", bid="              <<                   ec->bid
          << ", ask="              <<                   ec->ask
          << ", superContext="     <<             (uint)ec->superContext

@@ -71,11 +71,11 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    HWND               hChart;                      //       856        4     chart handle = MQL::WindowHandle()              (constant) => handle of the chart frame
    HWND               hChartWindow;                //       860        4     chart handle with title bar "Symbol,Period"     (constant) => handle of the chart window
 
-   void*              rates;                       //       864        4     current price series = MQL::ArrayCopyRates()    (constant) => RateInfo[]
+   const void*        rates;                       //       864        4     current price series = MQL::ArrayCopyRates()    (constant) => RateInfo[]
    uint               bars;                        //       868        4     current number of bars = MQL::Bars              (variable)
    uint               ticks;                       //       872        4     number of received ticks                        (variable)
-   datetime           currentTickTime;             //       876        4     server time of the current tick                 (variable)
-   datetime           previousTickTime;            //       880        4     server time of the previous tick                (variable)
+   datetime           previousTickTime;            //       876        4     server time of the previous tick                (variable)
+   datetime           currentTickTime;             //       880        4     server time of the current tick                 (variable)
    DWORD              _alignment1;                 //       884        4     (alignment to the next double)
    double             bid;                         //       888        8     current bid price = MQL::Bid                    (variable)
    double             ask;                         //       896        8     current ask price = MQL::Ask                    (variable)
@@ -122,8 +122,8 @@ HWND               WINAPI ec_hChartWindow    (const EXECUTION_CONTEXT* ec);
 //                        ec.rates
 //                        ec.bars
 uint               WINAPI ec_Ticks           (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_CurrentTickTime (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_CurrentTickTime (const EXECUTION_CONTEXT* ec);
 //                        ec.bid
 //                        ec.ask
 BOOL               WINAPI ec_SuperContext    (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec);
@@ -160,12 +160,12 @@ uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint  
 HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 HWND               WINAPI ec_SetHChartWindow      (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 //                        ec.rates
-//                        ec.bars
+uint               WINAPI ec_SetBars              (EXECUTION_CONTEXT* ec, uint               count    );
 uint               WINAPI ec_SetTicks             (EXECUTION_CONTEXT* ec, uint               count    );
-datetime           WINAPI ec_SetCurrentTickTime   (EXECUTION_CONTEXT* ec, datetime           time     );
 datetime           WINAPI ec_SetPreviousTickTime  (EXECUTION_CONTEXT* ec, datetime           time     );
-//                        ec.bid
-//                        ec.ask
+datetime           WINAPI ec_SetCurrentTickTime   (EXECUTION_CONTEXT* ec, datetime           time     );
+double             WINAPI ec_SetBid               (EXECUTION_CONTEXT* ec, double             price    );
+double             WINAPI ec_SetAsk               (EXECUTION_CONTEXT* ec, double             price    );
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext      (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
 uint               WINAPI ec_SetThreadId          (EXECUTION_CONTEXT* ec, uint               id       );
 int                WINAPI ec_SetMqlError          (EXECUTION_CONTEXT* ec, int                error    );

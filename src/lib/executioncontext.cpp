@@ -259,9 +259,13 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, uint 
 
    ec_SetRootFunction    (ec, RF_START            );                 // update context
    ec_SetThreadId        (ec, GetCurrentThreadId());
-   ec_SetTicks           (ec, ec->ticks + 1       );
-   ec_SetPreviousTickTime(ec, ec->currentTickTime );
-   ec_SetCurrentTickTime (ec, time                );
+   ec->rates              =   rates;
+   ec_SetBars            (ec, bars               );
+   ec_SetTicks           (ec, ticks              );
+   ec_SetPreviousTickTime(ec, ec->currentTickTime);
+   ec_SetCurrentTickTime (ec, time               );
+   ec_SetBid             (ec, bid                );
+   ec_SetAsk             (ec, ask                );
 
    /*
    if (rates && bars) {
@@ -269,11 +273,11 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, uint 
 
       if (GetTerminalBuild() <= 509) {
          RateInfo* rate = (RateInfo*) rates;
-         debug("bars(400): %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, (int)rate[shift].ticks);
+         debug("400:  bars: %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, (int)rate[shift].ticks);
       }
       else {
          MqlRates* rate = (MqlRates*) rates;
-         debug("bars(401): %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, rate[shift].ticks);
+         debug("401:  bars: %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, rate[shift].ticks);
       }
    }
    */
