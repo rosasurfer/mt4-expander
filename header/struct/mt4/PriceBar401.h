@@ -14,14 +14,16 @@
 #pragma pack(push, 1)
 
 struct PRICE_BAR_401 {                             // -- offset --- size --- description ---------
-   int64  time;                                    //         0        8     opentime (timestamp)
-   double open;                                    //         8        8
-   double high;                                    //        16        8
-   double low;                                     //        24        8
-   double close;                                   //        32        8
-   uint64 ticks;                                   //        40        8     always an integer
-   int    spread;                                  //        48        4     (reserved)
-   uint64 volume;                                  //        52        8     (reserved)
+   datetime time;                                  //         0        8     opentime; was int64
+   DWORD    _reserved1;                            //         4        4     (unused high part of int64)
+   double   open;                                  //         8        8
+   double   high;                                  //        16        8
+   double   low;                                   //        24        8
+   double   close;                                 //        32        8
+   uint     ticks;                                 //        40        4     was int64
+   DWORD    _reserved2;                            //        44        4     (unused high part of int64)
+   int      spread;                                //        48        4     (unused)
+   uint64   volume;                                //        52        8     (unused)
 };                                                 // --------------------------------------------
 #pragma pack(pop)                                  //               = 60
 

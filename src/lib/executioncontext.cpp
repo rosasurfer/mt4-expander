@@ -4,7 +4,8 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
-#include "struct/xtrade/ExecutionContext.h"
+#include "struct/mt4/PriceBar400.h"
+#include "struct/mt4/PriceBar401.h"
 
 #include <vector>
 
@@ -240,15 +241,17 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
 
 /**
- * @param  EXECUTION_CONTEXT* ec     - main module context of a program
- * @param  datetime           time   - server time of the current tick
- * @param  double             bid    - bid price of the current tick
- * @param  double             ask    - ask price of the current tick
- * @param  uint               volume - volume of the current tick
+ * @param  EXECUTION_CONTEXT* ec    - main module context of a program
+ * @param  void*              rates - price history of the chart
+ * @param  uint               bars  - size of the price history (number of bars)
+ * @param  uint               ticks - number of received ticks, i.e. calls of MQL::start()
+ * @param  datetime           time  - server time of the current tick
+ * @param  double             bid   - bid price of the current tick
+ * @param  double             ask   - ask price of the current tick
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double bid, double ask, uint volume) {
+int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, uint bars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
@@ -260,6 +263,20 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, datetime time, double bi
    ec_SetPreviousTickTime(ec, ec->currentTickTime );
    ec_SetCurrentTickTime (ec, time                );
 
+   /*
+   if (rates && bars) {
+      uint bar=0, shift=bars-1-bar;
+
+      if (GetTerminalBuild() <= 509) {
+         RateInfo* rate = (RateInfo*) rates;
+         debug("bars(400): %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, (int)rate[shift].ticks);
+      }
+      else {
+         MqlRates* rate = (MqlRates*) rates;
+         debug("bars(401): %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, rate[shift].ticks);
+      }
+   }
+   */
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
