@@ -3,7 +3,7 @@
 
 
 /**
- * MT4 struct HISTORY_BAR_401
+ * MT4 struct PRICE_BAR_401
  *
  * Bar format in history files and internal bar format of ArrayCopyRates().
  *
@@ -13,7 +13,7 @@
  */
 #pragma pack(push, 1)
 
-struct HISTORY_BAR_401 {                           // -- offset --- size --- description ---------
+struct PRICE_BAR_401 {                             // -- offset --- size --- description ---------
    int64  time;                                    //         0        8     opentime (timestamp)
    double open;                                    //         8        8
    double high;                                    //        16        8
@@ -25,4 +25,4 @@ struct HISTORY_BAR_401 {                           // -- offset --- size --- des
 };                                                 // --------------------------------------------
 #pragma pack(pop)                                  //               = 60
 
-typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes alias
+typedef PRICE_BAR_401 MqlRates;                    // MetaQuotes alias

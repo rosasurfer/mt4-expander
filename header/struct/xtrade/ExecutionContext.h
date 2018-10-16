@@ -3,9 +3,9 @@
 
 
 /**
- * XTrade struct EXECUTION_CONTEXT
+ * Framework struct EXECUTION_CONTEXT
  *
- * Ausführungskontext von MQL-Programmen zur Kommunikation zwischen MQL und DLL
+ * Execution context of MQL programs for communication between MQL and DLL.
  *
  * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
  * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
@@ -14,9 +14,9 @@
  * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
  *
  *  • Data exchange between MQL program main module and DLL:
- *    The DLL stores DLL error informations in the EXECUTION_CONTEXT for further processing by the MQL main module. The main
- *    module then signals these errors to the user. On the other hand the main module stores price and market informations in
- *    the context to make it available to the DLL.
+ *    The DLL stores DLL error information in the EXECUTION_CONTEXT for further processing by the MQL main module. The main
+ *    module signals such errors to the user. On the other hand the main module stores price and market information in the
+ *    context to make it available to the DLL.
  *
  *  • Data exchange between MQL program main module and MQL libraries:
  *
