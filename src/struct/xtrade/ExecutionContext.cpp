@@ -303,6 +303,49 @@ HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return the number of times an EXECUTION_CONTEXT's start() function was called.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return uint
+ */
+uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->ticks);
+   #pragma EXPANDER_EXPORT
+}
+
+
+
+/**
+ * Return an EXECUTION_CONTEXT's current tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - server time
+ */
+datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->currentTickTime);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's previous tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - server time
+ */
+datetime WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->previousTickTime);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Kopiert den SuperContext eines EXECUTION_CONTEXT in die übergebene Variable.
  *
  * @param  EXECUTION_CONTEXT* ec  - ExecutionContext
@@ -351,49 +394,6 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->threadId);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the number of times an EXECUTION_CONTEXT's start() function was called.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint
- */
-uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->ticks);
-   #pragma EXPANDER_EXPORT
-}
-
-
-
-/**
- * Return an EXECUTION_CONTEXT's current tick time.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return datetime - server time
- */
-datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->currentTickTime);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an EXECUTION_CONTEXT's previous tick time.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return datetime - server time
- */
-datetime WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->previousTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -953,48 +953,6 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Setzt den SuperContext eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec  - zu modifizierender Context
- * @param  EXECUTION_CONTEXT* sec - zu setzender SuperContext
- *
- * @return EXECUTION_CONTEXT* - der gesetzte SuperContext
- */
-EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
-   if (       (uint)ec  < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec));
-
-   ec->superContext = sec;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetSuperContext(g_contextChains[pid][0], sec));
-   return(sec);
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's current thread id.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               id - thread id
- *
- * @return uint - the same thread id
- */
-uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (id <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (must be greater than zero)", id));
-
-   ec->threadId = id;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetThreadId(g_contextChains[pid][0], id));
-   return(id);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT's number of times start() was called.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1054,6 +1012,48 @@ datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetPreviousTickTime(g_contextChains[pid][0], time));
    return(time);
+}
+
+
+/**
+ * Setzt den SuperContext eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec  - zu modifizierender Context
+ * @param  EXECUTION_CONTEXT* sec - zu setzender SuperContext
+ *
+ * @return EXECUTION_CONTEXT* - der gesetzte SuperContext
+ */
+EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
+   if (       (uint)ec  < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec));
+
+   ec->superContext = sec;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetSuperContext(g_contextChains[pid][0], sec));
+   return(sec);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's current thread id.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               id - thread id
+ *
+ * @return uint - the same thread id
+ */
+uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (id <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (must be greater than zero)", id));
+
+   ec->threadId = id;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetThreadId(g_contextChains[pid][0], id));
+   return(id);
 }
 
 
@@ -1223,15 +1223,15 @@ DWORD WINAPI mec_InitFlags(const EXECUTION_CONTEXT* ec) {
  * Return a human-readable version of an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               outputDebug - whether or not to duplicate the result to OutputDebugString()
- *                                          (default: no)
+ * @param  BOOL               outputDebug [optional] - whether or not to duplicate the result to OutputDebugString()
+ *                                                     (default: no)
  * @return char*
  */
 const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug/*=FALSE*/) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    char* result = "{(empty)}";
-   const EXECUTION_CONTEXT empty = {};
+   EXECUTION_CONTEXT empty = {};
 
    if (memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
       std::stringstream ss; ss
@@ -1248,6 +1248,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", testing="          <<         BoolToStr(ec->testing      )
          << ", visualMode="       <<         BoolToStr(ec->visualMode   )
          << ", optimization="     <<         BoolToStr(ec->optimization )
+         << ", test="             <<             (uint)ec->test
          << ", initFlags="        <<    InitFlagsToStr(ec->initFlags    )
          << ", deinitFlags="      <<  DeinitFlagsToStr(ec->deinitFlags  )
          << ", logging="          <<         BoolToStr(ec->logging      )
@@ -1256,11 +1257,13 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", timeframe="        <<       PeriodToStr(ec->timeframe    )
          << ", hChart="           <<             (uint)ec->hChart
          << ", hChartWindow="     <<             (uint)ec->hChartWindow
-         << ", superContext="     <<             (uint)ec->superContext
-         << ", threadId="         <<                   ec->threadId
          << ", ticks="            <<                   ec->ticks
          << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
          << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", bars="             <<                   ec->bars
+         << ", rates="            <<             (uint)ec->rates
+         << ", superContext="     <<             (uint)ec->superContext
+         << ", threadId="         <<                   ec->threadId
          << ", mqlError="         <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
          << ", dllError="         <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="       <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
