@@ -71,22 +71,25 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    HWND               hChart;                      //       856        4     chart handle = MQL::WindowHandle()              (constant) => handle of the chart frame
    HWND               hChartWindow;                //       860        4     chart handle with title bar "Symbol,Period"     (constant) => handle of the chart window
 
-   uint               ticks;                       //       864        4     number of received ticks                        (variable)
-   datetime           currentTickTime;             //       868        4     server time of the current tick                 (variable)
-   datetime           previousTickTime;            //       872        4     server time of the previous tick                (variable)
-   uint               bars;                        //       876        4     current number of bars = MQL::Bars              (variable)
-   void*              rates;                       //       880        4     current price series = MQ::ArrayCopyRates()     (constant) => RateInfo[]
+   void*              rates;                       //       864        4     current price series = MQL::ArrayCopyRates()    (constant) => RateInfo[]
+   uint               bars;                        //       868        4     current number of bars = MQL::Bars              (variable)
+   uint               ticks;                       //       872        4     number of received ticks                        (variable)
+   datetime           currentTickTime;             //       876        4     server time of the current tick                 (variable)
+   datetime           previousTickTime;            //       880        4     server time of the previous tick                (variable)
+   DWORD              _alignment1;                 //       884        4     (alignment to the next double)
+   double             bid;                         //       888        8     current bid price = MQL::Bid                    (variable)
+   double             ask;                         //       896        8     current ask price = MQL::Ask                    (variable)
 
-   EXECUTION_CONTEXT* superContext;                //       884        4     parent/calling EXECUTION_CONTEXT                (constant) => is the program loaded by iCustom()
-   uint               threadId;                    //       888        4     current thread                                  (variable) => the executing thread
+   EXECUTION_CONTEXT* superContext;                //       904        4     parent/calling EXECUTION_CONTEXT                (constant) => is the program loaded by iCustom()
+   uint               threadId;                    //       908        4     current thread                                  (variable) => the executing thread
 
-   int                mqlError;                    //       892        4     last error in MQL (main module and libraries)   (variable)
-   int                dllError;                    //       896        4     last error in DLL                               (variable)
-   char*              dllErrorMsg;                 //       900        4     DLL error message                               (variable)
-   int                dllWarning;                  //       904        4     last DLL warning                                (variable)
-   char*              dllWarningMsg;               //       908        4     DLL warning message                             (variable)
+   int                mqlError;                    //       912        4     last error in MQL (main module and libraries)   (variable)
+   int                dllError;                    //       916        4     last error in DLL                               (variable)
+   char*              dllErrorMsg;                 //       920        4     DLL error message                               (variable)
+   int                dllWarning;                  //       924        4     last DLL warning                                (variable)
+   char*              dllWarningMsg;               //       928        4     DLL warning message                             (variable)
 };                                                 // ---------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //              = 912
+#pragma pack(pop)                                  //              = 932
 
 
 // type definition
@@ -116,11 +119,13 @@ const char*        WINAPI ec_Symbol          (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Timeframe       (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart          (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChartWindow    (const EXECUTION_CONTEXT* ec);
+//                        ec.rates
+//                        ec.bars
 uint               WINAPI ec_Ticks           (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_CurrentTickTime (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec);
-//                        ec.bars
-//                        ec.rates
+//                        ec.bid
+//                        ec.ask
 BOOL               WINAPI ec_SuperContext    (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec);
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext  (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_ThreadId        (const EXECUTION_CONTEXT* ec);
@@ -154,11 +159,13 @@ const char*        WINAPI ec_SetSymbol            (EXECUTION_CONTEXT* ec, const 
 uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint               timeframe);
 HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 HWND               WINAPI ec_SetHChartWindow      (EXECUTION_CONTEXT* ec, HWND               hWnd     );
+//                        ec.rates
+//                        ec.bars
 uint               WINAPI ec_SetTicks             (EXECUTION_CONTEXT* ec, uint               count    );
 datetime           WINAPI ec_SetCurrentTickTime   (EXECUTION_CONTEXT* ec, datetime           time     );
 datetime           WINAPI ec_SetPreviousTickTime  (EXECUTION_CONTEXT* ec, datetime           time     );
-//                        ec.bars
-//                        ec.rates
+//                        ec.bid
+//                        ec.ask
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext      (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
 uint               WINAPI ec_SetThreadId          (EXECUTION_CONTEXT* ec, uint               id       );
 int                WINAPI ec_SetMqlError          (EXECUTION_CONTEXT* ec, int                error    );

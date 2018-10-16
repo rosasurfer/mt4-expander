@@ -1257,11 +1257,13 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", timeframe="        <<       PeriodToStr(ec->timeframe    )
          << ", hChart="           <<             (uint)ec->hChart
          << ", hChartWindow="     <<             (uint)ec->hChartWindow
+         << ", rates="            <<             (uint)ec->rates
+         << ", bars="             <<                   ec->bars
          << ", ticks="            <<                   ec->ticks
          << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
          << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
-         << ", bars="             <<                   ec->bars
-         << ", rates="            <<             (uint)ec->rates
+         << ", bid="              <<                   ec->bid
+         << ", ask="              <<                   ec->ask
          << ", superContext="     <<             (uint)ec->superContext
          << ", threadId="         <<                   ec->threadId
          << ", mqlError="         <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
