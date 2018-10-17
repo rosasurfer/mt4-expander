@@ -913,6 +913,27 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
 
 /**
+ * Set an EXECUTION_CONTEXT's "digits" field.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               digist
+ *
+ * @return uint - the same value
+ */
+uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((int)digits < 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
+
+   ec->digits = digits;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetDigits(g_contextChains[pid][0], digits));
+   return(digits);
+}
+
+
+/**
  * Set an EXECUTION_CONTEXT's amount of bars (the number of price bars in the chart).
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1318,7 +1339,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", customLogFile="    <<    doubleQuoteStr(ec->customLogFile)
          << ", symbol="           <<    doubleQuoteStr(ec->symbol       )
          << ", timeframe="        <<       PeriodToStr(ec->timeframe    )
-         << ", rates="            <<             (uint)ec->rates
+         << ", digits="           <<                   ec->digits
+         << ", rates=0x"          << IntToHexStr((uint)ec->rates)
          << ", bars="             <<                   ec->bars
          << ", ticks="            <<                   ec->ticks
          << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
@@ -1327,8 +1349,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", ask="              <<                   ec->ask
          << ", superContext="     <<             (uint)ec->superContext
          << ", threadId="         <<                   ec->threadId
-         << ", hChart="           <<             (uint)ec->hChart
-         << ", hChartWindow="     <<             (uint)ec->hChartWindow
+         << ", hChart=0x"         << IntToHexStr((uint)ec->hChart)
+         << ", hChartWindow=0x"   << IntToHexStr((uint)ec->hChartWindow)
          << ", mqlError="         <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
          << ", dllError="         <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="       <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))

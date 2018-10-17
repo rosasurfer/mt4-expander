@@ -67,8 +67,9 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
- * @param  char*              symbol         - current symbol
- * @param  uint               period         - current period
+ * @param  char*              symbol         - current chart symbol
+ * @param  uint               period         - current chart period
+ * @param  uint               digits         - the symbol's digits value (possibly incorrect)
  * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
  * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
@@ -80,11 +81,12 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
    if ((int)period <= 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
+   if ((int)digits <  0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
 
    if (ec->programIndex)
@@ -130,7 +132,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          // (1.1) Programm ist Indikator im Init-Cycle (immer im UI-Thread)
          //   - Indikator-Context aus Master-Context restaurieren
          master = g_contextChains[ec->programIndex][0];
-         *ec = *master;                                              // Master-Context kopieren
+         *ec    = *master;                                           // Master-Context kopieren
          g_contextChains[ec->programIndex][1] = ec;                  // Context als Hauptkontext speichern
          //debug("%s::init()  programIndex=0  init-cycle, was index=%d  thread=%s", programName, ec->programIndex, IsUIThread() ? "UI": to_string(GetCurrentThreadId()).c_str());
       }
@@ -199,6 +201,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    ec_SetSymbol      (ec, symbol      );
    ec_SetTimeframe   (ec, period      );
+   ec_SetDigits      (ec, digits      );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
 
@@ -316,8 +319,9 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
  * @param  char*              moduleName     - the library's name w/o path according to the terminal version
- * @param  char*              symbol         - current symbol
- * @param  uint               period         - current period
+ * @param  char*              symbol         - current chart symbol
+ * @param  uint               period         - current chart period
+ * @param  uint               digits         - the symbol's digits value (possibly incorrect)
  * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminal
  *
  * @return int - error status
@@ -348,11 +352,12 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *            or tested timeframe change.
  *            Workaround: Instead of IsVisualMode() use the corresponding flag of the execution context.
  */
-int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, BOOL isOptimization) {
+int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, uint digits, BOOL isOptimization) {
    if ((uint)ec         < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)moduleName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
    if ((uint)symbol     < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
    if ((int)period <= 0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
+   if ((int)digits <  0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
 
    // (1) If ec.programIndex is not set: library is loaded the first time and the context is empty.
    //     - copy master context and update library specific fields
@@ -396,6 +401,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec_SetUninitReason(ec, uninitReason);
       ec_SetSymbol      (ec, symbol      );
       ec_SetTimeframe   (ec, period      );
+      ec_SetDigits      (ec, digits      );
    }
 
    else {
@@ -412,6 +418,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec_SetCustomLogFile(ec, NULL                );                 // gets updated in Expert::init()
       ec_SetSymbol       (ec, symbol              );
       ec_SetTimeframe    (ec, period              );
+      ec_SetDigits       (ec, digits              );
       ec_SetHChart       (ec, NULL                );                 // gets updated in Expert::init()
       ec_SetHChartWindow (ec, NULL                );                 // gets updated in Expert::init()
       ec_SetThreadId     (ec, GetCurrentThreadId());

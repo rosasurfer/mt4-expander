@@ -37,7 +37,7 @@ int _dump(const char* fileName, const char* funcName, int line, const void* data
          ss << "dumping " << (int)size << " bytes:\n";
          ss << std::hex << std::uppercase;
          for (uint i=0; i < size; i++) {
-            ss << std::setw(2) << std::setfill('0') << (int) bytes[i] << " ";
+            ss << std::setw(2) << std::setfill('0') << (int)bytes[i] << " ";
             if      (i%16 == 15) ss << "\n";
             else if (i% 4 ==  3) ss << " ";
          }

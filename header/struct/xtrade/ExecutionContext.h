@@ -66,16 +66,16 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    BOOL               logging;                     //       576        4     logging configuration                           (constant) => is logging enabled
    char               customLogFile[MAX_PATH];     //       580      260     custom log filename                             (constant) => where goes logging to
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       840       12     current symbol                                  (variable) => the current chart symbol
-   uint               timeframe;                   //       852        4     current chart period                            (variable) => the current chart timeframe
-   const void*        rates;                       //       856        4     current price series = MQL::ArrayCopyRates()    (constant) => RateInfo[]
-   uint               bars;                        //       860        4     current number of bars = MQL::Bars              (variable)
-   uint               ticks;                       //       864        4     number of received ticks                        (variable)
-   datetime           previousTickTime;            //       868        4     server time of the previous tick                (variable)
-   datetime           currentTickTime;             //       872        4     server time of the current tick                 (variable)
-   DWORD              _alignment1;                 //       876        4     (alignment to the next double)
-   double             bid;                         //       880        8     current bid price = MQL::Bid                    (variable)
-   double             ask;                         //       888        8     current ask price = MQL::Ask                    (variable)
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       840       12     current symbol         = MQL::Symbol()          (variable) => the current chart symbol
+   uint               timeframe;                   //       852        4     current chart period   = MQL::Period()          (variable) => the current chart timeframe
+   uint               digits;                      //       856        4     digits of the symbol   = MQL::Digits            (variable)
+   const void*        rates;                       //       860        4     current price series   = MQL::ArrayCopyRates()  (constant) => RateInfo[]
+   uint               bars;                        //       864        4     current number of bars = MQL::Bars              (variable)
+   uint               ticks;                       //       868        4     number of received ticks                        (variable)
+   datetime           previousTickTime;            //       872        4     server time of the previous tick                (variable)
+   datetime           currentTickTime;             //       876        4     server time of the current tick                 (variable)
+   double             bid;                         //       880        8     current bid price      = MQL::Bid               (variable)
+   double             ask;                         //       888        8     current ask price      = MQL::Ask               (variable)
 
    EXECUTION_CONTEXT* superContext;                //       896        4     parent/calling EXECUTION_CONTEXT                (constant) => is the program loaded by iCustom()
    uint               threadId;                    //       900        4     current thread                                  (variable) => the executing thread
@@ -116,6 +116,7 @@ BOOL               WINAPI ec_Logging         (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_CustomLogFile   (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_Symbol          (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Timeframe       (const EXECUTION_CONTEXT* ec);
+//                        ec.digits
 //                        ec.rates
 //                        ec.bars
 uint               WINAPI ec_Ticks           (const EXECUTION_CONTEXT* ec);
@@ -156,6 +157,7 @@ BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL  
 const char*        WINAPI ec_SetCustomLogFile     (EXECUTION_CONTEXT* ec, const char*        fileName );
 const char*        WINAPI ec_SetSymbol            (EXECUTION_CONTEXT* ec, const char*        symbol   );
 uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint               timeframe);
+uint               WINAPI ec_SetDigits            (EXECUTION_CONTEXT* ec, uint               digits   );
 //                        ec.rates
 uint               WINAPI ec_SetBars              (EXECUTION_CONTEXT* ec, uint               count    );
 uint               WINAPI ec_SetTicks             (EXECUTION_CONTEXT* ec, uint               count    );
