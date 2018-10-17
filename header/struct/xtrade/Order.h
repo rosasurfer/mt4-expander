@@ -30,8 +30,7 @@ struct ORDER {
 #pragma pack(pop)
 
 
-typedef std::vector<ORDER> OrderVector;
-typedef OrderVector        OrderHistory;
+typedef std::vector<ORDER> OrderHistory;
 
 
 const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);
