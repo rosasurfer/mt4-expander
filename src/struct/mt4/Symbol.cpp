@@ -633,22 +633,22 @@ int __cdecl CompareSymbols(const void* a, const void* b) {
 
 
 /**
- * Sortiert das übergebene SYMBOL-Array alphabetisch.
+ * Sort an array of SYMBOLs alphabetically by name.
  *
- * @param  SYMBOL symbols[] - Array
- * @param  int    size      - Größe des Arrays
+ * @param  SYMBOL symbols[] - array
+ * @param  int    size      - size of array
  *
- * @return BOOL - Erfolgsstatus
+ * @return BOOL - success status
  */
 BOOL WINAPI SortSymbols(SYMBOL symbols[], int size) {
    if ((uint)symbols < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbols: 0x%p (not a valid pointer)", symbols));
    if (size <= 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
-   if (size == 1)          // nothing to sort
+   if (size == 1)                            // nothing to do
       return(TRUE);
 
    qsort(symbols, size, sizeof(SYMBOL), CompareSymbols);
 
-   for (int i=0; i < size; i++) {            // Array-Key's neu zuordnen
+   for (int i=0; i < size; i++) {            // assign new array keys
       symbols[i].arrayKey = i;
    }
    return(TRUE);

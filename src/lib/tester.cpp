@@ -126,14 +126,12 @@ double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint
                                                   .append("_")
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
-   if (!IsFileA(fxtFile)) return(_EMPTY(error(ERR_INVALID_PARAMETER, "tester history file not found: \"%s\"", fxtFile.c_str())));
-
-   ifstream fs(fxtFile.c_str(), ios::binary);
-   if (!fs) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str())));
+   ifstream file(fxtFile.c_str(), ios::binary);
+   if (!file) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str())));
 
    FXT_HEADER fxt = {};
-   fs.read((char*)&fxt, sizeof(FXT_HEADER));
-   fs.close(); if (fs.fail()) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str())));
+   file.read((char*)&fxt, sizeof(FXT_HEADER));
+   file.close(); if (file.fail()) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str())));
 
    if (lots == 1)
       return(fxt.commissionValue);
@@ -199,10 +197,15 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
  */
 BOOL WINAPI SaveTest(TEST* test) {
    // save TEST to logfile
-   string testLogfile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log");
-   std::ofstream fs;
-   fs.open(testLogfile.c_str()); if (!fs.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "=> fs.open(\"%s\")", testLogfile.c_str()));
-   fs << "test=" << TEST_toStr(test) << "\n";
+   string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
+                                              .append(test->strategy)
+                                              .append(" #")
+                                              .append(to_string(test->reportingId))
+                                              .append(localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log"));
+   std::ofstream file(logfile.c_str());
+   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
+
+   file << "test=" << TEST_toStr(test) << "\n";
    debug("test=%s", TEST_toStr(test));
 
    OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory, test.orders: 0x%p", test->orders));
@@ -210,15 +213,15 @@ BOOL WINAPI SaveTest(TEST* test) {
 
    for (int i=0; i < size; ++i) {
       ORDER* order = &(*orders)[i];
-      fs << "order." << i << "=" << ORDER_toStr(order) << "\n";
+      file << "order." << i << "=" << ORDER_toStr(order) << "\n";
    }
-   fs.close();
+   file.close();
 
    // backup input parameters
    // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
-   string paramSrcFile  = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
-   string paramDestFile = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
-   if (!CopyFile(paramSrcFile.c_str(), paramDestFile.c_str(), TRUE))
+   string source = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
+   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
+   if (!CopyFile(source.c_str(), target.c_str(), TRUE))
       return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
    return(TRUE);
 }

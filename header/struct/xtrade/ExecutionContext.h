@@ -3,9 +3,9 @@
 
 
 /**
- * XTrade struct EXECUTION_CONTEXT
+ * Framework struct EXECUTION_CONTEXT
  *
- * Ausführungskontext von MQL-Programmen zur Kommunikation zwischen MQL und DLL
+ * Execution context of MQL programs for communication between MQL and DLL.
  *
  * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
  * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
@@ -14,9 +14,9 @@
  * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
  *
  *  • Data exchange between MQL program main module and DLL:
- *    The DLL stores DLL error informations in the EXECUTION_CONTEXT for further processing by the MQL main module. The main
- *    module then signals these errors to the user. On the other hand the main module stores price and market informations in
- *    the context to make it available to the DLL.
+ *    The DLL stores DLL error information in the EXECUTION_CONTEXT for further processing by the MQL main module. The main
+ *    module signals such errors to the user. On the other hand the main module stores price and market information in the
+ *    context to make it available to the DLL.
  *
  *  • Data exchange between MQL program main module and MQL libraries:
  *
@@ -43,53 +43,60 @@
  *    werden.
  */
 #pragma pack(push, 1)
-struct EXECUTION_CONTEXT {                         // -- offset ---- size --- description ----------------------------------------------------------------------------------------
-   uint               programIndex;                //         0         4     MQL program index starting from 1               (constant)   => Index in programs[i]
-   ProgramType        programType;                 //         4         4     MQL program type                                (constant)   => was für ein Programm bin ich
-   char               programName[MAX_PATH];       //         8       260     MQL program name                                (constant)   => wie heißt es
-   ModuleType         moduleType;                  //       268         4     MQL module type                                 (constant)   => was für ein Modul bin ich
-   char               moduleName[MAX_PATH];        //       272       260     MQL module name = MQL::WindowExpertName()       (constant)   => wie heißt es
 
-   LaunchType         launchType;                  //       532         4     Launchtyp                                       (konstant)   => wie wurde ich gestartet
-   RootFunction       rootFunction;                //       536         4     letzte Rootfunktion des Modules                 (variabel)   => wo bin ich
-   BOOL               initCycle;                   //       540         4
-   InitializeReason   initReason;                  //       544         4     letzter InitializeReason                        (variabel)   => woher komme ich
-   UninitializeReason uninitReason;                //       548         4     letzter MQL::UninitializeReason()               (variabel)   => woher komme/wohin gehe ich
-   BOOL               testing;                     //       552         4     IsTesting()-Status                              (konstant)   => laufe ich im Tester
-   BOOL               visualMode;                  //       556         4     IsVisualMode()-Status                           (konstant)   => laufe ich im Tester mit VisualMode=On
-   BOOL               optimization;                //       560         4     IsOptimization()-Status                         (konstant)   => laufe ich im Tester mit Optimization=On
-   TEST*              test;                        //       564         4     Test-Metadata                                   (konstant)   => Test-Konfiguration
+struct EXECUTION_CONTEXT {                         // -- offset --- size --- description ----------------------------------------------------------------------------------------
+   uint               programIndex;                //         0        4     MQL program index starting from 1               (constant) => equals index in g_contextChains[]
+   ProgramType        programType;                 //         4        4     MQL program type                                (constant) => type of MQL program
+   char               programName[MAX_PATH];       //         8      260     MQL program name                                (constant) => MQL program name
+   ModuleType         moduleType;                  //       268        4     MQL module type                                 (constant) => type of MQL module
+   char               moduleName[MAX_PATH];        //       272      260     MQL module name = MQL::WindowExpertName()       (constant) => MQL module name
 
-   DWORD              initFlags;                   //       568         4     Init-Konfiguration                              (konstant)   => wie werde ich initialisiert
-   DWORD              deinitFlags;                 //       572         4     Deinit-Konfiguration                            (konstant)   => wie werde ich deinitialisiert
-   BOOL               logging;                     //       576         4     Log-Konfiguration                               (konstant)   => was logge ich
-   char               customLogFile[MAX_PATH];     //       580       260     Name der Logdatei                               (konstant)   => wohin logge ich
+   LaunchType         launchType;                  //       532        4     launch type                                     (constant) => how was the program started
+   RootFunction       rootFunction;                //       536        4     the program's last root function                (variable) => where is it
+   BOOL               initCycle;                   //       540        4     whether or not in an init cycle                 (variable) => where is it
+   InitializeReason   initReason;                  //       544        4     last initialize reason                          (variable) => where did it come from
+   UninitializeReason uninitReason;                //       548        4     last MQL::UninitializeReason()                  (variable) => where did it come from/where does it go to
+   BOOL               testing;                     //       552        4     IsTesting() status                              (constant) => does it run in Tester
+   BOOL               visualMode;                  //       556        4     IsVisualMode() status                           (constant) => does the Tester run with VisualMode=On
+   BOOL               optimization;                //       560        4     IsOptimization() status                         (constant) => does the Tester run with Optimization=On
+   TEST*              test;                        //       564        4     test meta-data                                  (constant) => test configuration and data
 
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       840        12     current symbol                                  (variabel)   => auf welchem Symbol laufe ich
-   uint               timeframe;                   //       852         4     current chart period                            (variabel)   => mit welcher Bar-Periode laufe ich
-   HWND               hChart;                      //       856         4     Chart-Frame = MQL::WindowHandle()               (constant)   => ...
-   HWND               hChartWindow;                //       860         4     Chart-Fenster: mit Titelzeile "Symbol,Period"   (konstant)   => habe ich einen Chart und welchen
+   DWORD              initFlags;                   //       568        4     init configuration                              (constant) => how is the program initialized
+   DWORD              deinitFlags;                 //       572        4     deinit configuration                            (constant) => how is the program deinitialized
+   BOOL               logging;                     //       576        4     logging configuration                           (constant) => is logging enabled
+   char               customLogFile[MAX_PATH];     //       580      260     custom log filename                             (constant) => where goes logging to
 
-   EXECUTION_CONTEXT* superContext;                //       864         4     übergeordneter Execution-Context                (konstant)   => laufe ich in einem anderen Programm
-   uint               threadId;                    //       868         4     ID des ausführenden Threads                     (variable)   => wer führt mich aus
-   uint               ticks;                       //       872         4     Anzahl der start()-Aufrufe                      (variabel)   => wie oft wurde ich ausgeführt
-   datetime           currentTickTime;             //       876         4     server time of the current tick                 (variabel)
-   datetime           previousTickTime;            //       880         4     server time of the previous tick                (variabel)
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       840       12     current symbol                                  (variable) => the current chart symbol
+   uint               timeframe;                   //       852        4     current chart period                            (variable) => the current chart timeframe
+   HWND               hChart;                      //       856        4     chart handle = MQL::WindowHandle()              (constant) => handle of the chart frame
+   HWND               hChartWindow;                //       860        4     chart handle with title bar "Symbol,Period"     (constant) => handle of the chart window
 
-   int                mqlError;                    //       884         4     Error-Code eines aufgetretenen MQL-Fehlers      (variabel)   => welcher MQL-Fehler ist aufgetreten
-   int                dllError;                    //       888         4     Error-Code eines aufgetretenen DLL-Fehlers      (variabel)   => welcher DLL-Fehler ist aufgetreten
-   char*              dllErrorMsg;                 //       892         4     Text des DLL-Fehlers                            (variabel)   => ...
-   int                dllWarning;                  //       896         4     Error-Code einer aufgetretenen DLL-Warnung      (variabel)   => ...
-   char*              dllWarningMsg;               //       900         4     Text der DLL-Warnung                            (variabel)   => ...
-};                                                 // ----------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //               = 904
+   const void*        rates;                       //       864        4     current price series = MQL::ArrayCopyRates()    (constant) => RateInfo[]
+   uint               bars;                        //       868        4     current number of bars = MQL::Bars              (variable)
+   uint               ticks;                       //       872        4     number of received ticks                        (variable)
+   datetime           previousTickTime;            //       876        4     server time of the previous tick                (variable)
+   datetime           currentTickTime;             //       880        4     server time of the current tick                 (variable)
+   DWORD              _alignment1;                 //       884        4     (alignment to the next double)
+   double             bid;                         //       888        8     current bid price = MQL::Bid                    (variable)
+   double             ask;                         //       896        8     current ask price = MQL::Ask                    (variable)
+
+   EXECUTION_CONTEXT* superContext;                //       904        4     parent/calling EXECUTION_CONTEXT                (constant) => is the program loaded by iCustom()
+   uint               threadId;                    //       908        4     current thread                                  (variable) => the executing thread
+
+   int                mqlError;                    //       912        4     last error in MQL (main module and libraries)   (variable)
+   int                dllError;                    //       916        4     last error in DLL                               (variable)
+   char*              dllErrorMsg;                 //       920        4     DLL error message                               (variable)
+   int                dllWarning;                  //       924        4     last DLL warning                                (variable)
+   char*              dllWarningMsg;               //       928        4     DLL warning message                             (variable)
+};                                                 // ---------------------------------------------------------------------------------------------------------------------------
+#pragma pack(pop)                                  //              = 932
 
 
 // type definition
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all contexts of a single MQL program (i.e. MQL modules)
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all contexts (i.e. MQL modules) of a MQL program
 
 
-// Getters
+// getters (used by MQL4)
 uint               WINAPI ec_ProgramIndex    (const EXECUTION_CONTEXT* ec);
 ProgramType        WINAPI ec_ProgramType     (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_ProgramName     (const EXECUTION_CONTEXT* ec);
@@ -103,6 +110,7 @@ UninitializeReason WINAPI ec_UninitReason    (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Testing         (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode      (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization    (const EXECUTION_CONTEXT* ec);
+//                        ec.test
 DWORD              WINAPI ec_InitFlags       (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_DeinitFlags     (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Logging         (const EXECUTION_CONTEXT* ec);
@@ -111,12 +119,16 @@ const char*        WINAPI ec_Symbol          (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Timeframe       (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart          (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChartWindow    (const EXECUTION_CONTEXT* ec);
+//                        ec.rates
+//                        ec.bars
+uint               WINAPI ec_Ticks           (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_CurrentTickTime (const EXECUTION_CONTEXT* ec);
+//                        ec.bid
+//                        ec.ask
 BOOL               WINAPI ec_SuperContext    (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec);
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext  (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_ThreadId        (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_Ticks           (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_CurrentTickTime (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_MqlError        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError        (const EXECUTION_CONTEXT* ec);
 //                        ...
@@ -124,7 +136,7 @@ int                WINAPI ec_DllWarning      (const EXECUTION_CONTEXT* ec);
 //                        ...
 
 
-// Setters
+// validating setters (also used by MQL4)
 uint               WINAPI ec_SetProgramIndex      (EXECUTION_CONTEXT* ec, uint               index    );
 ProgramType        WINAPI ec_SetProgramType       (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName       (EXECUTION_CONTEXT* ec, const char*        name     );
@@ -138,6 +150,7 @@ UninitializeReason WINAPI ec_SetUninitReason      (EXECUTION_CONTEXT* ec, Uninit
 BOOL               WINAPI ec_SetTesting           (EXECUTION_CONTEXT* ec, BOOL               status   );
 BOOL               WINAPI ec_SetVisualMode        (EXECUTION_CONTEXT* ec, BOOL               status   );
 BOOL               WINAPI ec_SetOptimization      (EXECUTION_CONTEXT* ec, BOOL               status   );
+//                        ec.test
 DWORD              WINAPI ec_SetInitFlags         (EXECUTION_CONTEXT* ec, DWORD              flags    );
 DWORD              WINAPI ec_SetDeinitFlags       (EXECUTION_CONTEXT* ec, DWORD              flags    );
 BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
@@ -146,11 +159,15 @@ const char*        WINAPI ec_SetSymbol            (EXECUTION_CONTEXT* ec, const 
 uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint               timeframe);
 HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 HWND               WINAPI ec_SetHChartWindow      (EXECUTION_CONTEXT* ec, HWND               hWnd     );
+//                        ec.rates
+uint               WINAPI ec_SetBars              (EXECUTION_CONTEXT* ec, uint               count    );
+uint               WINAPI ec_SetTicks             (EXECUTION_CONTEXT* ec, uint               count    );
+datetime           WINAPI ec_SetPreviousTickTime  (EXECUTION_CONTEXT* ec, datetime           time     );
+datetime           WINAPI ec_SetCurrentTickTime   (EXECUTION_CONTEXT* ec, datetime           time     );
+double             WINAPI ec_SetBid               (EXECUTION_CONTEXT* ec, double             price    );
+double             WINAPI ec_SetAsk               (EXECUTION_CONTEXT* ec, double             price    );
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext      (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
 uint               WINAPI ec_SetThreadId          (EXECUTION_CONTEXT* ec, uint               id       );
-uint               WINAPI ec_SetTicks             (EXECUTION_CONTEXT* ec, uint               count    );
-datetime           WINAPI ec_SetCurrentTickTime   (EXECUTION_CONTEXT* ec, datetime           time     );
-datetime           WINAPI ec_SetPreviousTickTime  (EXECUTION_CONTEXT* ec, datetime           time     );
 int                WINAPI ec_SetMqlError          (EXECUTION_CONTEXT* ec, int                error    );
 int                WINAPI ec_SetDllError          (EXECUTION_CONTEXT* ec, int                error    );
 //                        ...
@@ -158,12 +175,12 @@ int                WINAPI ec_SetDllWarning        (EXECUTION_CONTEXT* ec, int   
 //                        ...
 
 
-// Master context getters
+// master context getters
 RootFunction       WINAPI mec_RootFunction(const EXECUTION_CONTEXT* ec);
 UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI mec_InitFlags   (const EXECUTION_CONTEXT* ec);
 
 
-// Helpers
+// helpers
 const char*        WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec, BOOL outputDebug=FALSE);
 const char*        WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug=FALSE);
