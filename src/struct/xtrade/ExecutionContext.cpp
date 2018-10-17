@@ -1018,16 +1018,16 @@ datetime WINAPI ec_SetCurrentTickTime(EXECUTION_CONTEXT* ec, datetime time) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's current bid price.
+ * Set a program's current bid price.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  double             price - bid price
+ * @param  double             price - may be 0 (zero) if no last tick was stored and the server connection is not yet established
  *
  * @return double - the same price
  */
 double WINAPI ec_SetBid(EXECUTION_CONTEXT* ec, double price) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (price <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be positive)", price));
+   if (price < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be non-negative)", price));
 
    ec->bid = price;
 
@@ -1039,16 +1039,16 @@ double WINAPI ec_SetBid(EXECUTION_CONTEXT* ec, double price) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's current ask price.
+ * Set a program's current ask price.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  double             price - ask price
+ * @param  double             price - may be 0 (zero) if no last tick was stored and the server connection is not yet established
  *
  * @return double - the same price
  */
 double WINAPI ec_SetAsk(EXECUTION_CONTEXT* ec, double price) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (price <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be positive)", price));
+   if (price < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be non-negative)", price));
 
    ec->ask = price;
 
