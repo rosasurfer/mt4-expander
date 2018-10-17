@@ -275,34 +275,6 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt das in einem EXECUTION_CONTEXT gespeicherte Handle eines Chartframes zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - Handle, entspricht dem Rückgabewert der MQL-Funktion WindowHandle()
- */
-HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChart);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt das in einem EXECUTION_CONTEXT gespeicherte Handle eines Chartfensters zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - Handle
- */
-HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChartWindow);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the number of times an EXECUTION_CONTEXT's start() function was called.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -394,6 +366,34 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->threadId);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt das in einem EXECUTION_CONTEXT gespeicherte Handle eines Chartframes zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - Handle, entspricht dem Rückgabewert der MQL-Funktion WindowHandle()
+ */
+HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChart);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt das in einem EXECUTION_CONTEXT gespeicherte Handle eines Chartfensters zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - Handle
+ */
+HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChartWindow);
    #pragma EXPANDER_EXPORT
 }
 
@@ -913,46 +913,6 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
 
 /**
- * Setzt das Handle des Chart-Frames eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  HWND               hWnd - entspricht dem Rückgabewert von WindowHandle()
- *
- * @return HWND - dasselbe Handle
- */
-HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->hChart = hWnd;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetHChart(g_contextChains[pid][0], hWnd));
-   return(hWnd);
-}
-
-
-/**
- * Setzt das Handle des Chart-Fensters eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  HWND               hWnd
- *
- * @return HWND - dasselbe Handle
- */
-HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->hChartWindow = hWnd;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetHChartWindow(g_contextChains[pid][0], hWnd));
-   return(hWnd);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT's amount of bars (the number of price bars in the chart).
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1117,6 +1077,46 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetThreadId(g_contextChains[pid][0], id));
    return(id);
+}
+
+
+/**
+ * Setzt das Handle des Chart-Frames eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  HWND               hWnd - entspricht dem Rückgabewert von WindowHandle()
+ *
+ * @return HWND - dasselbe Handle
+ */
+HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->hChart = hWnd;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetHChart(g_contextChains[pid][0], hWnd));
+   return(hWnd);
+}
+
+
+/**
+ * Setzt das Handle des Chart-Fensters eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  HWND               hWnd
+ *
+ * @return HWND - dasselbe Handle
+ */
+HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->hChartWindow = hWnd;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetHChartWindow(g_contextChains[pid][0], hWnd));
+   return(hWnd);
 }
 
 
@@ -1318,8 +1318,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", customLogFile="    <<    doubleQuoteStr(ec->customLogFile)
          << ", symbol="           <<    doubleQuoteStr(ec->symbol       )
          << ", timeframe="        <<       PeriodToStr(ec->timeframe    )
-         << ", hChart="           <<             (uint)ec->hChart
-         << ", hChartWindow="     <<             (uint)ec->hChartWindow
          << ", rates="            <<             (uint)ec->rates
          << ", bars="             <<                   ec->bars
          << ", ticks="            <<                   ec->ticks
@@ -1329,6 +1327,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", ask="              <<                   ec->ask
          << ", superContext="     <<             (uint)ec->superContext
          << ", threadId="         <<                   ec->threadId
+         << ", hChart="           <<             (uint)ec->hChart
+         << ", hChartWindow="     <<             (uint)ec->hChartWindow
          << ", mqlError="         <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
          << ", dllError="         <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="       <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
