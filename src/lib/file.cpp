@@ -279,7 +279,8 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
          size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
          result = target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
-         BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
+         //BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;       // i'v seen an absolute link with a set flag
+         BOOL isRelative = !StrStartsWith(target, "\\??\\");
          //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target);
 
          if (isRelative) {
@@ -289,10 +290,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
             result = strdup(s.c_str());
          }
          else {
-            char* prefix = "\\??\\";
-            len = strlen(prefix);
-            if (strncmp(target, prefix, len)) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (absolute symlink target doesn't start with \"%s\"): \"%s\"", prefix, target);
-            else                              result = target + len;
+            result = target + strlen("\\??\\");
          }
       }
       else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
