@@ -1,14 +1,14 @@
 #pragma once
 
 #pragma warning(push)
-#pragma warning(disable:4060)                                        // switch statement contains no 'case' or 'default' labels
-#pragma warning(disable:4065)                                        // switch statement contains 'default' but no 'case' labels
-#pragma warning(disable:4101)                                        // unreferenced local variable
-#pragma warning(disable:4996)                                        // function call with parameters that may be unsafe
+#pragma warning(disable:4060)                               // switch statement contains no 'case' or 'default' labels
+#pragma warning(disable:4065)                               // switch statement contains 'default' but no 'case' labels
+#pragma warning(disable:4101)                               // unreferenced local variable
+#pragma warning(disable:4996)                               // function call with parameters that may be unsafe
 
 #include "stdafx.h"
-#include "shared/defines.h"                                          // definitions shared between C++ and MQL
-#include "shared/errors.h"                                           // error codes shared between C++ and MQL
+#include "shared/defines.h"                                 // definitions shared between C++ and MQL
+#include "shared/errors.h"                                  // error codes shared between C++ and MQL
 
 #include <iomanip>
 #include <string>
@@ -24,16 +24,16 @@ typedef unsigned   char  uchar;
 typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
-typedef DWORD            color;                                      // MQL type color
-typedef time_t           datetime;                                   // a 32-bit signed long
+typedef DWORD            color;                             // MQL type color
+typedef time_t           datetime;                          // a 32-bit signed long
 
 
 using std::string;
 using std::wstring;
 
 
-#define CLR_NONE             0xFFFFFFFFL                             // different types in MQL and C++
-#define NO_ERROR                      0L                             // different types in MQL and C++
+#define CLR_NONE             0xFFFFFFFFL                    // different types in MQL and C++
+#define NO_ERROR                      0L                    // different types in MQL and C++
 
 #define DUMPMODE_HEX                   1
 #define DUMPMODE_CHAR                  2
@@ -75,15 +75,16 @@ enum RootFunction {
 
 
 // MQL program initialize reasons
-enum InitializeReason {                                     // +-- reason -------------------------------------+-- ui -----------+-- applies --+
-   IR_USER              = INITREASON_USER,                  // | loaded by the user                            |    input dialog |   I, E, S   |   I = indicators
+enum InitializeReason {                                     // +-- init reason --------------------------------+-- ui -----------+-- applies --+
+   IR_USER              = INITREASON_USER,                  // | loaded by the user (also in tester)           |    input dialog |   I, E, S   |   I = indicators
    IR_TEMPLATE          = INITREASON_TEMPLATE,              // | loaded by a template (also at terminal start) | no input dialog |   I, E      |   E = experts
    IR_PROGRAM           = INITREASON_PROGRAM,               // | loaded by iCustom()                           | no input dialog |   I         |   S = scripts
    IR_PROGRAM_AFTERTEST = INITREASON_PROGRAM_AFTERTEST,     // | loaded by iCustom() after end of test         | no input dialog |   I         |
    IR_PARAMETERS        = INITREASON_PARAMETERS,            // | input parameters changed                      |    input dialog |   I, E      |
    IR_TIMEFRAMECHANGE   = INITREASON_TIMEFRAMECHANGE,       // | chart period changed                          | no input dialog |   I, E      |
    IR_SYMBOLCHANGE      = INITREASON_SYMBOLCHANGE,          // | chart symbol changed                          | no input dialog |   I, E      |
-   IR_RECOMPILE         = INITREASON_RECOMPILE              // | reloaded after recompilation                  | no input dialog |   I, E      |
+   IR_RECOMPILE         = INITREASON_RECOMPILE,             // | reloaded after recompilation                  | no input dialog |   I, E      |
+   IR_TERMINAL_FAILURE  = INITREASON_TERMINAL_FAILURE       // | terminal failure                              |    input dialog |      E      |   @see https://github.com/rosasurfer/mt4-mql/issues/1
 };                                                          // +-----------------------------------------------+-----------------+-------------+
 
 

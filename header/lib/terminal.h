@@ -2,6 +2,7 @@
 #include "expander.h"
 
 
+HWND                    WINAPI FindInputsDialog(ProgramType programType, const char* programName);
 uint                    WINAPI GetTerminalBuild();
 const char*             WINAPI GetTerminalCommonDataPathA();
 const char*             WINAPI GetTerminalDataPathA();

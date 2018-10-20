@@ -13,6 +13,54 @@
 
 
 /**
+ * Find the window handle of the "Input parameters" dialog of the MQL program matching the specified type and
+ * case-insensitive name.
+ *
+ * @param  ProgramType programType
+ * @param  char*       programName
+ *
+ * @return HWND - window handle or NULL if no open "Input parameters" dialog was found;
+ *                INVALID_HWND (-1) in case of errors
+ */
+HWND WINAPI FindInputsDialog(ProgramType programType, const char* programName) {
+   if ((uint)programName < MIN_VALID_POINTER) return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
+   if (!strlen(programName))                  return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)")));
+
+   string title(programName);
+   if (programType == PT_INDICATOR) title.insert(0, "Custom Indicator - ");
+
+   char* className = "#32770";
+   DWORD processId, self = GetCurrentProcessId();
+   HWND hWndDlg = NULL;
+
+   while (hWndDlg = FindWindowEx(NULL, hWndDlg, className, title.c_str())) {
+      GetWindowThreadProcessId(hWndDlg, &processId);
+      if (processId == self) {
+         if (programType == PT_INDICATOR) {
+            if (FindWindowEx(hWndDlg, NULL, className, "Common"))                      // common tab: "Common" (no tab "Parameters")
+               break;
+         }
+         else if (programType==PT_EXPERT || programType==PT_SCRIPT) {
+            if (FindWindowEx(hWndDlg, NULL, className, "Expert Advisor settings"))     // common tab: "Expert Advisor settings" (no tab "Parameters")
+               break;
+         }
+         //else if (built-in-indicator) {
+         //   if (FindWindowEx(hWndDlg, NULL, className, "Parameters"))                // tab "Parameters" (no common tab)
+         //      break;
+         //}
+         else return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType)));
+      }
+   }
+
+   if (hWndDlg) debug("inputs dialog \"%s\" found: %p", programName, hWndDlg);
+   else         debug("inputs dialog \"%s\" not found", programName);
+
+   return(hWndDlg);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the terminal's build number.
  *
  * @return uint - build number or 0 in case of errors
@@ -42,7 +90,7 @@ HWND WINAPI GetTerminalMainWindow() {
 
    if (!hWndMain) {
       DWORD processId, self = GetCurrentProcessId();
-      uint size = 255;
+      uint  size = 255;
       char* className = (char*) alloca(size);                        // on the stack: buffer for window class name
 
       HWND hWndNext = GetTopWindow(NULL);
@@ -50,9 +98,8 @@ HWND WINAPI GetTerminalMainWindow() {
       while (hWndNext) {                                             // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {
-            if (!GetClassName(hWndNext, className, size))            // get each window's class name
-               return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName() 0 chars copied"));
-            if (strcmp(className, "MetaQuotes::MetaTrader::4.00") == 0)
+            if (!GetClassName(hWndNext, className, size)) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+            if (StringCompare(className, "MetaQuotes::MetaTrader::4.00"))
                break;
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
@@ -486,7 +533,11 @@ int WINAPI Test_synchronize() {
    debug("inside synchronized block");
    }
    return(0);
-   #pragma EXPANDER_EXPORT
+
+   char* s1 = "Hello";
+   char* s2 = " world";
+   char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
+   return(0);
 }
 
 
@@ -495,12 +546,8 @@ int WINAPI Test_synchronize() {
  */
 int WINAPI Test() {
 
-   char* s1 = "Hello";
-   char* s2 = " world";
-
-   char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
+   HWND hWnd = FindInputsDialog(PT_INDICATOR, "ALMA");
 
    return(0);
+   #pragma EXPANDER_EXPORT
 }
-
-

@@ -441,6 +441,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_TIMEFRAMECHANGE  : return("IR_TIMEFRAMECHANGE"  );
       case IR_SYMBOLCHANGE     : return("IR_SYMBOLCHANGE"     );
       case IR_RECOMPILE        : return("IR_RECOMPILE"        );
+      case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
    #pragma EXPANDER_EXPORT
@@ -448,7 +449,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
 
 
 /**
- * Alias for InitReasonToStr()
+ * Alias of InitReasonToStr()
  */
 const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
    return(InitReasonToStr(reason));
