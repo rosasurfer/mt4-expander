@@ -247,6 +247,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_ORDER_CHANGED                                : return("ERR_ORDER_CHANGED"                    );    //  65548
       case ERR_HISTORY_INSUFFICIENT                         : return("ERR_HISTORY_INSUFFICIENT"             );    //  65549
       case ERR_CONCURRENT_MODIFICATION                      : return("ERR_CONCURRENT_MODIFICATION"          );    //  65550
+      case ERR_TERMINAL_FAILURE_INIT                        : return("ERR_TERMINAL_FAILURE_INIT"            );    //  65551
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                  : return("win32:NO_ERROR"                       );    // 100000 +    0

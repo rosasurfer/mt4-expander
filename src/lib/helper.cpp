@@ -331,4 +331,5 @@ BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValu
    // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
    //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
    //return(GetLocalConfigBool (section, key, result));
+   return(FALSE);
 }

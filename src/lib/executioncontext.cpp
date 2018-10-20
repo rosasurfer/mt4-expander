@@ -109,7 +109,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    uint               lastProgramIndex     = NULL;
    InitializeReason   initReason           = InitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, originalProgramIndex);
    BOOL               isNewExpert          = FALSE;
-   //if (programType == PT_EXPERT) debug("resolved init reason: %s", InitReasonToStr(initReason));
+
+   if (initReason == IR_TERMINAL_FAILURE) {
+      warn(ERR_TERMINAL_FAILURE_INIT, "%s  InitReason: IR_TERMINAL_FAILURE");
+      return(ERR_TERMINAL_FAILURE_INIT);
+   }
 
    hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
    if (hChart == INVALID_HWND) {
@@ -716,10 +720,10 @@ InitializeReason WINAPI InitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEX
    originalProgramIndex = NULL;
 
    if      (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
-   else if (programType == PT_EXPERT)    return(InitReason_expert(ec, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
-   else if (programType == PT_SCRIPT)    return(InitReason_script());
+   else if (programType == PT_EXPERT)    return(InitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   else if (programType == PT_SCRIPT)    return(InitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
 
-   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (not a ProgramType)", programType));
+   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
 }
 
 
@@ -869,6 +873,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
  * Resolve an expert's current init() reason.
  *
  * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
+ * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
  * @param  UninitializeReason uninitReason  - value of UninitializeReason() as returned by the terminal
  * @param  char*              symbol        - current symbol
  * @param  BOOL               isTesting     - value of IsTesting() as returned by the terminal
@@ -877,7 +882,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
+InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
    uint build = GetTerminalBuild();
    //debug("uninitReason=%s  testing=%d  droppedX=%d  droppedY=%d  build=%d", UninitReasonToStr(uninitReason), isTesting, droppedOnPosX, droppedOnPosY, build);
 
@@ -911,20 +916,26 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
    if (uninitReason == UR_UNDEFINED) {
       if (isTesting)          return(IR_USER);
       if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      if (hWndDlg)            return(IR_TERMINAL_FAILURE);
       else                    return(IR_TEMPLATE);
    }
 
    // UR_REMOVE                                          // loaded into an existing chart after a previously loaded one was removed manually
    if (uninitReason == UR_REMOVE) {
       if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      if (hWndDlg)            return(IR_TERMINAL_FAILURE);
       else                    return(IR_TEMPLATE);
    }
 
    // UR_TEMPLATE                                        // loaded into an existing chart after a previously loaded one was removed by LoadTemplate()
    if (uninitReason == UR_TEMPLATE) {
       if (build <= 509)       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
-      if (droppedOnPosX >= 0) return(IR_USER);
-      else                    return(IR_TEMPLATE);       // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      if (hWndDlg)            return(IR_TERMINAL_FAILURE);
+      else                    return(IR_TEMPLATE);
    }
 
    switch (uninitReason) {
@@ -940,9 +951,19 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
 /**
  * Resolve a script's init() reason.
  *
+ * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
+ * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
+ * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
+ * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
+ *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_script() {
+InitializeReason WINAPI InitReason_script(EXECUTION_CONTEXT* ec, const char* programName, int droppedOnPosX, int droppedOnPosY) {
+   if (droppedOnPosX >= 0) return(IR_USER);
+
+   HWND hWndDlg = FindInputDialog(PT_SCRIPT, programName);
+   if (hWndDlg) return(IR_TERMINAL_FAILURE);
+
    return(IR_USER);
 }
 

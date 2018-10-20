@@ -22,7 +22,7 @@
  * @return HWND - window handle or NULL if no open "Input parameters" dialog was found;
  *                INVALID_HWND (-1) in case of errors
  */
-HWND WINAPI FindInputsDialog(ProgramType programType, const char* programName) {
+HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if (!strlen(programName))                  return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)")));
 
@@ -42,7 +42,7 @@ HWND WINAPI FindInputsDialog(ProgramType programType, const char* programName) {
          }
          else if (programType==PT_EXPERT || programType==PT_SCRIPT) {
             if (FindWindowEx(hWndDlg, NULL, className, "Expert Advisor settings"))     // common tab: "Expert Advisor settings" (no tab "Parameters")
-               break;
+               break;                                                                  // TODO: separate experts and scripts
          }
          //else if (built-in-indicator) {
          //   if (FindWindowEx(hWndDlg, NULL, className, "Parameters"))                // tab "Parameters" (no common tab)
@@ -52,8 +52,8 @@ HWND WINAPI FindInputsDialog(ProgramType programType, const char* programName) {
       }
    }
 
-   if (hWndDlg) debug("inputs dialog \"%s\" found: %p", programName, hWndDlg);
-   else         debug("inputs dialog \"%s\" not found", programName);
+   if (hWndDlg) debug("input dialog \"%s\" found: %p", programName, hWndDlg);
+   else         debug("input dialog \"%s\" not found", programName);
 
    return(hWndDlg);
    #pragma EXPANDER_EXPORT
@@ -546,7 +546,7 @@ int WINAPI Test_synchronize() {
  */
 int WINAPI Test() {
 
-   HWND hWnd = FindInputsDialog(PT_INDICATOR, "ALMA");
+   HWND hWnd = FindInputDialog(PT_INDICATOR, "ALMA");
 
    return(0);
    #pragma EXPANDER_EXPORT
