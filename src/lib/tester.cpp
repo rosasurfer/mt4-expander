@@ -48,8 +48,7 @@ HWND WINAPI FindTesterWindow() {
       while (hWndNext) {                                                // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {                                       // the window belongs to us
-            int len = GetWindowText(hWndNext, wndTitle, bufSize);
-            if (!len) if (int error=GetLastError()) return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+            if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
 
             if (StrStartsWith(wndTitle, "Tester")) {
                hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);     // container for floating tester window

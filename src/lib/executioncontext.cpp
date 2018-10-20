@@ -493,7 +493,7 @@ int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReaso
          if (master->threadId == uiThreadId) {
             if (master->hChart == hChart) {
                if (master->programType == MT_INDICATOR) {
-                  if (strcmp(master->programName, name) == 0) {
+                  if (StringCompare(master->programName, name)) {
                      if (master->uninitReason == reason) {
                         if (master->rootFunction == NULL) {          // limbo = init cycle
                            //debug("first %s indicator found in limbo: index=%d", name, master->programIndex);
@@ -799,8 +799,8 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
          originalProgramIndex = programIndex;
       }
       char* masterSymbol = g_contextChains[programIndex][0]->symbol;
-      if (strcmp(masterSymbol, symbol) == 0) return(IR_TIMEFRAMECHANGE);
-      else                                   return(IR_SYMBOLCHANGE   );
+      if (StringCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
+      else                                     return(IR_SYMBOLCHANGE   );
    }
 
 
@@ -892,8 +892,8 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
       int programIndex = ec->programIndex;
       if (!programIndex) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.programIndex=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
       char* masterSymbol = g_contextChains[programIndex][0]->symbol;
-      if (strcmp(masterSymbol, symbol) == 0) return(IR_TIMEFRAMECHANGE);
-      else                                   return(IR_SYMBOLCHANGE);
+      if (StringCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
+      else                                     return(IR_SYMBOLCHANGE);
    }
 
    // UR_RECOMPILE                                       // re-loaded after recompilation
