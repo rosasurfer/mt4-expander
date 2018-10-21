@@ -958,11 +958,6 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, const char* pro
  * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI InitReason_script(EXECUTION_CONTEXT* ec, const char* programName, int droppedOnPosX, int droppedOnPosY) {
-   if (droppedOnPosX >= 0) return(IR_USER);
-
-   HWND hWndDlg = FindInputDialog(PT_SCRIPT, programName);
-   if (hWndDlg) return(IR_TERMINAL_FAILURE);
-
    return(IR_USER);
 }
 
