@@ -111,7 +111,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    BOOL               isNewExpert          = FALSE;
 
    if (initReason == IR_TERMINAL_FAILURE) {
-      warn(ERR_TERMINAL_FAILURE_INIT, "%s  InitReason: IR_TERMINAL_FAILURE");
+      debug("%s  InitReason=IR_TERMINAL_FAILURE", programName);
       return(ERR_TERMINAL_FAILURE_INIT);
    }
 
@@ -717,11 +717,10 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
  * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI InitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originalProgramIndex) {
-   originalProgramIndex = NULL;
 
-   if      (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
-   else if (programType == PT_EXPERT)    return(InitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
-   else if (programType == PT_SCRIPT)    return(InitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
+   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
+   if (programType == PT_EXPERT)    return(InitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   if (programType == PT_SCRIPT)    return(InitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
 
    return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
 }

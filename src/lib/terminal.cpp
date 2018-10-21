@@ -51,9 +51,8 @@ HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
          else return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType)));
       }
    }
-
-   if (hWndDlg) debug("input dialog \"%s\" found: %p", programName, hWndDlg);
-   else         debug("input dialog \"%s\" not found", programName);
+   //if (hWndDlg) debug("input dialog \"%s\" found: %p", programName, hWndDlg);
+   //else         debug("input dialog \"%s\" not found", programName);
 
    return(hWndDlg);
    #pragma EXPANDER_EXPORT
