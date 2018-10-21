@@ -17,10 +17,9 @@ const char*   WINAPI InputParamsDiff(const char* initial, const char* current);
 
 BOOL          WINAPI StrCompare(const char* s1, const char* s2);
 BOOL          WINAPI StrIsNull(const char* value);
-BOOL          WINAPI StrEndsWith(const char* str, const char* suffix);
 BOOL          WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL          WINAPI StrStartsWith(const wchar_t* str, const wchar_t* prefix);
-
+BOOL          WINAPI StrEndsWith(const char* str, const char* suffix);
 char*         WINAPI StrToLower(char* str);
 string&       WINAPI StrToLower(string& str);
 wstring&      WINAPI StrToLower(wstring& str);

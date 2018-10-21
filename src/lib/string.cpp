@@ -113,15 +113,16 @@ std::istream& getline(std::istream& is, string& line) {
 
 
 /**
- * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
+ * Gibt den übergebenen Zeiger auf einen C-String selbst zurück. Wird in MQL zum Lesen eines Strings von
+ * einer Adresse verwendet, da MetaTrader einen C-String automatisch in einen MQL-String konvertiert.
  *
- * @param  MqlStr values[] - MQL-String-Array
+ * @param  char* value - C-String
  *
- * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
+ * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
  */
-uint WINAPI GetStringsAddress(const MqlStr values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
-   return((uint) values);
+const char* WINAPI GetString(const char* value) {
+   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   return((char*) value);
    #pragma EXPANDER_EXPORT
 }
 
@@ -145,16 +146,15 @@ uint WINAPI GetStringAddress(const char* value) {
 
 
 /**
- * Gibt den übergebenen Zeiger auf einen C-String selbst zurück. Wird in MQL zum Lesen eines Strings von
- * einer Adresse verwendet, da MetaTrader einen C-String automatisch in einen MQL-String konvertiert.
+ * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
  *
- * @param  char* value - C-String
+ * @param  MqlStr values[] - MQL-String-Array
  *
- * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
+ * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
  */
-const char* WINAPI GetString(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   return((char*) value);
+uint WINAPI GetStringsAddress(const MqlStr values[]) {
+   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
+   return((uint) values);
    #pragma EXPANDER_EXPORT
 }
 
@@ -198,19 +198,6 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
 
 
 /**
- * Prüft, ob ein C-String initialisiert oder ein NULL-Pointer ist.
- *
- * @param  char* value - zu prüfender String
- *
- * @return BOOL
- */
-BOOL WINAPI StrIsNull(const char* value) {
-   return(!value);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether or not two strings are considered equal.
  *
  * @param  char* s1
@@ -222,6 +209,19 @@ BOOL WINAPI StrCompare(const char* s1, const char* s2) {
    if ( s1 ==  s2) return(TRUE);                                     // if pointers are equal values are too
    if (!s1 || !s2) return(FALSE);                                    // if one is a NULL pointer the other can't
    return(strcmp(s1, s2) == 0);                                      // both are not NULL pointers
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Prüft, ob ein C-String initialisiert oder ein NULL-Pointer ist.
+ *
+ * @param  char* value - zu prüfender String
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StrIsNull(const char* value) {
+   return(!value);
    #pragma EXPANDER_EXPORT
 }
 
