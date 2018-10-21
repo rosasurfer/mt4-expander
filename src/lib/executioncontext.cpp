@@ -67,8 +67,9 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
- * @param  char*              symbol         - current symbol
- * @param  uint               period         - current period
+ * @param  char*              symbol         - current chart symbol
+ * @param  uint               period         - current chart period
+ * @param  uint               digits         - the symbol's digits value (possibly incorrect)
  * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
  * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
@@ -80,11 +81,12 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
    if ((int)period <= 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
+   if ((int)digits <  0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
 
    if (ec->programIndex)
@@ -107,7 +109,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    uint               lastProgramIndex     = NULL;
    InitializeReason   initReason           = InitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, originalProgramIndex);
    BOOL               isNewExpert          = FALSE;
-   //if (programType == PT_EXPERT) debug("resolved init reason: %s", InitReasonToStr(initReason));
+
+   if (initReason == IR_TERMINAL_FAILURE) {
+      debug("%s  InitReason=IR_TERMINAL_FAILURE", programName);
+      return(ERR_TERMINAL_FAILURE_INIT);
+   }
 
    hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
    if (hChart == INVALID_HWND) {
@@ -130,7 +136,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          // (1.1) Programm ist Indikator im Init-Cycle (immer im UI-Thread)
          //   - Indikator-Context aus Master-Context restaurieren
          master = g_contextChains[ec->programIndex][0];
-         *ec = *master;                                              // Master-Context kopieren
+         *ec    = *master;                                           // Master-Context kopieren
          g_contextChains[ec->programIndex][1] = ec;                  // Context als Hauptkontext speichern
          //debug("%s::init()  programIndex=0  init-cycle, was index=%d  thread=%s", programName, ec->programIndex, IsUIThread() ? "UI": to_string(GetCurrentThreadId()).c_str());
       }
@@ -199,6 +205,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    ec_SetSymbol      (ec, symbol      );
    ec_SetTimeframe   (ec, period      );
+   ec_SetDigits      (ec, digits      );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
 
@@ -316,8 +323,9 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
  * @param  char*              moduleName     - the library's name w/o path according to the terminal version
- * @param  char*              symbol         - current symbol
- * @param  uint               period         - current period
+ * @param  char*              symbol         - current chart symbol
+ * @param  uint               period         - current chart period
+ * @param  uint               digits         - the symbol's digits value (possibly incorrect)
  * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminal
  *
  * @return int - error status
@@ -348,11 +356,12 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *            or tested timeframe change.
  *            Workaround: Instead of IsVisualMode() use the corresponding flag of the execution context.
  */
-int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, BOOL isOptimization) {
+int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, uint digits, BOOL isOptimization) {
    if ((uint)ec         < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)moduleName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
    if ((uint)symbol     < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
    if ((int)period <= 0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
+   if ((int)digits <  0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
 
    // (1) If ec.programIndex is not set: library is loaded the first time and the context is empty.
    //     - copy master context and update library specific fields
@@ -396,6 +405,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec_SetUninitReason(ec, uninitReason);
       ec_SetSymbol      (ec, symbol      );
       ec_SetTimeframe   (ec, period      );
+      ec_SetDigits      (ec, digits      );
    }
 
    else {
@@ -412,6 +422,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec_SetCustomLogFile(ec, NULL                );                 // gets updated in Expert::init()
       ec_SetSymbol       (ec, symbol              );
       ec_SetTimeframe    (ec, period              );
+      ec_SetDigits       (ec, digits              );
       ec_SetHChart       (ec, NULL                );                 // gets updated in Expert::init()
       ec_SetHChartWindow (ec, NULL                );                 // gets updated in Expert::init()
       ec_SetThreadId     (ec, GetCurrentThreadId());
@@ -486,7 +497,7 @@ int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReaso
          if (master->threadId == uiThreadId) {
             if (master->hChart == hChart) {
                if (master->programType == MT_INDICATOR) {
-                  if (strcmp(master->programName, name) == 0) {
+                  if (StrCompare(master->programName, name)) {
                      if (master->uninitReason == reason) {
                         if (master->rootFunction == NULL) {          // limbo = init cycle
                            //debug("first %s indicator found in limbo: index=%d", name, master->programIndex);
@@ -656,7 +667,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
             }
             if (StrEndsWith(title, " (offline)"))
                title[titleLen-10] = 0;
-            if (StringCompare(title, chartDescription)) {            // find all matching windows
+            if (StrCompare(title, chartDescription)) {               // find all matching windows
                id = std::min(id, GetDlgCtrlID(hWndChild));           // track the smallest in absolute order
                if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
             }
@@ -706,13 +717,12 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
  * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI InitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originalProgramIndex) {
-   originalProgramIndex = NULL;
 
-   if      (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
-   else if (programType == PT_EXPERT)    return(InitReason_expert(ec, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
-   else if (programType == PT_SCRIPT)    return(InitReason_script());
+   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
+   if (programType == PT_EXPERT)    return(InitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   if (programType == PT_SCRIPT)    return(InitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
 
-   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (not a ProgramType)", programType));
+   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
 }
 
 
@@ -792,8 +802,8 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
          originalProgramIndex = programIndex;
       }
       char* masterSymbol = g_contextChains[programIndex][0]->symbol;
-      if (strcmp(masterSymbol, symbol) == 0) return(IR_TIMEFRAMECHANGE);
-      else                                   return(IR_SYMBOLCHANGE   );
+      if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
+      else                                  return(IR_SYMBOLCHANGE   );
    }
 
 
@@ -862,6 +872,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
  * Resolve an expert's current init() reason.
  *
  * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
+ * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
  * @param  UninitializeReason uninitReason  - value of UninitializeReason() as returned by the terminal
  * @param  char*              symbol        - current symbol
  * @param  BOOL               isTesting     - value of IsTesting() as returned by the terminal
@@ -870,7 +881,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
+InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
    uint build = GetTerminalBuild();
    //debug("uninitReason=%s  testing=%d  droppedX=%d  droppedY=%d  build=%d", UninitReasonToStr(uninitReason), isTesting, droppedOnPosX, droppedOnPosY, build);
 
@@ -885,8 +896,8 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
       int programIndex = ec->programIndex;
       if (!programIndex) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.programIndex=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
       char* masterSymbol = g_contextChains[programIndex][0]->symbol;
-      if (strcmp(masterSymbol, symbol) == 0) return(IR_TIMEFRAMECHANGE);
-      else                                   return(IR_SYMBOLCHANGE);
+      if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
+      else                                  return(IR_SYMBOLCHANGE);
    }
 
    // UR_RECOMPILE                                       // re-loaded after recompilation
@@ -904,20 +915,26 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
    if (uninitReason == UR_UNDEFINED) {
       if (isTesting)          return(IR_USER);
       if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      if (hWndDlg)            return(IR_TERMINAL_FAILURE);
       else                    return(IR_TEMPLATE);
    }
 
    // UR_REMOVE                                          // loaded into an existing chart after a previously loaded one was removed manually
    if (uninitReason == UR_REMOVE) {
       if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      if (hWndDlg)            return(IR_TERMINAL_FAILURE);
       else                    return(IR_TEMPLATE);
    }
 
    // UR_TEMPLATE                                        // loaded into an existing chart after a previously loaded one was removed by LoadTemplate()
    if (uninitReason == UR_TEMPLATE) {
       if (build <= 509)       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
-      if (droppedOnPosX >= 0) return(IR_USER);
-      else                    return(IR_TEMPLATE);       // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      if (hWndDlg)            return(IR_TERMINAL_FAILURE);
+      else                    return(IR_TEMPLATE);
    }
 
    switch (uninitReason) {
@@ -933,9 +950,14 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, UninitializeRea
 /**
  * Resolve a script's init() reason.
  *
+ * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
+ * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
+ * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
+ * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
+ *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_script() {
+InitializeReason WINAPI InitReason_script(EXECUTION_CONTEXT* ec, const char* programName, int droppedOnPosX, int droppedOnPosY) {
    return(IR_USER);
 }
 

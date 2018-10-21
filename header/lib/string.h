@@ -15,12 +15,11 @@ uint          WINAPI GetStringsAddress(const MqlStr values[]);
 
 const char*   WINAPI InputParamsDiff(const char* initial, const char* current);
 
-BOOL          WINAPI StringIsNull(const char* value);
-BOOL          WINAPI StringCompare(const char* s1, const char* s2);
-BOOL          WINAPI StrEndsWith(const char* str, const char* suffix);
+BOOL          WINAPI StrCompare(const char* s1, const char* s2);
+BOOL          WINAPI StrIsNull(const char* value);
 BOOL          WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL          WINAPI StrStartsWith(const wchar_t* str, const wchar_t* prefix);
-
+BOOL          WINAPI StrEndsWith(const char* str, const char* suffix);
 char*         WINAPI StrToLower(char* str);
 string&       WINAPI StrToLower(string& str);
 wstring&      WINAPI StrToLower(wstring& str);
@@ -35,3 +34,4 @@ char*                wchartombs(const wchar_t* sequence, size_t count);
 char*                wchartombs(const wstring& str);
 
 inline WCHAR*        copywchars(const WCHAR* str) { return(wcscpy(new WCHAR[wcslen(str)+1], str)); };
+

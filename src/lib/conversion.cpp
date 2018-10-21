@@ -247,6 +247,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_ORDER_CHANGED                                : return("ERR_ORDER_CHANGED"                    );    //  65548
       case ERR_HISTORY_INSUFFICIENT                         : return("ERR_HISTORY_INSUFFICIENT"             );    //  65549
       case ERR_CONCURRENT_MODIFICATION                      : return("ERR_CONCURRENT_MODIFICATION"          );    //  65550
+      case ERR_TERMINAL_FAILURE_INIT                        : return("ERR_TERMINAL_FAILURE_INIT"            );    //  65551
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                  : return("win32:NO_ERROR"                       );    // 100000 +    0
@@ -441,6 +442,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_TIMEFRAMECHANGE  : return("IR_TIMEFRAMECHANGE"  );
       case IR_SYMBOLCHANGE     : return("IR_SYMBOLCHANGE"     );
       case IR_RECOMPILE        : return("IR_RECOMPILE"        );
+      case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
    #pragma EXPANDER_EXPORT
@@ -448,7 +450,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
 
 
 /**
- * Alias for InitReasonToStr()
+ * Alias of InitReasonToStr()
  */
 const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
    return(InitReasonToStr(reason));

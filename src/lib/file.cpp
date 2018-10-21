@@ -260,25 +260,22 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
       return((char*)error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name));
    }
 
-   char* target=NULL, *result=NULL;
+   char* result = NULL;
 
    // read the reparse data
    if (IsReparseTagMicrosoft(rdata->ReparseTag)) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
          size_t offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
-         result = target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
+         char* target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
          //debug("mount point to \"%s\"", target);
-
-         char* prefix = "\\??\\";
-         len = strlen(prefix);
-         if (strncmp(target, prefix, len)) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (junction target doesn't start with \"%s\"): \"%s\"", prefix, target);
-         else                              result = target + len;
+         result = strdup(target + strlen("\\??\\"));
+         free(target);
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
          size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
          size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
-         result = target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
+         char* target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
          BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
          //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target);
 
@@ -289,18 +286,16 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
             result = strdup(s.c_str());
          }
          else {
-            char* prefix = "\\??\\";
-            len = strlen(prefix);
-            if (strncmp(target, prefix, len)) warn(ERR_RUNTIME_ERROR, "unknown reparse data format (absolute symlink target doesn't start with \"%s\"): \"%s\"", prefix, target);
-            else                              result = target + len;
+            result = strdup(target + strlen("\\??\\"));
          }
+         free(target);
       }
       else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
    }
    else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
 
    free(rdata);
-   free(target);
+
    return(result);                                                                           // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
