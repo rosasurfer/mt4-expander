@@ -218,7 +218,7 @@ BOOL WINAPI StrIsNull(const char* value) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringCompare(const char* s1, const char* s2) {
+BOOL WINAPI StrCompare(const char* s1, const char* s2) {
    if ( s1 ==  s2) return(TRUE);                                     // if pointers are equal values are too
    if (!s1 || !s2) return(FALSE);                                    // if one is a NULL pointer the other can't
    return(strcmp(s1, s2) == 0);                                      // both are not NULL pointers

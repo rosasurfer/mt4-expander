@@ -98,7 +98,7 @@ HWND WINAPI GetTerminalMainWindow() {
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {
             if (!GetClassName(hWndNext, className, size)) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-            if (StringCompare(className, "MetaQuotes::MetaTrader::4.00"))
+            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00"))
                break;
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);

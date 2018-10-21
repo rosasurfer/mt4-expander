@@ -15,7 +15,7 @@ uint          WINAPI GetStringsAddress(const MqlStr values[]);
 
 const char*   WINAPI InputParamsDiff(const char* initial, const char* current);
 
-BOOL          WINAPI StringCompare(const char* s1, const char* s2);
+BOOL          WINAPI StrCompare(const char* s1, const char* s2);
 BOOL          WINAPI StrIsNull(const char* value);
 BOOL          WINAPI StrEndsWith(const char* str, const char* suffix);
 BOOL          WINAPI StrStartsWith(const char* str, const char* prefix);

@@ -497,7 +497,7 @@ int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReaso
          if (master->threadId == uiThreadId) {
             if (master->hChart == hChart) {
                if (master->programType == MT_INDICATOR) {
-                  if (StringCompare(master->programName, name)) {
+                  if (StrCompare(master->programName, name)) {
                      if (master->uninitReason == reason) {
                         if (master->rootFunction == NULL) {          // limbo = init cycle
                            //debug("first %s indicator found in limbo: index=%d", name, master->programIndex);
@@ -667,7 +667,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
             }
             if (StrEndsWith(title, " (offline)"))
                title[titleLen-10] = 0;
-            if (StringCompare(title, chartDescription)) {            // find all matching windows
+            if (StrCompare(title, chartDescription)) {               // find all matching windows
                id = std::min(id, GetDlgCtrlID(hWndChild));           // track the smallest in absolute order
                if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
             }
@@ -802,8 +802,8 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
          originalProgramIndex = programIndex;
       }
       char* masterSymbol = g_contextChains[programIndex][0]->symbol;
-      if (StringCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
-      else                                     return(IR_SYMBOLCHANGE   );
+      if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
+      else                                  return(IR_SYMBOLCHANGE   );
    }
 
 
@@ -896,8 +896,8 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, const char* pro
       int programIndex = ec->programIndex;
       if (!programIndex) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.programIndex=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
       char* masterSymbol = g_contextChains[programIndex][0]->symbol;
-      if (StringCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
-      else                                     return(IR_SYMBOLCHANGE);
+      if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
+      else                                  return(IR_SYMBOLCHANGE);
    }
 
    // UR_RECOMPILE                                       // re-loaded after recompilation
