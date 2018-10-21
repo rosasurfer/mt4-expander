@@ -204,7 +204,7 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
  *
  * @return BOOL
  */
-BOOL WINAPI StringIsNull(const char* value) {
+BOOL WINAPI StrIsNull(const char* value) {
    return(!value);
    #pragma EXPANDER_EXPORT
 }
