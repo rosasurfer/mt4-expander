@@ -55,8 +55,8 @@ void WINAPI onProcessDetach() {
 /**
  * DLL entry point
  */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD fReason, LPVOID lpReserved) {
-   switch (fReason) {
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
+   switch (reason) {
       case DLL_PROCESS_ATTACH: onProcessAttach(); break;
       case DLL_THREAD_ATTACH :                    break;
       case DLL_THREAD_DETACH :                    break;

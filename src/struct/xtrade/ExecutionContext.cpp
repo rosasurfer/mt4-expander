@@ -149,48 +149,6 @@ UninitializeReason WINAPI ec_UninitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den in einem EXECUTION_CONTEXT gespeicherten Testing-Status zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL - Status
- */
-BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->testing);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt den in einem EXECUTION_CONTEXT gespeicherten VisualMode-Status zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL - Status
- */
-BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->visualMode);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt den in einem EXECUTION_CONTEXT gespeicherten Optimization-Status zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL - Status
- */
-BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->optimization);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Gibt die Init-Konfiguration eines EXECUTION_CONTEXT zurück.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -214,34 +172,6 @@ DWORD WINAPI ec_InitFlags(const EXECUTION_CONTEXT* ec) {
 DWORD WINAPI ec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->deinitFlags);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt den in einem EXECUTION_CONTEXT gespeicherten Logging-Status zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL - Status
- */
-BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logging);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt den in einem EXECUTION_CONTEXT gespeicherten Logdateinamen zurück.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - Dateiname
- */
-const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->customLogFile);
    #pragma EXPANDER_EXPORT
 }
 
@@ -313,6 +243,48 @@ datetime WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec) {
 datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->currentTickTime);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten Testing-Status zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - Status
+ */
+BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->testing);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten VisualMode-Status zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - Status
+ */
+BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->visualMode);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten Optimization-Status zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - Status
+ */
+BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->optimization);
    #pragma EXPANDER_EXPORT
 }
 
@@ -436,6 +408,34 @@ int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
 int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    return(ec->dllWarning);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten Logging-Status zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - Status
+ */
+BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->logging);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt den in einem EXECUTION_CONTEXT gespeicherten Logdateinamen zurück.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char* - Dateiname
+ */
+const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->customLogFile);
    #pragma EXPANDER_EXPORT
 }
 
@@ -716,66 +716,6 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
 
 
 /**
- * Setzt den Testing-Status eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - derselbe Status
- */
-BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->testing = status;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetTesting(g_contextChains[pid][0], status));
-   return(status);
-}
-
-
-/**
- * Setzt den VisualMode-Status eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - derselbe Status
- */
-BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->visualMode = status;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetVisualMode(g_contextChains[pid][0], status));
-   return(status);
-}
-
-
-/**
- * Setzt den Optimization-Status eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - derselbe Status
- */
-BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->optimization = status;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetOptimization(g_contextChains[pid][0], status));
-   return(status);
-}
-
-
-/**
  * Setzt die Init-Konfiguration eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -812,58 +752,6 @@ DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetDeinitFlags(g_contextChains[pid][0], flags));
    return(flags);
-}
-
-
-/**
- * Setzt den Logging-Status eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - derselbe Logging-Status
- */
-BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->logging = status;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetLogging(g_contextChains[pid][0], status));
-   return(status);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Setzt den Namen der Logdatei eines EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  char*              fileName - statt eines NULL-Pointers kann auch ein Leerstring angegeben werden
- *
- * @return char* - derselbe Dateiname
- */
-const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
-   if ((uint)ec < MIN_VALID_POINTER)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   if (fileName) {
-      // fileName ist kein NULL-Pointer
-      if ((uint)fileName < MIN_VALID_POINTER)             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-      if (strlen(fileName) > sizeof(ec->customLogFile)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName: \"%s\" (max %d characters)", fileName, sizeof(ec->customLogFile)-1));
-
-      if (!strcpy(ec->customLogFile, fileName))
-         return(NULL);
-   }
-   else {
-      // fileName ist NULL-Pointer
-      ec->customLogFile[0] = '\0';
-   }
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetCustomLogFile(g_contextChains[pid][0], fileName));
-   return(fileName);
 }
 
 
@@ -1060,6 +948,66 @@ double WINAPI ec_SetAsk(EXECUTION_CONTEXT* ec, double price) {
 
 
 /**
+ * Setzt den Testing-Status eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe Status
+ */
+BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->testing = status;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetTesting(g_contextChains[pid][0], status));
+   return(status);
+}
+
+
+/**
+ * Setzt den VisualMode-Status eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe Status
+ */
+BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->visualMode = status;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetVisualMode(g_contextChains[pid][0], status));
+   return(status);
+}
+
+
+/**
+ * Setzt den Optimization-Status eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe Status
+ */
+BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->optimization = status;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetOptimization(g_contextChains[pid][0], status));
+   return(status);
+}
+
+
+/**
  * Setzt den SuperContext eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec  - zu modifizierender Context
@@ -1243,6 +1191,58 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
       else      ec_SetDllWarning(master, error);
    }
    return(error);
+}
+
+
+/**
+ * Setzt den Logging-Status eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - derselbe Logging-Status
+ */
+BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->logging = status;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetLogging(g_contextChains[pid][0], status));
+   return(status);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Setzt den Namen der Logdatei eines EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  char*              fileName - statt eines NULL-Pointers kann auch ein Leerstring angegeben werden
+ *
+ * @return char* - derselbe Dateiname
+ */
+const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
+   if ((uint)ec < MIN_VALID_POINTER)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   if (fileName) {
+      // fileName ist kein NULL-Pointer
+      if ((uint)fileName < MIN_VALID_POINTER)             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+      if (strlen(fileName) > sizeof(ec->customLogFile)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName: \"%s\" (max %d characters)", fileName, sizeof(ec->customLogFile)-1));
+
+      if (!strcpy(ec->customLogFile, fileName))
+         return(NULL);
+   }
+   else {
+      // fileName ist NULL-Pointer
+      ec->customLogFile[0] = '\0';
+   }
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetCustomLogFile(g_contextChains[pid][0], fileName));
+   return(fileName);
 }
 
 
