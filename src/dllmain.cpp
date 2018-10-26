@@ -31,9 +31,9 @@ extern Locks                     g_locks;                            // a map ho
  * Handler for DLL_PROCESS_ATTACH events.
  */
 void WINAPI onProcessAttach() {
+   g_contextChains  .resize(1);                             // index[0] stays empty (zero wouldn't be a valid MQL program id)
    g_threads        .resize(0);
    g_threadsPrograms.resize(0);
-   g_contextChains  .resize(1);                             // index[0] stays empty (zero wouldn't be a valid MQL program id)
    InitializeCriticalSection(&g_terminalMutex);
 }
 

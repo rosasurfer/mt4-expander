@@ -10,7 +10,7 @@
 #include <vector>
 
 
-std::vector<ContextChain> g_contextChains  (128);        // all context chains (= MQL programs, index = program id)
+std::vector<ContextChain> g_contextChains  (128);        // all context chains, i.e. MQL programs (index = program id)
 std::vector<DWORD>        g_threads        (128);        // all known threads executing MQL programs
 std::vector<uint>         g_threadsPrograms(128);        // the last MQL program executed by a thread
 uint                      g_lastUIThreadProgram;         // the last MQL program executed by the UI thread

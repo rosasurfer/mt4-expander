@@ -3,14 +3,14 @@
 
 
 /**
- * XTrade struct TEST
+ * Framework struct TEST
  *
- * Structure holding metadata of a test: Strategy Tester settings, strategy settings, order history
+ * Structure holding test data, i.e. tester settings, strategy settings, order history
  */
 #pragma pack(push, 1)
 struct TEST {                                            // - size --- description --------------------------------------------
    int           id;                                     //      4     unique test id (positive, primary key)
-   datetime      time;                                   //      4     time of the test
+   datetime      created;                                //      4     creation time of the test
    char          strategy[MAX_PATH];                     //    260     strategy name
    int           reportingId;                            //      4     reporting id (for composition of reportingSymbol)
    char          reportingSymbol[MAX_SYMBOL_LENGTH+1];   //     12     test symbol for charted reports
@@ -22,7 +22,7 @@ struct TEST {                                            // - size --- descripti
    double        spread;                                 //      8     spread in pips
    uint          bars;                                   //      4     number of tested bars
    uint          ticks;                                  //      4     number of tested ticks
-   uint          tradeDirections;                        //      4     enabled trade directions: Long|Short|Both
+   DWORD         tradeDirections;                        //      4     enabled trade directions: Long|Short|Both
    BOOL          visualMode;                             //      4     whether or not the test was run in visual mode
    uint          duration;                               //      4     test duration in milliseconds
    OrderHistory* orders;                                 //      4     array of orders
@@ -30,12 +30,13 @@ struct TEST {                                            // - size --- descripti
 #pragma pack(pop)
 
 
-// Getters
+// getters (used by MQL4)
+// @see header/struct/xtrade/ExecutionContext.h
 
 
-// Setters
+// validating setters
 int         WINAPI test_SetId             (TEST* test, int         id       );
-datetime    WINAPI test_SetTime           (TEST* test, datetime    time     );
+datetime    WINAPI test_SetCreated        (TEST* test, datetime    time     );
 const char* WINAPI test_SetStrategy       (TEST* test, const char* name     );
 int         WINAPI test_SetReportingId    (TEST* test, int         id       );
 const char* WINAPI test_SetReportingSymbol(TEST* test, const char* symbol   );
@@ -47,10 +48,10 @@ int         WINAPI test_SetBarModel       (TEST* test, int         type     );
 double      WINAPI test_SetSpread         (TEST* test, double      spread   );
 uint        WINAPI test_SetBars           (TEST* test, uint        bars     );
 uint        WINAPI test_SetTicks          (TEST* test, uint        ticks    );
-//uint      WINAPI test_SetTradeDirections(TEST* test, uint        types    );   // TODO
+//DWORD     WINAPI test_SetTradeDirections(TEST* test, uint        types    );   // TODO
 BOOL        WINAPI test_SetVisualMode     (TEST* test, BOOL        status   );
 uint        WINAPI test_SetDuration       (TEST* test, uint        duration );
 
 
-// Helpers
+// helpers
 const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug = FALSE);

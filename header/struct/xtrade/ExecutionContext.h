@@ -5,7 +5,7 @@
 /**
  * Framework struct EXECUTION_CONTEXT
  *
- * Execution context of MQL programs for communication between MQL and DLL.
+ * Execution context of an MQL program. Used for communication and data exchange between MQL modules and DLL.
  *
  * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
  * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
@@ -92,94 +92,116 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
 
 
 // type definition
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all contexts (i.e. MQL modules) of a MQL program
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all contexts of an MQL program (one context per MQL module)
 
 
-// getters (used by MQL4)
-uint               WINAPI ec_ProgramIndex    (const EXECUTION_CONTEXT* ec);
-ProgramType        WINAPI ec_ProgramType     (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_ProgramName     (const EXECUTION_CONTEXT* ec);
-ModuleType         WINAPI ec_ModuleType      (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_ModuleName      (const EXECUTION_CONTEXT* ec);
-LaunchType         WINAPI ec_LaunchType      (const EXECUTION_CONTEXT* ec);
-RootFunction       WINAPI ec_RootFunction    (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_InitCycle       (const EXECUTION_CONTEXT* ec);
-InitializeReason   WINAPI ec_InitReason      (const EXECUTION_CONTEXT* ec);
-UninitializeReason WINAPI ec_UninitReason    (const EXECUTION_CONTEXT* ec);
-DWORD              WINAPI ec_InitFlags       (const EXECUTION_CONTEXT* ec);
-DWORD              WINAPI ec_DeinitFlags     (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_Symbol          (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_Timeframe       (const EXECUTION_CONTEXT* ec);
-//                        ec.digits
+// regular getters (used by MQL4)
+uint               WINAPI ec_ProgramIndex       (const EXECUTION_CONTEXT* ec);
+ProgramType        WINAPI ec_ProgramType        (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_ProgramName        (const EXECUTION_CONTEXT* ec);
+ModuleType         WINAPI ec_ModuleType         (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_ModuleName         (const EXECUTION_CONTEXT* ec);
+
+LaunchType         WINAPI ec_LaunchType         (const EXECUTION_CONTEXT* ec);
+RootFunction       WINAPI ec_RootFunction       (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_InitCycle          (const EXECUTION_CONTEXT* ec);
+InitializeReason   WINAPI ec_InitReason         (const EXECUTION_CONTEXT* ec);
+UninitializeReason WINAPI ec_UninitReason       (const EXECUTION_CONTEXT* ec);
+DWORD              WINAPI ec_InitFlags          (const EXECUTION_CONTEXT* ec);
+DWORD              WINAPI ec_DeinitFlags        (const EXECUTION_CONTEXT* ec);
+
+const char*        WINAPI ec_Symbol             (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_Timeframe          (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_Digits             (const EXECUTION_CONTEXT* ec);
 //                        ec.rates
-//                        ec.bars
-uint               WINAPI ec_Ticks           (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_CurrentTickTime (const EXECUTION_CONTEXT* ec);
-//                        ec.bid
-//                        ec.ask
-BOOL               WINAPI ec_Testing         (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_VisualMode      (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_Optimization    (const EXECUTION_CONTEXT* ec);
-//                        ec.test
-BOOL               WINAPI ec_SuperContext    (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec);
-EXECUTION_CONTEXT* WINAPI ec_lpSuperContext  (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_ThreadId        (const EXECUTION_CONTEXT* ec);
-HWND               WINAPI ec_hChart          (const EXECUTION_CONTEXT* ec);
-HWND               WINAPI ec_hChartWindow    (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_MqlError        (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_DllError        (const EXECUTION_CONTEXT* ec);
-//                        ...
-int                WINAPI ec_DllWarning      (const EXECUTION_CONTEXT* ec);
-//                        ...
-BOOL               WINAPI ec_Logging         (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_CustomLogFile   (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_Bars               (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_Ticks              (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_PreviousTickTime   (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_CurrentTickTime    (const EXECUTION_CONTEXT* ec);
+double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
+double             WINAPI ec_Ask                (const EXECUTION_CONTEXT* ec);
 
-
-// validating setters (also used by MQL4)
-uint               WINAPI ec_SetProgramIndex      (EXECUTION_CONTEXT* ec, uint               index    );
-ProgramType        WINAPI ec_SetProgramType       (EXECUTION_CONTEXT* ec, ProgramType        type     );
-const char*        WINAPI ec_SetProgramName       (EXECUTION_CONTEXT* ec, const char*        name     );
-ModuleType         WINAPI ec_SetModuleType        (EXECUTION_CONTEXT* ec, ModuleType         type     );
-const char*        WINAPI ec_SetModuleName        (EXECUTION_CONTEXT* ec, const char*        name     );
-LaunchType         WINAPI ec_SetLaunchType        (EXECUTION_CONTEXT* ec, LaunchType         type     );
-RootFunction       WINAPI ec_SetRootFunction      (EXECUTION_CONTEXT* ec, RootFunction       id       );
-BOOL               WINAPI ec_SetInitCycle         (EXECUTION_CONTEXT* ec, BOOL               status   );
-InitializeReason   WINAPI ec_SetInitReason        (EXECUTION_CONTEXT* ec, InitializeReason   reason   );
-UninitializeReason WINAPI ec_SetUninitReason      (EXECUTION_CONTEXT* ec, UninitializeReason reason   );
-DWORD              WINAPI ec_SetInitFlags         (EXECUTION_CONTEXT* ec, DWORD              flags    );
-DWORD              WINAPI ec_SetDeinitFlags       (EXECUTION_CONTEXT* ec, DWORD              flags    );
-const char*        WINAPI ec_SetSymbol            (EXECUTION_CONTEXT* ec, const char*        symbol   );
-uint               WINAPI ec_SetTimeframe         (EXECUTION_CONTEXT* ec, uint               timeframe);
-uint               WINAPI ec_SetDigits            (EXECUTION_CONTEXT* ec, uint               digits   );
-//                        ec.rates
-uint               WINAPI ec_SetBars              (EXECUTION_CONTEXT* ec, uint               count    );
-uint               WINAPI ec_SetTicks             (EXECUTION_CONTEXT* ec, uint               count    );
-datetime           WINAPI ec_SetPreviousTickTime  (EXECUTION_CONTEXT* ec, datetime           time     );
-datetime           WINAPI ec_SetCurrentTickTime   (EXECUTION_CONTEXT* ec, datetime           time     );
-double             WINAPI ec_SetBid               (EXECUTION_CONTEXT* ec, double             price    );
-double             WINAPI ec_SetAsk               (EXECUTION_CONTEXT* ec, double             price    );
-BOOL               WINAPI ec_SetTesting           (EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetVisualMode        (EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetOptimization      (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_Testing            (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_VisualMode         (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_Optimization       (const EXECUTION_CONTEXT* ec);
 //                        ec.test
-EXECUTION_CONTEXT* WINAPI ec_SetSuperContext      (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
-uint               WINAPI ec_SetThreadId          (EXECUTION_CONTEXT* ec, uint               id       );
-HWND               WINAPI ec_SetHChart            (EXECUTION_CONTEXT* ec, HWND               hWnd     );
-HWND               WINAPI ec_SetHChartWindow      (EXECUTION_CONTEXT* ec, HWND               hWnd     );
-int                WINAPI ec_SetMqlError          (EXECUTION_CONTEXT* ec, int                error    );
-int                WINAPI ec_SetDllError          (EXECUTION_CONTEXT* ec, int                error    );
+
+int                WINAPI ec_TestId             (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_TestCreated        (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_TestStrategy       (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_TestReportingId    (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_TestReportingSymbol(const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_TestSymbol         (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_TestTimeframe      (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_TestStartTime      (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_TestEndTime        (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_TestBarModel       (const EXECUTION_CONTEXT* ec);
+double             WINAPI ec_TestSpread         (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_TestBars           (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_TestTicks          (const EXECUTION_CONTEXT* ec);
+DWORD              WINAPI ec_TestTradeDirections(const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_TestVisualMode     (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_TestDuration       (const EXECUTION_CONTEXT* ec);
+
+BOOL               WINAPI ec_SuperContext       (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec);
+EXECUTION_CONTEXT* WINAPI ec_lpSuperContext     (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_ThreadId           (const EXECUTION_CONTEXT* ec);
+HWND               WINAPI ec_hChart             (const EXECUTION_CONTEXT* ec);
+HWND               WINAPI ec_hChartWindow       (const EXECUTION_CONTEXT* ec);
+
+int                WINAPI ec_MqlError           (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_DllError           (const EXECUTION_CONTEXT* ec);
 //                        ...
-int                WINAPI ec_SetDllWarning        (EXECUTION_CONTEXT* ec, int                error    );
+int                WINAPI ec_DllWarning         (const EXECUTION_CONTEXT* ec);
 //                        ...
-BOOL               WINAPI ec_SetLogging           (EXECUTION_CONTEXT* ec, BOOL               status   );
-const char*        WINAPI ec_SetCustomLogFile     (EXECUTION_CONTEXT* ec, const char*        fileName );
+BOOL               WINAPI ec_Logging            (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_CustomLogFile      (const EXECUTION_CONTEXT* ec);
 
 
 // master context getters
-RootFunction       WINAPI mec_RootFunction(const EXECUTION_CONTEXT* ec);
-UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec);
-DWORD              WINAPI mec_InitFlags   (const EXECUTION_CONTEXT* ec);
+RootFunction       WINAPI mec_RootFunction      (const EXECUTION_CONTEXT* ec);
+UninitializeReason WINAPI mec_UninitReason      (const EXECUTION_CONTEXT* ec);
+DWORD              WINAPI mec_InitFlags         (const EXECUTION_CONTEXT* ec);
+
+
+// validating setters (also used by MQL4)
+uint               WINAPI ec_SetProgramIndex    (EXECUTION_CONTEXT* ec, uint               index    );
+ProgramType        WINAPI ec_SetProgramType     (EXECUTION_CONTEXT* ec, ProgramType        type     );
+const char*        WINAPI ec_SetProgramName     (EXECUTION_CONTEXT* ec, const char*        name     );
+ModuleType         WINAPI ec_SetModuleType      (EXECUTION_CONTEXT* ec, ModuleType         type     );
+const char*        WINAPI ec_SetModuleName      (EXECUTION_CONTEXT* ec, const char*        name     );
+LaunchType         WINAPI ec_SetLaunchType      (EXECUTION_CONTEXT* ec, LaunchType         type     );
+RootFunction       WINAPI ec_SetRootFunction    (EXECUTION_CONTEXT* ec, RootFunction       id       );
+BOOL               WINAPI ec_SetInitCycle       (EXECUTION_CONTEXT* ec, BOOL               status   );
+InitializeReason   WINAPI ec_SetInitReason      (EXECUTION_CONTEXT* ec, InitializeReason   reason   );
+UninitializeReason WINAPI ec_SetUninitReason    (EXECUTION_CONTEXT* ec, UninitializeReason reason   );
+DWORD              WINAPI ec_SetInitFlags       (EXECUTION_CONTEXT* ec, DWORD              flags    );
+DWORD              WINAPI ec_SetDeinitFlags     (EXECUTION_CONTEXT* ec, DWORD              flags    );
+const char*        WINAPI ec_SetSymbol          (EXECUTION_CONTEXT* ec, const char*        symbol   );
+uint               WINAPI ec_SetTimeframe       (EXECUTION_CONTEXT* ec, uint               timeframe);
+uint               WINAPI ec_SetDigits          (EXECUTION_CONTEXT* ec, uint               digits   );
+//                        ec.rates
+uint               WINAPI ec_SetBars            (EXECUTION_CONTEXT* ec, uint               count    );
+uint               WINAPI ec_SetTicks           (EXECUTION_CONTEXT* ec, uint               count    );
+datetime           WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime           time     );
+datetime           WINAPI ec_SetCurrentTickTime (EXECUTION_CONTEXT* ec, datetime           time     );
+double             WINAPI ec_SetBid             (EXECUTION_CONTEXT* ec, double             price    );
+double             WINAPI ec_SetAsk             (EXECUTION_CONTEXT* ec, double             price    );
+BOOL               WINAPI ec_SetTesting         (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_SetVisualMode      (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_SetOptimization    (EXECUTION_CONTEXT* ec, BOOL               status   );
+//                        ec.test
+EXECUTION_CONTEXT* WINAPI ec_SetSuperContext    (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
+uint               WINAPI ec_SetThreadId        (EXECUTION_CONTEXT* ec, uint               id       );
+HWND               WINAPI ec_SetHChart          (EXECUTION_CONTEXT* ec, HWND               hWnd     );
+HWND               WINAPI ec_SetHChartWindow    (EXECUTION_CONTEXT* ec, HWND               hWnd     );
+int                WINAPI ec_SetMqlError        (EXECUTION_CONTEXT* ec, int                error    );
+int                WINAPI ec_SetDllError        (EXECUTION_CONTEXT* ec, int                error    );
+//                        ...
+int                WINAPI ec_SetDllWarning      (EXECUTION_CONTEXT* ec, int                error    );
+//                        ...
+BOOL               WINAPI ec_SetLogging         (EXECUTION_CONTEXT* ec, BOOL               status   );
+const char*        WINAPI ec_SetCustomLogFile   (EXECUTION_CONTEXT* ec, const char*        fileName );
 
 
 // helpers
