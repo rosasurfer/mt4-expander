@@ -70,25 +70,28 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    double             bid;                         //       600        8     current bid price      = MQL::Bid               (variable)
    double             ask;                         //       608        8     current ask price      = MQL::Ask               (variable)
 
-   BOOL               testing;                     //       616        4     IsTesting() status                              (constant) => does it run in Tester
-   BOOL               visualMode;                  //       620        4     IsVisualMode() status                           (constant) => does the Tester run with VisualMode=On
-   BOOL               optimization;                //       624        4     IsOptimization() status                         (constant) => does the Tester run with Optimization=On
-   TEST*              test;                        //       628        4     test data                                       (constant) => test configuration and data
+   BOOL               externalReporting;           //       616        4     input parameter EA.ExternalReporting            (constant)
+   BOOL               recordEquity;                //       620        4     input parameter EA.RecordEquity                 (constant)
 
-   EXECUTION_CONTEXT* superContext;                //       632        4     parent/calling EXECUTION_CONTEXT                (constant) => is the program loaded by iCustom()
-   uint               threadId;                    //       636        4     current thread                                  (variable) => the executing thread
-   HWND               hChart;                      //       640        4     chart handle = MQL::WindowHandle()              (constant) => handle of the chart frame
-   HWND               hChartWindow;                //       644        4     chart handle with title bar "Symbol,Period"     (constant) => handle of the chart window
+   BOOL               testing;                     //       624        4     IsTesting() status                              (constant) => does it run in Tester
+   BOOL               visualMode;                  //       628        4     IsVisualMode() status                           (constant) => does the Tester run with VisualMode=On
+   BOOL               optimization;                //       632        4     IsOptimization() status                         (constant) => does the Tester run with Optimization=On
+   TEST*              test;                        //       636        4     test data                                       (constant) => test configuration and data
 
-   int                mqlError;                    //       648        4     last error in MQL (main module and libraries)   (variable)
-   int                dllError;                    //       652        4     last error in DLL                               (variable)
-   char*              dllErrorMsg;                 //       656        4     DLL error message                               (variable)
-   int                dllWarning;                  //       660        4     last DLL warning                                (variable)
-   char*              dllWarningMsg;               //       664        4     DLL warning message                             (variable)
-   BOOL               logging;                     //       668        4     logging configuration                           (constant) => is logging enabled
-   char               customLogFile[MAX_PATH];     //       672      260     custom log filename                             (constant) => where goes logging to
+   EXECUTION_CONTEXT* superContext;                //       640        4     parent/calling EXECUTION_CONTEXT                (constant) => is the program loaded by iCustom()
+   uint               threadId;                    //       644        4     current thread                                  (variable) => the executing thread
+   HWND               hChart;                      //       648        4     chart handle = MQL::WindowHandle()              (constant) => handle of the chart frame
+   HWND               hChartWindow;                //       652        4     chart handle with title bar "Symbol,Period"     (constant) => handle of the chart window
+
+   int                mqlError;                    //       656        4     last error in MQL (main module and libraries)   (variable)
+   int                dllError;                    //       660        4     last error in DLL                               (variable)
+   char*              dllErrorMsg;                 //       664        4     DLL error message                               (variable)
+   int                dllWarning;                  //       668        4     last DLL warning                                (variable)
+   char*              dllWarningMsg;               //       672        4     DLL warning message                             (variable)
+   BOOL               logging;                     //       676        4     logging configuration                           (constant) => is logging enabled
+   char               customLogFile[MAX_PATH];     //       680      260     custom log filename                             (constant) => where goes logging to
 };                                                 // ---------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //              = 932
+#pragma pack(pop)                                  //              = 940
 
 
 // type definition
@@ -121,11 +124,13 @@ datetime           WINAPI ec_CurrentTickTime    (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                (const EXECUTION_CONTEXT* ec);
 
+BOOL               WINAPI ec_ExternalReporting  (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_RecordEquity       (const EXECUTION_CONTEXT* ec);
+
 BOOL               WINAPI ec_Testing            (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode         (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization       (const EXECUTION_CONTEXT* ec);
 //                        ec.test
-
 int                WINAPI ec_TestId             (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestCreated        (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_TestStrategy       (const EXECUTION_CONTEXT* ec);
@@ -170,6 +175,7 @@ ProgramType        WINAPI ec_SetProgramType     (EXECUTION_CONTEXT* ec, ProgramT
 const char*        WINAPI ec_SetProgramName     (EXECUTION_CONTEXT* ec, const char*        name     );
 ModuleType         WINAPI ec_SetModuleType      (EXECUTION_CONTEXT* ec, ModuleType         type     );
 const char*        WINAPI ec_SetModuleName      (EXECUTION_CONTEXT* ec, const char*        name     );
+
 LaunchType         WINAPI ec_SetLaunchType      (EXECUTION_CONTEXT* ec, LaunchType         type     );
 RootFunction       WINAPI ec_SetRootFunction    (EXECUTION_CONTEXT* ec, RootFunction       id       );
 BOOL               WINAPI ec_SetInitCycle       (EXECUTION_CONTEXT* ec, BOOL               status   );
@@ -177,6 +183,7 @@ InitializeReason   WINAPI ec_SetInitReason      (EXECUTION_CONTEXT* ec, Initiali
 UninitializeReason WINAPI ec_SetUninitReason    (EXECUTION_CONTEXT* ec, UninitializeReason reason   );
 DWORD              WINAPI ec_SetInitFlags       (EXECUTION_CONTEXT* ec, DWORD              flags    );
 DWORD              WINAPI ec_SetDeinitFlags     (EXECUTION_CONTEXT* ec, DWORD              flags    );
+
 const char*        WINAPI ec_SetSymbol          (EXECUTION_CONTEXT* ec, const char*        symbol   );
 uint               WINAPI ec_SetTimeframe       (EXECUTION_CONTEXT* ec, uint               timeframe);
 uint               WINAPI ec_SetDigits          (EXECUTION_CONTEXT* ec, uint               digits   );
@@ -187,14 +194,17 @@ datetime           WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime
 datetime           WINAPI ec_SetCurrentTickTime (EXECUTION_CONTEXT* ec, datetime           time     );
 double             WINAPI ec_SetBid             (EXECUTION_CONTEXT* ec, double             price    );
 double             WINAPI ec_SetAsk             (EXECUTION_CONTEXT* ec, double             price    );
+
 BOOL               WINAPI ec_SetTesting         (EXECUTION_CONTEXT* ec, BOOL               status   );
 BOOL               WINAPI ec_SetVisualMode      (EXECUTION_CONTEXT* ec, BOOL               status   );
 BOOL               WINAPI ec_SetOptimization    (EXECUTION_CONTEXT* ec, BOOL               status   );
 //                        ec.test
+
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext    (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
 uint               WINAPI ec_SetThreadId        (EXECUTION_CONTEXT* ec, uint               id       );
 HWND               WINAPI ec_SetHChart          (EXECUTION_CONTEXT* ec, HWND               hWnd     );
 HWND               WINAPI ec_SetHChartWindow    (EXECUTION_CONTEXT* ec, HWND               hWnd     );
+
 int                WINAPI ec_SetMqlError        (EXECUTION_CONTEXT* ec, int                error    );
 int                WINAPI ec_SetDllError        (EXECUTION_CONTEXT* ec, int                error    );
 //                        ...

@@ -8,7 +8,7 @@
  * Structure holding test data, i.e. tester settings, strategy settings, order history
  */
 #pragma pack(push, 1)
-struct TEST {                                            // - size --- description --------------------------------------------
+struct TEST {                                            // - size --- description ------------------------------------------
    int           id;                                     //      4     unique test id (positive, primary key)
    datetime      created;                                //      4     creation time of the test
    char          strategy[MAX_PATH];                     //    260     strategy name
@@ -26,7 +26,7 @@ struct TEST {                                            // - size --- descripti
    BOOL          visualMode;                             //      4     whether or not the test was run in visual mode
    uint          duration;                               //      4     test duration in milliseconds
    OrderHistory* orders;                                 //      4     array of orders
-};                                                       // -------------------------------------------------------------------
+};                                                       // -----------------------------------------------------------------
 #pragma pack(pop)
 
 

@@ -304,11 +304,39 @@ double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Gibt den in einem EXECUTION_CONTEXT gespeicherten Testing-Status zurück.
+ * Whether or not an experts input parameter "EA.ExternalReporting" is enabled.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return BOOL - Status
+ * @return BOOL
+ */
+BOOL WINAPI ec_ExternalReporting(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->externalReporting);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not an experts input parameter "EA.RecordEquity" is enabled.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->recordEquity);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester or on a tester chart.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
  */
 BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
