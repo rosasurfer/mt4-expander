@@ -70,8 +70,8 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    double             bid;                         //       600        8     current bid price      = MQL::Bid               (variable)
    double             ask;                         //       608        8     current ask price      = MQL::Ask               (variable)
 
-   BOOL               extReporting;                //       616        4     input parameter EA.ExtendedReporting            (constant)
-   BOOL               recordEquity;                //       620        4     input parameter EA.RecordEquity                 (constant)
+   BOOL               extReporting;                //       616        4     input parameter EA.ExtendedReporting            (variable)
+   BOOL               recordEquity;                //       620        4     input parameter EA.RecordEquity                 (variable)
 
    BOOL               testing;                     //       624        4     IsTesting() status                              (constant) => does it run in Tester
    BOOL               visualMode;                  //       628        4     IsVisualMode() status                           (constant) => does the Tester run with VisualMode=On
