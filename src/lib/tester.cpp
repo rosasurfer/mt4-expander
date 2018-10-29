@@ -48,7 +48,8 @@ HWND WINAPI FindTesterWindow() {
       while (hWndNext) {                                                // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {                                       // the window belongs to us
-            if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+            if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError())
+               return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
 
             if (StrStartsWith(wndTitle, "Tester")) {
                hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);     // container for floating tester window
@@ -89,7 +90,7 @@ int WINAPI Tester_GetBarModel() {
    char* text = (char*) alloca(bufSize);                             // on the stack
 
    int len = GetWindowText(hWndBarModel, text, bufSize);
-   if (!len) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetWindowText()  0 chars copied")));
+   if (!len) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "->GetWindowText()")));
 
    if (StrStartsWith(text, "Every tick"))       return(BARMODEL_EVERYTICK);
    if (StrStartsWith(text, "Control points"))   return(BARMODEL_CONTROLPOINTS);

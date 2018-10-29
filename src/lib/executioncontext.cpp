@@ -69,9 +69,10 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  * @param  DWORD              deinitFlags    - deinit configuration
  * @param  char*              symbol         - current chart symbol
  * @param  uint               period         - current chart period
- * @param  uint               digits         - the symbol's digits value (possibly incorrect)
- * @param  BOOL               extReporting   - value of an Expert's input parameter EA.ExtendedReporting
- * @param  BOOL               recordEquity   - value of an Expert's input parameter EA.RecordEquity
+ * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
+ * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
+ * @param  BOOL               extReporting   - value of an Expert's input parameter "EA.ExtendedReporting"
+ * @param  BOOL               recordEquity   - value of an Expert's input parameter "EA.RecordEquity"
  * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
@@ -83,7 +84,7 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
@@ -184,7 +185,10 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       ec_SetProgramName  (ec,             programName);
       ec_SetModuleType   (ec, (ModuleType)programType);               // Hauptmodul: ModuleType == ProgramType
       ec_SetModuleName   (ec,             programName);
+
     //ec_SetLaunchType   (ec,             launchType );
+      ec_SetInitFlags    (ec, initFlags              );
+      ec_SetDeinitFlags  (ec, deinitFlags            );
 
       ec_SetSuperContext (ec, sec   );
       ec_SetHChart       (ec, hChart);
@@ -194,8 +198,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       ec_SetVisualMode   (ec, isVisualMode  =ProgramIsVisualMode  (ec, isVisualMode  ));
       ec_SetOptimization (ec, isOptimization=ProgramIsOptimization(ec, isOptimization));
 
-      ec_SetInitFlags    (ec, initFlags               );
-      ec_SetDeinitFlags  (ec, deinitFlags             );
       ec_SetLogging      (ec, ProgramIsLogging    (ec));
       ec_SetCustomLogFile(ec, ProgramCustomLogFile(ec));
    }
@@ -209,6 +211,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetSymbol      (ec, symbol      );
    ec_SetTimeframe   (ec, period      );
    ec_SetDigits      (ec, digits      );
+   ec_SetPoint       (ec, point       );
+
+   ec_SetExtReporting(ec, FALSE       );
+   ec_SetRecordEquity(ec, FALSE       );
+
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
 
@@ -661,9 +668,12 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       bufferSize = 128;
       char* title = (char*)alloca(bufferSize);
       int id = INT_MAX;
+      SetLastError(NO_ERROR);
 
       while (hWndChild) {                                            // iterate over all child windows
          size_t titleLen = GetWindowText(hWndChild, title, bufferSize);
+         if (!titleLen) if (int error=GetLastError()) return(_INVALID_HWND(error(ERR_WIN32_ERROR+error, "GetWindowText()")));
+
          if (titleLen) {
             if (titleLen >= bufferSize-1) {
                bufferSize <<= 1;
@@ -732,7 +742,7 @@ InitializeReason WINAPI ResolveInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
 
 
 /**
- * Resolve an indicator's current init() reason.
+ * Resolve an indicator's true init() reason.
  *
  * @param  EXECUTION_CONTEXT* ec                   - an MQL program's main module execution context (possibly still empty)
  * @param  EXECUTION_CONTEXT* sec                  - super context as managed by the terminal (memory possibly already released)
@@ -874,7 +884,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
 
 
 /**
- * Resolve an expert's current init() reason.
+ * Resolve an expert's true init() reason.
  *
  * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
  * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
@@ -953,7 +963,7 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, const char* pro
 
 
 /**
- * Resolve a script's init() reason.
+ * Resolve a script's true init() reason.
  *
  * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
  * @param  char*              programName   - program name (with or without filepath depending on the terminal version)

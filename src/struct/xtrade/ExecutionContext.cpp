@@ -205,7 +205,7 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's digits value.
+ * Return a program's "Digits" value.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -214,6 +214,20 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_Digits(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->digits);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's "Point" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return double - point
+ */
+double WINAPI ec_Point(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->point);
    #pragma EXPANDER_EXPORT
 }
 
@@ -838,10 +852,10 @@ DWORD WINAPI mec_InitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Set the MQL program index of an EXECUTION_CONTEXT.
+ * Set a program's index in the list of all executed programs.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  uint               index - MQL program index (must be greater than zero)
+ * @param  uint               index - program index (must be greater than zero)
  *
  * @return uint - the same index
  */
@@ -857,12 +871,12 @@ uint WINAPI ec_SetProgramIndex(EXECUTION_CONTEXT* ec, uint index) {
 
 
 /**
- * Setzt den Programm-Typ eines EXECUTION_CONTEXT.
+ * Set a program's type.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  ProgramType        type
  *
- * @return ProgramType - derselbe ProgramType
+ * @return ProgramType - the same type
  */
 ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
    if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -884,12 +898,12 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
 
 
 /**
- * Setzt den Programmnamen eines EXECUTION_CONTEXT.
+ * Set a program's name.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
  *
- * @return char* - derselbe Name
+ * @return char* - the same name
  */
 const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
    if ((uint)ec   < MIN_VALID_POINTER)          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -908,12 +922,12 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Setzt den Modul-Typ eines EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's module type.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  ModuleType         type
+ * @param  ModuleType         type of the executed module
  *
- * @return ModuleType - derselbe ModuleType
+ * @return ModuleType - the same module type
  */
 ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
    if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -936,12 +950,12 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
 
 
 /**
- * Setzt den Modulnamen eines EXECUTION_CONTEXT.
+ * Set a module's name
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
  *
- * @return char* - derselbe Name
+ * @return char* - the same name
  */
 const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
    if ((uint)ec   < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -960,12 +974,12 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Setzt den Launch-Typ eines EXECUTION_CONTEXT.
+ * Set a program's launch type.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  LaunchType         type
  *
- * @return LaunchType - derselbe Launch-Typ
+ * @return LaunchType - the same launch type
  */
 LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
    if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -987,12 +1001,12 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
 
 
 /**
- * Setzt die RootFunction-ID eines EXECUTION_CONTEXT.
+ * Set a program's RootFunction id.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  RootFunction       id
  *
- * @return RootFunction - dieselbe RootFunction-ID
+ * @return RootFunction - the same id
  */
 RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
    if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1018,12 +1032,12 @@ RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
 
 
 /**
- * Setzt den InitCycle-Status eines EXECUTION_CONTEXT.
+ * Set a program's init cycle status.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
+ * @param  BOOL               whether or not the program is currently in an init cycle
  *
- * @return BOOL - derselbe InitCycle-Status
+ * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1038,12 +1052,12 @@ BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Setzt den InitializeReason eines EXECUTION_CONTEXT.
+ * Set a program's InitializeReason.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  InitializeReason reason
+ * @param  InitializeReason   reason
  *
- * @return InitializeReason - derselbe InitializeReason
+ * @return InitializeReason - the same InitializeReason
  */
 InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason reason) {
    if ((uint)ec < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1077,12 +1091,12 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
 
 
 /**
- * Setzt den UninitializeReason eines EXECUTION_CONTEXT.
+ * Set a programÄs UninitializeReason.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  UninitializeReason reason
  *
- * @return UninitializeReason - derselbe UninitializeReason
+ * @return UninitializeReason - the same UninitializeReason
  */
 UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, UninitializeReason reason) {
    if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1113,12 +1127,12 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
 
 
 /**
- * Setzt die Init-Konfiguration eines EXECUTION_CONTEXT.
+ * Set the init configuration of an EXECUTION_CONTEXT's module.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
  *
- * @return DWORD - dieselben Init-Flags
+ * @return DWORD - the same flags
  */
 DWORD WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1133,12 +1147,12 @@ DWORD WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Setzt die Deinit-Konfiguration eines EXECUTION_CONTEXT.
+ * Set the deinit configuration of an EXECUTION_CONTEXT's module.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
  *
- * @return DWORD - dieselben Deinit-Flags
+ * @return DWORD - the same flags
  */
 DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1153,12 +1167,12 @@ DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Setzt das Symbol eines EXECUTION_CONTEXT.
+ * Set a program's chart symbol.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              symbol
  *
- * @return char* - dasselbe Symbol
+ * @return char* - the same symbol
  */
 const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
    if ((uint)ec     < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1177,12 +1191,12 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
 
 
 /**
- * Setzt den Chart-Timeframe eines EXECUTION_CONTEXT.
+ * Set a programs chart timeframe.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               timeframe
  *
- * @return uint - derselbe Timeframe
+ * @return uint - the same timeframe
  */
 uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1198,10 +1212,10 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's "digits" field.
+ * Set a program's "Digits" value.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  uint               digist
+ * @param  uint               digits
  *
  * @return uint - the same value
  */
@@ -1219,7 +1233,28 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's amount of bars (the number of price bars in the chart).
+ * Set a program's "Point" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  double             point
+ *
+ * @return double - the same value
+ */
+double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double point) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (point <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter point: %f (must be positive)", point));
+
+   ec->point = point;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetPoint(g_contextChains[pid][0], point));
+   return(point);
+}
+
+
+/**
+ * Set a program's amount of bars (the number of price bars in the chart).
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               count
@@ -1240,7 +1275,7 @@ uint WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, uint count) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's amount of ticks (the number of times start() was called).
+ * Set a program's amount of ticks (number of times the start() function was called).
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               count
@@ -1261,7 +1296,7 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's previous tick time.
+ * Set a program's previous tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  datetime           time - server time
@@ -1282,7 +1317,7 @@ datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's current tick time.
+ * Set a program's current tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  datetime           time - server time
@@ -1345,12 +1380,52 @@ double WINAPI ec_SetAsk(EXECUTION_CONTEXT* ec, double price) {
 
 
 /**
- * Setzt den Testing-Status eines EXECUTION_CONTEXT.
+ * Set a program's "ExtendedReporting" status.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
- * @return BOOL - derselbe Status
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetExtReporting(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->extReporting = status;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetExtReporting(g_contextChains[pid][0], status));
+   return(status);
+}
+
+
+/**
+ * Set a program's "RecordEquity" status.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->recordEquity = status;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetRecordEquity(g_contextChains[pid][0], status));
+   return(status);
+}
+
+
+/**
+ * Set a program's testing status.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1676,6 +1751,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", symbol="           <<    doubleQuoteStr(ec->symbol      )
          << ", timeframe="        <<       PeriodToStr(ec->timeframe   )
          << ", digits="           <<                   ec->digits
+         << ", point="            <<                   ec->point
          << ", rates="            <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
          << ", bars="             <<                   ec->bars
          << ", ticks="            <<                   ec->ticks
@@ -1713,7 +1789,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
 
 /**
- * Alias (different MQL import)
+ * Alias of EXECUTION_CONTEXT_toStr() with a different MQL import signature
  */
 const char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug/*=FALSE*/) {
    return(EXECUTION_CONTEXT_toStr(ec, outputDebug));
