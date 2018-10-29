@@ -304,21 +304,21 @@ double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not an experts input parameter "EA.ExternalReporting" is enabled.
+ * Whether or not an experts input parameter "EA.ExtendedReporting" is activated.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
  */
-BOOL WINAPI ec_ExternalReporting(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->externalReporting);
+   return(ec->extReporting);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Whether or not an experts input parameter "EA.RecordEquity" is enabled.
+ * Whether or not an experts input parameter "EA.RecordEquity" is activated.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1660,21 +1660,21 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
    if (memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
       std::stringstream ss; ss
          <<  "{programIndex="     <<                   ec->programIndex
-         << ", programType="      <<  ProgramTypeToStr(ec->programType  )
-         << ", programName="      <<    doubleQuoteStr(ec->programName  )
-         << ", moduleType="       <<   ModuleTypeToStr(ec->moduleType   )
-         << ", moduleName="       <<    doubleQuoteStr(ec->moduleName   )
+         << ", programType="      <<  ProgramTypeToStr(ec->programType)
+         << ", programName="      <<    doubleQuoteStr(ec->programName)
+         << ", moduleType="       <<   ModuleTypeToStr(ec->moduleType )
+         << ", moduleName="       <<    doubleQuoteStr(ec->moduleName )
 
          << ", launchType="       <<                   ec->launchType
-         << ", rootFunction="     << RootFunctionToStr(ec->rootFunction )
-         << ", initCycle="        <<         BoolToStr(ec->initCycle    )
-         << ", initReason="       <<   InitReasonToStr(ec->initReason   )
-         << ", uninitReason="     << UninitReasonToStr(ec->uninitReason )
-         << ", initFlags="        <<    InitFlagsToStr(ec->initFlags    )
-         << ", deinitFlags="      <<  DeinitFlagsToStr(ec->deinitFlags  )
+         << ", rootFunction="     << RootFunctionToStr(ec->rootFunction)
+         << ", initCycle="        <<         BoolToStr(ec->initCycle   )
+         << ", initReason="       <<   InitReasonToStr(ec->initReason  )
+         << ", uninitReason="     << UninitReasonToStr(ec->uninitReason)
+         << ", initFlags="        <<    InitFlagsToStr(ec->initFlags   )
+         << ", deinitFlags="      <<  DeinitFlagsToStr(ec->deinitFlags )
 
-         << ", symbol="           <<    doubleQuoteStr(ec->symbol       )
-         << ", timeframe="        <<       PeriodToStr(ec->timeframe    )
+         << ", symbol="           <<    doubleQuoteStr(ec->symbol      )
+         << ", timeframe="        <<       PeriodToStr(ec->timeframe   )
          << ", digits="           <<                   ec->digits
          << ", rates="            <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
          << ", bars="             <<                   ec->bars
@@ -1684,9 +1684,12 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", bid="              <<                   ec->bid
          << ", ask="              <<                   ec->ask
 
-         << ", testing="          <<         BoolToStr(ec->testing      )
-         << ", visualMode="       <<         BoolToStr(ec->visualMode   )
-         << ", optimization="     <<         BoolToStr(ec->optimization )
+         << ", extReporting="     <<         BoolToStr(ec->extReporting)
+         << ", recordEquity="     <<         BoolToStr(ec->recordEquity)
+
+         << ", testing="          <<         BoolToStr(ec->testing     )
+         << ", visualMode="       <<         BoolToStr(ec->visualMode  )
+         << ", optimization="     <<         BoolToStr(ec->optimization)
          << ", test="             <<                  (ec->test         ? string("0x").append(IntToHexStr((uint)ec->test))         : "NULL")
 
          << ", superContext="     <<                  (ec->superContext ? string("0x").append(IntToHexStr((uint)ec->superContext)) : "NULL")

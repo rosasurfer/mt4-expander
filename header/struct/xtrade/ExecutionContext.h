@@ -70,7 +70,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    double             bid;                         //       600        8     current bid price      = MQL::Bid               (variable)
    double             ask;                         //       608        8     current ask price      = MQL::Ask               (variable)
 
-   BOOL               externalReporting;           //       616        4     input parameter EA.ExternalReporting            (constant)
+   BOOL               extReporting;                //       616        4     input parameter EA.ExtendedReporting            (constant)
    BOOL               recordEquity;                //       620        4     input parameter EA.RecordEquity                 (constant)
 
    BOOL               testing;                     //       624        4     IsTesting() status                              (constant) => does it run in Tester
@@ -124,7 +124,7 @@ datetime           WINAPI ec_CurrentTickTime    (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                (const EXECUTION_CONTEXT* ec);
 
-BOOL               WINAPI ec_ExternalReporting  (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_ExtReporting       (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_RecordEquity       (const EXECUTION_CONTEXT* ec);
 
 BOOL               WINAPI ec_Testing            (const EXECUTION_CONTEXT* ec);

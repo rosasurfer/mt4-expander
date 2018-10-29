@@ -70,10 +70,12 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  * @param  char*              symbol         - current chart symbol
  * @param  uint               period         - current chart period
  * @param  uint               digits         - the symbol's digits value (possibly incorrect)
- * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
+ * @param  BOOL               extReporting   - value of an Expert's input parameter EA.ExtendedReporting
+ * @param  BOOL               recordEquity   - value of an Expert's input parameter EA.RecordEquity
  * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
+ * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
  * @param  HWND               hChart         - value of WindowHandle() as returned by the terminal (possibly not yet set)
  * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
  * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
@@ -81,7 +83,7 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, EXECUTION_CONTEXT* sec, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
@@ -315,14 +317,16 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
 
 /**
- * Synchronize a library's EXECUTION_CONTEXT with the context of the executing program's main module. Called in Library::init().
- * If a library is loaded the first time its context is added to the program's context chain.
+ * Called only from Library::init().
+ *
+ * Synchronize a library's EXECUTION_CONTEXT with the context of the program's main module. If a library is loaded the first
+ * time its context is added to the program's context chain.
  *
  * @param  EXECUTION_CONTEXT* ec             - the libray's execution context
  * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
- * @param  char*              moduleName     - the library's name w/o path according to the terminal version
+ * @param  char*              moduleName     - the library's name (may contain a path depending on the terminal version)
  * @param  char*              symbol         - current chart symbol
  * @param  uint               period         - current chart period
  * @param  uint               digits         - the symbol's digits value (possibly incorrect)
@@ -333,14 +337,14 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *
  * Notes:
  * ------
- * During init cycles libraries keep state. This can be used to distinguish between first loading and the init cycle.
- * There are two scenarios where libraries execute init cycles.
+ * During init cycles libraries keep state. This is used to distinguish between loading of a library and init cycles.
+ * Libraries run through init cycles in two cases:
  *
- * (1) Libraries loaded by indicators during the indicator's regular init cycle.
+ * (1) Libraries loaded by indicators during the indicator's init cycle.
  *     - Library::deinit() is called after Indicator::deinit()
  *     - Library::init() is called before Indicator::init()
  *
- * (2) Libraries loaded by experts in Strategy Tester between tests if the finished test was not explicitly stopped.
+ * (2) Libraries loaded by experts between multiple tests if the finished test was not stopped by using the "Stop" button.
  *     - !!! wann wird Library::deinit() aufgerufen !!!
  *     - Library::init() is called before Expert::init()
  *
@@ -349,10 +353,10 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *            In Expert::init() SyncMainContext_init() removes the library from the former program's context chain and attaches
  *            it to the context chain of the current program.
  *
- *     - Bug: In this scenario libraries also keep state of the last order context and order functions return wrong results.
+ *     - Bug: In this case libraries also keep state of the last order context and order functions return wrong results.
  *            Workaround: On test start the order context needs to be explicitly reset (see MQL::core/library::init).
  *
- *     - Bug: In this scenario libraries also keep state of the former IsVisualMode() flag. This is true even if tested symbol
+ *     - Bug: In this case libraries also keep state of the former IsVisualMode() flag. This is true even if tested symbol
  *            or tested timeframe change.
  *            Workaround: Instead of IsVisualMode() use the corresponding flag of the execution context.
  */
@@ -366,9 +370,9 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    // (1) If ec.programIndex is not set: library is loaded the first time and the context is empty.
    //     - copy master context and update library specific fields
    //
-   // (2) If ec.programIndex is set: check if init cycle in indicator (UI thread) or in expert in Tester (not UI thread)
+   // (2) If ec.programIndex is set: check if init cycle in indicator (UI thread) or in expert/tester (non UI thread)
    //     (2.1) init cycle in indicator
-   //     (2.2) init cycle in expert in Tester
+   //     (2.2) init cycle in expert/tester
 
    if (!ec->programIndex) {
       // (1) library is loaded the first time by the current thread's program
@@ -389,15 +393,15 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec_SetTicks       (ec, NULL);                                  // in libraries always NULL
       ec_SetMqlError    (ec, NULL);                                  // in libraries always NULL
       ec_SetDllError    (ec, NULL);
-      ec->dllErrorMsg   =    NULL;                                   // TODO: implement g/setter
+      ec->dllErrorMsg   =    NULL;                                   // TODO: implement setter
       ec_SetDllWarning  (ec, NULL);
-      ec->dllWarningMsg =    NULL;                                   // TODO: implement g/setter
+      ec->dllWarningMsg =    NULL;                                   // TODO: implement setter
 
       g_contextChains[programIndex].push_back(ec);                   // add context to the program's context chain
    }
 
    else if (IsUIThread()) {
-      // (2.1) init cycle in indicator called before Indicator::init()
+      // (2.1) init cycle in indicator: Library::init() is called before Indicator::init()
       StoreThreadAndProgram(ec->programIndex);                       // store last executed program (asap)
 
       ec_SetRootFunction(ec, RF_INIT     );                          // update library specific fields
@@ -409,7 +413,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    }
 
    else {
-      // (2.2) init cycle in expert in Tester called before Expert::init()
+      // (2.2) init cycle in expert/tester: Library::init() is called before Expert::init()
       StoreThreadAndProgram(ec->programIndex);                       // store last executed program (asap)
 
       // update library specific fields                              // ec.programIndex gets updated in Expert::init()
