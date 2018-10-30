@@ -795,7 +795,7 @@ const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the RootFunction of an EXECUTION_CONTEXT's master context.
+ * Return the RootFunction id stored in a program's master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -814,7 +814,7 @@ RootFunction WINAPI mec_RootFunction(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the UninitializeReason of an EXECUTION_CONTEXT's master context.
+ * Return the UninitializeReason stored in a program's master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -833,7 +833,7 @@ UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the init configuration flags of an EXECUTION_CONTEXT's master context.
+ * Return the init configuration flags stored in a progam's master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -852,7 +852,7 @@ DWORD WINAPI mec_InitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Set a program's index in the list of all executed programs.
+ * Set a program's index in the list of the executed programs.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               index - program index (must be greater than zero)

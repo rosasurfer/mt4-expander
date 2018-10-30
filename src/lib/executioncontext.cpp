@@ -345,15 +345,15 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *
  * Notes:
  * ------
- * During init cycles libraries keep state. This is used to distinguish between loading of a library and init cycles.
+ * During init cycles libraries keep "some" state. This is used to distinguish between loading of a library and init cycles.
  * Libraries run through init cycles in two cases:
  *
  * (1) Libraries loaded by indicators during the indicator's init cycle.
- *     - Library::deinit() is called after Indicator::deinit()
+ *     - Library::deinit() is called after Indicator::deinit()    BUG: simple string variables are already released
  *     - Library::init() is called before Indicator::init()
  *
  * (2) Libraries loaded by experts between multiple tests if the finished test was not stopped by using the "Stop" button.
- *     - !!! wann wird Library::deinit() aufgerufen !!!
+ *     - Library::deinit() is called after Expert::deinit()       BUG: simple string variables are already released
  *     - Library::init() is called before Expert::init()
  *
  *     - Bug: This init cycle itself is wrong as the library holds state of the former finished test and must not get re-used.
