@@ -353,29 +353,36 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *
  * Notes:
  * ------
- * During init cycles libraries keep "some" state. This is used to distinguish between load-library and init cycle.
+ * During init cycles libraries keep state. This is used to distinguish between load-library and init cycle.
  * Libraries run through init cycles in two cases:
  *
- * (1) Libraries loaded by indicators during the indicator's init cycle.
- *     - Library::deinit() is called after Indicator::deinit() => BUG: string variables are already destroyed
- *     - Library::init()   is called before Indicator::init()
+ * (1) Libraries loaded by indicators during the indicator's init cycle. Call order:
+ *      - Indicator::deinit()
+ *      - Library::deinit()    => BUG: global string variables are already destroyed and lost
+ *      - Library::init()
+ *      - Indicator::init()
  *
- * (2) Libraries loaded by experts between multiple tests.
- *     - Library::deinit() is called after Expert::deinit()    => BUG: string variables are already destroyed
- *     - Library::init()   is called before Expert::init()
+ * (2) Libraries loaded by experts between multiple tests. In newer terminals (since when exactly?) this happens only if the
+ *     test was not explicitly stopped by using the "Stop" button. In older terminals (e.g. build 500) this happens for all
+ *     tests. Call order:
+ *      - Expert::deinit()
+ *      - Library::deinit()    => BUG: global string variables are already destroyed and lost
+ *      - Library::init()
+ *      - Expert::init()
  *
- *     Bug: This init cycle is a design failure. Libraries should be completely reset when the next test starts. Instead they
- *          keep some state of the previously finished test, specifically:
- *          - Global variables are not reset and keep former values (except strings).
- *          - The last selected order context is not reset and order functions return wrong results.
- *          - The flag IsVisualMode() is not reset even if symbol or timeframe of the next test change.
+ *     This init cycle is a design failure of the terminal. Libraries should be completely reset when a new test starts.
+ *     Instead they keep state of the previously finished test, specifically:
+ *      - Global variables are not reset and keep former values (except strings).
+ *      - The last selected order context is not reset and order functions return wrong results.
+ *      - The flag IsVisualMode() is not reset even if symbol or timeframe of the next test change.
  *
- *     Workaround: On start of the next text libraries need to be explicitly reset:
- *          - SyncMainContext_init() removes a library from the previously finished expert's context and attaches it to the
- *            context of the newly tested expert.
- *          - Global array variables must be reset by implementing library::Tester.ResetGlobalLibraryVars()
- *          - The selected order context is reset.
- *          - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
+ *     Workaround: On start of a new test libraries need to be explicitly reset:
+ *      - SyncMainContext_init() removes a library from the previously finished expert's context and attaches it to the
+ *        context of the newly tested expert.
+ *      - MQL::core/library::init() resets a previously selected order context.
+ *      - Global array variables must be reset by implementing library::Tester.ResetGlobalLibraryVars().
+ *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
+ *
  *
  * @see  https://github.com/rosasurfer/mt4-expander/blob/master/src/lib/executioncontext.cpp  SyncMainContext_init()
  * @see  https://github.com/rosasurfer/mt4-mql/blob/master/mql4/include/core/library.mqh      init()
@@ -393,6 +400,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    // (2) If ec.programIndex is set: check if init cycle in indicator (UI thread) or in expert/tester (non UI thread)
    //     (2.1) init cycle in indicator
    //     (2.2) init cycle in expert/tester
+
+   //debug("%s", EXECUTION_CONTEXT_toStr(ec));
 
    if (!ec->programIndex) {
       // (1) library is loaded the first time
