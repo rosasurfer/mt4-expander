@@ -154,3 +154,31 @@ const char* WINAPI GetLocalConfigPathA() {
    return(configPath);
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Alias of GetPrivateProfileStringA() to enable the use of different function signatures in MQL4
+ *
+ * Return all keys of an .ini file section.
+ *
+ * @param  __In__  char* fileName   - initialization file name
+ * @param  __In__  char* section    - initialization file section name
+ * @param  __Out__ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
+ *                                    null-terminated strings. The last string is followed by a second null character.
+ * @param  __In__  DWORD bufferSize - size of the buffer in bytes (minimum 2 bytes)
+ *
+ * @return DWORD - Number of bytes copied to the specified buffer, not including the last terminating null character.
+ *                 If the buffer is not large enough to hold all found keys the first non-fitting key is truncated and the
+ *                 return value is equal to the size of bufferSize minus two.
+ */
+DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)buffer   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
+   if (bufferSize < 2)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
+
+   return(GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName));
+   #pragma EXPANDER_EXPORT
+}
