@@ -485,7 +485,7 @@ const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
 
 
 /**
- * Alias for UninitReasonToStr()
+ * Alias of UninitReasonToStr()
  */
 const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
    return(UninitReasonToStr(reason));
@@ -534,7 +534,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
 
 
 /**
- * Alias for numberFormat()
+ * Alias of numberFormat()
  */
 string WINAPI numberToStr(double value, const char* format) {
    return(numberFormat(value, format));
@@ -542,7 +542,7 @@ string WINAPI numberToStr(double value, const char* format) {
 
 
 /**
- * Alias for NumberFormat()
+ * Alias of NumberFormat()
  */
 const char* WINAPI NumberToStr(double value, const char* format) {
    return(NumberFormat(value, format));
@@ -675,7 +675,7 @@ const char* WINAPI OperationTypeToStr(int type) {
 
 
 /**
- * Alias for OperationTypeDescription()
+ * Alias of OperationTypeDescription()
  */
 const char* WINAPI OrderTypeDescription(int type) {
    return(OperationTypeDescription(type));
@@ -684,7 +684,7 @@ const char* WINAPI OrderTypeDescription(int type) {
 
 
 /**
- * Alias for OperationTypeToStr()
+ * Alias of OperationTypeToStr()
  */
 const char* WINAPI OrderTypeToStr(int type) {
    return(OperationTypeToStr(type));
@@ -797,7 +797,7 @@ const char* WINAPI StringToStr(const char* value) {
 
 
 /**
- * Alias for PeriodDescription()
+ * Alias of PeriodDescription()
  */
 const char* WINAPI TimeframeDescription(int timeframe) {
    return(PeriodDescription(timeframe));
@@ -806,7 +806,7 @@ const char* WINAPI TimeframeDescription(int timeframe) {
 
 
 /**
- * Alias for PeriodToStr()
+ * Alias of PeriodToStr()
  */
 const char* WINAPI TimeframeToStr(int timeframe) {
    return(PeriodToStr(timeframe));
