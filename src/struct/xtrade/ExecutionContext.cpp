@@ -644,12 +644,12 @@ uint WINAPI ec_TestDuration(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Copy an EXECUTION_CONTEXT's super-context into the specified target variable.
+ * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
- * @param  EXECUTION_CONTEXT* target - target variable receiving the super-context
+ * @param  EXECUTION_CONTEXT* target - target variable receiving the super context
  *
- * @return BOOL - whether or not the source context contained a super-context and it was successfully copied
+ * @return BOOL - whether or not the source context contained a super context and it was successfully copied
  */
 BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target) {
    if ((uint)ec     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -668,11 +668,11 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* cons
 
 
 /**
- * Return a pointer to the super-context contained in an EXECUTION_CONTEXT. Used by MQL4.
+ * Return a pointer to the super context contained in an EXECUTION_CONTEXT. Used by MQL4.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return EXECUTION_CONTEXT* - pointer or NULL if the context contained no super-context
+ * @return EXECUTION_CONTEXT* - pointer or NULL if the context contained no super context
  */
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -2176,12 +2176,12 @@ BOOL WINAPI mec_Optimization(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Copy a super-context into the specified target variable, as stored in an EXECUTION_CONTEXT's master context.
+ * Copy a super context into the specified target variable, as stored in an EXECUTION_CONTEXT's master context.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
- * @param  EXECUTION_CONTEXT* target - target variable receiving the super-context
+ * @param  EXECUTION_CONTEXT* target - target variable receiving the super context
  *
- * @return BOOL - whether or not the master context contained a super-context and it was successfully copied
+ * @return BOOL - whether or not the master context contained a super context and it was successfully copied
  */
 BOOL WINAPI mec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target) {
    if ((uint)ec     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -2204,11 +2204,11 @@ BOOL WINAPI mec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* con
 
 
 /**
- * Return a pointer to the super-context as stored in an EXECUTION_CONTEXT's master context. Used by MQL4.
+ * Return a pointer to the super context as stored in an EXECUTION_CONTEXT's master context. Used by MQL4.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return EXECUTION_CONTEXT* - pointer or NULL if the master context contained no super-context
+ * @return EXECUTION_CONTEXT* - pointer or NULL if the master context contained no super context
  */
 EXECUTION_CONTEXT* WINAPI mec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));

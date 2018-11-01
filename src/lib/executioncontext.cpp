@@ -473,7 +473,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec_SetCustomLogFile   (ec, NULL);
 
       g_contextChains[ec->programIndex][0]->initCycle = TRUE;        // mark master context of the finished test/expert
-   }                                                                 // (Do we need LIMBO detection for experts?)
+   }                                                                 // (Do we need this for experts?)
 
    //debug("%s::%s::init()  ec=%s", ec->programName, ec->moduleName, EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
