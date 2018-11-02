@@ -199,12 +199,23 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
    if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
 
-   // read all keys and handle a too small buffer
-   char* buffer    = NULL;
-   uint bufferSize = 256;
-   uint chars = bufferSize-2;
+   // TODO: remove (1) once trim(char*) is implemented
 
-   while (chars == bufferSize-2) {
+   // (1) try reading the key with a rarely existing default value (prevent reading of all section keys)
+   uint bufferSize = 16;                                 // larger than strlen(defaultValue), an existing longer config value is truncated
+   char* buffer    = (char*)alloca(bufferSize);
+   char* defaultValue = "^~^#~^#~^#^~^";                 // strlen() = 13
+   uint chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
+   if (!StrCompare(buffer, defaultValue))
+      return(TRUE);
+
+   // read all keys
+   bufferSize = 256;
+   buffer     = NULL;
+   chars = bufferSize-2;
+
+   while (chars == bufferSize-2) {                       // handle a too small buffer
+      delete[] buffer;
       bufferSize <<= 1;
       buffer = new char[bufferSize];                     // on the heap as a section may be big
       chars = GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName);
@@ -215,8 +226,8 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
    char* lKey  = StrToLower((char*)memcpy(alloca(bufferSize), key, bufferSize));
    BOOL result = FALSE;
 
-   char* str = buffer;                                   // The buffer is filled with one or more null-terminated strings.
-   while (*str) {                                        // The last string is followed by a second null character.
+   char* str = buffer;                                   // The buffer is filled with one or more trimmed and null-terminated
+   while (*str) {                                        // strings. The last string is followed by a second null character.
       // loop as long as there are non-empty strings
       if (StrCompare(StrToLower(str), lKey)) {
          result = TRUE;
