@@ -20,12 +20,16 @@ BOOL          WINAPI StrIsNull(const char* value);
 BOOL          WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL          WINAPI StrStartsWith(const wchar_t* str, const wchar_t* prefix);
 BOOL          WINAPI StrEndsWith(const char* str, const char* suffix);
-char*         WINAPI StrToLower(char* str);
+char*         WINAPI StrToLower(char* const str);
 string&       WINAPI StrToLower(string& str);
 wstring&      WINAPI StrToLower(wstring& str);
-char*         WINAPI StrToUpper(char* str);
+char*         WINAPI StrToUpper(char* const str);
 string&       WINAPI StrToUpper(string& str);
 wstring&      WINAPI StrToUpper(wstring& str);
+
+char*         WINAPI strLTrim(char* const str);
+char*         WINAPI strRTrim(char* const str);
+char*         WINAPI strTrim(char* const str);
 
 uint          WINAPI AnsiToWCharStr(const char* source, wchar_t* dest, size_t destSize);
 uint          WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize);
@@ -34,4 +38,3 @@ char*                wchartombs(const wchar_t* sequence, size_t count);
 char*                wchartombs(const wstring& str);
 
 inline WCHAR*        copywchars(const WCHAR* str) { return(wcscpy(new WCHAR[wcslen(str)+1], str)); };
-

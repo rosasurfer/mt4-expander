@@ -199,20 +199,10 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
    if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
 
-   // TODO: remove (1) once trim(char*) is implemented
-
-   // (1) try reading the key with a rarely existing default value (prevent reading of all section keys)
-   uint bufferSize = 16;                                 // larger than strlen(defaultValue), an existing longer config value is truncated
-   char* buffer    = (char*)alloca(bufferSize);
-   char* defaultValue = "^~^#~^#~^#^~^";                 // strlen() = 13
-   uint chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
-   if (!StrCompare(buffer, defaultValue))
-      return(TRUE);
-
    // read all keys
-   bufferSize = 256;
-   buffer     = NULL;
-   chars = bufferSize-2;
+   char* buffer    = NULL;
+   uint bufferSize = 256;
+   uint chars = bufferSize-2;
 
    while (chars == bufferSize-2) {                       // handle a too small buffer
       delete[] buffer;
@@ -223,7 +213,7 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
 
    // look for a case-insensitive match
    bufferSize  = strlen(key)+1;
-   char* lKey  = StrToLower((char*)memcpy(alloca(bufferSize), key, bufferSize));
+   char* lKey  = StrToLower(strTrim((char*)memcpy(alloca(bufferSize), key, bufferSize)));
    BOOL result = FALSE;
 
    char* str = buffer;                                   // The buffer is filled with one or more trimmed and null-terminated
