@@ -2411,8 +2411,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", rates="            <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
          << ", bars="             <<                   ec->bars
          << ", ticks="            <<                   ec->ticks
-         << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
-         << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmtTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmtTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
          << ", bid="              <<                   ec->bid
          << ", ask="              <<                   ec->ask
 

@@ -15,7 +15,7 @@
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
+string WINAPI gmtTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp)));
    if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
 
@@ -42,11 +42,11 @@ string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-const char* WINAPI GmTimeFormat(datetime timestamp, const char* format) {
+const char* WINAPI GmtTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   string str = gmTimeFormat(timestamp, format);
+   string str = gmtTimeFormat(timestamp, format);
    if (!str.length())
       return(NULL);
    return(strdup(str.c_str()));                                      // TODO: close memory leak
