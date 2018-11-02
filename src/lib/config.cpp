@@ -154,3 +154,89 @@ const char* WINAPI GetLocalConfigPathA() {
    return(configPath);
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Alias of GetPrivateProfileStringA() to enable the use of different function signatures in MQL4
+ *
+ * Return all keys of an .ini file section.
+ *
+ * @param  __In__  char* fileName   - initialization file name
+ * @param  __In__  char* section    - initialization file section name
+ * @param  __Out__ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
+ *                                    null-terminated strings. The last string is followed by a second null character.
+ * @param  __In__  DWORD bufferSize - size of the buffer in bytes (minimum 2 bytes)
+ *
+ * @return DWORD - Number of bytes copied to the specified buffer, not including the last terminating null character.
+ *                 If the buffer is not large enough to hold all found keys the first non-fitting key is truncated and the
+ *                 return value is equal to the size of bufferSize minus two.
+ */
+DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)buffer   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
+   if (bufferSize < 2)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
+
+   return(GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a configuration key exists in an .ini file.
+ *
+ * @param  char* fileName - name of the .ini file
+ * @param  char* section  - case-insensitive configuration section
+ * @param  char* key      - case-insensitive configuration key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+
+   // TODO: remove (1) once trim(char*) is implemented
+
+   // (1) try reading the key with a rarely existing default value (prevent reading of all section keys)
+   uint bufferSize = 16;                                 // larger than strlen(defaultValue), an existing longer config value is truncated
+   char* buffer    = (char*)alloca(bufferSize);
+   char* defaultValue = "^~^#~^#~^#^~^";                 // strlen() = 13
+   uint chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
+   if (!StrCompare(buffer, defaultValue))
+      return(TRUE);
+
+   // read all keys
+   bufferSize = 256;
+   buffer     = NULL;
+   chars = bufferSize-2;
+
+   while (chars == bufferSize-2) {                       // handle a too small buffer
+      delete[] buffer;
+      bufferSize <<= 1;
+      buffer = new char[bufferSize];                     // on the heap as a section may be big
+      chars = GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName);
+   }
+
+   // look for a case-insensitive match
+   bufferSize  = strlen(key)+1;
+   char* lKey  = StrToLower((char*)memcpy(alloca(bufferSize), key, bufferSize));
+   BOOL result = FALSE;
+
+   char* str = buffer;                                   // The buffer is filled with one or more trimmed and null-terminated
+   while (*str) {                                        // strings. The last string is followed by a second null character.
+      // loop as long as there are non-empty strings
+      if (StrCompare(StrToLower(str), lKey)) {
+         result = TRUE;
+         break;
+      }
+      str += strlen(str) + 1;
+   }
+
+   delete[] buffer;
+   return(result);
+   #pragma EXPANDER_EXPORT
+}

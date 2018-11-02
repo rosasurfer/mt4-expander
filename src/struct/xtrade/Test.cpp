@@ -24,18 +24,18 @@ int WINAPI test_SetId(TEST* test, int id) {
 
 
 /**
- * Set the time a TEST was run.
+ * Set the creation time of a TEST.
  *
  * @param  TEST*    test
  * @param  datetime time - Unix timestamp (GMT)
  *
  * @return datetime - the same time
  */
-datetime WINAPI test_SetTime(TEST* test, datetime time) {
+datetime WINAPI test_SetCreated(TEST* test, datetime time) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (time <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
 
-   test->time = time;
+   test->created = time;
    return(time);
 }
 
@@ -274,9 +274,6 @@ uint WINAPI test_SetDuration(TEST* test, uint duration) {
 }
 
 
-
-
-
 /**
  * Return a human-readable version of a TEST struct.
  *
@@ -286,7 +283,7 @@ uint WINAPI test_SetDuration(TEST* test, uint duration) {
  * @return char*
  */
 const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
-   if (!test) return("NULL");
+   if ((uint)test < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
 
    char* result = "{(empty)}";
    const TEST empty = {};
@@ -294,14 +291,14 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if (memcmp(test, &empty, sizeof(TEST))) {
       std::stringstream ss; ss
          <<  "{id="              <<                     test->id
-         << ", time="            <<                    (test->time ? doubleQuoteStr(localTimeFormat(test->time, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", created="         <<                    (test->created   ? doubleQuoteStr(localTimeFormat(test->created, "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", strategy="        <<      doubleQuoteStr(test->strategy)
          << ", reportingId="     <<                     test->reportingId
          << ", reportingSymbol=" <<      doubleQuoteStr(test->reportingSymbol)
          << ", symbol="          <<      doubleQuoteStr(test->symbol)
          << ", timeframe="       <<      TimeframeToStr(test->timeframe)
          << ", startTime="       <<                    (test->startTime ? doubleQuoteStr(gmTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", endTime="         <<                    (test->endTime   ? doubleQuoteStr(gmTimeFormat(test->endTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", endTime="         <<                    (test->endTime   ? doubleQuoteStr(gmTimeFormat(test->endTime,   "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", barModel="        << BarModelDescription(test->barModel)
          << ", spread="          <<        numberFormat(test->spread, "%.1f")
          << ", bars="            <<                     test->bars

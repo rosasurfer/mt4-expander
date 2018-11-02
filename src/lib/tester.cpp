@@ -48,7 +48,8 @@ HWND WINAPI FindTesterWindow() {
       while (hWndNext) {                                                // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {                                       // the window belongs to us
-            if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+            if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError())
+               return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
 
             if (StrStartsWith(wndTitle, "Tester")) {
                hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);     // container for floating tester window
@@ -89,7 +90,7 @@ int WINAPI Tester_GetBarModel() {
    char* text = (char*) alloca(bufSize);                             // on the stack
 
    int len = GetWindowText(hWndBarModel, text, bufSize);
-   if (!len) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetWindowText()  0 chars copied")));
+   if (!len) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "->GetWindowText()")));
 
    if (StrStartsWith(text, "Every tick"))       return(BARMODEL_EVERYTICK);
    if (StrStartsWith(text, "Control points"))   return(BARMODEL_CONTROLPOINTS);
@@ -142,45 +143,31 @@ double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint
 /**
  * TODO: documentation
  */
-BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime endTime, int barModel, double bid, double ask, uint bars, int reportingId, const char* reportingSymbol) {
+BOOL WINAPI Test_StartReporting(EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int barModel, int reportingId, const char* reportingSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
 
-   TEST* test;
+   if (ec->test) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already started", ec->programName));
 
-   if (ec->rootFunction == RF_START) {
-      if (ec->test) return(error(ERR_RUNTIME_ERROR, "multiple TEST initializations in %s::start()", ec->programName));
+   TEST* test = new TEST();
 
-      ec->test = test = new TEST();
-      test_SetTime           (test, time(NULL)      );
-      test_SetStrategy       (test, ec->programName );
-      test_SetReportingId    (test, reportingId     );
-      test_SetReportingSymbol(test, reportingSymbol );
-      test_SetSymbol         (test, ec->symbol      );
-      test_SetTimeframe      (test, ec->timeframe   );
-      test_SetStartTime      (test, startTime       );
-      test_SetBarModel       (test, barModel        );
-      test_SetSpread         (test, (ask-bid)/0.0001);               // TODO: statt 0.0001 Variable Pip
-      test_SetBars           (test, bars            );
-      //uint tradeDirections;                                        // TODO: aus Expert.ini auslesen
-      test_SetVisualMode     (test, ec->visualMode  );
-      test_SetDuration       (test, GetTickCount()  );
-      test->orders = new OrderHistory(512);                          // reserve memory to speed-up testing
-      test->orders->resize(0);
-   }
-   else if (ec->rootFunction == RF_DEINIT) {
-      test = ec->test;
-      if (!test) return(error(ERR_RUNTIME_ERROR, "missing TEST initialization in %s::deinit()", ec->programName));
-
-      test_SetEndTime (test, endTime                        );
-      test_SetBars    (test, bars - test->bars + 1          );
-      test_SetTicks   (test, ec->ticks                      );
-      test_SetDuration(test, GetTickCount() - test->duration);
-
-      SaveTest(test);                                                // TODO: close memory leak => TEST, OrderHistory
-   }
-   else return(error(ERR_FUNC_NOT_ALLOWED, "function not allowed in %s::%s()", ec->programName, RootFunctionDescription(ec->rootFunction)));
+   ec->test = test;
+   test_SetCreated        (test, time(NULL)     );
+   test_SetStrategy       (test, ec->programName);
+   test_SetReportingId    (test, reportingId    );
+   test_SetReportingSymbol(test, reportingSymbol);
+   test_SetSymbol         (test, ec->symbol     );
+   test_SetTimeframe      (test, ec->timeframe  );
+   test_SetStartTime      (test, startTime      );
+   test_SetBarModel       (test, barModel       );
+   test_SetSpread         (test, (ec->ask-ec->bid)/0.0001);       // TODO: statt 0.0001 Variable Pip
+   test_SetBars           (test, bars           );
+   //uint tradeDirections;                                        // TODO: aus Expert.ini auslesen
+   test_SetVisualMode     (test, ec->visualMode );
+   test_SetDuration       (test, GetTickCount() );
+   test->orders = new OrderHistory(2048);                         // reserve memory to speed-up testing
+   test->orders->resize(0);
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -188,41 +175,26 @@ BOOL WINAPI CollectTestData(EXECUTION_CONTEXT* ec, datetime startTime, datetime 
 
 
 /**
- * Save the results of a test.
- *
- * @param  TEST* test
- *
- * @return BOOL - success status
+ * TODO: documentation
  */
-BOOL WINAPI SaveTest(TEST* test) {
-   // save TEST to logfile
-   string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
-                                              .append(test->strategy)
-                                              .append(" #")
-                                              .append(to_string(test->reportingId))
-                                              .append(localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.log"));
-   std::ofstream file(logfile.c_str());
-   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
+BOOL WINAPI Test_StopReporting(EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
+   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
 
-   file << "test=" << TEST_toStr(test) << "\n";
-   debug("test=%s", TEST_toStr(test));
+   TEST* test = ec->test;
+   if (!test)         return(error(ERR_RUNTIME_ERROR, "missing TEST initialization of expert \"%s\"", ec->programName));
+   if (test->endTime) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already stopped", ec->programName));
 
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory, test.orders: 0x%p", test->orders));
-   int size = orders->size();
+   test_SetEndTime (test, endTime                        );
+   test_SetBars    (test, bars - test->bars + 1          );
+   test_SetTicks   (test, ec->ticks                      );
+   test_SetDuration(test, GetTickCount() - test->duration);
 
-   for (int i=0; i < size; ++i) {
-      ORDER* order = &(*orders)[i];
-      file << "order." << i << "=" << ORDER_toStr(order) << "\n";
-   }
-   file.close();
+   Test_SaveReport(test);                                         // TODO: close memory leak => TEST, OrderHistory
 
-   // backup input parameters
-   // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
-   string source = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
-   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->time, "  %d.%m.%Y %H.%M.%S.ini");
-   if (!CopyFile(source.c_str(), target.c_str(), TRUE))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
    return(TRUE);
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -289,4 +261,43 @@ BOOL WINAPI Test_onPositionClose(EXECUTION_CONTEXT* ec, int ticket, double close
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Save the results of a test.
+ *
+ * @param  TEST* test
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI Test_SaveReport(TEST* test) {
+   // save TEST to logfile
+   string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
+                                              .append(test->strategy)
+                                              .append(" #")
+                                              .append(to_string(test->reportingId))
+                                              .append(localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
+   std::ofstream file(logfile.c_str());
+   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
+
+   file << "test=" << TEST_toStr(test) << "\n";
+   debug("test=%s", TEST_toStr(test));
+
+   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory, test.orders: 0x%p", test->orders));
+   int size = orders->size();
+
+   for (int i=0; i < size; ++i) {
+      ORDER* order = &(*orders)[i];
+      file << "order." << i << "=" << ORDER_toStr(order) << "\n";
+   }
+   file.close();
+
+   // backup input parameters
+   // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
+   string source = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
+   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
+   if (!CopyFile(source.c_str(), target.c_str(), TRUE))
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
+   return(TRUE);
 }

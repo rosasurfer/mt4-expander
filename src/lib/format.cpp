@@ -11,6 +11,9 @@
  * @param  char*    format    - strftime() format control string
  *
  * @return string - GMT time string
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp)));
@@ -35,6 +38,9 @@ string WINAPI gmTimeFormat(datetime timestamp, const char* format) {
  * @param  char*    format    - strftime() format control string
  *
  * @return char* - GMT time string
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 const char* WINAPI GmTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp));
@@ -55,6 +61,9 @@ const char* WINAPI GmTimeFormat(datetime timestamp, const char* format) {
  * @param  char*    format    - strftime() format control string
  *
  * @return string - local time string
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 string WINAPI localTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp)));
@@ -79,6 +88,9 @@ string WINAPI localTimeFormat(datetime timestamp, const char* format) {
  * @param  char*    format    - strftime() format control string
  *
  * @return char* - local time string
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp));

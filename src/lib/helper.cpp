@@ -308,7 +308,7 @@ uint WINAPI MT4InternalMsg() {
    static uint msgId;
    if (!msgId) {
       msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-      if (!msgId) return(error(ERR_WIN32_ERROR+GetLastError(), "=> RegisterWindowMessage()"));
+      if (!msgId) return(error(ERR_WIN32_ERROR+GetLastError(), "->RegisterWindowMessage()"));
    }
    return(msgId);
    #pragma EXPANDER_EXPORT
