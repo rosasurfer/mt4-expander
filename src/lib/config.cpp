@@ -216,14 +216,61 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
    char* lKey  = StrToLower(strTrim((char*)memcpy(alloca(bufferSize), key, bufferSize)));
    BOOL result = FALSE;
 
-   char* str = buffer;                                   // The buffer is filled with one or more trimmed and null-terminated
-   while (*str) {                                        // strings. The last string is followed by a second null character.
-      // loop as long as there are non-empty strings
-      if (StrCompare(StrToLower(str), lKey)) {
+   char* name = buffer;                                  // The buffer is filled with one or more trimmed and null-terminated
+   while (*name) {                                       // strings. The last string is followed by a second null character.
+      // loop as long as there are non-empty key names
+      if (StrCompare(StrToLower(name), lKey)) {
          result = TRUE;
          break;
       }
-      str += strlen(str) + 1;
+      name += strlen(name) + 1;
+   }
+
+   delete[] buffer;
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a configuration section exists in an .ini file.
+ *
+ * @param  char* fileName - name of the .ini file
+ * @param  char* section  - case-insensitive configuration section
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+
+   // read all sections
+   char* buffer    = NULL;
+   uint bufferSize = 256;
+   uint chars = bufferSize-2;
+
+   while (chars == bufferSize-2) {                       // handle a too small buffer
+      delete[] buffer;
+      bufferSize <<= 1;
+      buffer = new char[bufferSize];                     // on the heap as there may be plenty of sections
+      chars = GetPrivateProfileSectionNames(buffer, bufferSize, fileName);
+   }
+
+   // look for a case-insensitive match
+   bufferSize = strlen(section)+1;
+   char* lSection = StrToLower(strTrim((char*)memcpy(alloca(bufferSize), section, bufferSize)));
+   BOOL result = FALSE;
+
+   char* name = buffer;                                  // The buffer is filled with one or more trimmed and null-terminated
+   while (*name) {                                       // strings. The last string is followed by a second null character.
+      // loop as long as there are non-empty section names
+      if (StrCompare(StrToLower(name), lSection)) {
+         result = TRUE;
+         break;
+      }
+      name += strlen(name) + 1;
    }
 
    delete[] buffer;
