@@ -182,3 +182,50 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
    return(GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName));
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Whether or not a configuration key exists in an .ini file.
+ *
+ * @param  char* fileName - name of the .ini file
+ * @param  char* section  - case-insensitive configuration section
+ * @param  char* key      - case-insensitive configuration key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+
+   // read all keys and handle a too small buffer
+   char* buffer    = NULL;
+   uint bufferSize = 256;
+   uint chars = bufferSize-2;
+
+   while (chars == bufferSize-2) {
+      bufferSize <<= 1;
+      buffer = new char[bufferSize];                     // on the heap as a section may be big
+      chars = GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName);
+   }
+
+   // look for a case-insensitive match
+   bufferSize  = strlen(key)+1;
+   char* lKey  = StrToLower((char*)memcpy(alloca(bufferSize), key, bufferSize));
+   BOOL result = FALSE;
+
+   char* str = buffer;                                   // The buffer is filled with one or more null-terminated strings.
+   while (*str) {                                        // The last string is followed by a second null character.
+      // loop as long as there are non-empty strings
+      if (StrCompare(StrToLower(str), lKey)) {
+         result = TRUE;
+         break;
+      }
+      str += strlen(str) + 1;
+   }
+
+   delete[] buffer;
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
