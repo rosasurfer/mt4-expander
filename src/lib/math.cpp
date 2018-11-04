@@ -87,5 +87,4 @@ double WINAPI round(double value, int digits/*=0*/) {
    if (!value) value = 0;                                // convert -0 to +0
 
    return(value);
-   #pragma EXPANDER_EXPORT
 }

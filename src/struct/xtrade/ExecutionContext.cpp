@@ -233,15 +233,43 @@ double WINAPI ec_Point(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's bars value.
+ * Return an EXECUTION_CONTEXT's "Bars" value.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - bars
+ * @return int - bars
  */
-uint WINAPI ec_Bars(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_Bars(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->bars);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's "ChangedBars" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - changed bars
+ */
+int WINAPI ec_ChangedBars(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->changedBars);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's "UnchangedBars" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - unchanged bars
+ */
+int WINAPI ec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->unchangedBars);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1209,14 +1237,14 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double point) {
 
 
 /**
- * Set a program's amount of bars (the number of price bars in the chart).
+ * Set an EXECUTION_CONTEXT's "Bars" value (the number of price bars).
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  uint               count
+ * @param  int                count
  *
- * @return uint - the same number
+ * @return int - the same value
  */
-uint WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, uint count) {
+int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int count) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (count < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be non-negative)", count));
 
@@ -1225,6 +1253,48 @@ uint WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, uint count) {
    uint pid = ec->programIndex;                                      // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetBars(g_contextChains[pid][0], count));
+   return(count);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's "ChangedBars" value (the number of changed indicator values).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                count
+ *
+ * @return int - the same value
+ */
+int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int count) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (count < -1)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (can't be smaller than -1)", count));
+
+   ec->changedBars = count;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetChangedBars(g_contextChains[pid][0], count));
+   return(count);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's "UnchangedBars" value (the number of unchanged indicator values).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                count
+ *
+ * @return int - the same value
+ */
+int WINAPI ec_SetUnchangedBars(EXECUTION_CONTEXT* ec, int count) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (count < -1)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (can't be smaller than -1)", count));
+
+   ec->unchangedBars = count;
+
+   uint pid = ec->programIndex;                                      // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      return(ec_SetUnchangedBars(g_contextChains[pid][0], count));
    return(count);
 }
 
@@ -1239,7 +1309,7 @@ uint WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, uint count) {
  */
 uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (count < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be non-negative)", count));
+   if ((int)count < 0)               return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be non-negative)", count));
 
    ec->ticks = count;
 
@@ -1982,9 +2052,9 @@ double WINAPI mec_Point(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - bars
+ * @return int - bars
  */
-uint WINAPI mec_Bars(const EXECUTION_CONTEXT* ec) {
+int WINAPI mec_Bars(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    uint programIndex = ec->programIndex;
@@ -1992,6 +2062,44 @@ uint WINAPI mec_Bars(const EXECUTION_CONTEXT* ec) {
    EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
 
    return(master->bars);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the "ChangedBars" value as stored in an EXECUTION_CONTEXT's master context.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - changed bars
+ */
+int WINAPI mec_ChangedBars(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   uint programIndex = ec->programIndex;
+   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+
+   return(master->changedBars);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the "UnchangedBars" value as stored in an EXECUTION_CONTEXT's master context.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - unchanged bars
+ */
+int WINAPI mec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   uint programIndex = ec->programIndex;
+   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+
+   return(master->unchangedBars);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2423,6 +2531,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", point="            <<                   ec->point
          << ", rates="            <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
          << ", bars="             <<                   ec->bars
+         << ", changedBars="      <<                   ec->changedBars
+         << ", unchangedBars="    <<                   ec->unchangedBars
          << ", ticks="            <<                   ec->ticks
          << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmtTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
          << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmtTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
