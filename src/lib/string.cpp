@@ -2,6 +2,8 @@
 #include "lib/string.h"
 #include "struct/mt4/MqlStr.h"
 
+#include <ctype.h>
+
 
 /**
  * Wrap a C string in double quote characters.
@@ -304,11 +306,13 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
  *
  * @return char* - the same string
  */
-char* WINAPI StrToLower(char* str) {
-   char* c = str;
-   while (*c) {
-      *c = tolower(*c);
-      ++c;
+char* WINAPI StrToLower(char* const str) {
+   if (str) {
+      char* c = str;
+      while (*c) {
+         *c = tolower(*c);
+         ++c;
+      }
    }
    return(str);
 }
@@ -351,7 +355,7 @@ wstring& WINAPI StrToLower(wstring& str) {
  *
  * @return char* - the same string
  */
-char* WINAPI StrToUpper(char* str) {
+char* WINAPI StrToUpper(char* const str) {
    char* c = str;
    while (*c) {
       *c = toupper(*c);
@@ -392,8 +396,72 @@ wstring& WINAPI StrToUpper(wstring& str) {
 
 
 /**
+ * Trim leading white-space from a C string.
+ *
+ * @param  _In_Out_ char* str
+ *
+ * @return char* - the same string
+ */
+char* WINAPI strLTrim(char* const str) {
+   if (str && *str) {                           // handle NULL pointer and empty string
+      char* first = str;
+      while (isspace(*first)) {                 // find first non-space character
+         ++first;
+      }
+      if (first > str) {
+         uint pos = 0;
+         char* c = first;
+         while (*c) {
+            str[pos++] = *c;                    // move trimmed string to start of str
+            ++c;                                // (should be faster then memmove() as overlapping is handled better)
+         }
+         str[pos] = '\0';
+      }
+   }
+   return(str);
+}
+
+
+/**
+ * Trim trailing white-space from a C string.
+ *
+ * @param  _In_Out_ char* str
+ *
+ * @return char* - the same string
+ */
+char* WINAPI strRTrim(char* const str) {
+   if (str && *str) {                           // handle NULL pointer and empty string
+      char* last = str + strlen(str);
+
+      while (isspace(*--last)) {
+         if (last == str) {
+            --last;
+            break;
+         }
+      }
+      *(last+1) = '\0';
+   }
+   return(str);
+}
+
+
+/**
+ * Trim leading and trailing white-space from a C string.
+ *
+ * @param  _In_Out_ char* str
+ *
+ * @return char* - the same string
+ */
+char* WINAPI strTrim(char* const str) {
+   strRTrim(str);
+   strLTrim(str);
+   return(str);
+}
+
+
+/**
  * Convert a C ANSI string to a unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
- * limit of the destination buffer is hit, whichever comes first. The resulting string is always NULL terminated.
+ * limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
  *
  * @param  _In_  char*    source   - C ANSI or multi-byte UTF-8 source string
  * @param  _Out_ wchar_t* dest     - buffer the converted unicode string is written to
@@ -423,7 +491,7 @@ uint WINAPI AnsiToWCharStr(const char* source, wchar_t* dest, size_t destSize) {
 
 /**
  * Convert a unicode string (UTF-16) to a C ANSI string. Conversion stops at the end of the unicode string or when the
- * size limit of the destination buffer is hit, whichever comes first. The resulting string is always NULL terminated.
+ * size limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
  *
  * @param  _In_  wchar_t* source   - unicode source string
  * @param  _Out_ char*    dest     - destination buffer the converted ANSI string is written to
@@ -452,9 +520,9 @@ uint WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize) {
 /**
  * Convert a unicode string (UTF-16) to a C multi-byte string.
  *
- * @param  wchar_t* str - NULL terminated unicode string
+ * @param  wchar_t* str - null-terminated unicode string
  *
- * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
  * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
@@ -471,7 +539,7 @@ char* wchartombs(const wchar_t* str) {
  * @param  wchar_t* sequence - sequence of wide characters
  * @param  size_t   count    - number of wide characters
  *
- * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
  * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
@@ -505,7 +573,7 @@ char* wchartombs(const wchar_t* sequence, size_t count) {
  *
  * @param  wstring& str
  *
- * @return char* - NULL terminated C string or a NULL pointer in case of errors
+ * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
  * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling

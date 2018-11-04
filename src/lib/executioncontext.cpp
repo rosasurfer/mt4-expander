@@ -203,20 +203,24 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    }
 
    // (2.2) Bei jedem Aufruf von init() zu aktualisieren
-   ec_SetRootFunction(ec, RF_INIT     );                          // TODO: wrong for init() calls from start()
- //ec_SetInitCycle   (ec, FALSE       );
-   ec_SetInitReason  (ec, initReason  );
-   ec_SetUninitReason(ec, uninitReason);
+   ec_SetCoreFunction (ec, CF_INIT     );                         // TODO: wrong for init() calls from start()
+ //ec_SetInitCycle    (ec, FALSE       );
+   ec_SetInitReason   (ec, initReason  );
+   ec_SetUninitReason (ec, uninitReason);
 
-   ec_SetSymbol      (ec, symbol      );
-   ec_SetTimeframe   (ec, period      );
-   ec_SetDigits      (ec, digits      );
-   ec_SetPoint       (ec, point       );
+   ec_SetSymbol       (ec, symbol);
+   ec_SetTimeframe    (ec, period);
+   ec_SetDigits       (ec, digits);
+   ec_SetPoint        (ec, point );
 
-   ec_SetExtReporting(ec, extReporting);
-   ec_SetRecordEquity(ec, recordEquity);
+   ec_SetBars         (ec,  0);
+   ec_SetChangedBars  (ec, -1);
+   ec_SetUnchangedBars(ec, -1);
 
-   ec_SetThreadId    (ec, GetCurrentThreadId());
+   ec_SetExtReporting (ec, extReporting);
+   ec_SetRecordEquity (ec, recordEquity);
+
+   ec_SetThreadId     (ec, GetCurrentThreadId());
 
 
    // (3) Wenn Expert im Tester, dann ggf. dessen Libraries aus dem vorherigen Test finden und dem Expert zuordnen
@@ -266,31 +270,34 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
 
 /**
- * @param  EXECUTION_CONTEXT* ec    - main module context of a program
- * @param  void*              rates - price history of the chart
- * @param  uint               bars  - size of the price history (number of bars)
- * @param  uint               ticks - number of received ticks, i.e. calls of MQL::start()
- * @param  datetime           time  - server time of the current tick
- * @param  double             bid   - bid price of the current tick
- * @param  double             ask   - ask price of the current tick
+ * @param  EXECUTION_CONTEXT* ec          - main module context of a program
+ * @param  void*              rates       - price history of the chart
+ * @param  int                bars        - current amount of price bars (chart history)
+ * @param  int                changedBars - current amount of changed indicator values
+ * @param  uint               ticks       - number of received ticks, i.e. calls of MQL::start()
+ * @param  datetime           time        - server time of the current tick
+ * @param  double             bid         - bid price of the current tick
+ * @param  double             ask         - ask price of the current tick
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, uint bars, uint ticks, datetime time, double bid, double ask) {
+int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
-   ec_SetRootFunction    (ec, RF_START            );                 // update context
-   ec_SetThreadId        (ec, GetCurrentThreadId());
-   ec->rates              =   rates;
-   ec_SetBars            (ec, bars               );
-   ec_SetTicks           (ec, ticks              );
-   ec_SetPreviousTickTime(ec, ec->currentTickTime);
-   ec_SetCurrentTickTime (ec, time               );
-   ec_SetBid             (ec, bid                );
-   ec_SetAsk             (ec, ask                );
+   ec_SetCoreFunction (ec, CF_START);                                // update context
+   ec_SetThreadId     (ec, GetCurrentThreadId());
+   ec->rates             = rates;
+   ec_SetBars         (ec, bars);
+   ec_SetChangedBars  (ec, changedBars);
+   ec_SetUnchangedBars(ec, changedBars==-1 ? -1 : bars-changedBars);
+   ec_SetTicks        (ec, ticks);
+   ec_SetPrevTickTime (ec, ec->lastTickTime);
+   ec_SetLastTickTime (ec, time);
+   ec_SetBid          (ec, bid);
+   ec_SetAsk          (ec, ask);
 
    /*
    if (rates && bars) {
@@ -323,7 +330,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
-   ec_SetRootFunction(ec, RF_DEINIT           );                     // update context
+   ec_SetCoreFunction(ec, CF_DEINIT           );                     // update context
    ec_SetUninitReason(ec, uninitReason        );
    ec_SetThreadId    (ec, GetCurrentThreadId());
 
@@ -430,7 +437,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       // (2.1) init cycle in indicator: Library::init() is called before Indicator::init()
       StoreThreadAndProgram(ec->programIndex);                       // store last executed program (asap)
 
-      ec_SetRootFunction(ec, RF_INIT     );                          // update library specific fields
+      ec_SetCoreFunction(ec, CF_INIT     );                          // update library specific fields
       ec_SetInitCycle   (ec, FALSE       );                          // TODO: mark master context ???
       ec_SetUninitReason(ec, uninitReason);
       ec_SetSymbol      (ec, symbol      );
@@ -443,34 +450,34 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       StoreThreadAndProgram(ec->programIndex);                       // store last executed program (asap)
 
       // update library specific fields: wrong/empty values from the previous test get fixed in Expert::SyncMainContext_init()
-      ec_SetRootFunction    (ec, RF_INIT     );
-      ec_SetInitCycle       (ec, TRUE        );                      // mark the library as functional and not crashed
-      ec_SetUninitReason    (ec, uninitReason);
-      ec_SetInitFlags       (ec, initFlags   );
-      ec_SetDeinitFlags     (ec, deinitFlags );
+      ec_SetCoreFunction (ec, CF_INIT     );
+      ec_SetInitCycle    (ec, TRUE        );                         // mark the library as functional and not crashed
+      ec_SetUninitReason (ec, uninitReason);
+      ec_SetInitFlags    (ec, initFlags   );
+      ec_SetDeinitFlags  (ec, deinitFlags );
 
-      ec_SetSymbol          (ec, symbol);                            // first moment new symbol/timeframe get known
-      ec_SetTimeframe       (ec, period);
-      ec_SetDigits          (ec, digits);
-      ec->rates                = NULL;
-      ec_SetBars            (ec, NULL);
-      ec_SetTicks           (ec, NULL);
-      ec_SetPreviousTickTime(ec, NULL);
-      ec_SetCurrentTickTime (ec, NULL);
-      ec_SetBid             (ec, NULL);
-      ec_SetAsk             (ec, NULL);
+      ec_SetSymbol       (ec, symbol);                               // first moment a new symbol/timeframe shows up
+      ec_SetTimeframe    (ec, period);
+      ec_SetDigits       (ec, digits);
+      ec->rates             = NULL;
+      ec_SetBars         (ec, NULL);
+      ec_SetTicks        (ec, NULL);
+      ec_SetLastTickTime (ec, NULL);
+      ec_SetPrevTickTime (ec, NULL);
+      ec_SetBid          (ec, NULL);
+      ec_SetAsk          (ec, NULL);
 
-      ec_SetThreadId        (ec, GetCurrentThreadId());
-      ec_SetHChart          (ec, NULL);
-      ec_SetHChartWindow    (ec, NULL);
+      ec_SetThreadId     (ec, GetCurrentThreadId());
+      ec_SetHChart       (ec, NULL);
+      ec_SetHChartWindow (ec, NULL);
 
-      ec_SetMqlError        (ec, NULL);                              // all errors initialized with NULL
-      ec_SetDllError        (ec, NULL);
-      ec_SetDllWarning      (ec, NULL);
-      ec->dllErrorMsg          = NULL;
-      ec->dllWarningMsg        = NULL;
-      ec_SetLogging         (ec, FALSE);
-      ec_SetCustomLogFile   (ec, NULL);
+      ec_SetMqlError     (ec, NULL);                                 // all errors initialized with NULL
+      ec_SetDllError     (ec, NULL);
+      ec_SetDllWarning   (ec, NULL);
+      ec->dllErrorMsg       = NULL;
+      ec->dllWarningMsg     = NULL;
+      ec_SetLogging      (ec, FALSE);
+      ec_SetCustomLogFile(ec, NULL);
 
       g_contextChains[ec->programIndex][0]->initCycle = TRUE;        // mark master context of the finished test/expert
    }                                                                 // (Do we need this for experts?)
@@ -495,7 +502,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
-   ec_SetRootFunction(ec, RF_DEINIT   );                             // update library specific context fields
+   ec_SetCoreFunction(ec, CF_DEINIT   );                             // update library specific context fields
    ec_SetUninitReason(ec, uninitReason);
 
    //debug("%s::%s::deinit()  ec@%d=%s", ec->programName, ec->moduleName, ec, EXECUTION_CONTEXT_toStr(ec));
@@ -544,11 +551,11 @@ int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReaso
                if (master->programType == MT_INDICATOR) {
                   if (StrCompare(master->programName, name)) {
                      if (master->uninitReason == reason) {
-                        if (master->rootFunction == NULL) {          // limbo = init cycle
+                        if (master->coreFunction == NULL) {          // limbo = init cycle
                            //debug("first %s indicator found in limbo: index=%d", name, master->programIndex);
                            return(master->programIndex);
                         }
-                        //else debug("i=%d  %s  rootFunction not NULL:  master=%s", i, name, RootFunctionToStr(master->rootFunction));
+                        //else debug("i=%d  %s  coreFunction not NULL:  master=%s", i, name, CoreFunctionToStr(master->coreFunction));
                      }
                      //else debug("i=%d  %s  uninit reason mis-match:  master=%s  reason=%s", i, name, UninitReasonToStr(master->uninitReason), UninitReasonToStr(reason));
                   }
@@ -578,13 +585,13 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER)  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: %p (not a valid pointer)", ec)));
    uint index = ec->programIndex;
    if ((int)index < 1)                return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.programIndex=%d)  ec=%s", (int)index, EXECUTION_CONTEXT_toStr(ec))));
-   if (ec->rootFunction != RF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.rootFunction not RF_DEINIT)  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
+   if (ec->coreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.coreFunction not CF_DEINIT)  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
 
    switch (ec->moduleType) {
       case MT_INDICATOR:
       case MT_SCRIPT:
          if (ec != g_contextChains[index][1]) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (doesn't match the stored main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[index][1], EXECUTION_CONTEXT_toStr(ec))));
-         ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
+         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set main and master context to NULL
          g_contextChains[index][1] = NULL;                           // mark main context as released
          break;
 
@@ -595,14 +602,14 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
             //debug("%s::deinit()  leaving tester, ec=%s", ec->programName, EXECUTION_CONTEXT_toStr(ec));
          }
 
-         ec_SetRootFunction(ec, (RootFunction)NULL);                 // set main and master context to NULL
+         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set main and master context to NULL
          if (ec->uninitReason!=UR_CHARTCHANGE && ec->uninitReason!=UR_PARAMETERS && ec->uninitReason!=UR_ACCOUNT)
             g_contextChains[index][1] = NULL;                        // mark main context as released if not in init cycle
          break;
 
       case MT_LIBRARY:
          // TODO: This could be kind of critical as the main module already called LeaveContext() before.
-         ec_SetRootFunction(ec, (RootFunction)NULL);                 // set library context to NULL
+         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set library context to NULL
          break;
 
       default:
@@ -1133,7 +1140,7 @@ BOOL WINAPI ProgramIsLogging(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Resolve the custom log file of the program (if any)
+ * Resolve the custom log file of the program (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *

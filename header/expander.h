@@ -66,11 +66,11 @@ enum LaunchType {
 };
 
 
-// MQL program root functions
-enum RootFunction {
-   RF_INIT      = ROOTFUNCTION_INIT,
-   RF_START     = ROOTFUNCTION_START,
-   RF_DEINIT    = ROOTFUNCTION_DEINIT
+// MQL program core functions
+enum CoreFunction {
+   CF_INIT      = COREFUNCTION_INIT,
+   CF_START     = COREFUNCTION_START,
+   CF_DEINIT    = COREFUNCTION_DEINIT
 };
 
 
