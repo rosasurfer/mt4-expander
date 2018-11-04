@@ -203,20 +203,24 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    }
 
    // (2.2) Bei jedem Aufruf von init() zu aktualisieren
-   ec_SetCoreFunction(ec, CF_INIT     );                          // TODO: wrong for init() calls from start()
- //ec_SetInitCycle   (ec, FALSE       );
-   ec_SetInitReason  (ec, initReason  );
-   ec_SetUninitReason(ec, uninitReason);
+   ec_SetCoreFunction (ec, CF_INIT     );                         // TODO: wrong for init() calls from start()
+ //ec_SetInitCycle    (ec, FALSE       );
+   ec_SetInitReason   (ec, initReason  );
+   ec_SetUninitReason (ec, uninitReason);
 
-   ec_SetSymbol      (ec, symbol      );
-   ec_SetTimeframe   (ec, period      );
-   ec_SetDigits      (ec, digits      );
-   ec_SetPoint       (ec, point       );
+   ec_SetSymbol       (ec, symbol);
+   ec_SetTimeframe    (ec, period);
+   ec_SetDigits       (ec, digits);
+   ec_SetPoint        (ec, point );
 
-   ec_SetExtReporting(ec, extReporting);
-   ec_SetRecordEquity(ec, recordEquity);
+   ec_SetBars         (ec,  0);
+   ec_SetChangedBars  (ec, -1);
+   ec_SetUnchangedBars(ec, -1);
 
-   ec_SetThreadId    (ec, GetCurrentThreadId());
+   ec_SetExtReporting (ec, extReporting);
+   ec_SetRecordEquity (ec, recordEquity);
+
+   ec_SetThreadId     (ec, GetCurrentThreadId());
 
 
    // (3) Wenn Expert im Tester, dann ggf. dessen Libraries aus dem vorherigen Test finden und dem Expert zuordnen
@@ -266,31 +270,34 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
 
 /**
- * @param  EXECUTION_CONTEXT* ec    - main module context of a program
- * @param  void*              rates - price history of the chart
- * @param  uint               bars  - size of the price history (number of bars)
- * @param  uint               ticks - number of received ticks, i.e. calls of MQL::start()
- * @param  datetime           time  - server time of the current tick
- * @param  double             bid   - bid price of the current tick
- * @param  double             ask   - ask price of the current tick
+ * @param  EXECUTION_CONTEXT* ec          - main module context of a program
+ * @param  void*              rates       - price history of the chart
+ * @param  int                bars        - current amount of price bars (chart history)
+ * @param  int                changedBars - current amount of changed indicator values
+ * @param  uint               ticks       - number of received ticks, i.e. calls of MQL::start()
+ * @param  datetime           time        - server time of the current tick
+ * @param  double             bid         - bid price of the current tick
+ * @param  double             ask         - ask price of the current tick
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, uint bars, uint ticks, datetime time, double bid, double ask) {
+int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
-   ec_SetCoreFunction(ec, CF_START);                                 // update context
-   ec_SetThreadId    (ec, GetCurrentThreadId());
-   ec->rates          =   rates;
-   ec_SetBars        (ec, bars);
-   ec_SetTicks       (ec, ticks);
-   ec_SetPrevTickTime(ec, ec->lastTickTime);
-   ec_SetLastTickTime(ec, time);
-   ec_SetBid         (ec, bid);
-   ec_SetAsk         (ec, ask);
+   ec_SetCoreFunction (ec, CF_START);                                // update context
+   ec_SetThreadId     (ec, GetCurrentThreadId());
+   ec->rates             = rates;
+   ec_SetBars         (ec, bars);
+   ec_SetChangedBars  (ec, changedBars);
+   ec_SetUnchangedBars(ec, changedBars==-1 ? -1 : bars-changedBars);
+   ec_SetTicks        (ec, ticks);
+   ec_SetPrevTickTime (ec, ec->lastTickTime);
+   ec_SetLastTickTime (ec, time);
+   ec_SetBid          (ec, bid);
+   ec_SetAsk          (ec, ask);
 
    /*
    if (rates && bars) {
