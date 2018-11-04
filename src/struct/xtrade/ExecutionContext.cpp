@@ -93,15 +93,15 @@ LaunchType WINAPI ec_LaunchType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's root function.
+ * Return an EXECUTION_CONTEXT's core function id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return RootFunction
+ * @return CoreFunction
  */
-RootFunction WINAPI ec_RootFunction(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->rootFunction);
+CoreFunction WINAPI ec_CoreFunction(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((CoreFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->coreFunction);
    #pragma EXPANDER_EXPORT
 }
 
@@ -956,31 +956,31 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
 
 
 /**
- * Set a program's RootFunction id.
+ * Set a program's CoreFunction id.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  RootFunction       id
+ * @param  CoreFunction       id
  *
- * @return RootFunction - the same id
+ * @return CoreFunction - the same id
  */
-RootFunction WINAPI ec_SetRootFunction(EXECUTION_CONTEXT* ec, RootFunction id) {
-   if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+CoreFunction WINAPI ec_SetCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction id) {
+   if ((uint)ec < MIN_VALID_POINTER) return((CoreFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    switch (id) {
-      case RF_INIT  :
-      case RF_START :
-      case RF_DEINIT:
+      case CF_INIT  :
+      case CF_START :
+      case CF_DEINIT:
       case NULL     :
          break;
 
       default:
-         return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a RootFunction)", id));
+         return((CoreFunction)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a CoreFunction)", id));
    }
 
-   ec->rootFunction = id;
+   ec->coreFunction = id;
 
    uint pid = ec->programIndex;                                      // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetRootFunction(g_contextChains[pid][0], id));
+      return(ec_SetCoreFunction(g_contextChains[pid][0], id));
    return(id);
    #pragma EXPANDER_EXPORT
 }
@@ -1788,20 +1788,20 @@ LaunchType WINAPI mec_LaunchType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the root function identifier as stored in an EXECUTION_CONTEXT's master context.
+ * Return the CoreFunction identifier as stored in an EXECUTION_CONTEXT's master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return RootFunction
+ * @return CoreFunction
  */
-RootFunction WINAPI mec_RootFunction(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((RootFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+CoreFunction WINAPI mec_CoreFunction(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((CoreFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    uint programIndex = ec->programIndex;
-   if (!programIndex) return((RootFunction)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
+   if (!programIndex) return((CoreFunction)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
    EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
 
-   return(master->rootFunction);
+   return(master->coreFunction);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2410,7 +2410,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", moduleName="       <<    doubleQuoteStr(ec->moduleName )
 
          << ", launchType="       <<                   ec->launchType
-         << ", rootFunction="     << RootFunctionToStr(ec->rootFunction)
+         << ", coreFunction="     << CoreFunctionToStr(ec->coreFunction)
          << ", initCycle="        <<         BoolToStr(ec->initCycle   )
          << ", initReason="       <<   InitReasonToStr(ec->initReason  )
          << ", uninitReason="     << UninitReasonToStr(ec->uninitReason)

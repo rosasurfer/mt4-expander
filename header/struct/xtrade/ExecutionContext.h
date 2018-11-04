@@ -52,7 +52,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    char               moduleName[MAX_PATH];        //       272      260     MQL module name = MQL::WindowExpertName()       (constant) => MQL module name
 
    LaunchType         launchType;                  //       532        4     launch type                                     (constant) => how was the program started
-   RootFunction       rootFunction;                //       536        4     the program's last root function                (variable) => where is it
+   CoreFunction       coreFunction;                //       536        4     the program's last core function                (variable) => where is it
    BOOL               initCycle;                   //       540        4     whether or not in an init cycle                 (variable) => where is it
    InitializeReason   initReason;                  //       544        4     last initialize reason                          (variable) => where did it come from
    UninitializeReason uninitReason;                //       548        4     last MQL::UninitializeReason()                  (variable) => where did it come from/where does it go to
@@ -107,7 +107,7 @@ ModuleType         WINAPI ec_ModuleType         (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_ModuleName         (const EXECUTION_CONTEXT* ec);
 
 LaunchType         WINAPI ec_LaunchType         (const EXECUTION_CONTEXT* ec);
-RootFunction       WINAPI ec_RootFunction       (const EXECUTION_CONTEXT* ec);
+CoreFunction       WINAPI ec_CoreFunction       (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_InitCycle          (const EXECUTION_CONTEXT* ec);
 InitializeReason   WINAPI ec_InitReason         (const EXECUTION_CONTEXT* ec);
 UninitializeReason WINAPI ec_UninitReason       (const EXECUTION_CONTEXT* ec);
@@ -174,7 +174,7 @@ ModuleType         WINAPI ec_SetModuleType      (EXECUTION_CONTEXT* ec, ModuleTy
 const char*        WINAPI ec_SetModuleName      (EXECUTION_CONTEXT* ec, const char*        name     );
 
 LaunchType         WINAPI ec_SetLaunchType      (EXECUTION_CONTEXT* ec, LaunchType         type     );
-RootFunction       WINAPI ec_SetRootFunction    (EXECUTION_CONTEXT* ec, RootFunction       id       );
+CoreFunction       WINAPI ec_SetCoreFunction    (EXECUTION_CONTEXT* ec, CoreFunction       id       );
 BOOL               WINAPI ec_SetInitCycle       (EXECUTION_CONTEXT* ec, BOOL               status   );
 InitializeReason   WINAPI ec_SetInitReason      (EXECUTION_CONTEXT* ec, InitializeReason   reason   );
 UninitializeReason WINAPI ec_SetUninitReason    (EXECUTION_CONTEXT* ec, UninitializeReason reason   );
@@ -223,7 +223,7 @@ ModuleType         WINAPI mec_ModuleType         (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI mec_ModuleName         (const EXECUTION_CONTEXT* ec);
 
 LaunchType         WINAPI mec_LaunchType         (const EXECUTION_CONTEXT* ec);
-RootFunction       WINAPI mec_RootFunction       (const EXECUTION_CONTEXT* ec);
+CoreFunction       WINAPI mec_CoreFunction       (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI mec_InitCycle          (const EXECUTION_CONTEXT* ec);
 InitializeReason   WINAPI mec_InitReason         (const EXECUTION_CONTEXT* ec);
 UninitializeReason WINAPI mec_UninitReason       (const EXECUTION_CONTEXT* ec);

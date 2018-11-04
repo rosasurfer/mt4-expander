@@ -5,6 +5,8 @@
 const char* WINAPI BarModelDescription(int id);
 const char* WINAPI BarModelToStr(int id);
 const char* WINAPI BoolToStr(BOOL value);
+const char* WINAPI CoreFunctionDescription(CoreFunction func);
+const char* WINAPI CoreFunctionToStr(CoreFunction func);
 const char* WINAPI DeinitFlagsToStr(DWORD flags);
 const char* WINAPI ErrorToStr(int error);
 const char* WINAPI InitFlagsToStr(DWORD flags);
@@ -25,8 +27,6 @@ const char* WINAPI PeriodDescription(int period);
 const char* WINAPI PeriodToStr(int period);
 const char* WINAPI ProgramTypeDescription(ProgramType type);
 const char* WINAPI ProgramTypeToStr(ProgramType type);
-const char* WINAPI RootFunctionDescription(RootFunction func);
-const char* WINAPI RootFunctionToStr(RootFunction func);
 const char* WINAPI ShowWindowCmdToStr(int cmd);
 const char* WINAPI StringToStr(const char* value);
 const char* WINAPI TimeframeDescription(int timeframe);

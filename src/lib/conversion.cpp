@@ -52,6 +52,44 @@ const char* WINAPI BoolToStr(BOOL value) {
 
 
 /**
+ * Return a description of a CoreFunction id (the name).
+ *
+ * @param  CoreFunction func
+ *
+ * @return char* - name or NULL if the parameter is invalid
+ */
+const char* WINAPI CoreFunctionDescription(CoreFunction func) {
+   switch (func) {
+      case NULL     : return("NULL"  );
+      case CF_INIT  : return("init"  );
+      case CF_START : return("start" );
+      case CF_DEINIT: return("deinit");
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a readable version of a CoreFunction id.
+ *
+ * @param  CoreFunction func
+ *
+ * @return char* - readable version or NULL if the parameter is invalid
+ */
+const char* WINAPI CoreFunctionToStr(CoreFunction func) {
+   switch (func) {
+      case NULL     : return("NULL"     );
+      case CF_INIT  : return("CF_INIT"  );
+      case CF_START : return("CF_START" );
+      case CF_DEINIT: return("CF_DEINIT");
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return a readable version of an MQL error code.
  *
  * @param  int error
@@ -584,44 +622,6 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
       case PT_INDICATOR: return("PT_INDICATOR");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a description of a RootFunction (the name).
- *
- * @param  RootFunction func
- *
- * @return char* - name or NULL if the parameter is invalid
- */
-const char* WINAPI RootFunctionDescription(RootFunction func) {
-   switch (func) {
-      case NULL     : return("NULL"  );
-      case RF_INIT  : return("init"  );
-      case RF_START : return("start" );
-      case RF_DEINIT: return("deinit");
-   }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a RootFunction)", func));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a readable version of a RootFunction.
- *
- * @param  RootFunction func
- *
- * @return char* - readable version or NULL if the parameter is invalid
- */
-const char* WINAPI RootFunctionToStr(RootFunction func) {
-   switch (func) {
-      case NULL     : return("NULL"     );
-      case RF_INIT  : return("RF_INIT"  );
-      case RF_START : return("RF_START" );
-      case RF_DEINIT: return("RF_DEINIT");
-   }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a RootFunction)", func));
    #pragma EXPANDER_EXPORT
 }
 
