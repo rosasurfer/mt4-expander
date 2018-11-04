@@ -65,9 +65,9 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    uint               digits;                      //       584        4     Digits of the symbol   = MQL::Digits            (variable)
    const void*        rates;                       //       588        4     current price series   = MQL::ArrayCopyRates()  (constant) => RateInfo[]
    uint               bars;                        //       592        4     current number of bars = MQL::Bars              (variable)
-   uint               ticks;                       //       596        4     number of received ticks                        (variable)
-   datetime           previousTickTime;            //       600        4     server time of the previous tick                (variable)
-   datetime           currentTickTime;             //       604        4     server time of the current tick                 (variable)
+   uint               ticks;                       //       596        4     number of times MQL::start() was called         (variable)
+   datetime           currentTickTime;             //       600        4     server time of the last received tick           (variable)
+   datetime           previousTickTime;            //       604        4     server time of the previous received tick       (variable)
    double             bid;                         //       608        8     current bid price      = MQL::Bid               (variable)
    double             ask;                         //       616        8     current ask price      = MQL::Ask               (variable)
 
@@ -121,8 +121,8 @@ double             WINAPI ec_Point              (const EXECUTION_CONTEXT* ec);
 //                        ec.rates
 uint               WINAPI ec_Bars               (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Ticks              (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_PreviousTickTime   (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_CurrentTickTime    (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_PreviousTickTime   (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                (const EXECUTION_CONTEXT* ec);
 
@@ -162,6 +162,7 @@ int                WINAPI ec_DllError           (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllWarning         (const EXECUTION_CONTEXT* ec);
 //                        ...
 BOOL               WINAPI ec_Logging            (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_CustomLogging      (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_CustomLogFile      (const EXECUTION_CONTEXT* ec);
 
 
@@ -187,8 +188,8 @@ double             WINAPI ec_SetPoint           (EXECUTION_CONTEXT* ec, double  
 //                        ec.rates
 uint               WINAPI ec_SetBars            (EXECUTION_CONTEXT* ec, uint               count    );
 uint               WINAPI ec_SetTicks           (EXECUTION_CONTEXT* ec, uint               count    );
-datetime           WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime           time     );
 datetime           WINAPI ec_SetCurrentTickTime (EXECUTION_CONTEXT* ec, datetime           time     );
+datetime           WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime           time     );
 double             WINAPI ec_SetBid             (EXECUTION_CONTEXT* ec, double             price    );
 double             WINAPI ec_SetAsk             (EXECUTION_CONTEXT* ec, double             price    );
 
@@ -236,8 +237,8 @@ double             WINAPI mec_Point              (const EXECUTION_CONTEXT* ec);
 //                        mec.rates
 uint               WINAPI mec_Bars               (const EXECUTION_CONTEXT* ec);
 uint               WINAPI mec_Ticks              (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI mec_PreviousTickTime   (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI mec_CurrentTickTime    (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI mec_PreviousTickTime   (const EXECUTION_CONTEXT* ec);
 double             WINAPI mec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI mec_Ask                (const EXECUTION_CONTEXT* ec);
 
@@ -277,6 +278,7 @@ int                WINAPI mec_DllError           (const EXECUTION_CONTEXT* ec);
 int                WINAPI mec_DllWarning         (const EXECUTION_CONTEXT* ec);
 //                        ...
 BOOL               WINAPI mec_Logging            (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI mec_CustomLogging      (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI mec_CustomLogFile      (const EXECUTION_CONTEXT* ec);
 
 

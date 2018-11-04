@@ -1133,7 +1133,7 @@ BOOL WINAPI ProgramIsLogging(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Resolve the custom log file of the program (if any)
+ * Resolve the custom log file of the program (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
