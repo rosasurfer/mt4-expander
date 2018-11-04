@@ -68,8 +68,8 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    int                changedBars;                 //       596        4     number of changed bars                              (var  )
    int                unchangedBars;               //       600        4     number of unchanged bars = MQL::IndicatorCounted()  (var  )
    uint               ticks;                       //       604        4     number of times MQL::start() was called             (var  )
-   datetime           currentTickTime;             //       608        4     server time of the last received tick               (var  )
-   datetime           previousTickTime;            //       612        4     server time of the previous received tick           (var  )
+   datetime           lastTickTime;                //       608        4     server time of the last received tick               (var  )
+   datetime           prevTickTime;                //       612        4     server time of the previous received tick           (var  )
    double             bid;                         //       616        8     current bid price      = MQL::Bid                   (var  )
    double             ask;                         //       624        8     current ask price      = MQL::Ask                   (var  )
 
@@ -125,8 +125,8 @@ int                WINAPI ec_Bars               (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_ChangedBars        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_UnchangedBars      (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Ticks              (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_CurrentTickTime    (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_PreviousTickTime   (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_LastTickTime       (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_PrevTickTime       (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                (const EXECUTION_CONTEXT* ec);
 
@@ -194,8 +194,8 @@ int                WINAPI ec_SetBars            (EXECUTION_CONTEXT* ec, int     
 int                WINAPI ec_SetChangedBars     (EXECUTION_CONTEXT* ec, int                count    );
 int                WINAPI ec_SetUnchangedBars   (EXECUTION_CONTEXT* ec, int                count    );
 uint               WINAPI ec_SetTicks           (EXECUTION_CONTEXT* ec, uint               count    );
-datetime           WINAPI ec_SetCurrentTickTime (EXECUTION_CONTEXT* ec, datetime           time     );
-datetime           WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime           time     );
+datetime           WINAPI ec_SetLastTickTime    (EXECUTION_CONTEXT* ec, datetime           time     );
+datetime           WINAPI ec_SetPrevTickTime    (EXECUTION_CONTEXT* ec, datetime           time     );
 double             WINAPI ec_SetBid             (EXECUTION_CONTEXT* ec, double             price    );
 double             WINAPI ec_SetAsk             (EXECUTION_CONTEXT* ec, double             price    );
 
@@ -245,8 +245,8 @@ int                WINAPI mec_Bars               (const EXECUTION_CONTEXT* ec);
 int                WINAPI mec_ChangedBars        (const EXECUTION_CONTEXT* ec);
 int                WINAPI mec_UnchangedBars      (const EXECUTION_CONTEXT* ec);
 uint               WINAPI mec_Ticks              (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI mec_CurrentTickTime    (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI mec_PreviousTickTime   (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI mec_LastTickTime       (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI mec_PrevTickTime       (const EXECUTION_CONTEXT* ec);
 double             WINAPI mec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI mec_Ask                (const EXECUTION_CONTEXT* ec);
 

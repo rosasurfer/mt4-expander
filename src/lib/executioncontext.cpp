@@ -282,15 +282,15 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, uint 
 
    StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
 
-   ec_SetCoreFunction    (ec, CF_START            );                 // update context
-   ec_SetThreadId        (ec, GetCurrentThreadId());
-   ec->rates              =   rates;
-   ec_SetBars            (ec, bars               );
-   ec_SetTicks           (ec, ticks              );
-   ec_SetPreviousTickTime(ec, ec->currentTickTime);
-   ec_SetCurrentTickTime (ec, time               );
-   ec_SetBid             (ec, bid                );
-   ec_SetAsk             (ec, ask                );
+   ec_SetCoreFunction(ec, CF_START);                                 // update context
+   ec_SetThreadId    (ec, GetCurrentThreadId());
+   ec->rates          =   rates;
+   ec_SetBars        (ec, bars);
+   ec_SetTicks       (ec, ticks);
+   ec_SetPrevTickTime(ec, ec->lastTickTime);
+   ec_SetLastTickTime(ec, time);
+   ec_SetBid         (ec, bid);
+   ec_SetAsk         (ec, ask);
 
    /*
    if (rates && bars) {
@@ -443,34 +443,34 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       StoreThreadAndProgram(ec->programIndex);                       // store last executed program (asap)
 
       // update library specific fields: wrong/empty values from the previous test get fixed in Expert::SyncMainContext_init()
-      ec_SetCoreFunction    (ec, CF_INIT     );
-      ec_SetInitCycle       (ec, TRUE        );                      // mark the library as functional and not crashed
-      ec_SetUninitReason    (ec, uninitReason);
-      ec_SetInitFlags       (ec, initFlags   );
-      ec_SetDeinitFlags     (ec, deinitFlags );
+      ec_SetCoreFunction (ec, CF_INIT     );
+      ec_SetInitCycle    (ec, TRUE        );                         // mark the library as functional and not crashed
+      ec_SetUninitReason (ec, uninitReason);
+      ec_SetInitFlags    (ec, initFlags   );
+      ec_SetDeinitFlags  (ec, deinitFlags );
 
-      ec_SetSymbol          (ec, symbol);                            // first moment new symbol/timeframe get known
-      ec_SetTimeframe       (ec, period);
-      ec_SetDigits          (ec, digits);
-      ec->rates                = NULL;
-      ec_SetBars            (ec, NULL);
-      ec_SetTicks           (ec, NULL);
-      ec_SetPreviousTickTime(ec, NULL);
-      ec_SetCurrentTickTime (ec, NULL);
-      ec_SetBid             (ec, NULL);
-      ec_SetAsk             (ec, NULL);
+      ec_SetSymbol       (ec, symbol);                               // first moment a new symbol/timeframe shows up
+      ec_SetTimeframe    (ec, period);
+      ec_SetDigits       (ec, digits);
+      ec->rates             = NULL;
+      ec_SetBars         (ec, NULL);
+      ec_SetTicks        (ec, NULL);
+      ec_SetLastTickTime (ec, NULL);
+      ec_SetPrevTickTime (ec, NULL);
+      ec_SetBid          (ec, NULL);
+      ec_SetAsk          (ec, NULL);
 
-      ec_SetThreadId        (ec, GetCurrentThreadId());
-      ec_SetHChart          (ec, NULL);
-      ec_SetHChartWindow    (ec, NULL);
+      ec_SetThreadId     (ec, GetCurrentThreadId());
+      ec_SetHChart       (ec, NULL);
+      ec_SetHChartWindow (ec, NULL);
 
-      ec_SetMqlError        (ec, NULL);                              // all errors initialized with NULL
-      ec_SetDllError        (ec, NULL);
-      ec_SetDllWarning      (ec, NULL);
-      ec->dllErrorMsg          = NULL;
-      ec->dllWarningMsg        = NULL;
-      ec_SetLogging         (ec, FALSE);
-      ec_SetCustomLogFile   (ec, NULL);
+      ec_SetMqlError     (ec, NULL);                                 // all errors initialized with NULL
+      ec_SetDllError     (ec, NULL);
+      ec_SetDllWarning   (ec, NULL);
+      ec->dllErrorMsg       = NULL;
+      ec->dllWarningMsg     = NULL;
+      ec_SetLogging      (ec, FALSE);
+      ec_SetCustomLogFile(ec, NULL);
 
       g_contextChains[ec->programIndex][0]->initCycle = TRUE;        // mark master context of the finished test/expert
    }                                                                 // (Do we need this for experts?)

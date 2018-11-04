@@ -289,15 +289,15 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's current tick time.
+ * Return an EXECUTION_CONTEXT's last tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return datetime - server time
  */
-datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
+datetime WINAPI ec_LastTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->currentTickTime);
+   return(ec->lastTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -309,9 +309,9 @@ datetime WINAPI ec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
  *
  * @return datetime - server time
  */
-datetime WINAPI ec_PreviousTickTime(const EXECUTION_CONTEXT* ec) {
+datetime WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->previousTickTime);
+   return(ec->prevTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1321,22 +1321,22 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
 
 
 /**
- * Set a program's current tick time.
+ * Set a program's last tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  datetime           time - server time
  *
  * @return datetime - the same time
  */
-datetime WINAPI ec_SetCurrentTickTime(EXECUTION_CONTEXT* ec, datetime time) {
+datetime WINAPI ec_SetLastTickTime(EXECUTION_CONTEXT* ec, datetime time) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
 
-   ec->currentTickTime = time;
+   ec->lastTickTime = time;
 
    uint pid = ec->programIndex;                                      // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetCurrentTickTime(g_contextChains[pid][0], time));
+      return(ec_SetLastTickTime(g_contextChains[pid][0], time));
    return(time);
 }
 
@@ -1349,15 +1349,15 @@ datetime WINAPI ec_SetCurrentTickTime(EXECUTION_CONTEXT* ec, datetime time) {
  *
  * @return datetime - the same time
  */
-datetime WINAPI ec_SetPreviousTickTime(EXECUTION_CONTEXT* ec, datetime time) {
+datetime WINAPI ec_SetPrevTickTime(EXECUTION_CONTEXT* ec, datetime time) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
 
-   ec->previousTickTime = time;
+   ec->prevTickTime = time;
 
    uint pid = ec->programIndex;                                      // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetPreviousTickTime(g_contextChains[pid][0], time));
+      return(ec_SetPrevTickTime(g_contextChains[pid][0], time));
    return(time);
 }
 
@@ -2124,20 +2124,20 @@ uint WINAPI mec_Ticks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current tick time as stored in an EXECUTION_CONTEXT's master context.
+ * Return the last tick time as stored in an EXECUTION_CONTEXT's master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return datetime - server time
  */
-datetime WINAPI mec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
+datetime WINAPI mec_LastTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    uint programIndex = ec->programIndex;
    if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
    EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
 
-   return(master->currentTickTime);
+   return(master->lastTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2149,14 +2149,14 @@ datetime WINAPI mec_CurrentTickTime(const EXECUTION_CONTEXT* ec) {
  *
  * @return datetime - server time
  */
-datetime WINAPI mec_PreviousTickTime(const EXECUTION_CONTEXT* ec) {
+datetime WINAPI mec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    uint programIndex = ec->programIndex;
    if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
    EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
 
-   return(master->previousTickTime);
+   return(master->prevTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2534,8 +2534,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", changedBars="      <<                   ec->changedBars
          << ", unchangedBars="    <<                   ec->unchangedBars
          << ", ticks="            <<                   ec->ticks
-         << ", currentTickTime="  <<                  (ec->currentTickTime  ? doubleQuoteStr(gmtTimeFormat(ec->currentTickTime,  "%Y.%m.%d %H:%M:%S")) : "0")
-         << ", previousTickTime=" <<                  (ec->previousTickTime ? doubleQuoteStr(gmtTimeFormat(ec->previousTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", lastTickTime="     <<                  (ec->lastTickTime ? doubleQuoteStr(gmtTimeFormat(ec->lastTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", prevTickTime="     <<                  (ec->prevTickTime ? doubleQuoteStr(gmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
          << ", bid="              <<                   ec->bid
          << ", ask="              <<                   ec->ask
 
