@@ -9,11 +9,13 @@
 
 
 /**
- * Return the full filename of the MQL framework's global configuration file. The file is shared between all terminals used
- * by the current user. If the file does not exist an attempt is made to create it.
+ * Return the full filename of the MQL framework's global configuration file. The gobal file is used for configuration of all
+ * terminals executed by the current user. If the file does not exist an attempt is made to create it.
  *
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini".
+ *
+ * Note: The string returned by this function is static and the pointer must not be released.
  */
 const char* WINAPI GetGlobalConfigPathA() {
    static char* configPath;
@@ -48,7 +50,8 @@ const char* WINAPI GetGlobalConfigPathA() {
 
 
 /**
- * Return the full filename of the MQL framework's local (i.e. terminal specific) configuration file.
+ * Return the full filename of the MQL framework's local configuration file. The local file is used for configuration of the
+ * currently executed terminal.
  *
  * - If a config file exists in the user's roaming data directory the file is used, no matter whether the terminal was
  *   launched in portable mode or not.
@@ -61,6 +64,8 @@ const char* WINAPI GetGlobalConfigPathA() {
  *
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\1DAFD9A7C67DC84FE37EAA1FC1E5CF75\local-config.ini".
+ *
+ * Note: The string returned by this function is static and the pointer must not be released.
  */
 const char* WINAPI GetLocalConfigPathA() {
    //
@@ -194,13 +199,10 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
  * @return BOOL
  */
 BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
-   BOOL result = FALSE;
-
-   if (char* globalConfig = (char*)GetGlobalConfigPathA()) {
-      result = IsIniKey(globalConfig, section, key);
-      free(globalConfig);
-   }
-   return(result);
+   const char* globalConfig = GetGlobalConfigPathA();
+   if (globalConfig)
+      return(IsIniKey(globalConfig, section, key));
+   return(FALSE);
    #pragma EXPANDER_EXPORT
 }
 
@@ -311,12 +313,9 @@ BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
  * @return BOOL
  */
 BOOL WINAPI IsLocalConfigKey(const char* section, const char* key) {
-   BOOL result = FALSE;
-
-   if (char* localConfig = (char*)GetLocalConfigPathA()) {
-      result = IsIniKey(localConfig, section, key);
-      free(localConfig);
-   }
-   return(result);
+   const char* localConfig = GetLocalConfigPathA();
+   if (localConfig)
+      return(IsIniKey(localConfig, section, key));
+   return(FALSE);
    #pragma EXPANDER_EXPORT
 }
