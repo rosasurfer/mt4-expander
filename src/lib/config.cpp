@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "lib/config.h"
 #include "lib/conversion.h"
 #include "lib/file.h"
 #include "lib/string.h"
@@ -185,6 +186,26 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
 
 
 /**
+ * Whether or not the specified global configuration key exists.
+ *
+ * @param  char* section - case-insensitive configuration section name
+ * @param  char* key     - case-insensitive configuration key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
+   BOOL result = FALSE;
+
+   if (char* globalConfig = (char*)GetGlobalConfigPathA()) {
+      result = IsIniKey(globalConfig, section, key);
+      free(globalConfig);
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether or not a configuration key exists in an .ini file.
  *
  * @param  char* fileName - name of the .ini file
@@ -198,6 +219,8 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
    if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
    if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)key      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
+   if (!strlen(key))                       return(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
 
    // read all keys
    char* buffer    = NULL;
@@ -274,6 +297,26 @@ BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
    }
 
    delete[] buffer;
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not the specified local configuration key exists.
+ *
+ * @param  char* section - case-insensitive configuration section name
+ * @param  char* key     - case-insensitive configuration key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsLocalConfigKey(const char* section, const char* key) {
+   BOOL result = FALSE;
+
+   if (char* localConfig = (char*)GetLocalConfigPathA()) {
+      result = IsIniKey(localConfig, section, key);
+      free(localConfig);
+   }
    return(result);
    #pragma EXPANDER_EXPORT
 }
