@@ -220,7 +220,7 @@ BOOL WINAPI Test_onPositionOpen(EXECUTION_CONTEXT* ec, int ticket, int type, dou
       order.commission  = round(commission, 2);
       order.magicNumber = magicNumber;
       strcpy(order.comment, comment);
-   orders->push_back(order);
+   orders->push_back(order);                       // TODO: avoid push_back() creating a copy
 
    return(TRUE);
    #pragma EXPANDER_EXPORT

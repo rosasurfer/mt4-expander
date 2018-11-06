@@ -26,4 +26,6 @@ BOOL             WINAPI ProgramIsOptimization (const EXECUTION_CONTEXT* ec, BOOL
 BOOL             WINAPI ProgramIsTesting      (const EXECUTION_CONTEXT* ec, BOOL isTesting);
 BOOL             WINAPI ProgramIsVisualMode   (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
 const char*      WINAPI ProgramCustomLogFile  (const EXECUTION_CONTEXT* ec);
-DWORD            WINAPI StoreThreadAndProgram (uint programIndex);
+
+int              WINAPI GetCurrentThreadIndex();
+int              WINAPI LinkProgramToCurrentThread(uint programIndex);

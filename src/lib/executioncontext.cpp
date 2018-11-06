@@ -58,8 +58,8 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
 
 
 /**
- * Synchronize an MQL program's EXECUTION_CONTEXT with the master context stored in this DLL. Called by the init() functions
- * of the MQL main modules. For a general overview see "header/struct/xtrade/ExecutionContext.h".
+ * Initialize and synchronize an MQL program's execution context with the master context stored in this DLL. Called by the
+ * init() functions of the MQL main modules. For a general overview see type EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context
  * @param  ProgramType        programType    - program type
@@ -92,90 +92,89 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((int)digits <  0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
 
-   if (ec->programIndex) StoreThreadAndProgram(ec->programIndex); // store the thread's last executed program asap (for error handling)
+   // store the thread's last executed program asap (error handling)
+   if (ec->programIndex) LinkProgramToCurrentThread(ec->programIndex);
 
-   EXECUTION_CONTEXT* master               = NULL;
-   uint               originalProgramIndex = NULL;
-   BOOL               isNewExpert          = FALSE;               // whether or not an expert executed the first time
-   uint               prevExpertIndex      = NULL;                // program index of the previous expert in tester
+   BOOL isProgramIndex       = (ec->programIndex);
+   BOOL isNewExpert          = !ec->programIndex && programType==PT_EXPERT;
+   uint originIndicatorIndex = NULL;
+   uint prevProgramIndex     = NULL;                              // index of the last program executed by the current thread
+   EXECUTION_CONTEXT* master = NULL;
+
 
    // resolve the true InitReason
-   InitializeReason initReason  = ResolveInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, originalProgramIndex);
-   if (initReason == IR_TERMINAL_FAILURE) {
-      debug("%s  InitReason=IR_TERMINAL_FAILURE", programName);
-      return(ERR_TERMINAL_FAILURE_INIT);
+   InitializeReason initReason  = ResolveInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, originIndicatorIndex);
+   if (!initReason)                       return(ERR_RUNTIME_ERROR);
+   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_FAILURE_INIT, debug("%s  InitReason=IR_TERMINAL_FAILURE", programName)));
+
+   // update the thread's last executed program asap (error handling)
+   if (!isProgramIndex) {
+      if (programType==PT_INDICATOR && originIndicatorIndex) LinkProgramToCurrentThread(ec_SetProgramIndex(ec, originIndicatorIndex));
    }
 
    // fix an unset chart handle (older terminals)
    hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
-   if (hChart == INVALID_HWND) {
-      int error = ERR_WIN32_ERROR+GetLastError();
-      return(_int(error, error(error, "->FindWindowHandle()")));
-   }
+   if (hChart == INVALID_HWND)            return(ERR_RUNTIME_ERROR);
 
 
-   // (1) if ec.programIndex is not set: check if indicator in init cycle or indicator after test
-   //     • if indicator in init cycle (only in UI thread) or after test:
+   // (1) if ec.programIndex is not set: check if an indicator in init cycle
+   //     • if indicator in init cycle (only in UI thread):
    //       - restore main context from master context
-   //     • if not indicator in init cycle then new indicator, new expert or script:
+   //     • if not indicator in init cycle: new indicator, new expert or script
    //       - create new master context
-   //       - create new context chain and add master and main context
-   //       - store generated program index in master and main context
+   //       - create new context chain and store master and main context
+   //       - set generated program index in master and main context
    //
-   // (2) update main context
+   // (2) ec.programIndex is set:
+   //     • update main context
    //
-   // (3) if expert in tester: find and reassign loaded libraries of a previous test
+   // (3) if expert in tester:
+   //     • find and reassign loaded libraries of a previous test
 
-   if (!ec->programIndex) {
-      if (originalProgramIndex) {
-         ec_SetProgramIndex(ec, originalProgramIndex);
-         StoreThreadAndProgram(ec->programIndex);                 // update the thread's last executed program
-      }
-
-      // (1) if ec.programIndex was not set: check if indicator in init cycle or after test
+   if (!isProgramIndex) {
+      // (1) ec.programIndex is not set: check if indicator in init cycle
       BOOL indicatorInInitCycle = programType==PT_INDICATOR && (initReason==IR_PARAMETERS || initReason==IR_SYMBOLCHANGE || initReason==IR_TIMEFRAMECHANGE);
-      BOOL indicatorAfterTest   = programType==PT_INDICATOR && initReason==IR_PROGRAM_AFTERTEST;
-
       if (indicatorInInitCycle) {
-         // (1.1) Programm ist Indikator im Init-Cycle (immer im UI-Thread)
-         //   - Indikator-Context aus Master-Context restaurieren
-         master = g_contextChains[ec->programIndex][0];
-         *ec    = *master;                                        // Master-Context kopieren
-         g_contextChains[ec->programIndex][1] = ec;               // Context als Hauptkontext speichern
-         //debug("%s::init()  programIndex=0  init-cycle, was index=%d  thread=%s", programName, ec->programIndex, IsUIThread() ? "UI": to_string(GetCurrentThreadId()).c_str());
+         // (1.1) program is indicator in init cycle (only in UI thread)
+         master = g_contextChains[originIndicatorIndex][0];       // restore main context from master context
+         *ec    = *master;                                        // master->programIndex is already set
+         g_contextChains[originIndicatorIndex][1] = ec;           // overwrite old main context (memory is already released)
       }
       else {
-         // (1.2) Programm ist kein Indikator im Init-Cycle       // TODO: on IR_PROGRAM_AFTERTEST existiert ein vorheriger Context
-         //   - neue Context-Chain erzeugen
-         //   - neuen Master-Context erzeugen
-         //   - Master- und Hauptkontext in der Chain speichern
-         //   - Program-Index generieren und Master- und Hauptkontext zuweisen
-         master  = new EXECUTION_CONTEXT();                       // neuen Master-Context erzeugen
-         *master = *ec;                                           // Hauptkontext hineinkopieren
-         ContextChain chain;                                      // neue Context-Chain erzeugen
+         // (1.2) not an indicator in init cycle: new indicator, new expert or script
+         //   - create new context chain
+         //   - create new master context                         // TODO: an expert in tester must check an existing master context
+         //   - add master and main context to the chain          // TODO: on IR_PROGRAM_AFTERTEST exists somewhere a used context
+         //   - determine program index and upate both contexts
+         master  = new EXECUTION_CONTEXT();                       // create new master context
+         *master = *ec;                                           // copy main to master context
+         ContextChain chain;
          chain.reserve(8);
-         chain.push_back(master);                                 // Master- und Hauptkontext in der Chain speichern
+         chain.push_back(master);                                 // store master and main context in a new context chain
          chain.push_back(ec);
 
          if (!TryEnterCriticalSection(&g_terminalMutex)) {
             debug("waiting to aquire lock on: g_terminalMutex");
             EnterCriticalSection(&g_terminalMutex);
          }
-         g_contextChains.push_back(chain);                        // Chain in der Chain-Liste speichern
-         uint size = g_contextChains.size();                      // g_contextChains.size ist immer > 1 (index[0] bleibt frei)
-         master->programIndex = ec->programIndex = size-1;        // neuen Programm-Index dem Master- und Hauptkontext zuweisen
-         //debug("%s::init()  programIndex=0  %snew chain => index=%d  thread=%s  hChart=%d", programName, (IsUIThread() ? "UI  ":""), ec->programIndex, IsUIThread() ? "UI":to_string(GetCurrentThreadId()).c_str(), hChart);
+         g_contextChains.push_back(chain);                        // add chain to the list of chains        // TODO: avoid push_back() creating a copy
+         uint size = g_contextChains.size();
+         master->programIndex = ec->programIndex = size-1;        // update program index in master and main context
          LeaveCriticalSection(&g_terminalMutex);
 
-         // get last program executed by the current thread and store the currently executed one
-         uint index = StoreThreadAndProgram(0);
-         prevExpertIndex = g_threadsPrograms[index];
-         g_threadsPrograms[index] = ec->programIndex;
-         isNewExpert = (programType==PT_EXPERT);
+         // find the previous program executed by the current thread and store the currently executed one
+         uint index = GetCurrentThreadIndex();
+         prevProgramIndex = g_threadsPrograms[index];
+         LinkProgramToCurrentThread(ec->programIndex);
       }
+
+      BOOL indicatorAfterTest = programType==PT_INDICATOR && initReason==IR_PROGRAM_AFTERTEST;
       if (indicatorAfterTest) {
-         ec_SetSuperContext(ec, sec=NULL);                        // super context (expert) has already been released
+         ec_SetSuperContext(ec, sec=NULL);                        // the super context (an expert) has already been released
       }
+   }
+   else {
+      // (2) ec.programIndex was already set: an expert in init cycle or any program after a repeated init() call
    }
 
 
@@ -183,7 +182,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (!ec->ticks) {
       ec_SetProgramType  (ec,             programType);
       ec_SetProgramName  (ec,             programName);
-      ec_SetModuleType   (ec, (ModuleType)programType);           // main module: ModuleType == ProgramType
+      ec_SetModuleType   (ec, (ModuleType)programType);           // main module: ModuleType same as ProgramType
       ec_SetModuleName   (ec,             programName);
 
     //ec_SetLaunchType   (ec,             launchType );
@@ -191,7 +190,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       ec_SetDeinitFlags  (ec, deinitFlags            );
 
       ec_SetSuperContext (ec, sec   );
-      ec_SetHChart       (ec, hChart);                            // before ec_SetTesting()
+      ec_SetHChart       (ec, hChart);                            // chart handles must be set before ec_SetTesting()
       ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
       ec_SetTesting      (ec, isTesting     =ProgramIsTesting     (ec, isTesting     ));
@@ -224,21 +223,21 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
 
    // (3) Wenn Expert im Tester, dann ggf. dessen Libraries aus dem vorherigen Test finden und dem Expert zuordnen
-   if (isNewExpert && isTesting && prevExpertIndex) {
-      EXECUTION_CONTEXT* lib, *prevMaster=g_contextChains[prevExpertIndex][0];
+   if (isNewExpert && isTesting && prevProgramIndex) {
+      EXECUTION_CONTEXT* lib, *prevMaster = g_contextChains[prevProgramIndex][0];   // TODO: using prevProgramIndex is just wrong
 
       if (prevMaster && prevMaster->initCycle) {
          ContextChain& currentChain = g_contextChains[ec->programIndex];
-         ContextChain& prevChain    = g_contextChains[prevExpertIndex ];
+         ContextChain& prevChain    = g_contextChains[prevProgramIndex ];
          int           size         = prevChain.size();
 
          for (int i=2; i < size; i++) {                           // skip master and main context
             lib = prevChain[i];
             if (!lib) {
-               warn(ERR_ILLEGAL_STATE, "unexpected library context found (lib=chain[%d]=NULL) for prevExpertIndex=%d", i, prevExpertIndex);
+               warn(ERR_ILLEGAL_STATE, "unexpected library context found (lib=chain[%d]=NULL) for prevProgramIndex=%d", i, prevProgramIndex);
                continue;
             }
-            // Accessing/writing to a crashed library with already released context may cause an IllegalAccessException.
+            // Accessing the already released context of a crashed library may cause an exception.
             // Therefore ec.initCycle is set in SyncLibContext_init() and prevents accessing a crashed library.
             if (lib->initCycle) {
                EXECUTION_CONTEXT bak = *lib;                      // backup the library context
@@ -285,7 +284,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
-   StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
+   LinkProgramToCurrentThread(ec->programIndex);                     // link the executed program asap (error handling)
 
    ec_SetCoreFunction (ec, CF_START);                                // update context
    ec_SetThreadId     (ec, GetCurrentThreadId());
@@ -328,7 +327,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
-   StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
+   LinkProgramToCurrentThread(ec->programIndex);                     // link the executed program asap (error handling)
 
    ec_SetCoreFunction(ec, CF_DEINIT           );                     // update context
    ec_SetUninitReason(ec, uninitReason        );
@@ -404,15 +403,15 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    // (1) If ec.programIndex is not set: library is loaded the first time and the context is empty.
    //     - copy master context and update library specific fields
    //
-   // (2) If ec.programIndex is set: check if init cycle in indicator (UI thread) or in expert/tester (non UI thread)
+   // (2) If ec.programIndex is set: check if init cycle in indicator (UI thread) or in expert in tester (non UI thread)
    //     (2.1) init cycle in indicator
-   //     (2.2) init cycle in expert/tester
+   //     (2.2) init cycle in expert in tester
 
    //debug("%s", EXECUTION_CONTEXT_toStr(ec));
 
    if (!ec->programIndex) {
       // (1) library is loaded the first time
-      uint index        = StoreThreadAndProgram(0);                  // get the current thread's index (executes the current program)
+      uint index        = GetCurrentThreadIndex();                   // get the current thread's index (executes the current program)
       uint programIndex = g_threadsPrograms[index];                  // get the current program's index (executes load-library)
 
       *ec = *g_contextChains[programIndex][0];                       // overwrite library context with master context
@@ -435,7 +434,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
    else if (IsUIThread()) {
       // (2.1) init cycle in indicator: Library::init() is called before Indicator::init()
-      StoreThreadAndProgram(ec->programIndex);                       // store last executed program (asap)
+      LinkProgramToCurrentThread(ec->programIndex);                  // link the executed program asap (error handling)
 
       ec_SetCoreFunction(ec, CF_INIT     );                          // update library specific fields
       ec_SetInitCycle   (ec, FALSE       );                          // TODO: mark master context ???
@@ -447,7 +446,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
    else {
       // (2.2) init cycle of experts between tests: Library::init() is called before Expert::init()
-      StoreThreadAndProgram(ec->programIndex);                       // store last executed program (asap)
+      LinkProgramToCurrentThread(ec->programIndex);                  // link the executed program asap (error handling)
 
       // update library specific fields: wrong/empty values from the previous test get fixed in Expert::SyncMainContext_init()
       ec_SetCoreFunction (ec, CF_INIT     );
@@ -500,7 +499,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->programIndex)            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex)));
 
-   StoreThreadAndProgram(ec->programIndex);                          // store last executed program (asap)
+   LinkProgramToCurrentThread(ec->programIndex);                     // link the executed program asap (error handling)
 
    ec_SetCoreFunction(ec, CF_DEINIT   );                             // update library specific context fields
    ec_SetUninitReason(ec, uninitReason);
@@ -767,13 +766,13 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
  * @param  int                droppedOnChart       - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
  * @param  int                droppedOnPosX        - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
  * @param  int                droppedOnPosY        - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              originalProgramIndex - variable receiving the original program index of an indicator in init cycle
+ * @param  uint&              originIndicatorIndex - variable receiving the original program index of an indicator in init cycle
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI ResolveInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originalProgramIndex) {
+InitializeReason WINAPI ResolveInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originIndicatorIndex) {
 
-   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originalProgramIndex));
+   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originIndicatorIndex));
    if (programType == PT_EXPERT)    return(InitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
    if (programType == PT_SCRIPT)    return(InitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
 
@@ -793,11 +792,11 @@ InitializeReason WINAPI ResolveInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
  * @param  BOOL               isVisualMode         - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  HWND               hChart               - correct WindowHandle() value
  * @param  int                droppedOnChart       - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              originalProgramIndex - variable receiving the original program index of an indicator in init cycle
+ * @param  uint&              originIndicatorIndex - variable receiving the original program index of an indicator in init cycle
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& originalProgramIndex) {
+InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& originIndicatorIndex) {
    /*
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
@@ -837,7 +836,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
       else {
          programIndex = FindIndicatorInLimbo(hChart, programName, uninitReason);
          if (programIndex < 0) return((InitializeReason)NULL);
-         originalProgramIndex =  programIndex;
+         originIndicatorIndex =  programIndex;
          isProgramNew         = !programIndex;
       }
       if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
@@ -854,7 +853,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
       if (!programIndex) {
          programIndex = FindIndicatorInLimbo(hChart, programName, uninitReason);
          if (programIndex <= 0) return((InitializeReason)(programIndex < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo during %s", programName, UninitializeReasonToStr(uninitReason))));
-         originalProgramIndex = programIndex;
+         originIndicatorIndex = programIndex;
       }
       char* masterSymbol = g_contextChains[programIndex][0]->symbol;
       if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
@@ -1161,44 +1160,52 @@ const char* WINAPI ProgramCustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Links the specified MQL program to the current thread.
+ * Find the index of the current thread in the list of known threads. If the thread is not found it is added to the list.
  *
- * @param  uint programIndex - MQL program index. If this value is 0 (zero) the program information of the current
- *                             thread is not modified.
- *
- * @return DWORD - index of the current thread in the list of managed threads or EMPTY (-1) in case of errors
+ * @return int - thread index or EMPTY (-1) in case of errors
  */
-DWORD WINAPI StoreThreadAndProgram(uint programIndex) {
-   if ((int)programIndex < 0) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter programIndex: %d", programIndex)));
-
+int WINAPI GetCurrentThreadIndex() {
    DWORD currentThread = GetCurrentThreadId();
 
-   // look-up the current thread in g_threads[]
-   int currentThreadIndex=-1, size=g_threads.size();
-   for (int i=0; i < size; i++) {
-      if (g_threads[i] == currentThread) {                           // current thread found
-         currentThreadIndex = i;
-         if (programIndex)
-            g_threadsPrograms[i] = programIndex;                     // update the thread's last executed program if non-zero
-         break;
-      }
+   // look-up the current thread
+   uint size = g_threads.size();
+   for (uint i=0; i < size; i++) {
+      if (g_threads[i] == currentThread)                          // thread found
+         return(i);
    }
 
-   if (currentThreadIndex == -1) {                                   // current thread not found
-      if (!TryEnterCriticalSection(&g_terminalMutex)) {
-         debug("waiting to aquire lock on: g_terminalMutex");
-         EnterCriticalSection(&g_terminalMutex);
-      }
-      g_threads        .push_back(currentThread);                    // add current thread to the list
-      g_threadsPrograms.push_back(programIndex);                     // add the program or zero to the list
-      currentThreadIndex = g_threads.size() - 1;
-      if (currentThreadIndex > 511) debug("thread %d added (size=%d)", currentThread, g_threads.size());
-      LeaveCriticalSection(&g_terminalMutex);
+   // thread not found
+   if (!TryEnterCriticalSection(&g_terminalMutex)) {
+      debug("waiting to aquire lock on: g_terminalMutex");
+      EnterCriticalSection(&g_terminalMutex);
    }
+   g_threads        .push_back(currentThread);                    // add current thread to the list
+   g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
+   uint index = g_threads.size() - 1;
 
-   // additionally store the program in g_lastUIThreadProgram if the current thread is the UI thread
-   if (programIndex && IsUIThread())
-      g_lastUIThreadProgram = programIndex;
+   if (index > 511) debug("thread %d added (size=%d)", currentThread, index+1);
+   LeaveCriticalSection(&g_terminalMutex);
 
-   return(currentThreadIndex);
+   return(index);
+}
+
+
+/**
+ * Link the specified MQL program to the current thread.
+ *
+ * @param  uint programIndex - MQL program index
+ *
+ * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
+ */
+int WINAPI LinkProgramToCurrentThread(uint programIndex) {
+   if ((int)programIndex < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter programIndex: %d", programIndex)));
+
+   int index = GetCurrentThreadIndex();
+   if (index < 0) return(EMPTY);
+
+   g_threadsPrograms[index] = programIndex;              // update the thread's last executed program
+   if (IsUIThread())
+      g_lastUIThreadProgram = programIndex;              // update lastUIThreadProgram if the thread is the UI thread
+
+   return(index);
 }
