@@ -96,14 +96,13 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    BOOL isPid                = (currentPid);
    uint prevPid              = g_threadsPrograms[GetCurrentThreadIndex()]; // pid of the last program executed by the current thread
    uint formerIndPid         = NULL;                                       // old pid of an indicator in init cycle
-   BOOL isNewExpert          = programType==PT_EXPERT && !currentPid;
    BOOL isPartialTest        = FALSE;                                      // whether an partially initialized expert in tester
    EXECUTION_CONTEXT* master = NULL;
 
    if (isPid) LinkProgramToCurrentThread(currentPid);                      // link the currently executed program asap (error handling)
 
    // resolve the true InitReason
-   InitializeReason initReason  = ResolveInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, formerIndPid);
+   InitializeReason initReason  = GetInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, formerIndPid);
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
    if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_FAILURE_INIT, debug("%s  InitReason=IR_TERMINAL_FAILURE", programName)));
 
@@ -186,12 +185,12 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       ec_SetHChart       (ec, hChart);                            // chart handles must be set before ec_SetTesting()
       ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
-      ec_SetTesting      (ec, isTesting     =ProgramIsTesting     (ec, isTesting     ));
-      ec_SetVisualMode   (ec, isVisualMode  =ProgramIsVisualMode  (ec, isVisualMode  ));
-      ec_SetOptimization (ec, isOptimization=ProgramIsOptimization(ec, isOptimization));
+      ec_SetTesting      (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
+      ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
+      ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
 
-      ec_SetLogging      (ec, ProgramIsLogging    (ec));
-      ec_SetCustomLogFile(ec, ProgramCustomLogFile(ec));
+      ec_SetLogging      (ec, Program_IsLogging    (ec));
+      ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));
    }
 
    // (2.2) Bei jedem Aufruf von init() zu aktualisieren
@@ -574,6 +573,82 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Push the specififed ContextChain onto the end of the list of managed chains.
+ *
+ * @param  ContextChain& chain
+ *
+ * @return uint - the list index where the ContextChain is stored
+ *
+ * TODO: Don't store a copy of the passed instance. Instead store a pointer.
+ */
+uint WINAPI ContextChainsPush(ContextChain& chain) {
+   int index = EMPTY;
+
+   if (!TryEnterCriticalSection(&g_terminalMutex)) {
+      debug("waiting to aquire lock on: g_terminalMutex");
+      EnterCriticalSection(&g_terminalMutex);
+   }
+   g_contextChains.push_back(chain);                     // TODO: prevent push_back() from creating a copy
+   index = g_contextChains.size()-1;
+   LeaveCriticalSection(&g_terminalMutex);
+
+   return(index);
+}
+
+
+/**
+ * Find the index of the current thread in the list of known threads. If the thread is not found it is added to the list.
+ *
+ * @return int - thread index or EMPTY (-1) in case of errors
+ */
+int WINAPI GetCurrentThreadIndex() {
+   DWORD currentThread = GetCurrentThreadId();
+
+   // look-up the current thread
+   uint size = g_threads.size();
+   for (uint i=0; i < size; i++) {
+      if (g_threads[i] == currentThread)                          // thread found
+         return(i);
+   }
+
+   // thread not found
+   if (!TryEnterCriticalSection(&g_terminalMutex)) {
+      debug("waiting to aquire lock on: g_terminalMutex");
+      EnterCriticalSection(&g_terminalMutex);
+   }
+   g_threads        .push_back(currentThread);                    // add current thread to the list
+   g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
+   uint index = g_threads.size() - 1;
+
+   if (index > 511) debug("thread %d added (size=%d)", currentThread, index+1);
+   LeaveCriticalSection(&g_terminalMutex);
+
+   return(index);
+}
+
+
+/**
+ * Link the specified MQL program to the current thread.
+ *
+ * @param  uint programIndex - MQL program index
+ *
+ * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
+ */
+int WINAPI LinkProgramToCurrentThread(uint programIndex) {
+   if ((int)programIndex < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter programIndex: %d", programIndex)));
+
+   int index = GetCurrentThreadIndex();
+   if (index < 0) return(EMPTY);
+
+   g_threadsPrograms[index] = programIndex;              // update the thread's last executed program
+   if (IsUIThread())
+      g_lastUIThreadProgram = programIndex;              // update lastUIThreadProgram if the thread is the UI thread
+
+   return(index);
+}
+
+
+/**
  * Find the first matching and still active indicator with a released main EXECUTION_CONTEXT in memory.
  *
  * @param  HWND               hChart - correct value of WindowHandle()
@@ -784,11 +859,11 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI ResolveInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originIndicatorIndex) {
+InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& originIndicatorIndex) {
 
-   if (programType == PT_INDICATOR) return(InitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originIndicatorIndex));
-   if (programType == PT_EXPERT)    return(InitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
-   if (programType == PT_SCRIPT)    return(InitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
+   if (programType == PT_INDICATOR) return(GetInitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, originIndicatorIndex));
+   if (programType == PT_EXPERT)    return(GetInitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   if (programType == PT_SCRIPT)    return(GetInitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
 
    return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
 }
@@ -810,7 +885,7 @@ InitializeReason WINAPI ResolveInitReason(EXECUTION_CONTEXT* ec, const EXECUTION
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& originIndicatorIndex) {
+InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& originIndicatorIndex) {
    /*
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
@@ -949,7 +1024,7 @@ InitializeReason WINAPI InitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUT
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
+InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
    uint build = GetTerminalBuild();
    //debug("uninitReason=%s  testing=%d  droppedX=%d  droppedY=%d  build=%d", UninitReasonToStr(uninitReason), isTesting, droppedOnPosX, droppedOnPosY, build);
 
@@ -1025,8 +1100,70 @@ InitializeReason WINAPI InitReason_expert(EXECUTION_CONTEXT* ec, const char* pro
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI InitReason_script(EXECUTION_CONTEXT* ec, const char* programName, int droppedOnPosX, int droppedOnPosY) {
+InitializeReason WINAPI GetInitReason_script(EXECUTION_CONTEXT* ec, const char* programName, int droppedOnPosX, int droppedOnPosY) {
    return(IR_USER);
+}
+
+
+/**
+ * Resolve the custom log file of the program (if any).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char*
+ */
+const char* WINAPI Program_CustomLogFile(const EXECUTION_CONTEXT* ec) {
+   if (ec->superContext)
+      return(ec->superContext->customLogFile);                       // prefer an inherited status
+
+   switch (ec->programType) {
+      case PT_INDICATOR:
+      case PT_EXPERT:
+      case PT_SCRIPT:
+         return(NULL);
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
+}
+
+
+/**
+ * Whether or not logging is activated for the program.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI Program_IsLogging(const EXECUTION_CONTEXT* ec) {
+   if (ec->superContext)
+      return(ec->superContext->logging);                             // prefer an inherited status
+
+   switch (ec->programType) {
+      case PT_INDICATOR:
+      case PT_EXPERT: //return(IsLogging());                         // TODO: implement IsLogging()
+      case PT_SCRIPT: return(TRUE);
+   }
+   return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
+}
+
+
+/**
+ * Whether or not the program is executed in the Strategy Tester with Optimization=On.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               isOptimization - MQL::IsOptimization() status as passed by the terminal
+ *
+ * @return BOOL - real IsOptimization() status
+ */
+BOOL WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimization) {
+   if (ec->superContext)
+      return(ec->superContext->optimization);                        // prefer an inherited status
+
+   switch (ec->programType) {
+      case PT_INDICATOR:
+      case PT_EXPERT:
+      case PT_SCRIPT: return(isOptimization);
+   }
+   return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
 }
 
 
@@ -1062,7 +1199,7 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
  *
  * @return BOOL - real IsTesting() status
  */
-BOOL WINAPI ProgramIsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
+BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
    if (ec->superContext)
       return(ec->superContext->testing);                             // prefer an inherited status
 
@@ -1122,7 +1259,7 @@ BOOL WINAPI ProgramIsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
  *
  * @return BOOL - real IsVisualMode() status
  */
-BOOL WINAPI ProgramIsVisualMode(const EXECUTION_CONTEXT* ec, BOOL isVisualMode) {
+BOOL WINAPI Program_IsVisualMode(const EXECUTION_CONTEXT* ec, BOOL isVisualMode) {
    if (ec->superContext)
       return(ec->superContext->visualMode);                          // prefer an inherited status
 
@@ -1132,142 +1269,4 @@ BOOL WINAPI ProgramIsVisualMode(const EXECUTION_CONTEXT* ec, BOOL isVisualMode) 
       case PT_SCRIPT:    return(ec->testing);                        // scripts can only run on visible charts
    }
    return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
-}
-
-
-/**
- * Whether or not the program is executed in the Strategy Tester with Optimization=On.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               isOptimization - MQL::IsOptimization() status as passed by the terminal
- *
- * @return BOOL - real IsOptimization() status
- */
-BOOL WINAPI ProgramIsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimization) {
-   if (ec->superContext)
-      return(ec->superContext->optimization);                        // prefer an inherited status
-
-   switch (ec->programType) {
-      case PT_INDICATOR:
-      case PT_EXPERT:
-      case PT_SCRIPT: return(isOptimization);
-   }
-   return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
-}
-
-
-/**
- * Whether or not logging is activated for the program.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ProgramIsLogging(const EXECUTION_CONTEXT* ec) {
-   if (ec->superContext)
-      return(ec->superContext->logging);                             // prefer an inherited status
-
-   switch (ec->programType) {
-      case PT_INDICATOR:
-      case PT_EXPERT: //return(IsLogging());                         // TODO: implement IsLogging()
-      case PT_SCRIPT: return(TRUE);
-   }
-   return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
-}
-
-
-/**
- * Resolve the custom log file of the program (if any).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char*
- */
-const char* WINAPI ProgramCustomLogFile(const EXECUTION_CONTEXT* ec) {
-   if (ec->superContext)
-      return(ec->superContext->customLogFile);                       // prefer an inherited status
-
-   switch (ec->programType) {
-      case PT_INDICATOR:
-      case PT_EXPERT:
-      case PT_SCRIPT:
-         return(NULL);
-   }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
-}
-
-
-/**
- * Push the specififed ContextChain onto the end of the list of managed chains.
- *
- * @param  ContextChain& chain
- *
- * @return uint - the list index where the ContextChain is stored
- *
- * TODO: Don't store a copy of the passed instance. Instead store a pointer.
- */
-uint WINAPI ContextChainsPush(ContextChain& chain) {
-   int index = EMPTY;
-
-   if (!TryEnterCriticalSection(&g_terminalMutex)) {
-      debug("waiting to aquire lock on: g_terminalMutex");
-      EnterCriticalSection(&g_terminalMutex);
-   }
-   g_contextChains.push_back(chain);                     // TODO: prevent push_back() from creating a copy
-   index = g_contextChains.size()-1;
-   LeaveCriticalSection(&g_terminalMutex);
-
-   return(index);
-}
-
-
-/**
- * Find the index of the current thread in the list of known threads. If the thread is not found it is added to the list.
- *
- * @return int - thread index or EMPTY (-1) in case of errors
- */
-int WINAPI GetCurrentThreadIndex() {
-   DWORD currentThread = GetCurrentThreadId();
-
-   // look-up the current thread
-   uint size = g_threads.size();
-   for (uint i=0; i < size; i++) {
-      if (g_threads[i] == currentThread)                          // thread found
-         return(i);
-   }
-
-   // thread not found
-   if (!TryEnterCriticalSection(&g_terminalMutex)) {
-      debug("waiting to aquire lock on: g_terminalMutex");
-      EnterCriticalSection(&g_terminalMutex);
-   }
-   g_threads        .push_back(currentThread);                    // add current thread to the list
-   g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
-   uint index = g_threads.size() - 1;
-
-   if (index > 511) debug("thread %d added (size=%d)", currentThread, index+1);
-   LeaveCriticalSection(&g_terminalMutex);
-
-   return(index);
-}
-
-
-/**
- * Link the specified MQL program to the current thread.
- *
- * @param  uint programIndex - MQL program index
- *
- * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
- */
-int WINAPI LinkProgramToCurrentThread(uint programIndex) {
-   if ((int)programIndex < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter programIndex: %d", programIndex)));
-
-   int index = GetCurrentThreadIndex();
-   if (index < 0) return(EMPTY);
-
-   g_threadsPrograms[index] = programIndex;              // update the thread's last executed program
-   if (IsUIThread())
-      g_lastUIThreadProgram = programIndex;              // update lastUIThreadProgram if the thread is the UI thread
-
-   return(index);
 }
