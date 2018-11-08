@@ -148,7 +148,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
 
    // Timerdaten speichern
    TICK_TIMER_DATA ttd = {timerId, hWnd, flags};
-   tickTimers.push_back(ttd);
+   tickTimers.push_back(ttd);                         // TODO: avoid push_back() creating a copy
 
    return(timerId);
    #pragma EXPANDER_EXPORT

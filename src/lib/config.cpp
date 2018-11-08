@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "lib/config.h"
 #include "lib/conversion.h"
 #include "lib/file.h"
 #include "lib/string.h"
@@ -8,11 +9,13 @@
 
 
 /**
- * Return the full filename of the MQL framework's global configuration file. The file is shared between all terminals used
- * by the current user. If the file does not exist an attempt is made to create it.
+ * Return the full filename of the MQL framework's global configuration file. The gobal file is used for configuration of all
+ * terminals executed by the current user. If the file does not exist an attempt is made to create it.
  *
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini".
+ *
+ * Note: The string returned by this function is static and the pointer must not be released.
  */
 const char* WINAPI GetGlobalConfigPathA() {
    static char* configPath;
@@ -47,7 +50,8 @@ const char* WINAPI GetGlobalConfigPathA() {
 
 
 /**
- * Return the full filename of the MQL framework's local (i.e. terminal specific) configuration file.
+ * Return the full filename of the MQL framework's local configuration file. The local file is used for configuration of the
+ * currently executed terminal.
  *
  * - If a config file exists in the user's roaming data directory the file is used, no matter whether the terminal was
  *   launched in portable mode or not.
@@ -60,6 +64,8 @@ const char* WINAPI GetGlobalConfigPathA() {
  *
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\1DAFD9A7C67DC84FE37EAA1FC1E5CF75\local-config.ini".
+ *
+ * Note: The string returned by this function is static and the pointer must not be released.
  */
 const char* WINAPI GetLocalConfigPathA() {
    //
@@ -185,6 +191,23 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
 
 
 /**
+ * Whether or not the specified global configuration key exists.
+ *
+ * @param  char* section - case-insensitive configuration section name
+ * @param  char* key     - case-insensitive configuration key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
+   const char* globalConfig = GetGlobalConfigPathA();
+   if (globalConfig)
+      return(IsIniKey(globalConfig, section, key));
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether or not a configuration key exists in an .ini file.
  *
  * @param  char* fileName - name of the .ini file
@@ -198,6 +221,8 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
    if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
    if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)key      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
+   if (!strlen(key))                       return(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
 
    // read all keys
    char* buffer    = NULL;
@@ -275,5 +300,22 @@ BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
 
    delete[] buffer;
    return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not the specified local configuration key exists.
+ *
+ * @param  char* section - case-insensitive configuration section name
+ * @param  char* key     - case-insensitive configuration key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsLocalConfigKey(const char* section, const char* key) {
+   const char* localConfig = GetLocalConfigPathA();
+   if (localConfig)
+      return(IsIniKey(localConfig, section, key));
+   return(FALSE);
    #pragma EXPANDER_EXPORT
 }
