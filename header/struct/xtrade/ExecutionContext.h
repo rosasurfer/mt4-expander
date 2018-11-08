@@ -45,7 +45,7 @@
 #pragma pack(push, 1)
 
 struct EXECUTION_CONTEXT {                         // -- offset --- size --- description ----------------------------------------------------------------------------------------
-   uint               programIndex;                //         0        4     MQL program index starting from 1                   (const) => same as index in g_contextChains[]
+   uint               programIndex;                //         0        4     MQL program index starting from 1                   (const) => index in g_contextChains[]
    ProgramType        programType;                 //         4        4     MQL program type                                    (const) => type of MQL program
    char               programName[MAX_PATH];       //         8      260     MQL program name                                    (const) => MQL program name
    ModuleType         moduleType;                  //       268        4     MQL module type                                     (const) => type of MQL module
