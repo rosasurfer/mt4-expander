@@ -145,7 +145,7 @@ double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint
  */
 BOOL WINAPI Test_StartReporting(EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int barModel, int reportingId, const char* reportingSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
 
    if (ec->test) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already started", ec->programName));
@@ -179,7 +179,7 @@ BOOL WINAPI Test_StartReporting(EXECUTION_CONTEXT* ec, datetime startTime, uint 
  */
 BOOL WINAPI Test_StopReporting(EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->programIndex)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.programIndex: %d", ec->programIndex));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
 
    TEST* test = ec->test;

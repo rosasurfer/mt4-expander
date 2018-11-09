@@ -4,7 +4,7 @@
 #include "struct/xtrade/ExecutionContext.h"
 
 
-extern std::vector<ContextChain> g_contextChains;                    // all context chains (i.e. MQL programs, index = program id)
+extern std::vector<ContextChain> g_contextChains;                    // all context chains, i.e. MQL programs (index = program id)
 extern std::vector<DWORD>        g_threads;                          // all known threads executing MQL programs
 extern std::vector<uint>         g_threadsPrograms;                  // the last MQL program executed by a thread
 

@@ -7,7 +7,7 @@
 
 
 // external declarations for error management
-extern std::vector<ContextChain> g_contextChains;                    // all context chains (= MQL programs, index = program id)
+extern std::vector<ContextChain> g_contextChains;                    // all context chains, i.e. MQL programs (index = program id)
 extern std::vector<DWORD>        g_threads;                          // all known threads executing MQL programs
 extern std::vector<uint>         g_threadsPrograms;                  // the last MQL program executed by a thread
 
@@ -274,12 +274,12 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
 
    // look-up the current thread's last associated MQL program
    DWORD currentThread = GetCurrentThreadId();
-   uint currentThreadIndex=-1, currentThreadLastProgramIndex=0;
+   uint currentThreadIndex=-1, currentThreadLastPid=0;
    size = g_threads.size();
    for (int i=0; i < size; i++) {
       if (g_threads[i] == currentThread) {                           // thread found
-         currentThreadIndex            = i;                          // keep thread index and last MQL program
-         currentThreadLastProgramIndex = g_threadsPrograms[i];
+         currentThreadIndex   = i;                                   // keep thread index and last MQL program
+         currentThreadLastPid = g_threadsPrograms[i];
          break;
       }
    }
@@ -304,8 +304,8 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
       }
 
       if (contextAccessible) {
-         if (g_contextChains.size() > currentThreadLastProgramIndex && g_contextChains[currentThreadLastProgramIndex][0]) {
-            EXECUTION_CONTEXT* ec = g_contextChains[currentThreadLastProgramIndex][0];
+         if (g_contextChains.size() > currentThreadLastPid && g_contextChains[currentThreadLastPid][0]) {
+            EXECUTION_CONTEXT* ec = g_contextChains[currentThreadLastPid][0];
             ec_SetDllError(ec, code);
             //ec_SetDllErrorMsg(ec, fullMsg);
          }

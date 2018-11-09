@@ -45,7 +45,7 @@
 #pragma pack(push, 1)
 
 struct EXECUTION_CONTEXT {                         // -- offset --- size --- description ----------------------------------------------------------------------------------------
-   uint               programIndex;                //         0        4     MQL program index starting from 1                   (const) => index in g_contextChains[]
+   uint               pid;                         //         0        4     MQL program id starting from 1                      (const) => index in g_contextChains[]
    ProgramType        programType;                 //         4        4     MQL program type                                    (const) => type of MQL program
    char               programName[MAX_PATH];       //         8      260     MQL program name                                    (const) => MQL program name
    ModuleType         moduleType;                  //       268        4     MQL module type                                     (const) => type of MQL module
@@ -102,7 +102,7 @@ typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // all cont
 
 
 // regular getters (used by MQL4)
-uint               WINAPI ec_ProgramIndex       (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_Pid                (const EXECUTION_CONTEXT* ec);
 ProgramType        WINAPI ec_ProgramType        (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_ProgramName        (const EXECUTION_CONTEXT* ec);
 ModuleType         WINAPI ec_ModuleType         (const EXECUTION_CONTEXT* ec);
@@ -171,7 +171,7 @@ const char*        WINAPI ec_CustomLogFile      (const EXECUTION_CONTEXT* ec);
 
 
 // validating setters (also used by MQL4)
-uint               WINAPI ec_SetProgramIndex    (EXECUTION_CONTEXT* ec, uint               index    );
+uint               WINAPI ec_SetPid             (EXECUTION_CONTEXT* ec, uint               pid      );
 ProgramType        WINAPI ec_SetProgramType     (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName     (EXECUTION_CONTEXT* ec, const char*        name     );
 ModuleType         WINAPI ec_SetModuleType      (EXECUTION_CONTEXT* ec, ModuleType         type     );
@@ -222,7 +222,7 @@ const char*        WINAPI ec_SetCustomLogFile   (EXECUTION_CONTEXT* ec, const ch
 
 
 // master context getters (used by MQL4)
-uint               WINAPI mec_ProgramIndex       (const EXECUTION_CONTEXT* ec);
+uint               WINAPI mec_Pid                (const EXECUTION_CONTEXT* ec);
 ProgramType        WINAPI mec_ProgramType        (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI mec_ProgramName        (const EXECUTION_CONTEXT* ec);
 ModuleType         WINAPI mec_ModuleType         (const EXECUTION_CONTEXT* ec);
