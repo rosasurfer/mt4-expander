@@ -544,7 +544,9 @@ int WINAPI Test_synchronize() {
  * @return int
  */
 int WINAPI Test() {
-   HWND hWnd = FindInputDialog(PT_INDICATOR, "ALMA");
+   datetime time1 = GetGmtTime();
+   debug("GetGmtTime(): %d", time1);
+
    return(0);
    #pragma EXPANDER_EXPORT
 }
