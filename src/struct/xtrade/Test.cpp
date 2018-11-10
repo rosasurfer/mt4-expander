@@ -258,23 +258,6 @@ BOOL WINAPI test_SetVisualMode(TEST* test, BOOL status) {
 
 
 /**
- * Set the duration of a TEST.
- *
- * @param  TEST* test
- * @param  uint  duration - duration in milliseconds
- *
- * @return uint - the same duration
- */
-uint WINAPI test_SetDuration(TEST* test, uint duration) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (duration <= 0)                  return(error(ERR_INVALID_PARAMETER, "invalid parameter duration: %d (not positive)", duration));
-
-   test->duration = duration;
-   return(duration);
-}
-
-
-/**
  * Return a human-readable version of a TEST struct.
  *
  * @param  TEST* test
@@ -285,12 +268,14 @@ uint WINAPI test_SetDuration(TEST* test, uint duration) {
 const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if ((uint)test < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
 
-   char* result = "{(empty)}";
-   const TEST empty = {};
+   std::stringstream ss;
+   TEST empty = {};
 
-   if (memcmp(test, &empty, sizeof(TEST))) {
-      std::stringstream ss; ss
-         <<  "{id="              <<                     test->id
+   if (!memcmp(test, &empty, sizeof(TEST))) {
+      ss << "{(empty)}";
+   }
+   else {
+      ss <<  "{id="              <<                     test->id
          << ", created="         <<                    (test->created   ? doubleQuoteStr(localTimeFormat(test->created, "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", strategy="        <<      doubleQuoteStr(test->strategy)
          << ", reportId="        <<                     test->reportId
@@ -300,16 +285,16 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", startTime="       <<                    (test->startTime ? doubleQuoteStr(gmtTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", endTime="         <<                    (test->endTime   ? doubleQuoteStr(gmtTimeFormat(test->endTime,   "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", barModel="        << BarModelDescription(test->barModel)
-         << ", spread="          <<        numberFormat(test->spread, "%.1f")
          << ", bars="            <<                     test->bars
          << ", ticks="           <<                     test->ticks
+         << ", spread="          <<        numberFormat(test->spread, "%.1f")
          << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
          << ", visualMode="      <<           BoolToStr(test->visualMode)
-         << ", duration="        <<                    (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
-         << ", orders="          <<                    (test->orders   ? to_string(test->orders->size()) : "NULL")
+         << ", orders="          <<                    (test->orders ? to_string(test->orders->size()) : "NULL")
          << "}";
-      result = strdup(ss.str().c_str());                                         // TODO: close memory leak
    }
+   ss << " (0x" << IntToHexStr((uint)test) << ")";
+   char* result = strdup(ss.str().c_str());                                      // TODO: close memory leak
 
    if (outputDebug) debug(result);
    return(result);

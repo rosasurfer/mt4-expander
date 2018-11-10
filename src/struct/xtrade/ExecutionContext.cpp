@@ -505,22 +505,6 @@ uint WINAPI ec_TestBarModel(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the spread used in the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return double - test spread
- */
-double WINAPI ec_TestSpread(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->spread);
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the number of bars of the TEST linked to an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -547,6 +531,22 @@ uint WINAPI ec_TestTicks(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
       return(ec->test->ticks);
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the spread used in the TEST linked to an EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return double - test spread
+ */
+double WINAPI ec_TestSpread(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->test)
+      return(ec->test->spread);
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
@@ -580,22 +580,6 @@ BOOL WINAPI ec_TestVisualMode(const EXECUTION_CONTEXT* ec) {
    if (ec->test)
       return(ec->test->visualMode);
    return(FALSE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the duration of the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint - test duration in milliseconds
- */
-uint WINAPI ec_TestDuration(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->duration);
-   return(NULL);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2551,13 +2535,13 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", bid="           <<                   ec->bid
          << ", ask="           <<                   ec->ask
 
-         << ", extReporting="  <<         BoolToStr(ec->extReporting)
-         << ", recordEquity="  <<         BoolToStr(ec->recordEquity)
-
+         << ", test="          <<                  (ec->test ? string("0x").append(IntToHexStr((uint)ec->test)) : "NULL")
          << ", testing="       <<         BoolToStr(ec->testing     )
          << ", visualMode="    <<         BoolToStr(ec->visualMode  )
          << ", optimization="  <<         BoolToStr(ec->optimization)
-         << ", test="          <<                  (ec->test         ? string("0x").append(IntToHexStr((uint)ec->test))         : "NULL")
+
+         << ", extReporting="  <<         BoolToStr(ec->extReporting)
+         << ", recordEquity="  <<         BoolToStr(ec->recordEquity)
 
          << ", superContext="  <<                  (ec->superContext ? string("0x").append(IntToHexStr((uint)ec->superContext)) : "NULL")
          << ", threadId="      <<                   ec->threadId

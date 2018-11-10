@@ -9,7 +9,6 @@
 #include "struct/mt4/FxtHeader.h"
 
 #include <fstream>
-#include <time.h>
 
 
 /**
@@ -143,7 +142,7 @@ double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint
 /**
  * TODO: validation
  */
-BOOL WINAPI Test_onPositionOpen(EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
+BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
    if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
@@ -180,7 +179,7 @@ BOOL WINAPI Test_onPositionOpen(EXECUTION_CONTEXT* ec, int ticket, int type, dou
  *
  * @return BOOL - success status
  */
-BOOL WINAPI Test_onPositionClose(EXECUTION_CONTEXT* ec, int ticket, double closePrice, datetime closeTime, double swap, double profit) {
+BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double closePrice, datetime closeTime, double swap, double profit) {
    if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
@@ -213,7 +212,7 @@ BOOL WINAPI Test_onPositionClose(EXECUTION_CONTEXT* ec, int ticket, double close
  *
  * @return BOOL - success status
  */
-BOOL WINAPI Test_SaveReport(TEST* test) {
+BOOL WINAPI Test_SaveReport(const TEST* test) {
    // save TEST to logfile
    string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
                                               .append(test->strategy)
@@ -248,31 +247,20 @@ BOOL WINAPI Test_SaveReport(TEST* test) {
 /**
  * TODO: documentation
  */
-BOOL WINAPI Test_StartReporting(EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int barModel, int reportId, const char* reportSymbol) {
+BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int reportId, const char* reportSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid=0: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
-   if (ec->test) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already started", ec->programName));
+   TEST* test = ec->test;
+   if (!test) return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
-   TEST* test = new TEST();
-
-   ec->test = test;
-   test_SetCreated     (test, time(NULL)     );
-   test_SetStrategy    (test, ec->programName);
-   test_SetReportId    (test, reportId       );
-   test_SetReportSymbol(test, reportSymbol   );
-   test_SetSymbol      (test, ec->symbol     );
-   test_SetTimeframe   (test, ec->timeframe  );
-   test_SetStartTime   (test, startTime      );
-   test_SetBarModel    (test, barModel       );
-   test_SetSpread      (test, (ec->ask-ec->bid)/0.0001);          // TODO: statt 0.0001 Variable Pip
-   test_SetBars        (test, bars           );
- //test_SetTradeDirections...                                     // TODO: aus Expert.ini auslesen
-   test_SetVisualMode  (test, ec->visualMode );
-   test_SetDuration    (test, GetTickCount() );
-   test->orders = new OrderHistory(2048);                         // reserve memory to speed-up testing
-   test->orders->resize(0);
+   test_SetReportId    (test, reportId    );
+   test_SetReportSymbol(test, reportSymbol);
+   test_SetStartTime   (test, startTime   );
+   test_SetSpread      (test, (ec->ask-ec->bid)/0.0001);    // TODO: fix calculation
+   test_SetBars        (test, bars        );
+ //test_SetTradeDirections...                               // TODO: read from "{expert-name}.ini"
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -282,21 +270,20 @@ BOOL WINAPI Test_StartReporting(EXECUTION_CONTEXT* ec, datetime startTime, uint 
 /**
  * TODO: documentation
  */
-BOOL WINAPI Test_StopReporting(EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
+BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
 
    TEST* test = ec->test;
-   if (!test)         return(error(ERR_RUNTIME_ERROR, "missing TEST initialization of expert \"%s\"", ec->programName));
-   if (test->endTime) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already stopped", ec->programName));
+   if (!test)         return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (test->endTime) return(error(ERR_ILLEGAL_STATE, "TEST reporting of expert \"%s\" already stopped", ec->programName));
 
-   test_SetEndTime (test, endTime                        );
-   test_SetBars    (test, bars - test->bars + 1          );
-   test_SetTicks   (test, ec->ticks                      );
-   test_SetDuration(test, GetTickCount() - test->duration);
+   test_SetEndTime(test, endTime              );
+   test_SetBars   (test, bars - test->bars + 1);
+   test_SetTicks  (test, ec->ticks            );
 
-   Test_SaveReport(test);                                         // TODO: close memory leak => TEST, OrderHistory
+   Test_SaveReport(test);                                   // TODO: close memory leak => TEST, OrderHistory
 
    return(TRUE);
    #pragma EXPANDER_EXPORT

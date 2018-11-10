@@ -4,9 +4,12 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/tester.h"
 #include "struct/mt4/PriceBar400.h"
 #include "struct/mt4/PriceBar401.h"
+#include "struct/xtrade/Test.h"
 
+#include <time.h>
 #include <vector>
 
 
@@ -109,16 +112,15 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    // (1) if ec.pid is not set: check if an indicator in init cycle
    //     • (1.1) if indicator in init cycle (only in UI thread):
    //       - restore main context from master context
-   //     • (1.2) if not indicator in init cycle: new indicator, new expert or script
-   //       - create new master context
-   //       - create new context chain and store master and main context
-   //       - set generated pid in master and main context
+   //     • (1.2) if not indicator in init cycle: new indicator, expert or script
+   //       - create and store new master context
    //
    // (2) ec.pid is set:
    //     • update main context
    //
    // (3) if expert in tester:
-   //     • find and reassign reused libraries of the preceeding test
+   //     • initialize new test
+   //     • update reused libraries of the preceeding test
 
    if (!isPid) {
       if (programType==PT_INDICATOR && formerIndPid) {            // check if indicator in init cycle
@@ -139,8 +141,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
             // finish initialization of the existing context chain (expert with reused libraries)
             master = g_contextChains[currentPid][0];
-            *ec = *master;                // everything????       // overwrite main with master context
-            g_contextChains[currentPid][1] = ec;                  // store main context at empty position
+            *ec = *master;                // everything ???       // overwrite main with master context
+            g_contextChains[currentPid][1] = ec;                  // store main context at the empty position
          }
          else {
             // create a new context chain                         // TODO: on IR_PROGRAM_AFTERTEST somewhere exists a used context
@@ -167,7 +169,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    }
 
 
-   // (2.1) Beim ersten Aufruf von init() zu initialisieren
+   // (2.1) fields to update on the first init() call
    if (!ec->ticks) {                                              // fix an unset chart handle (older terminals)
       hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
       if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
@@ -193,7 +195,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));
    }
 
-   // (2.2) Bei jedem Aufruf von init() zu aktualisieren
+   // (2.2) fields to update on every init() call
    ec_SetCoreFunction (ec, CF_INIT     );                         // TODO: wrong for init() calls from start()
  //ec_SetInitCycle    (ec, FALSE       );
    ec_SetInitReason   (ec, initReason  );
@@ -214,32 +216,48 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetThreadId     (ec, GetCurrentThreadId());
 
 
-   // (3) if a partially initialized expert between tests update the reloaded libaries
-   if (programType==PT_EXPERT && isPartialTest) {
-      ContextChain& chain = g_contextChains[currentPid];
-      uint size = chain.size();
+   // (3) if expert in tester
+   if (programType==PT_EXPERT && isTesting) {
+      // (3.1) initialize new test
+      if (!ec->ticks) {
+         TEST* test = new TEST();
+         test_SetCreated   (test, time(NULL)     );
+         test_SetStrategy  (test, ec->programName);
+         test_SetSymbol    (test, ec->symbol     );
+         test_SetTimeframe (test, ec->timeframe  );
+         test_SetBarModel  (test, Tester_GetBarModel());
+         test_SetVisualMode(test, ec->visualMode );
+         test->orders = new OrderHistory();
+         test->orders->reserve(1024);                                // reserve memory to speed-up testing
 
-      for (uint i=2; i < size; ++i) {                             // skip master and main context
-         EXECUTION_CONTEXT* lib = chain[i];
-         if (!lib) {
-            warn(ERR_ILLEGAL_STATE, "unexpected library context found at chain[%d]: NULL  ec=%s", i, EXECUTION_CONTEXT_toStr(ec));
-            continue;
+         master->test = ec->test = test;
+      }
+
+      // (3.2) if a partially initialized expert update the reused libaries of the preceeding test
+      if (isPartialTest) {
+         ContextChain& chain = g_contextChains[currentPid];
+         uint size = chain.size();
+
+         for (uint i=2; i < size; ++i) {                             // skip master and main context
+            EXECUTION_CONTEXT* lib = chain[i];
+            if (!lib) {
+               warn(ERR_ILLEGAL_STATE, "unexpected library context found at chain[%d]: NULL  ec=%s", i, EXECUTION_CONTEXT_toStr(ec));
+               continue;
+            }
+            EXECUTION_CONTEXT bak = *lib;                            // backup the library on the stack
+            *lib = *chain[0];                                        // overwrite it with master context
+
+            ec_SetModuleType (lib, MT_LIBRARY     );                 // restore/update library-specific fields
+            ec_SetModuleName (lib, bak.moduleName );
+            ec_SetInitCycle  (lib, FALSE          );
+            ec_SetInitFlags  (lib, bak.initFlags  );
+            ec_SetDeinitFlags(lib, bak.deinitFlags);
+            ec_SetMqlError   (lib, NULL);                            // reset all errors
+            ec_SetDllError   (lib, NULL);
+            ec_SetDllWarning (lib, NULL);
+            lib->dllErrorMsg   =   NULL;
+            lib->dllWarningMsg =   NULL;
          }
-         EXECUTION_CONTEXT bak = *lib;                            // backup the library on the stack
-         *lib = *chain[0];                                        // overwrite it with master context
-
-         ec_SetModuleType (lib, MT_LIBRARY     );                 // restore/update library-specific fields
-         ec_SetModuleName (lib, bak.moduleName );
-
-         ec_SetInitCycle  (lib, FALSE          );
-         ec_SetInitFlags  (lib, bak.initFlags  );
-         ec_SetDeinitFlags(lib, bak.deinitFlags);
-
-         ec_SetMqlError   (lib, NULL);                            // reset all errors
-         ec_SetDllError   (lib, NULL);
-         ec_SetDllWarning (lib, NULL);
-         lib->dllErrorMsg   =   NULL;
-         lib->dllWarningMsg =   NULL;
       }
    }
    return(NO_ERROR);
@@ -577,7 +595,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
  *
  * @param  ContextChain& chain
  *
- * @return uint - the list index where the ContextChain is stored
+ * @return uint - list index where the ContextChain is stored
  *
  * TODO: Don't store a copy of the passed instance. Instead store a pointer.
  */
@@ -1204,7 +1222,6 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
       return(ec->superContext->testing);                             // prefer an inherited status
 
    switch (ec->programType) {
-      // indicators
       case PT_INDICATOR: {
          if (isTesting)                                              // indicator runs in iCustom() in Tester
             return(TRUE);
@@ -1227,11 +1244,9 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
          return(StrEndsWith(title, "(visual)"));                     // all remaining cases according to "(visual)" in title
       }
 
-      // experts
       case PT_EXPERT:
          return(isTesting);
 
-      // scripts
       case PT_SCRIPT: {
          HWND hWnd = ec->hChartWindow;
          if (hWnd) {

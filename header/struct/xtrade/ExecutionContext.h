@@ -141,12 +141,11 @@ uint               WINAPI ec_TestTimeframe      (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestStartTime      (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestEndTime        (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestBarModel       (const EXECUTION_CONTEXT* ec);
-double             WINAPI ec_TestSpread         (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestBars           (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestTicks          (const EXECUTION_CONTEXT* ec);
+double             WINAPI ec_TestSpread         (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_TestTradeDirections(const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_TestVisualMode     (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_TestDuration       (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Testing            (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode         (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization       (const EXECUTION_CONTEXT* ec);
@@ -170,7 +169,7 @@ BOOL               WINAPI ec_CustomLogging      (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_CustomLogFile      (const EXECUTION_CONTEXT* ec);
 
 
-// validating setters (also used by MQL4)
+// validating setters (may be used by MQL4)
 uint               WINAPI ec_SetPid             (EXECUTION_CONTEXT* ec, uint               pid      );
 ProgramType        WINAPI ec_SetProgramType     (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName     (EXECUTION_CONTEXT* ec, const char*        name     );
