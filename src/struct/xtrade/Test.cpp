@@ -68,30 +68,30 @@ const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
  *
  * @return int - the same id
  */
-int WINAPI test_SetReportingId(TEST* test, int id) {
+int WINAPI test_SetReportId(TEST* test, int id) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (id < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
 
-   test->reportingId = id;
+   test->reportId = id;
    return(id);
 }
 
 
 /**
- * Set the reporting symbol of a TEST. Used for charted reports.
+ * Set the reporting symbol of a TEST. Used for report charts.
  *
  * @param  TEST* test
  * @param  char* symbol
  *
  * @return char* - the same symbol
  */
-const char* WINAPI test_SetReportingSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER)    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER)    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
+   if ((uint)test   < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
    int len = strlen(symbol);
-   if (len > sizeof(test->reportingSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, sizeof(test->reportingSymbol)-1));
+   if (len > sizeof(test->reportSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, sizeof(test->reportSymbol)-1));
 
-   if (!strcpy(test->reportingSymbol, symbol))
+   if (!strcpy(test->reportSymbol, symbol))
       return(NULL);
    return(symbol);
 }
@@ -258,23 +258,6 @@ BOOL WINAPI test_SetVisualMode(TEST* test, BOOL status) {
 
 
 /**
- * Set the duration of a TEST.
- *
- * @param  TEST* test
- * @param  uint  duration - duration in milliseconds
- *
- * @return uint - the same duration
- */
-uint WINAPI test_SetDuration(TEST* test, uint duration) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (duration <= 0)                  return(error(ERR_INVALID_PARAMETER, "invalid parameter duration: %d (not positive)", duration));
-
-   test->duration = duration;
-   return(duration);
-}
-
-
-/**
  * Return a human-readable version of a TEST struct.
  *
  * @param  TEST* test
@@ -285,31 +268,33 @@ uint WINAPI test_SetDuration(TEST* test, uint duration) {
 const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if ((uint)test < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
 
-   char* result = "{(empty)}";
-   const TEST empty = {};
+   std::stringstream ss;
+   TEST empty = {};
 
-   if (memcmp(test, &empty, sizeof(TEST))) {
-      std::stringstream ss; ss
-         <<  "{id="              <<                     test->id
+   if (!memcmp(test, &empty, sizeof(TEST))) {
+      ss << "{(empty)}";
+   }
+   else {
+      ss <<  "{id="              <<                     test->id
          << ", created="         <<                    (test->created   ? doubleQuoteStr(localTimeFormat(test->created, "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", strategy="        <<      doubleQuoteStr(test->strategy)
-         << ", reportingId="     <<                     test->reportingId
-         << ", reportingSymbol=" <<      doubleQuoteStr(test->reportingSymbol)
+         << ", reportId="        <<                     test->reportId
+         << ", reportSymbol="    <<      doubleQuoteStr(test->reportSymbol)
          << ", symbol="          <<      doubleQuoteStr(test->symbol)
          << ", timeframe="       <<      TimeframeToStr(test->timeframe)
          << ", startTime="       <<                    (test->startTime ? doubleQuoteStr(gmtTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", endTime="         <<                    (test->endTime   ? doubleQuoteStr(gmtTimeFormat(test->endTime,   "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", barModel="        << BarModelDescription(test->barModel)
-         << ", spread="          <<        numberFormat(test->spread, "%.1f")
          << ", bars="            <<                     test->bars
          << ", ticks="           <<                     test->ticks
+         << ", spread="          <<        numberFormat(test->spread, "%.1f")
          << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
          << ", visualMode="      <<           BoolToStr(test->visualMode)
-         << ", duration="        <<                    (test->duration ? numberFormat(test->duration/1000., "%.3f s") : "0")
-         << ", orders="          <<                    (test->orders   ? to_string(test->orders->size()) : "NULL")
+         << ", orders="          <<                    (test->orders ? to_string(test->orders->size()) : "NULL")
          << "}";
-      result = strdup(ss.str().c_str());                                         // TODO: close memory leak
    }
+   ss << " (0x" << IntToHexStr((uint)test) << ")";
+   char* result = strdup(ss.str().c_str());                                      // TODO: close memory leak
 
    if (outputDebug) debug(result);
    return(result);

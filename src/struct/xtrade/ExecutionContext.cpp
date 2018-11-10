@@ -9,15 +9,15 @@ extern std::vector<ContextChain> g_contextChains;              // all context ch
 
 
 /**
- * Return an EXECUTION_CONTEXT's MQL program index.
+ * Return an MQL program's id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - program index (starting from 1)
+ * @return uint - program id starting from 1
  */
-uint WINAPI ec_ProgramIndex(const EXECUTION_CONTEXT* ec) {
+uint WINAPI ec_Pid(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->programIndex);
+   return(ec->pid);
    #pragma EXPANDER_EXPORT
 }
 
@@ -345,76 +345,6 @@ double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not an experts input parameter "EA.ExtendedReporting" is activated.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->extReporting);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not an experts input parameter "EA.RecordEquity" is activated.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->recordEquity);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program is running in the tester or on a test chart.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->testing);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program is running in the tester or on a test chart with "VisualMode" on.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->visualMode);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program is running in the tester with "Optimization" on.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->optimization);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the id of the TEST linked to an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -469,10 +399,10 @@ const char* WINAPI ec_TestStrategy(const EXECUTION_CONTEXT* ec) {
  *
  * @return int - reporting id
  */
-int WINAPI ec_TestReportingId(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_TestReportId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
-      return(ec->test->reportingId);
+      return(ec->test->reportId);
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
@@ -485,10 +415,10 @@ int WINAPI ec_TestReportingId(const EXECUTION_CONTEXT* ec) {
  *
  * @return char* - reporting symbol
  */
-const char* WINAPI ec_TestReportingSymbol(const EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
-      return(ec->test->reportingSymbol);
+      return(ec->test->reportSymbol);
    return((char*)NULL);
    #pragma EXPANDER_EXPORT
 }
@@ -575,22 +505,6 @@ uint WINAPI ec_TestBarModel(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the spread used in the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return double - test spread
- */
-double WINAPI ec_TestSpread(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->spread);
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the number of bars of the TEST linked to an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -617,6 +531,22 @@ uint WINAPI ec_TestTicks(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
       return(ec->test->ticks);
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the spread used in the TEST linked to an EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return double - test spread
+ */
+double WINAPI ec_TestSpread(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->test)
+      return(ec->test->spread);
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
@@ -655,17 +585,71 @@ BOOL WINAPI ec_TestVisualMode(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the duration of the TEST linked to an EXECUTION_CONTEXT.
+ * Whether or not a program is running in the tester or on a test chart.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - test duration in milliseconds
+ * @return BOOL
  */
-uint WINAPI ec_TestDuration(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->duration);
-   return(NULL);
+   return(ec->testing);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester or on a test chart with "VisualMode" on.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->visualMode);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester with "Optimization" on.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->optimization);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not an experts input parameter "EA.ExtReporting" is activated.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->extReporting);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not an experts input parameter "EA.RecordEquity" is activated.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->recordEquity);
    #pragma EXPANDER_EXPORT
 }
 
@@ -835,21 +819,21 @@ const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Set a program's index in the list of the executed programs.
+ * Set a program's id.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  uint               index - program index (must be greater than zero)
+ * @param  uint               pid - program id (must be greater than zero)
  *
- * @return uint - the same index
+ * @return uint - the same id
  */
-uint WINAPI ec_SetProgramIndex(EXECUTION_CONTEXT* ec, uint index) {
+uint WINAPI ec_SetPid(EXECUTION_CONTEXT* ec, uint pid) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (index <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter index: %d (must be greater than zero)", index));
+   if (pid <= 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (must be greater than zero)", pid));
 
-   ec->programIndex = index;                                         // synchronize main and master context
-   if (g_contextChains.size() > index && ec==g_contextChains[index][1] && g_contextChains[index][0])
-      g_contextChains[index][0]->programIndex = index;
-   return(index);
+   ec->pid = pid;                                           // synchronize main and master context
+   if (g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->pid = pid;
+   return(pid);
 }
 
 
@@ -873,7 +857,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
 
    ec->programType = type;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->programType = type;
    return(type);
@@ -897,7 +881,7 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
    if (!strcpy(ec->programName, name))
       return(NULL);
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       if (!strcpy(g_contextChains[pid][0]->programName, name))
          return(NULL);
@@ -926,7 +910,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
 
    ec->moduleType = type;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->moduleType = type;
    return(type);
@@ -950,7 +934,7 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
    if (!strcpy(ec->moduleName, name))
       return(NULL);
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       if (!strcpy(g_contextChains[pid][0]->moduleName, name))
          return(NULL);
@@ -978,7 +962,7 @@ LaunchType WINAPI ec_SetLaunchType(EXECUTION_CONTEXT* ec, LaunchType type) {
 
    ec->launchType = type;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->launchType = type;
    return(type);
@@ -1008,7 +992,7 @@ CoreFunction WINAPI ec_SetCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction id) {
 
    ec->coreFunction = id;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->coreFunction = id;
    return(id);
@@ -1029,7 +1013,7 @@ BOOL WINAPI ec_SetInitCycle(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->initCycle = status;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->initCycle = status;
    return(status);
@@ -1068,7 +1052,7 @@ InitializeReason WINAPI ec_SetInitReason(EXECUTION_CONTEXT* ec, InitializeReason
 
    ec->initReason = reason;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->initReason = reason;
    return(reason);
@@ -1104,7 +1088,7 @@ UninitializeReason WINAPI ec_SetUninitReason(EXECUTION_CONTEXT* ec, Uninitialize
 
    ec->uninitReason = reason;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->uninitReason = reason;
    return(reason);
@@ -1124,7 +1108,7 @@ DWORD WINAPI ec_SetInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
    ec->initFlags = flags;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->initFlags = flags;
    return(flags);
@@ -1144,7 +1128,7 @@ DWORD WINAPI ec_SetDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
    ec->deinitFlags = flags;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->deinitFlags = flags;
    return(flags);
@@ -1168,7 +1152,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
    if (!strcpy(ec->symbol, symbol))
       return(NULL);
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       if (!strcpy(g_contextChains[pid][0]->symbol, symbol))
          return(NULL);
@@ -1190,7 +1174,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
    ec->timeframe = timeframe;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->timeframe = timeframe;
    return(timeframe);
@@ -1211,7 +1195,7 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
    ec->digits = digits;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->digits = digits;
    return(digits);
@@ -1232,7 +1216,7 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double point) {
 
    ec->point = point;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->point = point;
    return(point);
@@ -1253,7 +1237,7 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int count) {
 
    ec->bars = count;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->bars = count;
    return(count);
@@ -1274,7 +1258,7 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int count) {
 
    ec->changedBars = count;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->changedBars = count;
    return(count);
@@ -1295,7 +1279,7 @@ int WINAPI ec_SetUnchangedBars(EXECUTION_CONTEXT* ec, int count) {
 
    ec->unchangedBars = count;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->unchangedBars = count;
    return(count);
@@ -1316,7 +1300,7 @@ uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
 
    ec->ticks = count;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->ticks = count;
    return(count);
@@ -1337,7 +1321,7 @@ datetime WINAPI ec_SetLastTickTime(EXECUTION_CONTEXT* ec, datetime time) {
 
    ec->lastTickTime = time;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->lastTickTime = time;
    return(time);
@@ -1358,7 +1342,7 @@ datetime WINAPI ec_SetPrevTickTime(EXECUTION_CONTEXT* ec, datetime time) {
 
    ec->prevTickTime = time;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->prevTickTime = time;
    return(time);
@@ -1379,7 +1363,7 @@ double WINAPI ec_SetBid(EXECUTION_CONTEXT* ec, double price) {
 
    ec->bid = price;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->bid = price;
    return(price);
@@ -1400,50 +1384,10 @@ double WINAPI ec_SetAsk(EXECUTION_CONTEXT* ec, double price) {
 
    ec->ask = price;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->ask = price;
    return(price);
-}
-
-
-/**
- * Set a program's "ExtendedReporting" status.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetExtReporting(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->extReporting = status;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->extReporting = status;
-   return(status);
-}
-
-
-/**
- * Set a program's "RecordEquity" status.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->recordEquity = status;
-
-   uint pid = ec->programIndex;                                      // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->recordEquity = status;
-   return(status);
 }
 
 
@@ -1460,7 +1404,7 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->testing = status;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->testing = status;
    return(status);
@@ -1480,7 +1424,7 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->visualMode = status;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->visualMode = status;
    return(status);
@@ -1500,9 +1444,49 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->optimization = status;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->optimization = status;
+   return(status);
+}
+
+
+/**
+ * Set a program's "extended reporting" status.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetExtReporting(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->extReporting = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->extReporting = status;
+   return(status);
+}
+
+
+/**
+ * Set a program's "record equity" status.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->recordEquity = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->recordEquity = status;
    return(status);
 }
 
@@ -1521,7 +1505,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
 
    ec->superContext = sec;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->superContext = sec;
    return(sec);
@@ -1542,7 +1526,7 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
 
    ec->threadId = id;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->threadId = id;
    return(id);
@@ -1562,7 +1546,7 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
    ec->hChart = hWnd;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->hChart = hWnd;
    return(hWnd);
@@ -1582,7 +1566,7 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
    ec->hChartWindow = hWnd;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->hChartWindow = hWnd;
    return(hWnd);
@@ -1605,9 +1589,9 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
 
    ec->mqlError = error;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      ec_SetMqlError(g_contextChains[pid][0], error);
+      g_contextChains[pid][0]->mqlError = error;
 
    if (error) {                                                      // no propagation for NO_ERROR
       if (ec->moduleType==MT_LIBRARY && pid) {                       // propagation from library to main module
@@ -1618,7 +1602,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
       }
 
       if (ec->superContext)
-         ec_SetMqlError(ec->superContext, error);                    // propagation to parent program
+         ec_SetMqlError(ec->superContext, error);                    // propagate to parent program
    }
    return(error);
    #pragma EXPANDER_EXPORT
@@ -1641,13 +1625,13 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
 
    ec->dllError = error;
 
-   uint pid = ec->programIndex;
+   uint pid = ec->pid;
    if (pid && g_contextChains.size() > pid) {
       EXECUTION_CONTEXT* master = g_contextChains[pid][0];
       EXECUTION_CONTEXT* main   = g_contextChains[pid][1];
 
       if (ec==main && master)                                        // synchronize main and master context
-         ec_SetDllError(master, error);
+         g_contextChains[pid][0]->dllError = error;
 
       if (error) {                                                   // no propagation for NO_ERROR
          if (ec->moduleType==MT_LIBRARY) {
@@ -1677,9 +1661,9 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 
    ec->dllWarning = error;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      ec_SetDllWarning(g_contextChains[pid][0], error);
+      g_contextChains[pid][0]->dllWarning = error;
 
    if (!error)                                                       // keine Propagation beim Zurücksetzen eines Fehlers
       return(error);
@@ -1707,7 +1691,7 @@ BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
 
    ec->logging = status;
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->logging = status;
    return(status);
@@ -1739,7 +1723,7 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
       ec->customLogFile[0] = '\0';
    }
 
-   uint pid = ec->programIndex;                                      // synchronize main and master context
+   uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       return(ec_SetCustomLogFile(g_contextChains[pid][0], fileName));
    return(fileName);
@@ -1747,20 +1731,27 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
 
 
 /**
- * Return the MQL program index as stored in an EXECUTION_CONTEXT's master context.
+ * Return the MQL program id as stored in an EXECUTION_CONTEXT's master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - program index (starting from 1)
+ * @return uint - program id (starting from 1) or NULL in case of errors
  */
-uint WINAPI mec_ProgramIndex(const EXECUTION_CONTEXT* ec) {
+uint WINAPI mec_Pid(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
 
-   return(master->programIndex);
+   if (g_contextChains.size() > pid) {
+      EXECUTION_CONTEXT* master = g_contextChains[pid][0];
+      if (master) return(master->pid);
+
+      debug("program id %d: no master context", pid);
+   }
+   else error(ERR_ILLEGAL_STATE, "no such pid: %d", pid);
+
+   return(NULL);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1775,9 +1766,9 @@ uint WINAPI mec_ProgramIndex(const EXECUTION_CONTEXT* ec) {
 ProgramType WINAPI mec_ProgramType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((ProgramType)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((ProgramType)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->programType);
    #pragma EXPANDER_EXPORT
@@ -1794,9 +1785,9 @@ ProgramType WINAPI mec_ProgramType(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI mec_ProgramName(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((char*)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((char*)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->programName);
    #pragma EXPANDER_EXPORT
@@ -1813,9 +1804,9 @@ const char* WINAPI mec_ProgramName(const EXECUTION_CONTEXT* ec) {
 ModuleType WINAPI mec_ModuleType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((ModuleType)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((ModuleType)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->moduleType);
    #pragma EXPANDER_EXPORT
@@ -1832,9 +1823,9 @@ ModuleType WINAPI mec_ModuleType(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI mec_ModuleName(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((char*)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((char*)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->moduleName);
    #pragma EXPANDER_EXPORT
@@ -1851,9 +1842,9 @@ const char* WINAPI mec_ModuleName(const EXECUTION_CONTEXT* ec) {
 LaunchType WINAPI mec_LaunchType(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((LaunchType)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((LaunchType)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((LaunchType)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->launchType);
    #pragma EXPANDER_EXPORT
@@ -1870,9 +1861,9 @@ LaunchType WINAPI mec_LaunchType(const EXECUTION_CONTEXT* ec) {
 CoreFunction WINAPI mec_CoreFunction(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((CoreFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((CoreFunction)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((CoreFunction)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->coreFunction);
    #pragma EXPANDER_EXPORT
@@ -1889,9 +1880,9 @@ CoreFunction WINAPI mec_CoreFunction(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI mec_InitCycle(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->initCycle);
    #pragma EXPANDER_EXPORT
@@ -1908,9 +1899,9 @@ BOOL WINAPI mec_InitCycle(const EXECUTION_CONTEXT* ec) {
 InitializeReason WINAPI mec_InitReason(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((InitializeReason)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((InitializeReason)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->initReason);
    #pragma EXPANDER_EXPORT
@@ -1927,9 +1918,9 @@ InitializeReason WINAPI mec_InitReason(const EXECUTION_CONTEXT* ec) {
 UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((UninitializeReason)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((UninitializeReason)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->uninitReason);
    #pragma EXPANDER_EXPORT
@@ -1946,9 +1937,9 @@ UninitializeReason WINAPI mec_UninitReason(const EXECUTION_CONTEXT* ec) {
 DWORD WINAPI mec_InitFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->initFlags);
    #pragma EXPANDER_EXPORT
@@ -1965,9 +1956,9 @@ DWORD WINAPI mec_InitFlags(const EXECUTION_CONTEXT* ec) {
 DWORD WINAPI mec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->deinitFlags);
    #pragma EXPANDER_EXPORT
@@ -1984,9 +1975,9 @@ DWORD WINAPI mec_DeinitFlags(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI mec_Symbol(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((char*)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((char*)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->symbol);
    #pragma EXPANDER_EXPORT
@@ -2003,9 +1994,9 @@ const char* WINAPI mec_Symbol(const EXECUTION_CONTEXT* ec) {
 uint WINAPI mec_Timeframe(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->timeframe);
    #pragma EXPANDER_EXPORT
@@ -2022,9 +2013,9 @@ uint WINAPI mec_Timeframe(const EXECUTION_CONTEXT* ec) {
 uint WINAPI mec_Digits(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->digits);
    #pragma EXPANDER_EXPORT
@@ -2041,9 +2032,9 @@ uint WINAPI mec_Digits(const EXECUTION_CONTEXT* ec) {
 double WINAPI mec_Point(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->point);
    #pragma EXPANDER_EXPORT
@@ -2060,9 +2051,9 @@ double WINAPI mec_Point(const EXECUTION_CONTEXT* ec) {
 int WINAPI mec_Bars(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->bars);
    #pragma EXPANDER_EXPORT
@@ -2079,9 +2070,9 @@ int WINAPI mec_Bars(const EXECUTION_CONTEXT* ec) {
 int WINAPI mec_ChangedBars(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->changedBars);
    #pragma EXPANDER_EXPORT
@@ -2098,9 +2089,9 @@ int WINAPI mec_ChangedBars(const EXECUTION_CONTEXT* ec) {
 int WINAPI mec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->unchangedBars);
    #pragma EXPANDER_EXPORT
@@ -2117,9 +2108,9 @@ int WINAPI mec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
 uint WINAPI mec_Ticks(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->ticks);
    #pragma EXPANDER_EXPORT
@@ -2136,9 +2127,9 @@ uint WINAPI mec_Ticks(const EXECUTION_CONTEXT* ec) {
 datetime WINAPI mec_LastTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->lastTickTime);
    #pragma EXPANDER_EXPORT
@@ -2155,9 +2146,9 @@ datetime WINAPI mec_LastTickTime(const EXECUTION_CONTEXT* ec) {
 datetime WINAPI mec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->prevTickTime);
    #pragma EXPANDER_EXPORT
@@ -2174,9 +2165,9 @@ datetime WINAPI mec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
 double WINAPI mec_Bid(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->bid);
    #pragma EXPANDER_EXPORT
@@ -2193,49 +2184,11 @@ double WINAPI mec_Bid(const EXECUTION_CONTEXT* ec) {
 double WINAPI mec_Ask(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->ask);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program's input parameter "EA.ExtendedReporting" is active, as stored in an EXECUTION_CONTEXT's master context.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI mec_ExtReporting(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
-
-   return(master->extReporting);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program's input parameter "EA.RecordEquity" is active, as stored in an EXECUTION_CONTEXT's master context.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI mec_RecordEquity(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
-
-   return(master->recordEquity);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2250,9 +2203,9 @@ BOOL WINAPI mec_RecordEquity(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI mec_Testing(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->testing);
    #pragma EXPANDER_EXPORT
@@ -2270,9 +2223,9 @@ BOOL WINAPI mec_Testing(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI mec_VisualMode(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->visualMode);
    #pragma EXPANDER_EXPORT
@@ -2290,11 +2243,49 @@ BOOL WINAPI mec_VisualMode(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI mec_Optimization(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->optimization);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program's "extended reporting" status is active, as stored in an EXECUTION_CONTEXT's master context.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI mec_ExtReporting(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
+
+   return(master->extReporting);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program's "record equity" status is active, as stored in an EXECUTION_CONTEXT's master context.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI mec_RecordEquity(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
+
+   return(master->recordEquity);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2311,9 +2302,9 @@ BOOL WINAPI mec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* con
    if ((uint)ec     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if ((uint)target < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter target: 0x%p (not a valid pointer)", target));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    if (master->superContext) {
       *target = *master->superContext;
@@ -2337,9 +2328,9 @@ BOOL WINAPI mec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* con
 EXECUTION_CONTEXT* WINAPI mec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((EXECUTION_CONTEXT*)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((EXECUTION_CONTEXT*)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->superContext);
    #pragma EXPANDER_EXPORT
@@ -2356,9 +2347,9 @@ EXECUTION_CONTEXT* WINAPI mec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
 uint WINAPI mec_ThreadId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->threadId);
    #pragma EXPANDER_EXPORT
@@ -2375,9 +2366,9 @@ uint WINAPI mec_ThreadId(const EXECUTION_CONTEXT* ec) {
 HWND WINAPI mec_hChart(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((HWND)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((HWND)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->hChart);
    #pragma EXPANDER_EXPORT
@@ -2394,9 +2385,9 @@ HWND WINAPI mec_hChart(const EXECUTION_CONTEXT* ec) {
 HWND WINAPI mec_hChartWindow(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((HWND)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((HWND)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->hChartWindow);
    #pragma EXPANDER_EXPORT
@@ -2413,9 +2404,9 @@ HWND WINAPI mec_hChartWindow(const EXECUTION_CONTEXT* ec) {
 int WINAPI mec_MqlError(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(_EMPTY(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec))));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(_EMPTY(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec))));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->mqlError);
    #pragma EXPANDER_EXPORT
@@ -2432,9 +2423,9 @@ int WINAPI mec_MqlError(const EXECUTION_CONTEXT* ec) {
 int WINAPI mec_DllError(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(_EMPTY(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec))));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(_EMPTY(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec))));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->dllError);
    #pragma EXPANDER_EXPORT
@@ -2451,9 +2442,9 @@ int WINAPI mec_DllError(const EXECUTION_CONTEXT* ec) {
 int WINAPI mec_DllWarning(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(_EMPTY(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec))));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(_EMPTY(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec))));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->dllWarning);
    #pragma EXPANDER_EXPORT
@@ -2470,9 +2461,9 @@ int WINAPI mec_DllWarning(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI mec_Logging(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return(error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->logging);
    #pragma EXPANDER_EXPORT
@@ -2489,9 +2480,9 @@ BOOL WINAPI mec_Logging(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI mec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   uint programIndex = ec->programIndex;
-   if (!programIndex) return((char*)error(ERR_ILLEGAL_STATE, "illegal programIndex %d in ec: %s", programIndex, EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[programIndex][0];
+   uint pid = ec->pid;
+   if (!pid) return((char*)error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->customLogFile);
    #pragma EXPANDER_EXPORT
@@ -2516,52 +2507,52 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
       ss << "{(empty)}";
    }
    else {
-      ss <<  "{programIndex="     <<                   ec->programIndex
-         << ", programType="      <<  ProgramTypeToStr(ec->programType)
-         << ", programName="      <<    doubleQuoteStr(ec->programName)
-         << ", moduleType="       <<   ModuleTypeToStr(ec->moduleType )
-         << ", moduleName="       <<    doubleQuoteStr(ec->moduleName )
+      ss <<  "{pid="           <<                   ec->pid
+         << ", programType="   <<  ProgramTypeToStr(ec->programType)
+         << ", programName="   <<    doubleQuoteStr(ec->programName)
+         << ", moduleType="    <<   ModuleTypeToStr(ec->moduleType )
+         << ", moduleName="    <<    doubleQuoteStr(ec->moduleName )
 
-         << ", launchType="       <<                   ec->launchType
-         << ", coreFunction="     << CoreFunctionToStr(ec->coreFunction)
-         << ", initCycle="        <<         BoolToStr(ec->initCycle   )
-         << ", initReason="       <<   InitReasonToStr(ec->initReason  )
-         << ", uninitReason="     << UninitReasonToStr(ec->uninitReason)
-         << ", initFlags="        <<    InitFlagsToStr(ec->initFlags   )
-         << ", deinitFlags="      <<  DeinitFlagsToStr(ec->deinitFlags )
+         << ", launchType="    <<                   ec->launchType
+         << ", coreFunction="  << CoreFunctionToStr(ec->coreFunction)
+         << ", initCycle="     <<         BoolToStr(ec->initCycle   )
+         << ", initReason="    <<   InitReasonToStr(ec->initReason  )
+         << ", uninitReason="  << UninitReasonToStr(ec->uninitReason)
+         << ", initFlags="     <<    InitFlagsToStr(ec->initFlags   )
+         << ", deinitFlags="   <<  DeinitFlagsToStr(ec->deinitFlags )
 
-         << ", symbol="           <<    doubleQuoteStr(ec->symbol      )
-         << ", timeframe="        <<       PeriodToStr(ec->timeframe   )
-         << ", digits="           <<                   ec->digits
-         << ", point="            <<                   ec->point
-         << ", rates="            <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
-         << ", bars="             <<                   ec->bars
-         << ", changedBars="      <<                   ec->changedBars
-         << ", unchangedBars="    <<                   ec->unchangedBars
-         << ", ticks="            <<                   ec->ticks
-         << ", lastTickTime="     <<                  (ec->lastTickTime ? doubleQuoteStr(gmtTimeFormat(ec->lastTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
-         << ", prevTickTime="     <<                  (ec->prevTickTime ? doubleQuoteStr(gmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
-         << ", bid="              <<                   ec->bid
-         << ", ask="              <<                   ec->ask
+         << ", symbol="        <<    doubleQuoteStr(ec->symbol      )
+         << ", timeframe="     <<       PeriodToStr(ec->timeframe   )
+         << ", digits="        <<                   ec->digits
+         << ", point="         <<                   ec->point
+         << ", rates="         <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
+         << ", bars="          <<                   ec->bars
+         << ", changedBars="   <<                   ec->changedBars
+         << ", unchangedBars=" <<                   ec->unchangedBars
+         << ", ticks="         <<                   ec->ticks
+         << ", lastTickTime="  <<                  (ec->lastTickTime ? doubleQuoteStr(gmtTimeFormat(ec->lastTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", prevTickTime="  <<                  (ec->prevTickTime ? doubleQuoteStr(gmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", bid="           <<                   ec->bid
+         << ", ask="           <<                   ec->ask
 
-         << ", extReporting="     <<         BoolToStr(ec->extReporting)
-         << ", recordEquity="     <<         BoolToStr(ec->recordEquity)
+         << ", test="          <<                  (ec->test ? string("0x").append(IntToHexStr((uint)ec->test)) : "NULL")
+         << ", testing="       <<         BoolToStr(ec->testing     )
+         << ", visualMode="    <<         BoolToStr(ec->visualMode  )
+         << ", optimization="  <<         BoolToStr(ec->optimization)
 
-         << ", testing="          <<         BoolToStr(ec->testing     )
-         << ", visualMode="       <<         BoolToStr(ec->visualMode  )
-         << ", optimization="     <<         BoolToStr(ec->optimization)
-         << ", test="             <<                  (ec->test         ? string("0x").append(IntToHexStr((uint)ec->test))         : "NULL")
+         << ", extReporting="  <<         BoolToStr(ec->extReporting)
+         << ", recordEquity="  <<         BoolToStr(ec->recordEquity)
 
-         << ", superContext="     <<                  (ec->superContext ? string("0x").append(IntToHexStr((uint)ec->superContext)) : "NULL")
-         << ", threadId="         <<                   ec->threadId
-         << ", hChart="           <<                  (ec->hChart       ? string("0x").append(IntToHexStr((uint)ec->hChart))       : "NULL")
-         << ", hChartWindow="     <<                  (ec->hChartWindow ? string("0x").append(IntToHexStr((uint)ec->hChartWindow)) : "NULL")
+         << ", superContext="  <<                  (ec->superContext ? string("0x").append(IntToHexStr((uint)ec->superContext)) : "NULL")
+         << ", threadId="      <<                   ec->threadId
+         << ", hChart="        <<                  (ec->hChart       ? string("0x").append(IntToHexStr((uint)ec->hChart))       : "NULL")
+         << ", hChartWindow="  <<                  (ec->hChartWindow ? string("0x").append(IntToHexStr((uint)ec->hChartWindow)) : "NULL")
 
-         << ", mqlError="         <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
-         << ", dllError="         <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
-         << ", dllWarning="       <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
-         << ", logging="          <<         BoolToStr(ec->logging      )
-         << ", customLogFile="    <<    doubleQuoteStr(ec->customLogFile)
+         << ", mqlError="      <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
+         << ", dllError="      <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
+         << ", dllWarning="    <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
+         << ", logging="       <<         BoolToStr(ec->logging      )
+         << ", customLogFile=" <<    doubleQuoteStr(ec->customLogFile)
          << "}";
    }
    ss << " (0x" << IntToHexStr((uint)ec) << ")";

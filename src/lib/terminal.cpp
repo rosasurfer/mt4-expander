@@ -544,7 +544,6 @@ int WINAPI Test_synchronize() {
  * @return int
  */
 int WINAPI Test() {
-   HWND hWnd = FindInputDialog(PT_INDICATOR, "ALMA");
    return(0);
    #pragma EXPANDER_EXPORT
 }
