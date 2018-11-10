@@ -283,17 +283,31 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 
    LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
 
-   ec_SetCoreFunction (ec, CF_START);                                // update context
-   ec_SetThreadId     (ec, GetCurrentThreadId());
-   ec->rates             = rates;
-   ec_SetBars         (ec, bars);
-   ec_SetChangedBars  (ec, changedBars);
-   ec_SetUnchangedBars(ec, changedBars==-1 ? -1 : bars-changedBars);
-   ec_SetTicks        (ec, ticks);
-   ec_SetPrevTickTime (ec, ec->lastTickTime);
-   ec_SetLastTickTime (ec, time);
-   ec_SetBid          (ec, bid);
-   ec_SetAsk          (ec, ask);
+   int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
+   datetime lastTickTime  = ec->lastTickTime;
+   DWORD    threadId      = GetCurrentThreadId();
+
+   ContextChain& chain = g_contextChains[ec->pid];
+   uint size = chain.size();
+   EXECUTION_CONTEXT* ctx;
+
+   // update and synchronize contexts of all program modules
+   for (uint i=0; i < size; ++i) {
+      if ((ctx=chain[i]) && ctx->coreFunction!=CF_DEINIT) {          // skip libraries which are already unloaded (if that's even possible)
+         ctx->coreFunction  = CF_START;
+         ctx->rates         = rates;
+         ctx->bars          = bars;
+         ctx->changedBars   = changedBars;
+         ctx->unchangedBars = unchangedBars;
+         ctx->ticks         = ticks;
+         ctx->prevTickTime  = lastTickTime;
+         ctx->lastTickTime  = time;
+         ctx->bid           = bid;
+         ctx->ask           = ask;
+         ctx->threadId      = threadId;
+      }
+      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d] or module already unloaded: 0x%p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
+   }
 
    /*
    if (rates && bars) {
