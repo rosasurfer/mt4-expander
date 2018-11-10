@@ -345,76 +345,6 @@ double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not an experts input parameter "EA.ExtendedReporting" is activated.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->extReporting);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not an experts input parameter "EA.RecordEquity" is activated.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->recordEquity);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program is running in the tester or on a test chart.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->testing);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program is running in the tester or on a test chart with "VisualMode" on.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->visualMode);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program is running in the tester with "Optimization" on.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->optimization);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the id of the TEST linked to an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -469,10 +399,10 @@ const char* WINAPI ec_TestStrategy(const EXECUTION_CONTEXT* ec) {
  *
  * @return int - reporting id
  */
-int WINAPI ec_TestReportingId(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_TestReportId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
-      return(ec->test->reportingId);
+      return(ec->test->reportId);
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
@@ -485,10 +415,10 @@ int WINAPI ec_TestReportingId(const EXECUTION_CONTEXT* ec) {
  *
  * @return char* - reporting symbol
  */
-const char* WINAPI ec_TestReportingSymbol(const EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
-      return(ec->test->reportingSymbol);
+      return(ec->test->reportSymbol);
    return((char*)NULL);
    #pragma EXPANDER_EXPORT
 }
@@ -666,6 +596,76 @@ uint WINAPI ec_TestDuration(const EXECUTION_CONTEXT* ec) {
    if (ec->test)
       return(ec->test->duration);
    return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester or on a test chart.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->testing);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester or on a test chart with "VisualMode" on.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->visualMode);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester with "Optimization" on.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->optimization);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not an experts input parameter "EA.ExtReporting" is activated.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->extReporting);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not an experts input parameter "EA.RecordEquity" is activated.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->recordEquity);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1408,46 +1408,6 @@ double WINAPI ec_SetAsk(EXECUTION_CONTEXT* ec, double price) {
 
 
 /**
- * Set a program's "ExtendedReporting" status.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetExtReporting(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->extReporting = status;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->extReporting = status;
-   return(status);
-}
-
-
-/**
- * Set a program's "RecordEquity" status.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->recordEquity = status;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->recordEquity = status;
-   return(status);
-}
-
-
-/**
  * Set a program's testing status.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1503,6 +1463,46 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->optimization = status;
+   return(status);
+}
+
+
+/**
+ * Set a program's "extended reporting" status.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetExtReporting(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->extReporting = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->extReporting = status;
+   return(status);
+}
+
+
+/**
+ * Set a program's "record equity" status.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->recordEquity = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->recordEquity = status;
    return(status);
 }
 
@@ -2210,44 +2210,6 @@ double WINAPI mec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not a program's input parameter "EA.ExtendedReporting" is active, as stored in an EXECUTION_CONTEXT's master context.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI mec_ExtReporting(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   uint pid = ec->pid;
-   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
-
-   return(master->extReporting);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program's input parameter "EA.RecordEquity" is active, as stored in an EXECUTION_CONTEXT's master context.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI mec_RecordEquity(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   uint pid = ec->pid;
-   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
-   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
-
-   return(master->recordEquity);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether or not a program is running in the tester or on a test chart, as stored in an EXECUTION_CONTEXT's master context.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -2302,6 +2264,44 @@ BOOL WINAPI mec_Optimization(const EXECUTION_CONTEXT* ec) {
    EXECUTION_CONTEXT* master = g_contextChains[pid][0];
 
    return(master->optimization);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program's "extended reporting" status is active, as stored in an EXECUTION_CONTEXT's master context.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI mec_ExtReporting(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
+
+   return(master->extReporting);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program's "record equity" status is active, as stored in an EXECUTION_CONTEXT's master context.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI mec_RecordEquity(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   uint pid = ec->pid;
+   if (!pid) return(error(ERR_ILLEGAL_STATE, "illegal pid in ec: %s", EXECUTION_CONTEXT_toStr(ec)));
+   EXECUTION_CONTEXT* master = g_contextChains[pid][0];
+
+   return(master->recordEquity);
    #pragma EXPANDER_EXPORT
 }
 

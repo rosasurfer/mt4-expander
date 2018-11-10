@@ -141,64 +141,6 @@ double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint
 
 
 /**
- * TODO: documentation
- */
-BOOL WINAPI Test_StartReporting(EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int barModel, int reportingId, const char* reportingSymbol) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
-
-   if (ec->test) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already started", ec->programName));
-
-   TEST* test = new TEST();
-
-   ec->test = test;
-   test_SetCreated        (test, time(NULL)     );
-   test_SetStrategy       (test, ec->programName);
-   test_SetReportingId    (test, reportingId    );
-   test_SetReportingSymbol(test, reportingSymbol);
-   test_SetSymbol         (test, ec->symbol     );
-   test_SetTimeframe      (test, ec->timeframe  );
-   test_SetStartTime      (test, startTime      );
-   test_SetBarModel       (test, barModel       );
-   test_SetSpread         (test, (ec->ask-ec->bid)/0.0001);       // TODO: statt 0.0001 Variable Pip
-   test_SetBars           (test, bars           );
-   //uint tradeDirections;                                        // TODO: aus Expert.ini auslesen
-   test_SetVisualMode     (test, ec->visualMode );
-   test_SetDuration       (test, GetTickCount() );
-   test->orders = new OrderHistory(2048);                         // reserve memory to speed-up testing
-   test->orders->resize(0);
-
-   return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * TODO: documentation
- */
-BOOL WINAPI Test_StopReporting(EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
-
-   TEST* test = ec->test;
-   if (!test)         return(error(ERR_RUNTIME_ERROR, "missing TEST initialization of expert \"%s\"", ec->programName));
-   if (test->endTime) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already stopped", ec->programName));
-
-   test_SetEndTime (test, endTime                        );
-   test_SetBars    (test, bars - test->bars + 1          );
-   test_SetTicks   (test, ec->ticks                      );
-   test_SetDuration(test, GetTickCount() - test->duration);
-
-   Test_SaveReport(test);                                         // TODO: close memory leak => TEST, OrderHistory
-
-   return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * TODO: validation
  */
 BOOL WINAPI Test_onPositionOpen(EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
@@ -276,7 +218,7 @@ BOOL WINAPI Test_SaveReport(TEST* test) {
    string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
                                               .append(test->strategy)
                                               .append(" #")
-                                              .append(to_string(test->reportingId))
+                                              .append(to_string(test->reportId))
                                               .append(localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
    std::ofstream file(logfile.c_str());
    if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
@@ -296,8 +238,66 @@ BOOL WINAPI Test_SaveReport(TEST* test) {
    // backup input parameters
    // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
    string source = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
-   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportingId) + localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
+   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportId) + localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(source.c_str(), target.c_str(), TRUE))
       return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
    return(TRUE);
+}
+
+
+/**
+ * TODO: documentation
+ */
+BOOL WINAPI Test_StartReporting(EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int barModel, int reportId, const char* reportSymbol) {
+   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
+
+   if (ec->test) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already started", ec->programName));
+
+   TEST* test = new TEST();
+
+   ec->test = test;
+   test_SetCreated     (test, time(NULL)     );
+   test_SetStrategy    (test, ec->programName);
+   test_SetReportId    (test, reportId       );
+   test_SetReportSymbol(test, reportSymbol   );
+   test_SetSymbol      (test, ec->symbol     );
+   test_SetTimeframe   (test, ec->timeframe  );
+   test_SetStartTime   (test, startTime      );
+   test_SetBarModel    (test, barModel       );
+   test_SetSpread      (test, (ec->ask-ec->bid)/0.0001);          // TODO: statt 0.0001 Variable Pip
+   test_SetBars        (test, bars           );
+ //test_SetTradeDirections...                                     // TODO: aus Expert.ini auslesen
+   test_SetVisualMode  (test, ec->visualMode );
+   test_SetDuration    (test, GetTickCount() );
+   test->orders = new OrderHistory(2048);                         // reserve memory to speed-up testing
+   test->orders->resize(0);
+
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * TODO: documentation
+ */
+BOOL WINAPI Test_StopReporting(EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
+   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
+
+   TEST* test = ec->test;
+   if (!test)         return(error(ERR_RUNTIME_ERROR, "missing TEST initialization of expert \"%s\"", ec->programName));
+   if (test->endTime) return(error(ERR_RUNTIME_ERROR, "TEST reporting of expert \"%s\" already stopped", ec->programName));
+
+   test_SetEndTime (test, endTime                        );
+   test_SetBars    (test, bars - test->bars + 1          );
+   test_SetTicks   (test, ec->ticks                      );
+   test_SetDuration(test, GetTickCount() - test->duration);
+
+   Test_SaveReport(test);                                         // TODO: close memory leak => TEST, OrderHistory
+
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
 }

@@ -71,7 +71,7 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  * @param  uint               period         - current chart period
  * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
  * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
- * @param  BOOL               extReporting   - value of an Expert's input parameter "EA.ExtendedReporting"
+ * @param  BOOL               extReporting   - value of an Expert's input parameter "EA.ExtReporting"
  * @param  BOOL               recordEquity   - value of an Expert's input parameter "EA.RecordEquity"
  * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)

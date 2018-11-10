@@ -68,30 +68,30 @@ const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
  *
  * @return int - the same id
  */
-int WINAPI test_SetReportingId(TEST* test, int id) {
+int WINAPI test_SetReportId(TEST* test, int id) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (id < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
 
-   test->reportingId = id;
+   test->reportId = id;
    return(id);
 }
 
 
 /**
- * Set the reporting symbol of a TEST. Used for charted reports.
+ * Set the reporting symbol of a TEST. Used for report charts.
  *
  * @param  TEST* test
  * @param  char* symbol
  *
  * @return char* - the same symbol
  */
-const char* WINAPI test_SetReportingSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER)    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER)    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
+   if ((uint)test   < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
    int len = strlen(symbol);
-   if (len > sizeof(test->reportingSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, sizeof(test->reportingSymbol)-1));
+   if (len > sizeof(test->reportSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, sizeof(test->reportSymbol)-1));
 
-   if (!strcpy(test->reportingSymbol, symbol))
+   if (!strcpy(test->reportSymbol, symbol))
       return(NULL);
    return(symbol);
 }
@@ -293,8 +293,8 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          <<  "{id="              <<                     test->id
          << ", created="         <<                    (test->created   ? doubleQuoteStr(localTimeFormat(test->created, "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", strategy="        <<      doubleQuoteStr(test->strategy)
-         << ", reportingId="     <<                     test->reportingId
-         << ", reportingSymbol=" <<      doubleQuoteStr(test->reportingSymbol)
+         << ", reportId="        <<                     test->reportId
+         << ", reportSymbol="    <<      doubleQuoteStr(test->reportSymbol)
          << ", symbol="          <<      doubleQuoteStr(test->symbol)
          << ", timeframe="       <<      TimeframeToStr(test->timeframe)
          << ", startTime="       <<                    (test->startTime ? doubleQuoteStr(gmtTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
