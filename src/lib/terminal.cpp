@@ -544,9 +544,6 @@ int WINAPI Test_synchronize() {
  * @return int
  */
 int WINAPI Test() {
-   datetime time1 = GetGmtTime();
-   debug("GetGmtTime(): %d", time1);
-
    return(0);
    #pragma EXPANDER_EXPORT
 }

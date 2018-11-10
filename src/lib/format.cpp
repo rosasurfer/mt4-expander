@@ -7,7 +7,7 @@
 /**
  * Format a timestamp as a std::string representing GMT time.
  *
- * @param  datetime timestamp
+ * @param  datetime timestamp - Unix timestamp (GMT)
  * @param  char*    format    - strftime() format control string
  *
  * @return string - GMT time string
@@ -34,7 +34,7 @@ string WINAPI gmtTimeFormat(datetime timestamp, const char* format) {
 /**
  * Format a timestamp as a C string representing GMT time.
  *
- * @param  datetime timestamp
+ * @param  datetime timestamp - Unix timestamp (GMT)
  * @param  char*    format    - strftime() format control string
  *
  * @return char* - GMT time string
@@ -57,7 +57,7 @@ const char* WINAPI GmtTimeFormat(datetime timestamp, const char* format) {
 /**
  * Format a timestamp as a std::string representing local time.
  *
- * @param  datetime timestamp
+ * @param  datetime timestamp - Unix timestamp (GMT)
  * @param  char*    format    - strftime() format control string
  *
  * @return string - local time string
@@ -84,7 +84,7 @@ string WINAPI localTimeFormat(datetime timestamp, const char* format) {
 /**
  * Format a timestamp as a C string representing local time.
  *
- * @param  datetime timestamp
+ * @param  datetime timestamp - Unix timestamp (GMT)
  * @param  char*    format    - strftime() format control string
  *
  * @return char* - local time string
