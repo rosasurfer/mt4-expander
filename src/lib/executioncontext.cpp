@@ -286,6 +286,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
    datetime lastTickTime  = ec->lastTickTime;
    DWORD    threadId      = GetCurrentThreadId();
+   BOOL     logging       = ec->logging;
 
    ContextChain& chain = g_contextChains[ec->pid];
    uint size = chain.size();
@@ -293,8 +294,9 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 
    // update and synchronize contexts of all program modules
    for (uint i=0; i < size; ++i) {
-      if ((ctx=chain[i]) && ctx->coreFunction!=CF_DEINIT) {          // skip libraries which are already unloaded (if that's even possible)
+      if ((ctx=chain[i]) && ctx->coreFunction!=CF_DEINIT) { // skip libraries which are already unloaded (if that's even possible)
          ctx->coreFunction  = CF_START;
+         ctx->initCycle     = FALSE;
          ctx->rates         = rates;
          ctx->bars          = bars;
          ctx->changedBars   = changedBars;
@@ -304,7 +306,8 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->lastTickTime  = time;
          ctx->bid           = bid;
          ctx->ask           = ask;
-         ctx->threadId      = threadId;
+         ctx->threadId      = threadId;                     // as long as logging is configured after SyncMainContext_init()
+         ctx->logging       = logging;                      // the flag needs to be synchronized on every tick
       }
       else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d] or module already unloaded: 0x%p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
    }
