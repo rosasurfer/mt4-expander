@@ -9,13 +9,33 @@
 
 
 /**
+ * Return a terminal configuration value as a boolean. Queries the global and the local configuration with the local configu-
+ * ration superseding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
+ * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
+ * its nominal value is non-zero. Trailing configuration comments (text following the ";" character) are ignored.
+ *
+ * @param  char* section      - configuration section name
+ * @param  char* key          - configuration key
+ * @param  BOOL  defaultValue - alternative value to return if the specified value was not found
+ *
+ * @return BOOL - configuration value
+ */
+BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
+   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
+   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
+   //return(GetLocalConfigBool (section, key, result));
+   return(FALSE);
+}
+
+
+/**
  * Return the full filename of the MQL framework's global configuration file. The gobal file is used for configuration of all
  * terminals executed by the current user. If the file does not exist an attempt is made to create it.
  *
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini".
  *
- * Note: The string returned by this function is static and the pointer must not be released.
+ * Note: The string returned by this function is static and the memory must not be released.
  */
 const char* WINAPI GetGlobalConfigPathA() {
    static char* configPath;
@@ -65,7 +85,7 @@ const char* WINAPI GetGlobalConfigPathA() {
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\1DAFD9A7C67DC84FE37EAA1FC1E5CF75\local-config.ini".
  *
- * Note: The string returned by this function is static and the pointer must not be released.
+ * Note: The string returned by this function is static and the memory must not be released.
  */
 const char* WINAPI GetLocalConfigPathA() {
    //
@@ -179,13 +199,80 @@ const char* WINAPI GetLocalConfigPathA() {
  */
 DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize) {
    if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if (!*section)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
    if ((uint)buffer   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
    if (bufferSize < 2)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
 
    return(GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a configuration value from an .ini file as a string. Enclosing white space and trailing comments are removed.
+ *
+ * @param  char* fileName                - name of the .ini file
+ * @param  char* section                 - case-insensitive configuration section name
+ * @param  char* key                     - case-insensitive configuration key
+ * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
+ *
+ * @return char* - Configuration value, the default value or an empty string in case of errors. Enclosing white space and
+ *                 trailing comments are removed.
+ *
+ * Note: The memory holding the returned string was allocated with new[] and should be released after usage.
+ *       Calling code must use delete[] to do so.
+ */
+char* WINAPI GetIniString(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
+   char* value = GetIniStringRaw(fileName, section, key, defaultValue);
+   if (!value || !*value)
+      return(value);
+
+   int pos = string(value).find_first_of(";");     // drop trailing comments
+   if (pos == -1)
+      return(value);
+   value[pos] = '\0';
+
+   return(strRTrim(value));                        // trim white space
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a configuration value from an .ini file as a string. Trailing configuration comments are not removed.
+ *
+ * @param  char* fileName                - name of the .ini file
+ * @param  char* section                 - case-insensitive configuration section name
+ * @param  char* key                     - case-insensitive configuration key
+ * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
+ *
+ * @return char* - Configuration value, the default value or an empty string in case of errors. Enclosing white space is
+ *                 removed.
+ *
+ * Note: The memory holding the returned string was allocated with new[] and should be released after usage.
+ *       Calling code must use delete[] to do so.
+ */
+char* WINAPI GetIniStringRaw(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
+   if ((uint)fileName     < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName)));
+   if (!*fileName)                             return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)")));
+   if ((uint)section      < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section)));
+   if (!*section)                              return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)")));
+   if ((uint)key          < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key)));
+   if (!*key)                                  return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)")));
+   if ((uint)defaultValue < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter defaultValue: 0x%p (not a valid pointer)", defaultValue)));
+
+   char* buffer = NULL;
+   uint bufferSize = 128;
+   uint chars = bufferSize-1;
+
+   while (chars == bufferSize-1) {                       // handle a too small buffer
+      delete[] buffer;
+      bufferSize <<= 1;
+      buffer = new char[bufferSize];                     // on the heap as the value may be long
+      chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
+   }
+   return(buffer);
    #pragma EXPANDER_EXPORT
 }
 
@@ -218,11 +305,11 @@ BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
  */
 BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key) {
    if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if (!*section)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
    if ((uint)key      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
-   if (!strlen(key))                       return(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
+   if (!*key)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
 
    // read all keys
    char* buffer    = NULL;
@@ -267,9 +354,9 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
  */
 BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
    if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!strlen(fileName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!strlen(section))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if (!*section)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
 
    // read all sections
    char* buffer    = NULL;

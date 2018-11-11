@@ -300,9 +300,9 @@ char* WINAPI MD5HashA(const char* input) {
 
 
 /**
- * Ermittelt eine eindeutige Message-ID für den String "MetaTrader4_Internal_Message".
+ * Get a unique message id for the string "MetaTrader4_Internal_Message".
  *
- * @return uint - Message ID im Bereich 0xC000 bis 0xFFFF oder 0, falls ein Fehler auftrat.
+ * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
  */
 uint WINAPI MT4InternalMsg() {
    static uint msgId;
@@ -316,20 +316,13 @@ uint WINAPI MT4InternalMsg() {
 
 
 /**
- * Return a terminal configuration value as a boolean. Queries the global and the local configuration with the local configu-
- * ration superseding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
- * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
- * its nominal value is non-zero. Trailing configuration comments (text following the ";" character) are ignored.
+ * Alias of MT4InternalMsg()
  *
- * @param  char* section      - configuration section name
- * @param  char* key          - configuration key
- * @param  BOOL  defaultValue - alternative value to return if the specified value was not found
+ * Get a unique message id for the string "MetaTrader4_Internal_Message".
  *
- * @return BOOL - configuration value
+ * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
  */
-BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
-   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
-   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
-   //return(GetLocalConfigBool (section, key, result));
-   return(FALSE);
+uint WINAPI WM_MT4() {
+   return(MT4InternalMsg());
+   #pragma EXPANDER_EXPORT
 }

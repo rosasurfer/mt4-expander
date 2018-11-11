@@ -18,3 +18,4 @@ uint   WINAPI MT4InternalMsg();
 HANDLE WINAPI RemoveWindowProperty(HWND hWnd, const char* lpName);
 BOOL   WINAPI SetWindowProperty(HWND hWnd, const char* lpName, HANDLE value);
 BOOL   WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, double emptyValue);
+uint   WINAPI WM_MT4();

@@ -227,12 +227,12 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
  *
  * @return char* - resolved target path or a NULL pointer in case of errors
  *
+ * @see    http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
+ * @see    https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
  *
- * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
- *       application must use free() to do so.
  *
- * @see  http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
- * @see  https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage.
+ *       Calling code must use free() to do so.
  */
 const char* WINAPI GetReparsePointTargetA(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
