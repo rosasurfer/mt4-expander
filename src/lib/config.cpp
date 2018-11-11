@@ -9,6 +9,26 @@
 
 
 /**
+ * Return a terminal configuration value as a boolean. Queries the global and the local configuration with the local configu-
+ * ration superseding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
+ * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
+ * its nominal value is non-zero. Trailing configuration comments (text following the ";" character) are ignored.
+ *
+ * @param  char* section      - configuration section name
+ * @param  char* key          - configuration key
+ * @param  BOOL  defaultValue - alternative value to return if the specified value was not found
+ *
+ * @return BOOL - configuration value
+ */
+BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
+   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
+   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
+   //return(GetLocalConfigBool (section, key, result));
+   return(FALSE);
+}
+
+
+/**
  * Return the full filename of the MQL framework's global configuration file. The gobal file is used for configuration of all
  * terminals executed by the current user. If the file does not exist an attempt is made to create it.
  *

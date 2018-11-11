@@ -191,8 +191,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
       ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
 
-      ec_SetLogging      (ec, Program_IsLogging    (ec));
-      ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));
+      ec_SetLogging      (ec, Program_IsLogging    (ec));         // TODO: implement (empty stub defaulting to TRUE)
+      ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));         // TODO: implement (empty stub defaulting to NULL)
    }
 
    // (2.2) fields to update on every init() call
@@ -1146,9 +1146,9 @@ InitializeReason WINAPI GetInitReason_script(EXECUTION_CONTEXT* ec, const char* 
  */
 const char* WINAPI Program_CustomLogFile(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->customLogFile);                       // prefer an inherited status
+      return(ec->superContext->customLogFile);
 
-   switch (ec->programType) {
+   switch (ec->programType) {                      // TODO: implementation
       case PT_INDICATOR:
       case PT_EXPERT:
       case PT_SCRIPT:
@@ -1167,12 +1167,13 @@ const char* WINAPI Program_CustomLogFile(const EXECUTION_CONTEXT* ec) {
  */
 BOOL WINAPI Program_IsLogging(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->logging);                             // prefer an inherited status
+      return(ec->superContext->logging);
 
-   switch (ec->programType) {
+   switch (ec->programType) {                      // TODO: move mql::IsLogging() to Expander
       case PT_INDICATOR:
-      case PT_EXPERT: //return(IsLogging());                         // TODO: implement IsLogging()
-      case PT_SCRIPT: return(TRUE);
+      case PT_EXPERT:
+      case PT_SCRIPT:
+         return(TRUE);
    }
    return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
 }
@@ -1188,7 +1189,7 @@ BOOL WINAPI Program_IsLogging(const EXECUTION_CONTEXT* ec) {
  */
 BOOL WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimization) {
    if (ec->superContext)
-      return(ec->superContext->optimization);                        // prefer an inherited status
+      return(ec->superContext->optimization);
 
    switch (ec->programType) {
       case PT_INDICATOR:

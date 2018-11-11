@@ -73,7 +73,7 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
             PostMessageA(hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
          }
          else {
-            PostMessageA(hWnd, MT4InternalMsg(), MT4_TICK, TICK_OFFLINE_EA);  // default tick
+            PostMessageA(hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);  // default tick
          }
          return;
       }
