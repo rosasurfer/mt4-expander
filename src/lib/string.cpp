@@ -173,7 +173,7 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
    if (initial && (uint)initial < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter initial: 0x%p (not a valid pointer)", initial));
    if (           (uint)current < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter current: 0x%p (not a valid pointer)", current));
 
-   if (!initial || !strlen(initial))         // all current parameters
+   if (!initial || !*initial)                // all current parameters
       return(current);
 
    // diff input strings

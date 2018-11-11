@@ -24,7 +24,7 @@
  */
 HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
-   if (!strlen(programName))                  return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)")));
+   if (!*programName)                         return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)")));
 
    string title(programName);
    if (programType == PT_INDICATOR) title.insert(0, "Custom Indicator - ");
@@ -256,8 +256,7 @@ const char* WINAPI GetTerminalPathA() {
 
    if (!path) {
       path = strdup(GetTerminalModuleFileNameA());                   // on the heap
-      string str(path);
-      path[str.find_last_of("\\")] = 0;
+      path[string(path).find_last_of("\\")] = '\0';
    }
    return(path);
    #pragma EXPANDER_EXPORT

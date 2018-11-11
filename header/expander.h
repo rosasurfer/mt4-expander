@@ -126,17 +126,18 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
 
 
 // Helper functions returning constant values. All parameters are ignored.
-inline int         WINAPI _EMPTY       (...) { return(EMPTY       ); }
-inline const char* WINAPI _EMPTY_STR   (...) { return(""          ); }
-inline HWND        WINAPI _INVALID_HWND(...) { return(INVALID_HWND); }
-inline int         WINAPI _NULL        (...) { return(NULL        ); }
-inline bool        WINAPI _true        (...) { return(true        ); }
-inline BOOL        WINAPI _TRUE        (...) { return(TRUE        ); }
-inline bool        WINAPI _false       (...) { return(false       ); }
-inline BOOL        WINAPI _FALSE       (...) { return(FALSE       ); }
-inline color       WINAPI _CLR_NONE    (...) { return(CLR_NONE    ); }
-inline color       WINAPI _NaC         (...) { return(NaC         ); }
-inline datetime    WINAPI _NaT         (...) { return(NaT         ); }
+inline int         WINAPI _EMPTY        (...) { return(EMPTY       ); }
+inline const char* WINAPI _EMPTY_STR    (...) { return(""          ); }
+inline       char* WINAPI _EMPTY_NEW_STR(...) { char* s = new char[1]; s[0] = '\0'; return(s); }
+inline HWND        WINAPI _INVALID_HWND (...) { return(INVALID_HWND); }
+inline int         WINAPI _NULL         (...) { return(NULL        ); }
+inline bool        WINAPI _true         (...) { return(true        ); }
+inline BOOL        WINAPI _TRUE         (...) { return(TRUE        ); }
+inline bool        WINAPI _false        (...) { return(false       ); }
+inline BOOL        WINAPI _FALSE        (...) { return(FALSE       ); }
+inline color       WINAPI _CLR_NONE     (...) { return(CLR_NONE    ); }
+inline color       WINAPI _NaC          (...) { return(NaC         ); }
+inline datetime    WINAPI _NaT          (...) { return(NaT         ); }
 
 
 // Helper functions returning variable values. All parameters except the first one are ignored.
