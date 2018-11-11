@@ -15,7 +15,7 @@
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini".
  *
- * Note: The string returned by this function is static and the pointer must not be released.
+ * Note: The string returned by this function is static and the memory must not be released.
  */
 const char* WINAPI GetGlobalConfigPathA() {
    static char* configPath;
@@ -65,7 +65,7 @@ const char* WINAPI GetGlobalConfigPathA() {
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\1DAFD9A7C67DC84FE37EAA1FC1E5CF75\local-config.ini".
  *
- * Note: The string returned by this function is static and the pointer must not be released.
+ * Note: The string returned by this function is static and the memory must not be released.
  */
 const char* WINAPI GetLocalConfigPathA() {
    //
@@ -186,6 +186,45 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
    if (bufferSize < 2)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
 
    return(GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a configuration value from an .ini file as a raw string. Leading and trailing white space is removed. Trailing
+ * configuration comments are not removed.
+ *
+ * @param  char* fileName                - name of the .ini file
+ * @param  char* section                 - case-insensitive configuration section name
+ * @param  char* key                     - case-insensitive configuration key
+ * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
+ *
+ * @return char* - raw configuration value or NULL in case of errors
+ *
+ *
+ * Note: The memory holding the returned string was allocated with new[] and should be released after usage.
+ *       Calling code must use delete[] to do so.
+ */
+const char* WINAPI GetIniStringRaw(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
+   if ((uint)fileName     < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!*fileName)                             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section      < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!*section)                              return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)key          < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
+   if (!*key)                                  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
+   if ((uint)defaultValue < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter defaultValue: 0x%p (not a valid pointer)", defaultValue));
+
+   char* buffer = NULL;
+   uint bufferSize = 128;
+   uint chars = bufferSize-1;
+
+   while (chars == bufferSize-1) {                       // handle a too small buffer
+      delete[] buffer;
+      bufferSize <<= 1;
+      buffer = new char[bufferSize];                     // on the heap as the value may be long
+      chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
+   }
+   return(buffer);
    #pragma EXPANDER_EXPORT
 }
 

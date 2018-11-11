@@ -525,8 +525,8 @@ uint WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize) {
  * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
- * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
- *       application must use free() to do so.
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage.
+ *       Calling code must use free() to do so.
  */
 char* wchartombs(const wchar_t* str) {
    return(wchartombs(str, wcslen(str)));
@@ -542,8 +542,8 @@ char* wchartombs(const wchar_t* str) {
  * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
- * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
- *       application must use free() to do so.
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage.
+ *       Calling code must use free() to do so.
  */
 char* wchartombs(const wchar_t* sequence, size_t count) {
    wchar_t* source = wcsncpy(new wchar_t[count+1], sequence, count);
@@ -576,8 +576,8 @@ char* wchartombs(const wchar_t* sequence, size_t count) {
  * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
- * Note: The memory holding the returned string was allocated with malloc() and should be released after usage. A calling
- *       application must use free() to do so.
+ * Note: The memory holding the returned string was allocated with malloc() and should be released after usage.
+ *       Calling code must use free() to do so.
  */
 char* wchartombs(const wstring& str) {
    return(wchartombs(str.c_str(), str.length()));
