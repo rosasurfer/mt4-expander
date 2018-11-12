@@ -102,9 +102,9 @@ int WINAPI Tester_GetBarModel() {
 
 
 /**
- * Get the commission value for the given lotsize as defined for the specified symbol under test. Opposite to life trading in
- * the Strategy Tester commission can be set to a custom value per test (in the tester's history file). In order for this
- * function to work a tester history file for the specified symbol, timeframe and bar model must exist.
+ * Get the commission value for the given lotsize as defined for the specified symbol under test. In the tester commission
+ * can be set per test (in the test history file). For this a test history file for the specified symbol, timeframe and bar
+ * model must exist.
  *
  * @param  char*  symbol          - symbol under test
  * @param  uint   timeframe       - test timeframe
@@ -113,7 +113,7 @@ int WINAPI Tester_GetBarModel() {
  *
  * @return double - commission value or EMPTY (-1) in case of errors
  */
-double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint barModel, double lots/*=1.0*/) {
+double WINAPI Tester_GetCommission(const char* symbol, uint timeframe, uint barModel, double lots/*=1.0*/) {
    if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
    if ((int)timeframe <= 0)              return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
    using namespace std;
