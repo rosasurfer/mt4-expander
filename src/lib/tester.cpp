@@ -9,6 +9,7 @@
 #include "struct/mt4/FxtHeader.h"
 
 #include <fstream>
+#include <time.h>
 
 
 /**
@@ -88,8 +89,8 @@ int WINAPI Tester_GetBarModel() {
    uint bufSize = 20;                                                // big enough to hold the string "Open prices only"
    char* text = (char*) alloca(bufSize);                             // on the stack
 
-   int len = GetWindowText(hWndBarModel, text, bufSize);
-   if (!len) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "->GetWindowText()")));
+   if (!GetWindowText(hWndBarModel, text, bufSize)) if (int error=GetLastError())
+      return(_EMPTY(error(ERR_WIN32_ERROR+error, "GetWindowText()")));
 
    if (StrStartsWith(text, "Every tick"))       return(BARMODEL_EVERYTICK);
    if (StrStartsWith(text, "Control points"))   return(BARMODEL_CONTROLPOINTS);
@@ -135,6 +136,98 @@ double WINAPI Tester_GetCommission(const char* symbol, uint timeframe, uint barM
    if (lots == 1)
       return(fxt.commissionValue);
    return(fxt.commissionValue * lots);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get the start date currently selected in the tester. If the tester window wasn't yet opened by the user the function
+ * returns NULL (0).
+ *
+ * @return datetime - start date as a Unix timestamp or NULL (0) in case of errors
+ */
+datetime WINAPI Tester_GetStartDate() {
+   HWND hWndTester = FindTesterWindow();
+   if (!hWndTester) return(NULL);
+
+   HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
+   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found in tester window"));
+
+   HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
+   if (!hWndUseDate) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
+
+   uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
+   char* wndTitle  = (char*)alloca(bufSize);
+   char* className = (char*)alloca(bufSize);                // both on the stack
+
+   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)            return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static"))        return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)                    return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"From:\" label in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                               return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"From:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   char* date = wndTitle;
+   date[4] = date[7] = '\0';                                // format: 2018.01.01
+   tm tmdate = {};
+   tmdate.tm_year  = atoi(&date[0]) - 1900;
+   tmdate.tm_mon   = atoi(&date[5]) - 1;
+   tmdate.tm_mday  = atoi(&date[8]);
+   tmdate.tm_isdst = -1;
+
+   //debug("startdate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
+   return(_mkgmtime(&tmdate));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get the end date currently selected in the tester. If the tester window wasn't yet opened by the user the function
+ * returns NULL (0).
+ *
+ * @return datetime - end date as a Unix timestamp or NULL (0) in case of errors
+ */
+datetime WINAPI Tester_GetEndDate() {
+   HWND hWndTester = FindTesterWindow();
+   if (!hWndTester) return(NULL);
+
+   HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
+   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found in tester window"));
+
+   HWND hWndOptimize = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_OPTIMIZATION);
+   if (!hWndOptimize) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
+
+   uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
+   char* wndTitle  = (char*)alloca(bufSize);
+   char* className = (char*)alloca(bufSize);                // both on the stack
+
+   HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)           return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static"))          return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)                    return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"To:\" label in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                               return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"To:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   char* date = wndTitle;
+   date[4] = date[7] = '\0';                                // format: 2018.01.01
+   tm tmdate = {};
+   tmdate.tm_year  = atoi(&date[0]) - 1900;
+   tmdate.tm_mon   = atoi(&date[5]) - 1;
+   tmdate.tm_mday  = atoi(&date[8]);
+   tmdate.tm_isdst = -1;
+
+   //debug("enddate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
+   return(_mkgmtime(&tmdate));
    #pragma EXPANDER_EXPORT
 }
 
@@ -286,5 +379,16 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    Test_SaveReport(test);                                   // TODO: close memory leak => TEST, OrderHistory
 
    return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   Tester_GetStartDate();
+   Tester_GetEndDate();
+   return(NULL);
    #pragma EXPANDER_EXPORT
 }

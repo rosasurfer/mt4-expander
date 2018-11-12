@@ -823,10 +823,10 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain)));
 
-      size_t bufferSize = MAX_CHARTDESCRIPTION_LENGTH + 1;
+      uint bufferSize = MAX_CHARTDESCRIPTION_LENGTH + 1;
       char* chartDescription = (char*)alloca(bufferSize);            // on the stack
-      size_t chars = GetChartDescription(symbol, timeframe, chartDescription, bufferSize);
-      if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "=> GetChartDescription()")));
+      uint chars = GetChartDescription(symbol, timeframe, chartDescription, bufferSize);
+      if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "GetChartDescription()")));
 
       bufferSize = 128;
       char* title = (char*)alloca(bufferSize);
@@ -834,7 +834,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       SetLastError(NO_ERROR);
 
       while (hWndChild) {                                            // iterate over all child windows
-         size_t titleLen = GetWindowText(hWndChild, title, bufferSize);
+         uint titleLen = GetWindowText(hWndChild, title, bufferSize);
          if (!titleLen) if (int error=GetLastError()) return(_INVALID_HWND(error(ERR_WIN32_ERROR+error, "GetWindowText()")));
 
          if (titleLen) {
