@@ -23,10 +23,9 @@ struct TEST {                                         // -- offset --- size --- 
    uint          ticks;                               //       316        4     number of tested ticks
    double        spread;                              //       320        8     spread in pips
    DWORD         tradeDirections;                     //       328        4     active trade directions: Long|Short|Both
-   BOOL          visualMode;                          //       332        4     whether or not the test was run in visual mode
-   OrderHistory* orders;                              //       336        4     trade history
+   OrderHistory* orders;                              //       332        4     trade history
 };                                                    // ----------------------------------------------------------------------------
-#pragma pack(pop)                                     //              = 340
+#pragma pack(pop)                                     //              = 336
 
 
 // for getters (used by MQL4) see "header/struct/xtrade/ExecutionContext.h"
@@ -47,7 +46,6 @@ uint        WINAPI test_SetBars           (TEST* test, uint        bars     );
 uint        WINAPI test_SetTicks          (TEST* test, uint        ticks    );
 double      WINAPI test_SetSpread         (TEST* test, double      spread   );
 //DWORD     WINAPI test_SetTradeDirections(TEST* test, uint        types    );   // TODO
-BOOL        WINAPI test_SetVisualMode     (TEST* test, BOOL        status   );
 
 
 // helpers

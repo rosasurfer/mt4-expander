@@ -221,12 +221,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       // (3.1) initialize new test
       if (!ec->ticks) {
          TEST* test = new TEST();
-         test_SetCreated   (test, time(NULL)     );
-         test_SetStrategy  (test, ec->programName);
-         test_SetSymbol    (test, ec->symbol     );
-         test_SetTimeframe (test, ec->timeframe  );
-         test_SetBarModel  (test, Tester_GetBarModel());
-         test_SetVisualMode(test, ec->visualMode );
+         test_SetCreated  (test, time(NULL)     );
+         test_SetStrategy (test, ec->programName);
+         test_SetSymbol   (test, ec->symbol     );
+         test_SetTimeframe(test, ec->timeframe  );
+         test_SetBarModel (test, Tester_GetBarModel());
          test->orders = new OrderHistory();
          test->orders->reserve(1024);                                // reserve memory to speed-up testing
 

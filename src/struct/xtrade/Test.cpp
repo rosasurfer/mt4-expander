@@ -242,22 +242,6 @@ uint WINAPI test_SetTicks(TEST* test, uint ticks) {
 
 
 /**
- * Set the VisualMode status of a TEST.
- *
- * @param  TEST* test
- * @param  BOOL  status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI test_SetVisualMode(TEST* test, BOOL status) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-
-   test->visualMode = status;
-   return(status);
-}
-
-
-/**
  * Return a human-readable version of a TEST struct.
  *
  * @param  TEST* test
@@ -289,7 +273,6 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", ticks="           <<                     test->ticks
          << ", spread="          <<        numberFormat(test->spread, "%.1f")
          << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
-         << ", visualMode="      <<           BoolToStr(test->visualMode)
          << ", orders="          <<                    (test->orders ? to_string(test->orders->size()) : "NULL")
          << "}";
    }
