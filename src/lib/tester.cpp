@@ -6,7 +6,6 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/tester.h"
-#include "struct/mt4/FxtHeader.h"
 
 #include <fstream>
 #include <time.h>
@@ -98,44 +97,6 @@ int WINAPI Tester_GetBarModel() {
 
    error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\"", text);
    return(EMPTY);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Get the commission value for the given lotsize as defined for the specified symbol under test. In the tester commission
- * can be set per test (in the test history file). For this a test history file for the specified symbol, timeframe and bar
- * model must exist.
- *
- * @param  char*  symbol          - symbol under test
- * @param  uint   timeframe       - test timeframe
- * @param  uint   barModel        - test bar model: BARMODEL_EVERYTICK | BARMODEL_CONTROLPOINTS | BARMODEL_BAROPEN
- * @param  double lots [optional] - lotsize to calculate commission for (default: 1 lot)
- *
- * @return double - commission value or EMPTY (-1) in case of errors
- */
-double WINAPI Tester_GetCommission(const char* symbol, uint timeframe, uint barModel, double lots/*=1.0*/) {
-   if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)timeframe <= 0)              return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
-   using namespace std;
-
-   // e.g. string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
-   string fxtFile = string(GetTerminalDataPathA()).append("\\tester\\history\\")
-                                                  .append(symbol)
-                                                  .append(to_string(timeframe))
-                                                  .append("_")
-                                                  .append(to_string(barModel))
-                                                  .append(".fxt");
-   ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str())));
-
-   FXT_HEADER fxt = {};
-   file.read((char*)&fxt, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str())));
-
-   if (lots == 1)
-      return(fxt.commissionValue);
-   return(fxt.commissionValue * lots);
    #pragma EXPANDER_EXPORT
 }
 
@@ -233,14 +194,74 @@ datetime WINAPI Tester_GetEndDate() {
 
 
 /**
+ * Read and return the header of the test history file for the specified symbol, timeframe and bar model.
+ *
+ * @param  char*  symbol    - tested symbol
+ * @param  uint   timeframe - test timeframe
+ * @param  uint   barModel  - test bar model: BARMODEL_EVERYTICK | BARMODEL_CONTROLPOINTS | BARMODEL_BAROPEN
+ *
+ * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
+ *
+ *
+ * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage ("delete").
+ */
+const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel) {
+   if ((uint)symbol < MIN_VALID_POINTER) return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if ((int)timeframe <= 0)              return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
+   using namespace std;
+
+   // e.g. string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
+   string fxtFile = string(GetTerminalDataPathA()).append("\\tester\\history\\")
+                                                  .append(symbol)
+                                                  .append(to_string(timeframe))
+                                                  .append("_")
+                                                  .append(to_string(barModel))
+                                                  .append(".fxt");
+   ifstream file(fxtFile.c_str(), ios::binary);
+   if (!file) return((FXT_HEADER*)warn(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str()));
+
+   FXT_HEADER* fxt = new FXT_HEADER();
+   file.read((char*)fxt, sizeof(FXT_HEADER));
+   file.close(); if (file.fail()) return((FXT_HEADER*)error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+
+   return(fxt);
+}
+
+
+/**
+ * Get the commission value for the specified lotsize.
+ *
+ * @param  EXECUTION_CONTEXT* ec              - execution context of the tested expert
+ * @param  double             lots [optional] - lotsize to calculate commission for (default: 1 lot)
+ *
+ * @return double - commission value or EMPTY (-1) in case of errors
+ */
+double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*/) {
+   if ((uint)ec < MIN_VALID_POINTER)            return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if (ec->programType!=PT_EXPERT || !ec->test) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
+
+   TEST* test = ec->test;
+   if (!test->fxtHeader) test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+
+   const FXT_HEADER* fxt = test->fxtHeader;
+   if (!fxt) return(EMPTY);
+
+   if (lots == 1)
+      return(fxt->commissionValue);
+   return(fxt->commissionValue * lots);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * TODO: validation
  */
 BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
-   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
-   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization, ec.test: 0x%p", ec->test));
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", test->orders));
+   OrderHistory* orders = ec->test->orders;
+   if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", ec->test->orders));
 
    ORDER order = {};
       order.ticket      = ticket;
@@ -273,11 +294,11 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
  * @return BOOL - success status
  */
 BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double closePrice, datetime closeTime, double swap, double profit) {
-   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
-   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization, ec.test: 0x%p", ec->test));
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", test->orders));
+   OrderHistory* orders = ec->test->orders;
+   if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", ec->test->orders));
 
    uint i = orders->size()-1;
 

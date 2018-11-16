@@ -226,9 +226,10 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          test_SetSymbol   (test, ec->symbol     );
          test_SetTimeframe(test, ec->timeframe  );
          test_SetBarModel (test, Tester_GetBarModel());
+
          test->orders = new OrderHistory();
          test->orders->reserve(1024);                                // reserve memory to speed-up testing
-
+         test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
          master->test = ec->test = test;
       }
 

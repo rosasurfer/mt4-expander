@@ -231,8 +231,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
  * @see    https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
  *
  *
- * Note: The memory holding the returned string was allocated with malloc() and should be released after usage.
- *       Calling code must use free() to do so.
+ * Note: The memory for the returned string was allocated with "malloc" and should be released after usage ("free").
  */
 const char* WINAPI GetReparsePointTargetA(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));

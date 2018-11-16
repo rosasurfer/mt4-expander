@@ -1,4 +1,5 @@
 #pragma once
+#include "struct/mt4/FxtHeader.h"
 #include "struct/xtrade/Order.h"
 
 
@@ -8,24 +9,25 @@
  * A structure holding test data (i.e. tester settings, strategy settings, trade history).
  */
 #pragma pack(push, 1)
-struct TEST {                                         // -- offset --- size --- description -----------------------------------------
-   int           id;                                  //         0        4     unique test id (positive, primary key)
-   datetime      created;                             //         4        4     creation time of the test
-   char          strategy[MAX_PATH];                  //         8      260     strategy name
-   int           reportId;                            //       268        4     reporting id (for composition of reportSymbol)
-   char          reportSymbol[MAX_SYMBOL_LENGTH+1];   //       272       12     test symbol for charted reports
-   char          symbol      [MAX_SYMBOL_LENGTH+1];   //       284       12     tested symbol
-   uint          timeframe;                           //       296        4     tested timeframe
-   datetime      startTime;                           //       300        4     time of the first tick of testing
-   datetime      endTime;                             //       304        4     time of the last tick of testing
-   uint          barModel;                            //       308        4     used bar model: 0=EveryTick|1=ControlPoints|2=BarOpen
-   uint          bars;                                //       312        4     number of tested bars
-   uint          ticks;                               //       316        4     number of tested ticks
-   double        spread;                              //       320        8     spread in pips
-   DWORD         tradeDirections;                     //       328        4     active trade directions: Long|Short|Both
-   OrderHistory* orders;                              //       332        4     trade history
-};                                                    // ----------------------------------------------------------------------------
-#pragma pack(pop)                                     //              = 336
+struct TEST {                                            // -- offset --- size --- description -----------------------------------------
+   int               id;                                 //         0        4     unique test id (positive, primary key)
+   datetime          created;                            //         4        4     creation time of the test
+   char              strategy[MAX_PATH];                 //         8      260     strategy name
+   int               reportId;                           //       268        4     reporting id (for composition of reportSymbol)
+   char              reportSymbol[MAX_SYMBOL_LENGTH+1];  //       272       12     test symbol for charted reports
+   char              symbol      [MAX_SYMBOL_LENGTH+1];  //       284       12     tested symbol
+   uint              timeframe;                          //       296        4     tested timeframe
+   datetime          startTime;                          //       300        4     time of the first tick of testing
+   datetime          endTime;                            //       304        4     time of the last tick of testing
+   uint              barModel;                           //       308        4     used bar model: 0=EveryTick|1=ControlPoints|2=BarOpen
+   uint              bars;                               //       312        4     number of tested bars
+   uint              ticks;                              //       316        4     number of tested ticks
+   double            spread;                             //       320        8     spread in pips
+   DWORD             tradeDirections;                    //       328        4     active trade directions: Long|Short|Both
+   OrderHistory*     orders;                             //       332        4     trade history
+   const FXT_HEADER* fxtHeader;                          //       336        4     FXT header data
+};                                                       // ----------------------------------------------------------------------------
+#pragma pack(pop)                                        //              = 340
 
 
 // for getters (used by MQL4) see "header/struct/xtrade/ExecutionContext.h"
