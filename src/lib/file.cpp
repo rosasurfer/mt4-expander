@@ -213,7 +213,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
    if (!len) {
       delete[] path;
-      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFinalPathNameByHandle()"));
+      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle()"));
    }
    return(path);                                                                       // TODO: close memory leak
    #pragma EXPANDER_EXPORT

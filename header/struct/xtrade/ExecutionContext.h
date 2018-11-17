@@ -145,8 +145,6 @@ HWND               WINAPI ec_hChartWindow       (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_TestId             (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestCreated        (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_TestStrategy       (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_TestReportId       (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_TestReportSymbol   (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_TestSymbol         (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestTimeframe      (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestStartTime      (const EXECUTION_CONTEXT* ec);
@@ -156,6 +154,8 @@ uint               WINAPI ec_TestBars           (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestTicks          (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_TestSpread         (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_TestTradeDirections(const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_TestReportId       (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_TestReportSymbol   (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Testing            (const EXECUTION_CONTEXT* ec);
 
 uint               WINAPI ec_ThreadId           (const EXECUTION_CONTEXT* ec);

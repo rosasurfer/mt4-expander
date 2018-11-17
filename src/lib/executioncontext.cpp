@@ -227,9 +227,17 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          test_SetTimeframe(test, ec->timeframe  );
          test_SetBarModel (test, Tester_GetBarModel());
 
-         test->orders = new OrderHistory();
-         test->orders->reserve(1024);                                // reserve memory to speed-up testing
          test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+
+         // initialize order history and reserve memory to speed-up testing
+         test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
+         test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
+         test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
+
+         test->trades         = new OrderList(); test->trades        ->reserve(1024);  // closed positions
+         test->longTrades     = new OrderList(); test->longTrades    ->reserve(1024);
+         test->shortTrades    = new OrderList(); test->shortTrades   ->reserve(1024);
+
          master->test = ec->test = test;
       }
 

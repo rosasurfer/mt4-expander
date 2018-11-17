@@ -116,7 +116,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags/*=NULL*/) {
    // Timer setzen
    uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
    if (result != timerId)                             // muß stimmen, da hWnd immer != NULL
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=> SetTimer(hWnd=%p, timerId=%d, millis=%d) => %d", hWnd, timerId, millis, result));
+      return(error(ERR_WIN32_ERROR+GetLastError(), "SetTimer(hWnd=%p, timerId=%d, millis=%d) => %d", hWnd, timerId, millis, result));
    //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
 
    // Timerdaten speichern
@@ -142,7 +142,7 @@ BOOL WINAPI RemoveTickTimer(int timerId) {
    for (int i=0; i < size; i++) {
       if (tickTimers[i].id == timerId) {
          if (!KillTimer(tickTimers[i].hWnd, timerId))
-            return(error(ERR_WIN32_ERROR+GetLastError(), "=> KillTimer(hWnd=%p, timerId=%d)", tickTimers[i].hWnd, timerId));
+            return(error(ERR_WIN32_ERROR+GetLastError(), "KillTimer(hWnd=%p, timerId=%d)", tickTimers[i].hWnd, timerId));
          tickTimers.erase(tickTimers.begin() + i);
          return(TRUE);
       }

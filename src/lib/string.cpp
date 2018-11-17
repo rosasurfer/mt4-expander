@@ -183,15 +183,15 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
    while (getline(stInitial, lineInitial)) {
       if (getline(stCurrent, lineCurrent)) {
          if (lineInitial != lineCurrent)
-            diff.append(lineCurrent).append("\n");
+            diff.append(lineCurrent).append(NL);
       }
       else {
-         diff.append("REMOVED ").append(lineInitial).append("\n");
+         diff.append("REMOVED ").append(lineInitial).append(NL);
       }
    }
 
    while (getline(stCurrent, lineCurrent)) {
-      diff.append("ADDED ").append(lineCurrent).append("\n");
+      diff.append("ADDED ").append(lineCurrent).append(NL);
    }
 
    return(strdup(diff.c_str()));

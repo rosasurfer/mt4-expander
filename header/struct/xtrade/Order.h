@@ -34,7 +34,7 @@ struct ORDER {                                        // -- offset --- size --- 
 #pragma pack(pop)                                     //              = 144
 
 
-typedef std::vector<ORDER> OrderHistory;
+typedef std::vector<ORDER> OrderList;
 
 
 const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);

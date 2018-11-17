@@ -61,43 +61,6 @@ const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
 
 
 /**
- * Set the reporting id of a TEST. Used for composition of TEST.reportingSymbol.
- *
- * @param  TEST* test
- * @param  int   id
- *
- * @return int - the same id
- */
-int WINAPI test_SetReportId(TEST* test, int id) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (id < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
-
-   test->reportId = id;
-   return(id);
-}
-
-
-/**
- * Set the reporting symbol of a TEST. Used for report charts.
- *
- * @param  TEST* test
- * @param  char* symbol
- *
- * @return char* - the same symbol
- */
-const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   int len = strlen(symbol);
-   if (len > sizeof(test->reportSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, sizeof(test->reportSymbol)-1));
-
-   if (!strcpy(test->reportSymbol, symbol))
-      return(NULL);
-   return(symbol);
-}
-
-
-/**
  * Set the symbol a TEST was run on.
  *
  * @param  TEST* test
@@ -191,23 +154,6 @@ int WINAPI test_SetBarModel(TEST* test, int type) {
 
 
 /**
- * Set the spread used in a TEST.
- *
- * @param  TEST*  test
- * @param  double spread - spread in pips
- *
- * @return double - the same spread
- */
-double WINAPI test_SetSpread(TEST* test, double spread) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (spread < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter spread: %f (must be non-negative)", spread));
-
-   test->spread = round(spread, 1);
-   return(test->spread);
-}
-
-
-/**
  * Set the amount of bars in a TEST.
  *
  * @param  TEST* test
@@ -238,6 +184,60 @@ uint WINAPI test_SetTicks(TEST* test, uint ticks) {
 
    test->ticks = ticks;
    return(ticks);
+}
+
+
+/**
+ * Set the spread used in a TEST.
+ *
+ * @param  TEST*  test
+ * @param  double spread - spread in pips
+ *
+ * @return double - the same spread
+ */
+double WINAPI test_SetSpread(TEST* test, double spread) {
+   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (spread < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter spread: %f (must be non-negative)", spread));
+
+   test->spread = spread;
+   return(test->spread);
+}
+
+
+/**
+ * Set the reporting id of a TEST. Used for composition of TEST.reportingSymbol.
+ *
+ * @param  TEST* test
+ * @param  int   id
+ *
+ * @return int - the same id
+ */
+int WINAPI test_SetReportId(TEST* test, int id) {
+   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (id < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
+
+   test->reportId = id;
+   return(id);
+}
+
+
+/**
+ * Set the reporting symbol of a TEST. Used for report charts.
+ *
+ * @param  TEST* test
+ * @param  char* symbol
+ *
+ * @return char* - the same symbol
+ */
+const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
+   if ((uint)test   < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   int len = strlen(symbol);
+   if (len > sizeof(test->reportSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, sizeof(test->reportSymbol)-1));
+
+   if (!strcpy(test->reportSymbol, symbol))
+      return(NULL);
+   return(symbol);
 }
 
 
@@ -273,7 +273,10 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", ticks="           <<                     test->ticks
          << ", spread="          <<        numberFormat(test->spread, "%.1f")
          << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
-         << ", orders="          <<                    (test->orders ? to_string(test->orders->size()) : "NULL")
+         << ", open="            <<                    (test->positions   ? to_string(test->positions  ->size()) : "NULL")
+         << ", closed="          <<                    (test->trades      ? to_string(test->trades     ->size()) : "NULL")
+         << ", long="            <<                    (test->longTrades  ? to_string(test->longTrades ->size()) : "NULL")
+         << ", short="           <<                    (test->shortTrades ? to_string(test->shortTrades->size()) : "NULL")
          << "}";
    }
    ss << " (0x" << IntToHexStr((uint)test) << ")";

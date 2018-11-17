@@ -140,7 +140,7 @@ const char* WINAPI GetLocalConfigPathA() {
             //  => 5. check if the terminal is installed in the system's program folder
             char programFilesPath[MAX_PATH];                                              // resolve CSIDL_PROGRAM_FILES
             if (FAILED(SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES, NULL, SHGFP_TYPE_CURRENT, programFilesPath)))
-               return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
+               return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
 
             // TODO: resolve reparse points in TerminalPath() before comparison
 
