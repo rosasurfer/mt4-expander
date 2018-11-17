@@ -6,9 +6,9 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/tester.h"
-#include "struct/mt4/FxtHeader.h"
 
 #include <fstream>
+#include <time.h>
 
 
 /**
@@ -88,8 +88,8 @@ int WINAPI Tester_GetBarModel() {
    uint bufSize = 20;                                                // big enough to hold the string "Open prices only"
    char* text = (char*) alloca(bufSize);                             // on the stack
 
-   int len = GetWindowText(hWndBarModel, text, bufSize);
-   if (!len) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "->GetWindowText()")));
+   if (!GetWindowText(hWndBarModel, text, bufSize)) if (int error=GetLastError())
+      return(_EMPTY(error(ERR_WIN32_ERROR+error, "GetWindowText()")));
 
    if (StrStartsWith(text, "Every tick"))       return(BARMODEL_EVERYTICK);
    if (StrStartsWith(text, "Control points"))   return(BARMODEL_CONTROLPOINTS);
@@ -102,20 +102,112 @@ int WINAPI Tester_GetBarModel() {
 
 
 /**
- * Get the commission value for the given lotsize as defined for the specified symbol under test. Opposite to life trading in
- * the Strategy Tester commission can be set to a custom value per test (in the tester's history file). In order for this
- * function to work a tester history file for the specified symbol, timeframe and bar model must exist.
+ * Get the start date currently selected in the tester. If the tester window wasn't yet opened by the user the function
+ * returns NULL (0).
  *
- * @param  char*  symbol          - symbol under test
- * @param  uint   timeframe       - test timeframe
- * @param  uint   barModel        - test bar model: BARMODEL_EVERYTICK | BARMODEL_CONTROLPOINTS | BARMODEL_BAROPEN
- * @param  double lots [optional] - lotsize to calculate commission for (default: 1 lot)
- *
- * @return double - commission value or EMPTY (-1) in case of errors
+ * @return datetime - start date as a Unix timestamp or NULL (0) in case of errors
  */
-double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint barModel, double lots/*=1.0*/) {
-   if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)timeframe <= 0)              return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+datetime WINAPI Tester_GetStartDate() {
+   HWND hWndTester = FindTesterWindow();
+   if (!hWndTester) return(NULL);
+
+   HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
+   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found in tester window"));
+
+   HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
+   if (!hWndUseDate) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
+
+   uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
+   char* wndTitle  = (char*)alloca(bufSize);
+   char* className = (char*)alloca(bufSize);                // both on the stack
+
+   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)            return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static"))        return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)                    return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"From:\" label in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                               return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"From:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   char* date = wndTitle;
+   date[4] = date[7] = '\0';                                // format: 2018.01.01
+   tm tmdate = {};
+   tmdate.tm_year  = atoi(&date[0]) - 1900;
+   tmdate.tm_mon   = atoi(&date[5]) - 1;
+   tmdate.tm_mday  = atoi(&date[8]);
+   tmdate.tm_isdst = -1;
+
+   //debug("startdate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
+   return(_mkgmtime(&tmdate));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get the end date currently selected in the tester. If the tester window wasn't yet opened by the user the function
+ * returns NULL (0).
+ *
+ * @return datetime - end date as a Unix timestamp or NULL (0) in case of errors
+ */
+datetime WINAPI Tester_GetEndDate() {
+   HWND hWndTester = FindTesterWindow();
+   if (!hWndTester) return(NULL);
+
+   HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
+   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found in tester window"));
+
+   HWND hWndOptimize = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_OPTIMIZATION);
+   if (!hWndOptimize) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
+
+   uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
+   char* wndTitle  = (char*)alloca(bufSize);
+   char* className = (char*)alloca(bufSize);                // both on the stack
+
+   HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)           return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static"))          return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)                    return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"To:\" label in \"Settings\" tab of tester window not found"));
+
+   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                               return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"To:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+
+   char* date = wndTitle;
+   date[4] = date[7] = '\0';                                // format: 2018.01.01
+   tm tmdate = {};
+   tmdate.tm_year  = atoi(&date[0]) - 1900;
+   tmdate.tm_mon   = atoi(&date[5]) - 1;
+   tmdate.tm_mday  = atoi(&date[8]);
+   tmdate.tm_isdst = -1;
+
+   //debug("enddate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
+   return(_mkgmtime(&tmdate));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Read and return the header of the test history file for the specified symbol, timeframe and bar model.
+ *
+ * @param  char*  symbol    - tested symbol
+ * @param  uint   timeframe - test timeframe
+ * @param  uint   barModel  - test bar model: BARMODEL_EVERYTICK | BARMODEL_CONTROLPOINTS | BARMODEL_BAROPEN
+ *
+ * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
+ *
+ *
+ * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage ("delete").
+ */
+const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel) {
+   if ((uint)symbol < MIN_VALID_POINTER) return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if ((int)timeframe <= 0)              return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    using namespace std;
 
    // e.g. string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
@@ -126,15 +218,37 @@ double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
    ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str())));
+   if (!file) return((FXT_HEADER*)warn(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str()));
 
-   FXT_HEADER fxt = {};
-   file.read((char*)&fxt, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str())));
+   FXT_HEADER* fxt = new FXT_HEADER();
+   file.read((char*)fxt, sizeof(FXT_HEADER));
+   file.close(); if (file.fail()) return((FXT_HEADER*)error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+
+   return(fxt);
+}
+
+
+/**
+ * Get the commission value for the specified lotsize.
+ *
+ * @param  EXECUTION_CONTEXT* ec              - execution context of the tested expert
+ * @param  double             lots [optional] - lotsize to calculate commission for (default: 1 lot)
+ *
+ * @return double - commission value or EMPTY (-1) in case of errors
+ */
+double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*/) {
+   if ((uint)ec < MIN_VALID_POINTER)            return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if (ec->programType!=PT_EXPERT || !ec->test) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
+
+   TEST* test = ec->test;
+   if (!test->fxtHeader) test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+
+   const FXT_HEADER* fxt = test->fxtHeader;
+   if (!fxt) return(EMPTY);
 
    if (lots == 1)
-      return(fxt.commissionValue);
-   return(fxt.commissionValue * lots);
+      return(fxt->commissionValue);
+   return(fxt->commissionValue * lots);
    #pragma EXPANDER_EXPORT
 }
 
@@ -143,25 +257,29 @@ double WINAPI Tester_GetCommissionValue(const char* symbol, uint timeframe, uint
  * TODO: validation
  */
 BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
-   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
-   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization, ec.test: 0x%p", ec->test));
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", test->orders));
+   OrderList* positions      = ec->test->positions;      if (!positions)      return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.positions: 0x%p", ec->test->positions));
+   OrderList* longPositions  = ec->test->longPositions;  if (!longPositions)  return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.longPositions: 0x%p", ec->test->longPositions));
+   OrderList* shortPositions = ec->test->shortPositions; if (!shortPositions) return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.shortPositions: 0x%p", ec->test->shortPositions));
 
    ORDER order = {};
       order.ticket      = ticket;
       order.type        = type;
-      order.lots        = round(lots, 2);
+      order.lots        = lots;
       strcpy(order.symbol, symbol);
-      order.openPrice   = round(openPrice, 5);
+      order.openPrice   = openPrice;
       order.openTime    = openTime;
-      order.stopLoss    = round(stopLoss,   5);
-      order.takeProfit  = round(takeProfit, 5);
-      order.commission  = round(commission, 2);
+      order.stopLoss    = stopLoss;
+      order.takeProfit  = takeProfit;
+      order.commission  = commission;
       order.magicNumber = magicNumber;
       strcpy(order.comment, comment);
-   orders->push_back(order);                       // TODO: avoid push_back() creating a copy
+   positions->push_back(order);                    // TODO: avoid push_back() creating a copy
+
+   if (order.type == OP_LONG)  longPositions->push_back(order);
+   if (order.type == OP_SHORT) shortPositions->push_back(order);
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -180,25 +298,55 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
  * @return BOOL - success status
  */
 BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double closePrice, datetime closeTime, double swap, double profit) {
-   if ((uint)ec < MIN_VALID_POINTER)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->testing)   return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if (!ec->test->positions)                    return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.positions: 0x%p", ec->test->positions));
 
-   TEST*         test   = ec->test;     if (!test)   return(error(ERR_RUNTIME_ERROR, "invalid TEST initialization, ec.test: 0x%p", ec->test));
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory initialization, test.orders: 0x%p", test->orders));
+   OrderList& positions = *ec->test->positions;
 
-   uint i = orders->size()-1;
+   int i = positions.size()-1;
+   for (; i >= 0; --i) {                                          // iterate in reverse order to speed-up
+      ORDER& order = positions[i];
+      if (order.ticket == ticket) {
+         order.closePrice = closePrice;
+         order.closeTime  = closeTime;
+         order.swap       = swap;
+         order.profit     = profit;
 
-   for (; i >= 0; --i) {                                             // iterate in reverse order to speed-up
-      ORDER* order = &(*orders)[i];
-      if (order->ticket == ticket) {
-         order->closePrice = round(closePrice, 5);
-         order->closeTime  = closeTime;
-         order->swap       = round(swap,   2);
-         order->profit     = round(profit, 2);
+         // copy open position to closed positions
+         ec->test->trades->push_back(order);
+
+         if (order.type == OP_LONG) {
+            OrderList& longPositions = *ec->test->longPositions;
+            int j = longPositions.size()-1;
+            for (; j >= 0; --j) {                                 // move open long position to closed long positions
+               if (longPositions[j].ticket == ticket) {
+                  longPositions.erase(longPositions.begin() + j);
+                  break;
+               }
+            }
+            if (j < 0) return(error(ERR_RUNTIME_ERROR, "open long position #%d not found, size(longPositions)=%d", ticket, longPositions.size()));
+            ec->test->longTrades->push_back(order);
+         }
+         else if (order.type == OP_SHORT) {
+            OrderList& shortPositions = *ec->test->shortPositions;
+            int j = shortPositions.size()-1;
+            for (; j >= 0; --j) {                                 // move open short position to closed short positions
+               if (shortPositions[j].ticket == ticket) {
+                  shortPositions.erase(shortPositions.begin() + j);
+                  break;
+               }
+            }
+            if (j < 0) return(error(ERR_RUNTIME_ERROR, "open short position #%d not found, size(shortPositions)=%d", ticket, shortPositions.size()));
+            ec->test->shortTrades->push_back(order);
+         }
+
+         // drop order from open positions
+         positions.erase(positions.begin() + i);                  // calls "delete order"
          break;
       }
    }
-   if (i < 0) return(error(ERR_RUNTIME_ERROR, "ticket #%d not found, size(orders)=%d", ticket, orders->size()));
+   if (i < 0) return(error(ERR_RUNTIME_ERROR, "open position #%d not found, size(positions)=%d", ticket, positions.size()));
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -206,14 +354,16 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
 
 
 /**
- * Save the results of a test.
+ * Save the results of a test to a logfile.
  *
  * @param  TEST* test
  *
  * @return BOOL - success status
  */
 BOOL WINAPI Test_SaveReport(const TEST* test) {
-   // save TEST to logfile
+   if (!test->trades) return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.trades: 0x%p", test->trades));
+
+   // create logfile
    string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
                                               .append(test->strategy)
                                               .append(" #")
@@ -222,15 +372,16 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    std::ofstream file(logfile.c_str());
    if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
 
-   file << "test=" << TEST_toStr(test) << "\n";
+   file << "test=" << TEST_toStr(test) << NL;
    debug("test=%s", TEST_toStr(test));
 
-   OrderHistory* orders = test->orders; if (!orders) return(error(ERR_RUNTIME_ERROR, "invalid OrderHistory, test.orders: 0x%p", test->orders));
-   int size = orders->size();
+   // process the known closed positions (skip open positions closed automatically by the tester at test stop)
+   OrderList& trades = *test->trades;
+   int size = trades.size();
 
    for (int i=0; i < size; ++i) {
-      ORDER* order = &(*orders)[i];
-      file << "order." << i << "=" << ORDER_toStr(order) << "\n";
+      ORDER& order = trades[i];
+      file << "order." << i << "=" << ORDER_toStr(&order) << NL;
    }
    file.close();
 
@@ -239,7 +390,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    string source = string(GetTerminalPathA()) +"/tester/"+ test->strategy +".ini";
    string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->strategy +" #"+ to_string(test->reportId) + localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(source.c_str(), target.c_str(), TRUE))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=> CopyFile()"));
+      return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile()"));
    return(TRUE);
 }
 
@@ -255,12 +406,14 @@ BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime,
    TEST* test = ec->test;
    if (!test) return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
+   double spread = round((ec->ask - ec->bid)/ec->point/10, 1);
+
    test_SetReportId    (test, reportId    );
    test_SetReportSymbol(test, reportSymbol);
    test_SetStartTime   (test, startTime   );
-   test_SetSpread      (test, (ec->ask-ec->bid)/0.0001);    // TODO: fix calculation
+   test_SetSpread      (test, spread      );
    test_SetBars        (test, bars        );
- //test_SetTradeDirections...                               // TODO: read from "{expert-name}.ini"
+ //test_SetTradeDirections...                                  // TODO: read from "{expert-name}.ini"
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -283,8 +436,17 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    test_SetBars   (test, bars - test->bars + 1);
    test_SetTicks  (test, ec->ticks            );
 
-   Test_SaveReport(test);                                   // TODO: close memory leak => TEST, OrderHistory
+   return(Test_SaveReport(test));
+   #pragma EXPANDER_EXPORT
+}
 
-   return(TRUE);
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   Tester_GetStartDate();
+   Tester_GetEndDate();
+   return(NULL);
    #pragma EXPANDER_EXPORT
 }

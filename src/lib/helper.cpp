@@ -238,7 +238,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
    uint  size   = symbolLength + strlen(szTimeframe) + 2;            // symbol + 1 + timeframe + \0
    char* result = (char*)alloca(size);                               // on the stack
    int copied = sprintf_s(result, size, format, symbol, szTimeframe);
-   if (copied <= 0) return(error(ERR_WIN32_ERROR+GetLastError(), "=> sprintf_s() => %d chars copied", copied));
+   if (copied <= 0) return(error(ERR_WIN32_ERROR+GetLastError(), "sprintf_s() => %d chars copied", copied));
 
    // copy the result to the destination buffer
    uint len = strlen(result);                                        // len should be equal to size-1

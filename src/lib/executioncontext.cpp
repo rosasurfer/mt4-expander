@@ -221,14 +221,22 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       // (3.1) initialize new test
       if (!ec->ticks) {
          TEST* test = new TEST();
-         test_SetCreated   (test, time(NULL)     );
-         test_SetStrategy  (test, ec->programName);
-         test_SetSymbol    (test, ec->symbol     );
-         test_SetTimeframe (test, ec->timeframe  );
-         test_SetBarModel  (test, Tester_GetBarModel());
-         test_SetVisualMode(test, ec->visualMode );
-         test->orders = new OrderHistory();
-         test->orders->reserve(1024);                                // reserve memory to speed-up testing
+         test_SetCreated  (test, time(NULL)     );
+         test_SetStrategy (test, ec->programName);
+         test_SetSymbol   (test, ec->symbol     );
+         test_SetTimeframe(test, ec->timeframe  );
+         test_SetBarModel (test, Tester_GetBarModel());
+
+         test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+
+         // initialize order history and reserve memory to speed-up testing
+         test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
+         test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
+         test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
+
+         test->trades         = new OrderList(); test->trades        ->reserve(1024);  // closed positions
+         test->longTrades     = new OrderList(); test->longTrades    ->reserve(1024);
+         test->shortTrades    = new OrderList(); test->shortTrades   ->reserve(1024);
 
          master->test = ec->test = test;
       }
@@ -823,10 +831,10 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain)));
 
-      size_t bufferSize = MAX_CHARTDESCRIPTION_LENGTH + 1;
+      uint bufferSize = MAX_CHARTDESCRIPTION_LENGTH + 1;
       char* chartDescription = (char*)alloca(bufferSize);            // on the stack
-      size_t chars = GetChartDescription(symbol, timeframe, chartDescription, bufferSize);
-      if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "=> GetChartDescription()")));
+      uint chars = GetChartDescription(symbol, timeframe, chartDescription, bufferSize);
+      if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "GetChartDescription()")));
 
       bufferSize = 128;
       char* title = (char*)alloca(bufferSize);
@@ -834,7 +842,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       SetLastError(NO_ERROR);
 
       while (hWndChild) {                                            // iterate over all child windows
-         size_t titleLen = GetWindowText(hWndChild, title, bufferSize);
+         uint titleLen = GetWindowText(hWndChild, title, bufferSize);
          if (!titleLen) if (int error=GetLastError()) return(_INVALID_HWND(error(ERR_WIN32_ERROR+error, "GetWindowText()")));
 
          if (titleLen) {

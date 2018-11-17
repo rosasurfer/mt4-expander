@@ -128,7 +128,7 @@ const char* WINAPI GetTerminalModuleFileNameA() {
          buffer = (char*) alloca(size);                              // on the stack
          length = GetModuleFileName(NULL, buffer, size);             // may return a path longer than MAX_PATH
       }
-      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetModuleFileName()"));
+      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
 
       filename = strdup(buffer);                                     // on the heap
    }
@@ -153,7 +153,7 @@ const WCHAR* WINAPI GetTerminalModuleFileNameW() {
          buffer = (WCHAR*) alloca(size * sizeof(WCHAR));             // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
-      if (!length) return((wchar_t*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetModuleFileName()"));
+      if (!length) return((wchar_t*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
       filename = copywchars(buffer);                                 // on the heap
    }
    return(filename);
@@ -202,15 +202,15 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
    if (!fileInfo) {
       const char* fileName = GetTerminalModuleFileNameA();
       DWORD fileInfoSize = GetFileVersionInfoSize(fileName, &fileInfoSize);
-      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfoSize()"));
+      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize()"));
 
       char* infos = (char*) alloca(fileInfoSize);                       // on the stack
       BOOL result = GetFileVersionInfo(fileName, NULL, fileInfoSize, infos);
-      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> GetFileVersionInfo()"));
+      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfo()"));
 
       uint len;
       result = VerQueryValue(infos, "\\", (void**)&fileInfo, &len);
-      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> VerQueryValue()"));
+      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValue()"));
    }
    return(fileInfo);
 }
@@ -226,10 +226,10 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
 
    if (!fileInfo) {
       HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-      if (!hRes) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> FindResource()"));
+      if (!hRes) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "FindResource()"));
 
       void* infos = LoadResource(NULL, hRes);
-      if (!infos) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "=> LoadResource()"));
+      if (!infos) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "LoadResource()"));
 
       int offset = 6;
       if (!wcscmp((wchar_t*)((char*)infos + offset), L"VS_VERSION_INFO")) {
@@ -393,7 +393,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
       result = strdup(dir.c_str());                                                    // on the heap
@@ -418,7 +418,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "=> SHGetFolderPath()"));
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
 
       wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
       StrToUpper(terminalPath);                                                        // convert to upper case
@@ -451,7 +451,7 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
       return(FALSE);
 
    if (!DeleteFile(tmpFilename))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=> DeleteFile(%s)", tmpFilename));
+      return(error(ERR_WIN32_ERROR+GetLastError(), "DeleteFile(%s)", tmpFilename));
 
    return(TRUE);
 }
@@ -536,13 +536,4 @@ int WINAPI Test_synchronize() {
    char* s2 = " world";
    char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
    return(0);
-}
-
-
-/**
- * @return int
- */
-int WINAPI Test() {
-   return(0);
-   #pragma EXPANDER_EXPORT
 }

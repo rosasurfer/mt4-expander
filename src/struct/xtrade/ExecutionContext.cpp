@@ -345,6 +345,128 @@ double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
+ *
+ * @param  EXECUTION_CONTEXT* ec     - source context
+ * @param  EXECUTION_CONTEXT* target - target variable receiving the super context
+ *
+ * @return BOOL - whether or not the source context contained a super context and it was successfully copied
+ */
+BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target) {
+   if ((uint)ec     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)target < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter target: 0x%p (not a valid pointer)", target));
+
+   if (ec->superContext) {
+      *target = *ec->superContext;
+      return(TRUE);
+   }
+
+   EXECUTION_CONTEXT empty = {};
+   *target = empty;
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a pointer to the super context contained in an EXECUTION_CONTEXT. Used by MQL4.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return EXECUTION_CONTEXT* - pointer or NULL if the context contained no super context
+ */
+EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->superContext);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not an experts input parameter "EA.ExtReporting" is activated.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->extReporting);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not an experts input parameter "EA.RecordEquity" is activated.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->recordEquity);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester with "Optimization" on.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->optimization);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not a program is running in the tester or on a test chart with "VisualMode" on.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->visualMode);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's chart frame handle.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - handle, equal to the return vale of MQL::WindowHandle()
+ */
+HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChart);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's chart window handle.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - handle, identifying the parent window of the chart frame
+ */
+HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChartWindow);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the id of the TEST linked to an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -387,38 +509,6 @@ const char* WINAPI ec_TestStrategy(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
       return(ec->test->strategy);
-   return((char*)NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the reporting id of the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - reporting id
- */
-int WINAPI ec_TestReportId(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->reportId);
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the reporting symbol of the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - reporting symbol
- */
-const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->reportSymbol);
    return((char*)NULL);
    #pragma EXPANDER_EXPORT
 }
@@ -569,17 +659,33 @@ DWORD WINAPI ec_TestTradeDirections(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not visual mode was enabled for the TEST linked to an EXECUTION_CONTEXT.
+ * Return the reporting id of the TEST linked to an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return BOOL
+ * @return int - reporting id
  */
-BOOL WINAPI ec_TestVisualMode(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_TestReportId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
-      return(ec->test->visualMode);
-   return(FALSE);
+      return(ec->test->reportId);
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the reporting symbol of the TEST linked to an EXECUTION_CONTEXT.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char* - reporting symbol
+ */
+const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->test)
+      return(ec->test->reportSymbol);
+   return((char*)NULL);
    #pragma EXPANDER_EXPORT
 }
 
@@ -599,100 +705,6 @@ BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not a program is running in the tester or on a test chart with "VisualMode" on.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->visualMode);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not a program is running in the tester with "Optimization" on.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->optimization);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not an experts input parameter "EA.ExtReporting" is activated.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->extReporting);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether or not an experts input parameter "EA.RecordEquity" is activated.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->recordEquity);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
- *
- * @param  EXECUTION_CONTEXT* ec     - source context
- * @param  EXECUTION_CONTEXT* target - target variable receiving the super context
- *
- * @return BOOL - whether or not the source context contained a super context and it was successfully copied
- */
-BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target) {
-   if ((uint)ec     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)target < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter target: 0x%p (not a valid pointer)", target));
-
-   if (ec->superContext) {
-      *target = *ec->superContext;
-      return(TRUE);
-   }
-
-   EXECUTION_CONTEXT empty = {};
-   *target = empty;
-   return(FALSE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a pointer to the super context contained in an EXECUTION_CONTEXT. Used by MQL4.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return EXECUTION_CONTEXT* - pointer or NULL if the context contained no super context
- */
-EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->superContext);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an EXECUTION_CONTEXT's current thread id.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -702,34 +714,6 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->threadId);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an EXECUTION_CONTEXT's chart frame handle.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - handle, equal to the return vale of MQL::WindowHandle()
- */
-HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChart);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an EXECUTION_CONTEXT's chart window handle.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - handle, identifying the parent window of the chart frame
- */
-HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChartWindow);
    #pragma EXPANDER_EXPORT
 }
 
