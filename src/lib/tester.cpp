@@ -203,7 +203,7 @@ datetime WINAPI Tester_GetEndDate() {
  * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
  *
  *
- * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage ("delete").
+ * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage (with "delete").
  */
 const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel) {
    if ((uint)symbol < MIN_VALID_POINTER) return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
@@ -429,7 +429,7 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
 
    TEST* test = ec->test;
-   if (!test)         return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!test)            return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (test->endTime) return(error(ERR_ILLEGAL_STATE, "TEST reporting of expert \"%s\" already stopped", ec->programName));
 
    test_SetEndTime(test, endTime              );
