@@ -13,51 +13,11 @@
 #include <vector>
 
 
-std::vector<ContextChain> g_contextChains  (128);        // all context chains, i.e. MQL programs (index = program id)
-std::vector<DWORD>        g_threads        (128);        // all known threads executing MQL programs
-std::vector<uint>         g_threadsPrograms(128);        // the last MQL program executed by a thread
-uint                      g_lastUIThreadProgram;         // the last MQL program executed by the UI thread
-CRITICAL_SECTION          g_terminalMutex;               // mutex for application-wide locking
-
-
-/**
- *  Init cycle of a single indicator using single and nested library calls:
- *  --- first load ----------------------------------------------------------------------------------------------------------
- *  Indicator::init()              UR_UNDEFINED    pid=0  creating new chain             set pid=1
- *  Indicator::libraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator            set pid=1
- *  Indicator::libraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator            set pid=1
- *  Indicator::libraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA             set pid=1
- *  --- deinit() ------------------------------------------------------------------------------------------------------------
- *  Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
- *  Indicator::libraryA::deinit()  UR_UNDEFINED    pid=1  then libraries
- *  Indicator::libraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in loading order)
- *  Indicator::libraryB::deinit()  UR_UNDEFINED    pid=1
- *  --- init() --------------------------------------------------------------------------------------------------------------
- *  Indicator::libraryA::init()    UR_UNDEFINED    pid=1  libraries first (new symbol and timeframe show up)
- *  Indicator::libraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in loading order)
- *  Indicator::libraryB::init()    UR_UNDEFINED    pid=1
- *  Indicator::init()              UR_CHARTCHANGE  pid=0  then indicator                 set pid=1
- *  -------------------------------------------------------------------------------------------------------------------------
- *
- *
- *  Init cycle of multiple indicators using single library calls:
- *  --- first load ----------------------------------------------------------------------------------------------------------
- *  ChartInfos::init()             UR_UNDEFINED    pid=0  creating new chain             set pid=1
- *  ChartInfos::lib::init()        UR_UNDEFINED    pid=0  loaded by indicator            set pid=1
- *  SuperBars::init()              UR_UNDEFINED    pid=0  creating new chain             set pid=2
- *  SuperBars::lib::init()         UR_UNDEFINED    pid=0  loaded by indicator            set pid=2
- *  --- deinit() ------------------------------------------------------------------------------------------------------------
- *  ChartInfos::deinit()           UR_CHARTCHANGE  pid=1
- *  ChartInfos::lib::deinit()      UR_UNDEFINED    pid=1
- *  SuperBars::deinit()            UR_CHARTCHANGE  pid=2
- *  SuperBars::lib::deinit()       UR_UNDEFINED    pid=2
- *  --- init() --------------------------------------------------------------------------------------------------------------
- *  ChartInfos::lib::init()        UR_UNDEFINED    pid=1
- *  ChartInfos::init()             UR_CHARTCHANGE  pid=0  first indicator in limbo       set pid=1
- *  SuperBars::lib::init()         UR_UNDEFINED    pid=2
- *  SuperBars::init()              UR_CHARTCHANGE  pid=0  next indicator in limbo        set pid=2
- *  -------------------------------------------------------------------------------------------------------------------------
- */
+std::vector<ContextChain> g_contextChains(1);         // all MQL programs: index = program id; 0 is not a valid pid, the index is skipped
+std::vector<DWORD>        g_threads;                  // all known threads executing MQL programs
+std::vector<uint>         g_threadsPrograms;          // pid of the last MQL program executed by a thread
+uint                      g_lastUIThreadProgram;      // pid the last MQL program executed by the UI thread
+CRITICAL_SECTION          g_terminalMutex;            // mutex for application-wide locking
 
 
 /**
@@ -68,10 +28,10 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  * @param  ProgramType        programType    - program type
  * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
  * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
- * @param  DWORD              initFlags      - init configuration
- * @param  DWORD              deinitFlags    - deinit configuration
+ * @param  DWORD              initFlags      - program init configuration
+ * @param  DWORD              deinitFlags    - program deinit configuration
  * @param  char*              symbol         - current chart symbol
- * @param  uint               period         - current chart period
+ * @param  uint               timeframe      - current chart timeframe
  * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
  * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
  * @param  BOOL               extReporting   - value of an Expert's input parameter "EA.ExtReporting"
@@ -87,62 +47,74 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)period <= 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
+   if ((int)timeframe <= 0)                   return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
    if ((int)digits <  0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
+   if (ec->pid) LinkProgramToCurrentThread(ec->pid);              // link the currently executed program asap (error handling)
+
+   //debug("   %p  %s  %s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid           = ec->pid;
    BOOL isPid                = (currentPid);
-   uint prevPid              = g_threadsPrograms[GetCurrentThreadIndex()]; // pid of the last program executed by the current thread
-   uint formerIndPid         = NULL;                                       // old pid of an indicator in init cycle
-   BOOL isPartialTest        = FALSE;                                      // whether an partially initialized expert in tester
+   uint previousPid          = NULL;                              // pid of a previous related program instance (if any)
+   BOOL isPartialTest        = FALSE;                             // whether or not a partially initialized expert in tester
    EXECUTION_CONTEXT* master = NULL;
 
-   if (isPid) LinkProgramToCurrentThread(currentPid);                      // link the currently executed program asap (error handling)
 
-   // resolve the true InitReason
-   InitializeReason initReason  = GetInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, formerIndPid);
+   // fix an unset chart handle (older terminals)
+   if (!hChart) hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, timeframe, isTesting, isVisualMode);
+   if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
+
+
+   // resolve the real InitReason
+   InitializeReason initReason = GetInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, previousPid);
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
-   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_FAILURE_INIT, debug("%s  InitReason=IR_TERMINAL_FAILURE", programName)));
+   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_FAILURE_INIT, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
 
-   // (1) if ec.pid is not set: check if an indicator in init cycle
-   //     • (1.1) if indicator in init cycle (only in UI thread):
-   //       - restore main context from master context
-   //     • (1.2) if not indicator in init cycle: new indicator, expert or script
-   //       - create and store new master context
+   // (1) if ec.pid is not set: check if an indicator in init cycle, indicator in IR_PROGRAM_AFTERTEST or otherwise
+   //     - indicator in IR_PROGRAM_AFTERTEST (UI thread)   => reuse the previous program chain (keep last tick data)
+   //     - indicator in init cycle           (UI thread)   => reuse the previous program chain (keep last tick data)
+   //     - otherwise: new indicator|expert|script
    //
-   // (2) ec.pid is set:
-   //     • update main context
+   // (2) update main and master context
    //
-   // (3) if expert in tester:
-   //     • initialize new test
-   //     • update reused libraries of the preceeding test
+   // (3) if expert in tester
+   //     - initialize new test
+   //     - finish initialization of re-used and still empty libraries        ??? can this be spared ???
+   //
+   // (4) synchronize loaded libraries
 
    if (!isPid) {
-      if (programType==PT_INDICATOR && formerIndPid) {            // check if indicator in init cycle
-         // (1.1) indicator in init cycle (only in UI thread)
-         currentPid = formerIndPid;
-         LinkProgramToCurrentThread(currentPid);                  // link the currently executed program asap (error handling)
+      if (programType==PT_INDICATOR && previousPid) {             // reuse the previous program chain (keep last tick data)
+         LinkProgramToCurrentThread(previousPid);                 // link the currently executed program asap (error handling)
 
-         master = g_contextChains[formerIndPid][0];
-         *ec    = *master;                                        // restore main from master context (pid is already set)
-         g_contextChains[formerIndPid][1] = ec;                   // overwrite old main context (is already released)
+         currentPid = previousPid;
+         master = g_contextChains[previousPid][0];
+
+         if (initReason == IR_PROGRAM_AFTERTEST)
+            master->superContext = sec = NULL;                    // the super context (an expert) has already been released
+         else {/*indicator in init cycle*/}
+
+         *ec = *master;                                           // restore main from master context (pid is already set)
+         g_contextChains[previousPid][1] = ec;                    // store main context at old (empty) position
       }
       else {
-         // (1.2) not an indicator in init cycle: new indicator, expert or script
-         // if an expert in tester check for an existing partially initialized expert of the same name
-         if (programType==PT_EXPERT && isTesting && (isPartialTest=Program_IsPartialTest(prevPid, programName))) {
-            currentPid = prevPid;
+         // new indicator, new expert or new script
+         uint threadIndex   = GetCurrentThreadIndex();
+         uint lastThreadPid = g_threadsPrograms[threadIndex];     // pid of the last program executed by the current thread
+
+         // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL)
+         if (programType==PT_EXPERT && isTesting && (isPartialTest=Program_IsPartialTest(lastThreadPid, programName))) {
+            currentPid = lastThreadPid;
             LinkProgramToCurrentThread(currentPid);               // link the currently executed program asap (error handling)
 
-            // finish initialization of the existing context chain (expert with reused libraries)
             master = g_contextChains[currentPid][0];
-            *ec = *master;                // everything ???       // overwrite main with master context
-            g_contextChains[currentPid][1] = ec;                  // store main context at the empty position
+            *ec = *master;                                        // copy master to main context
+            g_contextChains[currentPid][1] = ec;                  // store main context at old (empty) position
          }
          else {
             // create a new context chain                         // TODO: on IR_PROGRAM_AFTERTEST somewhere exists a used context
@@ -158,116 +130,144 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
             LinkProgramToCurrentThread(currentPid);
          }
       }
-
-      BOOL indicatorAfterTest = (programType==PT_INDICATOR && initReason==IR_PROGRAM_AFTERTEST);
-      if (indicatorAfterTest) {
-         ec_SetSuperContext(ec, sec=NULL);                        // the super context (an expert) has already been released
-      }
    }
    else {
-      // (2) ec.pid is already set: an expert in init cycle or any program after a repeated init() call
+      // ec.pid is set: an expert in init cycle or any program after a repeated init() call
+      master = g_contextChains[currentPid][0];
+      g_contextChains[currentPid][1] = ec;                        // store main context at old (possibly empty) position
    }
 
 
-   // (2.1) fields to update on the first init() call
-   if (!ec->ticks) {                                              // fix an unset chart handle (older terminals)
-      hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
-      if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
+   // (2) update main and master context
+   ec_SetProgramType        (ec, programType );
+   ec_SetProgramName        (ec, programName );
+   ec_SetProgramCoreFunction(ec, CF_INIT     );                   // TODO: wrong for init() calls from start()
+   ec_SetProgramInitReason  (ec, initReason  );
+   ec_SetProgramUninitReason(ec, uninitReason);
+   ec_SetProgramInitFlags   (ec, initFlags   );
+   ec_SetProgramDeinitFlags (ec, deinitFlags );
 
-      ec_SetProgramType  (ec,             programType);
-      ec_SetProgramName  (ec,             programName);
-      ec_SetModuleType   (ec, (ModuleType)programType);           // in the main module ProgramType and ModuleType are the same
-      ec_SetModuleName   (ec,             programName);
+   ec_SetModuleType         (ec, (ModuleType)ec->programType);    // for main modules program and module properties are the same
+   ec_SetModuleName         (ec, ec->programName            );
+   ec_SetModuleCoreFunction (ec, ec->programCoreFunction    );
+   ec_SetModuleUninitReason (ec, ec->programUninitReason    );
+   ec_SetModuleInitFlags    (ec, ec->programInitFlags       );
+   ec_SetModuleDeinitFlags  (ec, ec->programDeinitFlags     );
 
-    //ec_SetLaunchType   (ec,             launchType );
-      ec_SetInitFlags    (ec, initFlags              );
-      ec_SetDeinitFlags  (ec, deinitFlags            );
+   ec_SetSymbol       (ec, symbol      );
+   ec_SetTimeframe    (ec, timeframe   );
+   ec_SetDigits       (ec, digits      );                         // TODO: fix terminal bug
+   ec_SetPoint        (ec, point       );
+   master->rates = ec->rates = NULL;                              // re-initialized on the next tick        // TODO: may be wrong for multiple
+   ec_SetBars         (ec,  0          );                         // ...                                    //       init() calls from start()
+   ec_SetChangedBars  (ec, -1          );                         // ...                                    //       reset only on UR_CHARTCHANGE
+   ec_SetUnchangedBars(ec, -1          );                         // ...                                    //
+ //ec_SetTicks        (ec, ticks       );                         // NULL or kept from the last init() call
+ //ec_SetLastTickTime (ec, lastTickTime);                         // ...
+ //ec_SetPrevTickTime (ec, prevTickTime);                         // ...
+ //ec_SetBid          (ec, bid         );                         // ...
+ //ec_SetAsk          (ec, ask         );                         // ...
 
-      ec_SetSuperContext (ec, sec   );
-      ec_SetHChart       (ec, hChart);                            // chart handles must be set before ec_SetTesting()
-      ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
+   ec_SetSuperContext (ec, sec         );
 
-      ec_SetTesting      (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
-      ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
-      ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
+   ec_SetThreadId     (ec, GetCurrentThreadId());
+   ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test properties
+   ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
-      ec_SetLogging      (ec, Program_IsLogging    (ec));         // TODO: implement (empty stub defaulting to TRUE)
-      ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));         // TODO: implement (empty stub defaulting to NULL)
-   }
-
-   // (2.2) fields to update on every init() call
-   ec_SetCoreFunction (ec, CF_INIT     );                         // TODO: wrong for init() calls from start()
- //ec_SetInitCycle    (ec, FALSE       );
-   ec_SetInitReason   (ec, initReason  );
-   ec_SetUninitReason (ec, uninitReason);
-
-   ec_SetSymbol       (ec, symbol);
-   ec_SetTimeframe    (ec, period);
-   ec_SetDigits       (ec, digits);
-   ec_SetPoint        (ec, point );
-
-   ec_SetBars         (ec,  0);
-   ec_SetChangedBars  (ec, -1);
-   ec_SetUnchangedBars(ec, -1);
+ //master->test = ec->test = ...                                  // NULL or kept from the last init() call
+   ec_SetTesting      (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
+   ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
+   ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
 
    ec_SetExtReporting (ec, extReporting);
    ec_SetRecordEquity (ec, recordEquity);
 
-   ec_SetThreadId     (ec, GetCurrentThreadId());
+   ec_SetLogging      (ec, Program_IsLogging    (ec));            // TODO: atm an empty stub defaulting to TRUE
+   ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));            // TODO: atm an empty stub defaulting to NULL
 
 
-   // (3) if expert in tester
-   if (programType==PT_EXPERT && isTesting) {
-      // (3.1) initialize new test
-      if (!ec->ticks) {
-         TEST* test = new TEST();
-         test_SetCreated  (test, time(NULL)     );
-         test_SetStrategy (test, ec->programName);
-         test_SetSymbol   (test, ec->symbol     );
-         test_SetTimeframe(test, ec->timeframe  );
-         test_SetBarModel (test, Tester_GetBarModel());
+   // (3) handle an expert in tester
+   ContextChain& chain = g_contextChains[currentPid];
+   uint chainSize = chain.size();
 
-         test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+   // (3.1) if expert in tester initialize a new test
+   if (programType==PT_EXPERT && isTesting && !ec->test) {
+      TEST* test = new TEST();
+      test_SetCreated  (test, time(NULL)     );
+      test_SetStrategy (test, ec->programName);
+      test_SetSymbol   (test, ec->symbol     );
+      test_SetTimeframe(test, ec->timeframe  );
+      test_SetBarModel (test, Tester_GetBarModel());
 
-         // initialize order history and reserve memory to speed-up testing
-         test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
-         test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
-         test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
+      test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
 
-         test->trades         = new OrderList(); test->trades        ->reserve(1024);  // closed positions
-         test->longTrades     = new OrderList(); test->longTrades    ->reserve(1024);
-         test->shortTrades    = new OrderList(); test->shortTrades   ->reserve(1024);
+      // initialize the order history and reserve memory to speed-up testing
+      test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
+      test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
+      test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
 
-         master->test = ec->test = test;
-      }
+      test->trades         = new OrderList(); test->trades     ->reserve(1024);     // closed positions
+      test->longTrades     = new OrderList(); test->longTrades ->reserve(1024);
+      test->shortTrades    = new OrderList(); test->shortTrades->reserve(1024);
 
-      // (3.2) if a partially initialized expert update the reused libaries of the preceeding test
-      if (isPartialTest) {
-         ContextChain& chain = g_contextChains[currentPid];
-         uint size = chain.size();
+      master->test = ec->test = test;
+   }
 
-         for (uint i=2; i < size; ++i) {                             // skip master and main context
-            EXECUTION_CONTEXT* lib = chain[i];
-            if (!lib) {
-               warn(ERR_ILLEGAL_STATE, "unexpected library context found at chain[%d]: NULL  ec=%s", i, EXECUTION_CONTEXT_toStr(ec));
-               continue;
-            }
-            EXECUTION_CONTEXT bak = *lib;                            // backup the library on the stack
-            *lib = *chain[0];                                        // overwrite it with master context
-
-            ec_SetModuleType (lib, MT_LIBRARY     );                 // restore/update library-specific fields
-            ec_SetModuleName (lib, bak.moduleName );
-            ec_SetInitCycle  (lib, FALSE          );
-            ec_SetInitFlags  (lib, bak.initFlags  );
-            ec_SetDeinitFlags(lib, bak.deinitFlags);
-            ec_SetMqlError   (lib, NULL);                            // reset all errors
-            ec_SetDllError   (lib, NULL);
-            ec_SetDllWarning (lib, NULL);
-            lib->dllErrorMsg   =   NULL;
-            lib->dllWarningMsg =   NULL;
+   // (3.2) if a partially initialized expert finish initialization of re-used libaries
+   EXECUTION_CONTEXT* lib;
+   if (programType==PT_EXPERT && isTesting && isPartialTest) {
+      for (uint i=2; i < chainSize; ++i) {                        // skip master and main context
+         if (lib = chain[i]) {
+            EXECUTION_CONTEXT bak = *lib;                         // backup the library context
+            *lib = *master;                                       // overwrite library context with master context
+            lib->moduleType         = MT_LIBRARY;                 // keep library-specific fields
+            strcpy(lib->moduleName,   bak.moduleName);
+            lib->moduleUninitReason = bak.moduleUninitReason;
+            lib->moduleCoreFunction = bak.moduleCoreFunction;
+            lib->moduleInitFlags    = bak.moduleInitFlags;
+            lib->moduleDeinitFlags  = bak.moduleDeinitFlags;
+            lib->mqlError           = NULL;                       // reset all errors
+            lib->dllError           = NULL;
+            lib->dllWarning         = NULL;
+            lib->dllErrorMsg        = NULL;                       // TODO: release memory of existing messages
+            lib->dllWarningMsg      = NULL;                       // ...
          }
+         else warn(ERR_ILLEGAL_STATE, "unexpected library context found at chain[%d]: NULL  ec=%s", i, EXECUTION_CONTEXT_toStr(ec));
       }
    }
+   // TODO: merge (3.2) and (4)
+
+
+   // (4) synchronize variable properties of loaded libraries
+   for (uint i=2; i < chainSize; ++i) {                           // skip master and main context
+      if (lib = chain[i]) {
+         lib->programCoreFunction = ec->programCoreFunction;
+         lib->programInitReason   = ec->programInitReason;
+         lib->programUninitReason = ec->programUninitReason;
+
+         strcpy(lib->symbol,        ec->symbol);
+         lib->timeframe           = ec->timeframe;
+         lib->digits              = ec->digits;
+         lib->point               = ec->point;
+         lib->rates               = ec->rates;
+         lib->bars                = ec->bars;
+         lib->changedBars         = ec->changedBars;
+         lib->unchangedBars       = ec->unchangedBars;
+         lib->ticks               = ec->ticks;
+         lib->lastTickTime        = ec->lastTickTime;
+         lib->prevTickTime        = ec->prevTickTime;
+         lib->bid                 = ec->bid;
+         lib->ask                 = ec->ask;
+
+         lib->threadId            = ec->threadId;
+         lib->extReporting        = ec->extReporting;
+         lib->recordEquity        = ec->recordEquity;
+         lib->logging             = ec->logging;
+      }
+      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec))));
+   }
+
+   //debug("  %p  %s  %s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -283,11 +283,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  * @param  double             bid         - bid price of the current tick
  * @param  double             ask         - ask price of the current tick
  *
- * @return int - error status
+ * @return int - error status    BLOCK OK
  */
 int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid)));
+   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d %s  ec=%s", GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
    LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
 
@@ -300,24 +300,26 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint size = chain.size();
    EXECUTION_CONTEXT* ctx;
 
-   // update and synchronize contexts of all program modules
+   // update and synchronize variable properties of master context and loaded program modules
    for (uint i=0; i < size; ++i) {
-      if ((ctx=chain[i]) && ctx->coreFunction!=CF_DEINIT) { // skip libraries which are already unloaded (if that's even possible)
-         ctx->coreFunction  = CF_START;
-         ctx->initCycle     = FALSE;
-         ctx->rates         = rates;
-         ctx->bars          = bars;
-         ctx->changedBars   = changedBars;
-         ctx->unchangedBars = unchangedBars;
-         ctx->ticks         = ticks;
-         ctx->prevTickTime  = lastTickTime;
-         ctx->lastTickTime  = time;
-         ctx->bid           = bid;
-         ctx->ask           = ask;
-         ctx->threadId      = threadId;                     // as long as logging is configured after SyncMainContext_init()
-         ctx->logging       = logging;                      // the flag needs to be synchronized on every tick
-      }
-      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d] or module already unloaded: 0x%p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
+      if (ctx = chain[i]) {
+         ctx->programCoreFunction = CF_START; if (i < 2)
+         ctx->moduleCoreFunction  = ctx->programCoreFunction;        // in master and main context only
+
+         ctx->rates               = rates;
+         ctx->bars                = bars;
+         ctx->changedBars         = changedBars;
+         ctx->unchangedBars       = unchangedBars;
+         ctx->ticks               = ticks;
+         ctx->prevTickTime        = lastTickTime;
+         ctx->lastTickTime        = time;
+         ctx->bid                 = bid;
+         ctx->ask                 = ask;
+
+         ctx->threadId            = threadId;
+         ctx->logging             = logging;                         // As long as ec.logging is configured after SyncMainContext_init()
+      }                                                              // the flag needs to be synchronized on each tick.
+      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
    }
 
    /*
@@ -334,37 +336,143 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
       }
    }
    */
+
+   //if (ec->ticks == 1) debug(" %p  %s  ec=%s", ec, ec->programName, EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * @param  EXECUTION_CONTEXT* ec           - Context des Hauptmoduls eines MQL-Programms
- * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
+ * Update a main module's execution context before the module is unloaded. Called only from the core function Module::deinit().
+ * After deinit() is left the module is unloaded and it's memory must not be accessed until the module re-enters the core
+ * function Module::init(). If the module is an expert and the expert is re-loaded (UR_CHARTCHANGE in an online chart) the
+ * module keeps state.
  *
- * @return int - error status
+ * @param  EXECUTION_CONTEXT* ec           - main module execution context
+ * @param  UninitializeReason uninitReason - uninitialize reason as passed by the terminal
+ *
+ * @return int - error status    BLOCK OK
  */
 int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid)));
+   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
+
+   //debug("%p  %s  %s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
 
-   ec_SetCoreFunction(ec, CF_DEINIT           );                     // update context
-   ec_SetUninitReason(ec, uninitReason        );
-   ec_SetThreadId    (ec, GetCurrentThreadId());
+   ContextChain&      chain    = g_contextChains[ec->pid];
+   uint               size     = chain.size();
+   DWORD              threadId = GetCurrentThreadId();
+   EXECUTION_CONTEXT* ctx;
 
+   // update and synchronize variable properties of master context and loaded program modules
+   for (uint i=0; i < size; ++i) {
+      if (ctx = chain[i]) {
+         ctx->programCoreFunction = CF_DEINIT;    if (i < 2)
+         ctx->moduleCoreFunction  = ctx->programCoreFunction;        // in master and main context only
+         ctx->programUninitReason = uninitReason; if (i < 2)
+         ctx->moduleUninitReason  = ctx->programUninitReason;        // in master and main context only
+         ctx->threadId            = threadId;
+      }
+      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
+   }
+
+   //debug("%p  %s  %s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Called only from Library::init().
+ * Additional notes for SyncLibContext_init()
+ * ==========================================
  *
- * Synchronize a library's EXECUTION_CONTEXT with the context of the program's main module. If a library is loaded the first
- * time its context is added to the program's context chain.
+ * When already loaded libraries are re-loaded they may or may not keep state depending on the reason for re-loading. States
+ * and core function call order during re-loading are as follows:
+ *
+ * (1) Libraries in indicators are re-loaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
+ *
+ *     Single indicator with nested library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     Indicator::init()              UR_UNDEFINED    pid=0  create new context chain              set pid=1
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator                   set pid=1
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator                   set pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA                    set pid=1
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
+ *     Indicator::LibraryA::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     Indicator::LibraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::deinit()  UR_UNDEFINED    pid=1
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=1
+ *     Indicator::init()              UR_CHARTCHANGE  pid=0  indicator last (no state)             restore pid=1
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     Multiple indicators with simple library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     IndicatorA::init()             UR_UNDEFINED    pid=0  create new context chain              set pid=1
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=0                                        set pid=1
+ *     IndicatorB::init()             UR_UNDEFINED    pid=0  create new context chain              set pid=2
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=0                                        set pid=2
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     IndicatorA::deinit()           UR_CHARTCHANGE  pid=1
+ *     IndicatorA::Library::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     IndicatorB::deinit()           UR_CHARTCHANGE  pid=2
+ *     IndicatorB::Library::deinit()  UR_UNDEFINED    pid=2
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=1
+ *     IndicatorA::init()             UR_CHARTCHANGE  pid=0  first indicator (no state)            restore pid=1
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=2
+ *     IndicatorB::init()             UR_CHARTCHANGE  pid=0  second indicator (no state)           restore pid=2
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *
+ * (2) Libraries in experts are not re-loaded during the expert's regular init cycle (UR_CHARTCHANGE).
+ *
+ *
+ * (3) Libraries in experts in tester are re-loaded between multiple tests of the same strategy and keep state. In newer
+ *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
+ *     In older terminals (e.g. build 500) this happens for all such tests.
+ *
+ *     Expert in tester with simple library calls:
+ *     --- Tester Start -----------------------------------------------------------------------------------------------------
+ *     Expert::init()                 ???             pid=0  create new context chain              set pid=1
+ *     Expert::Library::init()        UR_UNDEFINED    pid=0                                        set pid=1
+ *     --- Tester Stop ------------------------------------------------------------------------------------------------------
+ *     Expert::deinit()               ???             pid=1
+ *     Expert::Library::deinit()      UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     --- Tester Start ----------------------------- libraries keep state --------------------------------------------------
+ *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test            set pid=2
+ *     Expert::init()                 ???             pid=0                                        set pid=2
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     This implementation is considered broken-by-design. On start of a test reused libraries should always be in a clean
+ *     state. Instead they keep state of the previously finished test, specifically:
+ *      - Global variables are not reset and contain old values (except strings).
+ *      - The last selected order context is not reset and order functions return wrong results.
+ *      - The flag IsVisualMode() is not reset even if symbol or timeframe of the new test differ.
+ *
+ *     Workaround: On start of a test reused libraries need to be reset manually:
+ *      - SyncLibContext_init() removes a library from the previously finished test's context chain and attaches it to the
+ *        context chain of the new test.
+ *      - MQL::core/library::init() resets a previously selected order context.
+ *      - Global array variables must be reset by implementing Library.ResetGlobalVars().
+ *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
+ *
+ *
+ * (4) Libraries are re-loaded after recompilation in indicators or experts in regular charts and in experts between tests.
+ *     Re-loading after recompilation is always performed in the UI thread and the libraries never keep state.
+ */
+// prevents Visual Assist from including above comment in belows function tooltip
+
+
+/**
+ * Synchronize a library's EXECUTION_CONTEXT with the context of the program's main module. Called only from the core
+ * function Library::init(). Initializes the library context and adds it to the program's context chain.
  *
  * @param  EXECUTION_CONTEXT* ec             - the libray's execution context
  * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal
@@ -372,126 +480,186 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @param  DWORD              deinitFlags    - deinit configuration
  * @param  char*              moduleName     - the library's name (may contain a path depending on the terminal version)
  * @param  char*              symbol         - current chart symbol
- * @param  uint               period         - current chart period
+ * @param  uint               timeframe      - current chart timeframe
  * @param  uint               digits         - the symbol's "Digits" value (possibly incorrect)
  * @param  double             point          - the symbol's "Point" value (possibly incorrect)
- * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminal
+ * @param  BOOL               isTesting      - MQL::IsTesting()
+ * @param  BOOL               isOptimization - MQL::IsOptimization()
  *
  * @return int - error status
  *
- *
- * Notes:
- * ------
- * During init cycles libraries keep state. This is used to distinguish between a freshly loaded and a reused library
- * (init cycle). Libraries perform init cycles in two cases:
- *
- * (1) Libraries loaded by indicators during the indicator's init cycle. Call order:
- *      - Indicator::deinit()
- *      - Library::deinit()    => BUG: global string variables are already destroyed and lost
- *      - Library::init()
- *      - Indicator::init()
- *
- * (2) Libraries loaded by experts between multiple tests of the same strategy. In newer terminals (since when exactly?) this
- *     happens only if the test was not explicitly stopped by using the "Stop" button. In older terminals (e.g. build 500)
- *     this happens for all such tests. Call order:
- *      - Expert::deinit()
- *      - Library::deinit()    => BUG: global string variables are already destroyed and lost
- *      - Library::init()
- *      - Expert::init()
- *
- *     Probably this init cycle is meant to speed up optimizations but the actual implementation must be considered a bug.
- *     Reused libraries should be reset before each new test. Instead they keep state of the previously finished test,
- *     specifically:
- *      - Global variables are not reset and keep former values (except strings).
- *      - The last selected order context is not reset and order functions return wrong results.
- *      - The flag IsVisualMode() is not reset even if symbol or timeframe of the next test change.
- *
- *     Workaround: On start of a test reused libraries need to be manually reset:
- *      - SyncMainContext_init() removes a library from the previously finished expert's context and attaches it to the
- *        context of the newly tested expert.
- *      - MQL::core/library::init() resets a previously selected order context.
- *      - Global array variables must be reset by implementing library::Tester.ResetGlobalLibraryVars().
- *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
- *
- *
- * @see  https://github.com/rosasurfer/mt4-expander/blob/master/src/lib/executioncontext.cpp  SyncMainContext_init()
- * @see  https://github.com/rosasurfer/mt4-mql/blob/master/mql4/include/core/library.mqh      init()
+ * @see    additional notes above this function
  */
-int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, uint digits, double point, BOOL isOptimization) {
+int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization) {
    if ((uint)ec         < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)moduleName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
    if ((uint)symbol     < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)period <= 0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
-   if ((int)digits <  0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
+   if ((int)timeframe <= 0)                  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   if ((int)digits < 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (point <= 0)                           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
 
-   // (1) if ec.pid is not set: library is loaded the first time and the context is empty
-   //     - copy master context and update library specific fields
+   //debug("   %p  %s  %s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+
+   // (1) if ec.pid is not set: the context is empty, check if recompilation or first-time load
+   //     (1.1) UR_RECOMPILE: first reload of a recompiled library (UI thread) or later re-use of a formerly recompiled library (non-UI thread)
+   //     (1.2) UR_UNDEFINED: library is loaded the first time
    //
-   // (2) if ec.pid is set: check if init cycle of indicator (UI thread) or expert between tests (non UI thread)
-   //     (2.1) init cycle of indicator or
-   //     (2.2) init cycle of expert between tests
+   // (2) if ec.pid is set: check if indicator in init cycle, indicator in IR_PROGRAM_AFTERTEST or re-loaded expert between tests
+   //     (2.1) indicator in init cycle or indicator in IR_PROGRAM_AFTERTEST (UI thread)
+   //     (2.2) re-loaded expert between tests                           (non-UI thread)
 
    if (!ec->pid) {
-      // (1) library is loaded the first time
-      uint index = GetCurrentThreadIndex();                          // the program (which caused "load-library") is already linked
-      uint pid = g_threadsPrograms[index];                           // to the thread: get its index
+      if (uninitReason == UR_RECOMPILE) {
+         // (1.1) reload or re-use of a recompiled library
+         if (IsUIThread()) {
+            // Library::init() directly after recompilation: skipped as Library::deinit() is not called
+            //uint pid = FindProgramByLibrary(ec);
+            //debug("found pid=%d  UninitializeReason=%s  uiThread=%s  ec=%s", pid, UninitializeReasonToStr(uninitReason), BoolToStr(IsUIThread()), EXECUTION_CONTEXT_toStr(ec));
+         }
+         else {
+            // Library::init() of a formerly recompiled library at test start (non-UI thread), Expert::init() is called afterwards
+            // check if a partially initialized context chain exists (master->coreFunction=CF_INIT, main=NULL)
+            EXECUTION_CONTEXT* master;                               // master of current test
+            uint threadIndex = GetCurrentThreadIndex();
+            uint currentPid  = g_threadsPrograms[threadIndex];       // pid of the current test
+            BOOL isPartialChain;
 
-      *ec = *g_contextChains[pid][0];                                // overwrite library context with master context
+            if (!currentPid) {                                       // first library in init cyle: the thread never executed a program
+               isPartialChain = FALSE;
+            }
+            else {                                                   // get the last executed program: it's myself or something else
+               ContextChain& chain = g_contextChains[currentPid];    // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
+               isPartialChain = (chain.size()>2 && (master=chain[0]) && chain[0]->programCoreFunction==CF_INIT && !chain[1]);
+               if (!isPartialChain) warn(ERR_ILLEGAL_STATE, "unexpected library with UR_RECOMPILE in tester: a former library (pid=%d) seems to not have created a partial context chain");
+            }
 
-      ec_SetModuleType (ec, MT_LIBRARY );                            // update library specific fields
-      ec_SetModuleName (ec, moduleName );
+            if (!isPartialChain) {
+               // create a new partially initialized chain
+               master = new EXECUTION_CONTEXT();                     // create new master context
+               ContextChain chain;
+               chain.reserve(8);
+               chain.push_back(master);                              // add master to a new chain
+               chain.push_back(NULL);                                // add empty entry for the yet to come main context
+               currentPid = ContextChainsPush(chain);                // store the chain
+               LinkProgramToCurrentThread(currentPid);
 
-      ec_SetInitCycle  (ec, FALSE      );
-      ec_SetInitFlags  (ec, initFlags  );                            // libraries may have their own init flags
-      ec_SetDeinitFlags(ec, deinitFlags);
+               master->pid          = currentPid;                    // update master context with the known properties
+               master->programType  = PT_EXPERT;
+               master->moduleType   = MT_EXPERT;
 
-      ec_SetMqlError   (ec, NULL);                                   // all errors initialized with NULL
-      ec_SetDllError   (ec, NULL);
-      ec_SetDllWarning (ec, NULL);
-      ec->dllErrorMsg   =   NULL;
-      ec->dllWarningMsg =   NULL;
+               strcpy(master->symbol, symbol);                       // first moment a new symbol/timeframe show up
+               master->timeframe    = timeframe;
+               master->digits       = digits;
+               master->point        = point;
 
-      g_contextChains[pid].push_back(ec);                            // add context to the program's context chain
+               master->superContext = FALSE;
+               master->threadId     = g_threads[threadIndex];
+
+               master->testing      = TRUE;                          // TODO: so wrong, we can be online and not in tester
+               master->optimization = isOptimization;
+            }
+
+            // re-initialize the empty library context with the partial master context
+            *ec = *master;
+            ec->moduleType         = MT_LIBRARY;                     // update library specific properties
+            strcpy(ec->moduleName,   moduleName);
+            ec->moduleUninitReason = uninitReason;
+            ec->moduleCoreFunction = CF_INIT;
+            ec->moduleInitFlags    = initFlags;
+            ec->moduleDeinitFlags  = deinitFlags;
+
+            g_contextChains[currentPid].push_back(ec);               // add library to the expert's context chain
+         }
+      }
+      else {
+         // (1.2) library is loaded the first time, Library::init() is called after MainModule::init()
+         // Initialize the library context with the program's master context.
+         uint index = GetCurrentThreadIndex();                       // The program (which caused "load-library") is already linked
+         uint pid = g_threadsPrograms[index];                        // to the thread: get its index
+         if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading a library (pid=0):  UninitializeReason=%s  threadId=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+
+         *ec = *g_contextChains[pid][0];                             // initialize library context with master context
+         ec->moduleType         = MT_LIBRARY;                        // update library specific properties
+         strcpy(ec->moduleName,   moduleName);
+         ec->moduleUninitReason = uninitReason;
+         ec->moduleCoreFunction = CF_INIT;
+         ec->moduleInitFlags    = initFlags;
+         ec->moduleDeinitFlags  = deinitFlags;
+         ec->mqlError           = NULL;                              // reset errors
+         ec->dllError           = NULL;
+         ec->dllWarning         = NULL;
+         ec->dllErrorMsg        = NULL;
+         ec->dllWarningMsg      = NULL;
+
+         g_contextChains[pid].push_back(ec);                         // add context to the program's context chain
+      }
    }
 
    else if (IsUIThread()) {
-      // (2.1) init cycle of indicator: Library::init() is called before Indicator::init()
+      // (2.1) indicator in init cycle or indicator in IR_PROGRAM_AFTERTEST (both UI thread)
+      //       ec.pid points to the original indicator (still in limbo), Library::init() is called before Indicator::init()
       LinkProgramToCurrentThread(ec->pid);                           // link the currently executed program asap (error handling)
 
-      ec_SetCoreFunction(ec, CF_INIT     );                          // update library specific fields
-      ec_SetInitCycle   (ec, FALSE       );                          // TODO: mark master context ???
-      ec_SetUninitReason(ec, uninitReason);
-      ec_SetSymbol      (ec, symbol      );
-      ec_SetTimeframe   (ec, period      );
-      ec_SetDigits      (ec, digits      );
+      EXECUTION_CONTEXT* master = g_contextChains[ec->pid][0];
+      if (isTesting)                                                 // indicator in IR_PROGRAM_AFTERTEST
+         master->programInitReason = IR_PROGRAM_AFTERTEST;
+      else {}                                                        // indicator in init cycle
+
+      // update known master properties
+      strcpy(master->symbol,  symbol);                               // first moment a new symbol/timeframe show up
+      master->timeframe     = timeframe;
+      master->digits        = digits;
+      master->point         = point;
+      master->rates         = NULL;
+      master->bars          =  0;
+      master->changedBars   = -1;
+      master->unchangedBars = -1;
+
+      master->superContext  = NULL;                                  // no super context at all or already released
+      master->threadId      = GetCurrentThreadId();
+
+      master->mqlError      = NO_ERROR;
+      master->dllError      = NO_ERROR;
+      master->dllWarning    = NO_ERROR;
+      master->dllErrorMsg   = NULL;                                  // TODO: release memory of existing messages
+      master->dllWarningMsg = NULL;
+
+      // re-initialize the library context with the updated master context
+      EXECUTION_CONTEXT bak = *ec;                                   // create backup
+      *ec = *master;                                                 // copy master over library context
+      ec->moduleType         = bak.moduleType;                       // restore library specific properties
+      strcpy(ec->moduleName,   bak.moduleName);
+      ec->moduleCoreFunction = CF_INIT;
+      ec->moduleUninitReason = uninitReason;
+      ec->moduleInitFlags    = initFlags;
+      ec->moduleDeinitFlags  = deinitFlags;
+
+      g_contextChains[ec->pid].push_back(ec);                        // re-add context to the old indicator's chain
    }
 
    else {
-      // (2.2) init cycle of experts between tests: Library::init() is called before Expert::init()
-      // ec.pid points to the previously tested and finished expert
-      if (ec->programType!=PT_EXPERT || !ec->testing) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unexpected library init cycle (programType=%s  testing=%s)", ProgramTypeToStr(ec->programType), BoolToStr(ec->testing))));
+      // (2.3) re-loaded expert between tests (non-UI thread): Library::init() is called before Expert::init()
+      // ec.pid points to the previously finished test
+      if (ec->programType!=PT_EXPERT || !ec->testing) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
       EXECUTION_CONTEXT* master=NULL, *oldMaster=NULL;               // master of current and old test
       uint threadIndex = GetCurrentThreadIndex();
-      uint oldPid      = ec->pid;                                    // pid of the finished test
-      uint currentPid  = g_threadsPrograms[threadIndex];             // pid of the current test
+      uint currentPid  = g_threadsPrograms[threadIndex];             // pid of the new test
       BOOL isPartialChain;
 
-      // check if a partially initialized context chain exists (master->coreFunction=CF_INIT, main=NULL)
-      if (!currentPid || currentPid==oldPid) {                       // first library in init cyle: the thread never executed a program
+      // check if a partially initialized context chain exists (master->programCoreFunction=NULL, main=NULL)
+      if (!currentPid || currentPid==ec->pid) {                      // first library in init cyle: the thread never executed a program
          isPartialChain = FALSE;                                     // or the program is the finished test (probably in an optimization)
       }
       else {                                                         // get the last executed program: it's myself or something else
-         ContextChain& chain = g_contextChains[currentPid];          // if partial chain found, it's myself with one more library in same init cyle
-         isPartialChain = (chain.size()>1 && (master=chain[0]) && chain[0]->coreFunction==CF_INIT && !chain[1]);
+         ContextChain& chain = g_contextChains[currentPid];          // if partial chain found, it's myself with one more re-used library
+         isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
          if (!isPartialChain) debug("unseen library init cycle in tester (the former program seems not to be the former test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
 
       if (!isPartialChain) {
          // create a new partially initialized chain
-         master    = new EXECUTION_CONTEXT();                        // create new master context
-         oldMaster = g_contextChains[oldPid][0];
+         master = new EXECUTION_CONTEXT();                           // create new master context
 
          ContextChain chain;
          chain.reserve(8);
@@ -501,53 +669,45 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          LinkProgramToCurrentThread(currentPid);
 
          master->pid               = currentPid;                     // update master context with the known properties
-         master->programType       = PT_EXPERT;
+         master->programType       = ec->programType;
          strcpy(master->programName, ec->programName);
-         master->moduleType        = MT_EXPERT;
-         strcpy(master->moduleName,  oldMaster->moduleName);
+         master->moduleType        = (ModuleType)master->programType;
+         strcpy(master->moduleName,  master->programName);
 
-         master->coreFunction = CF_INIT;
-         master->initCycle    = FALSE;
+         strcpy(master->symbol,  symbol);                            // first moment symbol/timeframe show up
+         master->timeframe     = timeframe;
+         master->digits        = digits;
+         master->point         = point;
+         master->bars          =  0;
+         master->changedBars   = -1;
+         master->unchangedBars = -1;
 
-         strcpy(master->symbol, symbol);                             // first moment a new symbol/timeframe show up
-         master->timeframe    = period;
-         master->point        = point;
-         master->digits       = digits;
-
-         master->testing      = TRUE;
-         master->optimization = isOptimization;
-
-         master->superContext = FALSE;
-         master->threadId     = g_threads[threadIndex];
+         master->threadId      = g_threads[threadIndex];
+         master->testing       = TRUE;
+         master->optimization  = isOptimization;
       }
 
       // re-initialize the library context with the master context
-      EXECUTION_CONTEXT bak = *ec;                                   // backup on the stack
-      *ec = *master;
-      ec->moduleType   =     MT_LIBRARY;                             // update library specifics
-      strcpy(ec->moduleName, bak.moduleName);
-      ec->uninitReason =     uninitReason;
-      ec->initFlags    =     initFlags;
-      ec->deinitFlags  =     deinitFlags;
+      EXECUTION_CONTEXT bak = *ec;                                   // create backup
+      *ec = *master;                                                 // copy master over library context
+      ec->moduleType         = bak.moduleType;                       // restore library specific properties
+      strcpy(ec->moduleName,   bak.moduleName);
+      ec->moduleCoreFunction = CF_INIT;
+      ec->moduleUninitReason = uninitReason;
+      ec->moduleInitFlags    = initFlags;
+      ec->moduleDeinitFlags  = deinitFlags;
 
-      g_contextChains[currentPid].push_back(ec);                     // add library to the current test's context chain
-
-      ContextChain& oldChain = g_contextChains[oldPid];              // remove the library from the finished test's chain
-      uint size = oldChain.size();
-      for (uint i=2; i < size; ++i) {
-         if (oldChain[i] == ec) {
-            oldChain[i] = NULL;
-            break;
-         }
-      }
+      g_contextChains[currentPid].push_back(ec);                     // add library to the new test's context chain
    }
+
+   //debug("   %p  %s  %s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Update a library's EXECUTION_CONTEXT. Called in Library::deinit().
+ * Update a library's execution context before the library gets unloaded. Called only from the core function Library::deinit().
  *
  * @param  EXECUTION_CONTEXT* ec           - the libray's execution context
  * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
@@ -556,60 +716,84 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
  */
 int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid)));
+   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
-   LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
+   //debug(" %p  %s  %s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
-   ec_SetCoreFunction(ec, CF_DEINIT   );                             // update library specific context fields
-   ec_SetUninitReason(ec, uninitReason);
+   LinkProgramToCurrentThread(ec->pid);                  // link the currently executed program asap (error handling)
 
+   ec->moduleUninitReason = uninitReason;                // update library specific context fields
+   ec->moduleCoreFunction = CF_DEINIT;
+
+   //debug(" %p  %s  %s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Signal leaving of an MQL module's execution context. Called at leaving of MQL::deinit().
+ * Handle leaving of an MQL module's core function Module::deinit(). Called in deinit() as the very last statement. After
+ * deinit() is left the module is unloaded and it's memory must not be accessed anymore.
+ *
+ *  - If the module is a main module (an indicator, expert or script) the index of the context in the program's context chain
+ *    is set to NULL (the chain size doesn't change).
+ *
+ *  - If the module is not a main module (a library) the context is removed from the program's context chain (the chain size
+ *    decreases).
+ *
+ *  - TODO:
+ *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
+ *    UR_CLOSE, UR_RECOMPILE) the program is removed from the list of known programs.
+ *
+ *  - If an expert is re-loaded (on UR_CHARTCHANGE) the expert's main module keeps state.
+ *
+ * An unloaded module's memory must not be accessed until the module re-enters the core function Module::init().
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return int - error status
  */
 int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER)  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: %p (not a valid pointer)", ec)));
-   uint pid = ec->pid;
-   if ((int)pid < 1)                  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=%d)  ec=%s", (int)pid, EXECUTION_CONTEXT_toStr(ec))));
-   if (ec->coreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.coreFunction not CF_DEINIT)  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
+   if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   //debug("          %p  %s  ec=%s", ec, ec->moduleName, EXECUTION_CONTEXT_toStr(ec));
+   if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
+
+   ContextChain& chain = g_contextChains[ec->pid];
+   uint chainSize = chain.size();
+   if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
    switch (ec->moduleType) {
       case MT_INDICATOR:
       case MT_SCRIPT:
-         if (ec != g_contextChains[pid][1]) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (doesn't match the stored main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[pid][1], EXECUTION_CONTEXT_toStr(ec))));
-         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set main and master context to NULL
-         g_contextChains[pid][1] = NULL;                             // mark main context as released
-         break;
-
       case MT_EXPERT:
-         if (ec != g_contextChains[pid][1]) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[pid][1], EXECUTION_CONTEXT_toStr(ec))));
-
-         if (ec->testing) {
-            //debug("%s::deinit()  leaving tester, ec=%s", ec->programName, EXECUTION_CONTEXT_toStr(ec));
+         EXECUTION_CONTEXT* ctx;
+         for (uint i=0; i < chainSize; ++i) {
+            if (ctx = chain[i]) {
+               ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
+               ctx->moduleCoreFunction  = (CoreFunction)NULL;              // in master and main context only
+            }
+            else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
          }
-
-         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set main and master context to NULL
-         if (ec->uninitReason!=UR_CHARTCHANGE && ec->uninitReason!=UR_PARAMETERS && ec->uninitReason!=UR_ACCOUNT)
-            g_contextChains[pid][1] = NULL;                          // mark main context as released if not in init cycle
+         chain[1] = NULL;                                                  // reset main index before the module gets unloaded
          break;
 
       case MT_LIBRARY:
-         // TODO: This could be kind of critical as the main module already called LeaveContext() before.
-         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set library context to NULL
+         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark deinit() as left in module only
+         int i;
+         for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
+            if (chain[i] == ec) {
+               chain.erase(chain.begin() + i);                             // remove library context before the module gets unloaded
+               break;
+            }
+         }
+         if (i < 0) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "library context not found in context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
          break;
 
       default:
-         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.moduleType: %s", ModuleTypeToStr(ec->moduleType))));
+         return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
    }
-
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -692,62 +876,104 @@ int WINAPI LinkProgramToCurrentThread(uint pid) {
 
 
 /**
- * Find the first matching and still active indicator with a released main EXECUTION_CONTEXT in memory.
+ * Find the first unloaded indicator matching the specified properties suited for re-loading.
  *
- * @param  HWND               hChart - correct value of WindowHandle()
- * @param  const char*        name   - indicator name
+ * @param  const char*        name
+ * @param  HWND               hChart
  * @param  UninitializeReason reason
+ * @param  BOOL               testing
  *
- * @return int - the found indicator's program id or NULL if no such indicator was found;
- *               EMPTY (-1) in case of errors
- *
- * Notes:
- * ------
- * Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife condition
- * of those who die in original sin without being assigned to the Hell of the Damned. Very hard to escape from.
- *
- * In MetaTrader the memory allocated for global indicator variables (static and non-static, covering the EXECUTION_CONTEXT)
- * is immediately released after the indicator leaves Indicator::deinit(). On re-entry at Indicator::init() new memory is
- * allocated and global variables are initialized with zero. It's for this reason the indicator doesn't keep state over init
- * cycles.
- *
- * Between Indicator::deinit() and Indicator::init() the indicator enters the state of "limbo", an uncharted territory known
- * only to the developers at MetaQuotes. The framework keeps state in the master execution context which acts as a backup of
- * the then lost main execution context. On re-entry the master context is copied back to the newly allocated main context
- * and thus global state of the indicator can survive. Voilà, it crossed the afterlife.
+ * @return uint - the found indicator's program id (pid) or NULL if no such indicator was found
  */
-int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
-   if (hChart) {
-      EXECUTION_CONTEXT* master;
-      int size=g_contextChains.size(), uiThreadId=GetUIThreadId();
+uint WINAPI FindIndicatorInLimbo(const char* name, UninitializeReason reason, BOOL testing, HWND hChart) {
+   // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
+   // If the indicator was used in a test (testing=TRUE) master.threadId may be anything depending on whether or not
+   // a library has been reloaded before.
+   uint chainsSize = g_contextChains.size();
+   uint uiThreadId = GetUIThreadId();
 
-      for (int i=1; i < size; i++) {                                 // index[0] is never occupied
-         master = g_contextChains[i][0];
-
-         if (master->threadId == uiThreadId) {
-            if (master->hChart == hChart) {
+   // TODO: In a test the hChart window is ignored - atm.
+   if (testing) {
+      for (uint i=1; i < chainsSize; ++i) {                                      // index[0] is always empty
+         ContextChain& chain = g_contextChains[i];
+         uint size = chain.size();
+         if (size) {
+            EXECUTION_CONTEXT* master = chain[0];
+            if (master) {
                if (master->programType == MT_INDICATOR) {
-                  if (StrCompare(master->programName, name)) {
-                     if (master->uninitReason == reason) {
-                        if (master->coreFunction == NULL) {          // limbo = init cycle
-                           //debug("first %s indicator found in limbo: pid=%d", name, master->pid);
-                           return(master->pid);
+                  if (!master->programCoreFunction) {                            // main module is unloaded
+                     if (master->programUninitReason == reason) {
+                        if (StrCompare(master->programName, name)) {             // name check at the end
+                           if (size > 2) {                                       // with libraries master->threadId must be the UI thread
+                              if (master->threadId == uiThreadId) {
+                                 return(i);
+                              }
+                           }
+                           else if (master->threadId != uiThreadId) {            // without libraries master->threadId must not be the UI thread
+                              return(i);
+                           }
                         }
-                        //else debug("i=%d  %s  coreFunction not NULL:  master=%s", i, name, CoreFunctionToStr(master->coreFunction));
                      }
-                     //else debug("i=%d  %s  uninit reason mis-match:  master=%s  reason=%s", i, name, UninitReasonToStr(master->uninitReason), UninitReasonToStr(reason));
                   }
-                  //else debug("i=%d  %s  name mis-match", i, name);
                }
-               //else debug("i=%d  %s  no indicator", i, name);
-            }
-            //else debug("i=%d  %s  chart mis-match  master=%d  hChart=%d", i, name, master->hChart, hChart);
-         }
-         //else debug("i=%d  %s  thread mis-match  master->threadId=%d  uiThreadId=%d", i, master->programName, master->threadId, uiThreadId);
+            } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
+         } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", size);
       }
    }
 
-   //debug("no matching %s indicator found in limbo: hChart=%d  uninitReason=%s", name, hChart, UninitializeReasonToStr(reason))
+   // If not in a test a regular init cycle in the UI thread is the only use case. Thus a chart must exist.
+   else {
+      if (hChart) {
+         for (uint i=1; i < chainsSize; ++i) {                                   // index[0] is always empty
+            ContextChain& chain = g_contextChains[i];
+            if (chain.size()) {
+               EXECUTION_CONTEXT* master = chain[0];
+               if (master) {
+                  if (master->programType == MT_INDICATOR) {
+                     if (!master->programCoreFunction) {                         // main module is unloaded
+                        if (master->programUninitReason == reason) {
+                           if (master->hChart == hChart) {
+                              if (master->threadId == uiThreadId) {              // master->threadId must be the UI thread
+                                 if (StrCompare(master->programName, name)) {    // name check last
+                                    return(i);
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
+            } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", chain.size());
+         }
+      }
+   }
+
+   //debug("no matching %s indicator found:  %s  testing=%s  hChart=%d", name, UninitializeReasonToStr(reason), BoolToStr(testing), hChart);
+   return(NULL);
+}
+
+
+/**
+ * Find the program with the specified library context in it's context chain.
+ *
+ * @param  EXECUTION_CONTEXT* lib - the library's execution context
+ *
+ * @return uint - program id (pid) of the found program or NULL (0) in case of errors
+ */
+uint WINAPI FindProgramByLibrary(const EXECUTION_CONTEXT* lib) {
+   if ((uint)lib < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter lib: 0x%p (not a valid pointer)", lib));
+
+   uint size = g_contextChains.size();
+
+   // iterate in reverse order as active programs more probably will be stored at the end
+   for (uint pid=size-1; pid; --pid) {                            // skip index 0 as it's always empty
+      ContextChain& chain = g_contextChains[pid];
+      uint chainSize = chain.size();
+      for (uint j=2; j < chainSize; ++j) {                        // check only libraries (skip master and main context)
+         if (chain[j] == lib)
+            return(pid);
+      }
+   }
    return(NULL);
 }
 
@@ -898,13 +1124,13 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
  * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
  * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
  * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              prevIndPid     - variable receiving the previous pid of an indicator in init cycle
+ * @param  uint&              previousPid    - variable receiving the previous pid of a program
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& prevIndPid) {
+InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& previousPid) {
 
-   if (programType == PT_INDICATOR) return(GetInitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, prevIndPid));
+   if (programType == PT_INDICATOR) return(GetInitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, previousPid));
    if (programType == PT_EXPERT)    return(GetInitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
    if (programType == PT_SCRIPT)    return(GetInitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
 
@@ -924,11 +1150,11 @@ InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CON
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  HWND               hChart         - correct WindowHandle() value
  * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              prevIndPid     - variable receiving the previous pid of an indicator in init cycle
+ * @param  uint&              previousPid    - variable receiving the previous pid of an indicator in init cycle or after test
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& prevIndPid) {
+InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& previousPid) {
    /*
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
@@ -961,15 +1187,15 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (sec)           return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // außerhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
       BOOL isProgramNew;
-      int pid = ec->pid;
+      uint pid = ec->pid;
       if (pid) {
          isProgramNew = !g_contextChains[pid][0]->ticks;             // im Master-Context nachschauen
       }
       else {
-         pid = FindIndicatorInLimbo(hChart, programName, uninitReason);
-         if (pid < 0) return((InitializeReason)NULL);
-         prevIndPid   =  pid;
-         isProgramNew = !pid;
+         pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         previousPid  = pid;
+         isProgramNew = FALSE;
       }
       if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
       else              return(IR_PARAMETERS);                       // Parameter-Wechsel eines vorhandenen Indikators
@@ -981,11 +1207,11 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       // innerhalb iCustom(): nie
       if (sec)               return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // außerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
-      int pid = ec->pid;
+      uint pid = ec->pid;
       if (!pid) {
-         pid = FindIndicatorInLimbo(hChart, programName, uninitReason);
-         if (pid <= 0) return((InitializeReason)(pid < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo during %s", programName, UninitializeReasonToStr(uninitReason))));
-         prevIndPid = pid;
+         pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         previousPid = pid;
       }
       char* masterSymbol = g_contextChains[pid][0]->symbol;
       if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
@@ -1003,8 +1229,13 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       }
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
-         if (build <= 229)         return(IR_PROGRAM_AFTERTEST);
-                                   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+         if (build <= 229) {
+            uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+            previousPid = pid;
+            return(IR_PROGRAM_AFTERTEST);
+         }
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       }
       return(IR_PROGRAM);
    }
@@ -1016,8 +1247,11 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (!sec)                                                 return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread)                            return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
-      if (!isVisualMode/*Fix*/) { if (388<=build && build<=628) return(IR_PROGRAM_AFTERTEST); }
-      else                      { if (578<=build && build<=628) return(IR_PROGRAM_AFTERTEST); }
+      uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+
+      if (!isVisualMode/*Fix*/ && 388<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
+      if ( isVisualMode/*Fix*/ && 578<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
    }
 
@@ -1037,7 +1271,12 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
-      if (build >= 633)              return(IR_PROGRAM_AFTERTEST);
+      if (build >= 633) {
+         uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         previousPid = pid;
+         return(IR_PROGRAM_AFTERTEST);
+      }
       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
    }
 
@@ -1212,7 +1451,8 @@ BOOL WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimizat
 
 
 /**
- * Whether or not the program with the specified pid is a partially initialized expert in tester, matching the passed name.
+ * Whether or not the program with the specified pid is a partially initialized expert in tester, having an unset name or
+ * matching the passed name.
  *
  * @param  char* name - program name
  *
@@ -1222,12 +1462,14 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
    if (g_contextChains.size() > pid) {
       ContextChain& chain = g_contextChains[pid];
 
-      if (chain.size() > 1) {
+      if (chain.size() > 2) {                                  // needs to vae at least one registered library
          EXECUTION_CONTEXT* master = chain[0];
          EXECUTION_CONTEXT* main   = chain[1];
 
-         if (master->programType==PT_EXPERT && master->testing && master->coreFunction==CF_INIT) {
-            return(!main && StrCompare(master->programName, name));        // name comparison last
+         if (master->programType==PT_EXPERT && master->testing) {
+            if (main)                  return(FALSE);
+            if (!*master->programName) return(TRUE);
+            return(StrCompare(master->programName, name));     // name comparison last
          }
       }
    }

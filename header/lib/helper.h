@@ -11,7 +11,7 @@ DWORD  WINAPI GetUIThreadId();
 HANDLE WINAPI GetWindowProperty(HWND hWnd, const char* lpName);
 BOOL   WINAPI IsCustomTimeframe(int timeframe);
 BOOL   WINAPI IsStdTimeframe(int timeframe);
-BOOL   WINAPI IsUIThread();
+BOOL   WINAPI IsUIThread(DWORD threadId = NULL);
 char*  WINAPI MD5Hash(const void* input, uint length);
 char*  WINAPI MD5HashA(const char* input);
 uint   WINAPI MT4InternalMsg();

@@ -400,11 +400,11 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
  */
 BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int reportId, const char* reportSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid=0: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    TEST* test = ec->test;
-   if (!test) return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!test) return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    double spread = round((ec->ask - ec->bid)/ec->point/10, 1);
 
@@ -425,12 +425,13 @@ BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime,
  */
 BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    TEST* test = ec->test;
    if (!test)            return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (test->endTime) return(error(ERR_ILLEGAL_STATE, "TEST reporting of expert \"%s\" already stopped", ec->programName));
+   if (!test->startTime) return( warn(ERR_ILLEGAL_STATE, "reporting not yet started (skipping execution)"));
+   if (test->endTime)    return(error(ERR_ILLEGAL_STATE, "reporting already stopped:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    test_SetEndTime(test, endTime              );
    test_SetBars   (test, bars - test->bars + 1);
@@ -445,8 +446,9 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
  * @return int
  */
 int WINAPI Test() {
-   Tester_GetStartDate();
-   Tester_GetEndDate();
+
+   debug("size(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
+
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
