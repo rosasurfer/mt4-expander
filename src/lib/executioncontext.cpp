@@ -107,7 +107,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          uint threadIndex   = GetCurrentThreadIndex();
          uint lastThreadPid = g_threadsPrograms[threadIndex];     // pid of the last program executed by the current thread
 
-         // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL)
+         // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
          if (programType==PT_EXPERT && isTesting && (isPartialTest=Program_IsPartialTest(lastThreadPid, programName))) {
             currentPid = lastThreadPid;
             LinkProgramToCurrentThread(currentPid);               // link the currently executed program asap (error handling)
@@ -440,18 +440,18 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *
  *     Expert in tester with simple library calls:
  *     --- Tester Start -----------------------------------------------------------------------------------------------------
- *     Expert::init()                 ???             pid=0  create new context chain              set pid=1
- *     Expert::Library::init()        UR_UNDEFINED    pid=0                                        set pid=1
+ *     Expert::init()                 UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     Expert::Library::init()        UR_UNDEFINED    pid=0                                     set pid=1
  *     --- Tester Stop ------------------------------------------------------------------------------------------------------
- *     Expert::deinit()               ???             pid=1
+ *     Expert::deinit()               UR_UNDEFINED    pid=1
  *     Expert::Library::deinit()      UR_UNDEFINED    pid=1  bug: global strings are already destroyed
  *     --- Tester Start ----------------------------- libraries keep state --------------------------------------------------
- *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test            set pid=2
- *     Expert::init()                 ???             pid=0                                        set pid=2
+ *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test         set pid=2   set previousPid=1
+ *     Expert::init()                 UR_UNDEFINED    pid=0                                     set pid=2   set previousPid=1
  *     ----------------------------------------------------------------------------------------------------------------------
  *
- *     This implementation is considered broken-by-design. On start of a test reused libraries should always be in a clean
- *     state. Instead they keep state of the previously finished test, specifically:
+ *     This implementation must be considered broken by design. On start of a test reused libraries should always be in a
+ *     clean state. Instead they keep state of the previously finished test, specifically:
  *      - Global variables are not reset and contain old values (except strings).
  *      - The last selected order context is not reset and order functions return wrong results.
  *      - The flag IsVisualMode() is not reset even if symbol or timeframe of the new test differ.
@@ -464,8 +464,8 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
  *
  *
- * (4) Libraries are re-loaded after recompilation in indicators or experts in regular charts and in experts between tests.
- *     Re-loading after recompilation is always performed in the UI thread and the libraries never keep state.
+ * (4) Libraries are re-loaded after recompilation in regular charts (indicators and experts) and between tests (experts).
+ *     Re-loading after recompilation is always performed in the UI thread and the libraries don't keep state.
  */
 // prevents Visual Assist from including above comment in belows function tooltip
 
@@ -638,8 +638,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    }
 
    else {
-      // (2.3) re-loaded expert between tests (non-UI thread): Library::init() is called before Expert::init()
-      // ec.pid points to the previously finished test
+      // (2.3) re-loaded expert between tests (non-UI thread), ec.pid points to the previously finished test
+      // Library::init() is called before Expert::init()
       if (ec->programType!=PT_EXPERT || !ec->testing) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
       EXECUTION_CONTEXT* master=NULL, *oldMaster=NULL;               // master of current and old test
@@ -647,7 +647,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       uint currentPid  = g_threadsPrograms[threadIndex];             // pid of the new test
       BOOL isPartialChain;
 
-      // check if a partially initialized context chain exists (master->programCoreFunction=NULL, main=NULL)
+      // check if a partially initialized context chain exists (master->programCoreFunction=NULL, main=NULL, lib1!=NULL)
       if (!currentPid || currentPid==ec->pid) {                      // first library in init cyle: the thread never executed a program
          isPartialChain = FALSE;                                     // or the program is the finished test (probably in an optimization)
       }
@@ -669,6 +669,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          LinkProgramToCurrentThread(currentPid);
 
          master->pid               = currentPid;                     // update master context with the known properties
+         master->previousPid       = ec->pid;
          master->programType       = ec->programType;
          strcpy(master->programName, ec->programName);
          master->moduleType        = (ModuleType)master->programType;
