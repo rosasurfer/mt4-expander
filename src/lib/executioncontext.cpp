@@ -73,28 +73,26 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_FAILURE_INIT, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
 
 
-   // (1) if ec.pid is not set: check if an indicator in init cycle or IR_PROGRAM_AFTERTEST, or something else
-   //     - indicator in init cycle           (UI thread)   => reuse the previous program and keep instance data
-   //     - indicator in IR_PROGRAM_AFTERTEST (UI thread)   => reuse the previous program and keep instance data
+   // (1) if ec.pid is not set: check if an indicator to be reused or something else
+   //     - indicator in init cycle           (UI thread) => reuse the previous program and keep instance data
+   //     - indicator in IR_PROGRAM_AFTERTEST (UI thread) => reuse the previous program and keep instance data
+   //     - indicator after recompilation     (UI thread) => reuse the previous program and keep instance data
    //     - something else: new indicator|expert|script
-   //
    // (2) update main and master context
-   // (3) if expert in tester initialize new test
-   // (4) synchronize loaded libraries
+   // (3) synchronize loaded libraries
 
    if (!isPid) {
-      if (programType==PT_INDICATOR && previousPid) {             // reuse the previous program chain to keep instance data
+      if (programType==PT_INDICATOR && previousPid) {             // reuse the previous program chain and keep instance data
          LinkProgramToCurrentThread(previousPid);                 // link the currently executed program asap (error handling)
 
          currentPid = previousPid;
          master = g_contextChains[previousPid][0];
 
          if (initReason == IR_PROGRAM_AFTERTEST)
-            master->superContext = sec = NULL;                    // the super context (an expert) has already been released
-         else {/*indicator in init cycle*/}
+            master->superContext = sec = NULL;                    // reset the super context (the expert has already been released)
 
-         *ec = *master;                                           // restore main from master context (pid is already set)
-         g_contextChains[previousPid][1] = ec;                    // store main context at old (empty) position
+         *ec = *master;                                           // restore main from master context (restores the pid)
+         g_contextChains[previousPid][1] = ec;                    // store main context at original (now empty) position
       }
       else {
          // new indicator, new expert or new script
@@ -126,7 +124,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       }
    }
    else {
-      // ec.pid is set: an expert in init cycle or any program after a repeated init() call
+      // ec.pid is set: an expert in init cycle or any other program after a repeated init() call
       master = g_contextChains[currentPid][0];
       g_contextChains[currentPid][1] = ec;                        // store main context at old (possibly empty) position
    }
@@ -168,7 +166,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test properties
    ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
- //master->test = ec->test = ...                                  // NULL or kept from the last init() call
+   master->test = ec->test = InitTest(ec, isTesting);
    ec_SetTesting      (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
    ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
    ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
@@ -187,27 +185,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    //ec->dllWarningMsg = NULL;
 
 
-   // (3) if expert in tester initialize a new test
-   if (programType==PT_EXPERT && isTesting && !ec->test) {
-      TEST* test = new TEST();
-      test_SetCreated  (test, time(NULL)     );
-      test_SetStrategy (test, ec->programName);
-      test_SetSymbol   (test, ec->symbol     );
-      test_SetTimeframe(test, ec->timeframe  );
-      test_SetBarModel (test, Tester_GetBarModel());
-      test->fxtHeader       = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
-
-      test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
-      test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
-      test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
-      test->trades         = new OrderList(); test->trades     ->reserve(1024);     // closed positions
-      test->longTrades     = new OrderList(); test->longTrades ->reserve(1024);
-      test->shortTrades    = new OrderList(); test->shortTrades->reserve(1024);
-      master->test = ec->test = test;
-   }
-
-
-   // (4) synchronize loaded libraries
+   // (3) synchronize loaded libraries
    ContextChain& chain = g_contextChains[currentPid];
    uint          size  = chain.size();
    EXECUTION_CONTEXT *lib, bak;
@@ -832,21 +810,22 @@ int WINAPI LinkProgramToCurrentThread(uint pid) {
 
 
 /**
- * Find the first unloaded indicator matching the specified properties suited for reloading.
+ * Find the first unloaded indicator matching the specified properties suitable for reloading.
  *
  * @param  const char*        name
  * @param  HWND               hChart
- * @param  UninitializeReason reason
+ * @param  UninitializeReason uninitReason
  * @param  BOOL               testing
  *
  * @return uint - the found indicator's program id (pid) or NULL if no such indicator was found
  */
-uint WINAPI FindIndicatorInLimbo(const char* name, UninitializeReason reason, BOOL testing, HWND hChart) {
+uint WINAPI FindIndicatorInLimbo(const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart) {
    // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
-   // If the indicator was used in a test (testing=TRUE) master.threadId may be anything depending on whether or not
-   // a library has been reloaded before.
+   // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether or not one of the indicator's
+   // libraries has been reloaded before.
    uint chainsSize = g_contextChains.size();
    uint uiThreadId = GetUIThreadId();
+   EXECUTION_CONTEXT* master;
 
    // TODO: In a test the hChart window is ignored - atm.
    if (testing) {
@@ -854,11 +833,10 @@ uint WINAPI FindIndicatorInLimbo(const char* name, UninitializeReason reason, BO
          ContextChain& chain = g_contextChains[i];
          uint size = chain.size();
          if (size) {
-            EXECUTION_CONTEXT* master = chain[0];
-            if (master) {
+            if (master = chain[0]) {
                if (master->programType == MT_INDICATOR) {
                   if (!master->programCoreFunction) {                            // main module is unloaded
-                     if (master->programUninitReason == reason) {
+                     if (master->programUninitReason == uninitReason) {
                         if (StrCompare(master->programName, name)) {             // name check at the end
                            if (size > 2) {                                       // with libraries master->threadId must be the UI thread
                               if (master->threadId == uiThreadId) {
@@ -877,17 +855,18 @@ uint WINAPI FindIndicatorInLimbo(const char* name, UninitializeReason reason, BO
       }
    }
 
-   // If not in a test a regular init cycle in the UI thread is the only use case. Thus a chart must exist.
+   // If not in a test a chart must exist. Possible use cases:
+   // - a regular init cycle in the UI thread
+   // - a recompilation (again in the UI thread)
    else {
       if (hChart) {
          for (uint i=1; i < chainsSize; ++i) {                                   // index[0] is always empty
             ContextChain& chain = g_contextChains[i];
             if (chain.size()) {
-               EXECUTION_CONTEXT* master = chain[0];
-               if (master) {
+               if (master = chain[0]) {
                   if (master->programType == MT_INDICATOR) {
                      if (!master->programCoreFunction) {                         // main module is unloaded
-                        if (master->programUninitReason == reason) {
+                        if (master->programUninitReason == uninitReason) {
                            if (master->hChart == hChart) {
                               if (master->threadId == uiThreadId) {              // master->threadId must be the UI thread
                                  if (StrCompare(master->programName, name)) {    // name check last
@@ -1149,7 +1128,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       }
       else {
          pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
-         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
          previousPid  = pid;
          isProgramNew = FALSE;
       }
@@ -1166,7 +1145,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       uint pid = ec->pid;
       if (!pid) {
          pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
-         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
          previousPid = pid;
       }
       char* masterSymbol = g_contextChains[pid][0]->symbol;
@@ -1187,7 +1166,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
          if (build <= 229) {
             uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
-            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
             previousPid = pid;
             return(IR_PROGRAM_AFTERTEST);
          }
@@ -1204,7 +1183,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread)                            return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
-      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
 
       if (!isVisualMode/*Fix*/ && 388<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
       if ( isVisualMode/*Fix*/ && 578<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
@@ -1217,6 +1196,10 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       // innerhalb iCustom(): nie
       if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // außerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
+
+      uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+      previousPid = pid;
       return(IR_RECOMPILE);
    }
 
@@ -1229,7 +1212,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       if (build >= 633) {
          uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
-         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
          previousPid = pid;
          return(IR_PROGRAM_AFTERTEST);
       }
@@ -1344,6 +1327,40 @@ InitializeReason WINAPI GetInitReason_script(EXECUTION_CONTEXT* ec, const char* 
 
 
 /**
+ * Create and initialize a new TEST instance if the passed program is an expert in tester. If the program already holds
+ * a test, the existing test is returned.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
+ *
+ * @return TEST* - test instance or NULL if the program is not an expert in tester
+ */
+TEST* WINAPI InitTest(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
+   if (ec->test)
+      return(ec->test);
+
+   if (ec->moduleType==MT_EXPERT && isTesting) {
+      TEST* test = new TEST();
+      test_SetCreated  (test, time(NULL)     );
+      test_SetStrategy (test, ec->programName);
+      test_SetSymbol   (test, ec->symbol     );
+      test_SetTimeframe(test, ec->timeframe  );
+      test_SetBarModel (test, Tester_GetBarModel());
+      test->fxtHeader       = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+
+      test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
+      test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
+      test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
+      test->trades         = new OrderList(); test->trades     ->reserve(1024);     // closed positions
+      test->longTrades     = new OrderList(); test->longTrades ->reserve(1024);
+      test->shortTrades    = new OrderList(); test->shortTrades->reserve(1024);
+      return(test);
+   }
+   return(NULL);
+}
+
+
+/**
  * Resolve the custom log file of the program (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1442,13 +1459,11 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
  * @return BOOL - real IsTesting() status
  */
 BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
-   if (ec->superContext)
-      return(ec->superContext->testing);                             // prefer an inherited status
-
    switch (ec->programType) {
       case PT_INDICATOR: {
-         if (isTesting)                                              // indicator runs in iCustom() in Tester
-            return(TRUE);
+         if (ec->superContext) return(ec->superContext->testing);    // prefer an inherited status
+         if (isTesting)        return(TRUE);                         // indicator runs in iCustom() in Tester
+
          // (1) indicator was loaded manually                        // we have no super context
          //     (1.1) not in Tester:                     chart exists, title is set and doesn't end with "(visual)"
          //     (1.2) in Tester:                         chart exists, title is set and does    end with "(visual)"
