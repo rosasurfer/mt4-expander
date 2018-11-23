@@ -1847,7 +1847,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
    EXECUTION_CONTEXT empty = {};
 
    if (!memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
-      ss << "{(empty)}";
+      ss << "{}";
    }
    else {
       ss <<  "{pid="                 <<                   ec->pid

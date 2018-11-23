@@ -256,7 +256,7 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    TEST empty = {};
 
    if (!memcmp(test, &empty, sizeof(TEST))) {
-      ss << "{(empty)}";
+      ss << "{}";
    }
    else {
       ss <<  "{id="              <<                     test->id
