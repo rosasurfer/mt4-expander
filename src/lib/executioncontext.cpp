@@ -62,7 +62,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
    if (ec->pid) LinkProgramToCurrentThread(ec->pid);              // link the currently executed program asap (error handling)
 
-   debug("   %p  %s  %s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("   %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid           = ec->pid;
    BOOL isPid                = (currentPid);
@@ -173,7 +173,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test values
    ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
-   master->test = ec->test = InitTest(ec, isTesting);
+   master->test = ec->test = Expert_InitTest(ec, isTesting);
    ec_SetTesting      (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
    ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
    ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
@@ -211,7 +211,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   debug("  %p  %s  %s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -265,7 +265,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->threadId            = threadId;
          ctx->logging             = logging;                         // As long as ec.logging is configured after SyncMainContext_init()
       }                                                              // the flag needs to be synchronized on each tick.
-      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
    }
 
    /*
@@ -283,7 +283,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    }
    */
 
-   if (ec->cycleTicks == 1) debug(" %p  %s  ec=%s", ec, ec->programName, EXECUTION_CONTEXT_toStr(ec));
+   if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -304,7 +304,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
-   debug("%p  %s  %s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
 
@@ -322,10 +322,10 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
          ctx->moduleUninitReason  = ctx->programUninitReason;        // in master and main context only
          ctx->threadId            = threadId;
       }
-      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
    }
 
-   debug("%p  %s  %s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -338,7 +338,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading. States
  * and core function call order during reloading are as follows:
  *
- * (1) Libraries in indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
+ * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
  *
  *     Single indicator with nested library calls:
  *     --- first load -------------------------------------------------------------------------------------------------------
@@ -377,10 +377,10 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *     ----------------------------------------------------------------------------------------------------------------------
  *
  *
- * (2) Libraries in experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
+ * (2) Libraries loaded by experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
  *
  *
- * (3) Libraries in experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
+ * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
  *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
  *     In older terminals (e.g. build 500) this happens for all such tests.
  *
@@ -396,8 +396,8 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *     Expert::init()                 UR_UNDEFINED    pid=0                                     set pid=2   set previousPid=1
  *     ----------------------------------------------------------------------------------------------------------------------
  *
- *     This implementation must be considered broken by design. On start of a test libraries should always be in a clean
- *     state. Instead reused libraries keep state of the previously finished test, specifically:
+ *     The terminal implementation is considered broken by design. On start of a test libraries should always be in a clean
+ *     state. Instead reloaded libraries keep state of the previously finished test, specifically:
  *      - Global variables are not reset and contain old values (except strings).
  *      - The last selected order context is not reset and order functions return wrong results.
  *      - The flag IsVisualMode() is not reset and may show wrong values, even if symbol or timeframe of the new test differ.
@@ -410,10 +410,10 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
  *
  *
- * (4) Libraries are reloaded after recompilation in regular charts (indicators and experts) and between tests (experts).
- *     Reloading after recompilation is always performed in the UI thread and the libraries don't keep state.
+ * (4) After recompilation libraries are unloaded and reloaded immediately (with connection) or later on next use (without
+ *     connection or in tester). Recompiled libraries never keep state, reloading is perfomed in the UI thread.
  */
-// prevents Visual Assist from including above comment in belows function tooltip
+// This prevents Visual Assist from merging above comment with the one below in the function hover tooltip.
 
 
 /**
@@ -421,7 +421,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * function Library::init(). Initializes the library context and adds it to the program's context chain.
  *
  * @param  EXECUTION_CONTEXT* ec             - the libray's execution context
- * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal
+ * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal (possibly incorrect)
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
  * @param  char*              moduleName     - the library's name (may contain a path depending on the terminal version)
@@ -444,11 +444,16 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    if ((int)digits < 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (point <= 0)                           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
 
-   debug("   %p  %s  %s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+
+   // try to fix the UninitializeReason
+   uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_INIT, uninitReason);
+   if ((int)uninitReason < 0) return(ERR_RUNTIME_ERROR);
+
 
    // (1) if ec.pid is not set: the context is empty, check if recompilation or first-time load
-   //     - UR_RECOMPILE: immediate reload of a recompiled library (UI thread, not in tester ??? CORRECT ??? ) or
-   //                     later reload of a recompiled library at start of next test (non-UI thread)
+   //     - UR_RECOMPILE: reload in regular charts with connection immeadiately, otherwise on next usage (UI thread) or
+   //                     reload in tester at start of the next test (non-UI thread)
    //     - UR_UNDEFINED: first time load
    //
    // (2) if ec.pid is set: check if indicator in init cycle, indicator in IR_PROGRAM_AFTERTEST or reloaded expert between tests
@@ -464,7 +469,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             if (!pid) error(ERR_RUNTIME_ERROR, "UR_RECOMPILE - no %s library found in g_recompiledModule: recompiled.pid=%d  recompiled.type=%s  recompiled.name=%s", moduleName, g_recompiledModule.pid, ModuleTypeToStr(g_recompiledModule.type), g_recompiledModule.name);
             else {
                LinkProgramToCurrentThread(pid);
-               g_recompiledModule = RECOMPILED_MODULE();             // reset recompile marker
+               g_recompiledModule = RECOMPILED_MODULE();             // reset recompilation tracker
 
                *ec = *g_contextChains[pid][0];                       // initialize library context with master context
                ec->moduleType         = MT_LIBRARY;                  // update library specific values
@@ -667,7 +672,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       g_contextChains[currentPid].push_back(ec);                     // add library to the new test's context chain
    }
 
-   debug("   %p  %s  %s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -675,9 +680,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
 /**
  * Update a library's execution context before the library gets unloaded. Called only from the core function Library::deinit().
+ * Depending on the current runtime situation the library may or may not keep state.
  *
- * @param  EXECUTION_CONTEXT* ec           - the libray's execution context
- * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal (possibly incorrect)
  *
  * @return int - error status
  */
@@ -685,9 +691,13 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
-   debug(" %p  %s  %s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    LinkProgramToCurrentThread(ec->pid);                  // link the currently executed program asap (error handling)
+
+   // try to fix the UninitializeReason
+   uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_DEINIT, uninitReason);
+   if ((int)uninitReason < 0) return(ERR_RUNTIME_ERROR);
 
    ec->moduleCoreFunction = CF_DEINIT;                   // update library specific values
    ec->moduleUninitReason = uninitReason;
@@ -695,91 +705,14 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    ContextChain& chain    = g_contextChains[ec->pid];
    uint          size     = chain.size();
    DWORD         threadId = GetCurrentThreadId();
-   EXECUTION_CONTEXT* ctx;
+
    for (uint i=0; i < size; ++i) {                       // update values of all modules
-      if (ctx = chain[i]) {
+      if (EXECUTION_CONTEXT* ctx = chain[i]) {
          ctx->threadId = threadId;
       }
-      else if (i != 1) warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   debug(" %p  %s  %s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
-   return(NO_ERROR);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Handle leaving of an MQL module's core function Module::deinit(). Called in deinit() as the very last statement. After
- * deinit() is left the module is unloaded and it's memory must not be accessed anymore.
- *
- *  - If the module is a main module (an indicator, expert or script) the index of the context in the program's context chain
- *    is set to NULL (the chain size doesn't change).
- *
- *  - If the module is not a main module (a library) the context is removed from the program's context chain (the chain size
- *    decreases).
- *
- *  - TODO:
- *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
- *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs "if it is the last one".
- *
- *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
- *
- * An unloaded module's memory must not be accessed until the module re-enters the core function Module::init().
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - error status
- */
-int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   debug("          %p  %s  ec=%s", ec, ec->moduleName, EXECUTION_CONTEXT_toStr(ec));
-   if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
-   if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
-   if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
-
-   ContextChain& chain = g_contextChains[ec->pid];
-   uint chainSize = chain.size();
-   if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
-
-   switch (ec->moduleType) {
-      case MT_INDICATOR:
-      case MT_SCRIPT:
-      case MT_EXPERT:
-         EXECUTION_CONTEXT* ctx;
-         for (uint i=0; i < chainSize; ++i) {
-            if (ctx = chain[i]) {
-               ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
-               ctx->moduleCoreFunction  = (CoreFunction)NULL;
-            }
-            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
-         }
-         chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
-         break;
-
-      case MT_LIBRARY:
-         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
-         int i;
-         for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
-            if (chain[i] == ec) {
-               chain.erase(chain.begin() + i);                             // remove library context from the program chain
-               break;
-            }
-         }
-         if (i < 0) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "library context not found in context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
-         break;
-
-      default:
-         return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
-   }
-
-   // if the module is recompiled store its data for look-up after recompilation
-   if (ec->moduleUninitReason == UR_RECOMPILE) {
-      if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
-      g_recompiledModule.pid        = ec->pid;
-      g_recompiledModule.type       = ec->moduleType;
-      strcpy(g_recompiledModule.name, ec->moduleName);
-   }
+   debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -807,53 +740,36 @@ uint WINAPI ContextChainsPush(ContextChain& chain) {
 
 
 /**
- * Find the index of the current thread in the list of known threads. If the thread is not found it is added to the list.
+ * Create and initialize a new TEST instance if the passed program is an expert in tester. If the program already holds
+ * a test, the existing test is returned.
  *
- * @return int - thread index or EMPTY (-1) in case of errors
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
+ *
+ * @return TEST* - test instance or NULL if the program is not an expert in tester
  */
-int WINAPI GetCurrentThreadIndex() {
-   DWORD currentThread = GetCurrentThreadId();
+TEST* WINAPI Expert_InitTest(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
+   if (ec->test)
+      return(ec->test);
 
-   // look-up the current thread
-   uint size = g_threads.size();
-   for (uint i=0; i < size; i++) {
-      if (g_threads[i] == currentThread)                          // thread found
-         return(i);
+   if (ec->moduleType==MT_EXPERT && isTesting) {
+      TEST* test = new TEST();
+      test_SetCreated  (test, time(NULL)     );
+      test_SetStrategy (test, ec->programName);
+      test_SetSymbol   (test, ec->symbol     );
+      test_SetTimeframe(test, ec->timeframe  );
+      test_SetBarModel (test, Tester_GetBarModel());
+      test->fxtHeader       = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+
+      test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
+      test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
+      test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
+      test->trades         = new OrderList(); test->trades     ->reserve(1024);     // closed positions
+      test->longTrades     = new OrderList(); test->longTrades ->reserve(1024);
+      test->shortTrades    = new OrderList(); test->shortTrades->reserve(1024);
+      return(test);
    }
-
-   // thread not found
-   if (!TryEnterCriticalSection(&g_terminalMutex)) {
-      debug("waiting to aquire lock on: g_terminalMutex");
-      EnterCriticalSection(&g_terminalMutex);
-   }
-   g_threads        .push_back(currentThread);                    // add current thread to the list
-   g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
-   uint index = g_threads.size() - 1;
-   LeaveCriticalSection(&g_terminalMutex);
-
-   if (index > 255) debug("thread %d added (size=%d)", currentThread, index+1);
-   return(index);
-}
-
-
-/**
- * Link the specified MQL program to the current thread.
- *
- * @param  uint pid - MQL program id
- *
- * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
- */
-int WINAPI LinkProgramToCurrentThread(uint pid) {
-   if ((int)pid < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d", pid)));
-
-   int index = GetCurrentThreadIndex();
-   if (index < 0) return(EMPTY);
-
-   g_threadsPrograms[index] = pid;                       // update the thread's last executed program
-   if (IsUIThread())
-      g_lastUIThreadProgram = pid;                       // update lastUIThreadProgram if the thread is the UI thread
-
-   return(index);
+   return(NULL);
 }
 
 
@@ -875,7 +791,6 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
          // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether or not one of the indicator's
          // libraries has been reloaded before.
          uint chainsSize = g_contextChains.size();
-         uint uiThreadId = GetUIThreadId();
          EXECUTION_CONTEXT* master;
 
          // TODO: In a test the hChart window is ignored - atm.
@@ -890,11 +805,11 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
                            if (master->programUninitReason == uninitReason) {
                               if (StrCompare(master->programName, name)) {          // name check at the end
                                  if (size > 2) {                                    // with libraries master->threadId must be the UI thread
-                                    if (master->threadId == uiThreadId) {
+                                    if (IsUIThread(master->threadId)) {
                                        return(i);
                                     }
                                  }
-                                 else if (master->threadId != uiThreadId) {         // without libraries master->threadId must not be the UI thread
+                                 else if (!IsUIThread(master->threadId)) {          // without libraries master->threadId must not be the UI thread
                                     return(i);
                                  }
                               }
@@ -919,7 +834,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
                            if (!master->programCoreFunction) {                      // main module is unloaded
                               if (master->programUninitReason == uninitReason) {
                                  if (master->hChart == hChart) {
-                                    if (master->threadId == uiThreadId) {           // master->threadId must be the UI thread
+                                    if (IsUIThread(master->threadId)) {             // master->threadId must be the UI thread
                                        if (StrCompare(master->programName, name)) { // name check last
                                           return(i);
                                        }
@@ -936,10 +851,8 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
          break;
       }
 
-      case MT_LIBRARY: {
+      case MT_LIBRARY:
          if (uninitReason == UR_RECOMPILE) {
-            if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d", GetCurrentThreadId());
-
             if (g_recompiledModule.type == MT_LIBRARY) {
                if (StrCompare(g_recompiledModule.name, name)) {
                   return(g_recompiledModule.pid);
@@ -947,7 +860,6 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
             }
          }
          break;
-      }
 
       default:
          return(error(ERR_INVALID_PARAMETER, "invalid parameter module type: %s (not supported)", ModuleTypeToStr(type)));
@@ -1090,21 +1002,121 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
 
 
 /**
- * Resolve a program's true init() reason.
+ * Try to fix a module's UninitializeReason reason.
  *
- * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context (possibly still empty)
- * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
- * @param  ProgramType        programType    - program type
+ * @param  EXECUTION_CONTEXT* ec           - the module's execution context (possibly still empty)
+ * @param  ModuleType         moduleType   - module type
+ * @param  CoreFunction       coreFunction - the core function the module is currently in
+ * @param  UninitializeReason uninitReason - UninitializeReason() as passed by the terminal (possibly incorrect)
+ *
+ * @return UninitializeReason - uninitialize reason or EMPTY (-1) in case of errors
+ */
+UninitializeReason WINAPI FixUninitReason(EXECUTION_CONTEXT* ec, ModuleType moduleType, CoreFunction coreFunction, UninitializeReason uninitReason) {
+   UninitializeReason bak = uninitReason;
+
+   if (moduleType == MT_LIBRARY) {
+      if (coreFunction == CF_INIT) {
+         if (uninitReason == UR_RECOMPILE) {
+            if (ec->pid) {                                     // after a recompilation the context cannot have state
+               uninitReason = (ec->programUninitReason!=UR_RECOMPILE ? ec->programUninitReason : UR_UNDEFINED);
+            }
+         }
+         else if (!ec->programCoreFunction && uninitReason==UR_UNDEFINED ){
+            if (ec->programUninitReason != UR_RECOMPILE) {     // if the main module is in limbo apply the main UninitReason
+               uninitReason = ec->programUninitReason;
+            }
+         }
+      }
+
+      else if (coreFunction == CF_DEINIT) {
+         if (uninitReason == UR_RECOMPILE) {
+            if (!ec->programCoreFunction) {                    // if the main module is in limbo there can't be a recompilation
+               uninitReason = (ec->programUninitReason!=UR_RECOMPILE ? ec->programUninitReason : UR_UNDEFINED);
+            }
+            else if (g_recompiledModule.pid == ec->pid) {
+               uninitReason = UR_UNDEFINED;                    // there can only be one recompilation per program
+            }
+         }
+         else if (!ec->programCoreFunction) {                  // if the main module is in limbo apply the main UninitReason
+            if (uninitReason==UR_UNDEFINED && ec->programUninitReason!=UR_RECOMPILE) {
+               uninitReason = ec->programUninitReason;
+            }
+         }
+      }
+      //if (uninitReason != bak) debug("overriding %s with %s", UninitializeReasonToStr(bak), UninitializeReasonToStr(uninitReason));
+      return(uninitReason);
+   }
+   return((UninitializeReason)_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter moduleType: %s (not supported)", ModuleTypeToStr(moduleType))));
+}
+
+
+/**
+ * Find the index of the current thread in the list of known threads. If the thread is not found it is added to the list.
+ *
+ * @return int - thread index or EMPTY (-1) in case of errors
+ */
+int WINAPI GetCurrentThreadIndex() {
+   DWORD currentThread = GetCurrentThreadId();
+
+   // look-up the current thread
+   uint size = g_threads.size();
+   for (uint i=0; i < size; i++) {
+      if (g_threads[i] == currentThread)                          // thread found
+         return(i);
+   }
+
+   // thread not found
+   if (!TryEnterCriticalSection(&g_terminalMutex)) {
+      debug("waiting to aquire lock on: g_terminalMutex");
+      EnterCriticalSection(&g_terminalMutex);
+   }
+   g_threads        .push_back(currentThread);                    // add current thread to the list
+   g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
+   uint index = g_threads.size() - 1;
+   LeaveCriticalSection(&g_terminalMutex);
+
+   if (index > 255) debug("thread %d added (size=%d)", currentThread, index+1);
+   return(index);
+}
+
+
+/**
+ * Link the specified MQL program to the current thread.
+ *
+ * @param  uint pid - MQL program id
+ *
+ * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
+ */
+int WINAPI LinkProgramToCurrentThread(uint pid) {
+   if ((int)pid < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d", pid)));
+
+   int index = GetCurrentThreadIndex();
+   if (index < 0) return(EMPTY);
+
+   g_threadsPrograms[index] = pid;                       // update the thread's last executed program
+   if (IsUIThread())
+      g_lastUIThreadProgram = pid;                       // update lastUIThreadProgram if the thread is the UI thread
+
+   return(index);
+}
+
+
+/**
+ * Resolve a program's real init() reason.
+ *
+ * @param  EXECUTION_CONTEXT* ec             - an MQL program's execution context (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec            - an MQL program's super context (memory possibly already released)
+ * @param  ModuleType         programType    - program type
  * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
+ * @param  UninitializeReason uninitReason   - UninitializeReason() as passed by the terminal (possibly incorrect)
  * @param  char*              symbol         - current symbol
- * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isTesting      - IsTesting() as passed by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - IsVisualMode() as passed by the terminal (possibly incorrect)
  * @param  HWND               hChart         - correct WindowHandle() value
- * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              previousPid    - variable receiving the previous pid of a program
+ * @param  int                droppedOnChart - WindowOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - WindowXOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - WindowYOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  uint&              previousPid    - variable receiving the previous pid of a program instance (if any)
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
@@ -1119,18 +1131,18 @@ InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CON
 
 
 /**
- * Resolve an indicator's true init() reason.
+ * Resolve an indicator's real init() reason.
  *
- * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context (possibly still empty)
- * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
- * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
+ * @param  EXECUTION_CONTEXT* ec             - the indicator's execution context (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec            - the indicator's super context (memory possibly already released)
+ * @param  char*              programName    - indicator name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason   - UninitializeReason() as passed by the terminal
  * @param  char*              symbol         - current symbol
- * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isTesting      - IsTesting() as passed by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - IsVisualMode() as passed by the terminal (possibly incorrect)
  * @param  HWND               hChart         - correct WindowHandle() value
- * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              previousPid    - variable receiving the previous pid of an indicator in init cycle or after test
+ * @param  int                droppedOnChart - WindowOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  uint&              previousPid    - variable receiving the previous pid of the indicator instance (if any)
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
@@ -1279,15 +1291,15 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
 
 
 /**
- * Resolve an expert's true init() reason.
+ * Resolve an expert's real init() reason.
  *
- * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
- * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason  - value of UninitializeReason() as returned by the terminal
+ * @param  EXECUTION_CONTEXT* ec            - the expert's execution context (possibly still empty)
+ * @param  char*              programName   - expert name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason  - UninitializeReason() as passed by the terminal
  * @param  char*              symbol        - current symbol
- * @param  BOOL               isTesting     - value of IsTesting() as returned by the terminal
- * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
- * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
+ * @param  BOOL               isTesting     - IsTesting() as passed by the terminal
+ * @param  int                droppedOnPosX - WindowXOnDropped() as passed by the terminal
+ * @param  int                droppedOnPosY - WindowYOnDropped() as passed by the terminal
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
@@ -1358,12 +1370,12 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
 
 
 /**
- * Resolve a script's true init() reason.
+ * Resolve a script's real init() reason.
  *
- * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
- * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
- * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
- * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
+ * @param  EXECUTION_CONTEXT* ec            - the script's execution context (possibly still empty)
+ * @param  char*              programName   - script name (with or without filepath depending on the terminal version)
+ * @param  int                droppedOnPosX - WindowXOnDropped() as passed by the terminal
+ * @param  int                droppedOnPosY - WindowYOnDropped() as passed by the terminal
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
@@ -1373,36 +1385,81 @@ InitializeReason WINAPI GetInitReason_script(EXECUTION_CONTEXT* ec, const char* 
 
 
 /**
- * Create and initialize a new TEST instance if the passed program is an expert in tester. If the program already holds
- * a test, the existing test is returned.
+ * Handle leaving of an MQL module's core function Module::deinit(). Called in deinit() as the very last statement. After
+ * deinit() is left the module is unloaded and it's memory must not be accessed anymore.
+ *
+ *  - If the module is a main module (an indicator, expert or script) the index of the context in the program's context chain
+ *    is set to NULL (the chain size doesn't change).
+ *
+ *  - If the module is not a main module (a library) the context is removed from the program's context chain (the chain size
+ *    decreases).
+ *
+ *  - TODO:
+ *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
+ *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs "if it is the last one".
+ *
+ *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
+ *
+ * An unloaded module's memory must not be accessed until the module re-enters the core function Module::init().
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
  *
- * @return TEST* - test instance or NULL if the program is not an expert in tester
+ * @return int - error status
  */
-TEST* WINAPI InitTest(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
-   if (ec->test)
-      return(ec->test);
+int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   debug("         %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
+   if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
 
-   if (ec->moduleType==MT_EXPERT && isTesting) {
-      TEST* test = new TEST();
-      test_SetCreated  (test, time(NULL)     );
-      test_SetStrategy (test, ec->programName);
-      test_SetSymbol   (test, ec->symbol     );
-      test_SetTimeframe(test, ec->timeframe  );
-      test_SetBarModel (test, Tester_GetBarModel());
-      test->fxtHeader       = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+   ContextChain& chain = g_contextChains[ec->pid];
+   uint chainSize = chain.size();
+   if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
-      test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
-      test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
-      test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
-      test->trades         = new OrderList(); test->trades     ->reserve(1024);     // closed positions
-      test->longTrades     = new OrderList(); test->longTrades ->reserve(1024);
-      test->shortTrades    = new OrderList(); test->shortTrades->reserve(1024);
-      return(test);
+   switch (ec->moduleType) {
+      case MT_INDICATOR:
+      case MT_SCRIPT:
+      case MT_EXPERT:
+         EXECUTION_CONTEXT* ctx;
+         for (uint i=0; i < chainSize; ++i) {
+            if (ctx = chain[i]) {
+               ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
+               ctx->moduleCoreFunction  = (CoreFunction)NULL;
+            }
+            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
+         }
+         chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
+         break;
+
+      case MT_LIBRARY:
+         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
+         int i;
+         for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
+            if (chain[i] == ec) {
+               chain.erase(chain.begin() + i);                             // remove library context from the program chain
+               break;
+            }
+         }
+         if (i < 0) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "library context not found in context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
+
+         // on recompilation store the module details for look-up after recompilation
+         if (ec->moduleUninitReason == UR_RECOMPILE) {
+            if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
+            if (g_recompiledModule.pid != ec->pid) {                       // there can be at most one recompilation per program
+               g_recompiledModule.pid        = ec->pid;
+               g_recompiledModule.type       = ec->moduleType;
+               strcpy(g_recompiledModule.name, ec->moduleName);
+            }
+         }
+         break;
+
+      default:
+         return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
    }
-   return(NULL);
+
+   return(NO_ERROR);
+   #pragma EXPANDER_EXPORT
 }
 
 
