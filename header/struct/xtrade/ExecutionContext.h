@@ -49,10 +49,10 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    int                bars;                        //       604        4     current number of bars = MQL::Bars                  (var  )
    int                changedBars;                 //       608        4     number of changed bars                              (var  )
    int                unchangedBars;               //       612        4     number of unchanged bars = MQL::IndicatorCounted()  (var  )
-   uint               ticks;                       //       616        4     number of times MQL::start() was called             (var  )
-   datetime           lastTickTime;                //       620        4     server time of the last received tick               (var  )
-   datetime           prevTickTime;                //       624        4     server time of the previous received tick           (var  )
-   BYTE               _alignment1[4];              //       628        4     (alignment to the next double)
+   uint               ticks;                       //       616        4     number of times start() was called for the instance (var  )
+   uint               cycleTicks;                  //       620        4     number of times start() was called for the cycle    (var  )
+   datetime           lastTickTime;                //       624        4     server time of the last received tick               (var  )
+   datetime           prevTickTime;                //       628        4     server time of the previous received tick           (var  )
    double             bid;                         //       632        8     current bid price      = MQL::Bid                   (var  )
    double             ask;                         //       640        8     current ask price      = MQL::Ask                   (var  )
                                                    //
@@ -112,6 +112,7 @@ int                WINAPI ec_Bars               (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_ChangedBars        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_UnchangedBars      (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Ticks              (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_cycleTicks         (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_LastTickTime       (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_PrevTickTime       (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
@@ -147,17 +148,15 @@ BOOL               WINAPI ec_RecordEquity       (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_MqlError           (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError           (const EXECUTION_CONTEXT* ec);
-//                        ...
+//                        ec.dllErrorMsg
 int                WINAPI ec_DllWarning         (const EXECUTION_CONTEXT* ec);
-//                        ...
+//                        ec.dllWarningMsg
 BOOL               WINAPI ec_Logging            (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_CustomLogging      (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_CustomLogFile      (const EXECUTION_CONTEXT* ec);
 
 
-// validating setters (exported to MQL)
-uint               WINAPI ec_SetPid                (EXECUTION_CONTEXT* ec, uint               pid      );
-
+// validating setters
 ProgramType        WINAPI ec_SetProgramType        (EXECUTION_CONTEXT* ec, ProgramType        type     );
 const char*        WINAPI ec_SetProgramName        (EXECUTION_CONTEXT* ec, const char*        name     );
 CoreFunction       WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction       id       );
@@ -181,13 +180,7 @@ double             WINAPI ec_SetPoint              (EXECUTION_CONTEXT* ec, doubl
 int                WINAPI ec_SetBars               (EXECUTION_CONTEXT* ec, int                count    );
 int                WINAPI ec_SetChangedBars        (EXECUTION_CONTEXT* ec, int                count    );
 int                WINAPI ec_SetUnchangedBars      (EXECUTION_CONTEXT* ec, int                count    );
-uint               WINAPI ec_SetTicks              (EXECUTION_CONTEXT* ec, uint               count    );
-datetime           WINAPI ec_SetLastTickTime       (EXECUTION_CONTEXT* ec, datetime           time     );
-datetime           WINAPI ec_SetPrevTickTime       (EXECUTION_CONTEXT* ec, datetime           time     );
-double             WINAPI ec_SetBid                (EXECUTION_CONTEXT* ec, double             price    );
-double             WINAPI ec_SetAsk                (EXECUTION_CONTEXT* ec, double             price    );
 
-uint               WINAPI ec_SetPreviousPid        (EXECUTION_CONTEXT* ec, uint               pid      );
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext       (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
 uint               WINAPI ec_SetThreadId           (EXECUTION_CONTEXT* ec, uint               id       );
 HWND               WINAPI ec_SetHChart             (EXECUTION_CONTEXT* ec, HWND               hWnd     );

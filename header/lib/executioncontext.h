@@ -16,9 +16,8 @@ uint             WINAPI ContextChainsPush(ContextChain& chain);
 int              WINAPI GetCurrentThreadIndex();
 int              WINAPI LinkProgramToCurrentThread(uint pid);
 
-uint             WINAPI FindIndicatorInLimbo(const char* name, UninitializeReason reason, BOOL testing, HWND hChart);
-uint             WINAPI FindProgramByLibrary(const EXECUTION_CONTEXT* lib);
-HWND             WINAPI FindWindowHandle    (HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode);
+uint             WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart);
+HWND             WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode);
 
 InitializeReason WINAPI GetInitReason          (EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& prevPid);
 InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec,                          const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart,                                       uint& prevPid);

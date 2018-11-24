@@ -318,7 +318,7 @@ int WINAPI ec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's number of times a program's start() function was called.
+ * Return the number of times the start() function was called during the program's lifetime.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -327,6 +327,20 @@ int WINAPI ec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
 uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->ticks);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the number of times the start() function was called during the program's last init() cycle.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return uint
+ */
+uint WINAPI ec_CycleTicks(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->cycleTicks);
    #pragma EXPANDER_EXPORT
 }
 
@@ -846,44 +860,6 @@ const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Set a program's id.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               pid - program id (must be greater than zero)
- *
- * @return uint - the same id
- */
-uint WINAPI ec_SetPid(EXECUTION_CONTEXT* ec, uint pid) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)pid <= 0)                return(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (must be greater than zero)", pid));
-
-   ec->pid = pid;                                                    // synchronize main and master context
-   if (g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->pid = pid;
-   return(pid);
-}
-
-
-/**
- * Set a program's previous id.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               pid - previous program id
- *
- * @return uint - the same id
- */
-uint WINAPI ec_SetPreviousPid(EXECUTION_CONTEXT* ec, uint pid) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)pid < 0)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (must be non-negative)", pid));
-
-   ec->previousPid = pid;                                            // synchronize main and master context
-   if (g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->previousPid = pid;
-   return(pid);
-}
-
-
-/**
  * Set a program's type.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1193,7 +1169,6 @@ CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->moduleCoreFunction = id;
    return(id);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1385,111 +1360,6 @@ int WINAPI ec_SetUnchangedBars(EXECUTION_CONTEXT* ec, int count) {
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->unchangedBars = count;
    return(count);
-}
-
-
-/**
- * Set a program's number of received ticks (number of times MQL::start() was called).
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               count
- *
- * @return uint - the same number
- */
-uint WINAPI ec_SetTicks(EXECUTION_CONTEXT* ec, uint count) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)count < 0)               return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be non-negative)", count));
-
-   ec->ticks = count;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->ticks = count;
-   return(count);
-}
-
-
-/**
- * Set a program's last tick time.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  datetime           time - server time
- *
- * @return datetime - the same time
- */
-datetime WINAPI ec_SetLastTickTime(EXECUTION_CONTEXT* ec, datetime time) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
-
-   ec->lastTickTime = time;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->lastTickTime = time;
-   return(time);
-}
-
-
-/**
- * Set a program's previous tick time.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  datetime           time - server time
- *
- * @return datetime - the same time
- */
-datetime WINAPI ec_SetPrevTickTime(EXECUTION_CONTEXT* ec, datetime time) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (time < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
-
-   ec->prevTickTime = time;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->prevTickTime = time;
-   return(time);
-}
-
-
-/**
- * Set a program's current bid price.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  double             price - may be 0 (zero) if no last tick was stored and the server connection is not yet established
- *
- * @return double - the same price
- */
-double WINAPI ec_SetBid(EXECUTION_CONTEXT* ec, double price) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (price < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be non-negative)", price));
-
-   ec->bid = price;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->bid = price;
-   return(price);
-}
-
-
-/**
- * Set a program's current ask price.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  double             price - may be 0 (zero) if no last tick was stored and the server connection is not yet established
- *
- * @return double - the same price
- */
-double WINAPI ec_SetAsk(EXECUTION_CONTEXT* ec, double price) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (price < 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter price: %f (must be non-negative)", price));
-
-   ec->ask = price;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->ask = price;
-   return(price);
 }
 
 
@@ -1877,6 +1747,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", changedBars="         <<                   ec->changedBars
          << ", unchangedBars="       <<                   ec->unchangedBars
          << ", ticks="               <<                   ec->ticks
+         << ", cycleTicks="          <<                   ec->cycleTicks
          << ", lastTickTime="        <<                  (ec->lastTickTime ? doubleQuoteStr(gmtTimeFormat(ec->lastTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
          << ", prevTickTime="        <<                  (ec->prevTickTime ? doubleQuoteStr(gmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
          << ", bid="                 <<                   ec->bid

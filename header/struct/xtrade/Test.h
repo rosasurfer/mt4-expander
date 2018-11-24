@@ -8,36 +8,34 @@
  *
  * A structure holding test data (i.e. tester settings, strategy settings, trade history).
  */
-#pragma pack(push, 1)
-struct TEST {                                            // -- offset --- size --- description -----------------------------------------
-   int               id;                                 //         0        4     unique test id (positive, primary key)
-   datetime          created;                            //         4        4     creation time of the test
-   char              strategy[MAX_PATH];                 //         8      260     strategy name
-   char              symbol      [MAX_SYMBOL_LENGTH+1];  //       268       12     tested symbol
-   uint              timeframe;                          //       280        4     tested timeframe
-   datetime          startTime;                          //       284        4     time of the first tick of testing
-   datetime          endTime;                            //       288        4     time of the last tick of testing
-   uint              barModel;                           //       292        4     used bar model: 0=EveryTick|1=ControlPoints|2=BarOpen
-   uint              bars;                               //       296        4     number of tested bars
-   uint              ticks;                              //       300        4     number of tested ticks
-   double            spread;                             //       304        8     spread in pips
-   DWORD             tradeDirections;                    //       312        4     active trade directions: Long|Short|Both
-   int               reportId;                           //       316        4     reporting id (for composition of reportSymbol)
-   char              reportSymbol[MAX_SYMBOL_LENGTH+1];  //       320       12     test symbol for charted reports
-   const FXT_HEADER* fxtHeader;                          //       332        4     FXT header data
-                                                         //
-   OrderList*        positions;                          //       336        4     all open positions
-   OrderList*        longPositions;                      //       340        4     open long positions
-   OrderList*        shortPositions;                     //       344        4     open short positions
-                                                         //
-   OrderList*        trades;                             //       348        4     all closed positions (trades)
-   OrderList*        longTrades;                         //       352        4     long trades
-   OrderList*        shortTrades;                        //       356        4     short trades
-};                                                       // ----------------------------------------------------------------------------
-#pragma pack(pop)                                        //              = 360
+struct TEST {
+   int               id;                                 // unique test id (positive, primary key)
+   datetime          created;                            // creation time of the test
+   char              strategy[MAX_PATH];                 // strategy name
+   char              symbol      [MAX_SYMBOL_LENGTH+1];  // tested symbol
+   uint              timeframe;                          // tested timeframe
+   datetime          startTime;                          // time of the first tick of testing
+   datetime          endTime;                            // time of the last tick of testing
+   uint              barModel;                           // used bar model: 0=EveryTick|1=ControlPoints|2=BarOpen
+   uint              bars;                               // number of tested bars
+   uint              ticks;                              // number of tested ticks
+   double            spread;                             // spread in pips
+   DWORD             tradeDirections;                    // active trade directions: Long|Short|Both
+   int               reportId;                           // reporting id (for composition of reportSymbol)
+   char              reportSymbol[MAX_SYMBOL_LENGTH+1];  // test symbol for charted reports
+   const FXT_HEADER* fxtHeader;                          // FXT header data
+
+   OrderList*        positions;                          // all open positions
+   OrderList*        longPositions;                      // open long positions
+   OrderList*        shortPositions;                     // open short positions
+
+   OrderList*        trades;                             // all closed positions (trades)
+   OrderList*        longTrades;                         // long trades
+   OrderList*        shortTrades;                        // short trades
+};
 
 
-// for getters (used by MQL4) see "header/struct/xtrade/ExecutionContext.h"
+// getters (used by MQL4): @see "header/struct/xtrade/ExecutionContext.h"
 
 
 // validating setters

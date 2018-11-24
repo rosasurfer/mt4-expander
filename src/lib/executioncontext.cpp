@@ -19,6 +19,12 @@ std::vector<uint>         g_threadsPrograms;          // pid of the last MQL pro
 uint                      g_lastUIThreadProgram;      // pid the last MQL program executed by the UI thread
 CRITICAL_SECTION          g_terminalMutex;            // mutex for application-wide locking
 
+struct RECOMPILED_MODULE {                            // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
+   uint       pid;                                    // Only one module is tracked (the last one) and the variable is accessed
+   ModuleType type;                                   // from the UI thread only.
+   char       name[MAX_PATH];
+} g_recompiledModule;
+
 
 /**
  * Initialize and synchronize an MQL program's execution context with the master context stored in this DLL. Called by the
@@ -70,7 +76,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    // resolve the real InitReason
    InitializeReason initReason = GetInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, previousPid);
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
-   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_FAILURE_INIT, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
+   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_INIT_FAILURE, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
 
 
    // (1) if ec.pid is not set: check if an indicator to be reused or something else
@@ -139,7 +145,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetProgramInitFlags   (ec, initFlags   );
    ec_SetProgramDeinitFlags (ec, deinitFlags );
 
-   ec_SetModuleType         (ec, (ModuleType)ec->programType);    // for main modules program and module properties are the same
+   ec_SetModuleType         (ec, (ModuleType)ec->programType);    // for main modules program and module values are the same
    ec_SetModuleName         (ec, ec->programName            );
    ec_SetModuleCoreFunction (ec, ec->programCoreFunction    );
    ec_SetModuleUninitReason (ec, ec->programUninitReason    );
@@ -155,6 +161,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetChangedBars  (ec, -1          );                         // ...                                    //       reset only on UR_CHARTCHANGE
    ec_SetUnchangedBars(ec, -1          );                         // ...                                    //
  //ec_SetTicks        (ec, ticks       );                         // NULL or kept from the last init() call
+   master->cycleTicks = ec->cycleTicks = 0;
  //ec_SetLastTickTime (ec, lastTickTime);                         // ...
  //ec_SetPrevTickTime (ec, prevTickTime);                         // ...
  //ec_SetBid          (ec, bid         );                         // ...
@@ -163,7 +170,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetSuperContext (ec, sec         );
 
    ec_SetThreadId     (ec, GetCurrentThreadId());
-   ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test properties
+   ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test values
    ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
    master->test = ec->test = InitTest(ec, isTesting);
@@ -194,7 +201,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       if (lib = chain[i]) {
           bak = *lib;                                             // backup the library context
          *lib = *master;                                          // overwrite library with master context
-         lib->moduleType         = bak.moduleType;                // keep library-specific fields
+         lib->moduleType         = bak.moduleType;                // keep library-specific values
          strcpy(lib->moduleName,   bak.moduleName);
          lib->moduleCoreFunction = bak.moduleCoreFunction;
          lib->moduleUninitReason = bak.moduleUninitReason;
@@ -229,6 +236,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
 
    int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
+   uint     cycleTicks    = ec->cycleTicks + 1;
    datetime lastTickTime  = ec->lastTickTime;
    DWORD    threadId      = GetCurrentThreadId();
    BOOL     logging       = ec->logging;
@@ -237,7 +245,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint size = chain.size();
    EXECUTION_CONTEXT* ctx;
 
-   // update properties in all modules
+   // update values of all modules
    for (uint i=0; i < size; ++i) {
       if (ctx = chain[i]) {
          ctx->programCoreFunction = CF_START; if (i < 2)
@@ -248,6 +256,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->changedBars         = changedBars;
          ctx->unchangedBars       = unchangedBars;
          ctx->ticks               = ticks;
+         ctx->cycleTicks          = cycleTicks;
          ctx->prevTickTime        = lastTickTime;
          ctx->lastTickTime        = time;
          ctx->bid                 = bid;
@@ -274,7 +283,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    }
    */
 
-   if (ec->ticks == 1) debug(" %p  %s  ec=%s", ec, ec->programName, EXECUTION_CONTEXT_toStr(ec));
+   if (ec->cycleTicks == 1) debug(" %p  %s  ec=%s", ec, ec->programName, EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -304,7 +313,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    DWORD              threadId = GetCurrentThreadId();
    EXECUTION_CONTEXT* ctx;
 
-   // update properties in all modules
+   // update values of all modules
    for (uint i=0; i < size; ++i) {
       if (ctx = chain[i]) {
          ctx->programCoreFunction = CF_DEINIT;    if (i < 2)
@@ -438,20 +447,40 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    debug("   %p  %s  %s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // (1) if ec.pid is not set: the context is empty, check if recompilation or first-time load
-   //     (1.1) UR_RECOMPILE: first reload of a recompiled library (UI thread) or later re-use of a formerly recompiled library (non-UI thread)
-   //     (1.2) UR_UNDEFINED: library is loaded the first time
+   //     - UR_RECOMPILE: immediate reload of a recompiled library (UI thread, not in tester ??? CORRECT ??? ) or
+   //                     later reload of a recompiled library at start of next test (non-UI thread)
+   //     - UR_UNDEFINED: first time load
    //
    // (2) if ec.pid is set: check if indicator in init cycle, indicator in IR_PROGRAM_AFTERTEST or reloaded expert between tests
    //     (2.1) indicator in init cycle or indicator in IR_PROGRAM_AFTERTEST (UI thread)
    //     (2.2) reloaded expert between tests                            (non-UI thread)
 
    if (!ec->pid) {
+      // (1) recompilation or first-time load, the context is empty
       if (uninitReason == UR_RECOMPILE) {
-         // (1.1) reload or re-use of a recompiled library
          if (IsUIThread()) {
-            // Library::init() directly after recompilation: skipped as Library::deinit() is not called
-            //uint pid = FindProgramByLibrary(ec);
-            //debug("found pid=%d  UninitializeReason=%s  uiThread=%s  ec=%s", pid, UninitializeReasonToStr(uninitReason), BoolToStr(IsUIThread()), EXECUTION_CONTEXT_toStr(ec));
+            // immediate reload of a recompiled library independant of the main module (UI thread, not in tester)
+            uint pid = FindModuleInLimbo(MT_LIBRARY, moduleName, UR_RECOMPILE, NULL, NULL);
+            if (!pid) error(ERR_RUNTIME_ERROR, "UR_RECOMPILE - no %s library found in g_recompiledModule: recompiled.pid=%d  recompiled.type=%s  recompiled.name=%s", moduleName, g_recompiledModule.pid, ModuleTypeToStr(g_recompiledModule.type), g_recompiledModule.name);
+            else {
+               LinkProgramToCurrentThread(pid);
+               g_recompiledModule = RECOMPILED_MODULE();             // reset recompile marker
+
+               *ec = *g_contextChains[pid][0];                       // initialize library context with master context
+               ec->moduleType         = MT_LIBRARY;                  // update library specific values
+               strcpy(ec->moduleName,   moduleName);
+               ec->moduleCoreFunction = CF_INIT;
+               ec->moduleUninitReason = uninitReason;
+               ec->moduleInitFlags    = initFlags;
+               ec->moduleDeinitFlags  = deinitFlags;
+               ec->mqlError           = NULL;                        // reset errors
+               ec->dllError           = NULL;
+               ec->dllWarning         = NULL;
+               ec->dllErrorMsg        = NULL;
+               ec->dllWarningMsg      = NULL;
+
+               g_contextChains[pid].push_back(ec);                   // add context to the program's context chain
+            }
          }
          else {
             // Library::init() of a formerly recompiled library at test start (non-UI thread), Expert::init() is called afterwards
@@ -480,7 +509,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                currentPid = ContextChainsPush(chain);                // store the chain
                LinkProgramToCurrentThread(currentPid);
 
-               master->pid          = currentPid;                    // update master context with the known properties
+               master->pid          = currentPid;                    // update master context with the known values
                master->programType  = PT_EXPERT;
                master->moduleType   = MT_EXPERT;
 
@@ -498,10 +527,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
             // re-initialize the empty library context with the partial master context
             *ec = *master;
-            ec->moduleType         = MT_LIBRARY;                     // update library specific properties
+            ec->moduleType         = MT_LIBRARY;                     // update library specific values
             strcpy(ec->moduleName,   moduleName);
-            ec->moduleUninitReason = uninitReason;
             ec->moduleCoreFunction = CF_INIT;
+            ec->moduleUninitReason = uninitReason;
             ec->moduleInitFlags    = initFlags;
             ec->moduleDeinitFlags  = deinitFlags;
 
@@ -509,17 +538,17 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          }
       }
       else {
-         // (1.2) library is loaded the first time, Library::init() is called after MainModule::init()
-         // Initialize the library context with the program's master context.
+         // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
+         // Initialize the library with the current program's master context.
          uint index = GetCurrentThreadIndex();                       // The program (which caused "load-library") is already linked
          uint pid = g_threadsPrograms[index];                        // to the thread: get its index
          if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading a library (pid=0):  UninitializeReason=%s  threadId=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
          *ec = *g_contextChains[pid][0];                             // initialize library context with master context
-         ec->moduleType         = MT_LIBRARY;                        // update library specific properties
+         ec->moduleType         = MT_LIBRARY;                        // update library specific values
          strcpy(ec->moduleName,   moduleName);
-         ec->moduleUninitReason = uninitReason;
          ec->moduleCoreFunction = CF_INIT;
+         ec->moduleUninitReason = uninitReason;
          ec->moduleInitFlags    = initFlags;
          ec->moduleDeinitFlags  = deinitFlags;
          ec->mqlError           = NULL;                              // reset errors
@@ -542,7 +571,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->programInitReason = IR_PROGRAM_AFTERTEST;
       else {}                                                        // indicator in init cycle
 
-      // update known master properties
+      // update known master values
       strcpy(master->symbol,  symbol);                               // first moment a new symbol/timeframe show up
       master->timeframe     = timeframe;
       master->digits        = digits;
@@ -564,7 +593,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       // re-initialize the library context with the updated master context
       EXECUTION_CONTEXT bak = *ec;                                   // create backup
       *ec = *master;                                                 // copy master over library context
-      ec->moduleType         = bak.moduleType;                       // restore library specific properties
+      ec->moduleType         = bak.moduleType;                       // restore library specific values
       strcpy(ec->moduleName,   bak.moduleName);
       ec->moduleCoreFunction = CF_INIT;
       ec->moduleUninitReason = uninitReason;
@@ -605,7 +634,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          currentPid = ContextChainsPush(chain);                      // store the chain
          LinkProgramToCurrentThread(currentPid);
 
-         master->pid               = currentPid;                     // update master context with the known properties
+         master->pid               = currentPid;                     // update master context with the known values
          master->previousPid       = ec->pid;
          master->programType       = ec->programType;
          strcpy(master->programName, ec->programName);
@@ -628,7 +657,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       // re-initialize the library context with the master context
       EXECUTION_CONTEXT bak = *ec;                                   // create backup
       *ec = *master;                                                 // overwrite library with new master context
-      ec->moduleType         = bak.moduleType;                       // keep library specific properties
+      ec->moduleType         = bak.moduleType;                       // keep library specific values
       strcpy(ec->moduleName,   bak.moduleName);
       ec->moduleCoreFunction = CF_INIT;
       ec->moduleUninitReason = uninitReason;
@@ -660,8 +689,19 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
 
    LinkProgramToCurrentThread(ec->pid);                  // link the currently executed program asap (error handling)
 
-   ec->moduleCoreFunction = CF_DEINIT;                   // update library specific properties
+   ec->moduleCoreFunction = CF_DEINIT;                   // update library specific values
    ec->moduleUninitReason = uninitReason;
+
+   ContextChain& chain    = g_contextChains[ec->pid];
+   uint          size     = chain.size();
+   DWORD         threadId = GetCurrentThreadId();
+   EXECUTION_CONTEXT* ctx;
+   for (uint i=0; i < size; ++i) {                       // update values of all modules
+      if (ctx = chain[i]) {
+         ctx->threadId = threadId;
+      }
+      else if (i != 1) warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
+   }
 
    debug(" %p  %s  %s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
@@ -710,19 +750,19 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
          for (uint i=0; i < chainSize; ++i) {
             if (ctx = chain[i]) {
                ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
-               ctx->moduleCoreFunction  = (CoreFunction)NULL;              // in master and main context only
+               ctx->moduleCoreFunction  = (CoreFunction)NULL;
             }
-            else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
+            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
          }
-         chain[1] = NULL;                                                  // reset main index before the module gets unloaded
+         chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
          break;
 
       case MT_LIBRARY:
-         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark deinit() as left in module only
+         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
          int i;
          for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
             if (chain[i] == ec) {
-               chain.erase(chain.begin() + i);                             // remove library context before the module gets unloaded
+               chain.erase(chain.begin() + i);                             // remove library context from the program chain
                break;
             }
          }
@@ -731,6 +771,14 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
       default:
          return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
+   }
+
+   // if the module is recompiled store its data for look-up after recompilation
+   if (ec->moduleUninitReason == UR_RECOMPILE) {
+      if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
+      g_recompiledModule.pid        = ec->pid;
+      g_recompiledModule.type       = ec->moduleType;
+      strcpy(g_recompiledModule.name, ec->moduleName);
    }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
@@ -810,105 +858,102 @@ int WINAPI LinkProgramToCurrentThread(uint pid) {
 
 
 /**
- * Find the first unloaded indicator matching the specified properties suitable for reloading.
+ * Find the first unloaded module suitable for reloading matching the specified arguments.
  *
+ * @param  ModuleType         type
  * @param  const char*        name
- * @param  HWND               hChart
  * @param  UninitializeReason uninitReason
  * @param  BOOL               testing
+ * @param  HWND               hChart
  *
- * @return uint - the found indicator's program id (pid) or NULL if no such indicator was found
+ * @return uint - the found module's program id (pid) or NULL if no such module was found
  */
-uint WINAPI FindIndicatorInLimbo(const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart) {
-   // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
-   // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether or not one of the indicator's
-   // libraries has been reloaded before.
-   uint chainsSize = g_contextChains.size();
-   uint uiThreadId = GetUIThreadId();
-   EXECUTION_CONTEXT* master;
+uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart) {
+   switch (type) {
+      case MT_INDICATOR: {
+         // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
+         // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether or not one of the indicator's
+         // libraries has been reloaded before.
+         uint chainsSize = g_contextChains.size();
+         uint uiThreadId = GetUIThreadId();
+         EXECUTION_CONTEXT* master;
 
-   // TODO: In a test the hChart window is ignored - atm.
-   if (testing) {
-      for (uint i=1; i < chainsSize; ++i) {                                      // index[0] is always empty
-         ContextChain& chain = g_contextChains[i];
-         uint size = chain.size();
-         if (size) {
-            if (master = chain[0]) {
-               if (master->programType == MT_INDICATOR) {
-                  if (!master->programCoreFunction) {                            // main module is unloaded
-                     if (master->programUninitReason == uninitReason) {
-                        if (StrCompare(master->programName, name)) {             // name check at the end
-                           if (size > 2) {                                       // with libraries master->threadId must be the UI thread
-                              if (master->threadId == uiThreadId) {
-                                 return(i);
-                              }
-                           }
-                           else if (master->threadId != uiThreadId) {            // without libraries master->threadId must not be the UI thread
-                              return(i);
-                           }
-                        }
-                     }
-                  }
-               }
-            } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
-         } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", size);
-      }
-   }
-
-   // If not in a test a chart must exist. Possible use cases:
-   // - a regular init cycle in the UI thread
-   // - a recompilation (again in the UI thread)
-   else {
-      if (hChart) {
-         for (uint i=1; i < chainsSize; ++i) {                                   // index[0] is always empty
-            ContextChain& chain = g_contextChains[i];
-            if (chain.size()) {
-               if (master = chain[0]) {
-                  if (master->programType == MT_INDICATOR) {
-                     if (!master->programCoreFunction) {                         // main module is unloaded
-                        if (master->programUninitReason == uninitReason) {
-                           if (master->hChart == hChart) {
-                              if (master->threadId == uiThreadId) {              // master->threadId must be the UI thread
-                                 if (StrCompare(master->programName, name)) {    // name check last
+         // TODO: In a test the hChart window is ignored - atm.
+         if (testing) {
+            for (uint i=1; i < chainsSize; ++i) {                                   // index[0] is always empty
+               ContextChain& chain = g_contextChains[i];
+               uint size = chain.size();
+               if (size) {
+                  if (master = chain[0]) {
+                     if (master->programType == MT_INDICATOR) {
+                        if (!master->programCoreFunction) {                         // main module is unloaded
+                           if (master->programUninitReason == uninitReason) {
+                              if (StrCompare(master->programName, name)) {          // name check at the end
+                                 if (size > 2) {                                    // with libraries master->threadId must be the UI thread
+                                    if (master->threadId == uiThreadId) {
+                                       return(i);
+                                    }
+                                 }
+                                 else if (master->threadId != uiThreadId) {         // without libraries master->threadId must not be the UI thread
                                     return(i);
                                  }
                               }
                            }
                         }
                      }
-                  }
-               } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
-            } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", chain.size());
+                  } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
+               } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", size);
+            }
          }
+
+         // If not in a test a chart must exist. Possible use cases:
+         // - a regular init cycle in the UI thread
+         // - a recompilation (again in the UI thread)
+         else {
+            if (hChart) {
+               for (uint i=1; i < chainsSize; ++i) {                                // index[0] is always empty
+                  ContextChain& chain = g_contextChains[i];
+                  if (chain.size()) {
+                     if (master = chain[0]) {
+                        if (master->programType == MT_INDICATOR) {
+                           if (!master->programCoreFunction) {                      // main module is unloaded
+                              if (master->programUninitReason == uninitReason) {
+                                 if (master->hChart == hChart) {
+                                    if (master->threadId == uiThreadId) {           // master->threadId must be the UI thread
+                                       if (StrCompare(master->programName, name)) { // name check last
+                                          return(i);
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
+                  } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", chain.size());
+               }
+            }
+         }
+         break;
       }
+
+      case MT_LIBRARY: {
+         if (uninitReason == UR_RECOMPILE) {
+            if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d", GetCurrentThreadId());
+
+            if (g_recompiledModule.type == MT_LIBRARY) {
+               if (StrCompare(g_recompiledModule.name, name)) {
+                  return(g_recompiledModule.pid);
+               }
+            }
+         }
+         break;
+      }
+
+      default:
+         return(error(ERR_INVALID_PARAMETER, "invalid parameter module type: %s (not supported)", ModuleTypeToStr(type)));
    }
 
    //debug("no matching %s indicator found:  %s  testing=%s  hChart=%d", name, UninitializeReasonToStr(reason), BoolToStr(testing), hChart);
-   return(NULL);
-}
-
-
-/**
- * Find the program with the specified library context in it's context chain.
- *
- * @param  EXECUTION_CONTEXT* lib - the library's execution context
- *
- * @return uint - program id (pid) of the found program or NULL (0) in case of errors
- */
-uint WINAPI FindProgramByLibrary(const EXECUTION_CONTEXT* lib) {
-   if ((uint)lib < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter lib: 0x%p (not a valid pointer)", lib));
-
-   uint size = g_contextChains.size();
-
-   // iterate in reverse order as active programs more probably will be stored at the end
-   for (uint pid=size-1; pid; --pid) {                            // skip index 0 as it's always empty
-      ContextChain& chain = g_contextChains[pid];
-      uint chainSize = chain.size();
-      for (uint j=2; j < chainSize; ++j) {                        // check only libraries (skip master and main context)
-         if (chain[j] == lib)
-            return(pid);
-      }
-   }
    return(NULL);
 }
 
@@ -1127,7 +1172,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
          isProgramNew = !g_contextChains[pid][0]->ticks;             // im Master-Context nachschauen
       }
       else {
-         pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+         pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
          if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
          previousPid  = pid;
          isProgramNew = FALSE;
@@ -1144,7 +1189,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       // außerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
       uint pid = ec->pid;
       if (!pid) {
-         pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+         pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
          if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
          previousPid = pid;
       }
@@ -1165,8 +1210,8 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
          if (build <= 229) {
-            uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
-            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+            uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
+            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
             previousPid = pid;
             return(IR_PROGRAM_AFTERTEST);
          }
@@ -1182,7 +1227,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (!sec)                                                 return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread)                            return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
-      uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+      uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
       if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
 
       if (!isVisualMode/*Fix*/ && 388<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
@@ -1197,9 +1242,10 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       // außerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
 
-      uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+      uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
       if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
       previousPid = pid;
+      g_recompiledModule = RECOMPILED_MODULE();             // reset global recompile marker
       return(IR_RECOMPILE);
    }
 
@@ -1211,7 +1257,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
       if (build >= 633) {
-         uint pid = FindIndicatorInLimbo(programName, uninitReason, isTesting, hChart);
+         uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
          if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
          previousPid = pid;
          return(IR_PROGRAM_AFTERTEST);
