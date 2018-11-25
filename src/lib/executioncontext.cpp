@@ -64,7 +64,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (sec && (uint)sec  < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
    if (ec->pid) LinkProgramToCurrentThread(ec->pid);              // link the currently executed program asap (error handling)
 
-   //debug("   %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("   %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid           = ec->pid;
    BOOL isPid                = (currentPid);
@@ -104,12 +104,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       }
       else {
          // new indicator, new expert or new script
-         uint threadIndex   = GetCurrentThreadIndex();
-         uint lastThreadPid = g_threadsPrograms[threadIndex];     // pid of the last program executed by the current thread
+         uint lastPid = GetLastThreadProgram();                   // pid of the last program executed by the current thread
 
          // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
-         if (programType==PT_EXPERT && isTesting && Program_IsPartialTest(lastThreadPid, programName)) {
-            currentPid = lastThreadPid;
+         if (programType==PT_EXPERT && isTesting && Program_IsPartialTest(lastPid, programName)) {
+            currentPid = lastPid;
             LinkProgramToCurrentThread(currentPid);               // link the currently executed program asap (error handling)
 
             master = g_contextChains[currentPid][0];
@@ -306,7 +305,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
-   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
 
@@ -448,7 +447,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    if ((int)digits < 0)                              return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (point <= 0)                                   return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
 
-   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // try to fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_INIT, uninitReason);
@@ -497,8 +496,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             // Library::init() of a formerly recompiled library at test start (non-UI thread), Expert::init() is called afterwards
             // check if a partially initialized context chain exists (master->coreFunction=CF_INIT, main=NULL)
             EXECUTION_CONTEXT* master;                               // master of current test
-            uint threadIndex = GetCurrentThreadIndex();
-            uint currentPid  = g_threadsPrograms[threadIndex];       // pid of the current test
+            uint currentPid  = GetLastThreadProgram();               // pid of the current test
             BOOL isPartialChain;
 
             if (!currentPid) {                                       // first library in init cyle: the thread never executed a program
@@ -518,7 +516,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                chain.push_back(master);                              // add master to a new chain
                chain.push_back(NULL);                                // add empty entry for the yet to come main context
                currentPid = ContextChainsPush(chain);                // store the chain
-               LinkProgramToCurrentThread(currentPid);
+               uint threadIndex = LinkProgramToCurrentThread(currentPid);
 
                master->pid          = currentPid;                    // update master context with the known values
                master->programType  = PT_EXPERT;
@@ -551,8 +549,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       else {
          // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
          // Initialize the library with the current program's master context.
-         uint index = GetCurrentThreadIndex();                       // The program (which caused "load-library") is already linked
-         uint pid = g_threadsPrograms[index];                        // to the thread: get its index
+         uint pid = GetLastThreadProgram();                          // the program is currently executed
          if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading a library (pid=0):  UninitializeReason=%s  threadId=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
          *ec = *g_contextChains[pid][0];                             // initialize library context with master context
@@ -620,8 +617,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       if (ec->programType!=PT_EXPERT || !ec->testing) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
       EXECUTION_CONTEXT* master=NULL, *oldMaster=NULL;               // master of current and old test
-      uint threadIndex = GetCurrentThreadIndex();
-      uint currentPid  = g_threadsPrograms[threadIndex];             // pid of the new test
+      uint currentPid = GetLastThreadProgram();                      // pid of the new test
       BOOL isPartialChain;
 
       // check if a partially initialized context chain exists (master->programCoreFunction=NULL, main=NULL, lib1!=NULL)
@@ -643,7 +639,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          chain.push_back(master);                                    // add master to a new chain
          chain.push_back(NULL);                                      // add empty entry for the yet to come main context
          currentPid = ContextChainsPush(chain);                      // store the chain
-         LinkProgramToCurrentThread(currentPid);
+         uint threadIndex = LinkProgramToCurrentThread(currentPid);
 
          master->pid               = currentPid;                     // update master context with the known values
          master->previousPid       = ec->pid;
@@ -697,7 +693,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
-   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    LinkProgramToCurrentThread(ec->pid);                  // link the currently executed program asap (error handling)
 
@@ -1139,11 +1135,12 @@ UninitializeReason WINAPI FixUninitReason(EXECUTION_CONTEXT* ec, ModuleType modu
 
 
 /**
- * Find the index of the current thread in the list of known threads. If the thread is not found it is added to the list.
+ * Find the index of the current thread in the list of known threads. If the current thread is not found it is added to
+ * the list.
  *
- * @return int - thread index or EMPTY (-1) in case of errors
+ * @return uint - thread index
  */
-int WINAPI GetCurrentThreadIndex() {
+uint WINAPI GetCurrentThreadIndex() {
    DWORD currentThread = GetCurrentThreadId();
 
    // look-up the current thread
@@ -1169,6 +1166,19 @@ int WINAPI GetCurrentThreadIndex() {
 
 
 /**
+ * Get the id of the last MQL program executed by the current thread.
+ *
+ * @return uint - program id or NULL (0) if the current thread didn't execute a MQL program before
+ */
+uint WINAPI GetLastThreadProgram() {
+   uint index = GetCurrentThreadIndex();
+   if (g_threadsPrograms.size() > index)
+      return(g_threadsPrograms[index]);
+   return(NULL);
+}
+
+
+/**
  * Link the specified MQL program to the current thread.
  *
  * @param  uint pid - MQL program id
@@ -1178,10 +1188,9 @@ int WINAPI GetCurrentThreadIndex() {
 int WINAPI LinkProgramToCurrentThread(uint pid) {
    if ((int)pid < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d", pid)));
 
-   int index = GetCurrentThreadIndex();
-   if (index < 0) return(EMPTY);
-
+   uint index = GetCurrentThreadIndex();
    g_threadsPrograms[index] = pid;                       // update the thread's last executed program
+
    if (IsUIThread())
       g_lastUIThreadProgram = pid;                       // update lastUIThreadProgram if the thread is the UI thread
 
@@ -1214,7 +1223,7 @@ InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CON
    if (programType == PT_EXPERT)    return(GetInitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
    if (programType == PT_SCRIPT)    return(GetInitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
 
-   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
+   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)  ec=%s", programType, ec));
 }
 
 
@@ -1264,7 +1273,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (1) UR_PARAMETERS
    if (uninitReason == UR_PARAMETERS) {
       // innerhalb iCustom(): nie
-      if (sec)           return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_PARAMETERS:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
       BOOL isProgramNew;
       uint pid = ec->pid;
@@ -1273,7 +1282,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       }
       else {
          pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid  = pid;
          isProgramNew = FALSE;
       }
@@ -1285,12 +1294,12 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (2) UR_CHARTCHANGE
    if (uninitReason == UR_CHARTCHANGE) {
       // innerhalb iCustom(): nie
-      if (sec)               return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCHANGE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
       uint pid = ec->pid;
       if (!pid) {
          pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_CHARTCHANGE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid = pid;
       }
       char* masterSymbol = g_contextChains[pid][0]->symbol;
@@ -1311,11 +1320,11 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
          if (build <= 229) {
             uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_UNDEFINED  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
             previousPid = pid;
             return(IR_PROGRAM_AFTERTEST);
          }
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_UNDEFINED:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       }
       return(IR_PROGRAM);
    }
@@ -1324,26 +1333,26 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (4) UR_REMOVE
    if (uninitReason == UR_REMOVE) {
       // außerhalb iCustom(): nie
-      if (!sec)                                                 return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread)                            return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+      if (!pid)                      return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_REMOVE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
 
       if (!isVisualMode/*Fix*/ && 388<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
       if ( isVisualMode/*Fix*/ && 578<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
    // (5) UR_RECOMPILE
    if (uninitReason == UR_RECOMPILE) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_RECOMPILE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
 
       uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_RECOMPILE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
       previousPid = pid;
       g_recompiledModule = RECOMPILED_MODULE();             // reset global recompile marker
       return(IR_RECOMPILE);
@@ -1353,16 +1362,16 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (6) UR_CHARTCLOSE
    if (uninitReason == UR_CHARTCLOSE) {
       // außerhalb iCustom(): nie
-      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       if (build >= 633) {
          uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s found in limbo:  %s  testing=%s  hChart=%p", programName, UninitializeReasonToStr(uninitReason), BoolToStr(isTesting), hChart));
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_CHARTCLOSE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid = pid;
          return(IR_PROGRAM_AFTERTEST);
       }
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
@@ -1371,10 +1380,10 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       case UR_TEMPLATE:      // build > 509
       case UR_INITFAILED:    // ...
       case UR_CLOSE:         // ...
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected %s:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", UninitializeReasonToStr(uninitReason), sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
    }
 
-   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", uninitReason, sec, isTesting, isVisualMode, isUIThread, build));
+   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", uninitReason, sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
 }
 
 

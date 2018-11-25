@@ -19,7 +19,8 @@ uint               WINAPI FindModuleInLimbo(ModuleType type, const char* name, U
 HWND               WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode);
 UninitializeReason WINAPI FixUninitReason(EXECUTION_CONTEXT* ec, ModuleType moduleType, CoreFunction coreFunction, UninitializeReason uninitReason);
 
-int                WINAPI GetCurrentThreadIndex();
+uint               WINAPI GetCurrentThreadIndex();
+uint               WINAPI GetLastThreadProgram();
 int                WINAPI LinkProgramToCurrentThread(uint pid);
 
 InitializeReason   WINAPI GetInitReason          (EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& prevPid);

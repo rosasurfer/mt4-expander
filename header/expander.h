@@ -40,6 +40,14 @@ using std::wstring;
 #define INVALID_HWND                   ((HWND)-1)
 #define MAX_CHARTDESCRIPTION_LENGTH    ((MAX_SYMBOL_LENGTH) + 1 + 7) // e.g. "SYMBOL,Monthly"
 
+#if !defined(MAX_PATH)                                      // e.g. the max. path on drive D is "D:\some-256-chars-path-string<NUL>"
+#define MAX_PATH                        _MAX_PATH           // max. length of full pathname
+#endif
+#define MAX_DRIVE                       _MAX_DRIVE          // max. length of drive component
+#define MAX_DIR                         _MAX_DIR            // max. length of path component
+#define MAX_FNAME                       _MAX_FNAME          // max. length of file name component
+#define MAX_EXT                         _MAX_EXT            // max. length of extension component *
+
 
 // MQL program types (flags)
 enum ProgramType {
