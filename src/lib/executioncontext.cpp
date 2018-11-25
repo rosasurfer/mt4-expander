@@ -411,9 +411,9 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *
  *
  * (4) After recompilation libraries are unloaded and reloaded immediately (with connection) or later on next use (without
- *     connection or in tester). Recompiled libraries never keep state, reloading is perfomed in the UI thread.
- */
-// This prevents Visual Assist from merging above comment with the one below in the function hover tooltip.
+ *     connection or in tester). Recompiled libraries never keep state and reloading is executed by the UI thread.
+ *
+ */// This comment prevents Visual Assist from merging above and below block in the function hover tooltip.
 
 
 /**
@@ -452,8 +452,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
 
    // (1) if ec.pid is not set: the context is empty, check if recompilation or first-time load
-   //     - UR_RECOMPILE: reload in regular charts with connection immeadiately, otherwise on next usage (UI thread) or
-   //                     reload in tester at start of the next test (non-UI thread)
+   //     - UR_RECOMPILE: immediate reload in regular charts with connection        (UI thread)
+   //                     reload on next usage in regular charts without connection (UI thread)
+   //                     immediate reload or reload after a test finished in tester
+   //
    //     - UR_UNDEFINED: first time load
    //
    // (2) if ec.pid is set: check if indicator in init cycle, indicator in IR_PROGRAM_AFTERTEST or reloaded expert between tests
@@ -464,9 +466,9 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       // (1) recompilation or first-time load, the context is empty
       if (uninitReason == UR_RECOMPILE) {
          if (IsUIThread()) {
-            // immediate reload of a recompiled library independant of the main module (UI thread, not in tester)
+            // immediate reload in regular charts with connection or between tests, otherwise on next usage
             uint pid = FindModuleInLimbo(MT_LIBRARY, moduleName, UR_RECOMPILE, NULL, NULL);
-            if (!pid) error(ERR_RUNTIME_ERROR, "UR_RECOMPILE - no %s library found in g_recompiledModule: recompiled.pid=%d  recompiled.type=%s  recompiled.name=%s", moduleName, g_recompiledModule.pid, ModuleTypeToStr(g_recompiledModule.type), g_recompiledModule.name);
+            if (!pid) error(ERR_RUNTIME_ERROR, "UR_RECOMPILE - no %s library found in g_recompiledModule (pid=%d, type=%s, name=%s):  thread=%d %s  isTesting=%s", moduleName, g_recompiledModule.pid, ModuleTypeToStr(g_recompiledModule.type), g_recompiledModule.name, GetCurrentThreadId(), IsUIThread() ? "(UI)":"(non-UI)", BoolToStr(isTesting));
             else {
                LinkProgramToCurrentThread(pid);
                g_recompiledModule = RECOMPILED_MODULE();             // reset recompilation tracker
