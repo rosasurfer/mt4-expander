@@ -54,15 +54,17 @@ struct RECOMPILED_MODULE {                            // A struct holding the la
  * @return int - error status
  */
 int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
-   if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
-   if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)timeframe <= 0)                   return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
-   if ((int)digits <  0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
-   if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
+   if ((uint)ec          < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)programName < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
+   if (strlen(programName) > sizeof(ec->programName)-1) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1)));
+   if ((uint)symbol      < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if (strlen(symbol)    > MAX_SYMBOL_LENGTH)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
+   if ((int)timeframe <= 0)                             return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   if ((int)digits <  0)                                return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
+   if (sec && (uint)sec  < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
    if (ec->pid) LinkProgramToCurrentThread(ec->pid);              // link the currently executed program asap (error handling)
 
-   debug("   %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug("   %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid           = ec->pid;
    BOOL isPid                = (currentPid);
@@ -211,7 +213,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -283,7 +285,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    }
    */
 
-   if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
+   //if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -304,7 +306,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
-   debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
 
@@ -325,7 +327,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
    }
 
-   debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -437,14 +439,16 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @see    additional notes above this function
  */
 int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization) {
-   if ((uint)ec         < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if ((uint)moduleName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
-   if ((uint)symbol     < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)timeframe <= 0)                  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
-   if ((int)digits < 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
-   if (point <= 0)                           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
+   if ((uint)ec         < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)moduleName < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
+   if (strlen(moduleName) > sizeof(ec->moduleName)-1) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter moduleName: \"%s\" (max %d characters)", moduleName, sizeof(ec->moduleName)-1)));
+   if ((uint)symbol     < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if (strlen(symbol)   > MAX_SYMBOL_LENGTH)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
+   if ((int)timeframe <= 0)                           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   if ((int)digits < 0)                               return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
+   if (point <= 0)                                    return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
 
-   debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // try to fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_INIT, uninitReason);
@@ -674,7 +678,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       g_contextChains[currentPid].push_back(ec);                     // add library to the new test's context chain
    }
 
-   debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -693,7 +697,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
-   debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    LinkProgramToCurrentThread(ec->pid);                  // link the currently executed program asap (error handling)
 
@@ -714,7 +718,86 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
       }
    }
 
-   debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   return(NO_ERROR);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Handle leaving of an MQL module's core function Module::deinit(). Called in deinit() as the very last statement. After
+ * deinit() is left the module is unloaded and it's memory must not be accessed anymore.
+ *
+ *  - If the module is a main module (an indicator, expert or script) the index of the context in the program's context chain
+ *    is set to NULL (the chain size doesn't change).
+ *
+ *  - If the module is not a main module (a library) the context is removed from the program's context chain (the chain size
+ *    decreases).
+ *
+ *  - TODO:
+ *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
+ *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs "if it is the last one".
+ *
+ *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
+ *
+ * An unloaded module's memory must not be accessed until the module re-enters the core function Module::init().
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - error status
+ */
+int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   //debug("         %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
+   if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
+
+   ContextChain& chain = g_contextChains[ec->pid];
+   uint chainSize = chain.size();
+   if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
+
+   switch (ec->moduleType) {
+      case MT_INDICATOR:
+      case MT_SCRIPT:
+      case MT_EXPERT:
+         EXECUTION_CONTEXT* ctx;
+         for (uint i=0; i < chainSize; ++i) {
+            if (ctx = chain[i]) {
+               ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
+               ctx->moduleCoreFunction  = (CoreFunction)NULL;
+            }
+            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
+         }
+         chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
+         break;
+
+      case MT_LIBRARY:
+         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
+         int i;
+         for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
+            if (chain[i] == ec) {
+               chain.erase(chain.begin() + i);                             // remove library context from the program chain
+               break;
+            }
+         }
+         if (i < 0) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "library context not found in context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
+
+         // on recompilation store the module details for look-up after recompilation
+         if (ec->moduleUninitReason == UR_RECOMPILE) {
+            if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
+            if (g_recompiledModule.pid != ec->pid) {                       // there can be at most one recompilation per program
+               g_recompiledModule.pid        = ec->pid;
+               g_recompiledModule.type       = ec->moduleType;
+               strcpy(g_recompiledModule.name, ec->moduleName);
+            }
+         }
+         break;
+
+      default:
+         return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
+   }
+
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -736,7 +819,7 @@ uint WINAPI ContextChainsPush(ContextChain& chain) {
    uint index = g_contextChains.size()-1;
    LeaveCriticalSection(&g_terminalMutex);
 
-   if (index > 31) debug("registered programs: %d", index);    // index[0] is always empty
+   //if (index > 31) debug("registered programs: %d", index);   // index[0] is always empty
    return(index);
 }
 
@@ -1383,85 +1466,6 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
  */
 InitializeReason WINAPI GetInitReason_script(EXECUTION_CONTEXT* ec, const char* programName, int droppedOnPosX, int droppedOnPosY) {
    return(IR_USER);
-}
-
-
-/**
- * Handle leaving of an MQL module's core function Module::deinit(). Called in deinit() as the very last statement. After
- * deinit() is left the module is unloaded and it's memory must not be accessed anymore.
- *
- *  - If the module is a main module (an indicator, expert or script) the index of the context in the program's context chain
- *    is set to NULL (the chain size doesn't change).
- *
- *  - If the module is not a main module (a library) the context is removed from the program's context chain (the chain size
- *    decreases).
- *
- *  - TODO:
- *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
- *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs "if it is the last one".
- *
- *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
- *
- * An unloaded module's memory must not be accessed until the module re-enters the core function Module::init().
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - error status
- */
-int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   debug("         %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
-   if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
-   if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
-   if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
-
-   ContextChain& chain = g_contextChains[ec->pid];
-   uint chainSize = chain.size();
-   if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
-
-   switch (ec->moduleType) {
-      case MT_INDICATOR:
-      case MT_SCRIPT:
-      case MT_EXPERT:
-         EXECUTION_CONTEXT* ctx;
-         for (uint i=0; i < chainSize; ++i) {
-            if (ctx = chain[i]) {
-               ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
-               ctx->moduleCoreFunction  = (CoreFunction)NULL;
-            }
-            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
-         }
-         chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
-         break;
-
-      case MT_LIBRARY:
-         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
-         int i;
-         for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
-            if (chain[i] == ec) {
-               chain.erase(chain.begin() + i);                             // remove library context from the program chain
-               break;
-            }
-         }
-         if (i < 0) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "library context not found in context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
-
-         // on recompilation store the module details for look-up after recompilation
-         if (ec->moduleUninitReason == UR_RECOMPILE) {
-            if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
-            if (g_recompiledModule.pid != ec->pid) {                       // there can be at most one recompilation per program
-               g_recompiledModule.pid        = ec->pid;
-               g_recompiledModule.type       = ec->moduleType;
-               strcpy(g_recompiledModule.name, ec->moduleName);
-            }
-         }
-         break;
-
-      default:
-         return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
-   }
-
-   return(NO_ERROR);
-   #pragma EXPANDER_EXPORT
 }
 
 

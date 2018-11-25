@@ -10,6 +10,8 @@ int                WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, Uninitia
 int                WINAPI SyncLibContext_init   (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization);
 int                WINAPI SyncLibContext_deinit (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason);
 
+int                WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);
+
 uint               WINAPI ContextChainsPush(ContextChain& chain);
 TEST*              WINAPI Expert_InitTest(const EXECUTION_CONTEXT* ec, BOOL isTesting);
 
@@ -24,8 +26,6 @@ InitializeReason   WINAPI GetInitReason          (EXECUTION_CONTEXT* ec, const E
 InitializeReason   WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec,                          const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart,                                       uint& prevPid);
 InitializeReason   WINAPI GetInitReason_expert   (EXECUTION_CONTEXT* ec,                                                        const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing,                                                   int droppedOnPosX, int droppedOnPosY);
 InitializeReason   WINAPI GetInitReason_script   (EXECUTION_CONTEXT* ec,                                                        const char* programName,                                                                                                                      int droppedOnPosX, int droppedOnPosY);
-
-int                WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);
 
 const char*        WINAPI Program_CustomLogFile (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI Program_IsLogging     (const EXECUTION_CONTEXT* ec);

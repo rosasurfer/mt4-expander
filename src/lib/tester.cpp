@@ -257,8 +257,12 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*
  * TODO: validation
  */
 BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
-   if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)ec        < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test)    return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)symbol    < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if (strlen(symbol)  > MAX_SYMBOL_LENGTH)        return(error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
+   if ((uint)comment   < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter comment: 0x%p (not a valid pointer)", comment));
+   if (strlen(comment) > MAX_ORDER_COMMENT_LENGTH) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter comment: \"%s\" (max %d characters)", comment, MAX_ORDER_COMMENT_LENGTH));
 
    OrderList* positions      = ec->test->positions;      if (!positions)      return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.positions: 0x%p", ec->test->positions));
    OrderList* longPositions  = ec->test->longPositions;  if (!longPositions)  return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.longPositions: 0x%p", ec->test->longPositions));
@@ -447,7 +451,7 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
  */
 int WINAPI Test() {
 
-   debug("size(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
+   debug("sizeofMember(EXECUTION_CONTEXT.symbol) = %d", sizeofMember(EXECUTION_CONTEXT, symbol));
 
    return(NULL);
    #pragma EXPANDER_EXPORT

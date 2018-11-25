@@ -150,6 +150,12 @@ inline double      WINAPI _double      (double value, ...) { return(value); }
 
 
 /**
+ * Return the size of a type member without an actual instance.
+ */
+#define sizeofMember(type, member) sizeof(((type*)NULL)->member)
+
+
+/**
  * C++11 to_string() replacement for VS 2008.
  *
  * @param  <typename T> value
