@@ -12,7 +12,7 @@ struct TEST {
    int               id;                                 // unique test id (positive, primary key)
    datetime          created;                            // creation time of the test
    char              strategy[MAX_PATH];                 // strategy name
-   char              symbol      [MAX_SYMBOL_LENGTH+1];  // tested symbol
+   char              symbol[MAX_SYMBOL_LENGTH+1];        // tested symbol
    uint              timeframe;                          // tested timeframe
    datetime          startTime;                          // time of the first tick of testing
    datetime          endTime;                            // time of the last tick of testing

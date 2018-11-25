@@ -22,7 +22,7 @@ CRITICAL_SECTION          g_terminalMutex;            // mutex for application-w
 struct RECOMPILED_MODULE {                            // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
    uint       pid;                                    // Only one module is tracked (the last one) and the variable is accessed
    ModuleType type;                                   // from the UI thread only.
-   char       name[MAX_PATH];
+   char       name[_MAX_FNAME];
 } g_recompiledModule;
 
 
@@ -54,14 +54,14 @@ struct RECOMPILED_MODULE {                            // A struct holding the la
  * @return int - error status
  */
 int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
-   if ((uint)ec          < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if ((uint)programName < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
-   if (strlen(programName) > sizeof(ec->programName)-1) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1)));
-   if ((uint)symbol      < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if (strlen(symbol)    > MAX_SYMBOL_LENGTH)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
-   if ((int)timeframe <= 0)                             return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
-   if ((int)digits <  0)                                return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
-   if (sec && (uint)sec  < MIN_VALID_POINTER)           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
+   if ((uint)ec          < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)programName < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
+   if (strlen(programName) >= sizeof(ec->programName)) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1)));
+   if ((uint)symbol      < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if (strlen(symbol)   >= MAX_SYMBOL_LENGTH)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
+   if ((int)timeframe <= 0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   if ((int)digits    <  0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
+   if (sec && (uint)sec  < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
    if (ec->pid) LinkProgramToCurrentThread(ec->pid);              // link the currently executed program asap (error handling)
 
    //debug("   %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
@@ -213,7 +213,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -285,7 +285,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    }
    */
 
-   //if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
+   if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -327,7 +327,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
    }
 
-   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -439,14 +439,14 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @see    additional notes above this function
  */
 int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization) {
-   if ((uint)ec         < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if ((uint)moduleName < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
-   if (strlen(moduleName) > sizeof(ec->moduleName)-1) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter moduleName: \"%s\" (max %d characters)", moduleName, sizeof(ec->moduleName)-1)));
-   if ((uint)symbol     < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if (strlen(symbol)   > MAX_SYMBOL_LENGTH)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
-   if ((int)timeframe <= 0)                           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
-   if ((int)digits < 0)                               return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
-   if (point <= 0)                                    return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
+   if ((uint)ec         < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)moduleName < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
+   if (strlen(moduleName) >= sizeof(ec->moduleName)) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter moduleName: \"%s\" (max %d characters)", moduleName, sizeof(ec->moduleName)-1)));
+   if ((uint)symbol     < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if (strlen(symbol)   > MAX_SYMBOL_LENGTH)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
+   if ((int)timeframe <= 0)                          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   if ((int)digits < 0)                              return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
+   if (point <= 0)                                   return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
 
    //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
@@ -678,7 +678,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       g_contextChains[currentPid].push_back(ec);                     // add library to the new test's context chain
    }
 
-   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -718,7 +718,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
       }
    }
 
-   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -748,7 +748,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
  */
 int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   //debug("         %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
+   debug("          %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
    if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
    if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
    if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
@@ -758,6 +758,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
    switch (ec->moduleType) {
+      // -----------------------------------------------------------------
       case MT_INDICATOR:
       case MT_SCRIPT:
       case MT_EXPERT:
@@ -772,6 +773,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
          chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
          break;
 
+      // -----------------------------------------------------------------
       case MT_LIBRARY:
          ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
          int i;
@@ -794,6 +796,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
          }
          break;
 
+      // -----------------------------------------------------------------
       default:
          return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
    }

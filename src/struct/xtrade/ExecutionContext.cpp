@@ -895,10 +895,9 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
  * @return char* - the same name
  */
 const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   int len = strlen(name);
-   if (!len || len > sizeof(ec->programName)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name: \"%s\" (must be 1 to %d characters)", name, sizeof(ec->programName)-1));
+   if ((uint)ec   < MIN_VALID_POINTER)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!*name || strlen(name) >= sizeof(ec->programName)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name: \"%s\" (must be 1 to %d characters)", name, sizeof(ec->programName)-1));
 
    if (!strcpy(ec->programName, name))
       return(NULL);
@@ -1090,10 +1089,9 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
  * @return char* - the same name
  */
 const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   int len = strlen(name);
-   if (!len || len > sizeof(ec->moduleName)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name: \"%s\" (must be 1 to %d characters)", name, sizeof(ec->moduleName)-1));
+   if ((uint)ec   < MIN_VALID_POINTER)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)name < MIN_VALID_POINTER)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!*name || strlen(name) >= sizeof(ec->moduleName)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name: \"%s\" (must be 1 to %d characters)", name, sizeof(ec->moduleName)-1));
 
    if (!strcpy(ec->moduleName, name))
       return(NULL);
@@ -1221,10 +1219,9 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
  * @return char* - the same symbol
  */
 const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
-   if ((uint)ec     < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   int len = strlen(symbol);
-   if (!len || len > sizeof(ec->symbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (must be 1 to %d characters)", symbol, sizeof(ec->symbol)-1));
+   if ((uint)ec     < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)symbol < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if (!*symbol || strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (must be 1 to %d characters)", symbol, MAX_SYMBOL_LENGTH));
 
    if (!strcpy(ec->symbol, symbol))
       return(NULL);
@@ -1683,7 +1680,7 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
    if ((uint)ec < MIN_VALID_POINTER)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    if (fileName) {
-      // fileName ist kein NULL-Pointer
+      // fileName is not a NULL pointer
       if ((uint)fileName < MIN_VALID_POINTER)             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
       if (strlen(fileName) > sizeof(ec->customLogFile)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName: \"%s\" (max %d characters)", fileName, sizeof(ec->customLogFile)-1));
 
@@ -1691,13 +1688,14 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
          return(NULL);
    }
    else {
-      // fileName ist NULL-Pointer
+      // fileName is a NULL pointer, store an empty string
       ec->customLogFile[0] = '\0';
    }
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      return(ec_SetCustomLogFile(g_contextChains[pid][0], fileName));
+      if (!strcpy(g_contextChains[pid][0]->customLogFile, ec->customLogFile))
+         return(NULL);
    return(fileName);
 }
 
