@@ -1,6 +1,6 @@
 #pragma once
 #include "expander.h"
-#include "struct/xtrade/ExecutionContext.h"
+#include "struct/rsf/ExecutionContext.h"
 
 
 int                WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY);

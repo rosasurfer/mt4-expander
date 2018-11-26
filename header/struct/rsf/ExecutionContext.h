@@ -1,5 +1,5 @@
 #pragma once
-#include "struct/xtrade/Test.h"
+#include "struct/rsf/Test.h"
 
 
 /**

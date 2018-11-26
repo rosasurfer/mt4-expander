@@ -1,6 +1,6 @@
 #pragma once
 #include "struct/mt4/FxtHeader.h"
-#include "struct/xtrade/Order.h"
+#include "struct/rsf/Order.h"
 
 
 /**
@@ -35,7 +35,7 @@ struct TEST {
 };
 
 
-// getters (used by MQL4): @see "header/struct/xtrade/ExecutionContext.h"
+// getters (used by MQL4): @see "header/struct/rsf/ExecutionContext.h"
 
 
 // validating setters

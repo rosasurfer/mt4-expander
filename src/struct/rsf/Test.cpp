@@ -3,7 +3,7 @@
 #include "lib/format.h"
 #include "lib/math.h"
 #include "lib/string.h"
-#include "struct/xtrade/Test.h"
+#include "struct/rsf/Test.h"
 
 
 /**

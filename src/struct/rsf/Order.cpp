@@ -2,7 +2,7 @@
 #include "lib/conversion.h"
 #include "lib/format.h"
 #include "lib/string.h"
-#include "struct/xtrade/Order.h"
+#include "struct/rsf/Order.h"
 
 
 /**
