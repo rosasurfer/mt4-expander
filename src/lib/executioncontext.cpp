@@ -91,16 +91,14 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    if (!isPid) {
       if (programType==PT_INDICATOR && previousPid) {             // reuse the previous program chain and keep instance data
-         SetLastThreadProgram(previousPid);                       // set the currently executed program asap (error handling)
-
          currentPid = previousPid;
-         master = g_contextChains[previousPid][0];
+         SetLastThreadProgram(currentPid);                        // set the currently executed program asap (error handling)
 
+         master = g_contextChains[currentPid][0];
          if (initReason == IR_PROGRAM_AFTERTEST)
             master->superContext = sec = NULL;                    // reset the super context (the expert has already been released)
-
          *ec = *master;                                           // restore main from master context (restores the pid)
-         g_contextChains[previousPid][1] = ec;                    // store main context at original (now empty) position
+         g_contextChains[currentPid][1] = ec;                     // store main context at original (now empty) position
       }
       else {
          // new indicator, new expert or new script
@@ -284,7 +282,9 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    }
    */
 
-   if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
+   if (ec->cycleTicks == 1) {
+      //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
+   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }

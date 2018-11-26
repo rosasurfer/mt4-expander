@@ -90,7 +90,7 @@ int WINAPI onDeinitAccountChange() {
    if (pid) {
       EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
       if (ec->programType == PT_EXPERT) {
-         return(_int(ERR_RUNTIME_ERROR, error(ERR_RUNTIME_ERROR, "unexpected uninitialize reason UR_ACCOUNT")));
+         return(_int(ERR_RUNTIME_ERROR, error(ERR_RUNTIME_ERROR, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
       }
    }
    return(NO_ERROR);
@@ -127,7 +127,7 @@ int WINAPI onDeinitUndefined() {
    if (pid) {
       EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
       if (ec->programType==PT_EXPERT && ec->testing) {
-         return(_int(ERR_RUNTIME_ERROR, error(ERR_RUNTIME_ERROR, "unexpected uninitialize reason UR_UNDEFINED")));
+         return(_int(ERR_RUNTIME_ERROR, error(ERR_RUNTIME_ERROR, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
       }
    }
    return(NO_ERROR);
