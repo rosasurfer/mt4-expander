@@ -62,7 +62,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((int)timeframe <= 0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
    if ((int)digits    <  0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
-   if (ec->pid) LinkProgramToCurrentThread(ec->pid);              // link the currently executed program asap (error handling)
+   if (ec->pid) SetLastThreadProgram(ec->pid);                    // set the currently executed program asap (error handling)
 
    debug("   %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
@@ -91,7 +91,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    if (!isPid) {
       if (programType==PT_INDICATOR && previousPid) {             // reuse the previous program chain and keep instance data
-         LinkProgramToCurrentThread(previousPid);                 // link the currently executed program asap (error handling)
+         SetLastThreadProgram(previousPid);                       // set the currently executed program asap (error handling)
 
          currentPid = previousPid;
          master = g_contextChains[previousPid][0];
@@ -109,7 +109,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
          if (programType==PT_EXPERT && isTesting && Program_IsPartialTest(lastPid, programName)) {
             currentPid = lastPid;
-            LinkProgramToCurrentThread(currentPid);               // link the currently executed program asap (error handling)
+            SetLastThreadProgram(currentPid);                     // set the currently executed program asap (error handling)
 
             master = g_contextChains[currentPid][0];
             *ec = *master;                                        // copy master to main context
@@ -126,7 +126,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
             currentPid = ContextChainsPush(chain);                // store the chain and update master and main context
             master->pid = ec->pid = currentPid;
-            LinkProgramToCurrentThread(currentPid);
+            SetLastThreadProgram(currentPid);
          }
       }
    }
@@ -234,7 +234,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d %s  ec=%s", GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
-   LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
+   SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
 
    int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
    uint     cycleTicks    = ec->cycleTicks + 1;
@@ -307,7 +307,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
    debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
-   LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
+   SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
 
    ContextChain&      chain    = g_contextChains[ec->pid];
    uint               size     = chain.size();
@@ -473,7 +473,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             uint pid = FindModuleInLimbo(MT_LIBRARY, moduleName, UR_RECOMPILE, NULL, NULL);
             if (!pid) error(ERR_RUNTIME_ERROR, "UR_RECOMPILE - no %s library found in g_recompiledModule (pid=%d, type=%s, name=%s):  thread=%d %s  isTesting=%s", moduleName, g_recompiledModule.pid, ModuleTypeToStr(g_recompiledModule.type), g_recompiledModule.name, GetCurrentThreadId(), IsUIThread() ? "(UI)":"(non-UI)", BoolToStr(isTesting));
             else {
-               LinkProgramToCurrentThread(pid);
+               SetLastThreadProgram(pid);
                g_recompiledModule = RECOMPILED_MODULE();             // reset recompilation tracker
 
                *ec = *g_contextChains[pid][0];                       // initialize library context with master context
@@ -516,7 +516,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                chain.push_back(master);                              // add master to a new chain
                chain.push_back(NULL);                                // add empty entry for the yet to come main context
                currentPid = ContextChainsPush(chain);                // store the chain
-               uint threadIndex = LinkProgramToCurrentThread(currentPid);
+               uint threadIndex = SetLastThreadProgram(currentPid);
 
                master->pid          = currentPid;                    // update master context with the known values
                master->programType  = PT_EXPERT;
@@ -572,7 +572,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    else if (IsUIThread()) {
       // (2.1) ec.pid is set: indicator in init cycle or in IR_PROGRAM_AFTERTEST (both UI thread)
       //       ec.pid points to the original indicator (still in limbo), Library::init() is called before Indicator::init()
-      LinkProgramToCurrentThread(ec->pid);                           // link the currently executed program asap (error handling)
+      SetLastThreadProgram(ec->pid);                                 // set the currently executed program asap (error handling)
 
       EXECUTION_CONTEXT* master = g_contextChains[ec->pid][0];
       if (isTesting)                                                 // indicator in IR_PROGRAM_AFTERTEST
@@ -639,7 +639,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          chain.push_back(master);                                    // add master to a new chain
          chain.push_back(NULL);                                      // add empty entry for the yet to come main context
          currentPid = ContextChainsPush(chain);                      // store the chain
-         uint threadIndex = LinkProgramToCurrentThread(currentPid);
+         uint threadIndex = SetLastThreadProgram(currentPid);
 
          master->pid               = currentPid;                     // update master context with the known values
          master->previousPid       = ec->pid;
@@ -695,7 +695,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
 
    debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
-   LinkProgramToCurrentThread(ec->pid);                  // link the currently executed program asap (error handling)
+   SetLastThreadProgram(ec->pid);                        // set the currently executed program asap (error handling)
 
    // try to fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_DEINIT, uninitReason);
@@ -1185,7 +1185,7 @@ uint WINAPI GetLastThreadProgram() {
  *
  * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
  */
-int WINAPI LinkProgramToCurrentThread(uint pid) {
+int WINAPI SetLastThreadProgram(uint pid) {
    if ((int)pid < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d", pid)));
 
    uint index = GetCurrentThreadIndex();
@@ -1247,16 +1247,18 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    /*
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 547-551: onInit_User()             - Broken: Wird zwei mal aufgerufen, beim zweiten mal ist der EXECUTION_CONTEXT ungültig.
-   - Build  >= 654: onInit_User()             - UninitializeReason() ist UR_UNDEFINED.
+   onInit_User()
+     build  <  654:  - UninitializeReason() = UR_PARAMETER
+     build  >= 654:  - UninitializeReason() = UR_UNDEFINED
+     build 547-551:  - Broken: init() is called two times, the 2nd time global module memory is reset (empty EXECUTION_CONTEXT)
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 577-583: onInit_Template()         - Broken: Kein Aufruf bei Terminal-Start, der Indikator wird aber geladen.
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 556-569: onInit_Program()          - Broken: Wird in- und außerhalb des Testers bei jedem Tick aufgerufen.
    ------------------------------------------------------------------------------------------------------------------------------------
-   - Build  <= 229: onInit_ProgramAfterTest() - UninitializeReason() ist UR_UNDEFINED.
+   - Build  <= 229: onInit_ProgramAfterTest() - UninitializeReason() = UR_UNDEFINED
    - Build     387: onInit_ProgramAfterTest() - Broken: Wird nie aufgerufen.
-   - Build 388-628: onInit_ProgramAfterTest() - UninitializeReason() ist UR_REMOVE.
+   - Build 388-628: onInit_ProgramAfterTest() - UninitializeReason() = UR_REMOVE
    - Build  <= 577: onInit_ProgramAfterTest() - Wird nur nach einem automatisiertem Test aufgerufen (VisualMode=Off), der Aufruf
                                                 erfolgt vorm Start des nächsten Tests.
    - Build  >= 578: onInit_ProgramAfterTest() - Wird auch nach einem manuellen Test aufgerufen (VisualMode=On), nur in diesem Fall
@@ -1282,9 +1284,9 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       }
       else {
          pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+         if (!pid && build >= 654) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid  = pid;
-         isProgramNew = FALSE;
+         isProgramNew = !pid;
       }
       if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
       else              return(IR_PARAMETERS);                       // Parameter-Wechsel eines vorhandenen Indikators

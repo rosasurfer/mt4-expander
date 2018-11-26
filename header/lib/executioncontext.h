@@ -21,7 +21,7 @@ UninitializeReason WINAPI FixUninitReason(EXECUTION_CONTEXT* ec, ModuleType modu
 
 uint               WINAPI GetCurrentThreadIndex();
 uint               WINAPI GetLastThreadProgram();
-int                WINAPI LinkProgramToCurrentThread(uint pid);
+int                WINAPI SetLastThreadProgram(uint pid);
 
 InitializeReason   WINAPI GetInitReason          (EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& prevPid);
 InitializeReason   WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec,                          const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart,                                       uint& prevPid);
