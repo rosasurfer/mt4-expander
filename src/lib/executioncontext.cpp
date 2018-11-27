@@ -1247,26 +1247,26 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    /*
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
-   onInit_User()
+   onInitUser()
      build  <  654:  - UninitializeReason() = UR_PARAMETER
      build  >= 654:  - UninitializeReason() = UR_UNDEFINED
      build 547-551:  - Broken: init() is called two times, the 2nd time global module memory is reset (empty EXECUTION_CONTEXT)
    ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 577-583: onInit_Template()         - Broken: Kein Aufruf bei Terminal-Start, der Indikator wird aber geladen.
-   ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 556-569: onInit_Program()          - Broken: Wird in- und auﬂerhalb des Testers bei jedem Tick aufgerufen.
-   ------------------------------------------------------------------------------------------------------------------------------------
-   - Build  <= 229: onInit_ProgramAfterTest() - UninitializeReason() = UR_UNDEFINED
-   - Build     387: onInit_ProgramAfterTest() - Broken: Wird nie aufgerufen.
-   - Build 388-628: onInit_ProgramAfterTest() - UninitializeReason() = UR_REMOVE
-   - Build  <= 577: onInit_ProgramAfterTest() - Wird nur nach einem automatisiertem Test aufgerufen (VisualMode=Off), der Aufruf
-                                                erfolgt vorm Start des n‰chsten Tests.
-   - Build  >= 578: onInit_ProgramAfterTest() - Wird auch nach einem manuellen Test aufgerufen (VisualMode=On), nur in diesem Fall
-                                                erfolgt der Aufruf sofort nach Testende.
-   - Build  >= 633: onInit_ProgramAfterTest() - UninitializeReason() ist UR_CHARTCLOSE.
-   ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 577:     onInit_TimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
-   ------------------------------------------------------------------------------------------------------------------------------------
+   - Build 577-583: onInitTemplate()         - Broken: Kein Aufruf bei Terminal-Start, der Indikator wird aber geladen.
+   -----------------------------------------------------------------------------------------------------------------------------------
+   - Build 556-569: onInitProgram()          - Broken: Wird in- und auﬂerhalb des Testers bei jedem Tick aufgerufen.
+   -----------------------------------------------------------------------------------------------------------------------------------
+   - Build  <= 229: onInitProgramAfterTest() - UninitializeReason() = UR_UNDEFINED
+   - Build     387: onInitProgramAfterTest() - Broken: Wird nie aufgerufen.
+   - Build 388-628: onInitProgramAfterTest() - UninitializeReason() = UR_REMOVE
+   - Build  <= 577: onInitProgramAfterTest() - Wird nur nach einem automatisiertem Test aufgerufen (VisualMode=Off), der Aufruf
+                                               erfolgt vorm Start des n‰chsten Tests.
+   - Build  >= 578: onInitProgramAfterTest() - Wird auch nach einem manuellen Test aufgerufen (VisualMode=On), nur in diesem Fall
+                                               erfolgt der Aufruf sofort nach Testende.
+   - Build  >= 633: onInitProgramAfterTest() - UninitializeReason() ist UR_CHARTCLOSE.
+   -----------------------------------------------------------------------------------------------------------------------------------
+   - Build 577:     onInitTimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
+   -----------------------------------------------------------------------------------------------------------------------------------
    */
    uint build      = GetTerminalBuild();
    BOOL isUIThread = IsUIThread();
