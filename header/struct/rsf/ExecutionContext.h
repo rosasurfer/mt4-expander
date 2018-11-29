@@ -13,12 +13,13 @@
  * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
  * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
  *
- *  • Data exchange between MQL program main module and DLL:
- *    The DLL stores DLL error information in the EXECUTION_CONTEXT for further processing by the MQL main module. The main
- *    module signals such errors to the user. On the other hand the main module stores price and market information in the
- *    context to make it available to the DLL.
- *  • Data exchange between MQL main module and MQL libraries
- *  • Data exchange between multiple MQL programs
+ *  • Data exchange between MQL modules and the Expander DLL:
+ *    The MQL modules pass MQL runtime state and market information to the DLL, the DLL passes back calculation results and
+ *    DLL runtime state (MQL program management, errors).
+ *
+ *  • Data exchange between MQL modules of the same program.
+ *
+ *  • Data exchange between multiple MQL programs.
  */
 #pragma pack(push, 1)
 
@@ -41,27 +42,27 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    DWORD              moduleInitFlags;             //       564        4     module init configuration                           (const) => how should it be initialized
    DWORD              moduleDeinitFlags;           //       568        4     module deinit configuration                         (const) => how should it be deinitialized
                                                    //
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       572       12     current symbol         = MQL::Symbol()              (var  )
-   uint               timeframe;                   //       584        4     current chart period   = MQL::Period()              (var  )
-   uint               digits;                      //       588        4     Digits of the symbol   = MQL::Digits                (var  )
-   double             point;                       //       592        8     Point of the symbol    = MQL::Point                 (var  )
-   const void*        rates;                       //       600        4     current price series   = MQL::ArrayCopyRates()      (var  ) => RateInfo[]
-   int                bars;                        //       604        4     current number of bars = MQL::Bars                  (var  )
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       572       12     current symbol           = MQL::Symbol()            (var  )
+   uint               timeframe;                   //       584        4     current chart period     = MQL::Period()            (var  )
+   uint               digits;                      //       588        4     Digits of the symbol     = MQL::Digits              (var  )
+   double             point;                       //       592        8     Point of the symbol      = MQL::Point               (var  )
+   const void*        rates;                       //       600        4     current price series     = MQL::ArrayCopyRates()    (var  ) => RateInfo[]
+   int                bars;                        //       604        4     current number of bars   = MQL::Bars                (var  )
    int                changedBars;                 //       608        4     number of changed bars                              (var  )
    int                unchangedBars;               //       612        4     number of unchanged bars = MQL::IndicatorCounted()  (var  )
    uint               ticks;                       //       616        4     number of times start() was called for the instance (var  )
    uint               cycleTicks;                  //       620        4     number of times start() was called for the cycle    (var  )
    datetime           lastTickTime;                //       624        4     server time of the last received tick               (var  )
    datetime           prevTickTime;                //       628        4     server time of the previous received tick           (var  )
-   double             bid;                         //       632        8     current bid price      = MQL::Bid                   (var  )
-   double             ask;                         //       640        8     current ask price      = MQL::Ask                   (var  )
+   double             bid;                         //       632        8     current bid price        = MQL::Bid                 (var  )
+   double             ask;                         //       640        8     current ask price        = MQL::Ask                 (var  )
                                                    //
    EXECUTION_CONTEXT* superContext;                //       648        4     indicator host program                              (const) => if indicator loaded by iCustom()
    uint               threadId;                    //       652        4     current executing thread                            (var  )
-   HWND               hChart;                      //       656        4     chart handle = MQL::WindowHandle()                  (const) => handle of the chart frame
+   HWND               hChart;                      //       656        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
    HWND               hChartWindow;                //       660        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
                                                    //
-   TEST*              test;                        //       664        4     test configuration and data                         (const)
+   TEST*              test;                        //       664        4     test configuration, test data, test results         (const)
    BOOL               testing;                     //       668        4     IsTesting() status                                  (const)
    BOOL               visualMode;                  //       672        4     expert IsVisualMode() status                        (const)
    BOOL               optimization;                //       676        4     expert IsOptimization() status                      (const)
@@ -69,8 +70,8 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    BOOL               extReporting;                //       680        4     expert input parameter EA.ExtReporting              (var  )
    BOOL               recordEquity;                //       684        4     expert input parameter EA.RecordEquity              (var  )
                                                    //
-   int                mqlError;                    //       688        4     last error in MQL (main module and libraries)       (var  )
-   int                dllError;                    //       692        4     last error in DLL                                   (var  )
+   int                mqlError;                    //       688        4     last MQL error (from all program modules)           (var  )
+   int                dllError;                    //       692        4     last DLL error                                      (var  )
    char*              dllErrorMsg;                 //       696        4     DLL error message                                   (var  )
    int                dllWarning;                  //       700        4     last DLL warning                                    (var  )
    char*              dllWarningMsg;               //       704        4     DLL warning message                                 (var  )
@@ -81,10 +82,10 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
 
 
 // type definition
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                // the contexts of a single MQL program (one context per MQL module)
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                            // a chain holds the contexts of a single MQL program,
+                                                                                 // i.e. master context + one context per MQL module
 
-
-// regular getters (exported to MQL)
+// getters (exported to MQL)
 uint               WINAPI ec_Pid                (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PreviousPid        (const EXECUTION_CONTEXT* ec);
 

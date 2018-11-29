@@ -18,24 +18,25 @@ struct TEST {
    datetime          endTime;                            // time of the last tick of testing
    uint              barModel;                           // used bar model: 0=EveryTick|1=ControlPoints|2=BarOpen
    uint              bars;                               // number of tested bars
-   uint              ticks;                              // number of tested ticks
+   uint              ticks;                              // number of ticks
    double            spread;                             // spread in pips
-   DWORD             tradeDirections;                    // active trade directions: Long|Short|Both
+   DWORD             tradeDirections;                    // enabled trade directions: Long|Short|Both
    int               reportId;                           // reporting id (for composition of reportSymbol)
-   char              reportSymbol[MAX_SYMBOL_LENGTH+1];  // test symbol for charted reports
-   const FXT_HEADER* fxtHeader;                          // FXT header data
+   char              reportSymbol[MAX_SYMBOL_LENGTH+1];  // reporting symbol (terminal symbol for charted reports)s
+   const FXT_HEADER* fxtHeader;                          // FXT header of the price history used for the test
 
    OrderList*        positions;                          // all open positions
    OrderList*        longPositions;                      // open long positions
    OrderList*        shortPositions;                     // open short positions
 
-   OrderList*        trades;                             // all closed positions (trades)
+   OrderList*        trades;                             // all closed positions (completed trades)
    OrderList*        longTrades;                         // long trades
    OrderList*        shortTrades;                        // short trades
 };
 
 
-// getters (used by MQL4): @see "header/struct/rsf/ExecutionContext.h"
+// getters: access from MQL is possible via the program's execution context
+// @see  "header/struct/rsf/ExecutionContext.h"
 
 
 // validating setters
