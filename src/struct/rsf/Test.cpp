@@ -3,7 +3,7 @@
 #include "lib/format.h"
 #include "lib/math.h"
 #include "lib/string.h"
-#include "struct/xtrade/Test.h"
+#include "struct/rsf/Test.h"
 
 
 /**
@@ -49,10 +49,9 @@ datetime WINAPI test_SetCreated(TEST* test, datetime time) {
  * @return char* - the same name
  */
 const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
-   if ((uint)test < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)name < MIN_VALID_POINTER)         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   int len = strlen(name);
-   if (!len || len > sizeof(test->strategy)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name \"%s\" (must be 1 to %d characters)", name, sizeof(test->strategy)-1));
+   if ((uint)test < MIN_VALID_POINTER)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)name < MIN_VALID_POINTER)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!*name || strlen(name) >= sizeof(test->strategy)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name \"%s\" (must be 1 to %d characters)", name, sizeof(test->strategy)-1));
 
    if (!strcpy(test->strategy, name))
       return(NULL);
@@ -61,7 +60,7 @@ const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
 
 
 /**
- * Set the symbol a TEST was run on.
+ * Set the symbol of a TEST.
  *
  * @param  TEST* test
  * @param  char* symbol
@@ -69,10 +68,9 @@ const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
  * @return char* - the same symbol
  */
 const char* WINAPI test_SetSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   int len = strlen(symbol);
-   if (!len || len > sizeof(test->symbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (must be 1 to %d characters)", symbol, sizeof(test->symbol)-1));
+   if ((uint)test   < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)symbol < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if (!*symbol || strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (must be 1 to %d characters)", symbol, MAX_SYMBOL_LENGTH));
 
    if (!strcpy(test->symbol, symbol))
       return(NULL);
@@ -230,10 +228,9 @@ int WINAPI test_SetReportId(TEST* test, int id) {
  * @return char* - the same symbol
  */
 const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   int len = strlen(symbol);
-   if (len > sizeof(test->reportSymbol)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, sizeof(test->reportSymbol)-1));
+   if ((uint)test   < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)symbol < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if (strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
 
    if (!strcpy(test->reportSymbol, symbol))
       return(NULL);
@@ -256,7 +253,7 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    TEST empty = {};
 
    if (!memcmp(test, &empty, sizeof(TEST))) {
-      ss << "{(empty)}";
+      ss << "{}";
    }
    else {
       ss <<  "{id="              <<                     test->id

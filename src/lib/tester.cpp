@@ -203,7 +203,7 @@ datetime WINAPI Tester_GetEndDate() {
  * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
  *
  *
- * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage ("delete").
+ * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage (with "delete").
  */
 const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel) {
    if ((uint)symbol < MIN_VALID_POINTER) return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
@@ -257,8 +257,12 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*
  * TODO: validation
  */
 BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
-   if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)ec        < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test)    return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)symbol    < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if (strlen(symbol)  > MAX_SYMBOL_LENGTH)        return(error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
+   if ((uint)comment   < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter comment: 0x%p (not a valid pointer)", comment));
+   if (strlen(comment) > MAX_ORDER_COMMENT_LENGTH) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter comment: \"%s\" (max %d characters)", comment, MAX_ORDER_COMMENT_LENGTH));
 
    OrderList* positions      = ec->test->positions;      if (!positions)      return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.positions: 0x%p", ec->test->positions));
    OrderList* longPositions  = ec->test->longPositions;  if (!longPositions)  return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.longPositions: 0x%p", ec->test->longPositions));
@@ -400,11 +404,11 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
  */
 BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int reportId, const char* reportSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid=0: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    TEST* test = ec->test;
-   if (!test) return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!test) return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    double spread = round((ec->ask - ec->bid)/ec->point/10, 1);
 
@@ -425,12 +429,13 @@ BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime,
  */
 BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester"));
+   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    TEST* test = ec->test;
-   if (!test)         return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL: ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (test->endTime) return(error(ERR_ILLEGAL_STATE, "TEST reporting of expert \"%s\" already stopped", ec->programName));
+   if (!test)            return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!test->startTime) return( warn(ERR_ILLEGAL_STATE, "reporting not yet started (skipping execution)"));
+   if (test->endTime)    return(error(ERR_ILLEGAL_STATE, "reporting already stopped:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    test_SetEndTime(test, endTime              );
    test_SetBars   (test, bars - test->bars + 1);
@@ -445,8 +450,9 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
  * @return int
  */
 int WINAPI Test() {
-   Tester_GetStartDate();
-   Tester_GetEndDate();
+
+   debug("sizeofMember(EXECUTION_CONTEXT.symbol) = %d", sizeofMember(EXECUTION_CONTEXT, symbol));
+
    return(NULL);
    #pragma EXPANDER_EXPORT
 }

@@ -112,7 +112,8 @@ const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
  *
  * @return string - formatted string or an empty string in case of errors
  *
- * Format codes:
+ *       Format codes:
+ * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
@@ -135,7 +136,8 @@ string WINAPI numberFormat(double value, const char* format) {
  *
  * @return char* - formatted string or a NULL pointer in case of errors
  *
- * Format codes:
+ *       Format codes:
+ * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */

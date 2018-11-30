@@ -7,57 +7,196 @@
 #include "lib/tester.h"
 #include "struct/mt4/PriceBar400.h"
 #include "struct/mt4/PriceBar401.h"
-#include "struct/xtrade/Test.h"
+#include "struct/rsf/Test.h"
 
 #include <time.h>
 #include <vector>
 
 
-std::vector<ContextChain> g_contextChains  (128);        // all context chains, i.e. MQL programs (index = program id)
-std::vector<DWORD>        g_threads        (128);        // all known threads executing MQL programs
-std::vector<uint>         g_threadsPrograms(128);        // the last MQL program executed by a thread
-uint                      g_lastUIThreadProgram;         // the last MQL program executed by the UI thread
-CRITICAL_SECTION          g_terminalMutex;               // mutex for application-wide locking
+std::vector<ContextChain> g_contextChains(1);         // all MQL programs: index = program id; 0 is not a valid pid, the index is skipped
+std::vector<DWORD>        g_threads;                  // all known threads executing MQL programs
+std::vector<uint>         g_threadsPrograms;          // pid of the last MQL program executed by a thread
+uint                      g_lastUIThreadProgram;      // pid the last MQL program executed by the UI thread
+CRITICAL_SECTION          g_terminalMutex;            // mutex for application-wide locking
+
+struct RECOMPILED_MODULE {                            // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
+   uint       pid;                                    // Only one module is tracked (the last one) and the variable is accessed
+   ModuleType type;                                   // from the UI thread only.
+   char       name[_MAX_FNAME];
+} g_recompiledModule;
 
 
 /**
- *  Init cycle of a single indicator using single and nested library calls:
- *  --- first load ----------------------------------------------------------------------------------------------------------
- *  Indicator::init()              UR_UNDEFINED    pid=0  creating new chain             set pid=1
- *  Indicator::libraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator            set pid=1
- *  Indicator::libraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator            set pid=1
- *  Indicator::libraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA             set pid=1
- *  --- deinit() ------------------------------------------------------------------------------------------------------------
- *  Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
- *  Indicator::libraryA::deinit()  UR_UNDEFINED    pid=1  then libraries
- *  Indicator::libraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in loading order)
- *  Indicator::libraryB::deinit()  UR_UNDEFINED    pid=1
- *  --- init() --------------------------------------------------------------------------------------------------------------
- *  Indicator::libraryA::init()    UR_UNDEFINED    pid=1  libraries first (new symbol and timeframe show up)
- *  Indicator::libraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in loading order)
- *  Indicator::libraryB::init()    UR_UNDEFINED    pid=1
- *  Indicator::init()              UR_CHARTCHANGE  pid=0  then indicator                 set pid=1
- *  -------------------------------------------------------------------------------------------------------------------------
+ * Core function call order of multiple tests with VisualMode=on
+ * =============================================================
+ *
+ * Indicators loaded by iCustom() are reloaded into the existing tester chart with IR_PROGRAM_AFTERTEST and unloaded when the tester chart closes.
+ *
+ * --- start of test (chart window opens) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:07:44.038  SyncMainContext_init(152)    084F44E0  TestExpert  UR_UNDEFINED   ec={} (0x084F44E0)
+ * 21:07:44.053  SyncMainContext_init(298)    084F44E0  TestExpert  UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_INIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F44E0)
+ * 21:07:44.116  SyncLibContext_init(534)     084F48C8  rsfLib1     UR_UNDEFINED   ec={} (0x084F48C8)
+ * 21:07:44.116  SyncLibContext_init(764)     084F48C8  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_INIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F48C8)
+ * 21:07:44.131  SyncMainContext_start(368)   084F44E0  TestExpert                 ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=25766, changedBars=-1, unchangedBars=-1, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35067, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F44E0)
+ * --- expert loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:07:44.194  SyncMainContext_init(152)    084F4CB0  Trix        UR_UNDEFINED   ec={} (0x084F4CB0)
+ * 21:07:44.194  SyncMainContext_init(298)    084F4CB0  Trix        UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * 21:07:44.241  SyncLibContext_init(534)     084F5098  rsfLib1     UR_UNDEFINED   ec={} (0x084F5098)
+ * 21:07:44.241  SyncLibContext_init(764)     084F5098  rsfLib1     UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5098)
+ * 21:07:44.241  SyncMainContext_start(368)   084F4CB0  Trix                       ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=25766, changedBars=25766, unchangedBars=0, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35067, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * --- indicator loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- test finished --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:07:46.893  SyncMainContext_deinit(389)  084F4CB0  Trix        UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * 21:07:46.893  SyncMainContext_deinit(410)  084F4CB0  Trix        UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * 21:07:46.893  LeaveContext(836)            084F4CB0  Trix                       ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * 21:07:46.893  SyncLibContext_deinit(785)   084F5098  rsfLib1     UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5098)
+ * 21:07:46.893  SyncLibContext_deinit(806)   084F5098  rsfLib1     UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5098)
+ * 21:07:46.893  LeaveContext(836)            084F5098  rsfLib1                    ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5098)
+ * --- indicator unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:07:46.893  SyncMainContext_deinit(389)  084F44E0  TestExpert  UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F44E0)
+ * 21:07:46.893  SyncMainContext_deinit(410)  084F44E0  TestExpert  UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F44E0)
+ * 21:07:46.893  LeaveContext(836)            084F44E0  TestExpert                 ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F44E0)
+ * 21:07:46.893  SyncLibContext_deinit(785)   084F48C8  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * 21:07:46.893  SyncLibContext_deinit(806)   084F48C8  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * 21:07:46.893  LeaveContext(836)            084F48C8  rsfLib1                    ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * --- end of test: expert unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ *
+ * --- chart window becomes visible (if it was minimized) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- indicator reloads with stateful libraries in UI thread ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:07:57.189  SyncLibContext_init(534)     084F5098  rsfLib1     UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=NULL, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F44E0, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5098)
+ * 21:07:57.189  SyncLibContext_init(764)     084F5098  rsfLib1     UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5098)
+ * 21:07:57.189  SyncMainContext_init(152)    084F44E0  Trix        UR_CHARTCLOSE  ec={} (0x084F44E0)
+ * 21:07:57.189  SyncMainContext_init(298)    084F44E0  Trix        UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F44E0)
  *
  *
- *  Init cycle of multiple indicators using single library calls:
- *  --- first load ----------------------------------------------------------------------------------------------------------
- *  ChartInfos::init()             UR_UNDEFINED    pid=0  creating new chain             set pid=1
- *  ChartInfos::lib::init()        UR_UNDEFINED    pid=0  loaded by indicator            set pid=1
- *  SuperBars::init()              UR_UNDEFINED    pid=0  creating new chain             set pid=2
- *  SuperBars::lib::init()         UR_UNDEFINED    pid=0  loaded by indicator            set pid=2
- *  --- deinit() ------------------------------------------------------------------------------------------------------------
- *  ChartInfos::deinit()           UR_CHARTCHANGE  pid=1
- *  ChartInfos::lib::deinit()      UR_UNDEFINED    pid=1
- *  SuperBars::deinit()            UR_CHARTCHANGE  pid=2
- *  SuperBars::lib::deinit()       UR_UNDEFINED    pid=2
- *  --- init() --------------------------------------------------------------------------------------------------------------
- *  ChartInfos::lib::init()        UR_UNDEFINED    pid=1
- *  ChartInfos::init()             UR_CHARTCHANGE  pid=0  first indicator in limbo       set pid=1
- *  SuperBars::lib::init()         UR_UNDEFINED    pid=2
- *  SuperBars::init()              UR_CHARTCHANGE  pid=0  next indicator in limbo        set pid=2
- *  -------------------------------------------------------------------------------------------------------------------------
+ * --- start of next test (new chart window opens) ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- expert reloads with stateful libraries ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:08:05.347  SyncLibContext_init(534)     084F48C8  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=NULL, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x08F10020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3880 (non-UI), hChart=0x00090DC2, hChartWindow=0x000B0DDE, test=0x099583C0, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * 21:08:05.347  SyncLibContext_init(764)     084F48C8  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=NULL, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=3184 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * 21:08:05.347  SyncMainContext_init(152)    084F4CB0  TestExpert  UR_UNDEFINED   ec={} (0x084F4CB0)
+ * 21:08:05.347  SyncMainContext_init(298)    084F4CB0  TestExpert  UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_INIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F4CB0)
+ * 21:08:05.347  SyncMainContext_start(368)   084F4CB0  TestExpert                 ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=25766, changedBars=-1, unchangedBars=-1, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35067, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * --- expert loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:08:05.410  SyncMainContext_init(152)    084F5480  Trix        UR_UNDEFINED   ec={} (0x084F5480)
+ * 21:08:05.410  SyncMainContext_init(298)    084F5480  Trix        UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5480)
+ * 21:08:05.472  SyncLibContext_init(534)     084F5868  rsfLib1     UR_UNDEFINED   ec={} (0x084F5868)
+ * 21:08:05.472  SyncLibContext_init(764)     084F5868  rsfLib1     UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5868)
+ * 21:08:05.472  SyncMainContext_start(368)   084F5480  Trix                       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=25766, changedBars=25766, unchangedBars=0, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35067, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5480)
+ * --- indicator loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- test finished --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:08:08.545  SyncMainContext_deinit(389)  084F5480  Trix        UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5480)
+ * 21:08:08.545  SyncMainContext_deinit(410)  084F5480  Trix        UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5480)
+ * 21:08:08.545  LeaveContext(836)            084F5480  Trix                       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5480)
+ * 21:08:08.545  SyncLibContext_deinit(785)   084F5868  rsfLib1     UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5868)
+ * 21:08:08.545  SyncLibContext_deinit(806)   084F5868  rsfLib1     UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5868)
+ * 21:08:08.545  LeaveContext(836)            084F5868  rsfLib1                    ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5868)
+ * --- indicator unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:08:08.545  SyncMainContext_deinit(389)  084F4CB0  TestExpert  UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * 21:08:08.545  SyncMainContext_deinit(410)  084F4CB0  TestExpert  UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * 21:08:08.545  LeaveContext(836)            084F4CB0  TestExpert                 ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F4CB0)
+ * 21:08:08.545  SyncLibContext_deinit(785)   084F48C8  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * 21:08:08.545  SyncLibContext_deinit(806)   084F48C8  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * 21:08:08.545  LeaveContext(836)            084F48C8  rsfLib1                    ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=0x0995F938, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F48C8)
+ * --- end of test: expert unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ *
+ * --- chart window becomes visible (if it was minimized) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- indicator reloads with stateful libraries in UI thread ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:08:08.561  SyncLibContext_init(534)     084F5868  rsfLib1     UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=NULL, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x09FE0020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=0x084F4CB0, threadId=3184 (non-UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5868)
+ * 21:08:08.561  SyncLibContext_init(764)     084F5868  rsfLib1     UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x084F5868)
+ * 21:08:08.561  SyncMainContext_init(152)    084F4CB0  Trix        UR_CHARTCLOSE  ec={} (0x084F4CB0)
+ * 21:08:08.561  SyncMainContext_init(298)    084F4CB0  Trix        UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F4CB0)
+ * --- chart window is closed -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 21:08:39.999  SyncMainContext_deinit(389)  084F4CB0  Trix        UR_CLOSE       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F4CB0)
+ * 21:08:39.999  SyncMainContext_deinit(410)  084F4CB0  Trix        UR_CLOSE       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F4CB0)
+ * 21:08:39.999  LeaveContext(836)            084F4CB0  Trix                       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F4CB0)
+ * 21:08:39.999  SyncLibContext_deinit(785)   084F5868  rsfLib1     UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F5868)
+ * 21:08:39.999  SyncLibContext_deinit(806)   084F5868  rsfLib1     UR_CLOSE       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F5868)
+ * 21:08:39.999  LeaveContext(836)            084F5868  rsfLib1                    ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41532, superContext=NULL, threadId=3492 (UI), hChart=0x000D0DE2, hChartWindow=0x00080D8C, test=NULL, testing=TRUE, visualMode=TRUE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x084F5868)
+ * --- indicator unloaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  */
+
+
+/**
+ * Core function call order of multiple tests with VisualMode=off
+ * ==============================================================
+ *
+ * Between tests indicators loaded by iCustom() are reloaded with IR_PROGRAM_AFTERTEST and immediately unloaded.
+ *
+ * --- start of test -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:03.888  SyncMainContext_init(67)     0733A448  TestExpert  UR_UNDEFINED   ec={} (0x0733A448)
+ * 07:30:03.888  SyncMainContext_init(213)    0733A448  TestExpert  UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_INIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0733A448)
+ * 07:30:03.951  SyncLibContext_init(446)     07210248  rsfLib1     UR_UNDEFINED   ec={} (0x07210248)
+ * 07:30:03.951  SyncLibContext_init(673)     07210248  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_INIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x07210248)
+ * 07:30:03.951  SyncMainContext_start(283)   0733A448  TestExpert                 ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=25766, changedBars=-1, unchangedBars=-1, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35076, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0733A448)
+ * --- expert loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:04.013  SyncMainContext_init(67)     0747D9F0  Trix        UR_UNDEFINED   ec={} (0x0747D9F0)
+ * 07:30:04.013  SyncMainContext_init(213)    0747D9F0  Trix        UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D9F0)
+ * 07:30:04.091  SyncLibContext_init(446)     0742F0D8  rsfLib1     UR_UNDEFINED   ec={} (0x0742F0D8)
+ * 07:30:04.091  SyncLibContext_init(673)     0742F0D8  rsfLib1     UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0742F0D8)
+ * 07:30:04.091  SyncMainContext_start(283)   0747D9F0  Trix                       ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=25766, changedBars=25766, unchangedBars=0, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35076, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D9F0)
+ * --- indicator loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- test finished --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:04.528  SyncMainContext_deinit(304)  0747D9F0  Trix        UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D9F0)
+ * 07:30:04.528  SyncMainContext_deinit(325)  0747D9F0  Trix        UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D9F0)
+ * 07:30:04.528  LeaveContext(743)            0747D9F0  Trix                       ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D9F0)
+ * 07:30:04.528  SyncLibContext_deinit(692)   0742F0D8  rsfLib1     UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0742F0D8)
+ * 07:30:04.528  SyncLibContext_deinit(713)   0742F0D8  rsfLib1     UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0742F0D8)
+ * 07:30:04.528  LeaveContext(743)            0742F0D8  rsfLib1                    ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0742F0D8)
+ * --- indicator unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:04.528  SyncMainContext_deinit(304)  0733A448  TestExpert  UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0733A448)
+ * 07:30:04.528  SyncMainContext_deinit(325)  0733A448  TestExpert  UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0733A448)
+ * 07:30:04.528  LeaveContext(743)            0733A448  TestExpert                 ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0733A448)
+ * 07:30:04.528  SyncLibContext_deinit(692)   07210248  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * 07:30:04.528  SyncLibContext_deinit(713)   07210248  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * 07:30:04.528  LeaveContext(743)            07210248  rsfLib1                    ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * --- end of test: expert unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ *
+ *
+ * --- start of next test ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- indicator reloads with stateful libraries in UI thread ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:06.296  SyncLibContext_init(446)     0742F0D8  rsfLib1     UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=NULL, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x0733A448, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0742F0D8)
+ * 07:30:06.296  SyncLibContext_init(673)     0742F0D8  rsfLib1     UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0742F0D8)
+ * 07:30:06.296  SyncMainContext_init(67)     0D02D490  Trix        UR_CHARTCLOSE  ec={} (0x0D02D490)
+ * 07:30:06.296  SyncMainContext_init(213)    0D02D490  Trix        UR_CHARTCLOSE  ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0D02D490)
+ * --- indicator unloads in UI thread ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:06.296  SyncMainContext_deinit(304)  0D02D490  Trix        UR_REMOVE      ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0D02D490)
+ * 07:30:06.296  SyncMainContext_deinit(325)  0D02D490  Trix        UR_REMOVE      ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_REMOVE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_REMOVE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0D02D490)
+ * 07:30:06.296  LeaveContext(743)            0D02D490  Trix                       ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_REMOVE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_REMOVE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0D02D490)
+ * 07:30:06.296  SyncLibContext_deinit(692)   0742F0D8  rsfLib1     UR_UNDEFINED   ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_REMOVE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0742F0D8)
+ * 07:30:06.296  SyncLibContext_deinit(713)   0742F0D8  rsfLib1     UR_REMOVE      ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_REMOVE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_REMOVE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0742F0D8)
+ * 07:30:06.296  LeaveContext(743)            0742F0D8  rsfLib1                    ec={pid=2, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM_AFTERTEST, programUninitReason=UR_REMOVE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_REMOVE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=0, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2896 (UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x0742F0D8)
+ * --- indicator unloaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ *
+ * --- expert reloads with stateful libraries ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:06.328  SyncLibContext_init(446)     07210248  rsfLib1     UR_UNDEFINED   ec={pid=1, previousPid=0, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=NULL, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=1564 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08E6E940, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * 07:30:06.328  SyncLibContext_init(673)     07210248  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=NULL, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * 07:30:06.328  SyncMainContext_init(67)     07210C88  TestExpert  UR_UNDEFINED   ec={} (0x07210C88)
+ * 07:30:06.328  SyncMainContext_init(213)    07210C88  TestExpert  UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_INIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=TRUE, customLogFile=""} (0x07210C88)
+ * 07:30:06.328  SyncMainContext_start(283)   07210C88  TestExpert                 ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=25766, changedBars=-1, unchangedBars=-1, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35076, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210C88)
+ * --- expert loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:06.390  SyncMainContext_init(67)     0747D5C0  Trix        UR_UNDEFINED   ec={} (0x0747D5C0)
+ * 07:30:06.390  SyncMainContext_init(213)    0747D5C0  Trix        UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D5C0)
+ * 07:30:06.452  SyncLibContext_init(446)     07330998  rsfLib1     UR_UNDEFINED   ec={} (0x07330998)
+ * 07:30:06.452  SyncLibContext_init(673)     07330998  rsfLib1     UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_INIT, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=NULL, bars=0, changedBars=-1, unchangedBars=-1, ticks=0, cycleTicks=0, lastTickTime=0, prevTickTime=0, bid=0, ask=0, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07330998)
+ * 07:30:06.452  SyncMainContext_start(283)   0747D5C0  Trix                       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=25766, changedBars=25766, unchangedBars=0, ticks=1, cycleTicks=1, lastTickTime="2018.01.02 00:00:00", prevTickTime=0, bid=1.35066, ask=1.35076, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D5C0)
+ * --- indicator loaded ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * --- test finished --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:06.905  SyncMainContext_deinit(304)  0747D5C0  Trix        UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_START, programInitReason=IR_PROGRAM, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D5C0)
+ * 07:30:06.905  SyncMainContext_deinit(325)  0747D5C0  Trix        UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D5C0)
+ * 07:30:06.905  LeaveContext(743)            0747D5C0  Trix                       ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=CF_DEINIT, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_INDICATOR, moduleName="Trix", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x0747D5C0)
+ * 07:30:06.905  SyncLibContext_deinit(692)   07330998  rsfLib1     UR_UNDEFINED   ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07330998)
+ * 07:30:06.905  SyncLibContext_deinit(713)   07330998  rsfLib1     UR_CHARTCLOSE  ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07330998)
+ * 07:30:06.905  LeaveContext(743)            07330998  rsfLib1                    ec={pid=4, previousPid=0, programType=PT_INDICATOR, programName="Trix", programCoreFunction=NULL, programInitReason=IR_PROGRAM, programUninitReason=UR_CHARTCLOSE, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_CHARTCLOSE, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=2, unchangedBars=27587, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=0x07210C88, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=NULL, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07330998)
+ * --- indicator unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 07:30:06.905  SyncMainContext_deinit(304)  07210C88  TestExpert  UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_START, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_START, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210C88)
+ * 07:30:06.905  SyncMainContext_deinit(325)  07210C88  TestExpert  UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210C88)
+ * 07:30:06.905  LeaveContext(743)            07210C88  TestExpert                 ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=CF_DEINIT, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_EXPERT, moduleName="TestExpert", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210C88)
+ * 07:30:06.905  SyncLibContext_deinit(692)   07210248  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_INIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * 07:30:06.905  SyncLibContext_deinit(713)   07210248  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * 07:30:06.905  LeaveContext(743)            07210248  rsfLib1                    ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
+ * --- end of test: expert unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ *
+ */// (prevent Visual Assist from merging above block in the hover tooltip of below function)
 
 
 /**
@@ -68,10 +207,10 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  * @param  ProgramType        programType    - program type
  * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
  * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
- * @param  DWORD              initFlags      - init configuration
- * @param  DWORD              deinitFlags    - deinit configuration
+ * @param  DWORD              initFlags      - program init configuration
+ * @param  DWORD              deinitFlags    - program deinit configuration
  * @param  char*              symbol         - current chart symbol
- * @param  uint               period         - current chart period
+ * @param  uint               timeframe      - current chart timeframe
  * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
  * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
  * @param  BOOL               extReporting   - value of an Expert's input parameter "EA.ExtReporting"
@@ -87,62 +226,65 @@ CRITICAL_SECTION          g_terminalMutex;               // mutex for applicatio
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint period, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
-   if ((uint)ec          < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if ((uint)programName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
-   if ((uint)symbol      < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)period <= 0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
-   if ((int)digits <  0)                      return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
-   if (sec && (uint)sec  < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+   if ((uint)ec          < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)programName < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
+   if (strlen(programName) >= sizeof(ec->programName)) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1)));
+   if ((uint)symbol      < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if (strlen(symbol)   >= MAX_SYMBOL_LENGTH)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
+   if ((int)timeframe <= 0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   if ((int)digits    <  0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
+   if (sec && (uint)sec  < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
+   if (ec->pid) SetLastThreadProgram(ec->pid);                    // set the currently executed program asap (error handling)
+
+   //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid           = ec->pid;
    BOOL isPid                = (currentPid);
-   uint prevPid              = g_threadsPrograms[GetCurrentThreadIndex()]; // pid of the last program executed by the current thread
-   uint formerIndPid         = NULL;                                       // old pid of an indicator in init cycle
-   BOOL isPartialTest        = FALSE;                                      // whether an partially initialized expert in tester
+   uint previousPid          = NULL;                              // pid of a previous program instance (if any)
    EXECUTION_CONTEXT* master = NULL;
 
-   if (isPid) LinkProgramToCurrentThread(currentPid);                      // link the currently executed program asap (error handling)
+   // fix an unset chart handle (older terminals)
+   if (!hChart) hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, timeframe, isTesting, isVisualMode);
+   if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
 
-   // resolve the true InitReason
-   InitializeReason initReason  = GetInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, formerIndPid);
+   // resolve the real InitReason
+   InitializeReason initReason = GetInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, previousPid);
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
-   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_FAILURE_INIT, debug("%s  InitReason=IR_TERMINAL_FAILURE", programName)));
+   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_INIT_FAILURE, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
 
-   // (1) if ec.pid is not set: check if an indicator in init cycle
-   //     ï (1.1) if indicator in init cycle (only in UI thread):
-   //       - restore main context from master context
-   //     ï (1.2) if not indicator in init cycle: new indicator, expert or script
-   //       - create and store new master context
-   //
-   // (2) ec.pid is set:
-   //     ï update main context
-   //
-   // (3) if expert in tester:
-   //     ï initialize new test
-   //     ï update reused libraries of the preceeding test
+
+   // (1) if ec.pid is not set: check if an indicator to be reused or something else
+   //     - indicator in init cycle           (UI thread) => reuse the previous program and keep instance data
+   //     - indicator in IR_PROGRAM_AFTERTEST (UI thread) => reuse the previous program and keep instance data
+   //     - indicator after recompilation     (UI thread) => reuse the previous program and keep instance data
+   //     - something else: new indicator|expert|script
+   // (2) update main and master context
+   // (3) synchronize loaded libraries
 
    if (!isPid) {
-      if (programType==PT_INDICATOR && formerIndPid) {            // check if indicator in init cycle
-         // (1.1) indicator in init cycle (only in UI thread)
-         currentPid = formerIndPid;
-         LinkProgramToCurrentThread(currentPid);                  // link the currently executed program asap (error handling)
+      if (programType==PT_INDICATOR && previousPid) {             // reuse the previous program chain and keep instance data
+         currentPid = previousPid;
+         SetLastThreadProgram(currentPid);                        // set the currently executed program asap (error handling)
 
-         master = g_contextChains[formerIndPid][0];
-         *ec    = *master;                                        // restore main from master context (pid is already set)
-         g_contextChains[formerIndPid][1] = ec;                   // overwrite old main context (is already released)
+         master = g_contextChains[currentPid][0];
+         if (initReason == IR_PROGRAM_AFTERTEST)
+            master->superContext = sec = NULL;                    // reset the super context (the expert has already been released)
+         *ec = *master;                                           // restore main from master context (restores the pid)
+         g_contextChains[currentPid][1] = ec;                     // store main context at original (now empty) position
       }
       else {
-         // (1.2) not an indicator in init cycle: new indicator, expert or script
-         // if an expert in tester check for an existing partially initialized expert of the same name
-         if (programType==PT_EXPERT && isTesting && (isPartialTest=Program_IsPartialTest(prevPid, programName))) {
-            currentPid = prevPid;
-            LinkProgramToCurrentThread(currentPid);               // link the currently executed program asap (error handling)
+         // new indicator, new expert or new script
+         uint lastPid = GetLastThreadProgram();                   // pid of the last program executed by the current thread
 
-            // finish initialization of the existing context chain (expert with reused libraries)
+         // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
+         if (programType==PT_EXPERT && isTesting && Program_IsPartialTest(lastPid, programName)) {
+            currentPid = lastPid;
+            SetLastThreadProgram(currentPid);                     // set the currently executed program asap (error handling)
+
             master = g_contextChains[currentPid][0];
-            *ec = *master;                // everything ???       // overwrite main with master context
-            g_contextChains[currentPid][1] = ec;                  // store main context at the empty position
+            *ec = *master;                                        // copy master to main context
+            g_contextChains[currentPid][1] = ec;                  // store main context at old (empty) position
          }
          else {
             // create a new context chain                         // TODO: on IR_PROGRAM_AFTERTEST somewhere exists a used context
@@ -155,119 +297,93 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
             currentPid = ContextChainsPush(chain);                // store the chain and update master and main context
             master->pid = ec->pid = currentPid;
-            LinkProgramToCurrentThread(currentPid);
+            SetLastThreadProgram(currentPid);
          }
-      }
-
-      BOOL indicatorAfterTest = (programType==PT_INDICATOR && initReason==IR_PROGRAM_AFTERTEST);
-      if (indicatorAfterTest) {
-         ec_SetSuperContext(ec, sec=NULL);                        // the super context (an expert) has already been released
       }
    }
    else {
-      // (2) ec.pid is already set: an expert in init cycle or any program after a repeated init() call
+      // ec.pid is set: an expert in init cycle or any other program after a repeated init() call
+      master = g_contextChains[currentPid][0];
+      g_contextChains[currentPid][1] = ec;                        // store main context at old (possibly empty) position
    }
 
 
-   // (2.1) fields to update on the first init() call
-   if (!ec->ticks) {                                              // fix an unset chart handle (older terminals)
-      hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, period, isTesting, isVisualMode);
-      if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
+   // (2) update main and master context
+   ec_SetProgramType        (ec, programType );
+   ec_SetProgramName        (ec, programName );
+   ec_SetProgramCoreFunction(ec, CF_INIT     );                   // TODO: wrong for init() calls from start()
+   ec_SetProgramInitReason  (ec, initReason  );
+   ec_SetProgramUninitReason(ec, uninitReason);
+   ec_SetProgramInitFlags   (ec, initFlags   );
+   ec_SetProgramDeinitFlags (ec, deinitFlags );
 
-      ec_SetProgramType  (ec,             programType);
-      ec_SetProgramName  (ec,             programName);
-      ec_SetModuleType   (ec, (ModuleType)programType);           // in the main module ProgramType and ModuleType are the same
-      ec_SetModuleName   (ec,             programName);
+   ec_SetModuleType         (ec, (ModuleType)ec->programType);    // for main modules program and module values are the same
+   ec_SetModuleName         (ec, ec->programName            );
+   ec_SetModuleCoreFunction (ec, ec->programCoreFunction    );
+   ec_SetModuleUninitReason (ec, ec->programUninitReason    );
+   ec_SetModuleInitFlags    (ec, ec->programInitFlags       );
+   ec_SetModuleDeinitFlags  (ec, ec->programDeinitFlags     );
 
-    //ec_SetLaunchType   (ec,             launchType );
-      ec_SetInitFlags    (ec, initFlags              );
-      ec_SetDeinitFlags  (ec, deinitFlags            );
+   ec_SetSymbol       (ec, symbol      );
+   ec_SetTimeframe    (ec, timeframe   );
+   ec_SetDigits       (ec, digits      );                         // TODO: fix terminal bug
+   ec_SetPoint        (ec, point       );
+   master->rates = ec->rates = NULL;                              // re-initialized on the next tick        // TODO: may be wrong for multiple
+   ec_SetBars         (ec,  0          );                         // ...                                    //       init() calls from start()
+   ec_SetChangedBars  (ec, -1          );                         // ...                                    //       reset only on UR_CHARTCHANGE
+   ec_SetUnchangedBars(ec, -1          );                         // ...                                    //
+ //ec_SetTicks        (ec, ticks       );                         // NULL or kept from the last init() call
+   master->cycleTicks = ec->cycleTicks = 0;
+ //ec_SetLastTickTime (ec, lastTickTime);                         // ...
+ //ec_SetPrevTickTime (ec, prevTickTime);                         // ...
+ //ec_SetBid          (ec, bid         );                         // ...
+ //ec_SetAsk          (ec, ask         );                         // ...
 
-      ec_SetSuperContext (ec, sec   );
-      ec_SetHChart       (ec, hChart);                            // chart handles must be set before ec_SetTesting()
-      ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
+   ec_SetSuperContext (ec, sec         );
 
-      ec_SetTesting      (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
-      ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
-      ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
+   ec_SetThreadId     (ec, GetCurrentThreadId());
+   ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test values
+   ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
-      ec_SetLogging      (ec, Program_IsLogging    (ec));         // TODO: implement (empty stub defaulting to TRUE)
-      ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));         // TODO: implement (empty stub defaulting to NULL)
-   }
-
-   // (2.2) fields to update on every init() call
-   ec_SetCoreFunction (ec, CF_INIT     );                         // TODO: wrong for init() calls from start()
- //ec_SetInitCycle    (ec, FALSE       );
-   ec_SetInitReason   (ec, initReason  );
-   ec_SetUninitReason (ec, uninitReason);
-
-   ec_SetSymbol       (ec, symbol);
-   ec_SetTimeframe    (ec, period);
-   ec_SetDigits       (ec, digits);
-   ec_SetPoint        (ec, point );
-
-   ec_SetBars         (ec,  0);
-   ec_SetChangedBars  (ec, -1);
-   ec_SetUnchangedBars(ec, -1);
+   master->test = ec->test = Expert_InitTest(ec, isTesting);
+   ec_SetTesting      (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
+   ec_SetVisualMode   (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
+   ec_SetOptimization (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
 
    ec_SetExtReporting (ec, extReporting);
    ec_SetRecordEquity (ec, recordEquity);
 
-   ec_SetThreadId     (ec, GetCurrentThreadId());
+   ec_SetLogging      (ec, Program_IsLogging    (ec));            // TODO: atm an empty stub defaulting to TRUE
+   ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));            // TODO: atm an empty stub defaulting to NULL
+
+   // TODO: reset errors if not in an init() call from start()
+   //ec->mqlError      = NULL;
+   //ec->dllError      = NULL;
+   //ec->dllWarning    = NULL;
+   //ec->dllErrorMsg   = NULL;
+   //ec->dllWarningMsg = NULL;
 
 
-   // (3) if expert in tester
-   if (programType==PT_EXPERT && isTesting) {
-      // (3.1) initialize new test
-      if (!ec->ticks) {
-         TEST* test = new TEST();
-         test_SetCreated  (test, time(NULL)     );
-         test_SetStrategy (test, ec->programName);
-         test_SetSymbol   (test, ec->symbol     );
-         test_SetTimeframe(test, ec->timeframe  );
-         test_SetBarModel (test, Tester_GetBarModel());
+   // (3) synchronize loaded libraries
+   ContextChain& chain = g_contextChains[currentPid];
+   uint          size  = chain.size();
+   EXECUTION_CONTEXT *lib, bak;
 
-         test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
-
-         // initialize order history and reserve memory to speed-up testing
-         test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
-         test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
-         test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
-
-         test->trades         = new OrderList(); test->trades        ->reserve(1024);  // closed positions
-         test->longTrades     = new OrderList(); test->longTrades    ->reserve(1024);
-         test->shortTrades    = new OrderList(); test->shortTrades   ->reserve(1024);
-
-         master->test = ec->test = test;
+   for (uint i=2; i < size; ++i) {                                // skip master and main context
+      if (lib = chain[i]) {
+          bak = *lib;                                             // backup the library context
+         *lib = *master;                                          // overwrite library with master context
+         lib->moduleType         = bak.moduleType;                // keep library-specific values
+         strcpy(lib->moduleName,   bak.moduleName);
+         lib->moduleCoreFunction = bak.moduleCoreFunction;
+         lib->moduleUninitReason = bak.moduleUninitReason;
+         lib->moduleInitFlags    = bak.moduleInitFlags;
+         lib->moduleDeinitFlags  = bak.moduleDeinitFlags;
       }
-
-      // (3.2) if a partially initialized expert update the reused libaries of the preceeding test
-      if (isPartialTest) {
-         ContextChain& chain = g_contextChains[currentPid];
-         uint size = chain.size();
-
-         for (uint i=2; i < size; ++i) {                             // skip master and main context
-            EXECUTION_CONTEXT* lib = chain[i];
-            if (!lib) {
-               warn(ERR_ILLEGAL_STATE, "unexpected library context found at chain[%d]: NULL  ec=%s", i, EXECUTION_CONTEXT_toStr(ec));
-               continue;
-            }
-            EXECUTION_CONTEXT bak = *lib;                            // backup the library on the stack
-            *lib = *chain[0];                                        // overwrite it with master context
-
-            ec_SetModuleType (lib, MT_LIBRARY     );                 // restore/update library-specific fields
-            ec_SetModuleName (lib, bak.moduleName );
-            ec_SetInitCycle  (lib, FALSE          );
-            ec_SetInitFlags  (lib, bak.initFlags  );
-            ec_SetDeinitFlags(lib, bak.deinitFlags);
-            ec_SetMqlError   (lib, NULL);                            // reset all errors
-            ec_SetDllError   (lib, NULL);
-            ec_SetDllWarning (lib, NULL);
-            lib->dllErrorMsg   =   NULL;
-            lib->dllWarningMsg =   NULL;
-         }
-      }
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
+
+   //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -287,11 +403,12 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  */
 int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid)));
+   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d %s  ec=%s", GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
-   LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
+   SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
 
    int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
+   uint     cycleTicks    = ec->cycleTicks + 1;
    datetime lastTickTime  = ec->lastTickTime;
    DWORD    threadId      = GetCurrentThreadId();
    BOOL     logging       = ec->logging;
@@ -300,30 +417,31 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint size = chain.size();
    EXECUTION_CONTEXT* ctx;
 
-   // update and synchronize contexts of all program modules
+   // update values of all modules
    for (uint i=0; i < size; ++i) {
-      if ((ctx=chain[i]) && ctx->coreFunction!=CF_DEINIT) { // skip libraries which are already unloaded (if that's even possible)
-         ctx->coreFunction  = CF_START;
-         ctx->initCycle     = FALSE;
-         ctx->rates         = rates;
-         ctx->bars          = bars;
-         ctx->changedBars   = changedBars;
-         ctx->unchangedBars = unchangedBars;
-         ctx->ticks         = ticks;
-         ctx->prevTickTime  = lastTickTime;
-         ctx->lastTickTime  = time;
-         ctx->bid           = bid;
-         ctx->ask           = ask;
-         ctx->threadId      = threadId;                     // as long as logging is configured after SyncMainContext_init()
-         ctx->logging       = logging;                      // the flag needs to be synchronized on every tick
-      }
-      else return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "no module context found at chain[%d] or module already unloaded: 0x%p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec))));
-   }
+      if (ctx = chain[i]) {
+         ctx->programCoreFunction = CF_START; if (i < 2)
+         ctx->moduleCoreFunction  = ctx->programCoreFunction;        // in master and main context only
 
+         ctx->rates               = rates;
+         ctx->bars                = bars;
+         ctx->changedBars         = changedBars;
+         ctx->unchangedBars       = unchangedBars;
+         ctx->ticks               = ticks;
+         ctx->cycleTicks          = cycleTicks;
+         ctx->prevTickTime        = lastTickTime;
+         ctx->lastTickTime        = time;
+         ctx->bid                 = bid;
+         ctx->ask                 = ask;
+
+         ctx->threadId            = threadId;
+         ctx->logging             = logging;                         // As long as ec.logging is configured after SyncMainContext_init()
+      }                                                              // the flag needs to be synchronized on each tick.
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
+   }
    /*
    if (rates && bars) {
       uint bar=0, shift=bars-1-bar;
-
       if (GetTerminalBuild() <= 509) {
          RateInfo* rate = (RateInfo*) rates;
          debug("400:  bars: %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, (int)rate[shift].ticks);
@@ -334,280 +452,523 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
       }
    }
    */
+
+   //if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * @param  EXECUTION_CONTEXT* ec           - Context des Hauptmoduls eines MQL-Programms
- * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
+ * Update a main module's execution context before the module is unloaded. Called only from the core function Module::deinit().
+ * After deinit() is left the module is unloaded and it's memory must not be accessed until the module re-enters the core
+ * function Module::init(). If the module is an expert and the expert is reloaded (UR_CHARTCHANGE in an online chart) the
+ * module keeps state.
+ *
+ * @param  EXECUTION_CONTEXT* ec           - main module execution context
+ * @param  UninitializeReason uninitReason - uninitialize reason as passed by the terminal
  *
  * @return int - error status
  */
 int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid)));
+   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
-   LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
+   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
-   ec_SetCoreFunction(ec, CF_DEINIT           );                     // update context
-   ec_SetUninitReason(ec, uninitReason        );
-   ec_SetThreadId    (ec, GetCurrentThreadId());
+   SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
 
+   ContextChain&      chain    = g_contextChains[ec->pid];
+   uint               size     = chain.size();
+   DWORD              threadId = GetCurrentThreadId();
+   EXECUTION_CONTEXT* ctx;
+
+   // update values of all modules
+   for (uint i=0; i < size; ++i) {
+      if (ctx = chain[i]) {
+         ctx->programCoreFunction = CF_DEINIT;    if (i < 2)
+         ctx->moduleCoreFunction  = ctx->programCoreFunction;        // in master and main context only
+         ctx->programUninitReason = uninitReason; if (i < 2)
+         ctx->moduleUninitReason  = ctx->programUninitReason;        // in master and main context only
+         ctx->threadId            = threadId;
+      }
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
+   }
+
+   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Called only from Library::init().
+ * SyncLibContext_init() / SyncLibContext_deinit()
+ * ===============================================
  *
- * Synchronize a library's EXECUTION_CONTEXT with the context of the program's main module. If a library is loaded the first
- * time its context is added to the program's context chain.
+ * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading. States
+ * and core function call order during reloading are as follows:
+ *
+ * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
+ *
+ *     Single indicator with nested library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     Indicator::init()              UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA                 set pid=1
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
+ *     Indicator::LibraryA::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     Indicator::LibraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::deinit()  UR_UNDEFINED    pid=1
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=1
+ *     Indicator::init()              UR_CHARTCHANGE  pid=0  indicator last (no state)          restore pid=1
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     Multiple indicators with simple library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     IndicatorA::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=0                                     set pid=1
+ *     IndicatorB::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=2
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=0                                     set pid=2
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     IndicatorA::deinit()           UR_CHARTCHANGE  pid=1
+ *     IndicatorA::Library::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     IndicatorB::deinit()           UR_CHARTCHANGE  pid=2
+ *     IndicatorB::Library::deinit()  UR_UNDEFINED    pid=2
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=1
+ *     IndicatorA::init()             UR_CHARTCHANGE  pid=0  first indicator (no state)         restore pid=1
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=2
+ *     IndicatorB::init()             UR_CHARTCHANGE  pid=0  second indicator (no state)        restore pid=2
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *
+ * (2) Libraries loaded by experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
+ *
+ *
+ * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
+ *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
+ *     In older terminals (e.g. build 500) this happens for all such tests.
+ *
+ *     Expert in tester with simple library calls:
+ *     --- Tester Start -----------------------------------------------------------------------------------------------------
+ *     Expert::init()                 UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     Expert::Library::init()        UR_UNDEFINED    pid=0                                     set pid=1
+ *     --- Tester Stop ------------------------------------------------------------------------------------------------------
+ *     Expert::deinit()               UR_UNDEFINED    pid=1
+ *     Expert::Library::deinit()      UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     --- Tester Start ----------------------------- libraries keep state --------------------------------------------------
+ *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test         set pid=2   set previousPid=1
+ *     Expert::init()                 UR_UNDEFINED    pid=0                                     set pid=2   set previousPid=1
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     The terminal implementation is considered broken by design. On start of a test libraries should always be in a clean
+ *     state. Instead reloaded libraries keep state of the previously finished test, specifically:
+ *      - Global variables are not reset and contain old values (except strings).
+ *      - The last selected order context is not reset and order functions return wrong results.
+ *      - The flag IsVisualMode() is not reset and may show wrong values, even if symbol or timeframe of the new test differ.
+ *
+ *     Workaround: On start of a test reused libraries need to be reset manually:
+ *      - SyncLibContext_init() removes a library from the previously finished test's context chain and attaches it to the
+ *        context chain of the new test.
+ *      - MQL::core/library::init() resets a previously selected order context.
+ *      - Global array variables must be reset by implementing Library.ResetGlobalVars().
+ *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
+ *
+ *
+ * (4) After recompilation libraries are reloaded and don't keep state. In tester reloading can happen at the end of the
+ *     current or on start of the next test. Reloading is always executed by the UI thread.
+ *     Terminal bug: In online charts without a server connection reloading after unloading may not happen. An indicator or
+ *                   expert will crash the next time it tries to call a function of a still unloaded library. In this case
+ *                   the terminal log will show the message "Indicator/Expert stopped."
+ *
+ */// (prevent Visual Assist from merging above block in the hover tooltip of below function)
+
+
+/**
+ * Synchronize a library's EXECUTION_CONTEXT with the context of the program's main module. Called only from the core
+ * function Library::init(). Initializes the library context and adds it to the program's context chain.
  *
  * @param  EXECUTION_CONTEXT* ec             - the libray's execution context
- * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal
+ * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal (possibly incorrect)
  * @param  DWORD              initFlags      - init configuration
  * @param  DWORD              deinitFlags    - deinit configuration
  * @param  char*              moduleName     - the library's name (may contain a path depending on the terminal version)
  * @param  char*              symbol         - current chart symbol
- * @param  uint               period         - current chart period
+ * @param  uint               timeframe      - current chart timeframe
  * @param  uint               digits         - the symbol's "Digits" value (possibly incorrect)
  * @param  double             point          - the symbol's "Point" value (possibly incorrect)
- * @param  BOOL               isOptimization - MQL::IsOptimization() as passed by the terminal
+ * @param  BOOL               isTesting      - MQL::IsTesting()
+ * @param  BOOL               isOptimization - MQL::IsOptimization()
  *
  * @return int - error status
  *
- *
- * Notes:
- * ------
- * During init cycles libraries keep state. This is used to distinguish between a freshly loaded and a reused library
- * (init cycle). Libraries perform init cycles in two cases:
- *
- * (1) Libraries loaded by indicators during the indicator's init cycle. Call order:
- *      - Indicator::deinit()
- *      - Library::deinit()    => BUG: global string variables are already destroyed and lost
- *      - Library::init()
- *      - Indicator::init()
- *
- * (2) Libraries loaded by experts between multiple tests of the same strategy. In newer terminals (since when exactly?) this
- *     happens only if the test was not explicitly stopped by using the "Stop" button. In older terminals (e.g. build 500)
- *     this happens for all such tests. Call order:
- *      - Expert::deinit()
- *      - Library::deinit()    => BUG: global string variables are already destroyed and lost
- *      - Library::init()
- *      - Expert::init()
- *
- *     Probably this init cycle is meant to speed up optimizations but the actual implementation must be considered a bug.
- *     Reused libraries should be reset before each new test. Instead they keep state of the previously finished test,
- *     specifically:
- *      - Global variables are not reset and keep former values (except strings).
- *      - The last selected order context is not reset and order functions return wrong results.
- *      - The flag IsVisualMode() is not reset even if symbol or timeframe of the next test change.
- *
- *     Workaround: On start of a test reused libraries need to be manually reset:
- *      - SyncMainContext_init() removes a library from the previously finished expert's context and attaches it to the
- *        context of the newly tested expert.
- *      - MQL::core/library::init() resets a previously selected order context.
- *      - Global array variables must be reset by implementing library::Tester.ResetGlobalLibraryVars().
- *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
- *
- *
- * @see  https://github.com/rosasurfer/mt4-expander/blob/master/src/lib/executioncontext.cpp  SyncMainContext_init()
- * @see  https://github.com/rosasurfer/mt4-mql/blob/master/mql4/include/core/library.mqh      init()
+ * @see    additional notes above SyncLibContext_init()
  */
-int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint period, uint digits, double point, BOOL isOptimization) {
-   if ((uint)ec         < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if ((uint)moduleName < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
-   if ((uint)symbol     < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if ((int)period <= 0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", (int)period)));
-   if ((int)digits <  0)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
-   if (point <= 0)                           return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
+int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization) {
+   if ((uint)ec         < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if ((uint)moduleName < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName)));
+   if (strlen(moduleName) >= sizeof(ec->moduleName)) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter moduleName: \"%s\" (max %d characters)", moduleName, sizeof(ec->moduleName)-1)));
+   if ((uint)symbol     < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
+   if (strlen(symbol)   > MAX_SYMBOL_LENGTH)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
+   if ((int)timeframe <= 0)                          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
+   if ((int)digits < 0)                              return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
+   if (point <= 0)                                   return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point)));
 
-   // (1) if ec.pid is not set: library is loaded the first time and the context is empty
-   //     - copy master context and update library specific fields
+   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+
+   // fix the UninitializeReason
+   uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_INIT, uninitReason);
+   if ((int)uninitReason < 0) return(ERR_RUNTIME_ERROR);
+
+
+   // (1) if ec.pid is not set: the context is empty, check if recompilation or first-time load
+   //     - UR_RECOMPILE: immediate reload in regular charts with connection        (UI thread)
+   //                     reload on next usage in regular charts without connection (UI thread)
+   //                     immediate reload or reload after a test finished in tester
    //
-   // (2) if ec.pid is set: check if init cycle of indicator (UI thread) or expert between tests (non UI thread)
-   //     (2.1) init cycle of indicator or
-   //     (2.2) init cycle of expert between tests
+   //     - UR_UNDEFINED: first time load
+   //
+   // (2) if ec.pid is set: check if indicator in init cycle, indicator in IR_PROGRAM_AFTERTEST or reloaded expert between tests
+   //     (2.1) indicator in init cycle or indicator in IR_PROGRAM_AFTERTEST (UI thread)
+   //     (2.2) reloaded expert between tests                            (non-UI thread)
 
    if (!ec->pid) {
-      // (1) library is loaded the first time
-      uint index = GetCurrentThreadIndex();                          // the program (which caused "load-library") is already linked
-      uint pid = g_threadsPrograms[index];                           // to the thread: get its index
+      // (1) recompilation or first-time load, the context is empty
+      if (uninitReason == UR_RECOMPILE) {
+         if (IsUIThread()) {
+            // immediate reload in regular charts with connection or between tests, otherwise on next usage
+            uint pid = FindModuleInLimbo(MT_LIBRARY, moduleName, UR_RECOMPILE, NULL, NULL);
+            if (!pid) error(ERR_RUNTIME_ERROR, "UR_RECOMPILE - no %s library found in g_recompiledModule (pid=%d, type=%s, name=%s):  thread=%d %s  isTesting=%s", moduleName, g_recompiledModule.pid, ModuleTypeToStr(g_recompiledModule.type), g_recompiledModule.name, GetCurrentThreadId(), IsUIThread() ? "(UI)":"(non-UI)", BoolToStr(isTesting));
+            else {
+               SetLastThreadProgram(pid);
+               g_recompiledModule = RECOMPILED_MODULE();             // reset recompilation tracker
 
-      *ec = *g_contextChains[pid][0];                                // overwrite library context with master context
+               *ec = *g_contextChains[pid][0];                       // initialize library context with master context
+               ec->moduleType         = MT_LIBRARY;                  // update library specific values
+               strcpy(ec->moduleName,   moduleName);
+               ec->moduleCoreFunction = CF_INIT;
+               ec->moduleUninitReason = uninitReason;
+               ec->moduleInitFlags    = initFlags;
+               ec->moduleDeinitFlags  = deinitFlags;
+               ec->mqlError           = NULL;                        // reset errors
+               ec->dllError           = NULL;
+               ec->dllWarning         = NULL;
+               ec->dllErrorMsg        = NULL;
+               ec->dllWarningMsg      = NULL;
 
-      ec_SetModuleType (ec, MT_LIBRARY );                            // update library specific fields
-      ec_SetModuleName (ec, moduleName );
+               g_contextChains[pid].push_back(ec);                   // add context to the program's context chain
+            }
+         }
+         else {
+            // Library::init() of a formerly recompiled library at test start (non-UI thread), Expert::init() is called afterwards
+            // check if a partially initialized context chain exists (master->coreFunction=CF_INIT, main=NULL)
+            EXECUTION_CONTEXT* master;                               // master of current test
+            uint currentPid  = GetLastThreadProgram();               // pid of the current test
+            BOOL isPartialChain;
 
-      ec_SetInitCycle  (ec, FALSE      );
-      ec_SetInitFlags  (ec, initFlags  );                            // libraries may have their own init flags
-      ec_SetDeinitFlags(ec, deinitFlags);
+            if (!currentPid) {                                       // first library in init cyle: the thread never executed a program
+               isPartialChain = FALSE;
+            }
+            else {                                                   // get the last executed program: it's myself or something else
+               ContextChain& chain = g_contextChains[currentPid];    // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
+               isPartialChain = (chain.size()>2 && (master=chain[0]) && chain[0]->programCoreFunction==CF_INIT && !chain[1]);
+               if (!isPartialChain) warn(ERR_ILLEGAL_STATE, "unexpected library with UR_RECOMPILE in tester: a former library (pid=%d) seems to not have created a partial context chain");
+            }
 
-      ec_SetMqlError   (ec, NULL);                                   // all errors initialized with NULL
-      ec_SetDllError   (ec, NULL);
-      ec_SetDllWarning (ec, NULL);
-      ec->dllErrorMsg   =   NULL;
-      ec->dllWarningMsg =   NULL;
+            if (!isPartialChain) {
+               // create a new partially initialized chain
+               master = new EXECUTION_CONTEXT();                     // create new master context
+               ContextChain chain;
+               chain.reserve(8);
+               chain.push_back(master);                              // add master to a new chain
+               chain.push_back(NULL);                                // add empty entry for the yet to come main context
+               currentPid = ContextChainsPush(chain);                // store the chain
+               uint threadIndex = SetLastThreadProgram(currentPid);
 
-      g_contextChains[pid].push_back(ec);                            // add context to the program's context chain
+               master->pid          = currentPid;                    // update master context with the known values
+               master->programType  = PT_EXPERT;
+               master->moduleType   = MT_EXPERT;
+
+               strcpy(master->symbol, symbol);                       // first moment a new symbol/timeframe show up
+               master->timeframe    = timeframe;
+               master->digits       = digits;
+               master->point        = point;
+
+               master->superContext = FALSE;
+               master->threadId     = g_threads[threadIndex];
+
+               master->testing      = TRUE;                          // TODO: so wrong, we can be online and not in tester
+               master->optimization = isOptimization;
+            }
+
+            // re-initialize the empty library context with the partial master context
+            *ec = *master;
+            ec->moduleType         = MT_LIBRARY;                     // update library specific values
+            strcpy(ec->moduleName,   moduleName);
+            ec->moduleCoreFunction = CF_INIT;
+            ec->moduleUninitReason = uninitReason;
+            ec->moduleInitFlags    = initFlags;
+            ec->moduleDeinitFlags  = deinitFlags;
+
+            g_contextChains[currentPid].push_back(ec);               // add library to the expert's context chain
+         }
+      }
+      else {
+         // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
+         // Initialize the library with the current program's master context.
+         uint pid = GetLastThreadProgram();                          // the program is currently executed
+         if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading a library (pid=0):  UninitializeReason=%s  threadId=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+
+         *ec = *g_contextChains[pid][0];                             // initialize library context with master context
+         ec->moduleType         = MT_LIBRARY;                        // update library specific values
+         strcpy(ec->moduleName,   moduleName);
+         ec->moduleCoreFunction = CF_INIT;
+         ec->moduleUninitReason = uninitReason;
+         ec->moduleInitFlags    = initFlags;
+         ec->moduleDeinitFlags  = deinitFlags;
+         ec->mqlError           = NULL;                              // reset errors
+         ec->dllError           = NULL;
+         ec->dllWarning         = NULL;
+         ec->dllErrorMsg        = NULL;
+         ec->dllWarningMsg      = NULL;
+
+         g_contextChains[pid].push_back(ec);                         // add context to the program's context chain
+      }
    }
 
    else if (IsUIThread()) {
-      // (2.1) init cycle of indicator: Library::init() is called before Indicator::init()
-      LinkProgramToCurrentThread(ec->pid);                           // link the currently executed program asap (error handling)
+      // (2.1) ec.pid is set: indicator in init cycle or in IR_PROGRAM_AFTERTEST (both UI thread)
+      //       ec.pid points to the original indicator (still in limbo), Library::init() is called before Indicator::init()
+      SetLastThreadProgram(ec->pid);                                 // set the currently executed program asap (error handling)
 
-      ec_SetCoreFunction(ec, CF_INIT     );                          // update library specific fields
-      ec_SetInitCycle   (ec, FALSE       );                          // TODO: mark master context ???
-      ec_SetUninitReason(ec, uninitReason);
-      ec_SetSymbol      (ec, symbol      );
-      ec_SetTimeframe   (ec, period      );
-      ec_SetDigits      (ec, digits      );
+      EXECUTION_CONTEXT* master = g_contextChains[ec->pid][0];
+      if (isTesting)                                                 // indicator in IR_PROGRAM_AFTERTEST
+         master->programInitReason = IR_PROGRAM_AFTERTEST;
+      else {}                                                        // indicator in init cycle
+
+      // update known master values
+      strcpy(master->symbol,  symbol);                               // first moment a new symbol/timeframe show up
+      master->timeframe     = timeframe;
+      master->digits        = digits;
+      master->point         = point;
+      master->rates         = NULL;
+      master->bars          =  0;
+      master->changedBars   = -1;
+      master->unchangedBars = -1;
+
+      master->superContext  = NULL;                                  // no super context at all or already released
+      master->threadId      = GetCurrentThreadId();
+
+      master->mqlError      = NO_ERROR;
+      master->dllError      = NO_ERROR;
+      master->dllWarning    = NO_ERROR;
+      master->dllErrorMsg   = NULL;                                  // TODO: release memory of existing messages
+      master->dllWarningMsg = NULL;
+
+      // re-initialize the library context with the updated master context
+      EXECUTION_CONTEXT bak = *ec;                                   // create backup
+      *ec = *master;                                                 // copy master over library context
+      ec->moduleType         = bak.moduleType;                       // restore library specific values
+      strcpy(ec->moduleName,   bak.moduleName);
+      ec->moduleCoreFunction = CF_INIT;
+      ec->moduleUninitReason = uninitReason;
+      ec->moduleInitFlags    = initFlags;
+      ec->moduleDeinitFlags  = deinitFlags;
+
+      g_contextChains[ec->pid].push_back(ec);                        // re-add context to the old indicator's chain
    }
 
    else {
-      // (2.2) init cycle of experts between tests: Library::init() is called before Expert::init()
-      // ec.pid points to the previously tested and finished expert
-      if (ec->programType!=PT_EXPERT || !ec->testing) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unexpected library init cycle (programType=%s  testing=%s)", ProgramTypeToStr(ec->programType), BoolToStr(ec->testing))));
+      // (2.2) ec.pid is set: reloaded expert between tests (non-UI thread), Library::init() is called before Expert::init()
+      // ec.pid points to the previously finished test
+      if (ec->programType!=PT_EXPERT || !ec->testing) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
       EXECUTION_CONTEXT* master=NULL, *oldMaster=NULL;               // master of current and old test
-      uint threadIndex = GetCurrentThreadIndex();
-      uint oldPid      = ec->pid;                                    // pid of the finished test
-      uint currentPid  = g_threadsPrograms[threadIndex];             // pid of the current test
+      uint currentPid = GetLastThreadProgram();                      // pid of the new test
       BOOL isPartialChain;
 
-      // check if a partially initialized context chain exists (master->coreFunction=CF_INIT, main=NULL)
-      if (!currentPid || currentPid==oldPid) {                       // first library in init cyle: the thread never executed a program
+      // check if a partially initialized context chain exists (master->programCoreFunction=NULL, main=NULL, lib1!=NULL)
+      if (!currentPid || currentPid==ec->pid) {                      // first library in init cyle: the thread never executed a program
          isPartialChain = FALSE;                                     // or the program is the finished test (probably in an optimization)
       }
       else {                                                         // get the last executed program: it's myself or something else
-         ContextChain& chain = g_contextChains[currentPid];          // if partial chain found, it's myself with one more library in same init cyle
-         isPartialChain = (chain.size()>1 && (master=chain[0]) && chain[0]->coreFunction==CF_INIT && !chain[1]);
+         ContextChain& chain = g_contextChains[currentPid];          // if partial chain found, it's myself with one more re-used library
+         isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
          if (!isPartialChain) debug("unseen library init cycle in tester (the former program seems not to be the former test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
 
       if (!isPartialChain) {
          // create a new partially initialized chain
-         master    = new EXECUTION_CONTEXT();                        // create new master context
-         oldMaster = g_contextChains[oldPid][0];
+         master = new EXECUTION_CONTEXT();                           // create new master context
 
          ContextChain chain;
          chain.reserve(8);
          chain.push_back(master);                                    // add master to a new chain
          chain.push_back(NULL);                                      // add empty entry for the yet to come main context
          currentPid = ContextChainsPush(chain);                      // store the chain
-         LinkProgramToCurrentThread(currentPid);
+         uint threadIndex = SetLastThreadProgram(currentPid);
 
-         master->pid               = currentPid;                     // update master context with the known properties
-         master->programType       = PT_EXPERT;
+         master->pid               = currentPid;                     // update master context with the known values
+         master->previousPid       = ec->pid;
+         master->programType       = ec->programType;
          strcpy(master->programName, ec->programName);
-         master->moduleType        = MT_EXPERT;
-         strcpy(master->moduleName,  oldMaster->moduleName);
+         master->moduleType        = (ModuleType)master->programType;
+         strcpy(master->moduleName,  master->programName);
 
-         master->coreFunction = CF_INIT;
-         master->initCycle    = FALSE;
+         strcpy(master->symbol,  symbol);                            // first moment symbol/timeframe show up
+         master->timeframe     = timeframe;
+         master->digits        = digits;
+         master->point         = point;
+         master->bars          =  0;
+         master->changedBars   = -1;
+         master->unchangedBars = -1;
 
-         strcpy(master->symbol, symbol);                             // first moment a new symbol/timeframe show up
-         master->timeframe    = period;
-         master->point        = point;
-         master->digits       = digits;
-
-         master->testing      = TRUE;
-         master->optimization = isOptimization;
-
-         master->superContext = FALSE;
-         master->threadId     = g_threads[threadIndex];
+         master->threadId      = g_threads[threadIndex];
+         master->testing       = TRUE;
+         master->optimization  = isOptimization;
       }
 
       // re-initialize the library context with the master context
-      EXECUTION_CONTEXT bak = *ec;                                   // backup on the stack
-      *ec = *master;
-      ec->moduleType   =     MT_LIBRARY;                             // update library specifics
-      strcpy(ec->moduleName, bak.moduleName);
-      ec->uninitReason =     uninitReason;
-      ec->initFlags    =     initFlags;
-      ec->deinitFlags  =     deinitFlags;
+      EXECUTION_CONTEXT bak = *ec;                                   // create backup
+      *ec = *master;                                                 // overwrite library with new master context
+      ec->moduleType         = bak.moduleType;                       // keep library specific values
+      strcpy(ec->moduleName,   bak.moduleName);
+      ec->moduleCoreFunction = CF_INIT;
+      ec->moduleUninitReason = uninitReason;
+      ec->moduleInitFlags    = initFlags;
+      ec->moduleDeinitFlags  = deinitFlags;
 
-      g_contextChains[currentPid].push_back(ec);                     // add library to the current test's context chain
-
-      ContextChain& oldChain = g_contextChains[oldPid];              // remove the library from the finished test's chain
-      uint size = oldChain.size();
-      for (uint i=2; i < size; ++i) {
-         if (oldChain[i] == ec) {
-            oldChain[i] = NULL;
-            break;
-         }
-      }
+      g_contextChains[currentPid].push_back(ec);                     // add library to the new test's context chain
    }
+
+   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Update a library's EXECUTION_CONTEXT. Called in Library::deinit().
+ * Update a library's execution context before the library gets unloaded. Called only from the core function Library::deinit().
+ * Depending on the current runtime situation the library may or may not keep state.
  *
- * @param  EXECUTION_CONTEXT* ec           - the libray's execution context
- * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  UninitializeReason uninitReason - UninitializeReason as passed by the terminal (possibly incorrect)
  *
  * @return int - error status
+ *
+ * @see    additional notes above SyncLibContext_init()
  */
 int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.pid: %d", ec->pid)));
+   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
-   LinkProgramToCurrentThread(ec->pid);                              // link the currently executed program asap (error handling)
+   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
-   ec_SetCoreFunction(ec, CF_DEINIT   );                             // update library specific context fields
-   ec_SetUninitReason(ec, uninitReason);
+   SetLastThreadProgram(ec->pid);                        // set the currently executed program asap (error handling)
 
+   // try to fix the UninitializeReason
+   uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_DEINIT, uninitReason);
+   if ((int)uninitReason < 0) return(ERR_RUNTIME_ERROR);
+
+   ec->moduleCoreFunction = CF_DEINIT;                   // update library specific values
+   ec->moduleUninitReason = uninitReason;
+
+   ContextChain& chain    = g_contextChains[ec->pid];
+   uint          size     = chain.size();
+   DWORD         threadId = GetCurrentThreadId();
+
+   for (uint i=0; i < size; ++i) {                       // update values of all modules
+      if (EXECUTION_CONTEXT* ctx = chain[i]) {
+         ctx->threadId = threadId;
+      }
+   }
+
+   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Signal leaving of an MQL module's execution context. Called at leaving of MQL::deinit().
+ * Handle leaving of an MQL module's core function Module::deinit(). Called in deinit() as the very last statement. After
+ * deinit() is left the module is unloaded and it's memory must not be accessed anymore.
+ *
+ *  - If the module is a main module (an indicator, expert or script) the index of the context in the program's context chain
+ *    is set to NULL (the chain size doesn't change).
+ *
+ *  - If the module is not a main module (a library) the context is removed from the program's context chain (the chain size
+ *    decreases).
+ *
+ *  - TODO:
+ *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
+ *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs "if it is the last one".
+ *
+ *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
+ *
+ * An unloaded module's memory must not be accessed until the module re-enters the core function Module::init().
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return int - error status
  */
 int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER)  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: %p (not a valid pointer)", ec)));
-   uint pid = ec->pid;
-   if ((int)pid < 1)                  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=%d)  ec=%s", (int)pid, EXECUTION_CONTEXT_toStr(ec))));
-   if (ec->coreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.coreFunction not CF_DEINIT)  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
+   if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   //debug("          %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
+   if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+   if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
+
+   ContextChain& chain = g_contextChains[ec->pid];
+   uint chainSize = chain.size();
+   if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
    switch (ec->moduleType) {
+      // -----------------------------------------------------------------
       case MT_INDICATOR:
       case MT_SCRIPT:
-         if (ec != g_contextChains[pid][1]) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (doesn't match the stored main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[pid][1], EXECUTION_CONTEXT_toStr(ec))));
-         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set main and master context to NULL
-         g_contextChains[pid][1] = NULL;                             // mark main context as released
-         break;
-
       case MT_EXPERT:
-         if (ec != g_contextChains[pid][1]) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "%s::%s::deinit()  illegal parameter ec=%d (not stored as main context=%d)  ec=%s", ec->programName, ec->moduleName, ec, g_contextChains[pid][1], EXECUTION_CONTEXT_toStr(ec))));
-
-         if (ec->testing) {
-            //debug("%s::deinit()  leaving tester, ec=%s", ec->programName, EXECUTION_CONTEXT_toStr(ec));
+         EXECUTION_CONTEXT* ctx;
+         for (uint i=0; i < chainSize; ++i) {
+            if (ctx = chain[i]) {
+               ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
+               ctx->moduleCoreFunction  = (CoreFunction)NULL;
+            }
+            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
          }
-
-         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set main and master context to NULL
-         if (ec->uninitReason!=UR_CHARTCHANGE && ec->uninitReason!=UR_PARAMETERS && ec->uninitReason!=UR_ACCOUNT)
-            g_contextChains[pid][1] = NULL;                          // mark main context as released if not in init cycle
+         chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
          break;
 
+      // -----------------------------------------------------------------
       case MT_LIBRARY:
-         // TODO: This could be kind of critical as the main module already called LeaveContext() before.
-         ec_SetCoreFunction(ec, (CoreFunction)NULL);                 // set library context to NULL
+         ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
+         int i;
+         for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
+            if (chain[i] == ec) {
+               chain.erase(chain.begin() + i);                             // remove library context from the program chain
+               break;
+            }
+         }
+         if (i < 0) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "library context not found in context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
+
+         // on recompilation store the module details for look-up after recompilation
+         if (ec->moduleUninitReason == UR_RECOMPILE) {
+            if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
+            if (g_recompiledModule.pid != ec->pid) {                       // there can be at most one recompilation per program
+               g_recompiledModule.pid        = ec->pid;
+               g_recompiledModule.type       = ec->moduleType;
+               strcpy(g_recompiledModule.name, ec->moduleName);
+            }
+         }
          break;
 
+      // -----------------------------------------------------------------
       default:
-         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context, ec.moduleType: %s", ModuleTypeToStr(ec->moduleType))));
+         return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
    }
 
    return(NO_ERROR);
@@ -621,133 +982,148 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
  * @param  ContextChain& chain
  *
  * @return uint - list index where the ContextChain is stored
- *
- * TODO: Don't store a copy of the passed instance. Instead store a pointer.
  */
 uint WINAPI ContextChainsPush(ContextChain& chain) {
-   int index = EMPTY;
-
    if (!TryEnterCriticalSection(&g_terminalMutex)) {
-      debug("waiting to aquire lock on: g_terminalMutex");
+      debug("waiting to aquire lock on g_terminalMutex...");
       EnterCriticalSection(&g_terminalMutex);
    }
-   g_contextChains.push_back(chain);                     // TODO: prevent push_back() from creating a copy
-   index = g_contextChains.size()-1;
+   g_contextChains.push_back(chain);                           // TODO: prevent push_back() from creating a copy
+   uint index = g_contextChains.size()-1;
    LeaveCriticalSection(&g_terminalMutex);
 
+   //if (index > 31) debug("registered programs: %d", index);   // index[0] is always empty
    return(index);
 }
 
 
 /**
- * Find the index of the current thread in the list of known threads. If the thread is not found it is added to the list.
+ * Create and initialize a new TEST instance if the passed program is an expert in tester. If the program already holds
+ * a test, the existing test is returned.
  *
- * @return int - thread index or EMPTY (-1) in case of errors
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
+ *
+ * @return TEST* - test instance or NULL if the program is not an expert in tester
  */
-int WINAPI GetCurrentThreadIndex() {
-   DWORD currentThread = GetCurrentThreadId();
+TEST* WINAPI Expert_InitTest(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
+   if (ec->test)
+      return(ec->test);
 
-   // look-up the current thread
-   uint size = g_threads.size();
-   for (uint i=0; i < size; i++) {
-      if (g_threads[i] == currentThread)                          // thread found
-         return(i);
+   if (ec->moduleType==MT_EXPERT && isTesting) {
+      TEST* test = new TEST();
+      test_SetCreated  (test, time(NULL)     );
+      test_SetStrategy (test, ec->programName);
+      test_SetSymbol   (test, ec->symbol     );
+      test_SetTimeframe(test, ec->timeframe  );
+      test_SetBarModel (test, Tester_GetBarModel());
+      test->fxtHeader       = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+
+      test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
+      test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
+      test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
+      test->trades         = new OrderList(); test->trades     ->reserve(1024);     // closed positions
+      test->longTrades     = new OrderList(); test->longTrades ->reserve(1024);
+      test->shortTrades    = new OrderList(); test->shortTrades->reserve(1024);
+      return(test);
    }
-
-   // thread not found
-   if (!TryEnterCriticalSection(&g_terminalMutex)) {
-      debug("waiting to aquire lock on: g_terminalMutex");
-      EnterCriticalSection(&g_terminalMutex);
-   }
-   g_threads        .push_back(currentThread);                    // add current thread to the list
-   g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
-   uint index = g_threads.size() - 1;
-
-   if (index > 511) debug("thread %d added (size=%d)", currentThread, index+1);
-   LeaveCriticalSection(&g_terminalMutex);
-
-   return(index);
+   return(NULL);
 }
 
 
 /**
- * Link the specified MQL program to the current thread.
+ * Find the first unloaded module suitable for reloading matching the specified arguments.
  *
- * @param  uint pid - MQL program id
+ * @param  ModuleType         type
+ * @param  const char*        name
+ * @param  UninitializeReason uninitReason
+ * @param  BOOL               testing
+ * @param  HWND               hChart
  *
- * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
+ * @return uint - the found module's program id (pid) or NULL if no such module was found
  */
-int WINAPI LinkProgramToCurrentThread(uint pid) {
-   if ((int)pid < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d", pid)));
+uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart) {
+   switch (type) {
+      case MT_INDICATOR: {
+         // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
+         // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether or not one of the indicator's
+         // libraries has been reloaded before.
+         uint chainsSize = g_contextChains.size();
+         EXECUTION_CONTEXT* master;
 
-   int index = GetCurrentThreadIndex();
-   if (index < 0) return(EMPTY);
-
-   g_threadsPrograms[index] = pid;                       // update the thread's last executed program
-   if (IsUIThread())
-      g_lastUIThreadProgram = pid;                       // update lastUIThreadProgram if the thread is the UI thread
-
-   return(index);
-}
-
-
-/**
- * Find the first matching and still active indicator with a released main EXECUTION_CONTEXT in memory.
- *
- * @param  HWND               hChart - correct value of WindowHandle()
- * @param  const char*        name   - indicator name
- * @param  UninitializeReason reason
- *
- * @return int - the found indicator's program id or NULL if no such indicator was found;
- *               EMPTY (-1) in case of errors
- *
- * Notes:
- * ------
- * Limbo (latin limbus, edge or boundary, referring to the "edge" of Hell) is a speculative idea about the afterlife condition
- * of those who die in original sin without being assigned to the Hell of the Damned. Very hard to escape from.
- *
- * In MetaTrader the memory allocated for global indicator variables (static and non-static, covering the EXECUTION_CONTEXT)
- * is immediately released after the indicator leaves Indicator::deinit(). On re-entry at Indicator::init() new memory is
- * allocated and global variables are initialized with zero. It's for this reason the indicator doesn't keep state over init
- * cycles.
- *
- * Between Indicator::deinit() and Indicator::init() the indicator enters the state of "limbo", an uncharted territory known
- * only to the developers at MetaQuotes. The framework keeps state in the master execution context which acts as a backup of
- * the then lost main execution context. On re-entry the master context is copied back to the newly allocated main context
- * and thus global state of the indicator can survive. Voil‡, it crossed the afterlife.
- */
-int WINAPI FindIndicatorInLimbo(HWND hChart, const char* name, UninitializeReason reason) {
-   if (hChart) {
-      EXECUTION_CONTEXT* master;
-      int size=g_contextChains.size(), uiThreadId=GetUIThreadId();
-
-      for (int i=1; i < size; i++) {                                 // index[0] is never occupied
-         master = g_contextChains[i][0];
-
-         if (master->threadId == uiThreadId) {
-            if (master->hChart == hChart) {
-               if (master->programType == MT_INDICATOR) {
-                  if (StrCompare(master->programName, name)) {
-                     if (master->uninitReason == reason) {
-                        if (master->coreFunction == NULL) {          // limbo = init cycle
-                           //debug("first %s indicator found in limbo: pid=%d", name, master->pid);
-                           return(master->pid);
+         // TODO: In a test the hChart window is ignored - atm.
+         if (testing) {
+            for (uint i=1; i < chainsSize; ++i) {                                   // index[0] is always empty
+               ContextChain& chain = g_contextChains[i];
+               uint size = chain.size();
+               if (size) {
+                  if (master = chain[0]) {
+                     if (master->programType == MT_INDICATOR) {
+                        if (!master->programCoreFunction) {                         // main module is unloaded
+                           if (master->programUninitReason == uninitReason) {
+                              if (StrCompare(master->programName, name)) {          // name check at the end
+                                 if (size > 2) {                                    // with libraries master->threadId must be the UI thread
+                                    if (IsUIThread(master->threadId)) {
+                                       return(i);
+                                    }
+                                 }
+                                 else if (!IsUIThread(master->threadId)) {          // without libraries master->threadId must not be the UI thread
+                                    return(i);
+                                 }
+                              }
+                           }
                         }
-                        //else debug("i=%d  %s  coreFunction not NULL:  master=%s", i, name, CoreFunctionToStr(master->coreFunction));
                      }
-                     //else debug("i=%d  %s  uninit reason mis-match:  master=%s  reason=%s", i, name, UninitReasonToStr(master->uninitReason), UninitReasonToStr(reason));
-                  }
-                  //else debug("i=%d  %s  name mis-match", i, name);
-               }
-               //else debug("i=%d  %s  no indicator", i, name);
+                  } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
+               } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", size);
             }
-            //else debug("i=%d  %s  chart mis-match  master=%d  hChart=%d", i, name, master->hChart, hChart);
          }
-         //else debug("i=%d  %s  thread mis-match  master->threadId=%d  uiThreadId=%d", i, master->programName, master->threadId, uiThreadId);
+
+         // If not in a test a chart must exist. Possible use cases:
+         // - a regular init cycle in the UI thread
+         // - a recompilation (again in the UI thread)
+         else {
+            if (hChart) {
+               for (uint i=1; i < chainsSize; ++i) {                                // index[0] is always empty
+                  ContextChain& chain = g_contextChains[i];
+                  if (chain.size()) {
+                     if (master = chain[0]) {
+                        if (master->programType == MT_INDICATOR) {
+                           if (!master->programCoreFunction) {                      // main module is unloaded
+                              if (master->programUninitReason == uninitReason) {
+                                 if (master->hChart == hChart) {
+                                    if (IsUIThread(master->threadId)) {             // master->threadId must be the UI thread
+                                       if (StrCompare(master->programName, name)) { // name check last
+                                          return(i);
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
+                  } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", chain.size());
+               }
+            }
+         }
+         break;
       }
+
+      case MT_LIBRARY:
+         if (uninitReason == UR_RECOMPILE) {
+            if (g_recompiledModule.type == MT_LIBRARY) {
+               if (StrCompare(g_recompiledModule.name, name)) {
+                  return(g_recompiledModule.pid);
+               }
+            }
+         }
+         break;
+
+      default:
+         return(error(ERR_INVALID_PARAMETER, "invalid parameter module type: %s (not supported)", ModuleTypeToStr(type)));
    }
 
-   //debug("no matching %s indicator found in limbo: hChart=%d  uninitReason=%s", name, hChart, UninitializeReasonToStr(reason))
+   //debug("no matching %s indicator found:  %s  testing=%s  hChart=%d", name, UninitializeReasonToStr(reason), BoolToStr(testing), hChart);
    return(NULL);
 }
 
@@ -884,72 +1260,187 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
 
 
 /**
- * Resolve a program's true init() reason.
+ * Try to fix a module's UninitializeReason reason.
  *
- * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context (possibly still empty)
- * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
- * @param  ProgramType        programType    - program type
- * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
- * @param  char*              symbol         - current symbol
- * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
- * @param  HWND               hChart         - correct WindowHandle() value
- * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              prevIndPid     - variable receiving the previous pid of an indicator in init cycle
+ * @param  EXECUTION_CONTEXT* ec           - the module's execution context (possibly still empty)
+ * @param  ModuleType         moduleType   - module type
+ * @param  CoreFunction       coreFunction - the core function the module is currently in
+ * @param  UninitializeReason uninitReason - UninitializeReason() as passed by the terminal (possibly incorrect)
  *
- * @return InitializeReason - init reason or NULL in case of errors
+ * @return UninitializeReason - uninitialize reason or EMPTY (-1) in case of errors
  */
-InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& prevIndPid) {
+UninitializeReason WINAPI FixUninitReason(EXECUTION_CONTEXT* ec, ModuleType moduleType, CoreFunction coreFunction, UninitializeReason uninitReason) {
+   UninitializeReason bak = uninitReason;
 
-   if (programType == PT_INDICATOR) return(GetInitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, prevIndPid));
-   if (programType == PT_EXPERT)    return(GetInitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
-   if (programType == PT_SCRIPT)    return(GetInitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
+   if (moduleType == MT_LIBRARY) {
+      if (coreFunction == CF_INIT) {
+         if (uninitReason == UR_RECOMPILE) {
+            if (ec->pid) {                                     // after a recompilation the context cannot have state
+               uninitReason = (ec->programUninitReason!=UR_RECOMPILE ? ec->programUninitReason : UR_UNDEFINED);
+            }
+         }
+         else if (!ec->programCoreFunction && uninitReason==UR_UNDEFINED ){
+            if (ec->programUninitReason != UR_RECOMPILE) {     // if the main module is in limbo apply the main UninitReason
+               uninitReason = ec->programUninitReason;
+            }
+         }
+      }
 
-   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
+      else if (coreFunction == CF_DEINIT) {
+         if (uninitReason == UR_RECOMPILE) {
+            if (!ec->programCoreFunction) {                    // if the main module is in limbo there can't be a recompilation
+               uninitReason = (ec->programUninitReason!=UR_RECOMPILE ? ec->programUninitReason : UR_UNDEFINED);
+            }
+            else if (g_recompiledModule.pid == ec->pid) {
+               uninitReason = UR_UNDEFINED;                    // there can only be one recompilation per program
+            }
+         }
+         else if (!ec->programCoreFunction) {                  // if the main module is in limbo apply the main UninitReason
+            if (uninitReason==UR_UNDEFINED && ec->programUninitReason!=UR_RECOMPILE) {
+               uninitReason = ec->programUninitReason;
+            }
+         }
+      }
+      //if (uninitReason != bak) debug("overriding %s with %s", UninitializeReasonToStr(bak), UninitializeReasonToStr(uninitReason));
+      return(uninitReason);
+   }
+   return((UninitializeReason)_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter moduleType: %s (not supported)", ModuleTypeToStr(moduleType))));
 }
 
 
 /**
- * Resolve an indicator's true init() reason.
+ * Find the index of the current thread in the list of known threads. If the current thread is not found it is added to
+ * the list.
  *
- * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context (possibly still empty)
- * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
+ * @return uint - thread index
+ */
+uint WINAPI GetCurrentThreadIndex() {
+   DWORD currentThread = GetCurrentThreadId();
+
+   // look-up the current thread
+   uint size = g_threads.size();
+   for (uint i=0; i < size; i++) {
+      if (g_threads[i] == currentThread)                          // thread found
+         return(i);
+   }
+
+   // thread not found
+   if (!TryEnterCriticalSection(&g_terminalMutex)) {
+      debug("waiting to aquire lock on: g_terminalMutex");
+      EnterCriticalSection(&g_terminalMutex);
+   }
+   g_threads        .push_back(currentThread);                    // add current thread to the list
+   g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
+   uint index = g_threads.size() - 1;
+   LeaveCriticalSection(&g_terminalMutex);
+
+   if (index > 255) debug("thread %d added (size=%d)", currentThread, index+1);
+   return(index);
+}
+
+
+/**
+ * Get the id of the last MQL program executed by the current thread.
+ *
+ * @return uint - program id or NULL (0) if the current thread didn't execute a MQL program before
+ */
+uint WINAPI GetLastThreadProgram() {
+   uint index = GetCurrentThreadIndex();
+   if (g_threadsPrograms.size() > index)
+      return(g_threadsPrograms[index]);
+   return(NULL);
+}
+
+
+/**
+ * Link the specified MQL program to the current thread.
+ *
+ * @param  uint pid - MQL program id
+ *
+ * @return int - index of the current thread in the list of known threads or EMPTY (-1) in case of errors
+ */
+int WINAPI SetLastThreadProgram(uint pid) {
+   if ((int)pid < 1) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d", pid)));
+
+   uint index = GetCurrentThreadIndex();
+   g_threadsPrograms[index] = pid;                       // update the thread's last executed program
+
+   if (IsUIThread())
+      g_lastUIThreadProgram = pid;                       // update lastUIThreadProgram if the thread is the UI thread
+
+   return(index);
+}
+
+
+/**
+ * Resolve a program's real init() reason.
+ *
+ * @param  EXECUTION_CONTEXT* ec             - an MQL program's execution context (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec            - an MQL program's super context (memory possibly already released)
+ * @param  ModuleType         programType    - program type
  * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
+ * @param  UninitializeReason uninitReason   - UninitializeReason() as passed by the terminal (possibly incorrect)
  * @param  char*              symbol         - current symbol
- * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isTesting      - IsTesting() as passed by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - IsVisualMode() as passed by the terminal (possibly incorrect)
  * @param  HWND               hChart         - correct WindowHandle() value
- * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  uint&              prevIndPid     - variable receiving the previous pid of an indicator in init cycle
+ * @param  int                droppedOnChart - WindowOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - WindowXOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - WindowYOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  uint&              previousPid    - variable receiving the previous pid of a program instance (if any)
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& prevIndPid) {
+InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& previousPid) {
+
+   if (programType == PT_INDICATOR) return(GetInitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, previousPid));
+   if (programType == PT_EXPERT)    return(GetInitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
+   if (programType == PT_SCRIPT)    return(GetInitReason_script   (ec,      programName,                                  droppedOnPosX, droppedOnPosY));
+
+   return((InitializeReason)error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)  ec=%s", programType, ec));
+}
+
+
+/**
+ * Resolve an indicator's real init() reason.
+ *
+ * @param  EXECUTION_CONTEXT* ec             - the indicator's execution context (possibly still empty)
+ * @param  EXECUTION_CONTEXT* sec            - the indicator's super context (memory possibly already released)
+ * @param  char*              programName    - indicator name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason   - UninitializeReason() as passed by the terminal
+ * @param  char*              symbol         - current symbol
+ * @param  BOOL               isTesting      - IsTesting() as passed by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - IsVisualMode() as passed by the terminal (possibly incorrect)
+ * @param  HWND               hChart         - correct WindowHandle() value
+ * @param  int                droppedOnChart - WindowOnDropped() as passed by the terminal (possibly incorrect)
+ * @param  uint&              previousPid    - variable receiving the previous pid of the indicator instance (if any)
+ *
+ * @return InitializeReason - init reason or NULL in case of errors
+ */
+InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& previousPid) {
    /*
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 547-551: onInit_User()             - Broken: Wird zwei mal aufgerufen, beim zweiten mal ist der EXECUTION_CONTEXT ung¸ltig.
-   - Build  >= 654: onInit_User()             - UninitializeReason() ist UR_UNDEFINED.
+   onInitUser()
+     build  <  654:  - UninitializeReason() = UR_PARAMETER
+     build  >= 654:  - UninitializeReason() = UR_UNDEFINED
+     build 547-551:  - Broken: init() is called two times, the 2nd time global module memory is reset (empty EXECUTION_CONTEXT)
    ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 577-583: onInit_Template()         - Broken: Kein Aufruf bei Terminal-Start, der Indikator wird aber geladen.
-   ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 556-569: onInit_Program()          - Broken: Wird in- und auﬂerhalb des Testers bei jedem Tick aufgerufen.
-   ------------------------------------------------------------------------------------------------------------------------------------
-   - Build  <= 229: onInit_ProgramAfterTest() - UninitializeReason() ist UR_UNDEFINED.
-   - Build     387: onInit_ProgramAfterTest() - Broken: Wird nie aufgerufen.
-   - Build 388-628: onInit_ProgramAfterTest() - UninitializeReason() ist UR_REMOVE.
-   - Build  <= 577: onInit_ProgramAfterTest() - Wird nur nach einem automatisiertem Test aufgerufen (VisualMode=Off), der Aufruf
-                                                erfolgt vorm Start des n‰chsten Tests.
-   - Build  >= 578: onInit_ProgramAfterTest() - Wird auch nach einem manuellen Test aufgerufen (VisualMode=On), nur in diesem Fall
-                                                erfolgt der Aufruf sofort nach Testende.
-   - Build  >= 633: onInit_ProgramAfterTest() - UninitializeReason() ist UR_CHARTCLOSE.
-   ------------------------------------------------------------------------------------------------------------------------------------
-   - Build 577:     onInit_TimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
-   ------------------------------------------------------------------------------------------------------------------------------------
+   - Build 577-583: onInitTemplate()         - Broken: Kein Aufruf bei Terminal-Start, der Indikator wird aber geladen.
+   -----------------------------------------------------------------------------------------------------------------------------------
+   - Build 556-569: onInitProgram()          - Broken: Wird in- und auﬂerhalb des Testers bei jedem Tick aufgerufen.
+   -----------------------------------------------------------------------------------------------------------------------------------
+   - Build  <= 229: onInitProgramAfterTest() - UninitializeReason() = UR_UNDEFINED
+   - Build     387: onInitProgramAfterTest() - Broken: Wird nie aufgerufen.
+   - Build 388-628: onInitProgramAfterTest() - UninitializeReason() = UR_REMOVE
+   - Build  <= 577: onInitProgramAfterTest() - Wird nur nach einem automatisiertem Test aufgerufen (VisualMode=Off), der Aufruf
+                                               erfolgt vorm Start des n‰chsten Tests.
+   - Build  >= 578: onInitProgramAfterTest() - Wird auch nach einem manuellen Test aufgerufen (VisualMode=On), nur in diesem Fall
+                                               erfolgt der Aufruf sofort nach Testende.
+   - Build  >= 633: onInitProgramAfterTest() - UninitializeReason() ist UR_CHARTCLOSE.
+   -----------------------------------------------------------------------------------------------------------------------------------
+   - Build 577:     onInitTimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
+   -----------------------------------------------------------------------------------------------------------------------------------
    */
    uint build      = GetTerminalBuild();
    BOOL isUIThread = IsUIThread();
@@ -958,17 +1449,17 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (1) UR_PARAMETERS
    if (uninitReason == UR_PARAMETERS) {
       // innerhalb iCustom(): nie
-      if (sec)           return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_PARAMETERS:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // auﬂerhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
       BOOL isProgramNew;
-      int pid = ec->pid;
+      uint pid = ec->pid;
       if (pid) {
          isProgramNew = !g_contextChains[pid][0]->ticks;             // im Master-Context nachschauen
       }
       else {
-         pid = FindIndicatorInLimbo(hChart, programName, uninitReason);
-         if (pid < 0) return((InitializeReason)NULL);
-         prevIndPid   =  pid;
+         pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
+         if (!pid && build >= 654) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+         previousPid  = pid;
          isProgramNew = !pid;
       }
       if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugef¸gten Indikators
@@ -979,13 +1470,13 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (2) UR_CHARTCHANGE
    if (uninitReason == UR_CHARTCHANGE) {
       // innerhalb iCustom(): nie
-      if (sec)               return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCHANGE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // auﬂerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
-      int pid = ec->pid;
+      uint pid = ec->pid;
       if (!pid) {
-         pid = FindIndicatorInLimbo(hChart, programName, uninitReason);
-         if (pid <= 0) return((InitializeReason)(pid < 0 ? NULL : error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo during %s", programName, UninitializeReasonToStr(uninitReason))));
-         prevIndPid = pid;
+         pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_CHARTCHANGE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+         previousPid = pid;
       }
       char* masterSymbol = g_contextChains[pid][0]->symbol;
       if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
@@ -1003,8 +1494,13 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       }
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabh‰ngig
-         if (build <= 229)         return(IR_PROGRAM_AFTERTEST);
-                                   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+         if (build <= 229) {
+            uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
+            if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_UNDEFINED  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+            previousPid = pid;
+            return(IR_PROGRAM_AFTERTEST);
+         }
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_UNDEFINED:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       }
       return(IR_PROGRAM);
    }
@@ -1013,20 +1509,28 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (4) UR_REMOVE
    if (uninitReason == UR_REMOVE) {
       // auﬂerhalb iCustom(): nie
-      if (!sec)                                                 return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread)                            return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
-      if (!isVisualMode/*Fix*/) { if (388<=build && build<=628) return(IR_PROGRAM_AFTERTEST); }
-      else                      { if (578<=build && build<=628) return(IR_PROGRAM_AFTERTEST); }
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
+      if (!pid)                      return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_REMOVE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+
+      if (!isVisualMode/*Fix*/ && 388<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
+      if ( isVisualMode/*Fix*/ && 578<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
    // (5) UR_RECOMPILE
    if (uninitReason == UR_RECOMPILE) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_RECOMPILE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // auﬂerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
+
+      uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
+      if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_RECOMPILE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+      previousPid = pid;
+      g_recompiledModule = RECOMPILED_MODULE();             // reset global recompile marker
       return(IR_RECOMPILE);
    }
 
@@ -1034,11 +1538,16 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (6) UR_CHARTCLOSE
    if (uninitReason == UR_CHARTCLOSE) {
       // auﬂerhalb iCustom(): nie
-      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
-      if (build >= 633)              return(IR_PROGRAM_AFTERTEST);
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (build >= 633) {
+         uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
+         if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_CHARTCLOSE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+         previousPid = pid;
+         return(IR_PROGRAM_AFTERTEST);
+      }
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
@@ -1047,23 +1556,23 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       case UR_TEMPLATE:      // build > 509
       case UR_INITFAILED:    // ...
       case UR_CLOSE:         // ...
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", UninitializeReasonToStr(uninitReason), sec, isTesting, isVisualMode, isUIThread, build));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected %s:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", UninitializeReasonToStr(uninitReason), sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
    }
 
-   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d  (SuperContext=%p  Testing=%d  VisualMode=%d  UIThread=%d  build=%d)", uninitReason, sec, isTesting, isVisualMode, isUIThread, build));
+   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", uninitReason, sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
 }
 
 
 /**
- * Resolve an expert's true init() reason.
+ * Resolve an expert's real init() reason.
  *
- * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
- * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason  - value of UninitializeReason() as returned by the terminal
+ * @param  EXECUTION_CONTEXT* ec            - the expert's execution context (possibly still empty)
+ * @param  char*              programName   - expert name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason  - UninitializeReason() as passed by the terminal
  * @param  char*              symbol        - current symbol
- * @param  BOOL               isTesting     - value of IsTesting() as returned by the terminal
- * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
- * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
+ * @param  BOOL               isTesting     - IsTesting() as passed by the terminal
+ * @param  int                droppedOnPosX - WindowXOnDropped() as passed by the terminal
+ * @param  int                droppedOnPosY - WindowYOnDropped() as passed by the terminal
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
@@ -1086,7 +1595,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
       else                                  return(IR_SYMBOLCHANGE);
    }
 
-   // UR_RECOMPILE                                       // re-loaded after recompilation
+   // UR_RECOMPILE                                       // reloaded after recompilation
    if (uninitReason == UR_RECOMPILE) {
       return(IR_RECOMPILE);
    }
@@ -1134,12 +1643,12 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
 
 
 /**
- * Resolve a script's true init() reason.
+ * Resolve a script's real init() reason.
  *
- * @param  EXECUTION_CONTEXT* ec            - an MQL program's main module execution context (possibly still empty)
- * @param  char*              programName   - program name (with or without filepath depending on the terminal version)
- * @param  int                droppedOnPosX - value of WindowXOnDropped() as returned by the terminal
- * @param  int                droppedOnPosY - value of WindowYOnDropped() as returned by the terminal
+ * @param  EXECUTION_CONTEXT* ec            - the script's execution context (possibly still empty)
+ * @param  char*              programName   - script name (with or without filepath depending on the terminal version)
+ * @param  int                droppedOnPosX - WindowXOnDropped() as passed by the terminal
+ * @param  int                droppedOnPosY - WindowYOnDropped() as passed by the terminal
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
@@ -1212,7 +1721,8 @@ BOOL WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimizat
 
 
 /**
- * Whether or not the program with the specified pid is a partially initialized expert in tester, matching the passed name.
+ * Whether or not the program with the specified pid is a partially initialized expert in tester, having an unset name or
+ * matching the passed name.
  *
  * @param  char* name - program name
  *
@@ -1222,12 +1732,14 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
    if (g_contextChains.size() > pid) {
       ContextChain& chain = g_contextChains[pid];
 
-      if (chain.size() > 1) {
+      if (chain.size() > 2) {                                  // needs to vae at least one registered library
          EXECUTION_CONTEXT* master = chain[0];
          EXECUTION_CONTEXT* main   = chain[1];
 
-         if (master->programType==PT_EXPERT && master->testing && master->coreFunction==CF_INIT) {
-            return(!main && StrCompare(master->programName, name));        // name comparison last
+         if (master->programType==PT_EXPERT && master->testing) {
+            if (main)                  return(FALSE);
+            if (!*master->programName) return(TRUE);
+            return(StrCompare(master->programName, name));     // name comparison last
          }
       }
    }
@@ -1244,13 +1756,11 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
  * @return BOOL - real IsTesting() status
  */
 BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
-   if (ec->superContext)
-      return(ec->superContext->testing);                             // prefer an inherited status
-
    switch (ec->programType) {
       case PT_INDICATOR: {
-         if (isTesting)                                              // indicator runs in iCustom() in Tester
-            return(TRUE);
+         if (ec->superContext) return(ec->superContext->testing);    // prefer an inherited status
+         if (isTesting)        return(TRUE);                         // indicator runs in iCustom() in Tester
+
          // (1) indicator was loaded manually                        // we have no super context
          //     (1.1) not in Tester:                     chart exists, title is set and doesn't end with "(visual)"
          //     (1.2) in Tester:                         chart exists, title is set and does    end with "(visual)"

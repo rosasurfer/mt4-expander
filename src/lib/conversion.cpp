@@ -272,20 +272,21 @@ const char* WINAPI ErrorToStr(int error) {
       // user defined errors: 65536-99999 (0x10000-0x1869F)
       case ERR_RUNTIME_ERROR                                : return("ERR_RUNTIME_ERROR"                    );    //  65536
       case ERR_NOT_IMPLEMENTED                              : return("ERR_NOT_IMPLEMENTED"                  );    //  65537
-      case ERR_INVALID_INPUT_PARAMETER                      : return("ERR_INVALID_INPUT_PARAMETER"          );    //  65538
-      case ERR_INVALID_CONFIG_PARAMVALUE                    : return("ERR_INVALID_CONFIG_PARAMVALUE"        );    //  65539
-      case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65540      status, no error
-      case ERR_INVALID_TIMEZONE_CONFIG                      : return("ERR_INVALID_TIMEZONE_CONFIG"          );    //  65541
-      case ERR_INVALID_MARKET_DATA                          : return("ERR_INVALID_MARKET_DATA"              );    //  65542
-      case ERR_CANCELLED_BY_USER                            : return("ERR_CANCELLED_BY_USER"                );    //  65543
-      case ERR_FUNC_NOT_ALLOWED                             : return("ERR_FUNC_NOT_ALLOWED"                 );    //  65544
+      case ERR_FUNC_NOT_ALLOWED                             : return("ERR_FUNC_NOT_ALLOWED"                 );    //  65538
+      case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65539      status, no error
+      case ERR_TERMINAL_INIT_FAILURE                        : return("ERR_TERMINAL_INIT_FAILURE"            );    //  65540
+      case ERR_INVALID_INPUT_PARAMETER                      : return("ERR_INVALID_INPUT_PARAMETER"          );    //  65541
+      case ERR_INVALID_CONFIG_PARAMVALUE                    : return("ERR_INVALID_CONFIG_PARAMVALUE"        );    //  65542
+      case ERR_INVALID_TIMEZONE_CONFIG                      : return("ERR_INVALID_TIMEZONE_CONFIG"          );    //  65543
+      case ERR_INVALID_MARKET_DATA                          : return("ERR_INVALID_MARKET_DATA"              );    //  65544
       case ERR_INVALID_COMMAND                              : return("ERR_INVALID_COMMAND"                  );    //  65545
-      case ERR_ILLEGAL_STATE                                : return("ERR_ILLEGAL_STATE"                    );    //  65546
+      case ERR_CANCELLED_BY_USER                            : return("ERR_CANCELLED_BY_USER"                );    //  65546
       case ERS_EXECUTION_STOPPING                           : return("ERS_EXECUTION_STOPPING"               );    //  65547      status, no error
       case ERR_ORDER_CHANGED                                : return("ERR_ORDER_CHANGED"                    );    //  65548
       case ERR_HISTORY_INSUFFICIENT                         : return("ERR_HISTORY_INSUFFICIENT"             );    //  65549
       case ERR_CONCURRENT_MODIFICATION                      : return("ERR_CONCURRENT_MODIFICATION"          );    //  65550
-      case ERR_TERMINAL_FAILURE_INIT                        : return("ERR_TERMINAL_FAILURE_INIT"            );    //  65551
+      case ERR_INVALID_ACCESS                               : return("ERR_INVALID_ACCESS"                   );    //  65551
+      case ERR_ILLEGAL_STATE                                : return("ERR_ILLEGAL_STATE"                    );    //  65552
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                  : return("win32:NO_ERROR"                       );    // 100000 +    0
@@ -573,6 +574,18 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
 
 /**
  * Alias of numberFormat()
+ *
+ * Format a numeric value as a std::string.
+ *
+ * @param  doube value
+ * @param  char* format - format control string as used for printf()
+ *
+ * @return string - formatted string or an empty string in case of errors
+ *
+ *       Format codes:
+ * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
+ * @see  http://www.cplusplus.com/reference/cstdio/printf/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
 string WINAPI numberToStr(double value, const char* format) {
    return(numberFormat(value, format));
@@ -581,6 +594,18 @@ string WINAPI numberToStr(double value, const char* format) {
 
 /**
  * Alias of NumberFormat()
+ *
+ * Format a numeric value as a C string.
+ *
+ * @param  doube value
+ * @param  char* format - format control string as used for printf()
+ *
+ * @return char* - formatted string or a NULL pointer in case of errors
+ *
+ *       Format codes:
+ * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
+ * @see  http://www.cplusplus.com/reference/cstdio/printf/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
 const char* WINAPI NumberToStr(double value, const char* format) {
    return(NumberFormat(value, format));

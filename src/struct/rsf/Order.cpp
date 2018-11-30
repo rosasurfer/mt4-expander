@@ -2,7 +2,7 @@
 #include "lib/conversion.h"
 #include "lib/format.h"
 #include "lib/string.h"
-#include "struct/xtrade/Order.h"
+#include "struct/rsf/Order.h"
 
 
 /**
@@ -16,7 +16,7 @@
 const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
    if (!order) return("NULL");
 
-   char* result = "{(empty)}";
+   char* result = "{}";
    const ORDER empty = {};
 
    if (memcmp(order, &empty, sizeof(ORDER))) {

@@ -2,20 +2,17 @@
 
 
 /**
- * XTrade struct LOG_MESSAGE
+ * Framework struct LOG_MESSAGE
  *
  * Wrapper für eine nach MQL zu übermittelnde Logmessage.
  *
- *
  * TODO: in EXECUTION_CONTEXT integrieren
  */
-#pragma pack(push, 1)
 struct LOG_MESSAGE {
-   int   level;                                    // Loglevel: L_ERROR, L_WARN oder L_INFO
+   int   level;                  // log level: L_ERROR, L_WARN oder L_INFO
    int   code;
-   char* text;                                     // szchar
+   char* text;
 };
-#pragma pack(pop)
 
 
 // in EXECUTION_CONTEXT:

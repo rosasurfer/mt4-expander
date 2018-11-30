@@ -119,12 +119,16 @@ DWORD WINAPI GetUIThreadId() {
 
 
 /**
- * Ob der aktuelle Thread der UI-Thread ist.
+ * Whether or not the specified thread is the application's UI thread.
  *
+ * @param  DWORD threadId [optional] - thread id; if this value is NULL the current thread is used
+ *                                     (default: the current thread)
  * @return BOOL
  */
-BOOL WINAPI IsUIThread() {
-   return(GetCurrentThreadId() == GetUIThreadId());
+BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
+   if (!threadId)
+      threadId = GetCurrentThreadId();
+   return(threadId == GetUIThreadId());
    #pragma EXPANDER_EXPORT
 }
 
