@@ -31,6 +31,9 @@ extern Locks                     g_locks;                            // a map ho
  * Handler for DLL_PROCESS_ATTACH events.
  */
 void WINAPI onProcessAttach() {
+   static plog::DebugOutputAppender<plog::TxtFormatter> debugOutputAppender;
+   plog::init(plog::verbose, &debugOutputAppender);
+
    g_contextChains  .reserve(128);
    g_threads        .reserve(512);
    g_threadsPrograms.reserve(512);

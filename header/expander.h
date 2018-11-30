@@ -14,6 +14,9 @@
 #include <string>
 #include <sstream>
 
+#include <plog/Log.h>
+#include <plog/Appenders/DebugOutputAppender.h>
+
 
 // export unmangled names without a DEF file
 #define EXPANDER_EXPORT comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
