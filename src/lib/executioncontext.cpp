@@ -195,6 +195,93 @@ struct RECOMPILED_MODULE {                            // A struct holding the la
  * 07:30:06.905  SyncLibContext_deinit(713)   07210248  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
  * 07:30:06.905  LeaveContext(743)            07210248  rsfLib1                    ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
  * --- end of test: expert unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+
+
+/**
+ * Core function call order on loading/unloading of MQL libraries
+ * ==============================================================
+ *
+ * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading. States
+ * and core function call order during reloading are as follows:
+ *
+ * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
+ *
+ *     Single indicator with nested library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     Indicator::init()              UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA                 set pid=1
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
+ *     Indicator::LibraryA::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     Indicator::LibraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::deinit()  UR_UNDEFINED    pid=1
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=1
+ *     Indicator::init()              UR_CHARTCHANGE  pid=0  indicator last (no state)          restore pid=1
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     Multiple indicators with simple library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     IndicatorA::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=0                                     set pid=1
+ *     IndicatorB::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=2
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=0                                     set pid=2
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     IndicatorA::deinit()           UR_CHARTCHANGE  pid=1
+ *     IndicatorA::Library::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     IndicatorB::deinit()           UR_CHARTCHANGE  pid=2
+ *     IndicatorB::Library::deinit()  UR_UNDEFINED    pid=2
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=1
+ *     IndicatorA::init()             UR_CHARTCHANGE  pid=0  first indicator (no state)         restore pid=1
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=2
+ *     IndicatorB::init()             UR_CHARTCHANGE  pid=0  second indicator (no state)        restore pid=2
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *
+ * (2) Libraries loaded by experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
+ *
+ *
+ * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
+ *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
+ *     In older terminals (e.g. build 500) this happens for all such tests.
+ *
+ *     Expert in tester with simple library calls:
+ *     --- Tester Start -----------------------------------------------------------------------------------------------------
+ *     Expert::init()                 UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     Expert::Library::init()        UR_UNDEFINED    pid=0                                     set pid=1
+ *     --- Tester Stop ------------------------------------------------------------------------------------------------------
+ *     Expert::deinit()               UR_UNDEFINED    pid=1
+ *     Expert::Library::deinit()      UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     --- Tester Start ----------------------------- libraries keep state --------------------------------------------------
+ *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test         set pid=2   set previousPid=1
+ *     Expert::init()                 UR_UNDEFINED    pid=0                                     set pid=2   set previousPid=1
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     The terminal implementation is considered broken by design. On start of a test libraries should always be in a clean
+ *     state. Instead reloaded libraries keep state of the previously finished test, specifically:
+ *      - Global variables are not reset and contain old values (except strings).
+ *      - The last selected order context is not reset and order functions return wrong results.
+ *      - The flag IsVisualMode() is not reset and may show wrong values, even if symbol or timeframe of the new test differ.
+ *
+ *     Workaround: On start of a test reused libraries need to be reset manually:
+ *      - SyncLibContext_init() removes a library from the previously finished test's context chain and attaches it to the
+ *        context chain of the new test.
+ *      - MQL::core/library::init() resets a previously selected order context.
+ *      - Global array variables must be reset by implementing Library.ResetGlobalVars().
+ *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
+ *
+ *
+ * (4) After recompilation libraries are reloaded and don't keep state. In tester reloading can happen at the end of the
+ *     current or on start of the next test. Reloading is always executed by the UI thread.
+ *     Terminal bug: In online charts without a server connection reloading after unloading may not happen. An indicator or
+ *                   expert will crash the next time it tries to call a function of a still unloaded library. In this case
+ *                   the terminal log will show the message "Indicator/Expert stopped."
  *
  */// (prevent Visual Assist from merging above block in the hover tooltip of below function)
 
@@ -225,6 +312,8 @@ struct RECOMPILED_MODULE {                            // A struct holding the la
  * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  *
  * @return int - error status
+ *
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -400,6 +489,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  * @param  double             ask         - ask price of the current tick
  *
  * @return int - error status
+ *
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -469,6 +560,8 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
  * @param  UninitializeReason uninitReason - uninitialize reason as passed by the terminal
  *
  * @return int - error status
+ *
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -501,92 +594,6 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 }
 
 
-/**
- * SyncLibContext_init() / SyncLibContext_deinit()
- * ===============================================
- *
- * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading. States
- * and core function call order during reloading are as follows:
- *
- * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
- *
- *     Single indicator with nested library calls:
- *     --- first load -------------------------------------------------------------------------------------------------------
- *     Indicator::init()              UR_UNDEFINED    pid=0  create new context chain           set pid=1
- *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
- *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
- *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA                 set pid=1
- *     --- deinit() ---------------------------------------------------------------------------------------------------------
- *     Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
- *     Indicator::LibraryA::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
- *     Indicator::LibraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
- *     Indicator::LibraryB::deinit()  UR_UNDEFINED    pid=1
- *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
- *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=1
- *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
- *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=1
- *     Indicator::init()              UR_CHARTCHANGE  pid=0  indicator last (no state)          restore pid=1
- *     ----------------------------------------------------------------------------------------------------------------------
- *
- *     Multiple indicators with simple library calls:
- *     --- first load -------------------------------------------------------------------------------------------------------
- *     IndicatorA::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=1
- *     IndicatorA::Library::init()    UR_UNDEFINED    pid=0                                     set pid=1
- *     IndicatorB::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=2
- *     IndicatorB::Library::init()    UR_UNDEFINED    pid=0                                     set pid=2
- *     --- deinit() ---------------------------------------------------------------------------------------------------------
- *     IndicatorA::deinit()           UR_CHARTCHANGE  pid=1
- *     IndicatorA::Library::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
- *     IndicatorB::deinit()           UR_CHARTCHANGE  pid=2
- *     IndicatorB::Library::deinit()  UR_UNDEFINED    pid=2
- *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
- *     IndicatorA::Library::init()    UR_UNDEFINED    pid=1
- *     IndicatorA::init()             UR_CHARTCHANGE  pid=0  first indicator (no state)         restore pid=1
- *     IndicatorB::Library::init()    UR_UNDEFINED    pid=2
- *     IndicatorB::init()             UR_CHARTCHANGE  pid=0  second indicator (no state)        restore pid=2
- *     ----------------------------------------------------------------------------------------------------------------------
- *
- *
- * (2) Libraries loaded by experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
- *
- *
- * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
- *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
- *     In older terminals (e.g. build 500) this happens for all such tests.
- *
- *     Expert in tester with simple library calls:
- *     --- Tester Start -----------------------------------------------------------------------------------------------------
- *     Expert::init()                 UR_UNDEFINED    pid=0  create new context chain           set pid=1
- *     Expert::Library::init()        UR_UNDEFINED    pid=0                                     set pid=1
- *     --- Tester Stop ------------------------------------------------------------------------------------------------------
- *     Expert::deinit()               UR_UNDEFINED    pid=1
- *     Expert::Library::deinit()      UR_UNDEFINED    pid=1  bug: global strings are already destroyed
- *     --- Tester Start ----------------------------- libraries keep state --------------------------------------------------
- *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test         set pid=2   set previousPid=1
- *     Expert::init()                 UR_UNDEFINED    pid=0                                     set pid=2   set previousPid=1
- *     ----------------------------------------------------------------------------------------------------------------------
- *
- *     The terminal implementation is considered broken by design. On start of a test libraries should always be in a clean
- *     state. Instead reloaded libraries keep state of the previously finished test, specifically:
- *      - Global variables are not reset and contain old values (except strings).
- *      - The last selected order context is not reset and order functions return wrong results.
- *      - The flag IsVisualMode() is not reset and may show wrong values, even if symbol or timeframe of the new test differ.
- *
- *     Workaround: On start of a test reused libraries need to be reset manually:
- *      - SyncLibContext_init() removes a library from the previously finished test's context chain and attaches it to the
- *        context chain of the new test.
- *      - MQL::core/library::init() resets a previously selected order context.
- *      - Global array variables must be reset by implementing Library.ResetGlobalVars().
- *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
- *
- *
- * (4) After recompilation libraries are reloaded and don't keep state. In tester reloading can happen at the end of the
- *     current or on start of the next test. Reloading is always executed by the UI thread.
- *     Terminal bug: In online charts without a server connection reloading after unloading may not happen. An indicator or
- *                   expert will crash the next time it tries to call a function of a still unloaded library. In this case
- *                   the terminal log will show the message "Indicator/Expert stopped."
- *
- */// (prevent Visual Assist from merging above block in the hover tooltip of below function)
 
 
 /**
@@ -607,7 +614,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *
  * @return int - error status
  *
- * @see    additional notes above SyncLibContext_init()
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization) {
    if ((uint)ec         < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -861,7 +868,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
  *
  * @return int - error status
  *
- * @see    additional notes above SyncLibContext_init()
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -906,7 +913,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
  *
  *  - TODO:
  *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
- *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs "if it is the last one".
+ *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs >> if it's the last one <<.
  *
  *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
  *
