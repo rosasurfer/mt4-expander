@@ -1,12 +1,13 @@
 #include "expander.h"
 #include "lib/conversion.h"
 #include "lib/executioncontext.h"
+#include "lib/format.h"
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/tester.h"
-#include "struct/mt4/PriceBar400.h"
-#include "struct/mt4/PriceBar401.h"
+#include "lib/timeseries.h"
+#include "struct/rsf/Order.h"
 #include "struct/rsf/Test.h"
 
 #include <time.h>
@@ -18,6 +19,8 @@ std::vector<DWORD>        g_threads;                  // all known threads execu
 std::vector<uint>         g_threadsPrograms;          // pid of the last MQL program executed by a thread
 uint                      g_lastUIThreadProgram;      // pid the last MQL program executed by the UI thread
 CRITICAL_SECTION          g_terminalMutex;            // mutex for application-wide locking
+extern uint               g_terminalBuild;            // terminal build number
+
 
 struct RECOMPILED_MODULE {                            // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
    uint       pid;                                    // Only one module is tracked (the last one) and the variable is accessed
@@ -195,6 +198,93 @@ struct RECOMPILED_MODULE {                            // A struct holding the la
  * 07:30:06.905  SyncLibContext_deinit(713)   07210248  rsfLib1     UR_UNDEFINED   ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
  * 07:30:06.905  LeaveContext(743)            07210248  rsfLib1                    ec={pid=3, previousPid=1, programType=PT_EXPERT, programName="TestExpert", programCoreFunction=NULL, programInitReason=IR_USER, programUninitReason=UR_UNDEFINED, programInitFlags=0, programDeinitFlags=0, moduleType=MT_LIBRARY, moduleName="rsfLib1", moduleCoreFunction=CF_DEINIT, moduleUninitReason=UR_UNDEFINED, moduleInitFlags=0, moduleDeinitFlags=0, symbol="GBPUSD", timeframe=PERIOD_M15, digits=5, point=1e-005, rates=0x0C530020, bars=27589, changedBars=-1, unchangedBars=-1, ticks=1824, cycleTicks=1824, lastTickTime="2018.01.26 23:45:00", prevTickTime="2018.01.26 23:30:00", bid=1.41531, ask=1.41541, superContext=NULL, threadId=2352 (non-UI), hChart=NULL, hChartWindow=NULL, test=0x08EDD9D8, testing=TRUE, visualMode=FALSE, optimization=FALSE, extReporting=FALSE, recordEquity=FALSE, mqlError=0, dllError=0, dllWarning=0, logging=FALSE, customLogFile=""} (0x07210248)
  * --- end of test: expert unloaded -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ */
+
+
+/**
+ * Core function call order on loading/unloading of MQL libraries
+ * ==============================================================
+ *
+ * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading. States
+ * and core function call order during reloading are as follows:
+ *
+ * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
+ *
+ *     Single indicator with nested library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     Indicator::init()              UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA                 set pid=1
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
+ *     Indicator::LibraryA::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     Indicator::LibraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::deinit()  UR_UNDEFINED    pid=1
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=1
+ *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
+ *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=1
+ *     Indicator::init()              UR_CHARTCHANGE  pid=0  indicator last (no state)          restore pid=1
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     Multiple indicators with simple library calls:
+ *     --- first load -------------------------------------------------------------------------------------------------------
+ *     IndicatorA::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=0                                     set pid=1
+ *     IndicatorB::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=2
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=0                                     set pid=2
+ *     --- deinit() ---------------------------------------------------------------------------------------------------------
+ *     IndicatorA::deinit()           UR_CHARTCHANGE  pid=1
+ *     IndicatorA::Library::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     IndicatorB::deinit()           UR_CHARTCHANGE  pid=2
+ *     IndicatorB::Library::deinit()  UR_UNDEFINED    pid=2
+ *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
+ *     IndicatorA::Library::init()    UR_UNDEFINED    pid=1
+ *     IndicatorA::init()             UR_CHARTCHANGE  pid=0  first indicator (no state)         restore pid=1
+ *     IndicatorB::Library::init()    UR_UNDEFINED    pid=2
+ *     IndicatorB::init()             UR_CHARTCHANGE  pid=0  second indicator (no state)        restore pid=2
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *
+ * (2) Libraries loaded by experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
+ *
+ *
+ * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
+ *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
+ *     In older terminals (e.g. build 500) this happens for all such tests.
+ *
+ *     Expert in tester with simple library calls:
+ *     --- Tester Start -----------------------------------------------------------------------------------------------------
+ *     Expert::init()                 UR_UNDEFINED    pid=0  create new context chain           set pid=1
+ *     Expert::Library::init()        UR_UNDEFINED    pid=0                                     set pid=1
+ *     --- Tester Stop ------------------------------------------------------------------------------------------------------
+ *     Expert::deinit()               UR_UNDEFINED    pid=1
+ *     Expert::Library::deinit()      UR_UNDEFINED    pid=1  bug: global strings are already destroyed
+ *     --- Tester Start ----------------------------- libraries keep state --------------------------------------------------
+ *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test         set pid=2   set previousPid=1
+ *     Expert::init()                 UR_UNDEFINED    pid=0                                     set pid=2   set previousPid=1
+ *     ----------------------------------------------------------------------------------------------------------------------
+ *
+ *     The terminal implementation is considered broken by design. On start of a test libraries should always be in a clean
+ *     state. Instead reloaded libraries keep state of the previously finished test, specifically:
+ *      - Global variables are not reset and contain old values (except strings).
+ *      - The last selected order context is not reset and order functions return wrong results.
+ *      - The flag IsVisualMode() is not reset and may show wrong values, even if symbol or timeframe of the new test differ.
+ *
+ *     Workaround: On start of a test reused libraries need to be reset manually:
+ *      - SyncLibContext_init() removes a library from the previously finished test's context chain and attaches it to the
+ *        context chain of the new test.
+ *      - MQL::core/library::init() resets a previously selected order context.
+ *      - Global array variables must be reset by implementing Library.ResetGlobalVars().
+ *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
+ *
+ *
+ * (4) After recompilation libraries are reloaded and don't keep state. In tester reloading can happen at the end of the
+ *     current or on start of the next test. Reloading is always executed by the UI thread.
+ *     Terminal bug: In online charts without a server connection reloading after unloading may not happen. An indicator or
+ *                   expert will crash the next time it tries to call a function of a still unloaded library. In this case
+ *                   the terminal log will show the message "Indicator/Expert stopped."
  *
  */// (prevent Visual Assist from merging above block in the hover tooltip of below function)
 
@@ -225,6 +315,8 @@ struct RECOMPILED_MODULE {                            // A struct holding the la
  * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  *
  * @return int - error status
+ *
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -400,6 +492,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  * @param  double             ask         - ask price of the current tick
  *
  * @return int - error status
+ *
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -409,7 +503,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 
    int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
    uint     cycleTicks    = ec->cycleTicks + 1;
-   datetime lastTickTime  = ec->lastTickTime;
+   datetime lastTickTime  = ec->lastTickTime; if (time < lastTickTime) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "ticktime is counting backwards:  time=%s  lastTickTime=%s  ec=%s", GmtTimeFormat(time, "%Y.%m.%d %H:%M:%S"), GmtTimeFormat(lastTickTime, "%Y.%m.%d %H:%M:%S"), EXECUTION_CONTEXT_toStr(ec))));
    DWORD    threadId      = GetCurrentThreadId();
    BOOL     logging       = ec->logging;
 
@@ -417,7 +511,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint size = chain.size();
    EXECUTION_CONTEXT* ctx;
 
-   // update values of all modules
+   // update context values of all modules
    for (uint i=0; i < size; ++i) {
       if (ctx = chain[i]) {
          ctx->programCoreFunction = CF_START; if (i < 2)
@@ -437,21 +531,39 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->threadId            = threadId;
          ctx->logging             = logging;                         // As long as ec.logging is configured after SyncMainContext_init()
       }                                                              // the flag needs to be synchronized on each tick.
-      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
-   /*
-   if (rates && bars) {
-      uint bar=0, shift=bars-1-bar;
-      if (GetTerminalBuild() <= 509) {
-         RateInfo* rate = (RateInfo*) rates;
-         debug("400:  bars: %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, (int)rate[shift].ticks);
-      }
-      else {
-         MqlRates* rate = (MqlRates*) rates;
-         debug("401:  bars: %d  bar[%d]:  time=%d  C=%f  V=%d", bars, bar, rate[shift].time, rate[shift].close, rate[shift].ticks);
+
+   if (ec->test) {
+      // update statistics for maxRunup/maxDrawdown calculations
+      if ((uint)rates < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter rates: 0x%p (not a valid pointer)", rates)));
+      if (bars <= 0)                       return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d", bars)));
+
+      TEST* test = ec->test;
+      OrderList* positions = test->openPositions;
+      double high, low;
+
+      if (positions->size()) {
+         switch (test->barModel) {
+            case BARMODEL_BAROPEN: {
+               datetime barTime = iTime(rates, bars, 0);
+               uint bar = (time == barTime);                         // use the closed [1] or the current bar [0] for stats
+               high = iHigh(rates, bars, bar);                       // (the last tick of a BarOpen test can be a BarClose tick)
+               low  = iLow (rates, bars, bar);
+               break;
+            }
+            case BARMODEL_CONTROLPOINTS:
+            case BARMODEL_EVERYTICK:
+               high = low = bid;
+               break;
+         }
+         for (OrderList::iterator it=positions->begin(), end=positions->end(); it!=end; ++it) {
+            ORDER* order = *it;
+            if (high > order->high) order->high = high;
+            if (low  < order->low ) order->low  = low;               // explicite for max. performance
+         }
       }
    }
-   */
 
    //if (ec->cycleTicks == 1) debug(" %p  %-13s  %-14s  ec=%s", ec, ec->programName, "", EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
@@ -469,6 +581,8 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
  * @param  UninitializeReason uninitReason - uninitialize reason as passed by the terminal
  *
  * @return int - error status
+ *
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -501,92 +615,6 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 }
 
 
-/**
- * SyncLibContext_init() / SyncLibContext_deinit()
- * ===============================================
- *
- * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading. States
- * and core function call order during reloading are as follows:
- *
- * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
- *
- *     Single indicator with nested library calls:
- *     --- first load -------------------------------------------------------------------------------------------------------
- *     Indicator::init()              UR_UNDEFINED    pid=0  create new context chain           set pid=1
- *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
- *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=0  loaded by indicator                set pid=1
- *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=0  loaded by libraryA                 set pid=1
- *     --- deinit() ---------------------------------------------------------------------------------------------------------
- *     Indicator::deinit()            UR_CHARTCHANGE  pid=1  indicator first
- *     Indicator::LibraryA::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
- *     Indicator::LibraryC::deinit()  UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
- *     Indicator::LibraryB::deinit()  UR_UNDEFINED    pid=1
- *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
- *     Indicator::LibraryA::init()    UR_UNDEFINED    pid=1
- *     Indicator::LibraryC::init()    UR_UNDEFINED    pid=1  hierarchical (not in original loading order)
- *     Indicator::LibraryB::init()    UR_UNDEFINED    pid=1
- *     Indicator::init()              UR_CHARTCHANGE  pid=0  indicator last (no state)          restore pid=1
- *     ----------------------------------------------------------------------------------------------------------------------
- *
- *     Multiple indicators with simple library calls:
- *     --- first load -------------------------------------------------------------------------------------------------------
- *     IndicatorA::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=1
- *     IndicatorA::Library::init()    UR_UNDEFINED    pid=0                                     set pid=1
- *     IndicatorB::init()             UR_UNDEFINED    pid=0  create new context chain           set pid=2
- *     IndicatorB::Library::init()    UR_UNDEFINED    pid=0                                     set pid=2
- *     --- deinit() ---------------------------------------------------------------------------------------------------------
- *     IndicatorA::deinit()           UR_CHARTCHANGE  pid=1
- *     IndicatorA::Library::deinit()  UR_UNDEFINED    pid=1  bug: global strings are already destroyed
- *     IndicatorB::deinit()           UR_CHARTCHANGE  pid=2
- *     IndicatorB::Library::deinit()  UR_UNDEFINED    pid=2
- *     --- init() ----------------------------------- libraries keep state, indicators don't --------------------------------
- *     IndicatorA::Library::init()    UR_UNDEFINED    pid=1
- *     IndicatorA::init()             UR_CHARTCHANGE  pid=0  first indicator (no state)         restore pid=1
- *     IndicatorB::Library::init()    UR_UNDEFINED    pid=2
- *     IndicatorB::init()             UR_CHARTCHANGE  pid=0  second indicator (no state)        restore pid=2
- *     ----------------------------------------------------------------------------------------------------------------------
- *
- *
- * (2) Libraries loaded by experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
- *
- *
- * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
- *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
- *     In older terminals (e.g. build 500) this happens for all such tests.
- *
- *     Expert in tester with simple library calls:
- *     --- Tester Start -----------------------------------------------------------------------------------------------------
- *     Expert::init()                 UR_UNDEFINED    pid=0  create new context chain           set pid=1
- *     Expert::Library::init()        UR_UNDEFINED    pid=0                                     set pid=1
- *     --- Tester Stop ------------------------------------------------------------------------------------------------------
- *     Expert::deinit()               UR_UNDEFINED    pid=1
- *     Expert::Library::deinit()      UR_UNDEFINED    pid=1  bug: global strings are already destroyed
- *     --- Tester Start ----------------------------- libraries keep state --------------------------------------------------
- *     Expert::Library::init()        UR_UNDEFINED    pid=1  state of the finished test         set pid=2   set previousPid=1
- *     Expert::init()                 UR_UNDEFINED    pid=0                                     set pid=2   set previousPid=1
- *     ----------------------------------------------------------------------------------------------------------------------
- *
- *     The terminal implementation is considered broken by design. On start of a test libraries should always be in a clean
- *     state. Instead reloaded libraries keep state of the previously finished test, specifically:
- *      - Global variables are not reset and contain old values (except strings).
- *      - The last selected order context is not reset and order functions return wrong results.
- *      - The flag IsVisualMode() is not reset and may show wrong values, even if symbol or timeframe of the new test differ.
- *
- *     Workaround: On start of a test reused libraries need to be reset manually:
- *      - SyncLibContext_init() removes a library from the previously finished test's context chain and attaches it to the
- *        context chain of the new test.
- *      - MQL::core/library::init() resets a previously selected order context.
- *      - Global array variables must be reset by implementing Library.ResetGlobalVars().
- *      - The MQL function IsVisualMode() must not be used, instead use the corresponding flag in the execution context.
- *
- *
- * (4) After recompilation libraries are reloaded and don't keep state. In tester reloading can happen at the end of the
- *     current or on start of the next test. Reloading is always executed by the UI thread.
- *     Terminal bug: In online charts without a server connection reloading after unloading may not happen. An indicator or
- *                   expert will crash the next time it tries to call a function of a still unloaded library. In this case
- *                   the terminal log will show the message "Indicator/Expert stopped."
- *
- */// (prevent Visual Assist from merging above block in the hover tooltip of below function)
 
 
 /**
@@ -607,7 +635,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  *
  * @return int - error status
  *
- * @see    additional notes above SyncLibContext_init()
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization) {
    if ((uint)ec         < MIN_VALID_POINTER)         return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -861,7 +889,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
  *
  * @return int - error status
  *
- * @see    additional notes above SyncLibContext_init()
+ * @see    additional notes at the top of this file
  */
 int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -906,7 +934,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
  *
  *  - TODO:
  *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
- *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs "if it is the last one".
+ *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs >> if it's the last one <<.
  *
  *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
  *
@@ -998,33 +1026,33 @@ uint WINAPI ContextChainsPush(ContextChain& chain) {
 
 
 /**
- * Create and initialize a new TEST instance if the passed program is an expert in tester. If the program already holds
- * a test, the existing test is returned.
+ * Create and initialize a new TEST instance if the passed program is an expert in tester. If the context already holds
+ * a pointer to test, the existing test is returned.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
  *
  * @return TEST* - test instance or NULL if the program is not an expert in tester
  */
-TEST* WINAPI Expert_InitTest(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
+TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
    if (ec->test)
       return(ec->test);
 
    if (ec->moduleType==MT_EXPERT && isTesting) {
       TEST* test = new TEST();
-      test_SetCreated  (test, time(NULL)     );
-      test_SetStrategy (test, ec->programName);
-      test_SetSymbol   (test, ec->symbol     );
-      test_SetTimeframe(test, ec->timeframe  );
-      test_SetBarModel (test, Tester_GetBarModel());
-      test->fxtHeader       = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+      test->ec        = ec;
+      test->created   = time(NULL);
+      test->barModel  = Tester_GetBarModel();
+      test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
 
-      test->positions      = new OrderList(); test->positions     ->reserve(32);    // open positions
-      test->longPositions  = new OrderList(); test->longPositions ->reserve(32);
-      test->shortPositions = new OrderList(); test->shortPositions->reserve(32);
-      test->trades         = new OrderList(); test->trades     ->reserve(1024);     // closed positions
-      test->longTrades     = new OrderList(); test->longTrades ->reserve(1024);
-      test->shortTrades    = new OrderList(); test->shortTrades->reserve(1024);
+      test->openPositions        = new OrderList(); test->openPositions     ->reserve(32);
+      test->openLongPositions    = new OrderList(); test->openLongPositions ->reserve(32);
+      test->openShortPositions   = new OrderList(); test->openShortPositions->reserve(32);
+
+      test->closedPositions      = new OrderList(); test->closedPositions     ->reserve(1024);
+      test->closedLongPositions  = new OrderList(); test->closedLongPositions ->reserve(1024);
+      test->closedShortPositions = new OrderList(); test->closedShortPositions->reserve(1024);
+
       return(test);
    }
    return(NULL);
@@ -1442,14 +1470,13 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    - Build 577:     onInitTimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
    -----------------------------------------------------------------------------------------------------------------------------------
    */
-   uint build      = GetTerminalBuild();
    BOOL isUIThread = IsUIThread();
 
 
    // (1) UR_PARAMETERS
    if (uninitReason == UR_PARAMETERS) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_PARAMETERS:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_PARAMETERS:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
       BOOL isProgramNew;
       uint pid = ec->pid;
@@ -1458,7 +1485,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       }
       else {
          pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-         if (!pid && build >= 654) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+         if (!pid && g_terminalBuild >= 654) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid  = pid;
          isProgramNew = !pid;
       }
@@ -1470,7 +1497,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (2) UR_CHARTCHANGE
    if (uninitReason == UR_CHARTCHANGE) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCHANGE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCHANGE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
       uint pid = ec->pid;
       if (!pid) {
@@ -1488,19 +1515,19 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    if (uninitReason == UR_UNDEFINED) {
       // außerhalb iCustom(): je nach Umgebung
       if (!sec) {
-         if (build < 654)         return(IR_TEMPLATE);               // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
-         if (droppedOnChart >= 0) return(IR_TEMPLATE);
-         else                     return(IR_USER    );               // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
+         if (g_terminalBuild < 654) return(IR_TEMPLATE);             // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
+         if (droppedOnChart >= 0)   return(IR_TEMPLATE);
+         else                       return(IR_USER    );             // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
       }
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
-         if (build <= 229) {
+         if (g_terminalBuild <= 229) {
             uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
             if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_UNDEFINED  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
             previousPid = pid;
             return(IR_PROGRAM_AFTERTEST);
          }
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_UNDEFINED:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_UNDEFINED:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       }
       return(IR_PROGRAM);
    }
@@ -1509,22 +1536,22 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (4) UR_REMOVE
    if (uninitReason == UR_REMOVE) {
       // außerhalb iCustom(): nie
-      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
       if (!pid)                      return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_REMOVE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
 
-      if (!isVisualMode/*Fix*/ && 388<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
-      if ( isVisualMode/*Fix*/ && 578<=build && build<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (!isVisualMode/*Fix*/ && 388<=g_terminalBuild && g_terminalBuild<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
+      if ( isVisualMode/*Fix*/ && 578<=g_terminalBuild && g_terminalBuild<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
    // (5) UR_RECOMPILE
    if (uninitReason == UR_RECOMPILE) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_RECOMPILE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_RECOMPILE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
 
       uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
@@ -1538,16 +1565,16 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (6) UR_CHARTCLOSE
    if (uninitReason == UR_CHARTCLOSE) {
       // außerhalb iCustom(): nie
-      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
-      if (build >= 633) {
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (g_terminalBuild >= 633) {
          uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
          if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_CHARTCLOSE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid = pid;
          return(IR_PROGRAM_AFTERTEST);
       }
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
@@ -1556,10 +1583,10 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       case UR_TEMPLATE:      // build > 509
       case UR_INITFAILED:    // ...
       case UR_CLOSE:         // ...
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected %s:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", UninitializeReasonToStr(uninitReason), sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected %s:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", UninitializeReasonToStr(uninitReason), sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
    }
 
-   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", uninitReason, sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", build, EXECUTION_CONTEXT_toStr(ec)));
+   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", uninitReason, sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
 }
 
 
@@ -1577,9 +1604,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
  * @return InitializeReason - init reason or NULL in case of errors
  */
 InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
-   uint build = GetTerminalBuild();
    //debug("uninitReason=%s  testing=%d  droppedX=%d  droppedY=%d  build=%d", UninitReasonToStr(uninitReason), isTesting, droppedOnPosX, droppedOnPosY, build);
-
 
    // UR_PARAMETERS                                      // input parameters changed
    if (uninitReason == UR_PARAMETERS) {
@@ -1589,7 +1614,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
    // UR_CHARTCHANGE                                     // chart symbol or period changed
    if (uninitReason == UR_CHARTCHANGE) {
       int pid = ec->pid;
-      if (!pid) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.pid=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
+      if (!pid) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.pid=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
       char* masterSymbol = g_contextChains[pid][0]->symbol;
       if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
       else                                  return(IR_SYMBOLCHANGE);
@@ -1602,7 +1627,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
 
    // UR_CHARTCLOSE                                      // loaded into an existing chart after new template was loaded
    if (uninitReason == UR_CHARTCLOSE) {                  // (old builds only, corresponds to UR_TEMPLATE of new builds)
-      if (build > 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
+      if (g_terminalBuild > 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
       return(IR_USER);
    }
 
@@ -1625,20 +1650,20 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
 
    // UR_TEMPLATE                                        // loaded into an existing chart after a previously loaded one was removed by LoadTemplate()
    if (uninitReason == UR_TEMPLATE) {
-      if (build <= 509)       return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
-      if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
+      if (g_terminalBuild <= 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
+      if (droppedOnPosX >= 0)     return(IR_USER);       // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
       HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
-      if (hWndDlg)            return(IR_TERMINAL_FAILURE);
-      else                    return(IR_TEMPLATE);
+      if (hWndDlg)                return(IR_TERMINAL_FAILURE);
+      else                        return(IR_TEMPLATE);
    }
 
    switch (uninitReason) {
       case UR_ACCOUNT:
       case UR_CLOSE:
       case UR_INITFAILED:
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, build));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
    }
-   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d (Testing=%d  build=%d)", uninitReason, isTesting, build));
+   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d (Testing=%d  build=%d)", uninitReason, isTesting, g_terminalBuild));
 }
 
 

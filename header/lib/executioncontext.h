@@ -13,7 +13,7 @@ int                WINAPI SyncLibContext_deinit (EXECUTION_CONTEXT* ec, Uninitia
 int                WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);
 
 uint               WINAPI ContextChainsPush(ContextChain& chain);
-TEST*              WINAPI Expert_InitTest(const EXECUTION_CONTEXT* ec, BOOL isTesting);
+TEST*              WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting);
 
 uint               WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart);
 HWND               WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode);

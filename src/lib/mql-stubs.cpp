@@ -120,14 +120,6 @@ int WINAPI onDeinitChartChange() {
 
 
 int WINAPI onDeinitChartClose() {
-   if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
-      if (ec->programType==PT_INDICATOR) {
-         if (!ec->superContext || !ec->testing) {
-            warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_CHARTCLOSE:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-         }
-      }
-   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -135,10 +127,6 @@ int WINAPI onDeinitChartClose() {
 
 // builds > 509
 int WINAPI onDeinitClose() {
-   if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
-      //warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_CLOSE:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -175,10 +163,6 @@ int WINAPI onDeinitRemove() {
 
 // builds > 509
 int WINAPI onDeinitTemplate() {
-   if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
-      //warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_TEMPLATE:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }

@@ -12,6 +12,9 @@
 #include <shlobj.h>
 
 
+uint g_terminalBuild;                                 // terminal build number
+
+
 /**
  * Find the window handle of the "Input parameters" dialog of the MQL program matching the specified type and
  * case-insensitive name.
@@ -65,14 +68,12 @@ HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
  * @return uint - build number or 0 in case of errors
  */
 uint WINAPI GetTerminalBuild() {
-   static uint build;
-
-   if (!build) {
+   static uint build;                                                      // global cache (g_terminalBuild) for DLL,
+   if (!build) {                                                           // local cache for external calls (MQL)
       const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
       if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
-      if (fileInfo) {
+      if (fileInfo)
          build = fileInfo->dwFileVersionLS & 0xffff;
-      }
    }
    return(build);
    #pragma EXPANDER_EXPORT
@@ -499,9 +500,10 @@ BOOL WINAPI TerminalIsPortableMode() {
    static int isPortable = -1;
 
    if (isPortable < 0) {
-      uint build = GetTerminalBuild(); if (!build) return(FALSE);
+      if (!g_terminalBuild)
+         return(FALSE);
 
-      if (build <= 509) {
+      if (g_terminalBuild <= 509) {
          isPortable = TRUE;                                    // always TRUE, on access errors the system uses virtualization
       }
       else {

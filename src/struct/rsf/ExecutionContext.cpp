@@ -514,54 +514,6 @@ datetime WINAPI ec_TestCreated(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the strategy name of the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - strategy name
- */
-const char* WINAPI ec_TestStrategy(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->strategy);
-   return((char*)NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the instrument symbol of the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - instrument symbol
- */
-const char* WINAPI ec_TestSymbol(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->symbol);
-   return((char*)NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the timeframe of the TEST linked to an EXECUTION_CONTEXT.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint - test timeframe
- */
-uint WINAPI ec_TestTimeframe(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->timeframe);
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the start time of the TEST linked to an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1722,7 +1674,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", previousPid="         <<                   ec->previousPid
 
          << ", programType="         <<  ProgramTypeToStr(ec->programType)
-         << ", programName="         <<    doubleQuoteStr(ec->programName)
+         << ", programName="         <<    DoubleQuoteStr(ec->programName)
          << ", programCoreFunction=" << CoreFunctionToStr(ec->programCoreFunction)
          << ", programInitReason="   <<   InitReasonToStr(ec->programInitReason)
          << ", programUninitReason=" << UninitReasonToStr(ec->programUninitReason)
@@ -1730,13 +1682,13 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", programDeinitFlags="  <<  DeinitFlagsToStr(ec->programDeinitFlags)
 
          << ", moduleType="          <<   ModuleTypeToStr(ec->moduleType)
-         << ", moduleName="          <<    doubleQuoteStr(ec->moduleName)
+         << ", moduleName="          <<    DoubleQuoteStr(ec->moduleName)
          << ", moduleCoreFunction="  << CoreFunctionToStr(ec->moduleCoreFunction)
          << ", moduleUninitReason="  << UninitReasonToStr(ec->moduleUninitReason)
          << ", moduleInitFlags="     <<    InitFlagsToStr(ec->moduleInitFlags)
          << ", moduleDeinitFlags="   <<  DeinitFlagsToStr(ec->moduleDeinitFlags)
 
-         << ", symbol="              <<    doubleQuoteStr(ec->symbol)
+         << ", symbol="              <<    DoubleQuoteStr(ec->symbol)
          << ", timeframe="           <<       PeriodToStr(ec->timeframe)
          << ", digits="              <<                   ec->digits
          << ", point="               <<                   ec->point
@@ -1746,8 +1698,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", unchangedBars="       <<                   ec->unchangedBars
          << ", ticks="               <<                   ec->ticks
          << ", cycleTicks="          <<                   ec->cycleTicks
-         << ", lastTickTime="        <<                  (ec->lastTickTime ? doubleQuoteStr(gmtTimeFormat(ec->lastTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
-         << ", prevTickTime="        <<                  (ec->prevTickTime ? doubleQuoteStr(gmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", lastTickTime="        <<                  (ec->lastTickTime ? DoubleQuoteStr(GmtTimeFormat(ec->lastTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", prevTickTime="        <<                  (ec->prevTickTime ? DoubleQuoteStr(GmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
          << ", bid="                 <<                   ec->bid
          << ", ask="                 <<                   ec->ask
 
@@ -1768,7 +1720,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", dllError="            <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="          <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << ", logging="             <<         BoolToStr(ec->logging)
-         << ", customLogFile="       <<    doubleQuoteStr(ec->customLogFile)
+         << ", customLogFile="       <<    DoubleQuoteStr(ec->customLogFile)
          << "}";
    }
    ss << " (0x" << IntToHexStr((uint)ec) << ")";
