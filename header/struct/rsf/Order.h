@@ -6,10 +6,10 @@
 /**
  * Framework struct ORDER
  *
- * Represents a MetaTrader order.
+ * Represents an order ticket, i.e. a pending order or an openened or closed position.
  */
 struct ORDER {
-   uint     id;                              // unique order id (positive, primary key)
+   uint     id;                                    // unique id greater 0 (zero)
    int      ticket;
    int      type;
    double   lots;
@@ -25,9 +25,14 @@ struct ORDER {
    double   profit;
    int      magicNumber;
    char     comment[MAX_ORDER_COMMENT_LENGTH+1];
+
+   double   high;                                  // open high/low tracking
+   double   low;                                   //
+   double   maxRunup;                              // max runup/drawdown tracking
+   double   maxDrawdown;                           //
 };
 
-typedef std::vector<ORDER> OrderList;
+typedef std::vector<ORDER*> OrderList;
 
 
 const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);

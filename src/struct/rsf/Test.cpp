@@ -3,6 +3,7 @@
 #include "lib/format.h"
 #include "lib/math.h"
 #include "lib/string.h"
+#include "struct/rsf/ExecutionContext.h"
 #include "struct/rsf/Test.h"
 
 
@@ -20,78 +21,6 @@ int WINAPI test_SetId(TEST* test, int id) {
 
    test->id = id;
    return(id);
-}
-
-
-/**
- * Set the creation time of a TEST.
- *
- * @param  TEST*    test
- * @param  datetime time - Unix timestamp (GMT)
- *
- * @return datetime - the same time
- */
-datetime WINAPI test_SetCreated(TEST* test, datetime time) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (time <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
-
-   test->created = time;
-   return(time);
-}
-
-
-/**
- * Set the name of the tested strategy of a TEST.
- *
- * @param  TEST* test
- * @param  char* name
- *
- * @return char* - the same name
- */
-const char* WINAPI test_SetStrategy(TEST* test, const char* name) {
-   if ((uint)test < MIN_VALID_POINTER)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)name < MIN_VALID_POINTER)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name || strlen(name) >= sizeof(test->strategy)) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter name \"%s\" (must be 1 to %d characters)", name, sizeof(test->strategy)-1));
-
-   if (!strcpy(test->strategy, name))
-      return(NULL);
-   return(name);
-}
-
-
-/**
- * Set the symbol of a TEST.
- *
- * @param  TEST* test
- * @param  char* symbol
- *
- * @return char* - the same symbol
- */
-const char* WINAPI test_SetSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER)               return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if (!*symbol || strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (must be 1 to %d characters)", symbol, MAX_SYMBOL_LENGTH));
-
-   if (!strcpy(test->symbol, symbol))
-      return(NULL);
-   return(symbol);
-}
-
-
-/**
- * Set the timeframe a TEST was run at.
- *
- * @param  TEST* test
- * @param  uint  timeframe
- *
- * @return uint - the same timeframe
- */
-uint WINAPI test_SetTimeframe(TEST* test, uint timeframe) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((int)timeframe <= 0)            return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d (not positive)", timeframe));
-
-   test->timeframe = timeframe;
-   return(timeframe);
 }
 
 
@@ -130,29 +59,7 @@ datetime WINAPI test_SetEndTime(TEST* test, datetime time) {
 
 
 /**
- * Set the bar model used for a test.
- *
- * @param  TEST* test
- * @param  int   type - bar model type
- *
- * @return int - the same bar model type or EMPTY (-1) in case of errors
- */
-int WINAPI test_SetBarModel(TEST* test, int type) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-
-   switch (type) {
-      case BARMODEL_EVERYTICK:
-      case BARMODEL_CONTROLPOINTS:
-      case BARMODEL_BAROPEN:
-         test->barModel = type;
-         return(type);
-   }
-   return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a bar model)", type)));
-}
-
-
-/**
- * Set the amount of bars in a TEST.
+ * Set the number of bars of a TEST.
  *
  * @param  TEST* test
  * @param  uint  bars
@@ -169,7 +76,7 @@ uint WINAPI test_SetBars(TEST* test, uint bars) {
 
 
 /**
- * Set the amount of ticks in a TEST.
+ * Set the number of ticks of a TEST.
  *
  * @param  TEST* test
  * @param  uint  ticks
@@ -220,7 +127,7 @@ int WINAPI test_SetReportId(TEST* test, int id) {
 
 
 /**
- * Set the reporting symbol of a TEST. Used for report charts.
+ * Set the reporting symbol of a TEST. Used as terminal symbol for charted reports.
  *
  * @param  TEST* test
  * @param  char* symbol
@@ -257,23 +164,22 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    }
    else {
       ss <<  "{id="              <<                     test->id
-         << ", created="         <<                    (test->created   ? doubleQuoteStr(localTimeFormat(test->created, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", strategy="        <<      doubleQuoteStr(test->strategy)
-         << ", reportId="        <<                     test->reportId
-         << ", reportSymbol="    <<      doubleQuoteStr(test->reportSymbol)
-         << ", symbol="          <<      doubleQuoteStr(test->symbol)
-         << ", timeframe="       <<      TimeframeToStr(test->timeframe)
-         << ", startTime="       <<                    (test->startTime ? doubleQuoteStr(gmtTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
-         << ", endTime="         <<                    (test->endTime   ? doubleQuoteStr(gmtTimeFormat(test->endTime,   "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", created="         <<                    (test->created   ? DoubleQuoteStr(LocalTimeFormat(test->created, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", strategy="        <<                    (test->ec        ? DoubleQuoteStr(test->ec->programName) :"NULL")
+         << ", symbol="          <<                    (test->ec        ? DoubleQuoteStr(test->ec->symbol)      :"NULL")
+         << ", timeframe="       <<                    (test->ec        ? TimeframeToStr(test->ec->timeframe)   : "0")
+         << ", startTime="       <<                    (test->startTime ? DoubleQuoteStr(GmtTimeFormat(test->startTime, "%a, %d-%b-%Y %H:%M:%S")) : "0")
+         << ", endTime="         <<                    (test->endTime   ? DoubleQuoteStr(GmtTimeFormat(test->endTime,   "%a, %d-%b-%Y %H:%M:%S")) : "0")
          << ", barModel="        << BarModelDescription(test->barModel)
          << ", bars="            <<                     test->bars
          << ", ticks="           <<                     test->ticks
-         << ", spread="          <<        numberFormat(test->spread, "%.1f")
+         << ", spread="          <<        NumberFormat(test->spread, "%.1f")
          << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
-         << ", open="            <<                    (test->positions   ? to_string(test->positions  ->size()) : "NULL")
-         << ", closed="          <<                    (test->trades      ? to_string(test->trades     ->size()) : "NULL")
-         << ", long="            <<                    (test->longTrades  ? to_string(test->longTrades ->size()) : "NULL")
-         << ", short="           <<                    (test->shortTrades ? to_string(test->shortTrades->size()) : "NULL")
+         << ", trades="          <<                    (test->closedPositions      ? to_string(test->closedPositions     ->size()) : "NULL")
+         << ", long="            <<                    (test->closedLongPositions  ? to_string(test->closedLongPositions ->size()) : "NULL")
+         << ", short="           <<                    (test->closedShortPositions ? to_string(test->closedShortPositions->size()) : "NULL")
+         << ", reportId="        <<                     test->reportId
+         << ", reportSymbol="    <<      DoubleQuoteStr(test->reportSymbol)
          << "}";
    }
    ss << " (0x" << IntToHexStr((uint)test) << ")";

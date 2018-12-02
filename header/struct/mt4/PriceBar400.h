@@ -12,7 +12,6 @@
  * @see  https://docs.mql4.com/mql4changes
  */
 #pragma pack(push, 1)
-
 struct PRICE_BAR_400 {                             // -- offset --- size --- description --------
    datetime time;                                  //         0        4     opentime
    double   open;                                  //         4        8

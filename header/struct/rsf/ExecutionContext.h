@@ -62,7 +62,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    HWND               hChart;                      //       656        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
    HWND               hChartWindow;                //       660        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
                                                    //
-   TEST*              test;                        //       664        4     test configuration, test data, test results         (const)
+   TEST*              test;                        //       664        4     test configuration, data and results                (const)
    BOOL               testing;                     //       668        4     IsTesting() status                                  (const)
    BOOL               visualMode;                  //       672        4     expert IsVisualMode() status                        (const)
    BOOL               optimization;                //       676        4     expert IsOptimization() status                      (const)
@@ -128,9 +128,6 @@ HWND               WINAPI ec_hChartWindow       (const EXECUTION_CONTEXT* ec);
 //                        ec.test
 int                WINAPI ec_TestId             (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestCreated        (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_TestStrategy       (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_TestSymbol         (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_TestTimeframe      (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestStartTime      (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_TestEndTime        (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestBarModel       (const EXECUTION_CONTEXT* ec);
