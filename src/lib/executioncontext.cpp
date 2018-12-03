@@ -418,8 +418,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    ec_SetSymbol       (ec, symbol      );
    ec_SetTimeframe    (ec, timeframe   );
-   ec_SetDigits       (ec, digits      );                         // TODO: fix terminal bug
-   ec_SetPoint        (ec, point       );
    master->rates = ec->rates = NULL;                              // re-initialized on the next tick        // TODO: may be wrong for multiple
    ec_SetBars         (ec,  0          );                         // ...                                    //       init() calls from start()
    ec_SetChangedBars  (ec, -1          );                         // ...                                    //       reset only on UR_CHARTCHANGE
@@ -431,8 +429,10 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  //ec_SetBid          (ec, bid         );                         // ...
  //ec_SetAsk          (ec, ask         );                         // ...
 
-   ec_SetSuperContext (ec, sec         );
+   ec_SetDigits       (ec, digits      );                         // TODO: fix terminal bug
+   ec_SetPoint        (ec, point       );
 
+   ec_SetSuperContext (ec, sec         );
    ec_SetThreadId     (ec, GetCurrentThreadId());
    ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test values
    ec_SetHChartWindow (ec, hChart ? GetParent(hChart) : NULL);

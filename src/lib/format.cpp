@@ -105,45 +105,73 @@ const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
 
 
 /**
- * Format a numeric value as a std::string.
+ * Format a signed integral value.
  *
- * @param  doube value
+ * @param  int   value
  * @param  char* format - format control string as used for printf()
  *
- * @return string - formatted string or an empty string in case of errors
+ * @return char* - formatted string or a NULL pointer in case of errors
  *
- *       Format codes:
+ * Number format codes:
  * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
-string WINAPI numberFormat(double value, const char* format) {
-   if ((uint)format < MIN_VALID_POINTER) return(_EMPTY_STR(error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format)));
+char* WINAPI NumberFormat(int value, const char* format) {
+   if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    uint size = _scprintf(format, value) + 1;                         // +1 for the terminating '\0'
    char* buffer = (char*) alloca(size);                              // on the stack
    sprintf_s(buffer, size, format, value);
 
-   return(string(buffer));
+   return(buffer);                                                   // TODO: close memory leak
 }
 
 
 /**
- * Format a numeric value as a C string.
+ * Format an unsigned integral value.
+ *
+ * @param  uint  value
+ * @param  char* format - format control string as used for printf()
+ *
+ * @return char* - formatted string or a NULL pointer in case of errors
+ *
+ * Number format codes:
+ * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
+ * @see  http://www.cplusplus.com/reference/cstdio/printf/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
+ */
+char* WINAPI NumberFormat(uint value, const char* format) {
+   if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+
+   uint size = _scprintf(format, value) + 1;                         // +1 for the terminating '\0'
+   char* buffer = (char*) alloca(size);                              // on the stack
+   sprintf_s(buffer, size, format, value);
+
+   return(buffer);                                                   // TODO: close memory leak
+}
+
+
+/**
+ * Format a floating point value.
  *
  * @param  doube value
  * @param  char* format - format control string as used for printf()
  *
  * @return char* - formatted string or a NULL pointer in case of errors
  *
- *       Format codes:
+ * Number format codes:
  * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
-const char* WINAPI NumberFormat(double value, const char* format) {
+char* WINAPI NumberFormat(double value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   return(strdup(numberFormat(value, format).c_str()));              // TODO: close memory leak
+   uint size = _scprintf(format, value) + 1;                         // +1 for the terminating '\0'
+   char* buffer = (char*) alloca(size);                              // on the stack
+   sprintf_s(buffer, size, format, value);
+
+   return(buffer);                                                   // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }

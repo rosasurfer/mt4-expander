@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "lib/conversion.h"
 #include "lib/format.h"
 
 
@@ -395,11 +396,7 @@ const char* WINAPI ErrorToStr(int error) {
       error -= ERR_WIN32_ERROR;
       format = "win32:%d";
    }
-   uint size = _scprintf(format, error) + 1;                // +1 for the terminating '\0'
-   char* buffer = new char[size];                           // TODO: close memory leak
-   sprintf_s(buffer, size, format, error);
-
-   return(buffer);
+   return(NumberFormat(error, format));
    #pragma EXPANDER_EXPORT
 }
 
@@ -413,12 +410,8 @@ const char* WINAPI ErrorToStr(int error) {
  *
  * @example IntToHexStr(13465610) => "00CD780A"
  */
-const char* WINAPI IntToHexStr(int value) {
-   uint size = 9;
-   char* buffer = new char[size];                                    // TODO: close memory leak
-   sprintf_s(buffer, size, "%p", value);
-
-   return(buffer);
+char* WINAPI IntToHexStr(int value) {
+   return(NumberFormat(value, "%p"));
    #pragma EXPANDER_EXPORT
 }
 
@@ -430,7 +423,7 @@ const char* WINAPI IntToHexStr(int value) {
  *
  * @return char*
  */
-const char* WINAPI InitFlagsToStr(DWORD flags) {
+char* WINAPI InitFlagsToStr(DWORD flags) {
    string str("");
 
    if (flags & INIT_TIMEZONE           ) str.append("|INIT_TIMEZONE"           );
@@ -452,7 +445,7 @@ const char* WINAPI InitFlagsToStr(DWORD flags) {
  *
  * @return char*
  */
-const char* WINAPI DeinitFlagsToStr(DWORD flags) {
+char* WINAPI DeinitFlagsToStr(DWORD flags) {
    string str("");
 
  //if (flags & DEINIT_*) str.append("|DEINIT_*"          );          // a.t.m. there are no DEINIT flags
@@ -460,6 +453,15 @@ const char* WINAPI DeinitFlagsToStr(DWORD flags) {
 
    return(strcpy(new char[str.length()], str.c_str()+1));            // skip the leading "|"
    #pragma EXPANDER_EXPORT                                           // TODO: close memory leak
+}
+
+
+/**
+ * Alias of InitReasonToStr()
+ */
+const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
+   return(InitReasonToStr(reason));
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -484,50 +486,6 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of InitReasonToStr()
- */
-const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
-   return(InitReasonToStr(reason));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the readable version of an UninitializeReason.
- *
- * @param  UninitializeReason reason
- *
- * @return char* - readable version or NULL if the parameter is invalid
- */
-const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
-   switch (reason) {
-      case UR_UNDEFINED  : return("UR_UNDEFINED"  );
-      case UR_REMOVE     : return("UR_REMOVE"     );
-      case UR_RECOMPILE  : return("UR_RECOMPILE"  );
-      case UR_CHARTCHANGE: return("UR_CHARTCHANGE");
-      case UR_CHARTCLOSE : return("UR_CHARTCLOSE" );
-      case UR_PARAMETERS : return("UR_PARAMETERS" );
-      case UR_ACCOUNT    : return("UR_ACCOUNT"    );
-      // since build > 509
-      case UR_TEMPLATE   : return("UR_TEMPLATE"   );
-      case UR_INITFAILED : return("UR_INITFAILED" );
-      case UR_CLOSE      : return("UR_CLOSE"      );
-   }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of UninitReasonToStr()
- */
-const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
-   return(UninitReasonToStr(reason));
    #pragma EXPANDER_EXPORT
 }
 
@@ -573,29 +531,9 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
 
 
 /**
- * Alias of numberFormat()
- *
- * Format a numeric value as a std::string.
- *
- * @param  doube value
- * @param  char* format - format control string as used for printf()
- *
- * @return string - formatted string or an empty string in case of errors
- *
- *       Format codes:
- * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
- * @see  http://www.cplusplus.com/reference/cstdio/printf/
- * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
- */
-string WINAPI numberToStr(double value, const char* format) {
-   return(numberFormat(value, format));
-}
-
-
-/**
  * Alias of NumberFormat()
  *
- * Format a numeric value as a C string.
+ * Convert a numeric value to a formatted string.
  *
  * @param  doube value
  * @param  char* format - format control string as used for printf()
@@ -607,7 +545,7 @@ string WINAPI numberToStr(double value, const char* format) {
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
-const char* WINAPI NumberToStr(double value, const char* format) {
+char* WINAPI NumberToStr(double value, const char* format) {
    return(NumberFormat(value, format));
    #pragma EXPANDER_EXPORT
 }
@@ -740,12 +678,7 @@ const char* WINAPI PeriodDescription(int period) {
       case PERIOD_MN1: return("MN1");     // 1 month
       case PERIOD_Q1 : return("Q1" );     // 1 quarter
    }
-
-   uint size = _scprintf("%d", period) + 1;
-   char* buffer = new char[size];                                    // TODO: close memory leak
-   sprintf_s(buffer, size, "%d", period);
-
-   return(buffer);
+   return(NumberFormat(period, "%d"));
    #pragma EXPANDER_EXPORT
 }
 
@@ -871,5 +804,40 @@ const char* WINAPI TradeDirectionToStr(int direction) {
       case TRADE_DIRECTIONS_BOTH:  return("TRADE_DIRECTIONS_BOTH" );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Alias of UninitReasonToStr()
+ */
+const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
+   return(UninitReasonToStr(reason));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the readable version of an UninitializeReason.
+ *
+ * @param  UninitializeReason reason
+ *
+ * @return char* - readable version or NULL if the parameter is invalid
+ */
+const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
+   switch (reason) {
+      case UR_UNDEFINED  : return("UR_UNDEFINED"  );
+      case UR_REMOVE     : return("UR_REMOVE"     );
+      case UR_RECOMPILE  : return("UR_RECOMPILE"  );
+      case UR_CHARTCHANGE: return("UR_CHARTCHANGE");
+      case UR_CHARTCLOSE : return("UR_CHARTCLOSE" );
+      case UR_PARAMETERS : return("UR_PARAMETERS" );
+      case UR_ACCOUNT    : return("UR_ACCOUNT"    );
+      // since build > 509
+      case UR_TEMPLATE   : return("UR_TEMPLATE"   );
+      case UR_INITFAILED : return("UR_INITFAILED" );
+      case UR_CLOSE      : return("UR_CLOSE"      );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
    #pragma EXPANDER_EXPORT
 }

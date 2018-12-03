@@ -7,8 +7,8 @@
 #pragma warning(disable:4996)                               // function call with parameters that may be unsafe
 
 #include "stdafx.h"
-#include "shared/defines.h"                                 // definitions shared between C++ and MQL
-#include "shared/errors.h"                                  // error codes shared between C++ and MQL
+#include "shared/defines.h"                                 // shared between C++ and MQL
+#include "shared/errors.h"                                  // shared between C++ and MQL
 
 #include <iomanip>
 #include <string>
@@ -25,15 +25,15 @@ typedef unsigned   int   uint;
 typedef          __int64 int64;
 typedef unsigned __int64 uint64;
 typedef DWORD            color;                             // MQL type color
-typedef time_t           datetime;                          // a 32-bit signed long
+typedef time_t           datetime;                          // MQL type datetime: a 32-bit signed long
 
 
 using std::string;
 using std::wstring;
 
 
-#define CLR_NONE             0xFFFFFFFFL                    // different types in MQL and C++
-#define NO_ERROR                      0L                    // different types in MQL and C++
+#define CLR_NONE             0xFFFFFFFFL                    // different types/same value in C++ and MQL
+#define NO_ERROR                      0L                    // different types/same value in C++ and MQL
 
 #define DUMPMODE_HEX                   1
 #define DUMPMODE_CHAR                  2
@@ -46,7 +46,7 @@ using std::wstring;
 #define MAX_DRIVE                       _MAX_DRIVE          // max. length of drive component
 #define MAX_DIR                         _MAX_DIR            // max. length of path component
 #define MAX_FNAME                       _MAX_FNAME          // max. length of file name component
-#define MAX_EXT                         _MAX_EXT            // max. length of extension component *
+#define MAX_EXT                         _MAX_EXT            // max. length of extension component
 
 
 // MQL program types (flags)
@@ -136,7 +136,7 @@ void __error(const char* fileName, const char* funcName, int line, int code, con
 // Helper functions returning constant values. All parameters are ignored.
 inline int         WINAPI _EMPTY        (...) { return(EMPTY       ); }
 inline const char* WINAPI _EMPTY_STR    (...) { return(""          ); }
-inline       char* WINAPI _EMPTY_NEW_STR(...) { char* s = new char[1]; s[0] = '\0'; return(s); }
+inline       char* WINAPI _EMPTY_NEW_STR(...) { char* s = new char[1]; s[0] = 0; return(s); }
 inline HWND        WINAPI _INVALID_HWND (...) { return(INVALID_HWND); }
 inline int         WINAPI _NULL         (...) { return(NULL        ); }
 inline bool        WINAPI _true         (...) { return(true        ); }
@@ -149,12 +149,12 @@ inline datetime    WINAPI _NaT          (...) { return(NaT         ); }
 
 
 // Helper functions returning variable values. All parameters except the first one are ignored.
-inline bool        WINAPI _bool        (bool   value, ...) { return(value); }
-inline BOOL        WINAPI _BOOL        (BOOL   value, ...) { return(value); }
-inline char        WINAPI _char        (char   value, ...) { return(value); }
-inline int         WINAPI _int         (int    value, ...) { return(value); }
-inline float       WINAPI _float       (float  value, ...) { return(value); }
-inline double      WINAPI _double      (double value, ...) { return(value); }
+inline bool        WINAPI _bool  (bool   value, ...) { return(value); }
+inline BOOL        WINAPI _BOOL  (BOOL   value, ...) { return(value); }
+inline char        WINAPI _char  (char   value, ...) { return(value); }
+inline int         WINAPI _int   (int    value, ...) { return(value); }
+inline float       WINAPI _float (float  value, ...) { return(value); }
+inline double      WINAPI _double(double value, ...) { return(value); }
 
 
 /**

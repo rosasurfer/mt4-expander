@@ -59,40 +59,33 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    uint               digits;                      //       632        4     digits of the symbol     = MQL::Digits              (var)
    uint               pipDigits;                   //       636        4     digits of a pip                                     (var)
    uint               subPipDigits;                //       640        4     digits of a subpip                                  (var)
-   union {                                         //
-      uint            pipPoint;                    //       644        4     number of points of one pip = always 1 or 10        (var)
-      uint            pipPoints;                   //       644        4     alias                                               (var)
-   };                                              //
-   union {                                         //
-      double          pip;                         //       648        8     size of one pip                                     (var)
-      double          pips;                        //       648        8     alias                                               (var)
-   };                                              //
-   union {                                         //
-      double          point;                       //       656        8     size of one point        = MQL::Point               (var)
-      double          points;                      //       656        8     alias                                               (var)
-   };                                              //
-   EXECUTION_CONTEXT* superContext;                //       664        4     indicator host program                              (const) => if indicator loaded by iCustom()
-   uint               threadId;                    //       668        4     current executing thread                            (var)
-   HWND               hChart;                      //       672        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
-   HWND               hChartWindow;                //       676        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
+   BYTE               _alignment2[4];              //       644        4     (alignment to the next double)
+   double             pip;                         //       648        8     size of a pip                                       (var)
+   double             point;                       //       656        8     size of a point          = MQL::Point               (var)
+   uint               pipPoints;                   //       664        4     number of points of a pip: 1 or 10                  (var)
                                                    //
-   TEST*              test;                        //       680        4     test configuration, data and results                (const)
-   BOOL               testing;                     //       684        4     IsTesting() status                                  (const)
-   BOOL               visualMode;                  //       688        4     expert IsVisualMode() status                        (const)
-   BOOL               optimization;                //       692        4     expert IsOptimization() status                      (const)
+   EXECUTION_CONTEXT* superContext;                //       668        4     indicator host program                              (const) => if indicator loaded by iCustom()
+   uint               threadId;                    //       672        4     current executing thread                            (var)
+   HWND               hChart;                      //       676        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
+   HWND               hChartWindow;                //       680        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
                                                    //
-   BOOL               extReporting;                //       696        4     expert input parameter EA.ExtReporting              (var)
-   BOOL               recordEquity;                //       700        4     expert input parameter EA.RecordEquity              (var)
+   TEST*              test;                        //       684        4     test configuration, data and results                (const)
+   BOOL               testing;                     //       688        4     IsTesting() status                                  (const)
+   BOOL               visualMode;                  //       692        4     expert IsVisualMode() status                        (const)
+   BOOL               optimization;                //       696        4     expert IsOptimization() status                      (const)
                                                    //
-   int                mqlError;                    //       704        4     last MQL error (from all program modules)           (var)
-   int                dllError;                    //       708        4     last DLL error                                      (var)
-   char*              dllErrorMsg;                 //       712        4     DLL error message                                   (var)
-   int                dllWarning;                  //       716        4     last DLL warning                                    (var)
-   char*              dllWarningMsg;               //       720        4     DLL warning message                                 (var)
-   BOOL               logging;                     //       724        4     logging configuration                               (var)   => is logging enabled
-   char               customLogFile[MAX_PATH];     //       728      260     custom log filename                                 (const) => custom log location
+   BOOL               extReporting;                //       700        4     expert input parameter EA.ExtReporting              (var)
+   BOOL               recordEquity;                //       704        4     expert input parameter EA.RecordEquity              (var)
+                                                   //
+   int                mqlError;                    //       708        4     last MQL error (from all program modules)           (var)
+   int                dllError;                    //       712        4     last DLL error                                      (var)
+   char*              dllErrorMsg;                 //       716        4     DLL error message                                   (var)
+   int                dllWarning;                  //       720        4     last DLL warning                                    (var)
+   char*              dllWarningMsg;               //       724        4     DLL warning message                                 (var)
+   BOOL               logging;                     //       728        4     logging configuration                               (var)   => is logging enabled
+   char               customLogFile[MAX_PATH];     //       732      260     custom log filename                                 (const) => custom log location
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //              = 988
+#pragma pack(pop)                                  //              = 992
 
 
 // type definition
@@ -120,8 +113,6 @@ DWORD              WINAPI ec_ModuleDeinitFlags  (const EXECUTION_CONTEXT* ec);
 
 const char*        WINAPI ec_Symbol             (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Timeframe          (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_Digits             (const EXECUTION_CONTEXT* ec);
-double             WINAPI ec_Point              (const EXECUTION_CONTEXT* ec);
 //                        ec.rates
 int                WINAPI ec_Bars               (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_ChangedBars        (const EXECUTION_CONTEXT* ec);
@@ -132,6 +123,9 @@ datetime           WINAPI ec_LastTickTime       (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_PrevTickTime       (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                (const EXECUTION_CONTEXT* ec);
+
+uint               WINAPI ec_Digits             (const EXECUTION_CONTEXT* ec);
+double             WINAPI ec_Point              (const EXECUTION_CONTEXT* ec);
 
 BOOL               WINAPI ec_SuperContext       (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target);
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext     (const EXECUTION_CONTEXT* ec);
