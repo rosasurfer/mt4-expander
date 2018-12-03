@@ -174,12 +174,25 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", bars="            <<                     test->bars
          << ", ticks="           <<                     test->ticks
          << ", spread="          <<        NumberFormat(test->spread, "%.1f")
-         << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
-         << ", trades="          <<                    (test->closedPositions      ? NumberFormat(test->closedPositions     ->size(), "%d") : "NULL")
-         << ", long="            <<                    (test->closedLongPositions  ? NumberFormat(test->closedLongPositions ->size(), "%d") : "NULL")
-         << ", short="           <<                    (test->closedShortPositions ? NumberFormat(test->closedShortPositions->size(), "%d") : "NULL")
          << ", reportId="        <<                     test->reportId
          << ", reportSymbol="    <<      DoubleQuoteStr(test->reportSymbol)
+         << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
+
+         << ", trades="          <<                    (test->closedPositions      ? NumberFormat(test->closedPositions     ->size(), "%d") : "NULL")
+         << " ("                 <<                    (test->closedLongPositions  ? NumberFormat(test->closedLongPositions ->size(), "%d") : "NULL")
+         << "/"                  <<                    (test->closedShortPositions ? NumberFormat(test->closedShortPositions->size(), "%d") : "NULL") << ")"
+
+         << ", avgPL="           <<                     test->stat_avgPlPip
+         << " ("                 <<                     test->stat_avgLongPlPip
+         << "/"                  <<                     test->stat_avgShortPlPip << ")"
+
+         << ", avgRunup="        <<                     test->stat_avgRunupPip
+         << " ("                 <<                     test->stat_avgLongRunupPip
+         << "/"                  <<                     test->stat_avgShortRunupPip << ")"
+
+         << ", avgDrawdown="     <<                     test->stat_avgDrawdownPip
+         << " ("                 <<                     test->stat_avgLongDrawdownPip
+         << "/"                  <<                     test->stat_avgShortDrawdownPip << ")"
          << "}";
    }
    ss << NumberFormat((uint)test, " (0x%p)");

@@ -38,8 +38,8 @@ const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
          << ", magicNumber=" <<                order->magicNumber
          << ", comment="     << DoubleQuoteStr(order->comment)
 
-         << ", maxRunup="    <<                order->maxRunup
-         << ", maxDrawdown=" <<                order->maxDrawdown
+         << ", maxRunup="    <<                order->maxRunupPip
+         << ", maxDrawdown=" <<                order->maxDrawdownPip
          << "}";
       result = strdup(ss.str().c_str());                             // TODO: close memory leak
    }

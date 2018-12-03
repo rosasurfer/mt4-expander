@@ -23,8 +23,10 @@ struct TEST {
    uint               bars;                              // number of tested bars
    uint               ticks;                             // number of tested ticks
    double             spread;                            // spread in pip
-   DWORD              tradeDirections;                   // enabled trade directions: Long|Short|Both
    const FXT_HEADER*  fxtHeader;                         // FXT header of the test's price history
+   int                reportId;                          // reporting id (for composition of reportSymbol)
+   char               reportSymbol[MAX_SYMBOL_LENGTH+1]; // reporting symbol (terminal symbol for charted reports)
+   DWORD              tradeDirections;                   // enabled trade directions: Long|Short|Both
 
    OrderList*         openPositions;
    OrderList*         openLongPositions;
@@ -34,8 +36,17 @@ struct TEST {
    OrderList*         closedLongPositions;
    OrderList*         closedShortPositions;
 
-   int                reportId;                          // reporting id (for composition of reportSymbol)
-   char               reportSymbol[MAX_SYMBOL_LENGTH+1]; // reporting symbol (terminal symbol for charted reports)
+   double             stat_avgPlPip;                     // average PL of all trades in pip
+   double             stat_avgLongPlPip;                 // average long PL in pip
+   double             stat_avgShortPlPip;                // average short PL in pip
+
+   double             stat_avgRunupPip;                  // average runup of all trades in pip
+   double             stat_avgLongRunupPip;              // average long runup in pip
+   double             stat_avgShortRunupPip;             // average short runup in pip
+
+   double             stat_avgDrawdownPip;               // average drawdown of all trades in pip
+   double             stat_avgLongDrawdownPip;           // average long drawdown in pip
+   double             stat_avgShortDrawdownPip;          // average short drawdown in pip
 };
 
 

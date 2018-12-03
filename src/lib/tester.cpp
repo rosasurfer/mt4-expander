@@ -318,20 +318,25 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
    for (uint i=0; i < size; ++i) {
       order = openPositions[i];
       if (order->ticket == ticket) {
+         // update order data
          order->closePrice = closePrice;
          order->closeTime  = closeTime;
          order->swap       = swap;
          order->profit     = profit;
 
-         if (order->type == OP_LONG) {                               // update trade statistics
-            order->maxRunup    = round((order->high - order->openPrice)/ec->pip, 1);
-            order->maxDrawdown = round((order->low  - order->openPrice)/ec->pip, 1);
+         // update/calculate metrics
+         if (order->type == OP_LONG) {
+            order->maxRunupPip    = round((order->high - order->openPrice)/ec->pip, 1);
+            order->maxDrawdownPip = round((order->low  - order->openPrice)/ec->pip, 1);
+            order->profitPip      = round((order->closePrice - order->openPrice)/ec->pip, 1);
          }
          else {
-            order->maxRunup    = round((order->openPrice - order->low )/ec->pip, 1);
-            order->maxDrawdown = round((order->openPrice - order->high)/ec->pip, 1);
+            order->maxRunupPip    = round((order->openPrice - order->low )/ec->pip, 1);
+            order->maxDrawdownPip = round((order->openPrice - order->high)/ec->pip, 1);
+            order->profitPip      = round((order->openPrice - order->closePrice)/ec->pip, 1);
          }
 
+         // move the order to closed positions
          openPositions.erase(openPositions.begin() + i);             // drop open position
          ec->test->closedPositions->push_back(order);                // add it to closed positions
 
@@ -454,6 +459,47 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    test_SetBars   (test, bars - test->bars + 1);
    test_SetTicks  (test, ec->ticks            );
    test_SetEndTime(test, endTime              );
+
+   // update test statistics
+   OrderList& trades = *test->closedPositions;
+   uint allTrades   = trades.size();
+   uint longTrades  = test->closedLongPositions->size();
+   uint shortTrades = test->closedShortPositions->size();
+
+   double pl       = 0, longPl       = 0, shortPl       = 0;
+   double runup    = 0, longRunup    = 0, shortRunup    = 0;
+   double drawdown = 0, longDrawdown = 0, shortDrawdown = 0;
+
+   for (uint i=0; i < allTrades; ++i) {
+      ORDER* order = trades[i];
+
+      pl       += order->profitPip;
+      runup    += order->maxRunupPip;
+      drawdown += order->maxDrawdownPip;
+
+      if (order->type == OP_LONG) {
+         longPl       += order->profitPip;
+         longRunup    += order->maxRunupPip;
+         longDrawdown += order->maxDrawdownPip;
+      }
+      else {
+         shortPl       += order->profitPip;
+         shortRunup    += order->maxRunupPip;
+         shortDrawdown += order->maxDrawdownPip;
+      }
+   }
+
+   test->stat_avgPlPip            = round(pl      /allTrades, 1);
+   test->stat_avgRunupPip         = round(runup   /allTrades, 1);
+   test->stat_avgDrawdownPip      = round(drawdown/allTrades, 1);
+
+   test->stat_avgLongPlPip        = round(longPl      /longTrades, 1);
+   test->stat_avgLongRunupPip     = round(longRunup   /longTrades, 1);
+   test->stat_avgLongDrawdownPip  = round(longDrawdown/longTrades, 1);
+
+   test->stat_avgShortPlPip       = round(shortPl      /shortTrades, 1);
+   test->stat_avgShortRunupPip    = round(shortRunup   /shortTrades, 1);
+   test->stat_avgShortDrawdownPip = round(shortDrawdown/shortTrades, 1);
 
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT

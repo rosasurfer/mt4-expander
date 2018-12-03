@@ -27,14 +27,15 @@ struct ORDER {
    datetime closeTime;
    double   commission;
    double   swap;
-   double   profit;
+   double   profit;                                // gross PL in money
+   double   profitPip;                             // gross PL in pip
    int      magicNumber;
    char     comment[MAX_ORDER_COMMENT_LENGTH+1];
 
-   double   high;                                  // open high/low tracking
-   double   low;                                   //
-   double   maxRunup;                              // max runup/drawdown tracking
-   double   maxDrawdown;                           //
+   double   high;                                  // high/low of the open position
+   double   low;
+   double   maxRunupPip;                           // max. runup/drawdown of the open position
+   double   maxDrawdownPip;
 };
 
 typedef std::vector<ORDER*> OrderList;
