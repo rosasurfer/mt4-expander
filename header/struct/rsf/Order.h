@@ -3,6 +3,10 @@
 #include <vector>
 
 
+// forward declaration instead of #include to break circular struct references
+struct TEST;
+
+
 /**
  * Framework struct ORDER
  *
@@ -10,6 +14,7 @@
  */
 struct ORDER {
    uint     id;                                    // unique id greater 0 (zero)
+   TEST*    test;                                  // test the order belongs to
    int      ticket;
    int      type;
    double   lots;

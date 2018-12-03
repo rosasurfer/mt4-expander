@@ -28,57 +28,71 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    uint               previousPid;                 //         4        4     previous pid of the program or NULL                 (const)
                                                    //
    ProgramType        programType;                 //         8        4     MQL program type                                    (const) => type of MQL program
-   char               programName[MAX_PATH];       //        12      260     MQL program name                                    (const) => MQL program name
-   CoreFunction       programCoreFunction;         //       272        4     the program's current core function                 (var  ) => where is it
-   InitializeReason   programInitReason;           //       276        4     last initialize reason                              (var  )
-   UninitializeReason programUninitReason;         //       280        4     last MQL::UninitializeReason()                      (var  )
-   DWORD              programInitFlags;            //       284        4     program init configuration                          (const) => how should it be initialized
-   DWORD              programDeinitFlags;          //       288        4     program deinit configuration                        (const) => how should it be deinitialized
+   char               programName[MAX_FNAME];      //        12      256     MQL program name                                    (const) => MQL program name
+   CoreFunction       programCoreFunction;         //       268        4     the program's current core function                 (var)   => where is it
+   InitializeReason   programInitReason;           //       272        4     last initialize reason                              (var)
+   UninitializeReason programUninitReason;         //       276        4     last MQL::UninitializeReason()                      (var)
+   DWORD              programInitFlags;            //       280        4     program init configuration                          (const) => how should it be initialized
+   DWORD              programDeinitFlags;          //       284        4     program deinit configuration                        (const) => how should it be deinitialized
                                                    //
-   ModuleType         moduleType;                  //       292        4     MQL module type                                     (const) => type of MQL module
-   char               moduleName[MAX_PATH];        //       296      260     MQL module name = MQL::WindowExpertName()           (const) => MQL module name
-   CoreFunction       moduleCoreFunction;          //       556        4     the module's current core function                  (var  ) => where is it
-   UninitializeReason moduleUninitReason;          //       560        4     last MQL::UninitializeReason()                      (var  )
-   DWORD              moduleInitFlags;             //       564        4     module init configuration                           (const) => how should it be initialized
-   DWORD              moduleDeinitFlags;           //       568        4     module deinit configuration                         (const) => how should it be deinitialized
+   ModuleType         moduleType;                  //       288        4     MQL module type                                     (const) => type of MQL module
+   char               moduleName[MAX_FNAME];       //       292      256     MQL module name = MQL::WindowExpertName()           (const) => MQL module name
+   CoreFunction       moduleCoreFunction;          //       548        4     the module's current core function                  (var)   => where is it
+   UninitializeReason moduleUninitReason;          //       552        4     last MQL::UninitializeReason()                      (var)
+   DWORD              moduleInitFlags;             //       556        4     module init configuration                           (const) => how should it be initialized
+   DWORD              moduleDeinitFlags;           //       560        4     module deinit configuration                         (const) => how should it be deinitialized
                                                    //
-   char               symbol[MAX_SYMBOL_LENGTH+1]; //       572       12     current symbol           = MQL::Symbol()            (var  )
-   uint               timeframe;                   //       584        4     current chart period     = MQL::Period()            (var  )
-   uint               digits;                      //       588        4     Digits of the symbol     = MQL::Digits              (var  )
-   double             point;                       //       592        8     Point of the symbol      = MQL::Point               (var  )
-   const void*        rates;                       //       600        4     current price series     = MQL::ArrayCopyRates()    (var  ) => RateInfo[]
-   int                bars;                        //       604        4     current number of bars   = MQL::Bars                (var  )
-   int                changedBars;                 //       608        4     number of changed bars                              (var  )
-   int                unchangedBars;               //       612        4     number of unchanged bars = MQL::IndicatorCounted()  (var  )
-   uint               ticks;                       //       616        4     number of times start() was called for the instance (var  )
-   uint               cycleTicks;                  //       620        4     number of times start() was called for the cycle    (var  )
-   datetime           lastTickTime;                //       624        4     server time of the last received tick               (var  )
-   datetime           prevTickTime;                //       628        4     server time of the previous received tick           (var  )
-   double             bid;                         //       632        8     current bid price        = MQL::Bid                 (var  )
-   double             ask;                         //       640        8     current ask price        = MQL::Ask                 (var  )
+   char               symbol[MAX_SYMBOL_LENGTH+1]; //       564       12     current symbol           = MQL::Symbol()            (var)
+   uint               timeframe;                   //       576        4     current chart period     = MQL::Period()            (var)
+   const void*        rates;                       //       580        4     current price series     = MQL::ArrayCopyRates()    (var)   => RateInfo[] | MqlRates[]
+   int                bars;                        //       584        4     current number of bars   = MQL::Bars                (var)
+   int                changedBars;                 //       588        4     number of changed bars                              (var)
+   int                unchangedBars;               //       592        4     number of unchanged bars = MQL::IndicatorCounted()  (var)
+   uint               ticks;                       //       596        4     number of times start() was called for the instance (var)
+   uint               cycleTicks;                  //       600        4     number of times start() was called for the cycle    (var)
+   datetime           lastTickTime;                //       604        4     server time of the last received tick               (var)
+   datetime           prevTickTime;                //       608        4     server time of the previous received tick           (var)
+   BYTE               _alignment1[4];              //       612        4     (alignment to the next double)
+   double             bid;                         //       616        8     current bid price        = MQL::Bid                 (var)
+   double             ask;                         //       624        8     current ask price        = MQL::Ask                 (var)
                                                    //
-   EXECUTION_CONTEXT* superContext;                //       648        4     indicator host program                              (const) => if indicator loaded by iCustom()
-   uint               threadId;                    //       652        4     current executing thread                            (var  )
-   HWND               hChart;                      //       656        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
-   HWND               hChartWindow;                //       660        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
+   uint               digits;                      //       632        4     digits of the symbol     = MQL::Digits              (var)
+   uint               pipDigits;                   //       636        4     digits of a pip                                     (var)
+   uint               subPipDigits;                //       640        4     digits of a subpip                                  (var)
+   union {                                         //
+      uint            pipPoint;                    //       644        4     number of points of one pip = always 1 or 10        (var)
+      uint            pipPoints;                   //       644        4     alias                                               (var)
+   };                                              //
+   union {                                         //
+      double          pip;                         //       648        8     size of one pip                                     (var)
+      double          pips;                        //       648        8     alias                                               (var)
+   };                                              //
+   union {                                         //
+      double          point;                       //       656        8     size of one point        = MQL::Point               (var)
+      double          points;                      //       656        8     alias                                               (var)
+   };                                              //
+   EXECUTION_CONTEXT* superContext;                //       664        4     indicator host program                              (const) => if indicator loaded by iCustom()
+   uint               threadId;                    //       668        4     current executing thread                            (var)
+   HWND               hChart;                      //       672        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
+   HWND               hChartWindow;                //       676        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
                                                    //
-   TEST*              test;                        //       664        4     test configuration, data and results                (const)
-   BOOL               testing;                     //       668        4     IsTesting() status                                  (const)
-   BOOL               visualMode;                  //       672        4     expert IsVisualMode() status                        (const)
-   BOOL               optimization;                //       676        4     expert IsOptimization() status                      (const)
+   TEST*              test;                        //       680        4     test configuration, data and results                (const)
+   BOOL               testing;                     //       684        4     IsTesting() status                                  (const)
+   BOOL               visualMode;                  //       688        4     expert IsVisualMode() status                        (const)
+   BOOL               optimization;                //       692        4     expert IsOptimization() status                      (const)
                                                    //
-   BOOL               extReporting;                //       680        4     expert input parameter EA.ExtReporting              (var  )
-   BOOL               recordEquity;                //       684        4     expert input parameter EA.RecordEquity              (var  )
+   BOOL               extReporting;                //       696        4     expert input parameter EA.ExtReporting              (var)
+   BOOL               recordEquity;                //       700        4     expert input parameter EA.RecordEquity              (var)
                                                    //
-   int                mqlError;                    //       688        4     last MQL error (from all program modules)           (var  )
-   int                dllError;                    //       692        4     last DLL error                                      (var  )
-   char*              dllErrorMsg;                 //       696        4     DLL error message                                   (var  )
-   int                dllWarning;                  //       700        4     last DLL warning                                    (var  )
-   char*              dllWarningMsg;               //       704        4     DLL warning message                                 (var  )
-   BOOL               logging;                     //       708        4     logging configuration                               (var  ) => is logging enabled
-   char               customLogFile[MAX_PATH];     //       712      260     custom log filename                                 (const) => custom log location
+   int                mqlError;                    //       704        4     last MQL error (from all program modules)           (var)
+   int                dllError;                    //       708        4     last DLL error                                      (var)
+   char*              dllErrorMsg;                 //       712        4     DLL error message                                   (var)
+   int                dllWarning;                  //       716        4     last DLL warning                                    (var)
+   char*              dllWarningMsg;               //       720        4     DLL warning message                                 (var)
+   BOOL               logging;                     //       724        4     logging configuration                               (var)   => is logging enabled
+   char               customLogFile[MAX_PATH];     //       728      260     custom log filename                                 (const) => custom log location
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //              = 972
+#pragma pack(pop)                                  //              = 988
 
 
 // type definition

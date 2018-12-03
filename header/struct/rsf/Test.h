@@ -2,6 +2,7 @@
 #include "struct/mt4/FxtHeader.h"
 #include "struct/rsf/Order.h"
 
+
 // forward declaration instead of #include to break circular struct references
 struct EXECUTION_CONTEXT;
 

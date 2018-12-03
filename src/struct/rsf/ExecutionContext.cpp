@@ -1690,8 +1690,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
          << ", symbol="              <<    DoubleQuoteStr(ec->symbol)
          << ", timeframe="           <<       PeriodToStr(ec->timeframe)
-         << ", digits="              <<                   ec->digits
-         << ", point="               <<                   ec->point
          << ", rates="               <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
          << ", bars="                <<                   ec->bars
          << ", changedBars="         <<                   ec->changedBars
@@ -1702,6 +1700,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", prevTickTime="        <<                  (ec->prevTickTime ? DoubleQuoteStr(GmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
          << ", bid="                 <<                   ec->bid
          << ", ask="                 <<                   ec->ask
+
+         << ", digits="              <<                   ec->digits
+         << ", point="               <<                   ec->point
 
          << ", superContext="        <<                  (ec->superContext ? string("0x").append(IntToHexStr((uint)ec->superContext)) : "NULL")
          << ", threadId="            <<                   ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
