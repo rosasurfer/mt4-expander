@@ -125,7 +125,11 @@ double             WINAPI ec_Bid                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                (const EXECUTION_CONTEXT* ec);
 
 uint               WINAPI ec_Digits             (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_PipDigits          (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_SubPipDigits       (const EXECUTION_CONTEXT* ec);
+double             WINAPI ec_Pip                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Point              (const EXECUTION_CONTEXT* ec);
+uint               WINAPI ec_PipPoints          (const EXECUTION_CONTEXT* ec);
 
 BOOL               WINAPI ec_SuperContext       (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target);
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext     (const EXECUTION_CONTEXT* ec);
@@ -180,12 +184,17 @@ DWORD              WINAPI ec_SetModuleDeinitFlags  (EXECUTION_CONTEXT* ec, DWORD
 
 const char*        WINAPI ec_SetSymbol             (EXECUTION_CONTEXT* ec, const char*        symbol   );
 uint               WINAPI ec_SetTimeframe          (EXECUTION_CONTEXT* ec, uint               timeframe);
-uint               WINAPI ec_SetDigits             (EXECUTION_CONTEXT* ec, uint               digits   );
-double             WINAPI ec_SetPoint              (EXECUTION_CONTEXT* ec, double             point    );
 //                        ec.rates
 int                WINAPI ec_SetBars               (EXECUTION_CONTEXT* ec, int                count    );
 int                WINAPI ec_SetChangedBars        (EXECUTION_CONTEXT* ec, int                count    );
 int                WINAPI ec_SetUnchangedBars      (EXECUTION_CONTEXT* ec, int                count    );
+
+uint               WINAPI ec_SetDigits             (EXECUTION_CONTEXT* ec, uint               digits   );
+uint               WINAPI ec_SetPipDigits          (EXECUTION_CONTEXT* ec, uint               digits   );
+uint               WINAPI ec_SetSubPipDigits       (EXECUTION_CONTEXT* ec, uint               digits   );
+double             WINAPI ec_SetPip                (EXECUTION_CONTEXT* ec, double             size     );
+double             WINAPI ec_SetPoint              (EXECUTION_CONTEXT* ec, double             size     );
+uint               WINAPI ec_SetPipPoints          (EXECUTION_CONTEXT* ec, uint               points   );
 
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext       (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
 uint               WINAPI ec_SetThreadId           (EXECUTION_CONTEXT* ec, uint               id       );

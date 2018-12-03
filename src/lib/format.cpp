@@ -121,7 +121,7 @@ char* WINAPI NumberFormat(int value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    uint size = _scprintf(format, value) + 1;                         // +1 for the terminating '\0'
-   char* buffer = (char*) alloca(size);                              // on the stack
+   char* buffer = new char[size];                                    // on the heap
    sprintf_s(buffer, size, format, value);
 
    return(buffer);                                                   // TODO: close memory leak
@@ -145,7 +145,7 @@ char* WINAPI NumberFormat(uint value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    uint size = _scprintf(format, value) + 1;                         // +1 for the terminating '\0'
-   char* buffer = (char*) alloca(size);                              // on the stack
+   char* buffer = new char[size];                                    // on the heap
    sprintf_s(buffer, size, format, value);
 
    return(buffer);                                                   // TODO: close memory leak
@@ -169,7 +169,7 @@ char* WINAPI NumberFormat(double value, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    uint size = _scprintf(format, value) + 1;                         // +1 for the terminating '\0'
-   char* buffer = (char*) alloca(size);                              // on the stack
+   char* buffer = new char[size];                                    // on the heap
    sprintf_s(buffer, size, format, value);
 
    return(buffer);                                                   // TODO: close memory leak

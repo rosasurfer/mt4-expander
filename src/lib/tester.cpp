@@ -323,15 +323,13 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
          order->swap       = swap;
          order->profit     = profit;
 
-         if (order->type == OP_LONG) {
-            order->maxRunup    = order->high - order->openPrice;     // update trade statistics
-            order->maxDrawdown = order->low  - order->openPrice;
-
-            //order->maxRunup = order->maxRunup / ec->point;
+         if (order->type == OP_LONG) {                               // update trade statistics
+            order->maxRunup    = round((order->high - order->openPrice)/ec->pip, 1);
+            order->maxDrawdown = round((order->low  - order->openPrice)/ec->pip, 1);
          }
          else {
-            order->maxRunup    = order->openPrice - order->low;
-            order->maxDrawdown = order->openPrice - order->high;
+            order->maxRunup    = round((order->openPrice - order->low )/ec->pip, 1);
+            order->maxDrawdown = round((order->openPrice - order->high)/ec->pip, 1);
          }
 
          openPositions.erase(openPositions.begin() + i);             // drop open position
@@ -466,9 +464,7 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
  * @return int
  */
 int WINAPI Test() {
-
-   debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
-
+   //debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
    return(NULL);
    #pragma EXPANDER_EXPORT
 }

@@ -24,13 +24,13 @@ const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
          <<  "{id="          <<                order->id
          << ", ticket="      <<                order->ticket
          << ", type="        << OrderTypeToStr(order->type)
-         << ", lots="        <<               (order->lots       ? NumberFormat(order->lots, "%.2f") : "0")
-         << ", symbol="      << DoubleQuoteStr(order->symbol)
-         << ", openPrice="   <<               (order->openPrice  ? NumberFormat(order->openPrice, "%.5f") : "0")
+         << ", lots="        <<                order->lots
+         << ", symbol="      <<                order->symbol
+         << ", openPrice="   <<                order->openPrice
          << ", openTime="    <<               (order->openTime   ? GmtTimeFormat(order->openTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
-         << ", stopLoss="    <<               (order->stopLoss   ? NumberFormat(order->stopLoss, "%.5f") : "0")
-         << ", takeProfit="  <<               (order->takeProfit ? NumberFormat(order->takeProfit, "%.5f") : "0")
-         << ", closePrice="  <<               (order->closePrice ? NumberFormat(order->closePrice, "%.5f") : "0")
+         << ", stopLoss="    <<                order->stopLoss
+         << ", takeProfit="  <<                order->takeProfit
+         << ", closePrice="  <<                order->closePrice
          << ", closeTime="   <<               (order->closeTime  ? GmtTimeFormat(order->closeTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
          << ", commission="  <<   NumberFormat(order->commission, "%.2f")
          << ", swap="        <<   NumberFormat(order->swap, "%.2f")
@@ -38,8 +38,8 @@ const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
          << ", magicNumber=" <<                order->magicNumber
          << ", comment="     << DoubleQuoteStr(order->comment)
 
-         << ", maxRunup="    <<   NumberFormat(order->maxRunup, "%.5f")
-         << ", maxDrawdown=" <<   NumberFormat(order->maxDrawdown, "%.5f")
+         << ", maxRunup="    <<                order->maxRunup
+         << ", maxDrawdown=" <<                order->maxDrawdown
          << "}";
       result = strdup(ss.str().c_str());                             // TODO: close memory leak
    }
