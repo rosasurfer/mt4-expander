@@ -2,10 +2,7 @@
 #include "expander.h"
 
 
-uint   WINAPI GetBoolsAddress(const BOOL values[]);
 uint   WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize);
-uint   WINAPI GetDoublesAddress(const double values[]);
-uint   WINAPI GetIntsAddress(const int values[]);
 int    WINAPI GetLastWin32Error();
 DWORD  WINAPI GetUIThreadId();
 HANDLE WINAPI GetWindowProperty(HWND hWnd, const char* lpName);

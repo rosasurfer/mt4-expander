@@ -8,48 +8,6 @@ extern "C" {
 
 
 /**
- * Gibt die Speicheradresse eines MQL-Bool-Arrays zurück.
- *
- * @param  BOOL values[] - MQL-Bool-Array (in MetaTrader als Integer-Array implementiert)
- *
- * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
- */
-uint WINAPI GetBoolsAddress(const BOOL values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
-   return((uint) values);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt die Speicheradresse eines MQL-Integer-Arrays zurück.
- *
- * @param  int values[] - MQL-Integer-Array
- *
- * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
- */
-uint WINAPI GetIntsAddress(const int values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
-   return((uint) values);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt die Speicheradresse eines MQL-Double-Arrays zurück.
- *
- * @param  double values[] - MQL-Double-Array
- *
- * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
- */
-uint WINAPI GetDoublesAddress(const double values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
-   return((uint) values);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Gibt den letzten aufgetretenen Windows-Fehler des aktuellen Threads zurück. Wrapper für kernel32::GetLastError(),
  * da MQL eine Funktion desselben Namens definiert.
  *
@@ -289,7 +247,7 @@ char* WINAPI MD5Hash(const void* input, uint length) {
 
 
 /**
- * Calculate the MD5 hash of a C string (ANSI).
+ * Calculate the MD5 hash of a C string (Ansi).
  *
  * @param  char* input - C input string
  *

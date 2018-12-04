@@ -141,20 +141,20 @@ const char* WINAPI GetTerminalModuleFileNameA() {
 /**
  * Return the full filename of the executable the terminal was launched from.
  *
- * @return WCHAR* - filename or a NULL pointer in case of errors
+ * @return wchar* - filename or a NULL pointer in case of errors
  */
-const WCHAR* WINAPI GetTerminalModuleFileNameW() {
-   static WCHAR* filename;
+const wchar* WINAPI GetTerminalModuleFileNameW() {
+   static wchar* filename;
 
    if (!filename) {
-      WCHAR* buffer;
+      wchar* buffer;
       uint size = MAX_PATH >> 1, length=size;
       while (length >= size) {
          size <<= 1;
-         buffer = (WCHAR*) alloca(size * sizeof(WCHAR));             // on the stack
+         buffer = (wchar*) alloca(size * sizeof(wchar));             // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
-      if (!length) return((wchar_t*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
+      if (!length) return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
       filename = copywchars(buffer);                                 // on the heap
    }
    return(filename);
@@ -233,7 +233,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
       if (!infos) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "LoadResource()"));
 
       int offset = 6;
-      if (!wcscmp((wchar_t*)((char*)infos + offset), L"VS_VERSION_INFO")) {
+      if (!wcscmp((wchar*)((char*)infos + offset), L"VS_VERSION_INFO")) {
          offset += sizeof(L"VS_VERSION_INFO");
          offset += offset % 4;                        // align to 32 bit
          fileInfo = (VS_FIXEDFILEINFO*)((char*)infos + offset);
@@ -273,7 +273,7 @@ const wstring& WINAPI GetTerminalPathWS() {
    static wstring path;
 
    if (path.empty()) {
-      const WCHAR* filename = GetTerminalModuleFileNameW();
+      const wchar* filename = GetTerminalModuleFileNameW();
       if (filename) {
          wstring str(filename);
          path = str.substr(0, str.find_last_of(L"\\"));
@@ -423,7 +423,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
       wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
       StrToUpper(terminalPath);                                                        // convert to upper case
-      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()* sizeof(WCHAR)); // calculate MD5 hash
+      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()* sizeof(wchar)); // calculate MD5 hash
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
                                       .append(StrToUpper(md5));
