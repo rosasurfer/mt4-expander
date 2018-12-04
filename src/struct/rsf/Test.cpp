@@ -153,7 +153,7 @@ const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
  *                             (default: no)
  * @return char*
  */
-const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
+char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if ((uint)test < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
 
    std::stringstream ss;
@@ -166,7 +166,7 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
       ss <<  "{id="              <<                     test->id
          << ", created="         <<                    (test->created   ? LocalTimeFormat(test->created, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
          << ", strategy="        <<                    (test->ec        ? DoubleQuoteStr(test->ec->programName) :"NULL")
-         << ", symbol="          <<                    (test->ec        ? DoubleQuoteStr(test->ec->symbol)      :"NULL")
+         << ", symbol="          <<                    (test->ec        ? test->ec->symbol : "NULL")
          << ", timeframe="       <<                    (test->ec        ? TimeframeToStr(test->ec->timeframe) : "0")
          << ", startTime="       <<                    (test->startTime ? GmtTimeFormat(test->startTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
          << ", endTime="         <<                    (test->endTime   ? GmtTimeFormat(test->endTime,   "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
@@ -175,28 +175,23 @@ const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", ticks="           <<                     test->ticks
          << ", spread="          <<        NumberFormat(test->spread, "%.1f")
          << ", reportId="        <<                     test->reportId
-         << ", reportSymbol="    <<      DoubleQuoteStr(test->reportSymbol)
-         << ", tradeDirections=" <<                     test->tradeDirections    // TODO: Long|Short|Both
-
+         << ", reportSymbol="    <<                    (test->reportSymbol ? (*test->reportSymbol ? test->reportSymbol : "\"\"") : "NULL")
+         << ", tradeDirections=" <<                     test->tradeDirections       // TODO: Long|Short|Both
          << ", trades="          <<                    (test->closedPositions      ? NumberFormat(test->closedPositions     ->size(), "%d") : "NULL")
          << " ("                 <<                    (test->closedLongPositions  ? NumberFormat(test->closedLongPositions ->size(), "%d") : "NULL")
          << "/"                  <<                    (test->closedShortPositions ? NumberFormat(test->closedShortPositions->size(), "%d") : "NULL") << ")"
-
-         << ", avgPL="           <<                     test->stat_avgPlPip
-         << " ("                 <<                     test->stat_avgLongPlPip
-         << "/"                  <<                     test->stat_avgShortPlPip << ")"
-
-         << ", avgRunup="        <<                     test->stat_avgRunupPip
-         << " ("                 <<                     test->stat_avgLongRunupPip
-         << "/"                  <<                     test->stat_avgShortRunupPip << ")"
-
-         << ", avgDrawdown="     <<                     test->stat_avgDrawdownPip
-         << " ("                 <<                     test->stat_avgLongDrawdownPip
-         << "/"                  <<                     test->stat_avgShortDrawdownPip << ")"
+         << ", avgRunup="        <<        NumberFormat(test->stat_avgRunupPip, "%.1f")
+         << " ("                 <<        NumberFormat(test->stat_avgLongRunupPip, "%.1f")
+         << "/"                  <<        NumberFormat(test->stat_avgShortRunupPip, "%.1f") << ")"
+         << ", avgDrawdown="     <<        NumberFormat(test->stat_avgDrawdownPip, "%.1f")
+         << " ("                 <<        NumberFormat(test->stat_avgLongDrawdownPip, "%.1f")
+         << "/"                  <<        NumberFormat(test->stat_avgShortDrawdownPip, "%.1f") << ")"
+         << ", avgResult="       <<        NumberFormat(test->stat_avgPlPip, "%.1f")
+         << " ("                 <<        NumberFormat(test->stat_avgLongPlPip, "%.1f")
+         << "/"                  <<        NumberFormat(test->stat_avgShortPlPip, "%.1f") << ")"
          << "}";
    }
-   ss << NumberFormat((uint)test, " (0x%p)");
-   char* result = strdup(ss.str().c_str());                                      // TODO: close memory leak
+   char* result = strdup(ss.str().c_str());                                         // TODO: close memory leak
 
    if (outputDebug) debug(result);
    return(result);

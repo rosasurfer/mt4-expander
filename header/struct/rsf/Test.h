@@ -36,10 +36,6 @@ struct TEST {
    OrderList*         closedLongPositions;
    OrderList*         closedShortPositions;
 
-   double             stat_avgPlPip;                     // average PL of all trades in pip
-   double             stat_avgLongPlPip;                 // average long PL in pip
-   double             stat_avgShortPlPip;                // average short PL in pip
-
    double             stat_avgRunupPip;                  // average runup of all trades in pip
    double             stat_avgLongRunupPip;              // average long runup in pip
    double             stat_avgShortRunupPip;             // average short runup in pip
@@ -47,6 +43,10 @@ struct TEST {
    double             stat_avgDrawdownPip;               // average drawdown of all trades in pip
    double             stat_avgLongDrawdownPip;           // average long drawdown in pip
    double             stat_avgShortDrawdownPip;          // average short drawdown in pip
+
+   double             stat_avgPlPip;                     // average PL of all trades in pip
+   double             stat_avgLongPlPip;                 // average long PL in pip
+   double             stat_avgShortPlPip;                // average short PL in pip
 };
 
 
@@ -67,4 +67,4 @@ const char* WINAPI test_SetReportSymbol   (TEST* test, const char* symbol   );
 
 
 // helpers
-const char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug = FALSE);
+char*       WINAPI TEST_toStr(const TEST* test, BOOL outputDebug = FALSE);

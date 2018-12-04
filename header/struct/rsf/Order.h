@@ -25,20 +25,21 @@ struct ORDER {
    double   takeProfit;
    double   closePrice;
    datetime closeTime;
-   double   commission;
-   double   swap;
-   double   profit;                                // gross PL in money
-   double   profitPip;                             // gross PL in pip
+   double   commission;                            // values in money terms
+   double   swap;                                  // ...
+   double   profit;                                // ...
    int      magicNumber;
    char     comment[MAX_ORDER_COMMENT_LENGTH+1];
 
    double   high;                                  // high/low of the open position
    double   low;
-   double   maxRunupPip;                           // max. runup/drawdown of the open position
-   double   maxDrawdownPip;
+   double   runupPip;                              // values in pip
+   double   drawdownPip;                           // ...
+   double   plPip;                                 // ...
 };
 
 typedef std::vector<ORDER*> OrderList;
 
 
-const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);
+// helpers
+char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);

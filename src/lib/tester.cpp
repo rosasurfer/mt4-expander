@@ -326,14 +326,14 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
 
          // update/calculate metrics
          if (order->type == OP_LONG) {
-            order->maxRunupPip    = round((order->high - order->openPrice)/ec->pip, 1);
-            order->maxDrawdownPip = round((order->low  - order->openPrice)/ec->pip, 1);
-            order->profitPip      = round((order->closePrice - order->openPrice)/ec->pip, 1);
+            order->runupPip    = round((order->high - order->openPrice)/ec->pip, 1);
+            order->drawdownPip = round((order->low  - order->openPrice)/ec->pip, 1);
+            order->plPip       = round((order->closePrice - order->openPrice)/ec->pip, 1);
          }
          else {
-            order->maxRunupPip    = round((order->openPrice - order->low )/ec->pip, 1);
-            order->maxDrawdownPip = round((order->openPrice - order->high)/ec->pip, 1);
-            order->profitPip      = round((order->openPrice - order->closePrice)/ec->pip, 1);
+            order->runupPip    = round((order->openPrice - order->low )/ec->pip, 1);
+            order->drawdownPip = round((order->openPrice - order->high)/ec->pip, 1);
+            order->plPip       = round((order->openPrice - order->closePrice)/ec->pip, 1);
          }
 
          // move the order to closed positions
@@ -395,8 +395,11 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    std::ofstream file(logfile.c_str());
    if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
 
-   file << "test=" << TEST_toStr(test) << NL;
-   debug("test=%s", TEST_toStr(test));
+   char* sTest = TEST_toStr(test);
+   file << "test=" << sTest << NL;
+
+   debug("test=%s", sTest);
+   free(sTest);
 
    // process closed positions (skip open positions closed automatically by the tester at test end)
    OrderList& trades = *test->closedPositions;
@@ -404,7 +407,9 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
 
    for (uint i=0; i < size; ++i) {
       ORDER* order = trades[i];
-      file << "order." << i << "=" << ORDER_toStr(order) << NL;
+      char* sOrder = ORDER_toStr(order);
+      file << "order." << i << "=" << sOrder << NL;
+      free(sOrder);
    }
    file.close();
 
@@ -466,40 +471,40 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    uint longTrades  = test->closedLongPositions->size();
    uint shortTrades = test->closedShortPositions->size();
 
-   double pl       = 0, longPl       = 0, shortPl       = 0;
    double runup    = 0, longRunup    = 0, shortRunup    = 0;
    double drawdown = 0, longDrawdown = 0, shortDrawdown = 0;
+   double pl       = 0, longPl       = 0, shortPl       = 0;
 
    for (uint i=0; i < allTrades; ++i) {
       ORDER* order = trades[i];
 
-      pl       += order->profitPip;
-      runup    += order->maxRunupPip;
-      drawdown += order->maxDrawdownPip;
+      runup    += order->runupPip;
+      drawdown += order->drawdownPip;
+      pl       += order->plPip;
 
       if (order->type == OP_LONG) {
-         longPl       += order->profitPip;
-         longRunup    += order->maxRunupPip;
-         longDrawdown += order->maxDrawdownPip;
+         longRunup    += order->runupPip;
+         longDrawdown += order->drawdownPip;
+         longPl       += order->plPip;
       }
       else {
-         shortPl       += order->profitPip;
-         shortRunup    += order->maxRunupPip;
-         shortDrawdown += order->maxDrawdownPip;
+         shortRunup    += order->runupPip;
+         shortDrawdown += order->drawdownPip;
+         shortPl       += order->plPip;
       }
    }
 
-   test->stat_avgPlPip            = round(pl      /allTrades, 1);
    test->stat_avgRunupPip         = round(runup   /allTrades, 1);
    test->stat_avgDrawdownPip      = round(drawdown/allTrades, 1);
+   test->stat_avgPlPip            = round(pl      /allTrades, 1);
 
-   test->stat_avgLongPlPip        = round(longPl      /longTrades, 1);
    test->stat_avgLongRunupPip     = round(longRunup   /longTrades, 1);
    test->stat_avgLongDrawdownPip  = round(longDrawdown/longTrades, 1);
+   test->stat_avgLongPlPip        = round(longPl      /longTrades, 1);
 
-   test->stat_avgShortPlPip       = round(shortPl      /shortTrades, 1);
    test->stat_avgShortRunupPip    = round(shortRunup   /shortTrades, 1);
    test->stat_avgShortDrawdownPip = round(shortDrawdown/shortTrades, 1);
+   test->stat_avgShortPlPip       = round(shortPl      /shortTrades, 1);
 
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT
