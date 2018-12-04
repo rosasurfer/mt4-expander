@@ -20,12 +20,13 @@
 
 
 // type aliases
-typedef unsigned   char  uchar;
-typedef unsigned   int   uint;
-typedef          __int64 int64;
-typedef unsigned __int64 uint64;
-typedef DWORD            color;                             // MQL type color
-typedef time_t           datetime;                          // MQL type datetime: a 32-bit signed long
+typedef unsigned   char    uchar;
+typedef            wchar_t wchar;
+typedef unsigned   int     uint;
+typedef          __int64   int64;
+typedef unsigned __int64   uint64;
+typedef DWORD              color;                           // MQL type color
+typedef time_t             datetime;                        // MQL type datetime: a 32-bit signed long
 
 
 using std::string;

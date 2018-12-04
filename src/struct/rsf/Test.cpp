@@ -2,6 +2,7 @@
 #include "lib/conversion.h"
 #include "lib/format.h"
 #include "lib/math.h"
+#include "lib/memory.h"
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 #include "struct/rsf/Test.h"
@@ -159,7 +160,7 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    std::stringstream ss;
    TEST empty = {};
 
-   if (!memcmp(test, &empty, sizeof(TEST))) {
+   if (MemCompare(test, &empty, sizeof(TEST))) {
       ss << "{}";
    }
    else {

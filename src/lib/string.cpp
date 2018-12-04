@@ -115,48 +115,32 @@ std::istream& getline(std::istream& is, string& line) {
 
 
 /**
- * Gibt den übergebenen Zeiger auf einen C-String selbst zurück. Wird in MQL zum Lesen eines Strings von
- * einer Adresse verwendet, da MetaTrader einen C-String automatisch in einen MQL-String konvertiert.
+ * Return the passed pointer to an Ansi string. Essentially this is a no-op, used by MQL to read and convert a C string to
+ * it's MQL representation. The terminal will allocate new memory and copy the passed string to the resulting MQL string.
  *
- * @param  char* value - C-String
+ * @param  char* value - Ansi string
  *
- * @return char* - derselbe Zeiger oder NULL, falls ein Fehler auftrat
+ * @return char* - the same string or NULL in case of errors
  */
-const char* WINAPI GetString(const char* value) {
+const char* WINAPI GetStringA(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   return((char*) value);
+   return(value);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Gibt die Speicheradresse eines C-Strings zurück.
+ * Return the passed pointer to a Unicode string. Essentially this is a no-op, used by MQL to read and convert a wide-characer
+ * string to it's MQL representation. The terminal will allocate new memory and copy the passed string to the resulting MQL
+ * string.
  *
- * @param  char* value - C-String: MetaTrader übergibt für einen MQL-String das Element MqlStr.string
+ * @param  wchar* value - Unicode string
  *
- * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
- *
- * Achtung: GetStringAddress() darf in MQL nur mit Array-Elementen verwendet werden. Ist der Parameter ein einfacher String,
- *          wird an die DLL eine Kopie dieses Strings übergeben. Diese Kopie wird u.U. sofort nach Rückkehr freigegeben und
- *          die erhaltene Adresse ist ungültig (z.B. im Tester bei mehrfachen Tests).
+ * @return wchar* - the same string or NULL in case of errors
  */
-uint WINAPI GetStringAddress(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   return((uint) value);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Gibt die Speicheradresse eines MQL-String-Arrays zurück.
- *
- * @param  MqlStr values[] - MQL-String-Array
- *
- * @return uint - Speicheradresse oder NULL, falls ein Fehler auftrat
- */
-uint WINAPI GetStringsAddress(const MqlStr values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
-   return((uint) values);
+const wchar* WINAPI GetStringW(const wchar* value) {
+   if (value && (uint)value < MIN_VALID_POINTER) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   return(value);
    #pragma EXPANDER_EXPORT
 }
 
@@ -200,25 +184,25 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
 
 
 /**
- * Whether or not two strings are considered equal.
+ * Whether or not two strings are considered equal. Convenient helper to hide the non-intuitive syntax of strcmp().
  *
- * @param  char* s1
- * @param  char* s2
+ * @param  char* a
+ * @param  char* b
  *
  * @return BOOL
  */
-BOOL WINAPI StrCompare(const char* s1, const char* s2) {
-   if ( s1 ==  s2) return(TRUE);                                     // if pointers are equal values are too
-   if (!s1 || !s2) return(FALSE);                                    // if one is a NULL pointer the other can't
-   return(strcmp(s1, s2) == 0);                                      // both are not NULL pointers
+BOOL WINAPI StrCompare(const char* a, const char* b) {
+   if (a == b)   return(TRUE);                                       // if pointers are equal values are too
+   if (!a || !b) return(FALSE);                                      // if one is a NULL pointer the other can't
+   return(strcmp(a, b) == 0);                                        // both are not NULL pointers
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Prüft, ob ein C-String initialisiert oder ein NULL-Pointer ist.
+ * Whether a C string is initialized or a NULL pointer.
  *
- * @param  char* value - zu prüfender String
+ * @param  char* value - the string to check
  *
  * @return BOOL
  */
@@ -255,12 +239,12 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
 /**
  * Whether or not a string starts with the specified substring.
  *
- * @param  wchar_t* str
- * @param  wchar_t* prefix
+ * @param  wchar* str
+ * @param  wchar* prefix
  *
  * @return BOOL
  */
-BOOL WINAPI StrStartsWith(const wchar_t* str, const wchar_t* prefix) {
+BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
    if (!str)          return(FALSE);
    if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
@@ -460,16 +444,16 @@ char* WINAPI strTrim(char* const str) {
 
 
 /**
- * Convert a C ANSI string to a unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
+ * Convert a C Ansi string to a Unicode string (UTF-16). Conversion stops at the end of the Ansi string or when the size
  * limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
  *
- * @param  _In_  char*    source   - C ANSI or multi-byte UTF-8 source string
- * @param  _Out_ wchar_t* dest     - buffer the converted unicode string is written to
- * @param  _In_  size_t   destSize - size of the destination buffer in bytes
+ * @param  _In_  char*   source   - C Ansi or multi-byte UTF-8 source string
+ * @param  _Out_ wchar*  dest     - buffer the converted Unicode string is written to
+ * @param  _In_  size_t  destSize - size of the destination buffer in bytes
  *
  * @return uint - number of converted characters (equal to the wide-character length of the resulting string)
  */
-uint WINAPI AnsiToWCharStr(const char* source, wchar_t* dest, size_t destSize) {
+uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, size_t destSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
    if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
    if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
@@ -490,16 +474,16 @@ uint WINAPI AnsiToWCharStr(const char* source, wchar_t* dest, size_t destSize) {
 
 
 /**
- * Convert a unicode string (UTF-16) to a C ANSI string. Conversion stops at the end of the unicode string or when the
+ * Convert a Unicode string (UTF-16) to a C Ansi string. Conversion stops at the end of the Unicode string or when the
  * size limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
  *
- * @param  _In_  wchar_t* source   - unicode source string
- * @param  _Out_ char*    dest     - destination buffer the converted ANSI string is written to
- * @param  _In_  size_t   destSize - size of the destination buffer in bytes
+ * @param  _In_  wchar* source   - Unicode source string
+ * @param  _Out_ char*  dest     - destination buffer the converted Ansi string is written to
+ * @param  _In_  size_t destSize - size of the destination buffer in bytes
  *
  * @return uint - the single-byte character length of the resulting string
  */
-uint WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize) {
+uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, size_t destSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
    if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
    if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
@@ -518,33 +502,33 @@ uint WINAPI WCharToAnsiStr(const wchar_t* source, char* dest, size_t destSize) {
 
 
 /**
- * Convert a unicode string (UTF-16) to a C multi-byte string.
+ * Convert a Unicode string (UTF-16) to a C multi-byte string.
  *
- * @param  wchar_t* str - null-terminated unicode string
+ * @param  wchar* str - null-terminated Unicode string
  *
  * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wchar_t* str) {
+char* wchartombs(const wchar* str) {
    return(wchartombs(str, wcslen(str)));
 }
 
 
 /**
- * Convert a sequence of unicode characters (UTF-16) to a C multi-byte string.
+ * Convert a sequence of Unicode characters (UTF-16) to a C multi-byte string.
  *
- * @param  wchar_t* sequence - sequence of wide characters
- * @param  size_t   count    - number of wide characters
+ * @param  wchar* sequence - sequence of wide characters
+ * @param  size_t count    - number of wide characters
  *
  * @return char* - null-terminated C string or a NULL pointer in case of errors
  *
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wchar_t* sequence, size_t count) {
-   wchar_t* source = wcsncpy(new wchar_t[count+1], sequence, count);
+char* wchartombs(const wchar* sequence, size_t count) {
+   wchar* source = wcsncpy(new wchar[count+1], sequence, count);
    source[count] = 0;
 
    size_t size = (count << 1) + 1;
@@ -553,7 +537,7 @@ char* wchartombs(const wchar_t* sequence, size_t count) {
    uint bytes = wcstombs(dest, source, size);
 
    if (bytes == -1) {
-      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert unicode to multi-byte characters");
+      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert Unicode to multi-byte characters");
       free(dest);
       dest = NULL;
    }
@@ -567,7 +551,7 @@ char* wchartombs(const wchar_t* sequence, size_t count) {
 
 
 /**
- * Convert a unicode string (UTF-16) to a C multi-byte string.
+ * Convert a Unicode string (UTF-16) to a C multi-byte string.
  *
  * @param  wstring& str
  *

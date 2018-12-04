@@ -1,6 +1,7 @@
 #include "expander.h"
 #include "lib/conversion.h"
 #include "lib/format.h"
+#include "lib/memory.h"
 #include "lib/string.h"
 #include "struct/rsf/Order.h"
 
@@ -19,7 +20,7 @@ char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
    std::stringstream ss;
    ORDER empty = {};
 
-   if (!memcmp(order, &empty, sizeof(ORDER))) {
+   if (MemCompare(order, &empty, sizeof(ORDER))) {
       ss << "{}";
    }
    else {

@@ -2,6 +2,7 @@
 #include "lib/conversion.h"
 #include "lib/format.h"
 #include "lib/helper.h"
+#include "lib/memory.h"
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 
@@ -1806,7 +1807,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
    std::stringstream ss;
    EXECUTION_CONTEXT empty = {};
 
-   if (!memcmp(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
+   if (MemCompare(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
       ss << "{}";
    }
    else {
