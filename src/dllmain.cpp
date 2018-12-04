@@ -29,6 +29,31 @@ extern std::vector<uint>         g_threadsPrograms;                  // the last
 //
 
 
+// forward declarations
+void WINAPI onProcessAttach();
+void WINAPI onProcessDetach(BOOL isTerminating);
+
+
+/**
+ * DLL entry point.
+ *
+ * @param  HMODULE hModule
+ * @param  DWORD   reason
+ * @param  LPVOID  reserved
+ *
+ * @return BOOL
+ */
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
+   switch (reason) {
+      case DLL_PROCESS_ATTACH: onProcessAttach();               break;
+      case DLL_THREAD_ATTACH :                                  break;
+      case DLL_THREAD_DETACH :                                  break;
+      case DLL_PROCESS_DETACH: onProcessDetach((BOOL)reserved); break;
+   }
+   return(TRUE);
+}
+
+
 /**
  * Handler for DLL_PROCESS_ATTACH events.
  */
@@ -45,27 +70,18 @@ void WINAPI onProcessAttach() {
 
 /**
  * Handler for DLL_PROCESS_DETACH events.
+ *
+ * @param  BOOL isTerminating - whether or not the DLL is detached because the process is terminating
  */
-void WINAPI onProcessDetach() {
+void WINAPI onProcessDetach(BOOL isTerminating) {
+   if (isTerminating)
+      return;
+
    DeleteCriticalSection(&g_terminalMutex);
    RemoveTickTimers();
 
-   for (Locks::iterator i=g_locks.begin(); i != g_locks.end(); ++i) {
-      delete i->second;
+   for (Locks::iterator it=g_locks.begin(), end=g_locks.end(); it != end; ++it) {
+      delete it->second;
    }
    g_locks.clear();
-}
-
-
-/**
- * DLL entry point
- */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
-   switch (reason) {
-      case DLL_PROCESS_ATTACH: onProcessAttach(); break;
-      case DLL_THREAD_ATTACH :                    break;
-      case DLL_THREAD_DETACH :                    break;
-      case DLL_PROCESS_DETACH: onProcessDetach(); break;
-   }
-   return(TRUE);
 }

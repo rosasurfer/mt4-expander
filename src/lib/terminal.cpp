@@ -63,6 +63,84 @@ HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
 
 
 /**
+ * Return the full filename of the loaded MT4Expander DLL.
+ *
+ * @return char* - filename or a NULL pointer in case of errors
+ */
+const char* WINAPI GetLibraryModuleFileNameA() {
+   static char* filename;
+
+   if (!filename) {
+      char* buffer;
+      uint size=MAX_PATH >> 1, length=size;
+      while (length >= size) {
+         size <<= 1;
+         buffer = (char*) alloca(size);                              // on the stack
+         length = GetModuleFileName(HMODULE_DLL, buffer, size);      // may return a path longer than MAX_PATH
+      }
+      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
+
+      filename = strdup(buffer);                                     // on the heap
+   }
+   return(filename);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get the module handle of the current module, i.e. of this DLL.
+ *
+ * @return HMODULE - DLL module handle (not the terminal.exe's module handle)
+ *
+ * Note: backward-compatible to Windows 2000
+ */
+HMODULE WINAPI GetLibraryModuleW2K() {
+   MEMORY_BASIC_INFORMATION mbi = {};
+   VirtualQuery(GetLibraryModuleW2K, &mbi, sizeof(mbi));
+   return((HMODULE)mbi.AllocationBase);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get the module handle of the current module, i.e. of this DLL.
+ *
+ * @return HMODULE - DLL module handle (not the terminal.exe's module handle)
+ *
+ * Note: requires at least Windows XP or Windows Server 2003
+ */
+HMODULE WINAPI GetLibraryModuleXP() {
+   HMODULE hModule = NULL;
+   GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetLibraryModuleXP, &hModule);
+   return(hModule);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the MQL directory the terminal currently uses.
+ *
+ * @return char* - MQL directory name as an Ansi string or a NULL pointer in case of errors
+ */
+const char* WINAPI GetMqlDirectoryA() {
+   static char* mqlDirectory;
+
+   if (!mqlDirectory) {
+      const char* dataPath = GetTerminalDataPathA();
+      if (!dataPath) return(NULL);
+
+      string dir(dataPath);
+      if (g_terminalBuild <= 509) dir.append("\\experts");
+      else                        dir.append("\\mql4");
+
+      mqlDirectory = strdup(dir.c_str());
+   }
+   return(mqlDirectory);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the terminal's build number.
  *
  * @return uint - build number or 0 in case of errors
@@ -436,6 +514,84 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
 
 /**
+ * Load a custom MQL program for execution on the specified chart.
+ *
+ * @param  HWND        hChart      - handle of the chart to load the program to = value of MQL::WindowHandle()
+ * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
+ * @param  char*       programName - MQL program name (Ansi string)
+ *
+ * @return BOOL - whether or not the load command was successfully queued; not if the MQL program was indeed launched
+ */
+BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
+   if (hChart <= 0)                           return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not a window handle)", hChart));
+   if (!IsWindow(hChart))                     return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
+   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
+   if (!strlen(programName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
+
+   string file(GetMqlDirectoryA());
+   uint cmd = 0;
+
+   // check the file for existence
+   switch (programType) {
+      case PT_INDICATOR:
+         file.append("\\indicators\\").append(programName).append(".ex4");
+         cmd = MT4_LOAD_CUSTOM_INDICATOR;
+         break;
+
+      case PT_EXPERT:
+         file.append(g_terminalBuild <= 509 ? "\\":"\\experts\\").append(programName).append(".ex4");
+         cmd = MT4_LOAD_EXPERT;
+         break;
+
+      case PT_SCRIPT:
+         file.append("\\scripts\\").append(programName).append(".ex4");
+         cmd = MT4_LOAD_SCRIPT;
+         break;
+
+      default:
+         return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
+   }
+   if (!IsFileA(file)) return(error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
+
+   // trigger the launch of the program
+   if (!PostMessage(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))   // pass a copy of "name" from the heap
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessage()"));
+
+   // prevent the DLL from getting unloaded before the message is processed
+   HMODULE hModule = NULL;
+   if (!GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_PIN|GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)LoadMqlProgramA, &hModule))
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=>GetModuleHandleEx()"));
+
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Load a custom MQL program for execution on the specified chart.
+ *
+ * @param  HWND        hChart      - handle of the chart to load the program to = value of MQL::WindowHandle()
+ * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
+ * @param  wchar*      programName - MQL program name (Unicode string)
+ *
+ * @return BOOL - whether or not the load command was successfully queued; not if the MQL program was indeed launched
+ */
+BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
+   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
+
+   size_t bufSize = wcslen(programName) + 1;
+   char* ansiName = new char[bufSize];
+   WCharToAnsiStr(programName, ansiName, bufSize);
+
+   BOOL result = LoadMqlProgramA(hChart, programType, ansiName);
+   delete[] ansiName;
+
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether or not the terminal has write permission to the specified directory.
  *
  * @param  char* dir - directory name
@@ -538,4 +694,16 @@ int WINAPI Test_synchronize() {
    char* s2 = " world";
    char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
    return(0);
+}
+
+
+/**
+ * @return int
+ */
+int WINAPI Test(HWND hChart) {
+
+   LoadMqlProgramW(hChart, PT_SCRIPT, L"ClosePositions");
+
+   return(NULL);
+   #pragma EXPANDER_EXPORT
 }

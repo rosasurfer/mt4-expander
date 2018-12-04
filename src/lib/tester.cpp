@@ -509,13 +509,3 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT
 }
-
-
-/**
- * @return int
- */
-int WINAPI Test() {
-   //debug("sizeof(EXECUTION_CONTEXT) = %d", sizeof(EXECUTION_CONTEXT));
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
