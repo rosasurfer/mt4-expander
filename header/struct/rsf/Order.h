@@ -3,6 +3,10 @@
 #include <vector>
 
 
+// forward declaration instead of #include to break circular struct references
+struct TEST;
+
+
 /**
  * Framework struct ORDER
  *
@@ -10,6 +14,7 @@
  */
 struct ORDER {
    uint     id;                                    // unique id greater 0 (zero)
+   TEST*    test;                                  // test the order belongs to
    int      ticket;
    int      type;
    double   lots;
@@ -20,19 +25,21 @@ struct ORDER {
    double   takeProfit;
    double   closePrice;
    datetime closeTime;
-   double   commission;
-   double   swap;
-   double   profit;
+   double   commission;                            // values in money terms
+   double   swap;                                  // ...
+   double   profit;                                // ...
    int      magicNumber;
    char     comment[MAX_ORDER_COMMENT_LENGTH+1];
 
-   double   high;                                  // open high/low tracking
-   double   low;                                   //
-   double   maxRunup;                              // max runup/drawdown tracking
-   double   maxDrawdown;                           //
+   double   high;                                  // high/low of the open position
+   double   low;
+   double   runupPip;                              // values in pip
+   double   drawdownPip;                           // ...
+   double   plPip;                                 // ...
 };
 
 typedef std::vector<ORDER*> OrderList;
 
 
-const char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);
+// helpers
+char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug = FALSE);

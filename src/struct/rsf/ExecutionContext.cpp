@@ -248,34 +248,6 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's "Digits" value.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint - digits
- */
-uint WINAPI ec_Digits(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->digits);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a program's "Point" value.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return double - point
- */
-double WINAPI ec_Point(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->point);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an EXECUTION_CONTEXT's "Bars" value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -397,6 +369,90 @@ double WINAPI ec_Bid(const EXECUTION_CONTEXT* ec) {
 double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->ask);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbol's "Digits" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return uint - digits
+ */
+uint WINAPI ec_Digits(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->digits);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbol's "PipDigits" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return uint - digits of a pip
+ */
+uint WINAPI ec_PipDigits(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->pipDigits);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbol's "SubPipDigits" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return uint - digits of a subpip
+ */
+uint WINAPI ec_SubPipDigits(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->subPipDigits);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbol's "Pip" size.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return double - pip size
+ */
+double WINAPI ec_Pip(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->pip);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbol's "Point" size.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return double - point size
+ */
+double WINAPI ec_Point(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->point);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbol's "PipPoints" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return uint - number of points of a pip
+ */
+uint WINAPI ec_PipPoints(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->pipPoints);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1208,48 +1264,6 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
 
 /**
- * Set a program's "Digits" value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               digits
- *
- * @return uint - the same value
- */
-uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)digits < 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
-
-   ec->digits = digits;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->digits = digits;
-   return(digits);
-}
-
-
-/**
- * Set a program's "Point" value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  double             point
- *
- * @return double - the same value
- */
-double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double point) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (point <= 0)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter point: %f (must be positive)", point));
-
-   ec->point = point;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
-      g_contextChains[pid][0]->point = point;
-   return(point);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT's "Bars" value (the number of price bars).
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1309,6 +1323,132 @@ int WINAPI ec_SetUnchangedBars(EXECUTION_CONTEXT* ec, int count) {
    if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
       g_contextChains[pid][0]->unchangedBars = count;
    return(count);
+}
+
+
+/**
+ * Set the current symbol's "Digits" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               digits
+ *
+ * @return uint - the same value
+ */
+uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((int)digits < 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
+
+   ec->digits = digits;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->digits = digits;
+   return(digits);
+}
+
+
+/**
+ * Set the current symbol's "PipDigits" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               digits
+ *
+ * @return uint - the same value
+ */
+uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((int)digits < 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
+
+   ec->pipDigits = digits;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->pipDigits = digits;
+   return(digits);
+}
+
+
+/**
+ * Set the current symbol's "SubPipDigits" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               digits
+ *
+ * @return uint - the same value
+ */
+uint WINAPI ec_SetSubPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((int)digits < 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
+
+   ec->subPipDigits = digits;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->subPipDigits = digits;
+   return(digits);
+}
+
+
+/**
+ * Set the current symbol's "Pip" size.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  double             size
+ *
+ * @return double - the same size
+ */
+double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (size <= 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %f (must be positive)", size));
+
+   ec->pip = size;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->pip = size;
+   return(size);
+}
+
+
+/**
+ * Set the current symbol's "Point" size.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  double             size
+ *
+ * @return double - the same size
+ */
+double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (size <= 0)                    return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %f (must be positive)", size));
+
+   ec->point = size;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->point = size;
+   return(size);
+}
+
+
+/**
+ * Set the current symbol's "PipPoints" value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  uint               points - number of points per pip
+ *
+ * @return uint - the same value
+ */
+uint WINAPI ec_SetPipPoints(EXECUTION_CONTEXT* ec, uint points) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (points!=1 && points!=10)      return(error(ERR_INVALID_PARAMETER, "invalid parameter points: %d (must be 1 or 10)", points));
+
+   ec->pipPoints = points;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_contextChains.size() > pid && ec==g_contextChains[pid][1] && g_contextChains[pid][0])
+      g_contextChains[pid][0]->pipPoints = points;
+   return(points);
 }
 
 
@@ -1690,25 +1830,30 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
          << ", symbol="              <<    DoubleQuoteStr(ec->symbol)
          << ", timeframe="           <<       PeriodToStr(ec->timeframe)
-         << ", digits="              <<                   ec->digits
-         << ", point="               <<                   ec->point
-         << ", rates="               <<                  (ec->rates ? string("0x").append(IntToHexStr((uint)ec->rates)) : "NULL")
+         << ", rates="               <<                  (ec->rates ? NumberFormat((uint)ec->rates, "0x%p") : "NULL")
          << ", bars="                <<                   ec->bars
          << ", changedBars="         <<                   ec->changedBars
          << ", unchangedBars="       <<                   ec->unchangedBars
          << ", ticks="               <<                   ec->ticks
          << ", cycleTicks="          <<                   ec->cycleTicks
-         << ", lastTickTime="        <<                  (ec->lastTickTime ? DoubleQuoteStr(GmtTimeFormat(ec->lastTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
-         << ", prevTickTime="        <<                  (ec->prevTickTime ? DoubleQuoteStr(GmtTimeFormat(ec->prevTickTime, "%Y.%m.%d %H:%M:%S")) : "0")
+         << ", lastTickTime="        <<                  (ec->lastTickTime ? GmtTimeFormat(ec->lastTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", prevTickTime="        <<                  (ec->prevTickTime ? GmtTimeFormat(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
          << ", bid="                 <<                   ec->bid
          << ", ask="                 <<                   ec->ask
 
-         << ", superContext="        <<                  (ec->superContext ? string("0x").append(IntToHexStr((uint)ec->superContext)) : "NULL")
-         << ", threadId="            <<                   ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
-         << ", hChart="              <<                  (ec->hChart       ? string("0x").append(IntToHexStr((uint)ec->hChart))       : "NULL")
-         << ", hChartWindow="        <<                  (ec->hChartWindow ? string("0x").append(IntToHexStr((uint)ec->hChartWindow)) : "NULL")
+         << ", digits="              <<                   ec->digits
+         << ", pipDigits="           <<                   ec->pipDigits
+         << ", subPipDigits="        <<                   ec->subPipDigits
+         << ", pip="                 <<                   ec->pip
+         << ", point="               <<                   ec->point
+         << ", pipPoints="           <<                   ec->pipPoints
 
-         << ", test="                <<                  (ec->test ? string("0x").append(IntToHexStr((uint)ec->test)) : "NULL")
+         << ", superContext="        <<                  (ec->superContext ? NumberFormat((uint)ec->superContext, "0x%p") : "NULL")
+         << ", threadId="            <<                   ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
+         << ", hChart="              <<                  (ec->hChart       ? NumberFormat((uint)ec->hChart,       "0x%p") : "NULL")
+         << ", hChartWindow="        <<                  (ec->hChartWindow ? NumberFormat((uint)ec->hChartWindow, "0x%p") : "NULL")
+
+         << ", test="                <<                  (ec->test ? NumberFormat((uint)ec->test, "0x%p") : "NULL")
          << ", testing="             <<         BoolToStr(ec->testing)
          << ", visualMode="          <<         BoolToStr(ec->visualMode)
          << ", optimization="        <<         BoolToStr(ec->optimization)
@@ -1723,7 +1868,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", customLogFile="       <<    DoubleQuoteStr(ec->customLogFile)
          << "}";
    }
-   ss << " (0x" << IntToHexStr((uint)ec) << ")";
+   ss << NumberFormat((uint)ec, " (0x%p)");
    char* result = strdup(ss.str().c_str());                             // TODO: close memory leak
 
    if (outputDebug) debug(result);
