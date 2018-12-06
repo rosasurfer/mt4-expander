@@ -4,7 +4,9 @@
 #pragma warning(disable:4060)                               // switch statement contains no 'case' or 'default' labels
 #pragma warning(disable:4065)                               // switch statement contains 'default' but no 'case' labels
 #pragma warning(disable:4101)                               // unreferenced local variable
-#pragma warning(disable:4996)                               // function call with parameters that may be unsafe
+#pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
+
+#define  EXPANDER_EXPORT  comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 
 #include "stdafx.h"
 #include "shared/defines.h"                                 // shared between C++ and MQL
@@ -13,10 +15,6 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
-
-
-// export unmangled names without a DEF file
-#define EXPANDER_EXPORT comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 
 
 // type aliases
@@ -28,6 +26,9 @@ typedef unsigned __int64   uint64;
 typedef DWORD              color;                           // MQL type color
 typedef time_t             datetime;                        // MQL type datetime: a 32-bit signed long
 
+
+namespace rsf {}
+using namespace rsf;
 
 using std::string;
 using std::wstring;

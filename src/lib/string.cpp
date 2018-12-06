@@ -475,6 +475,34 @@ uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, size_t destSize) {
 }
 
 
+namespace rsf {
+
+
+/**
+ * Write formatted data to a string. This function is similar to sprintf() but allocates the buffer for the string itself and
+ * returns it. The caller is responsible for releasing the string's memory after usage with "free()".
+ *
+ * @param  char* format - string with format codes to write data to
+ * @param  ...          - variable number of arguments
+ *
+ * @return char*
+ */
+char* WINAPI strformat(const char* format, ...) {
+   if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+
+   va_list args;
+   va_start(args, format);
+
+   uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
+   char * buffer = (char*)malloc(size);
+   vsprintf_s(buffer, size, format, args);                  // TODO: add to memory manager (close memory leak)
+
+   va_end(args);
+   return(buffer);
+}
+
+
 /**
  * Convert a Unicode string (UTF-16) to a C multi-byte string.
  *
@@ -485,7 +513,7 @@ uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, size_t destSize) {
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wchar* str) {
+char* WINAPI wchartombs(const wchar* str) {
    return(wchartombs(str, wcslen(str)));
 }
 
@@ -501,7 +529,7 @@ char* wchartombs(const wchar* str) {
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wchar* sequence, size_t count) {
+char* WINAPI wchartombs(const wchar* sequence, size_t count) {
    wchar* source = wcsncpy(new wchar[count+1], sequence, count);
    source[count] = 0;
 
@@ -534,6 +562,7 @@ char* wchartombs(const wchar* sequence, size_t count) {
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wstring& str) {
+char* WINAPI wchartombs(const wstring& str) {
    return(wchartombs(str.c_str(), str.length()));
+}
 }

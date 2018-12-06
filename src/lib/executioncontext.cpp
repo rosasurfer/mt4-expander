@@ -438,8 +438,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetPoint        (ec, point);
    ec_SetPipPoints    (ec, (uint)round(pow(10., (int)(digits & 1))));
 
-   master->pipPriceFormat    = ec->pipPriceFormat    = strdup(string(".").append(to_string(ec->pipDigits)).c_str());
-   master->subPipPriceFormat = ec->subPipPriceFormat = strdup(string(ec->pipPriceFormat).append("'").c_str());
+   master->pipPriceFormat    = ec->pipPriceFormat    = strformat(".%d", ec->pipDigits);
+   master->subPipPriceFormat = ec->subPipPriceFormat = strformat("%s'", ec->pipPriceFormat);
    master->priceFormat       = ec->priceFormat       = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : ec->subPipPriceFormat;
 
    ec_SetSuperContext (ec, sec         );
@@ -742,8 +742,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                master->point        = point;
                master->pipPoints    = (uint)round(pow((double)10., (int)(digits & 1)));
 
-               master->pipPriceFormat    = strdup(string(".").append(to_string(master->pipDigits)).c_str());
-               master->subPipPriceFormat = strdup(string(master->pipPriceFormat).append("'").c_str());
+               master->pipPriceFormat    = strformat(".%d", master->pipDigits);
+               master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
                master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
 
                master->superContext = FALSE;
@@ -813,8 +813,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       master->point         = point;
       master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
 
-      master->pipPriceFormat    = strdup(string(".").append(to_string(master->pipDigits)).c_str());
-      master->subPipPriceFormat = strdup(string(master->pipPriceFormat).append("'").c_str());
+      master->pipPriceFormat    = strformat(".%d", master->pipDigits);
+      master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
       master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
 
       master->superContext  = NULL;                                  // no super context at all or already released
@@ -889,8 +889,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->point         = point;
          master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
 
-         master->pipPriceFormat    = strdup(string(".").append(to_string(master->pipDigits)).c_str());
-         master->subPipPriceFormat = strdup(string(master->pipPriceFormat).append("'").c_str());
+         master->pipPriceFormat    = strformat(".%d", master->pipDigits);
+         master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
          master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
 
          master->threadId      = g_threads[threadIndex];
