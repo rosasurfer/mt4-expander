@@ -483,7 +483,7 @@ namespace rsf {
  * returns it. The caller is responsible for releasing the string's memory after usage with "free()".
  *
  * @param  char* format - string with format codes to write data to
- * @param  ...          - variable number of arguments
+ * @param        ...    - variable number of further arguments
  *
  * @return char*
  */

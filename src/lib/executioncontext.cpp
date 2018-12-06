@@ -1407,7 +1407,7 @@ uint WINAPI GetCurrentThreadIndex() {
 /**
  * Get the id of the last MQL program executed by the current thread.
  *
- * @return uint - program id or NULL (0) if the current thread didn't execute a MQL program before
+ * @return uint - program id or NULL (0) if the current thread didn't yet execute a MQL program
  */
 uint WINAPI GetLastThreadProgram() {
    uint index = GetCurrentThreadIndex();

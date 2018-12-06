@@ -115,24 +115,15 @@ enum UninitializeReason {
 
 
 // Debugging and error handling.
-#define dump(...)    _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define warn(...)    _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define dump(...)   _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define debug(...)  _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define warn(...)   _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define error(...)  _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int   _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
-
-int   _debug(const char* fileName, const char* funcName, int line, const char*   format, ...                );
-int   _debug(const char* fileName, const char* funcName, int line, const string& format, ...                );
-void __debug(const char* fileName, const char* funcName, int line, const char*   format, const va_list& args);
-
-int   _warn (const char* fileName, const char* funcName, int line, int code, const char*   format, ...                );
-int   _warn (const char* fileName, const char* funcName, int line, int code, const string& format, ...                );
-void __warn (const char* fileName, const char* funcName, int line, int code, const char*   format, const va_list& args);
-
-int   _error(const char* fileName, const char* funcName, int line, int code, const char*   format, ...                );
-int   _error(const char* fileName, const char* funcName, int line, int code, const string& format, ...                );
-void __error(const char* fileName, const char* funcName, int line, int code, const char*   format, const va_list& args);
+int WINAPI _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
+int WINAPI _debug(const char* fileName, const char* funcName, int line, const char* format, ...);
+int WINAPI _warn (const char* fileName, const char* funcName, int line, int code, const char* format, ...);
+int WINAPI _error(const char* fileName, const char* funcName, int line, int code, const char* format, ...);
 
 
 // Helper functions returning constant values. All parameters are ignored.
