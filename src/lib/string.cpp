@@ -480,10 +480,10 @@ namespace rsf {
 
 /**
  * Write formatted data to a string. This function is similar to sprintf() but allocates the buffer for the string itself and
- * returns it. The caller is responsible for releasing the string's memory after usage with "free()".
+ * returns it. The caller is responsible for releasing the string's memory after usage (with "free").
  *
  * @param  char* format - string with format codes to write data to
- * @param        ...    - variable number of further arguments
+ * @param        ...    - variable number of additional arguments
  *
  * @return char*
  */
@@ -493,12 +493,30 @@ char* WINAPI strformat(const char* format, ...) {
 
    va_list args;
    va_start(args, format);
+   char* result = strformat(format, args);
+   va_end(args);
+
+   return(result);
+}
+
+
+/**
+ * Write formatted data to a string. This function is similar to sprintf() but allocates the buffer for the string itself and
+ * returns it. The caller is responsible for releasing the string's memory after usage (with "free").
+ *
+ * @param  char*    format - string with format codes to write data to
+ * @param  va_list& args   - variable list of additional arguments
+ *
+ * @return char*
+ */
+char* WINAPI strformat(const char* format, const va_list& args) {
+   if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
    char * buffer = (char*)malloc(size);
    vsprintf_s(buffer, size, format, args);                  // TODO: add to memory manager (close memory leak)
 
-   va_end(args);
    return(buffer);
 }
 

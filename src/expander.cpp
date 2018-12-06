@@ -1,7 +1,8 @@
 #include "expander.h"
 #include "lib/conversion.h"
-#include "lib/helper.h"
 #include "lib/executioncontext.h"
+#include "lib/helper.h"
+#include "lib/string.h"
 
 #include <vector>
 
@@ -77,24 +78,18 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
    // format the variable parameters
    va_list args;
    va_start(args, msgFormat);
-   uint size = _vscprintf(msgFormat, args) + 1;                               // +1 for the terminating '\0'
-   char* msg = (char*)alloca(size);                                           // on the stack
-   vsprintf_s(msg, size, msgFormat, args);
+   char* msg = strformat(msgFormat, args);
    va_end(args);
 
-   // get the simple file name of the call: {basename.ext}
+   // insert the call location at the beginning: {basename.ext(line)}
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
+   char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, msg);
 
-   // insert the call location at the beginning of the message
-   char* format = "MT4Expander::%s%s::%s(%d)  %s";
-   size = _scprintf(format, baseName, ext, funcName, line, msg) + 1;          // +1 for the terminating '\0'
-   char* buffer = (char*)alloca(size);                                        // on the stack
-   sprintf_s(buffer, size, format, baseName, ext, funcName, line, msg);
-
-   // @see  limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
-   OutputDebugString(buffer);
+   OutputDebugString(fullMsg);      // @see  limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
+   free(msg);
+   free(fullMsg);
    return(NULL);
 }
 
@@ -116,38 +111,39 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
    // format the variable parameters
    va_list args;
    va_start(args, msgFormat);
-   uint size = _vscprintf(msgFormat, args) + 1;                               // +1 for the terminating '\0'
-   char* msg = (char*)alloca(size);                                           // on the stack
-   vsprintf_s(msg, size, msgFormat, args);
+   char* msg = strformat(msgFormat, args);
    va_end(args);
 
-   // get the simple file name of the call: {basename.ext}
+   // insert the call location at the beginning: {basename.ext(line)}
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-
-   // insert the call location at the beginning of the message
-   char* format = "MT4Expander::%s%s::%s(%d)  WARN: %s";
-   size = _scprintf(format, baseName, ext, funcName, line, msg) + 1;          // +1 for the terminating '\0'
-   char* locationMsg = (char*)alloca(size);                                   // on the stack
-   sprintf_s(locationMsg, size, format, baseName, ext, funcName, line, msg);
-   msg = locationMsg;
+   char* newMsg = strformat("MT4Expander::%s%s::%s(%d)  WARN: %s", baseName, ext, funcName, line, msg);
+   free(msg);
+   msg = newMsg;
 
    // add the error code at the end (if any)
    if (error_code) {
-      format = "%s  [%s]";
-      const char* sError = ErrorToStr(error_code);
-      size = _scprintf(format, msg, sError) + 1;                              // +1 for the terminating '\0'
-      char* fullMsg = (char*)alloca(size);                                    // on the stack
-      sprintf_s(fullMsg, size, format, msg, sError);
-      msg = fullMsg;
+      newMsg = strformat("%s  [%s]", msg, ErrorToStr(error_code));
+      free(msg);
+      msg = newMsg;
    }
    OutputDebugString(msg);
+   free(msg);
 
-   //if (BOOL inMqlCall = FALSE) {
-   //   ec_SetDllWarning(ec, error);
-   //   ec_SetDllWarningMsg(ec, msg);
-   //}
+   // store the warning in the EXECUTION_CONTEXT of the currently executed MQL program
+   if (uint pid = GetLastThreadProgram()) {
+      ContextChain& chain = g_contextChains[pid];
+      uint size = chain.size();
+      if (size && chain[0]) {                                        // master context (if available)
+         chain[0]->dllWarning = error_code;
+         //ec_SetDllWarningMsg(ec, msg);
+      }
+      if (size > 1 && chain[1]) {                                    // main context (if available)
+         chain[1]->dllWarning = error_code;
+         //ec_SetDllWarningMsg(ec, msg);
+      }
+   }
    return(NULL);
 }
 
@@ -165,41 +161,35 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
  * @return int - 0 (NULL)
  */
 int WINAPI _error(const char* fileName, const char* funcName, int line, int error_code, const char* msgFormat, ...) {
+   if (!error_code) return(NULL);
    if (!msgFormat)  msgFormat = "(null)";
    if (!*msgFormat) msgFormat = "(empty)";
-   if (!error_code) return(NULL);
 
    // format the variable parameters
    va_list args;
    va_start(args, msgFormat);
-   uint size = _vscprintf(msgFormat, args) + 1;                               // +1 for the terminating '\0'
-   char* msg = (char*)alloca(size);                                           // on the stack
-   vsprintf_s(msg, size, msgFormat, args);
+   char* msg = strformat(msgFormat, args);
    va_end(args);
 
-   // get the simple file name of the call: {basename.ext}
+   // insert the call location at the beginning: {basename.ext(line)}
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
+   char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, msg, ErrorToStr(error_code));
 
-   // insert call location and error code
-   char* format = "MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]";
-   const char* sError = ErrorToStr(error_code);
-   size = _scprintf(format, baseName, ext, funcName, line, msg, sError) + 1;  // +1 for the terminating '\0'
-   char* fullMsg = (char*)alloca(size);                                       // on the stack
-   sprintf_s(fullMsg, size, format, baseName, ext, funcName, line, msg, sError);
-   msg = fullMsg;
-   OutputDebugString(msg);
+   OutputDebugString(fullMsg);
+   free(msg);
+   free(fullMsg);
 
    // store the error in the EXECUTION_CONTEXT of the currently executed MQL program
    if (uint pid = GetLastThreadProgram()) {
       ContextChain& chain = g_contextChains[pid];
       uint size = chain.size();
-      if (size && chain[0]) {                                                 // master context (if available)
+      if (size && chain[0]) {                                        // master context (if available)
          chain[0]->dllError = error_code;
          //ec_SetDllErrorMsg(ec, msg);
       }
-      if (size > 1 && chain[1]) {                                             // main context (if available)
+      if (size > 1 && chain[1]) {                                    // main context (if available)
          chain[1]->dllError = error_code;
          //ec_SetDllErrorMsg(ec, msg);
       }

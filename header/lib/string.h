@@ -33,6 +33,7 @@ namespace rsf {
 
 inline wchar* WINAPI copywchars(const wchar* str) { return(wcscpy(new wchar[wcslen(str)+1], str)); };
 char*         WINAPI strformat(const char* format, ...);
+char*         WINAPI strformat(const char* format, const va_list& args);
 char*         WINAPI wchartombs(const wchar* str);
 char*         WINAPI wchartombs(const wchar* sequence, size_t count);
 char*         WINAPI wchartombs(const wstring& str);
