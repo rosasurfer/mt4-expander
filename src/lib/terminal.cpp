@@ -697,13 +697,15 @@ int WINAPI Test_synchronize() {
 }
 
 
+#include "struct/rsf/ExecutionContext.h"
+
+
 /**
  * @return int
  */
-int WINAPI Test(HWND hChart) {
-
-   LoadMqlProgramW(hChart, PT_SCRIPT, L"ClosePositions");
-
+int WINAPI Test() {
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
+
+

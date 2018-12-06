@@ -3,8 +3,6 @@
 
 
 const char*   WINAPI DoubleQuoteStr(const char* value);
-string        WINAPI doubleQuoteStr(const char* value);
-string        WINAPI doubleQuoteStr(const string& value);
 std::istream&        getline(std::istream& is, string& line);
 const char*   WINAPI GetStringA(const char* value);
 const wchar*  WINAPI GetStringW(const wchar* value);

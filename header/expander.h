@@ -119,7 +119,7 @@ enum UninitializeReason {
 #define warn(...)    _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int   _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_CHAR);
+int   _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
 
 int   _debug(const char* fileName, const char* funcName, int line, const char*   format, ...                );
 int   _debug(const char* fileName, const char* funcName, int line, const string& format, ...                );

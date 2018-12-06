@@ -63,29 +63,32 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    double             pip;                         //       648        8     size of a pip                                       (var)
    double             point;                       //       656        8     size of a point          = MQL::Point               (var)
    uint               pipPoints;                   //       664        4     number of points of a pip: 1 or 10                  (var)
+   const char*        priceFormat;                 //       668        4     standard price format                               (var)
+   const char*        pipPriceFormat;              //       672        4     pip price format (never subpips)                    (var)
+   const char*        subPipPriceFormat;           //       676        4     subpip price format (always subpips)                (var)
                                                    //
-   EXECUTION_CONTEXT* superContext;                //       668        4     indicator host program                              (const) => if indicator loaded by iCustom()
-   uint               threadId;                    //       672        4     current executing thread                            (var)
-   HWND               hChart;                      //       676        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
-   HWND               hChartWindow;                //       680        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
+   EXECUTION_CONTEXT* superContext;                //       680        4     indicator host program                              (const) => if indicator loaded by iCustom()
+   uint               threadId;                    //       684        4     current executing thread                            (var)
+   HWND               hChart;                      //       688        4     chart handle             = MQL::WindowHandle()      (const) => handle of the chart frame
+   HWND               hChartWindow;                //       692        4     chart handle with title bar "Symbol,Period"         (const) => handle of the chart window
                                                    //
-   TEST*              test;                        //       684        4     test configuration, data and results                (const)
-   BOOL               testing;                     //       688        4     IsTesting() status                                  (const)
-   BOOL               visualMode;                  //       692        4     expert IsVisualMode() status                        (const)
-   BOOL               optimization;                //       696        4     expert IsOptimization() status                      (const)
+   TEST*              test;                        //       696        4     test configuration, data and results                (const)
+   BOOL               testing;                     //       700        4     IsTesting() status                                  (const)
+   BOOL               visualMode;                  //       704        4     expert IsVisualMode() status                        (const)
+   BOOL               optimization;                //       708        4     expert IsOptimization() status                      (const)
                                                    //
-   BOOL               extReporting;                //       700        4     expert input parameter EA.ExtReporting              (var)
-   BOOL               recordEquity;                //       704        4     expert input parameter EA.RecordEquity              (var)
+   BOOL               extReporting;                //       712        4     expert input parameter EA.ExtReporting              (var)
+   BOOL               recordEquity;                //       716        4     expert input parameter EA.RecordEquity              (var)
                                                    //
-   int                mqlError;                    //       708        4     last MQL error (from all program modules)           (var)
-   int                dllError;                    //       712        4     last DLL error                                      (var)
-   char*              dllErrorMsg;                 //       716        4     DLL error message                                   (var)
-   int                dllWarning;                  //       720        4     last DLL warning                                    (var)
-   char*              dllWarningMsg;               //       724        4     DLL warning message                                 (var)
-   BOOL               logging;                     //       728        4     logging configuration                               (var)   => is logging enabled
-   char               customLogFile[MAX_PATH];     //       732      260     custom log filename                                 (const) => custom log location
+   int                mqlError;                    //       720        4     last MQL error (from all program modules)           (var)
+   int                dllError;                    //       724        4     last DLL error                                      (var)
+   char*              dllErrorMsg;                 //       728        4     DLL error message                                   (var)
+   int                dllWarning;                  //       732        4     last DLL warning                                    (var)
+   char*              dllWarningMsg;               //       736        4     DLL warning message                                 (var)
+   BOOL               logging;                     //       740        4     logging configuration                               (var)   => is logging enabled
+   char               customLogFile[MAX_PATH];     //       744      260     custom log filename                                 (const) => custom log location
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //              = 992
+#pragma pack(pop)                                  //             = 1004
 
 
 // type definition
@@ -130,6 +133,9 @@ uint               WINAPI ec_SubPipDigits       (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Pip                (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Point              (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PipPoints          (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_PriceFormat        (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_PipPriceFormat     (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_SubPipPriceFormat  (const EXECUTION_CONTEXT* ec);
 
 BOOL               WINAPI ec_SuperContext       (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target);
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext     (const EXECUTION_CONTEXT* ec);
@@ -195,6 +201,9 @@ uint               WINAPI ec_SetSubPipDigits       (EXECUTION_CONTEXT* ec, uint 
 double             WINAPI ec_SetPip                (EXECUTION_CONTEXT* ec, double             size     );
 double             WINAPI ec_SetPoint              (EXECUTION_CONTEXT* ec, double             size     );
 uint               WINAPI ec_SetPipPoints          (EXECUTION_CONTEXT* ec, uint               points   );
+//                        ec.priceFormat
+//                        ec.pipPriceFormat
+//                        ec.subPipPriceFormat
 
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext       (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
 uint               WINAPI ec_SetThreadId           (EXECUTION_CONTEXT* ec, uint               id       );

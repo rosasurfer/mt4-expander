@@ -459,6 +459,48 @@ uint WINAPI ec_PipPoints(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return the current symbols standard price format.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char* - format string
+ */
+const char* WINAPI ec_PriceFormat(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->priceFormat);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbols pip price format (never contains subpips).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char* - format string
+ */
+const char* WINAPI ec_PipPriceFormat(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->pipPriceFormat);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the current symbols subpip price format (always contains subpips).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char* - format string
+ */
+const char* WINAPI ec_SubPipPriceFormat(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->subPipPriceFormat);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
@@ -1811,43 +1853,47 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
       ss << "{}";
    }
    else {
-      ss <<  "{pid="                 <<                   ec->pid
-         << ", previousPid="         <<                   ec->previousPid
+      ss << std::fixed
+         <<  "{pid="                 <<                     ec->pid
+         << ", previousPid="         <<                     ec->previousPid
 
-         << ", programType="         <<  ProgramTypeToStr(ec->programType)
-         << ", programName="         <<    DoubleQuoteStr(ec->programName)
-         << ", programCoreFunction=" << CoreFunctionToStr(ec->programCoreFunction)
-         << ", programInitReason="   <<   InitReasonToStr(ec->programInitReason)
-         << ", programUninitReason=" << UninitReasonToStr(ec->programUninitReason)
-         << ", programInitFlags="    <<    InitFlagsToStr(ec->programInitFlags)
-         << ", programDeinitFlags="  <<  DeinitFlagsToStr(ec->programDeinitFlags)
+         << ", programType="         <<    ProgramTypeToStr(ec->programType)
+         << ", programName="         <<      DoubleQuoteStr(ec->programName)
+         << ", programCoreFunction=" <<   CoreFunctionToStr(ec->programCoreFunction)
+         << ", programInitReason="   <<     InitReasonToStr(ec->programInitReason)
+         << ", programUninitReason=" <<   UninitReasonToStr(ec->programUninitReason)
+         << ", programInitFlags="    <<      InitFlagsToStr(ec->programInitFlags)
+         << ", programDeinitFlags="  <<    DeinitFlagsToStr(ec->programDeinitFlags)
 
-         << ", moduleType="          <<   ModuleTypeToStr(ec->moduleType)
-         << ", moduleName="          <<    DoubleQuoteStr(ec->moduleName)
-         << ", moduleCoreFunction="  << CoreFunctionToStr(ec->moduleCoreFunction)
-         << ", moduleUninitReason="  << UninitReasonToStr(ec->moduleUninitReason)
-         << ", moduleInitFlags="     <<    InitFlagsToStr(ec->moduleInitFlags)
-         << ", moduleDeinitFlags="   <<  DeinitFlagsToStr(ec->moduleDeinitFlags)
+         << ", moduleType="          <<     ModuleTypeToStr(ec->moduleType)
+         << ", moduleName="          <<      DoubleQuoteStr(ec->moduleName)
+         << ", moduleCoreFunction="  <<   CoreFunctionToStr(ec->moduleCoreFunction)
+         << ", moduleUninitReason="  <<   UninitReasonToStr(ec->moduleUninitReason)
+         << ", moduleInitFlags="     <<      InitFlagsToStr(ec->moduleInitFlags)
+         << ", moduleDeinitFlags="   <<    DeinitFlagsToStr(ec->moduleDeinitFlags)
 
-         << ", symbol="              <<    DoubleQuoteStr(ec->symbol)
-         << ", timeframe="           <<       PeriodToStr(ec->timeframe)
-         << ", rates="               <<                  (ec->rates ? NumberFormat((uint)ec->rates, "0x%p") : "NULL")
-         << ", bars="                <<                   ec->bars
-         << ", changedBars="         <<                   ec->changedBars
-         << ", unchangedBars="       <<                   ec->unchangedBars
-         << ", ticks="               <<                   ec->ticks
-         << ", cycleTicks="          <<                   ec->cycleTicks
-         << ", lastTickTime="        <<                  (ec->lastTickTime ? GmtTimeFormat(ec->lastTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
-         << ", prevTickTime="        <<                  (ec->prevTickTime ? GmtTimeFormat(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
-         << ", bid="                 <<                   ec->bid
-         << ", ask="                 <<                   ec->ask
+         << ", symbol="              <<      DoubleQuoteStr(ec->symbol)
+         << ", timeframe="           <<         PeriodToStr(ec->timeframe)
+         << ", rates="               <<                    (ec->rates ? NumberFormat((uint)ec->rates, "0x%p") : "NULL")
+         << ", bars="                <<                     ec->bars
+         << ", changedBars="         <<                     ec->changedBars
+         << ", unchangedBars="       <<                     ec->unchangedBars
+         << ", ticks="               <<                     ec->ticks
+         << ", cycleTicks="          <<                     ec->cycleTicks
+         << ", lastTickTime="        <<                    (ec->lastTickTime ? GmtTimeFormat(ec->lastTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", prevTickTime="        <<                    (ec->prevTickTime ? GmtTimeFormat(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", bid=" << std::setprecision(ec->digits) <<    ec->bid
+         << ", ask="                 <<                     ec->ask
 
-         << ", digits="              <<                   ec->digits
-         << ", pipDigits="           <<                   ec->pipDigits
-         << ", subPipDigits="        <<                   ec->subPipDigits
-         << ", pip="                 <<                   ec->pip
-         << ", point="               <<                   ec->point
-         << ", pipPoints="           <<                   ec->pipPoints
+         << ", digits="              <<                     ec->digits
+         << ", pipDigits="           <<                     ec->pipDigits
+         << ", subPipDigits="        <<                     ec->subPipDigits
+         << ", pip=" << std::setprecision(ec->pipDigits) << ec->pip
+         << ", point=" << std::setprecision(ec->digits)  << ec->point
+         << ", pipPoints="           <<                     ec->pipPoints
+         << ", priceFormat="         <<      DoubleQuoteStr(ec->priceFormat)
+         << ", pipPriceFormat="      <<      DoubleQuoteStr(ec->pipPriceFormat)
+         << ", subPipPriceFormat="   <<      DoubleQuoteStr(ec->subPipPriceFormat)
 
          << ", superContext="        <<                  (ec->superContext ? NumberFormat((uint)ec->superContext, "0x%p") : "NULL")
          << ", threadId="            <<                   ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")

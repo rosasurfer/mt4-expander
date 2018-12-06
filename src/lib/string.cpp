@@ -26,32 +26,6 @@ const char* WINAPI DoubleQuoteStr(const char* value) {
 
 
 /**
- * Wrap a C string in double quote characters.
- *
- * @param  char* value
- *
- * @return string - wrapped std::string or the value "NULL" if a NULL pointer was specified
- */
-string WINAPI doubleQuoteStr(const char* value) {
-   if (!value)
-      return(string("NULL"));
-   return(doubleQuoteStr(string(value)));
-}
-
-
-/**
- * Wrap a std::string in double quote characters.
- *
- * @param  string& value
- *
- * @return string - wrapped std::string
- */
-string WINAPI doubleQuoteStr(const string& value) {
-   return(string("\"").append(value).append("\""));
-}
-
-
-/**
  * Dropin-replacement for std::getline(). Read the next line from an input stream auto-detecting standard line endings.
  *
  * @param  istream& is   - input stream
@@ -310,8 +284,8 @@ char* WINAPI StrToLower(char* const str) {
  * @return string& - the same string
  */
 string& WINAPI StrToLower(string& str) {
-   for (string::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = tolower(*i);
+   for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = tolower(*it);
    }
    return(str);
 }
@@ -325,8 +299,8 @@ string& WINAPI StrToLower(string& str) {
  * @return wstring& - the same string
  */
 wstring& WINAPI StrToLower(wstring& str) {
-   for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = towlower(*i);
+   for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = towlower(*it);
    }
    return(str);
 }
@@ -357,8 +331,8 @@ char* WINAPI StrToUpper(char* const str) {
  * @return string& - the same string
  */
 string& WINAPI StrToUpper(string& str) {
-   for (string::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = toupper(*i);
+   for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = toupper(*it);
    }
    return(str);
 }
@@ -372,8 +346,8 @@ string& WINAPI StrToUpper(string& str) {
  * @return wstring& - the same string
  */
 wstring& WINAPI StrToUpper(wstring& str) {
-   for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = towupper(*i);
+   for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = towupper(*it);
    }
    return(str);
 }

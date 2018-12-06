@@ -25,7 +25,7 @@ extern std::vector<uint>         g_threadsPrograms;                  // the last
  *                                 DUMPMODE_CHAR: output a readable character representation
  * @return int - 0 (NULL)
  */
-int _dump(const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode/*=DUMPMODE_CHAR*/) {
+int _dump(const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode/*=DUMPMODE_HEX*/) {
    if ((uint)data < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter data: 0x%p (not a valid pointer)", data));
    if (size < 1)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
 
