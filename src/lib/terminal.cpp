@@ -706,5 +706,3 @@ int WINAPI Test() {
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
-
-

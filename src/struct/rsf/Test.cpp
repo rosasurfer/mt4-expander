@@ -164,32 +164,34 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
       ss << "{}";
    }
    else {
-      ss <<  "{id="              <<                     test->id
-         << ", created="         <<                    (test->created   ? LocalTimeFormat(test->created, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
-         << ", strategy="        <<                    (test->ec        ? DoubleQuoteStr(test->ec->programName) :"NULL")
-         << ", symbol="          <<                    (test->ec        ? test->ec->symbol : "NULL")
-         << ", timeframe="       <<                    (test->ec        ? TimeframeToStr(test->ec->timeframe) : "0")
-         << ", startTime="       <<                    (test->startTime ? GmtTimeFormat(test->startTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
-         << ", endTime="         <<                    (test->endTime   ? GmtTimeFormat(test->endTime,   "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
-         << ", barModel="        << BarModelDescription(test->barModel)
-         << ", bars="            <<                     test->bars
-         << ", ticks="           <<                     test->ticks
-         << ", spread="          <<        NumberFormat(test->spread, "%.1f")
-         << ", reportId="        <<                     test->reportId
-         << ", reportSymbol="    <<                    (test->reportSymbol ? (*test->reportSymbol ? test->reportSymbol : "\"\"") : "NULL")
-         << ", tradeDirections=" <<                     test->tradeDirections       // TODO: Long|Short|Both
-         << ", trades="          <<                    (test->closedPositions      ? NumberFormat(test->closedPositions     ->size(), "%d") : "NULL")
-         << " ("                 <<                    (test->closedLongPositions  ? NumberFormat(test->closedLongPositions ->size(), "%d") : "NULL")
-         << "/"                  <<                    (test->closedShortPositions ? NumberFormat(test->closedShortPositions->size(), "%d") : "NULL") << ")"
-         << ", avgRunup="        <<        NumberFormat(test->stat_avgRunupPip, "%.1f")
-         << " ("                 <<        NumberFormat(test->stat_avgLongRunupPip, "%.1f")
-         << "/"                  <<        NumberFormat(test->stat_avgShortRunupPip, "%.1f") << ")"
-         << ", avgDrawdown="     <<        NumberFormat(test->stat_avgDrawdownPip, "%.1f")
-         << " ("                 <<        NumberFormat(test->stat_avgLongDrawdownPip, "%.1f")
-         << "/"                  <<        NumberFormat(test->stat_avgShortDrawdownPip, "%.1f") << ")"
-         << ", avgResult="       <<        NumberFormat(test->stat_avgPlPip, "%.1f")
-         << " ("                 <<        NumberFormat(test->stat_avgLongPlPip, "%.1f")
-         << "/"                  <<        NumberFormat(test->stat_avgShortPlPip, "%.1f") << ")"
+      uint digits=test->ec->digits, pipDigits=test->ec->pipDigits;
+      ss << std::fixed
+         <<  "{id="              <<                         test->id
+         << ", created="         <<                        (test->created   ? LocalTimeFormat(test->created, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", strategy="        <<                        (test->ec        ? DoubleQuoteStr(test->ec->programName) :"NULL")
+         << ", symbol="          <<                        (test->ec        ? test->ec->symbol : "NULL")
+         << ", timeframe="       <<                        (test->ec        ? TimeframeToStr(test->ec->timeframe) : "0")
+         << ", startTime="       <<                        (test->startTime ? GmtTimeFormat(test->startTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", endTime="         <<                        (test->endTime   ? GmtTimeFormat(test->endTime,   "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", barModel="        <<     BarModelDescription(test->barModel)
+         << ", bars="            <<                         test->bars
+         << ", ticks="           <<                         test->ticks
+         << ", spread="          << std::setprecision(digits==pipDigits ? 0 : 1) << test->spread
+         << ", reportId="        <<                         test->reportId
+         << ", reportSymbol="    <<                        (test->reportSymbol ? (*test->reportSymbol ? test->reportSymbol : "\"\"") : "NULL")
+         << ", tradeDirections=" <<                         test->tradeDirections   // TODO: Long|Short|Both
+         << ", trades="          <<                        (test->closedPositions      ? NumberFormat(test->closedPositions     ->size(), "%d") : "NULL")
+         << " ("                 <<                        (test->closedLongPositions  ? NumberFormat(test->closedLongPositions ->size(), "%d") : "NULL")
+         << "/"                  <<                        (test->closedShortPositions ? NumberFormat(test->closedShortPositions->size(), "%d") : "NULL") << ")"
+         << ", avgRunup="        << std::setprecision(1) << test->stat_avgRunupPip
+         << " ("                 <<                         test->stat_avgLongRunupPip
+         << "/"                  <<                         test->stat_avgShortRunupPip << ")"
+         << ", avgDrawdown="     <<                         test->stat_avgDrawdownPip
+         << " ("                 <<                         test->stat_avgLongDrawdownPip
+         << "/"                  <<                         test->stat_avgShortDrawdownPip << ")"
+         << ", avgResult="       <<                         test->stat_avgPlPip
+         << " ("                 <<                         test->stat_avgLongPlPip
+         << "/"                  <<                         test->stat_avgShortPlPip << ")"
          << "}";
    }
    char* result = strdup(ss.str().c_str());                                         // TODO: close memory leak
