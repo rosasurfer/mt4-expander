@@ -66,15 +66,9 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
             // skip timer event if on weekend: not yet implemented
          }
 
-         if (ttd.flags & TICK_CHART_REFRESH) {
-            PostMessageA(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);
-         }
-         else if (ttd.flags & TICK_TESTER) {
-            PostMessageA(hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-         }
-         else {
-            PostMessageA(hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);  // default tick
-         }
+         if (ttd.flags & TICK_CHART_REFRESH) PostMessage(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);
+         else if (ttd.flags & TICK_TESTER)   PostMessage(hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
+         else                                PostMessage(hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);  // default tick
          return;
       }
    }

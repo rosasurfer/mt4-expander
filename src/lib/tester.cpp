@@ -391,7 +391,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
                                               .append(test->ec->programName)
                                               .append(" #")
                                               .append(to_string(test->reportId))
-                                              .append(localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
+                                              .append(LocalTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
    std::ofstream file(logfile.c_str());
    if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
 
@@ -416,7 +416,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    // backup input parameters
    // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
    string source = string(GetTerminalPathA()) +"/tester/"+ test->ec->programName +".ini";
-   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName +" #"+ to_string(test->reportId) + localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
+   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName +" #"+ to_string(test->reportId) + LocalTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(source.c_str(), target.c_str(), TRUE))
       return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile()"));
    return(TRUE);

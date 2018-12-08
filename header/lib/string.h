@@ -2,7 +2,7 @@
 #include "expander.h"
 
 
-const char*   WINAPI DoubleQuoteStr(const char* value);
+char*         WINAPI DoubleQuoteStr(const char* value);
 std::istream&        getline(std::istream& is, string& line);
 const char*   WINAPI GetStringA(const char* value);
 const wchar*  WINAPI GetStringW(const wchar* value);
@@ -10,6 +10,7 @@ const wchar*  WINAPI GetStringW(const wchar* value);
 const char*   WINAPI InputParamsDiff(const char* initial, const char* current);
 
 BOOL          WINAPI StrCompare(const char* a, const char* b);
+char*         WINAPI StrFormat(const char* format, ...);
 BOOL          WINAPI StrIsNull(const char* value);
 BOOL          WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL          WINAPI StrStartsWith(const wchar* str, const wchar* prefix);

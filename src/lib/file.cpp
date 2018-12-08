@@ -215,7 +215,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
       delete[] path;
       return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle()"));
    }
-   return(path);                                                                       // TODO: close memory leak
+   return(path);                                                                       // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -295,7 +295,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
 
    free(rdata);
 
-   return(result);                                                                           // TODO: close memory leak
+   return(result);                                                                           // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 

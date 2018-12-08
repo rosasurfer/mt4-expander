@@ -1986,7 +1986,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
          << ", symbol="              <<      DoubleQuoteStr(ec->symbol)
          << ", timeframe="           <<         PeriodToStr(ec->timeframe)
-         << ", rates="               <<                    (ec->rates ? NumberFormat((uint)ec->rates, "0x%p") : "NULL")
+         << ", rates="               <<                    (ec->rates ? StrFormat("0x%p", ec->rates) : "NULL")
          << ", bars="                <<                     ec->bars
          << ", changedBars="         <<                     ec->changedBars
          << ", unchangedBars="       <<                     ec->unchangedBars
@@ -2007,12 +2007,12 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", pipPriceFormat="      <<      DoubleQuoteStr(ec->pipPriceFormat)
          << ", subPipPriceFormat="   <<      DoubleQuoteStr(ec->subPipPriceFormat)
 
-         << ", superContext="        <<                  (ec->superContext ? NumberFormat((uint)ec->superContext, "0x%p") : "NULL")
+         << ", superContext="        <<                  (ec->superContext ? StrFormat("0x%p", ec->superContext) : "NULL")
          << ", threadId="            <<                   ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
-         << ", hChart="              <<                  (ec->hChart       ? NumberFormat((uint)ec->hChart,       "0x%p") : "NULL")
-         << ", hChartWindow="        <<                  (ec->hChartWindow ? NumberFormat((uint)ec->hChartWindow, "0x%p") : "NULL")
+         << ", hChart="              <<                  (ec->hChart       ? StrFormat("0x%p", ec->hChart       ) : "NULL")
+         << ", hChartWindow="        <<                  (ec->hChartWindow ? StrFormat("0x%p", ec->hChartWindow ) : "NULL")
 
-         << ", test="                <<                  (ec->test ? NumberFormat((uint)ec->test, "0x%p") : "NULL")
+         << ", test="                <<                  (ec->test ? StrFormat("0x%p", ec->test) : "NULL")
          << ", testing="             <<         BoolToStr(ec->testing)
          << ", visualMode="          <<         BoolToStr(ec->visualMode)
          << ", optimization="        <<         BoolToStr(ec->optimization)
@@ -2027,8 +2027,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", customLogFile="       <<    DoubleQuoteStr(ec->customLogFile)
          << "}";
    }
-   ss << NumberFormat((uint)ec, " (0x%p)");
-   char* result = strdup(ss.str().c_str());                             // TODO: close memory leak
+   ss << StrFormat(" (0x%p)", ec);
+   char* result = strdup(ss.str().c_str());                             // TODO: add to GC (close memory leak)
 
    if (outputDebug) debug(result);
    return(result);

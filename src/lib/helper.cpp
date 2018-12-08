@@ -170,8 +170,7 @@ BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, doub
  * @param  uint  bufferSize
  *
  * @return uint - Amount of copied characters not counting the terminating NULL character or {bufferSize} if the buffer is
- *                too small and the string in the buffer was truncated.
- *                NULL in case of an error.
+ *                too small and the string in the buffer was truncated. NULL in case of errors.
  */
 uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
    uint symbolLength = strlen(symbol);
@@ -179,41 +178,28 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
    if (!buffer)                                           return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: %p", buffer));
    if ((int)bufferSize <= 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d", bufferSize));
 
-   char* szTimeframe;
+   char* sTimeframe = NULL;
 
    switch (timeframe) {
-      case PERIOD_M1 : szTimeframe = "M1";      break;               // 1 minute
-      case PERIOD_M5 : szTimeframe = "M5";      break;               // 5 minutes
-      case PERIOD_M15: szTimeframe = "M15";     break;               // 15 minutes
-      case PERIOD_M30: szTimeframe = "M30";     break;               // 30 minutes
-      case PERIOD_H1 : szTimeframe = "H1";      break;               // 1 hour
-      case PERIOD_H4 : szTimeframe = "H4";      break;               // 4 hour
-      case PERIOD_D1 : szTimeframe = "Daily";   break;               // 1 day
-      case PERIOD_W1 : szTimeframe = "Weekly";  break;               // 1 week
-      case PERIOD_MN1: szTimeframe = "Monthly"; break;               // 1 month
+      case PERIOD_M1 : sTimeframe = "M1";      break;
+      case PERIOD_M5 : sTimeframe = "M5";      break;
+      case PERIOD_M15: sTimeframe = "M15";     break;
+      case PERIOD_M30: sTimeframe = "M30";     break;
+      case PERIOD_H1 : sTimeframe = "H1";      break;
+      case PERIOD_H4 : sTimeframe = "H4";      break;
+      case PERIOD_D1 : sTimeframe = "Daily";   break;
+      case PERIOD_W1 : sTimeframe = "Weekly";  break;
+      case PERIOD_MN1: sTimeframe = "Monthly"; break;
       default:
          return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe));
    }
+   uint chars = _snprintf(buffer, bufferSize, "%s,%s", symbol, sTimeframe);
 
-   // create the result in a temporary buffer
-   char* format = "%s,%s";
-   uint  size   = symbolLength + strlen(szTimeframe) + 2;            // symbol + 1 + timeframe + \0
-   char* result = (char*)alloca(size);                               // on the stack
-   int copied = sprintf_s(result, size, format, symbol, szTimeframe);
-   if (copied <= 0) return(error(ERR_WIN32_ERROR+GetLastError(), "sprintf_s() => %d chars copied", copied));
-
-   // copy the result to the destination buffer
-   uint len = strlen(result);                                        // len should be equal to size-1
-
-   if (len < bufferSize) {                                           // destination buffer is large enough
-      strncpy(buffer, result, len);
-      buffer[len] = 0;
-      return(len);
+   if (chars < 0 || chars==bufferSize) {
+      buffer[chars-1] = 0;
+      return(bufferSize);
    }
-
-   strncpy(buffer, result, bufferSize-1);                            // destination buffer is too small
-   buffer[bufferSize-1] = 0;
-   return(bufferSize);
+   return(chars);
 }
 
 
@@ -241,7 +227,7 @@ char* WINAPI MD5Hash(const void* input, uint length) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
 
-   return(strdup(ss.str().c_str()));                                 // TODO: close memory leak
+   return(strdup(ss.str().c_str()));                                 // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 

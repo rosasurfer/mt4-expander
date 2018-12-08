@@ -180,9 +180,9 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", reportId="        <<                         test->reportId
          << ", reportSymbol="    <<                        (test->reportSymbol ? (*test->reportSymbol ? test->reportSymbol : "\"\"") : "NULL")
          << ", tradeDirections=" <<                         test->tradeDirections   // TODO: Long|Short|Both
-         << ", trades="          <<                        (test->closedPositions      ? NumberFormat(test->closedPositions     ->size(), "%d") : "NULL")
-         << " ("                 <<                        (test->closedLongPositions  ? NumberFormat(test->closedLongPositions ->size(), "%d") : "NULL")
-         << "/"                  <<                        (test->closedShortPositions ? NumberFormat(test->closedShortPositions->size(), "%d") : "NULL") << ")"
+         << ", trades="          <<                        (test->closedPositions      ? StrFormat("%d", test->closedPositions     ->size()) : "NULL")
+         << " ("                 <<                        (test->closedLongPositions  ? StrFormat("%d", test->closedLongPositions ->size()) : "NULL")
+         << "/"                  <<                        (test->closedShortPositions ? StrFormat("%d", test->closedShortPositions->size()) : "NULL") << ")"
          << ", avgRunup="        << std::setprecision(1) << test->stat_avgRunupPip
          << " ("                 <<                         test->stat_avgLongRunupPip
          << "/"                  <<                         test->stat_avgShortRunupPip << ")"
@@ -194,7 +194,7 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << "/"                  <<                         test->stat_avgShortPlPip << ")"
          << "}";
    }
-   char* result = strdup(ss.str().c_str());                                         // TODO: close memory leak
+   char* result = strdup(ss.str().c_str());                                         // TODO: add to GC (close memory leak)
 
    if (outputDebug) debug(result);
    return(result);

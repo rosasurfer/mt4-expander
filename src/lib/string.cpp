@@ -12,15 +12,11 @@
  *
  * @return char* - wrapped C string or the string "(null)" if a NULL pointer was specified
  */
-const char* WINAPI DoubleQuoteStr(const char* value) {
+char* WINAPI DoubleQuoteStr(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   if (!value) return("(null)");
-
-   uint size = strlen(value) + 3;                                    // +2 for the quotes, +1 for the terminating '\0'
-   char* buffer = new char[size];                                    // TODO: close memory leak
-   sprintf_s(buffer, size, "\"%s\"", value);
-
-   return(buffer);
+   if (!value)
+      return(StrFormat("(null)", value));
+   return(StrFormat("\"%s\"", value));
    #pragma EXPANDER_EXPORT
 }
 
@@ -158,7 +154,30 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
 
 
 /**
- * Whether or not two strings are considered equal. Convenient helper to hide the non-intuitive syntax of strcmp().
+ * Write formatted data to a string similar to sprintf() and return the resulting string. This function is identical to
+ * strformat() but registers the allocated memory for the returned string at the internal memory manager. The memory manager
+ * will release the memory at a time of its choice but the earliest at the next tick of the currently executed MQL program.
+ *
+ * @param  char* format - string with format codes
+ * @param        ...    - variable number of additional arguments
+ *
+ * @return char*
+ */
+char* WINAPI StrFormat(const char* format, ...) {
+   if (format && (uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+
+   va_list args;
+   va_start(args, format);
+   char* result = strformat(format, args);
+   va_end(args);
+
+   return(result);                                          // TODO: add to GC (close memory leak)
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether or not two strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
  *
  * @param  char* a
  * @param  char* b
@@ -166,9 +185,9 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
  * @return BOOL
  */
 BOOL WINAPI StrCompare(const char* a, const char* b) {
-   if (a == b)   return(TRUE);                                       // if pointers are equal values are too
-   if (!a || !b) return(FALSE);                                      // if one is a NULL pointer the other can't
-   return(strcmp(a, b) == 0);                                        // both are not NULL pointers
+   if (a == b)   return(TRUE);                              // if pointers are equal values are too
+   if (!a || !b) return(FALSE);                             // if one is a NULL pointer the other can't
+   return(strcmp(a, b) == 0);                               // both are not NULL pointers
    #pragma EXPANDER_EXPORT
 }
 
@@ -479,10 +498,10 @@ namespace rsf {
 
 
 /**
- * Write formatted data to a string. This function is similar to sprintf() but allocates the buffer for the string itself and
- * returns it. The caller is responsible for releasing the string's memory after usage (with "free").
+ * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
+ * for the string itself. The caller is responsible for releasing the string's memory after usage with free().
  *
- * @param  char* format - string with format codes to write data to
+ * @param  char* format - string with format codes
  * @param        ...    - variable number of additional arguments
  *
  * @return char*
@@ -501,10 +520,10 @@ char* WINAPI strformat(const char* format, ...) {
 
 
 /**
- * Write formatted data to a string. This function is similar to sprintf() but allocates the buffer for the string itself and
- * returns it. The caller is responsible for releasing the string's memory after usage (with "free").
+ * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
+ * for the string itself. The caller is responsible for releasing the string's memory after usage with free().
  *
- * @param  char*    format - string with format codes to write data to
+ * @param  char*    format - string with format codes
  * @param  va_list& args   - variable list of additional arguments
  *
  * @return char*
@@ -515,7 +534,7 @@ char* WINAPI strformat(const char* format, const va_list& args) {
 
    uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
    char * buffer = (char*)malloc(size);
-   vsprintf_s(buffer, size, format, args);                  // TODO: add to memory manager (close memory leak)
+   vsprintf_s(buffer, size, format, args);
 
    return(buffer);
 }

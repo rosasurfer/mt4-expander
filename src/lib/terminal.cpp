@@ -158,6 +158,127 @@ uint WINAPI GetTerminalBuild() {
 
 
 /**
+ * Return the full path of the terminal's common data directory. This function emulates the functionality of
+ * TerminalInfoString(TERMINAL_COMMONDATA_PATH)) introduced by MQL4.5. The common data directory is shared between all
+ * terminals installed by a user. The function does not check if the returned path exists.
+ *
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
+ *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
+ */
+const char* WINAPI GetTerminalCommonDataPathA() {
+   static char* result;
+
+   if (!result) {
+      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
+      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
+
+      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
+      result = strdup(dir.c_str());                                                    // on the heap
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the data directory the terminal currently uses.
+ *
+ * @return char* - data directory name or a NULL pointer in case of errors
+ *
+ *
+ * VirtualStore: File and Registry Virtualization (since Vista)
+ * ============================================================
+ * - Used on write to a protected directory without a full administrator access token.
+ * - Affected programs cannot tell the difference between their native folder and the VirtualStore.
+ * - File changes are redirected to %UserProfile%\AppData\Local\VirtualStore.
+ * - Protected file system locations (including subfolders):
+ *   %ProgramFiles%     e.g. "C:\Program Files"
+ *   %AllUsersProfile%  e.g. "C:\ProgramData" (previously "C:\Documents and Settings\All Users")
+ *   %SystemRoot%       e.g. "C:\Windows"
+ *
+ *
+ * Roaming Data Directory (since terminal build 600)
+ * =================================================
+ * Used in the following cases:
+ *   - If UAC system is enabled. Exception: The terminal is installed in a non-protected location or runs in portable mode.
+ *   - If the current user has limited rights to write data to the installation directory.
+ *
+ * If none of the above conditions is true data is stored in the installation directory.
+ *
+ *
+ * @see  https://www.mql5.com/en/articles/1388
+ * @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
+ * @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
+ */
+const char* WINAPI GetTerminalDataPathA() {
+   //
+   // 1. check if old build or launched in portable mode
+   // 1.1  yes => use installation directory (WoW64 redirection of old builds to the virtual store)
+   // 1.2  no  => new build in standard mode
+   //      2. check if the executable was removed (the terminal removed a reparse point)
+   //      2.1  yes
+   //           3. check if a locked logfile exists
+   //           3.1  yes => use the directory (write permission granted)
+   //           3.2  no  => use roaming data directory
+   //      2.2  no
+   //           4. explicitely check write permission (the logfile location may be linked)
+   //              4.1  permission granted => use the directory
+   //              4.2  permission denied  => use roaming data directory
+   //
+   static char* dataPath;
+
+   if (!dataPath) {
+      const char* terminalPath    = GetTerminalPathA();
+      const char* roamingDataPath = GetTerminalRoamingDataPathA();
+
+      // 1. check if an old build or launched in portable mode
+      if (TerminalIsPortableMode()) {
+         // 1.1 yes => use installation directory (WoW64 redirection of old builds to the virtual store)
+         //debug("1.1  TerminalIsPortableMode() = TRUE");
+         dataPath = strdup(terminalPath);                               // on the heap
+      }
+      else {
+         // 1.2 no => new build in standard mode => 2. check if the executable was removed (the terminal removed a reparse point)
+         //debug("1.2  TerminalIsPortableMode() = FALSE");
+
+         if (!IsFileA(GetTerminalModuleFileNameA())) {
+            //debug("2.1  the executable was removed");
+
+            // 2.1 yes => 3. check if a locked logfile exists
+            if (TerminalIsLockedLogfile(string(terminalPath).append(LocalTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log")))) {
+               // 3.1 yes => use the directory (write permission must exist)
+               //debug("3.1  a locked logfile exists");
+               dataPath = strdup(terminalPath);                         // on the heap
+            }
+            else {
+               // 3.2 no => use roaming data directory
+               //debug("3.2  a locked logfile doesn't exist");
+               dataPath = strdup(roamingDataPath);                      // on the heap
+            }
+         }
+         else {
+            //debug("2.1  the executable exists");
+            // 2.2 no => 4. check write permission (the logfile location may be linked)
+            if (TerminalHasWritePermission(terminalPath)) {
+               // 4.1 permission granted => use the directory
+               //debug("4.1  write permission in %s", terminalPath);
+               dataPath = strdup(terminalPath);                         // on the heap
+            }
+            else {
+               // 4.2 permission denied => use roaming data directory
+               //debug("4.2  no write permission in %s", terminalPath);
+               dataPath = strdup(roamingDataPath);                      // on the heap
+            }
+         }
+      }
+   }
+   return(dataPath);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the window handle of the application's main window.
  *
  * @return HWND - handle or NULL (0) in case of errors
@@ -240,6 +361,73 @@ const wchar* WINAPI GetTerminalModuleFileNameW() {
 
 
 /**
+ * Return the name of the terminal's installation directory.
+ *
+ * @return char* - directory name without trailing path separator
+ */
+const char* WINAPI GetTerminalPathA() {
+   static char* path;
+
+   if (!path) {
+      path = strdup(GetTerminalModuleFileNameA());                   // on the heap
+      path[string(path).find_last_of("\\")] = '\0';
+   }
+   return(path);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the name of the terminal's installation directory.
+ *
+ * @return wstring& - directory name or an empty string in case of errors
+ */
+const wstring& WINAPI GetTerminalPathWS() {
+   static wstring path;
+
+   if (path.empty()) {
+      const wchar* filename = GetTerminalModuleFileNameW();
+      if (filename) {
+         wstring str(filename);
+         path = str.substr(0, str.find_last_of(L"\\"));
+      }
+   }
+   return(path);
+}
+
+
+/**
+ * Return the full path of the terminal's roaming data directory. The function does not check if the returned path exists.
+ * Depending on terminal version and runtime mode the currently used data directory may differ.
+ *
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ *                 i.e. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}"
+ *
+ * @see  GetTerminalDataPath() to get the path of the data directory currently used
+ */
+const char* WINAPI GetTerminalRoamingDataPathA() {
+   static char* result;
+
+   if (!result) {
+      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
+      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
+
+      wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
+      StrToUpper(terminalPath);                                                        // convert to upper case
+      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()* sizeof(wchar)); // calculate MD5 hash
+
+      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
+                                      .append(StrToUpper(md5));
+      free(md5);
+      result = strdup(dir.c_str());                                                    // on the heap
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the terminal's version string.
  *
  * @return char* - version or a NULL pointer in case of errors
@@ -259,10 +447,7 @@ const char* WINAPI GetTerminalVersion() {
       uint build  = (fileInfo->dwFileVersionLS      ) & 0xffff;
 
       // compose version string
-      char* format = "%d.%d.%d.%d";
-      uint size = _scprintf(format, major, minor, hotfix, build) + 1;   // +1 for the terminating '\0'
-      version = new char[size];                                         // on the heap
-      sprintf_s(version, size, format, major, minor, hotfix, build);
+      version = strformat("%d.%d.%d.%d", major, minor, hotfix, build);
    }
    return(version);
    #pragma EXPANDER_EXPORT
@@ -321,194 +506,6 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
       }
    }
    return(fileInfo);
-}
-
-
-/**
- * Return the name of the terminal's installation directory.
- *
- * @return char* - directory name without trailing path separator
- */
-const char* WINAPI GetTerminalPathA() {
-   static char* path;
-
-   if (!path) {
-      path = strdup(GetTerminalModuleFileNameA());                   // on the heap
-      path[string(path).find_last_of("\\")] = '\0';
-   }
-   return(path);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the name of the terminal's installation directory.
- *
- * @return wstring& - directory name or an empty string in case of errors
- */
-const wstring& WINAPI GetTerminalPathWS() {
-   static wstring path;
-
-   if (path.empty()) {
-      const wchar* filename = GetTerminalModuleFileNameW();
-      if (filename) {
-         wstring str(filename);
-         path = str.substr(0, str.find_last_of(L"\\"));
-      }
-   }
-   return(path);
-}
-
-
-/**
- * Return the full path of the data directory the terminal currently uses.
- *
- * @return char* - data directory name or a NULL pointer in case of errors
- *
- *
- * VirtualStore: File and Registry Virtualization (since Vista)
- * ============================================================
- * - Used on write to a protected directory without a full administrator access token.
- * - Affected programs cannot tell the difference between their native folder and the VirtualStore.
- * - File changes are redirected to %UserProfile%\AppData\Local\VirtualStore.
- * - Protected file system locations (including subfolders):
- *   %ProgramFiles%     e.g. "C:\Program Files"
- *   %AllUsersProfile%  e.g. "C:\ProgramData" (previously "C:\Documents and Settings\All Users")
- *   %SystemRoot%       e.g. "C:\Windows"
- *
- *
- * Roaming Data Directory (since terminal build 600)
- * =================================================
- * Used in the following cases:
- *   - If UAC system is enabled. Exception: The terminal is installed in a non-protected location or runs in portable mode.
- *   - If the current user has limited rights to write data to the installation directory.
- *
- * If none of the above conditions is true data is stored in the installation directory.
- *
- *
- * @see  https://www.mql5.com/en/articles/1388
- * @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
- * @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
- */
-const char* WINAPI GetTerminalDataPathA() {
-   //
-   // 1. check if old build or launched in portable mode
-   // 1.1  yes => use installation directory (WoW64 redirection of old builds to the virtual store)
-   // 1.2  no  => new build in standard mode
-   //      2. check if the executable was removed (the terminal removed a reparse point)
-   //      2.1  yes
-   //           3. check if a locked logfile exists
-   //           3.1  yes => use the directory (write permission granted)
-   //           3.2  no  => use roaming data directory
-   //      2.2  no
-   //           4. explicitely check write permission (the logfile location may be linked)
-   //              4.1  permission granted => use the directory
-   //              4.2  permission denied  => use roaming data directory
-   //
-   static char* dataPath;
-
-   if (!dataPath) {
-      const char* terminalPath    = GetTerminalPathA();
-      const char* roamingDataPath = GetTerminalRoamingDataPathA();
-
-      // 1. check if an old build or launched in portable mode
-      if (TerminalIsPortableMode()) {
-         // 1.1 yes => use installation directory (WoW64 redirection of old builds to the virtual store)
-         //debug("1.1  TerminalIsPortableMode() = TRUE");
-         dataPath = strdup(terminalPath);                               // on the heap
-      }
-      else {
-         // 1.2 no => new build in standard mode => 2. check if the executable was removed (the terminal removed a reparse point)
-         //debug("1.2  TerminalIsPortableMode() = FALSE");
-
-         if (!IsFileA(GetTerminalModuleFileNameA())) {
-            //debug("2.1  the executable was removed");
-
-            // 2.1 yes => 3. check if a locked logfile exists
-            if (TerminalIsLockedLogfile(string(terminalPath).append(localTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log")))) {
-               // 3.1 yes => use the directory (write permission must exist)
-               //debug("3.1  a locked logfile exists");
-               dataPath = strdup(terminalPath);                         // on the heap
-            }
-            else {
-               // 3.2 no => use roaming data directory
-               //debug("3.2  a locked logfile doesn't exist");
-               dataPath = strdup(roamingDataPath);                      // on the heap
-            }
-         }
-         else {
-            //debug("2.1  the executable exists");
-            // 2.2 no => 4. check write permission (the logfile location may be linked)
-            if (TerminalHasWritePermission(terminalPath)) {
-               // 4.1 permission granted => use the directory
-               //debug("4.1  write permission in %s", terminalPath);
-               dataPath = strdup(terminalPath);                         // on the heap
-            }
-            else {
-               // 4.2 permission denied => use roaming data directory
-               //debug("4.2  no write permission in %s", terminalPath);
-               dataPath = strdup(roamingDataPath);                      // on the heap
-            }
-         }
-      }
-   }
-   return(dataPath);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the full path of the terminal's common data directory. This function emulates the functionality of
- * TerminalInfoString(TERMINAL_COMMONDATA_PATH)) introduced by MQL4.5. The common data directory is shared between all
- * terminals installed by a user. The function does not check if the returned path exists.
- *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
- *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
- */
-const char* WINAPI GetTerminalCommonDataPathA() {
-   static char* result;
-
-   if (!result) {
-      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
-
-      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
-      result = strdup(dir.c_str());                                                    // on the heap
-   }
-   return(result);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the full path of the terminal's roaming data directory. The function does not check if the returned path exists.
- * Depending on terminal version and runtime mode the currently used data directory may differ.
- *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
- *                 i.e. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}"
- *
- * @see  GetTerminalDataPath() to get the path of the data directory currently used
- */
-const char* WINAPI GetTerminalRoamingDataPathA() {
-   static char* result;
-
-   if (!result) {
-      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
-
-      wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
-      StrToUpper(terminalPath);                                                        // convert to upper case
-      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()* sizeof(wchar)); // calculate MD5 hash
-
-      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
-                                      .append(StrToUpper(md5));
-      free(md5);
-      result = strdup(dir.c_str());                                                    // on the heap
-   }
-   return(result);
-   #pragma EXPANDER_EXPORT
 }
 
 
