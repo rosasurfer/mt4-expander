@@ -5,13 +5,13 @@
 #include "struct/rsf/ExecutionContext.h"
 
 
-extern uint                      g_terminalBuild;                    // terminal build number
-extern CRITICAL_SECTION          g_terminalMutex;                    // mutex for application-wide locking
-extern Locks                     g_locks;                            // a map holding pointers to fine-granular locks
+extern uint               g_terminalBuild;                     // terminal build number
+extern CRITICAL_SECTION   g_terminalMutex;                     // mutex for application-wide locking
+extern Locks              g_locks;                             // a map holding pointers to fine-granular locks
 
-extern std::vector<ContextChain> g_contextChains;                    // all context chains, i.e. MQL programs (index = program id)
-extern std::vector<DWORD>        g_threads;                          // all known threads executing MQL programs
-extern std::vector<uint>         g_threadsPrograms;                  // the last MQL program executed by a thread
+extern MqlProgramList     g_mqlPrograms;                       // all MQL programs: vector<ContextChain> with index = program id
+extern std::vector<DWORD> g_threads;                           // all known threads executing MQL programs
+extern std::vector<uint>  g_threadsPrograms;                   // the last MQL program executed by a thread
 
 
 //
@@ -60,7 +60,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
 void WINAPI onProcessAttach() {
    g_terminalBuild = GetTerminalBuild();
 
-   g_contextChains  .reserve(128);
+   g_mqlPrograms    .reserve(128);
    g_threads        .reserve(512);
    g_threadsPrograms.reserve(512);
 

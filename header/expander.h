@@ -27,7 +27,7 @@ typedef DWORD              color;                           // MQL type color
 typedef time_t             datetime;                        // MQL type datetime: a 32-bit signed long
 
 
-namespace rsf {}
+namespace rsf {}                                            // define and always prefer the project's main namespace
 using namespace rsf;
 
 using std::string;

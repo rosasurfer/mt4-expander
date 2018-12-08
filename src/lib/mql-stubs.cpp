@@ -6,7 +6,7 @@
 #include "struct/mt4/MqlStr.h"
 
 
-extern std::vector<ContextChain> g_contextChains;     // all context chains, i.e. MQL programs (index = program id)
+extern MqlProgramList g_mqlPrograms;            // all MQL programs: vector<ContextChain> with index = program id
 
 
 /**
@@ -98,7 +98,7 @@ int WINAPI onDeinit() {
 
 int WINAPI onDeinitAccountChange() {
    if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
+      EXECUTION_CONTEXT* ec = (*g_mqlPrograms[pid])[0];
 
       if (ec->programType == PT_EXPERT) {
          error(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
@@ -135,7 +135,7 @@ int WINAPI onDeinitClose() {
 // builds > 509
 int WINAPI onDeinitFailed() {
    if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
+      EXECUTION_CONTEXT* ec = (*g_mqlPrograms[pid])[0];
       //warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_INITFAILED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
    }
    return(NO_ERROR);
@@ -170,7 +170,7 @@ int WINAPI onDeinitTemplate() {
 
 int WINAPI onDeinitUndefined() {
    if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = g_contextChains[pid][0];
+      EXECUTION_CONTEXT* ec = (*g_mqlPrograms[pid])[0];
       if (ec->programType==PT_EXPERT && !ec->testing) {
          warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }

@@ -4,10 +4,8 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 
-#include <vector>
 
-
-extern std::vector<ContextChain> g_contextChains;              // all context chains, i.e. MQL programs (index = program id)
+extern MqlProgramList g_mqlPrograms;                     // all MQL programs: vector<ContextChain> with index = program id
 
 
 /**
@@ -133,7 +131,7 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
 
    // store the warning in the EXECUTION_CONTEXT of the currently executed MQL program
    if (uint pid = GetLastThreadProgram()) {
-      ContextChain& chain = g_contextChains[pid];
+      ContextChain& chain = *g_mqlPrograms[pid];
       uint size = chain.size();
       if (size && chain[0]) {                                        // master context (if available)
          chain[0]->dllWarning = error_code;
@@ -183,7 +181,7 @@ int WINAPI _error(const char* fileName, const char* funcName, int line, int erro
 
    // store the error in the EXECUTION_CONTEXT of the currently executed MQL program
    if (uint pid = GetLastThreadProgram()) {
-      ContextChain& chain = g_contextChains[pid];
+      ContextChain& chain = *g_mqlPrograms[pid];
       uint size = chain.size();
       if (size && chain[0]) {                                        // master context (if available)
          chain[0]->dllError = error_code;

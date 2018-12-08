@@ -6,7 +6,6 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
-#include "lib/lock/Locker.h"
 
 #include <shellapi.h>
 #include <shlobj.h>
@@ -677,32 +676,5 @@ BOOL WINAPI TerminalIsPortableMode() {
       }
    }
    return(isPortable);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * @return int
- */
-int WINAPI Test_synchronize() {
-   { synchronize();
-      debug("inside synchronized block");
-   }
-   return(0);
-
-   char* s1 = "Hello";
-   char* s2 = " world";
-   char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
-   debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);  // TODO: fix me
-
-   return(0);
-}
-
-
-/**
- * @return int
- */
-int WINAPI Test() {
-   return(NULL);
    #pragma EXPANDER_EXPORT
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "struct/rsf/Test.h"
+#include <vector>
 
 
 /**
@@ -24,7 +25,7 @@
 #pragma pack(push, 1)
 
 struct EXECUTION_CONTEXT {                         // -- offset --- size --- description --------------------------------------------------------------------------------------
-   uint               pid;                         //         0        4     MQL program id starting from 1                      (const) => index in g_contextChains[]
+   uint               pid;                         //         0        4     MQL program id starting from 1                      (const) => index in g_mqlPrograms[]
    uint               previousPid;                 //         4        4     previous pid of the program or NULL                 (const)
                                                    //
    ProgramType        programType;                 //         8        4     MQL program type                                    (const) => type of MQL program
@@ -90,10 +91,6 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
 #pragma pack(pop)                                  //             = 1004
 
-
-// type definition
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;                            // a chain holds the contexts of a single MQL program,
-                                                                                 // i.e. master context + one context per MQL module
 
 // getters (exported to MQL)
 uint               WINAPI ec_Pid                (const EXECUTION_CONTEXT* ec);
@@ -230,3 +227,8 @@ const char*        WINAPI ec_SetCustomLogFile      (EXECUTION_CONTEXT* ec, const
 // helpers
 const char*        WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec, BOOL outputDebug = FALSE);
 const char*        WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug = FALSE);
+
+
+// type definitions
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // a chain holds all execution contexts of a sinle MQL program
+typedef std::vector<ContextChain*>      MqlProgramList;     // a list of MQL programs with index = pid (program id)

@@ -509,3 +509,33 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT
 }
+
+
+#include "lib/lock/Locker.h"
+
+
+/**
+ * @return int
+ */
+int WINAPI Test_synchronize() {
+   { synchronize();
+      debug("inside synchronized block");
+   }
+   return(0);
+
+   char* s1 = "Hello";
+   char* s2 = " world";
+   char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
+   debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);  // TODO: fix me
+
+   return(0);
+}
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}

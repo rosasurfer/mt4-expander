@@ -12,7 +12,6 @@ int                WINAPI SyncLibContext_deinit (EXECUTION_CONTEXT* ec, Uninitia
 
 int                WINAPI LeaveContext          (EXECUTION_CONTEXT* ec);
 
-uint               WINAPI ContextChainsPush(ContextChain& chain);
 TEST*              WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting);
 
 uint               WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart);
@@ -34,3 +33,5 @@ BOOL               WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BO
 BOOL               WINAPI Program_IsPartialTest (uint pid, const char* programName);
 BOOL               WINAPI Program_IsTesting     (const EXECUTION_CONTEXT* ec, BOOL isTesting);
 BOOL               WINAPI Program_IsVisualMode  (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
+
+uint               WINAPI PushProgram(ContextChain* chain);
