@@ -172,7 +172,6 @@ char* WINAPI StrFormat(const char* format, ...) {
    va_end(args);
 
    return(result);                                          // TODO: add to GC (close memory leak)
-   #pragma EXPANDER_EXPORT
 }
 
 
