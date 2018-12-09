@@ -46,7 +46,7 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
 const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
 
-   return(wchartombs(tzi->StandardName, sizeof(tzi->StandardName)));       // TODO: close memory leak
+   return(wchartombs(tzi->StandardName, sizeof(tzi->StandardName)));       // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -90,7 +90,7 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
 const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
 
-   return(wchartombs(tzi->DaylightName, sizeof(tzi->DaylightName)));    // TODO: close memory leak
+   return(wchartombs(tzi->DaylightName, sizeof(tzi->DaylightName)));    // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 

@@ -391,7 +391,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
                                               .append(test->ec->programName)
                                               .append(" #")
                                               .append(to_string(test->reportId))
-                                              .append(localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
+                                              .append(LocalTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
    std::ofstream file(logfile.c_str());
    if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
 
@@ -416,7 +416,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    // backup input parameters
    // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
    string source = string(GetTerminalPathA()) +"/tester/"+ test->ec->programName +".ini";
-   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName +" #"+ to_string(test->reportId) + localTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
+   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName +" #"+ to_string(test->reportId) + LocalTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(source.c_str(), target.c_str(), TRUE))
       return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile()"));
    return(TRUE);
@@ -507,5 +507,35 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    test->stat_avgShortPlPip       = round(shortPl      /shortTrades, 1);
 
    return(Test_SaveReport(test));
+   #pragma EXPANDER_EXPORT
+}
+
+
+#include "lib/lock/Locker.h"
+
+
+/**
+ * @return int
+ */
+int WINAPI Test_synchronize() {
+   { synchronize();
+      debug("inside synchronized block");
+   }
+   return(0);
+
+   char* s1 = "Hello";
+   char* s2 = " world";
+   char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
+   debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);  // TODO: fix me
+
+   return(0);
+}
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   return(NULL);
    #pragma EXPANDER_EXPORT
 }

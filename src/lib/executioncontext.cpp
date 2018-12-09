@@ -8,6 +8,7 @@
 #include "lib/terminal.h"
 #include "lib/tester.h"
 #include "lib/timeseries.h"
+#include "struct/rsf/ExecutionContext.h"
 #include "struct/rsf/Order.h"
 #include "struct/rsf/Test.h"
 
@@ -16,17 +17,17 @@
 #include <vector>
 
 
-std::vector<ContextChain> g_contextChains(1);         // all MQL programs: index = program id; 0 is not a valid pid, the index is skipped
-std::vector<DWORD>        g_threads;                  // all known threads executing MQL programs
-std::vector<uint>         g_threadsPrograms;          // pid of the last MQL program executed by a thread
-uint                      g_lastUIThreadProgram;      // pid of the last MQL program executed by the UI thread
-CRITICAL_SECTION          g_terminalMutex;            // mutex for application-wide locking
-extern uint               g_terminalBuild;            // terminal build number
+MqlProgramList     g_mqlPrograms(1);               // all MQL programs: index 0 is not a valid pid and is always empty
+std::vector<DWORD> g_threads;                      // all known threads executing MQL programs
+std::vector<uint>  g_threadsPrograms;              // pid of the last MQL program executed by a thread
+uint               g_lastUIThreadProgram;          // pid of the last MQL program executed by the UI thread
+CRITICAL_SECTION   g_terminalMutex;                // mutex for application-wide locking
+extern uint        g_terminalBuild;                // terminal build number
 
 
-struct RECOMPILED_MODULE {                            // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
-   uint       pid;                                    // Only one module is tracked (the last one) and the variable is accessed
-   ModuleType type;                                   // from the UI thread only.
+struct RECOMPILED_MODULE {                         // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
+   uint       pid;                                 // Only one module is tracked (the last one) and the variable is accessed
+   ModuleType type;                                // from the UI thread only.
    char       name[_MAX_FNAME];
 } g_recompiledModule;
 
@@ -361,35 +362,35 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          currentPid = previousPid;
          SetLastThreadProgram(currentPid);                        // set the currently executed program asap (error handling)
 
-         master = g_contextChains[currentPid][0];
+         master = (*g_mqlPrograms[currentPid])[0];
          if (initReason == IR_PROGRAM_AFTERTEST)
             master->superContext = sec = NULL;                    // reset the super context (the expert has already been released)
          *ec = *master;                                           // restore main from master context (restores the pid)
-         g_contextChains[currentPid][1] = ec;                     // store main context at original (now empty) position
+         (*g_mqlPrograms[currentPid])[1] = ec;                    // store main context at original (now empty) position
       }
       else {
          // new indicator, new expert or new script
          uint lastPid = GetLastThreadProgram();                   // pid of the last program executed by the current thread
 
          // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
-         if (programType==PT_EXPERT && isTesting && Program_IsPartialTest(lastPid, programName)) {
+         if (programType==PT_EXPERT && isTesting && lastPid && Program_IsPartialTest(lastPid, programName)) {
             currentPid = lastPid;
             SetLastThreadProgram(currentPid);                     // set the currently executed program asap (error handling)
 
-            master = g_contextChains[currentPid][0];
+            master = (*g_mqlPrograms[currentPid])[0];
             *ec = *master;                                        // copy master to main context
-            g_contextChains[currentPid][1] = ec;                  // store main context at old (empty) position
+            (*g_mqlPrograms[currentPid])[1] = ec;                 // store main context at old (empty) position
          }
          else {
             // create a new context chain                         // TODO: on IR_PROGRAM_AFTERTEST somewhere exists a used context
             master  = new EXECUTION_CONTEXT();                    // create new master context
             *master = *ec;                                        // copy main to master context
-            ContextChain chain;
-            chain.reserve(8);
-            chain.push_back(master);                              // store master and main context in a new context chain
-            chain.push_back(ec);
+            ContextChain* chain = new ContextChain();
+            chain->reserve(8);
+            chain->push_back(master);                             // store master and main context in a new context chain
+            chain->push_back(ec);
 
-            currentPid = ContextChainsPush(chain);                // store the chain and update master and main context
+            currentPid = PushProgram(chain);                      // store the chain and update master and main context
             master->pid = ec->pid = currentPid;
             SetLastThreadProgram(currentPid);
          }
@@ -397,8 +398,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    }
    else {
       // ec.pid is set: an expert in init cycle or any other program after a repeated init() call
-      master = g_contextChains[currentPid][0];
-      g_contextChains[currentPid][1] = ec;                        // store main context at old (possibly empty) position
+      master = (*g_mqlPrograms[currentPid])[0];
+      (*g_mqlPrograms[currentPid])[1] = ec;                       // store main context at old (possibly empty) position
    }
 
 
@@ -438,6 +439,10 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetPoint        (ec, point);
    ec_SetPipPoints    (ec, (uint)round(pow(10., (int)(digits & 1))));
 
+   master->pipPriceFormat    = ec->pipPriceFormat    = strformat(".%d", ec->pipDigits);
+   master->subPipPriceFormat = ec->subPipPriceFormat = strformat("%s'", ec->pipPriceFormat);
+   master->priceFormat       = ec->priceFormat       = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : ec->subPipPriceFormat;
+
    ec_SetSuperContext (ec, sec         );
    ec_SetThreadId     (ec, GetCurrentThreadId());
    ec_SetHChart       (ec, hChart      );                         // chart handles must be set before test values
@@ -463,7 +468,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
 
    // (3) synchronize loaded libraries
-   ContextChain& chain = g_contextChains[currentPid];
+   ContextChain& chain = *g_mqlPrograms[currentPid];
    uint          size  = chain.size();
    EXECUTION_CONTEXT *lib, bak;
 
@@ -513,7 +518,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    DWORD    threadId      = GetCurrentThreadId();
    BOOL     logging       = ec->logging;
 
-   ContextChain& chain = g_contextChains[ec->pid];
+   ContextChain& chain = *g_mqlPrograms[ec->pid];
    uint size = chain.size();
    EXECUTION_CONTEXT* ctx;
 
@@ -598,7 +603,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
    SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
 
-   ContextChain&      chain    = g_contextChains[ec->pid];
+   ContextChain&      chain    = *g_mqlPrograms[ec->pid];
    uint               size     = chain.size();
    DWORD              threadId = GetCurrentThreadId();
    EXECUTION_CONTEXT* ctx;
@@ -682,7 +687,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                SetLastThreadProgram(pid);
                g_recompiledModule = RECOMPILED_MODULE();             // reset recompilation tracker
 
-               *ec = *g_contextChains[pid][0];                       // initialize library context with master context
+               *ec = *(*g_mqlPrograms[pid])[0];                      // initialize library context with master context
                ec->moduleType         = MT_LIBRARY;                  // update library specific values
                strcpy(ec->moduleName,   moduleName);
                ec->moduleCoreFunction = CF_INIT;
@@ -695,7 +700,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                ec->dllErrorMsg        = NULL;
                ec->dllWarningMsg      = NULL;
 
-               g_contextChains[pid].push_back(ec);                   // add context to the program's context chain
+               g_mqlPrograms[pid]->push_back(ec);                    // add context to the program's context chain
             }
          }
          else {
@@ -709,7 +714,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                isPartialChain = FALSE;
             }
             else {                                                   // get the last executed program: it's myself or something else
-               ContextChain& chain = g_contextChains[currentPid];    // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
+               ContextChain& chain = *g_mqlPrograms[currentPid];     // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
                isPartialChain = (chain.size()>2 && (master=chain[0]) && chain[0]->programCoreFunction==CF_INIT && !chain[1]);
                if (!isPartialChain) warn(ERR_ILLEGAL_STATE, "unexpected library with UR_RECOMPILE in tester: a former library (pid=%d) seems to not have created a partial context chain");
             }
@@ -717,11 +722,11 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             if (!isPartialChain) {
                // create a new partially initialized chain
                master = new EXECUTION_CONTEXT();                     // create new master context
-               ContextChain chain;
-               chain.reserve(8);
-               chain.push_back(master);                              // add master to a new chain
-               chain.push_back(NULL);                                // add empty entry for the yet to come main context
-               currentPid = ContextChainsPush(chain);                // store the chain
+               ContextChain* chain = new ContextChain();
+               chain->reserve(8);
+               chain->push_back(master);                             // add master to a new chain
+               chain->push_back(NULL);                               // add empty entry for the yet to come main context
+               currentPid = PushProgram(chain);                      // store the chain
                uint threadIndex = SetLastThreadProgram(currentPid);
 
                master->pid          = currentPid;                    // update master context with the known values
@@ -737,6 +742,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
                master->point        = point;
                master->pipPoints    = (uint)round(pow((double)10., (int)(digits & 1)));
+
+               master->pipPriceFormat    = strformat(".%d", master->pipDigits);
+               master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
+               master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
 
                master->superContext = FALSE;
                master->threadId     = g_threads[threadIndex];
@@ -754,16 +763,16 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             ec->moduleInitFlags    = initFlags;
             ec->moduleDeinitFlags  = deinitFlags;
 
-            g_contextChains[currentPid].push_back(ec);               // add library to the expert's context chain
+            g_mqlPrograms[currentPid]->push_back(ec);                // add library to the expert's context chain
          }
       }
       else {
          // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
          // Initialize the library with the current program's master context.
          uint pid = GetLastThreadProgram();                          // the program is currently executed
-         if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading a library (pid=0):  UninitializeReason=%s  threadId=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+         if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
-         *ec = *g_contextChains[pid][0];                             // initialize library context with master context
+         *ec = *(*g_mqlPrograms[pid])[0];                            // initialize library context with master context
          ec->moduleType         = MT_LIBRARY;                        // update library specific values
          strcpy(ec->moduleName,   moduleName);
          ec->moduleCoreFunction = CF_INIT;
@@ -776,7 +785,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          ec->dllErrorMsg        = NULL;
          ec->dllWarningMsg      = NULL;
 
-         g_contextChains[pid].push_back(ec);                         // add context to the program's context chain
+         g_mqlPrograms[pid]->push_back(ec);                          // add context to the program's context chain
       }
    }
 
@@ -785,7 +794,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       //       ec.pid points to the original indicator (still in limbo), Library::init() is called before Indicator::init()
       SetLastThreadProgram(ec->pid);                                 // set the currently executed program asap (error handling)
 
-      EXECUTION_CONTEXT* master = g_contextChains[ec->pid][0];
+      EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
       if (isTesting)                                                 // indicator in IR_PROGRAM_AFTERTEST
          master->programInitReason = IR_PROGRAM_AFTERTEST;
       else {}                                                        // indicator in init cycle
@@ -804,6 +813,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       master->pip           = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
       master->point         = point;
       master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
+
+      master->pipPriceFormat    = strformat(".%d", master->pipDigits);
+      master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
+      master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
 
       master->superContext  = NULL;                                  // no super context at all or already released
       master->threadId      = GetCurrentThreadId();
@@ -824,7 +837,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec->moduleInitFlags    = initFlags;
       ec->moduleDeinitFlags  = deinitFlags;
 
-      g_contextChains[ec->pid].push_back(ec);                        // re-add context to the old indicator's chain
+      g_mqlPrograms[ec->pid]->push_back(ec);                         // re-add context to the old indicator's chain
    }
 
    else {
@@ -841,7 +854,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          isPartialChain = FALSE;                                     // or the program is the finished test (probably in an optimization)
       }
       else {                                                         // get the last executed program: it's myself or something else
-         ContextChain& chain = g_contextChains[currentPid];          // if partial chain found, it's myself with one more re-used library
+         ContextChain& chain = *g_mqlPrograms[currentPid];           // if partial chain found, it's myself with one more re-used library
          isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
          if (!isPartialChain) debug("unseen library init cycle in tester (the former program seems not to be the former test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
@@ -850,11 +863,11 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          // create a new partially initialized chain
          master = new EXECUTION_CONTEXT();                           // create new master context
 
-         ContextChain chain;
-         chain.reserve(8);
-         chain.push_back(master);                                    // add master to a new chain
-         chain.push_back(NULL);                                      // add empty entry for the yet to come main context
-         currentPid = ContextChainsPush(chain);                      // store the chain
+         ContextChain* chain = new ContextChain();
+         chain->reserve(8);
+         chain->push_back(master);                                   // add master to a new chain
+         chain->push_back(NULL);                                     // add empty entry for the yet to come main context
+         currentPid = PushProgram(chain);                            // store the chain
          uint threadIndex = SetLastThreadProgram(currentPid);
 
          master->pid               = currentPid;                     // update master context with the known values
@@ -877,6 +890,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->point         = point;
          master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
 
+         master->pipPriceFormat    = strformat(".%d", master->pipDigits);
+         master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
+         master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
+
          master->threadId      = g_threads[threadIndex];
          master->testing       = TRUE;
          master->optimization  = isOptimization;
@@ -892,7 +909,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec->moduleInitFlags    = initFlags;
       ec->moduleDeinitFlags  = deinitFlags;
 
-      g_contextChains[currentPid].push_back(ec);                     // add library to the new test's context chain
+      g_mqlPrograms[currentPid]->push_back(ec);                      // add library to the new test's context chain
    }
 
    //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
@@ -927,7 +944,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    ec->moduleCoreFunction = CF_DEINIT;                   // update library specific values
    ec->moduleUninitReason = uninitReason;
 
-   ContextChain& chain    = g_contextChains[ec->pid];
+   ContextChain& chain    = *g_mqlPrograms[ec->pid];
    uint          size     = chain.size();
    DWORD         threadId = GetCurrentThreadId();
 
@@ -970,9 +987,9 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    //debug("          %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
    if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
    if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
-   if (g_contextChains.size() <= ec->pid)   return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_contextChains.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
+   if (g_mqlPrograms.size() <= ec->pid)     return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_mqlPrograms.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
 
-   ContextChain& chain = g_contextChains[ec->pid];
+   ContextChain& chain = *g_mqlPrograms[ec->pid];
    uint chainSize = chain.size();
    if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
@@ -1022,27 +1039,6 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Push the specififed ContextChain onto the end of the list of managed chains.
- *
- * @param  ContextChain& chain
- *
- * @return uint - list index where the ContextChain is stored
- */
-uint WINAPI ContextChainsPush(ContextChain& chain) {
-   if (!TryEnterCriticalSection(&g_terminalMutex)) {
-      debug("waiting to aquire lock on g_terminalMutex...");
-      EnterCriticalSection(&g_terminalMutex);
-   }
-   g_contextChains.push_back(chain);                           // TODO: prevent push_back() from creating a copy
-   uint index = g_contextChains.size()-1;
-   LeaveCriticalSection(&g_terminalMutex);
-
-   //if (index > 31) debug("registered programs: %d", index);   // index[0] is always empty
-   return(index);
 }
 
 
@@ -1097,13 +1093,13 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
          // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
          // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether or not one of the indicator's
          // libraries has been reloaded before.
-         uint chainsSize = g_contextChains.size();
+         uint chainsSize = g_mqlPrograms.size();
          EXECUTION_CONTEXT* master;
 
          // TODO: In a test the hChart window is ignored - atm.
          if (testing) {
             for (uint i=1; i < chainsSize; ++i) {                                   // index[0] is always empty
-               ContextChain& chain = g_contextChains[i];
+               ContextChain& chain = *g_mqlPrograms[i];
                uint size = chain.size();
                if (size) {
                   if (master = chain[0]) {
@@ -1124,7 +1120,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
                         }
                      }
                   } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
-               } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", size);
+               } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_mqlPrograms[%d]:  size=%d", size);
             }
          }
 
@@ -1134,7 +1130,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
          else {
             if (hChart) {
                for (uint i=1; i < chainsSize; ++i) {                                // index[0] is always empty
-                  ContextChain& chain = g_contextChains[i];
+                  ContextChain& chain = *g_mqlPrograms[i];
                   if (chain.size()) {
                      if (master = chain[0]) {
                         if (master->programType == MT_INDICATOR) {
@@ -1151,7 +1147,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
                            }
                         }
                      } else warn(ERR_ILLEGAL_STATE, "illegal master context found in ContextChain of program %d:  master=0x%p", i, master);
-                  } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_contextChains[%d]:  size=%d", chain.size());
+                  } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_mqlPrograms[%d]:  size=%d", chain.size());
                }
             }
          }
@@ -1391,7 +1387,7 @@ uint WINAPI GetCurrentThreadIndex() {
 /**
  * Get the id of the last MQL program executed by the current thread.
  *
- * @return uint - program id or NULL (0) if the current thread didn't execute a MQL program before
+ * @return uint - program id or NULL (0) if the current thread didn't yet execute a MQL program
  */
 uint WINAPI GetLastThreadProgram() {
    uint index = GetCurrentThreadIndex();
@@ -1502,7 +1498,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       BOOL isProgramNew;
       uint pid = ec->pid;
       if (pid) {
-         isProgramNew = !g_contextChains[pid][0]->ticks;             // im Master-Context nachschauen
+         isProgramNew = !(*g_mqlPrograms[pid])[0]->ticks;            // im Master-Context nachschauen
       }
       else {
          pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
@@ -1526,7 +1522,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
          if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_CHARTCHANGE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid = pid;
       }
-      char* masterSymbol = g_contextChains[pid][0]->symbol;
+      char* masterSymbol = (*g_mqlPrograms[pid])[0]->symbol;
       if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
       else                                  return(IR_SYMBOLCHANGE   );
    }
@@ -1636,7 +1632,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
    if (uninitReason == UR_CHARTCHANGE) {
       int pid = ec->pid;
       if (!pid) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.pid=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
-      char* masterSymbol = g_contextChains[pid][0]->symbol;
+      char* masterSymbol = (*g_mqlPrograms[pid])[0]->symbol;
       if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
       else                                  return(IR_SYMBOLCHANGE);
    }
@@ -1770,13 +1766,16 @@ BOOL WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimizat
  * Whether or not the program with the specified pid is a partially initialized expert in tester, having an unset name or
  * matching the passed name.
  *
+ * @param  uint  pid  - program id
  * @param  char* name - program name
  *
  * @return BOOL
  */
 BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
-   if (g_contextChains.size() > pid) {
-      ContextChain& chain = g_contextChains[pid];
+   if (!pid) return(FALSE);
+
+   if (g_mqlPrograms.size() > pid) {
+      ContextChain& chain = *g_mqlPrograms[pid];
 
       if (chain.size() > 2) {                                  // needs to vae at least one registered library
          EXECUTION_CONTEXT* master = chain[0];
@@ -1866,4 +1865,25 @@ BOOL WINAPI Program_IsVisualMode(const EXECUTION_CONTEXT* ec, BOOL isVisualMode)
       case PT_SCRIPT:    return(ec->testing);                        // scripts can only run on visible charts
    }
    return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
+}
+
+
+/**
+ * Push the specififed ContextChain (an MQL program) onto the end of the program list.
+ *
+ * @param  ContextChain* chain
+ *
+ * @return uint - index where the program is stored
+ */
+uint WINAPI PushProgram(ContextChain* chain) {
+   if (!TryEnterCriticalSection(&g_terminalMutex)) {
+      debug("waiting to aquire lock on g_terminalMutex...");
+      EnterCriticalSection(&g_terminalMutex);
+   }
+   g_mqlPrograms.push_back(chain);
+   uint index = g_mqlPrograms.size()-1;
+   LeaveCriticalSection(&g_terminalMutex);
+
+   //if (index > 31) debug("registered programs: %d", index);   // index[0] is always empty
+   return(index);
 }

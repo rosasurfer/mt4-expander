@@ -3,7 +3,9 @@
 #include "lib/format.h"
 #include "lib/memory.h"
 #include "lib/string.h"
+#include "struct/rsf/ExecutionContext.h"
 #include "struct/rsf/Order.h"
+#include "struct/rsf/Test.h"
 
 
 /**
@@ -24,28 +26,30 @@ char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
       ss << "{}";
    }
    else {
-      ss <<  "{id="          <<                order->id
-         << ", ticket="      <<                order->ticket
-         << ", type="        << OrderTypeToStr(order->type)
-         << ", lots="        <<   NumberFormat(order->lots, "%.2f")
-         << ", symbol="      <<                order->symbol
-         << ", openPrice="   <<                order->openPrice
-         << ", openTime="    <<               (order->openTime   ? GmtTimeFormat(order->openTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
-         << ", stopLoss="    <<                order->stopLoss
-         << ", takeProfit="  <<                order->takeProfit
-         << ", closePrice="  <<                order->closePrice
-         << ", closeTime="   <<               (order->closeTime  ? GmtTimeFormat(order->closeTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
-         << ", commission="  <<   NumberFormat(order->commission, "%.2f")
-         << ", swap="        <<   NumberFormat(order->swap, "%.2f")
-         << ", profit="      <<   NumberFormat(order->profit, "%.2f")
-         << ", magicNumber=" <<                order->magicNumber
-         << ", comment="     << DoubleQuoteStr(order->comment)
-         << ", runup="       <<   NumberFormat(order->runupPip, "%.1f")
-         << ", drawdown="    <<   NumberFormat(order->drawdownPip, "%.1f")
-         << ", result="      <<   NumberFormat(order->plPip, "%.1f")
+      uint digits = order->test->ec->digits;
+      ss << std::fixed
+         <<  "{id="          <<                         order->id
+         << ", ticket="      <<                         order->ticket
+         << ", type="        <<    OrderTypeDescription(order->type)
+         << ", lots="        <<       std::setprecision(order->lots ? 2 : 0) << order->lots
+         << ", symbol="      <<                         order->symbol
+         << ", openPrice="   <<       std::setprecision(order->openPrice  ? digits : 0) << order->openPrice
+         << ", openTime="    <<                        (order->openTime   ? GmtTimeFormat(order->openTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", stopLoss="    <<       std::setprecision(order->stopLoss   ? digits : 0) << order->stopLoss
+         << ", takeProfit="  <<       std::setprecision(order->takeProfit ? digits : 0) << order->takeProfit
+         << ", closePrice="  <<       std::setprecision(order->closePrice ? digits : 0) << order->closePrice
+         << ", closeTime="   <<                        (order->closeTime  ? GmtTimeFormat(order->closeTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", commission="  << std::setprecision(2) << order->commission
+         << ", swap="        << std::setprecision(2) << order->swap
+         << ", profit="      << std::setprecision(2) << order->profit
+         << ", magicNumber=" <<                         order->magicNumber
+         << ", comment="     <<          DoubleQuoteStr(order->comment)
+         << ", runup="       << std::setprecision(1) << order->runupPip
+         << ", drawdown="    << std::setprecision(1) << order->drawdownPip
+         << ", result="      << std::setprecision(1) << order->plPip
          << "}";
    }
-   char* result = strdup(ss.str().c_str());                          // TODO: close memory leak
+   char* result = strdup(ss.str().c_str());                          // TODO: add to GC (close memory leak)
 
    if (outputDebug) debug(result);
    return(result);

@@ -4,7 +4,9 @@
 #pragma warning(disable:4060)                               // switch statement contains no 'case' or 'default' labels
 #pragma warning(disable:4065)                               // switch statement contains 'default' but no 'case' labels
 #pragma warning(disable:4101)                               // unreferenced local variable
-#pragma warning(disable:4996)                               // function call with parameters that may be unsafe
+#pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
+
+#define  EXPANDER_EXPORT  comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 
 #include "stdafx.h"
 #include "shared/defines.h"                                 // shared between C++ and MQL
@@ -13,10 +15,6 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
-
-
-// export unmangled names without a DEF file
-#define EXPANDER_EXPORT comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
 
 
 // type aliases
@@ -28,6 +26,9 @@ typedef unsigned __int64   uint64;
 typedef DWORD              color;                           // MQL type color
 typedef time_t             datetime;                        // MQL type datetime: a 32-bit signed long
 
+
+namespace rsf {}                                            // define and always prefer the project's main namespace
+using namespace rsf;
 
 using std::string;
 using std::wstring;
@@ -114,24 +115,15 @@ enum UninitializeReason {
 
 
 // Debugging and error handling.
-#define dump(...)    _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define debug(...)   _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define warn(...)    _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define error(...)   _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define dump(...)   _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define debug(...)  _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define warn(...)   _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define error(...)  _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int   _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_CHAR);
-
-int   _debug(const char* fileName, const char* funcName, int line, const char*   format, ...                );
-int   _debug(const char* fileName, const char* funcName, int line, const string& format, ...                );
-void __debug(const char* fileName, const char* funcName, int line, const char*   format, const va_list& args);
-
-int   _warn (const char* fileName, const char* funcName, int line, int code, const char*   format, ...                );
-int   _warn (const char* fileName, const char* funcName, int line, int code, const string& format, ...                );
-void __warn (const char* fileName, const char* funcName, int line, int code, const char*   format, const va_list& args);
-
-int   _error(const char* fileName, const char* funcName, int line, int code, const char*   format, ...                );
-int   _error(const char* fileName, const char* funcName, int line, int code, const string& format, ...                );
-void __error(const char* fileName, const char* funcName, int line, int code, const char*   format, const va_list& args);
+int WINAPI _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
+int WINAPI _debug(const char* fileName, const char* funcName, int line, const char* format, ...);
+int WINAPI _warn (const char* fileName, const char* funcName, int line, int code, const char* format, ...);
+int WINAPI _error(const char* fileName, const char* funcName, int line, int code, const char* format, ...);
 
 
 // Helper functions returning constant values. All parameters are ignored.

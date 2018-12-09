@@ -12,42 +12,12 @@
  *
  * @return char* - wrapped C string or the string "(null)" if a NULL pointer was specified
  */
-const char* WINAPI DoubleQuoteStr(const char* value) {
+char* WINAPI DoubleQuoteStr(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   if (!value) return("NULL");
-
-   uint size = strlen(value) + 3;                                    // +2 for the quotes, +1 for the terminating '\0'
-   char* buffer = new char[size];                                    // TODO: close memory leak
-   sprintf_s(buffer, size, "\"%s\"", value);
-
-   return(buffer);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Wrap a C string in double quote characters.
- *
- * @param  char* value
- *
- * @return string - wrapped std::string or the value "NULL" if a NULL pointer was specified
- */
-string WINAPI doubleQuoteStr(const char* value) {
    if (!value)
-      return(string("NULL"));
-   return(doubleQuoteStr(string(value)));
-}
-
-
-/**
- * Wrap a std::string in double quote characters.
- *
- * @param  string& value
- *
- * @return string - wrapped std::string
- */
-string WINAPI doubleQuoteStr(const string& value) {
-   return(string("\"").append(value).append("\""));
+      return(StrFormat("(null)", value));
+   return(StrFormat("\"%s\"", value));
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -184,7 +154,29 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
 
 
 /**
- * Whether or not two strings are considered equal. Convenient helper to hide the non-intuitive syntax of strcmp().
+ * Write formatted data to a string similar to sprintf() and return the resulting string. This function is identical to
+ * strformat() but registers the allocated memory for the returned string at the internal memory manager. The memory manager
+ * will release the memory at a time of its choice but the earliest at the next tick of the currently executed MQL program.
+ *
+ * @param  char* format - string with format codes
+ * @param        ...    - variable number of additional arguments
+ *
+ * @return char*
+ */
+char* WINAPI StrFormat(const char* format, ...) {
+   if (format && (uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+
+   va_list args;
+   va_start(args, format);
+   char* result = strformat(format, args);
+   va_end(args);
+
+   return(result);                                          // TODO: add to GC (close memory leak)
+}
+
+
+/**
+ * Whether or not two strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
  *
  * @param  char* a
  * @param  char* b
@@ -192,9 +184,9 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
  * @return BOOL
  */
 BOOL WINAPI StrCompare(const char* a, const char* b) {
-   if (a == b)   return(TRUE);                                       // if pointers are equal values are too
-   if (!a || !b) return(FALSE);                                      // if one is a NULL pointer the other can't
-   return(strcmp(a, b) == 0);                                        // both are not NULL pointers
+   if (a == b)   return(TRUE);                              // if pointers are equal values are too
+   if (!a || !b) return(FALSE);                             // if one is a NULL pointer the other can't
+   return(strcmp(a, b) == 0);                               // both are not NULL pointers
    #pragma EXPANDER_EXPORT
 }
 
@@ -310,8 +302,8 @@ char* WINAPI StrToLower(char* const str) {
  * @return string& - the same string
  */
 string& WINAPI StrToLower(string& str) {
-   for (string::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = tolower(*i);
+   for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = tolower(*it);
    }
    return(str);
 }
@@ -325,8 +317,8 @@ string& WINAPI StrToLower(string& str) {
  * @return wstring& - the same string
  */
 wstring& WINAPI StrToLower(wstring& str) {
-   for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = towlower(*i);
+   for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = towlower(*it);
    }
    return(str);
 }
@@ -357,8 +349,8 @@ char* WINAPI StrToUpper(char* const str) {
  * @return string& - the same string
  */
 string& WINAPI StrToUpper(string& str) {
-   for (string::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = toupper(*i);
+   for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = toupper(*it);
    }
    return(str);
 }
@@ -372,8 +364,8 @@ string& WINAPI StrToUpper(string& str) {
  * @return wstring& - the same string
  */
 wstring& WINAPI StrToUpper(wstring& str) {
-   for (wstring::iterator i=str.begin(); i != str.end(); ++i) {
-      *i = towupper(*i);
+   for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
+      *it = towupper(*it);
    }
    return(str);
 }
@@ -501,6 +493,52 @@ uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, size_t destSize) {
 }
 
 
+namespace rsf {
+
+
+/**
+ * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
+ * for the string itself. The caller is responsible for releasing the string's memory after usage with free().
+ *
+ * @param  char* format - string with format codes
+ * @param        ...    - variable number of additional arguments
+ *
+ * @return char*
+ */
+char* WINAPI strformat(const char* format, ...) {
+   if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+
+   va_list args;
+   va_start(args, format);
+   char* result = strformat(format, args);
+   va_end(args);
+
+   return(result);
+}
+
+
+/**
+ * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
+ * for the string itself. The caller is responsible for releasing the string's memory after usage with free().
+ *
+ * @param  char*    format - string with format codes
+ * @param  va_list& args   - variable list of additional arguments
+ *
+ * @return char*
+ */
+char* WINAPI strformat(const char* format, const va_list& args) {
+   if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+
+   uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
+   char * buffer = (char*)malloc(size);
+   vsprintf_s(buffer, size, format, args);
+
+   return(buffer);
+}
+
+
 /**
  * Convert a Unicode string (UTF-16) to a C multi-byte string.
  *
@@ -511,7 +549,7 @@ uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, size_t destSize) {
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wchar* str) {
+char* WINAPI wchartombs(const wchar* str) {
    return(wchartombs(str, wcslen(str)));
 }
 
@@ -527,7 +565,7 @@ char* wchartombs(const wchar* str) {
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wchar* sequence, size_t count) {
+char* WINAPI wchartombs(const wchar* sequence, size_t count) {
    wchar* source = wcsncpy(new wchar[count+1], sequence, count);
    source[count] = 0;
 
@@ -560,6 +598,7 @@ char* wchartombs(const wchar* sequence, size_t count) {
  *
  * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
  */
-char* wchartombs(const wstring& str) {
+char* WINAPI wchartombs(const wstring& str) {
    return(wchartombs(str.c_str(), str.length()));
+}
 }

@@ -1,6 +1,7 @@
 #include "expander.h"
 #include "lib/conversion.h"
 #include "lib/format.h"
+#include "lib/string.h"
 
 
 /**
@@ -396,7 +397,7 @@ const char* WINAPI ErrorToStr(int error) {
       error -= ERR_WIN32_ERROR;
       format = "win32:%d";
    }
-   return(NumberFormat(error, format));
+   return(StrFormat(format, error));
    #pragma EXPANDER_EXPORT
 }
 
@@ -411,7 +412,7 @@ const char* WINAPI ErrorToStr(int error) {
  * @example IntToHexStr(13465610) => "00CD780A"
  */
 char* WINAPI IntToHexStr(int value) {
-   return(NumberFormat(value, "%p"));
+   return(StrFormat("%p", value));
    #pragma EXPANDER_EXPORT
 }
 
@@ -434,7 +435,7 @@ char* WINAPI InitFlagsToStr(DWORD flags) {
    if (!str.length())                    str.append("|"+ to_string(flags)      );
 
    return(strcpy(new char[str.length()], str.c_str()+1));            // skip the leading "|"
-   #pragma EXPANDER_EXPORT                                           // TODO: close memory leak
+   #pragma EXPANDER_EXPORT                                           // TODO: add to GC (close memory leak)
 }
 
 
@@ -452,7 +453,7 @@ char* WINAPI DeinitFlagsToStr(DWORD flags) {
    if (!str.length())    str.append("|"+ to_string(flags));
 
    return(strcpy(new char[str.length()], str.c_str()+1));            // skip the leading "|"
-   #pragma EXPANDER_EXPORT                                           // TODO: close memory leak
+   #pragma EXPANDER_EXPORT                                           // TODO: add to GC (close memory leak)
 }
 
 
@@ -546,7 +547,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
  */
 char* WINAPI NumberToStr(double value, const char* format) {
-   return(NumberFormat(value, format));
+   return(NumberFormat(value, format));                        // TODO: support custom format codes
    #pragma EXPANDER_EXPORT
 }
 
@@ -678,7 +679,7 @@ const char* WINAPI PeriodDescription(int period) {
       case PERIOD_MN1: return("MN1");     // 1 month
       case PERIOD_Q1 : return("Q1" );     // 1 quarter
    }
-   return(NumberFormat(period, "%d"));
+   return(StrFormat("%d", period));
    #pragma EXPANDER_EXPORT
 }
 
@@ -739,17 +740,18 @@ const char* WINAPI ShowWindowCmdToStr(int cmd) {
 
 
 /**
- * Return a readable version of a C string.
+ * Return a readable version of an initialized or non-initialized string.
  *
  * @param  char* value
  *
- * @return char* - content of the string or the string "NULL" if the parameter is a NULL pointer
+ * @return char* - content of the string or "(null)" if the parameter is a NULL pointer
  *
- * Note: If implemented in MQL MetaTrader raises for a NULL pointer ERR_NOT_INITIALIZED_STRING and logs
+ * Note: Purpose of this function is to output an initialized and a non-initialized string from the same function.
+ *       In an MQL implementation the terminal raises ERR_NOT_INITIALIZED_STRING for a NULL pointer and logs the warning
  *       "warn: not initialized string".
  */
 const char* WINAPI StringToStr(const char* value) {
-   return(value ? value : "NULL");
+   return(value ? value : "(null)");
    #pragma EXPANDER_EXPORT
 }
 
