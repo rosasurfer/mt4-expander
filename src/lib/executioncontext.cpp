@@ -373,7 +373,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          uint lastPid = GetLastThreadProgram();                   // pid of the last program executed by the current thread
 
          // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
-         if (programType==PT_EXPERT && isTesting && Program_IsPartialTest(lastPid, programName)) {
+         if (programType==PT_EXPERT && isTesting && lastPid && Program_IsPartialTest(lastPid, programName)) {
             currentPid = lastPid;
             SetLastThreadProgram(currentPid);                     // set the currently executed program asap (error handling)
 
@@ -770,7 +770,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
          // Initialize the library with the current program's master context.
          uint pid = GetLastThreadProgram();                          // the program is currently executed
-         if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading a library (pid=0):  UninitializeReason=%s  threadId=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
+         if (!pid) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
 
          *ec = *(*g_mqlPrograms[pid])[0];                            // initialize library context with master context
          ec->moduleType         = MT_LIBRARY;                        // update library specific values
@@ -1766,11 +1766,14 @@ BOOL WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimizat
  * Whether or not the program with the specified pid is a partially initialized expert in tester, having an unset name or
  * matching the passed name.
  *
+ * @param  uint  pid  - program id
  * @param  char* name - program name
  *
  * @return BOOL
  */
 BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
+   if (!pid) return(FALSE);
+
    if (g_mqlPrograms.size() > pid) {
       ContextChain& chain = *g_mqlPrograms[pid];
 
