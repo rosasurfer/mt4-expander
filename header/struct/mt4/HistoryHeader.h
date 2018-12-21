@@ -8,6 +8,7 @@
  * HistoryFile Header
  */
 #pragma pack(push, 1)
+
 struct HISTORY_HEADER {                            // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint     barFormat;                             //         0         4     Barformat, bis Build 509: 400, danach: 401
    char     copyright[64];                         //         4        64     Copyright (szchar), wird vom Terminal bei Schreibzugriff überschrieben
