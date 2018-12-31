@@ -8,7 +8,6 @@
 # ignore the following directories and files
 /bin/
 /*.user
-/*.vcproj
 
 
 # never ignore the following files

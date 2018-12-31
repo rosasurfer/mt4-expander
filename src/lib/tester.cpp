@@ -539,3 +539,20 @@ int WINAPI Test() {
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ *
+ *\/
+extern "C" __declspec(dllexport) int __cdecl Test_cdecl(int a) {
+   return(NULL);
+}
+
+
+/**
+ *
+ *\/
+extern "C" __declspec(dllexport) int __stdcall Test_stdcall(double b) {
+   return(NULL);
+}
+/**/
