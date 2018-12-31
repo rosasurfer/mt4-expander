@@ -2,7 +2,7 @@
 *   text=auto
 
 
-# enforce text to overwrite mixed line-endings in the repo
+# an enforced "text" attribute overwrites mixed line-endings in the repo
 *.conf       text
 *.cpp        text
 *.css        text
@@ -28,7 +28,7 @@
 *.yml        text
 
 
-# use Windows line-endings in the working tree (not yet supported by Eclipse)
+# checkout with Windows line-endings (not yet supported by EGit)
 *.dsp        text eol=crlf
 *.dsw        text eol=crlf
 *.tpl        text eol=crlf
