@@ -663,7 +663,7 @@ BOOL WINAPI TerminalIsPortableMode() {
          LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
          for (int i=1; i < argc; ++i) {
-            if (StrStartsWith(argv[i], L"/portable")) {        // StartsWith() instead of Compare()
+            if (StrStartsWith(argv[i], L"/portable")) {        // StrStartsWith() instead of StrCompare()
                isPortable = TRUE;
                break;
             }
