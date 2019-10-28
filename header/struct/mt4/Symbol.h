@@ -43,7 +43,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    uint   spread;                                  //      1660         4     spread in points: 0=variable spread
    BYTE   unknown7[8];                             //      1664         8
 
-   BOOL   swapEnabled;                             //      1672         4     whether or not swaps are calculated
+   BOOL   swapEnabled;                             //      1672         4     whether swaps are calculated
    uint   swapType;                                //      1676         4     = MarketInfo(MODE_SWAPTYPE) => 0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency
    double swapLongValue;                           //      1680         8     swap long
    double swapShortValue;                          //      1688         8     swap short

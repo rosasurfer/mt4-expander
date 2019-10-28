@@ -51,7 +51,7 @@ int WINAPI CreateDirectoryRecursive(const string& path) {
 
 
 /**
- * Whether or not the specified directory exists and is not a regular file. Symbolic links and junctions are supported.
+ * Whether the specified directory exists and is not a regular file. Symbolic links and junctions are supported.
  *
  * @param  char* name - full directory name with support for forward, backward and trailing slashes
  *
@@ -70,7 +70,7 @@ BOOL WINAPI IsDirectoryA(const char* name) {
 
 
 /**
- * Whether or not the specified file exists and is not a directory. Symbolic links are supported.
+ * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
  * @param  char* name - full filename with support for forward and backward slashes
  *
@@ -89,7 +89,7 @@ BOOL WINAPI IsFileA(const char* name) {
 
 
 /**
- * Whether or not the specified file exists and is not a directory. Symbolic links are supported.
+ * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
  * @param  string& name - full filename with support for forward and backward slashes
  *
@@ -101,7 +101,7 @@ BOOL WINAPI IsFileA(const string& name) {
 
 
 /**
- * Whether or not the specified directory exists and is a junction.
+ * Whether the specified directory exists and is a junction.
  *
  * @param  char* name - full directory name with support for forward and backward slashes
  *
@@ -140,7 +140,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
 
 
 /**
- * Whether or not the specified file or directory exists and is a symbolic link.
+ * Whether the specified file or directory exists and is a symbolic link.
  *
  * @param  char* name - full filename with support for forward and backward slashes
  *

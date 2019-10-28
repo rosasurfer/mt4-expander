@@ -306,8 +306,8 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * @param  uint               timeframe      - current chart timeframe
  * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
  * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
- * @param  BOOL               extReporting   - value of an Expert's input parameter "EA.ExtReporting"
- * @param  BOOL               recordEquity   - value of an Expert's input parameter "EA.RecordEquity"
+ * @param  BOOL               extReporting   - value of an expert's input parameter "EA.CreateReport"
+ * @param  BOOL               recordEquity   - value of an expert's input parameter "EA.RecordEquity"
  * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
@@ -326,7 +326,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((uint)programName < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if (strlen(programName) >= sizeof(ec->programName)) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1)));
    if ((uint)symbol      < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   if (strlen(symbol)   >= MAX_SYMBOL_LENGTH)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
+   if (strlen(symbol)    > MAX_SYMBOL_LENGTH)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH)));
    if ((int)timeframe <= 0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
    if ((int)digits    <  0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
@@ -571,7 +571,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          for (OrderList::iterator it=positions->begin(), end=positions->end(); it!=end; ++it) {
             ORDER* order = *it;
             if (high > order->high) order->high = high;
-            if (low  < order->low ) order->low  = low;               // explicite for max. performance
+            if (low  < order->low ) order->low  = low;               // explicite check for max. performance
          }
       }
    }
@@ -1044,7 +1044,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
 /**
  * Create and initialize a new TEST instance if the passed program is an expert in tester. If the context already holds
- * a pointer to test, the existing test is returned.
+ * a pointer to a test, the existing test is returned.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
@@ -1091,7 +1091,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
    switch (type) {
       case MT_INDICATOR: {
          // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
-         // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether or not one of the indicator's
+         // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether one of the indicator's
          // libraries has been reloaded before.
          uint chainsSize = g_mqlPrograms.size();
          EXECUTION_CONTEXT* master;
@@ -1721,7 +1721,7 @@ const char* WINAPI Program_CustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not logging is activated for the program.
+ * Whether logging is activated for the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1742,7 +1742,7 @@ BOOL WINAPI Program_IsLogging(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not the program is executed in the Strategy Tester with Optimization=On.
+ * Whether the program is executed in the Strategy Tester with Optimization=On.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isOptimization - MQL::IsOptimization() status as passed by the terminal
@@ -1763,7 +1763,7 @@ BOOL WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimizat
 
 
 /**
- * Whether or not the program with the specified pid is a partially initialized expert in tester, having an unset name or
+ * Whether the program with the specified pid is a partially initialized expert in tester, having an unset name or
  * matching the passed name.
  *
  * @param  uint  pid  - program id
@@ -1793,7 +1793,7 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
 
 
 /**
- * Whether or not the program is executed in the Strategy Tester or on a Strategy Tester chart.
+ * Whether the program is executed in the Strategy Tester or on a test chart.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isTesting - MQL::IsTesting() status as passed by the terminal (possibly wrong)
@@ -1848,7 +1848,7 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
 
 
 /**
- * Whether or not the program is executed in the Strategy Tester or on a Strategy Tester chart with VisualMode=On.
+ * Whether the program is executed in the Strategy Tester or on a test chart with VisualMode=On.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isVisualMode - MQL::IsVisualMode() status as passed by the terminal (possibly wrong)

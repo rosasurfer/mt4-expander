@@ -16,7 +16,7 @@ extern MqlProgramList g_mqlPrograms;                     // all MQL programs: ve
  * @param  int   line            - line number in the file where the dump operation occurred
  * @param  void* data            - pointer to the data to dump
  * @param  uint  size            - size of the data to dump in bytes
- * @param  uint  mode [optional] - mode controling the way of dumping (default: human-readable character dump)
+ * @param  uint  mode [optional] - mode controling the way of dumping (default: hex dump)
  *                                 DUMPMODE_HEX:  output a hex dump
  *                                 DUMPMODE_CHAR: output a readable character representation
  * @return int - 0 (NULL)

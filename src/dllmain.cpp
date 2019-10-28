@@ -71,7 +71,7 @@ void WINAPI onProcessAttach() {
 /**
  * Handler for DLL_PROCESS_DETACH events.
  *
- * @param  BOOL isTerminating - whether or not the DLL is detached because the process is terminating
+ * @param  BOOL isTerminating - whether the DLL is detached because the process is terminating
  */
 void WINAPI onProcessDetach(BOOL isTerminating) {
    if (isTerminating)

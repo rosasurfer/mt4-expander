@@ -12,7 +12,7 @@
  * Return a human-readable version of an ORDER.
  *
  * @param  ORDER* order
- * @param  BOOL   outputDebug - whether or not to duplicate the result to OutputDebugString()
+ * @param  BOOL   outputDebug - whether to duplicate the result to OutputDebugString()
  *                              (default: no)
  * @return char*
  */

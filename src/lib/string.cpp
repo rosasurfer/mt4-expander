@@ -176,7 +176,7 @@ char* WINAPI StrFormat(const char* format, ...) {
 
 
 /**
- * Whether or not two strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
+ * Whether two strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
  *
  * @param  char* a
  * @param  char* b
@@ -205,7 +205,7 @@ BOOL WINAPI StrIsNull(const char* value) {
 
 
 /**
- * Whether or not a string starts with the specified substring.
+ * Whether a string starts with the specified substring.
  *
  * @param  char* str
  * @param  char* prefix
@@ -229,7 +229,7 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
 
 
 /**
- * Whether or not a string starts with the specified substring.
+ * Whether a string starts with the specified substring.
  *
  * @param  wchar* str
  * @param  wchar* prefix
@@ -252,7 +252,7 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
 
 
 /**
- * Whether or not a string ends with the specified substring.
+ * Whether a string ends with the specified substring.
  *
  * @param  char* str
  * @param  char* suffix

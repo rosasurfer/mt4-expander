@@ -107,7 +107,7 @@ const char* WINAPI ErrorToStr(int error) {
 
       // trade server errors
       case ERR_NO_RESULT                                    : return("ERR_NO_RESULT"                        );    //      1
-      case ERR_COMMON_ERROR                                 : return("ERR_COMMON_ERROR"                     );    //      2
+      case ERR_SERVER_ERROR                                 : return("ERR_SERVER_ERROR"                     );    //      2
       case ERR_INVALID_TRADE_PARAMETERS                     : return("ERR_INVALID_TRADE_PARAMETERS"         );    //      3
       case ERR_SERVER_BUSY                                  : return("ERR_SERVER_BUSY"                      );    //      4
       case ERR_OLD_VERSION                                  : return("ERR_OLD_VERSION"                      );    //      5
@@ -278,7 +278,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65539      status, no error
       case ERR_TERMINAL_INIT_FAILURE                        : return("ERR_TERMINAL_INIT_FAILURE"            );    //  65540
       case ERR_INVALID_INPUT_PARAMETER                      : return("ERR_INVALID_INPUT_PARAMETER"          );    //  65541
-      case ERR_INVALID_CONFIG_PARAMVALUE                    : return("ERR_INVALID_CONFIG_PARAMVALUE"        );    //  65542
+      case ERR_INVALID_CONFIG_VALUE                         : return("ERR_INVALID_CONFIG_VALUE"             );    //  65542
       case ERR_INVALID_TIMEZONE_CONFIG                      : return("ERR_INVALID_TIMEZONE_CONFIG"          );    //  65543
       case ERR_INVALID_MARKET_DATA                          : return("ERR_INVALID_MARKET_DATA"              );    //  65544
       case ERR_INVALID_COMMAND                              : return("ERR_INVALID_COMMAND"                  );    //  65545
@@ -289,6 +289,8 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_CONCURRENT_MODIFICATION                      : return("ERR_CONCURRENT_MODIFICATION"          );    //  65550
       case ERR_INVALID_ACCESS                               : return("ERR_INVALID_ACCESS"                   );    //  65551
       case ERR_ILLEGAL_STATE                                : return("ERR_ILLEGAL_STATE"                    );    //  65552
+      case ERR_MIXED_SYMBOLS                                : return("ERR_MIXED_SYMBOLS"                    );    //  65553
+      case ERR_TOTAL_POSITION_NOT_FLAT                      : return("ERR_TOTAL_POSITION_NOT_FLAT"          );    //  65554
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                  : return("win32:NO_ERROR"                       );    // 100000 +    0

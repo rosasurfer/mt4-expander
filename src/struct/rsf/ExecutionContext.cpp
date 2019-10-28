@@ -506,7 +506,7 @@ const char* WINAPI ec_SubPipPriceFormat(const EXECUTION_CONTEXT* ec) {
  * @param  EXECUTION_CONTEXT* ec     - source context
  * @param  EXECUTION_CONTEXT* target - target variable receiving the super context
  *
- * @return BOOL - whether or not the source context contained a super context and it was successfully copied
+ * @return BOOL - whether the source context contained a super context and it was successfully copied
  */
 BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target) {
    if ((uint)ec     < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -757,7 +757,7 @@ const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not a program is running in the tester or on a test chart.
+ * Whether a program is running in the Strategy Tester or on a test chart.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -771,7 +771,7 @@ BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not a program is running in the tester or on a test chart with "VisualMode" on.
+ * Whether a program is running in the Strategy Tester or on a test chart with "VisualMode" on.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -785,7 +785,7 @@ BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not a program is running in the tester with "Optimization" on.
+ * Whether a program is running in the Strategy Tester with "Optimization" on.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -799,7 +799,7 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not an experts input parameter "EA.ExtReporting" is activated.
+ * Whether an expert's input parameter "EA.CreateReport" is activated.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -813,7 +813,7 @@ BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not an experts input parameter "EA.RecordEquity" is activated.
+ * Whether an expert's input parameter "EA.RecordEquity" is activated.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -869,7 +869,7 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not logging is enabled for a program.
+ * Whether logging is enabled for a program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -883,7 +883,7 @@ BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether or not custom logging is enabled for a program.
+ * Whether custom logging is enabled for a program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1951,7 +1951,7 @@ const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileNa
  * Return a human-readable version of an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               outputDebug [optional] - whether or not to duplicate the result to OutputDebugString()
+ * @param  BOOL               outputDebug [optional] - whether to duplicate the result to OutputDebugString()
  *                                                     (default: no)
  * @return char*
  */
