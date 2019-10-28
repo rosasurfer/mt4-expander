@@ -77,7 +77,7 @@ DWORD WINAPI GetUIThreadId() {
 
 
 /**
- * Whether or not the specified thread is the application's UI thread.
+ * Whether the specified thread is the application's UI thread.
  *
  * @param  DWORD threadId [optional] - thread id; if this value is NULL the current thread is used
  *                                     (default: the current thread)

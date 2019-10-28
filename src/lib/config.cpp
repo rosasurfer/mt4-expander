@@ -276,7 +276,7 @@ char* WINAPI GetIniStringRaw(const char* fileName, const char* section, const ch
 
 
 /**
- * Whether or not the specified global configuration key exists.
+ * Whether the specified global configuration key exists.
  *
  * @param  char* section - case-insensitive configuration section name
  * @param  char* key     - case-insensitive configuration key
@@ -293,7 +293,7 @@ BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
 
 
 /**
- * Whether or not a configuration key exists in an .ini file.
+ * Whether a configuration key exists in an .ini file.
  *
  * @param  char* fileName - name of the .ini file
  * @param  char* section  - case-insensitive configuration section
@@ -343,7 +343,7 @@ BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key)
 
 
 /**
- * Whether or not a configuration section exists in an .ini file.
+ * Whether a configuration section exists in an .ini file.
  *
  * @param  char* fileName - name of the .ini file
  * @param  char* section  - case-insensitive configuration section
@@ -390,7 +390,7 @@ BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
 
 
 /**
- * Whether or not the specified local configuration key exists.
+ * Whether the specified local configuration key exists.
  *
  * @param  char* section - case-insensitive configuration section name
  * @param  char* key     - case-insensitive configuration key

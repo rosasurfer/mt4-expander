@@ -150,7 +150,7 @@ const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
  * Return a human-readable version of a TEST struct.
  *
  * @param  TEST* test
- * @param  BOOL  outputDebug - whether or not to duplicate the result to OutputDebugString()
+ * @param  BOOL  outputDebug - whether to duplicate the result to OutputDebugString()
  *                             (default: no)
  * @return char*
  */

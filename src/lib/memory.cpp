@@ -92,7 +92,7 @@ uint WINAPI GetPointedAddress(const void* value) {
 
 
 /**
- * Whether or not the content of two memory ranges is considered equal. Convenient helper to hide the non-intuitive memcmp()
+ * Whether the content of two memory ranges is considered equal. Convenient helper to hide the non-intuitive memcmp()
  * syntax.
  *
  * @param  void*   bufferA - first memory location

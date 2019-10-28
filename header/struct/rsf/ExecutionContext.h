@@ -78,7 +78,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    BOOL               visualMode;                  //       704        4     expert IsVisualMode() status                        (const)
    BOOL               optimization;                //       708        4     expert IsOptimization() status                      (const)
                                                    //
-   BOOL               extReporting;                //       712        4     expert input parameter EA.ExtReporting              (var)
+   BOOL               extReporting;                //       712        4     expert input parameter EA.CreateReport              (var)
    BOOL               recordEquity;                //       716        4     expert input parameter EA.RecordEquity              (var)
                                                    //
    int                mqlError;                    //       720        4     last MQL error (from all program modules)           (var)

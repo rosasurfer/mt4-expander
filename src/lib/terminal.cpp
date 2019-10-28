@@ -516,7 +516,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
  * @param  char*       programName - MQL program name (Ansi string)
  *
- * @return BOOL - whether or not the load command was successfully queued; not if the MQL program was indeed launched
+ * @return BOOL - whether the load command was successfully queued; not if the MQL program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
    if (hChart <= 0)                           return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not a window handle)", hChart));
@@ -570,7 +570,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
  * @param  wchar*      programName - MQL program name (Unicode string)
  *
- * @return BOOL - whether or not the load command was successfully queued; not if the MQL program was indeed launched
+ * @return BOOL - whether the load command was successfully queued; not if the MQL program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
@@ -588,7 +588,7 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 
 
 /**
- * Whether or not the terminal has write permission to the specified directory.
+ * Whether the terminal has write permission to the specified directory.
  *
  * @param  char* dir - directory name
  *
@@ -611,7 +611,7 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
 
 
 /**
- * Whether or not the specified file exists and is locked with the sharing modes of a logfile. This function cannot see which
+ * Whether the specified file exists and is locked with the sharing modes of a logfile. This function cannot see which
  * process is holding the lock.
  *
  * @param  string& filename - full filename
@@ -640,7 +640,7 @@ BOOL WINAPI TerminalIsLockedLogfile(const string& filename) {
 
 
 /**
- * Whether or not the terminal was launched in portable mode.
+ * Whether the terminal was launched in portable mode.
  *
  * @return BOOL
  *

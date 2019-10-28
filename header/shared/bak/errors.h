@@ -4,22 +4,24 @@
  * @see  https://docs.mql4.com/constants/errorswarnings/errorcodes
  */
 #define ERR_NO_ERROR                                                  0
-//efine NO_ERROR                                           ERR_NO_ERROR    // prevent C++ warning "C4005: macro redefinition", @see {mt4-mql}/mql4/include/mqldefines.mqh
+//define NO_ERROR                                          ERR_NO_ERROR
+// To prevent the C++ warning "C4005: macro redefinition" this constant is define in "include/mqldefines.mqh"
 
 // Trading errors
 #define ERR_NO_RESULT                                                 1
 //      No status returned, the result is unknown. OrderModify() attempted to replace values already set. One or more values
-//      must be changed, then modification attempt can be repeated. May also happen if the trade server changes during OrderModify().
-#define ERR_COMMON_ERROR                                              2
-//      Common error. All attempts to trade must be stopped until reasons are clarified. Restart of the client terminal may be needed.
+//      must be changed, then modification attempt can be repeated. May also happen if the trade server changes during
+//      OrderModify().
+#define ERR_SERVER_ERROR                                              2
+#define ERR_COMMON_ERROR                               ERR_SERVER_ERROR    // MetaQuotes alias
+//      The trade request failed. All attempts to trade must stop until reasons are clarified. Restart of the client terminal
+//      may be needed. Can be caused by trade server issues.
 #define ERR_INVALID_TRADE_PARAMETERS                                  3
 //      Invalid parameters were passed, e.g. wrong symbol, unknown trade operation, negative slippage, non-existing ticket.
 #define ERR_SERVER_BUSY                                               4
 //      The trade server is busy. The attempt can be repeated after a rather long period of time (more than several minutes).
 #define ERR_OLD_VERSION                                               5    // too old version of the client terminal
-#define ERR_NO_CONNECTION                                             6
-//      No connection to the trade server. Make sure that a connection is established (e.g. by using IsConnected()) and repeat
-//      the attempt after a certain period of time (more than 5 seconds).
+#define ERR_NO_CONNECTION                                             6    // no connection to the trade server
 #define ERR_NOT_ENOUGH_RIGHTS                                         7
 #define ERR_TOO_FREQUENT_REQUESTS                                     8    // trade requests are too frequent
 #define ERR_MALFUNCTIONAL_TRADE                                       9    // malfunctional trade operation
@@ -38,26 +40,26 @@
 #define ERR_MARKET_CLOSED                                           132
 #define ERR_TRADE_DISABLED                                          133
 #define ERR_NOT_ENOUGH_MONEY                                        134
-#define ERR_PRICE_CHANGED                                           135    // Price has changed and a retry can be made immdediately.
+#define ERR_PRICE_CHANGED                                           135    // Price has changed and a retry can be made immediately.
 #define ERR_OFF_QUOTES                                              136    // The broker cannot provide prices (backend or liquidity issue).
-#define ERR_BROKER_BUSY                                             137    // broker busy, automated trading disabled?
+#define ERR_BROKER_BUSY                                             137    // Automated trading is disabled (manual trading is not affected).
 #define ERR_REQUOTE                                                 138    // The offered price has become stale and expired.
 #define ERR_ORDER_LOCKED                                            139    // The order has been locked and is under processing.
 #define ERR_LONG_POSITIONS_ONLY_ALLOWED                             140
-#define ERR_TOO_MANY_REQUESTS                                       141    // the number of trade requests has reached the broker limit
+#define ERR_TOO_MANY_REQUESTS                                       141    // The number of trade requests has reached the broker limit.
 #define ERR_ORDER_QUEUED                                            142
 //      The order has been enqueued. This is an interaction code between client terminal and trade server. It can appear if a
 //      reconnection occures during execution of a trade request. It should be processed similar to ERR_TRADE_TIMEOUT.
 #define ERR_ORDER_ACCEPTED                                          143
-//      The order was accepted for execution. This is an interaction code between client terminal and trade server. It can appear
-//      for the same reason as ERR_ORDER_QUEUED and should be processed similar to ERR_TRADE_TIMEOUT.
+//      The order was accepted for execution. This is an interaction code between client terminal and trade server. It can
+//      appear for the same reason as ERR_ORDER_QUEUED and should be processed similar to ERR_TRADE_TIMEOUT.
 #define ERR_ORDER_DISCARDED                                         144
 //      The order was discarded by the broker during manual confirmation. This is an interaction code between client terminal
 //      and trade server.
 #define ERR_TRADE_MODIFY_DENIED                                     145    // modification denied because order is too close to market (MODE_FREEZELEVEL)
 #define ERR_TRADE_CONTEXT_BUSY                                      146
 #define ERR_TRADE_EXPIRATION_DENIED                                 147    // trade expirations are not supported
-#define ERR_TRADE_TOO_MANY_ORDERS                                   148    // the number of open and pending orders has reached the broker limit
+#define ERR_TRADE_TOO_MANY_ORDERS                                   148    // The number of open orders has reached the broker limit.
 #define ERR_TRADE_HEDGE_PROHIBITED                                  149    // hedging is not supported
 #define ERR_TRADE_PROHIBITED_BY_FIFO                                150
 
@@ -133,10 +135,10 @@
 #define ERR_SYMBOL_NOT_AVAILABLE                                   4106
 #define ERR_INVALID_PRICE_PARAM                                    4107
 #define ERR_INVALID_TICKET                                         4108
-#define ERR_TRADE_NOT_ALLOWED                                      4109
+#define ERR_TRADE_NOT_ALLOWED                                      4109    // automated trading disabled in the terminal
 #define ERR_LONGS_NOT_ALLOWED                                      4110
 #define ERR_SHORTS_NOT_ALLOWED                                     4111
-#define ERR_AUTOMATED_TRADING_DISABLED                             4112    // automated trading not supported
+#define ERR_AUTOMATED_TRADING_DISABLED                             4112    // automated trading disabled by the broker
 #define ERR_OBJECT_ALREADY_EXISTS                                  4200
 #define ERR_UNKNOWN_OBJECT_PROPERTY                                4201
 #define ERR_OBJECT_DOES_NOT_EXIST                                  4202
@@ -181,7 +183,7 @@
 #define ERR_FILE_INCOMPATIBLE                                      5018    // incompatible file (for string arrays-TXT, for others-BIN)
 #define ERR_FILE_IS_DIRECTORY                                      5019    // file is a directory
 #define ERR_FILE_NOT_FOUND                                         5020    // file not found
-#define ERR_FILE_NOT_EXIST                           ERR_FILE_NOT_FOUND    // MeatQuotes-Alias
+#define ERR_FILE_NOT_EXIST                           ERR_FILE_NOT_FOUND    // MetaQuotes alias
 #define ERR_FILE_CANNOT_REWRITE                                    5021    // file cannot be rewritten
 #define ERR_FILE_WRONG_DIRECTORYNAME                               5022    // wrong directory name
 #define ERR_FILE_DIRECTORY_NOT_EXIST                               5023    // directory does not exist
@@ -204,7 +206,7 @@
 #define ERS_TERMINAL_NOT_YET_READY                                65539    // terminal not yet ready (in Scripten Fehler, sonst Status)
 #define ERR_TERMINAL_INIT_FAILURE                                 65540    // multiple Expert::init() calls
 #define ERR_INVALID_INPUT_PARAMETER                               65541    // invalid input parameter
-#define ERR_INVALID_CONFIG_PARAMVALUE                             65542    // invalid configuration parameter
+#define ERR_INVALID_CONFIG_VALUE                                  65542    // invalid configuration parameter
 #define ERR_INVALID_TIMEZONE_CONFIG                               65543    // invalid or missing timezone configuration
 #define ERR_INVALID_MARKET_DATA                                   65544    // invalid MarketInfo() data
 #define ERR_INVALID_COMMAND                                       65545    // invalid or unknown command
@@ -215,6 +217,8 @@
 #define ERR_CONCURRENT_MODIFICATION                               65550    // concurrent modification
 #define ERR_INVALID_ACCESS                                        65551    // invalid access
 #define ERR_ILLEGAL_STATE                                         65552    // illegal state
+#define ERR_MIXED_SYMBOLS                                         65553    // mixed symbols encountered when only one was expected
+#define ERR_TOTAL_POSITION_NOT_FLAT                               65554    // total position encountered when flat position was expected
 
 // user defined errors: >=100000 (0x186A0) Mapping von Windows- zu MQL-Fehlern: alle Fehler kodieren einen entsprechenden Windows-Fehler
 #define ERR_WIN32_ERROR                                          100000    // 100000 => win32:0 => ERROR_SUCCESS
