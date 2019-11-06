@@ -319,7 +319,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  *
  * @return int - error status
  *
- * @see    additional notes at the top of this file
+ * @see additional notes at the top of this file
  */
 int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL extReporting, BOOL recordEquity, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));

@@ -785,9 +785,9 @@ const char* WINAPI TimeframeToStr(int timeframe) {
  */
 const char* WINAPI TradeDirectionDescription(int direction) {
    switch (direction) {
-      case TRADE_DIRECTIONS_LONG:  return("Long" );
-      case TRADE_DIRECTIONS_SHORT: return("Short");
-      case TRADE_DIRECTIONS_BOTH:  return("Both" );
+      case TRADE_DIRECTION_LONG:  return("Long" );
+      case TRADE_DIRECTION_SHORT: return("Short");
+      case TRADE_DIRECTION_BOTH:  return("Both" );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
@@ -803,9 +803,9 @@ const char* WINAPI TradeDirectionDescription(int direction) {
  */
 const char* WINAPI TradeDirectionToStr(int direction) {
    switch (direction) {
-      case TRADE_DIRECTIONS_LONG:  return("TRADE_DIRECTIONS_LONG" );
-      case TRADE_DIRECTIONS_SHORT: return("TRADE_DIRECTIONS_SHORT");
-      case TRADE_DIRECTIONS_BOTH:  return("TRADE_DIRECTIONS_BOTH" );
+      case TRADE_DIRECTION_LONG:  return("TRADE_DIRECTION_LONG" );
+      case TRADE_DIRECTION_SHORT: return("TRADE_DIRECTION_SHORT");
+      case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH" );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
