@@ -1379,7 +1379,7 @@ uint WINAPI GetCurrentThreadIndex() {
    uint index = g_threads.size() - 1;
    LeaveCriticalSection(&g_terminalMutex);
 
-   if (index > 255) debug("thread %d added (size=%d)", currentThread, index+1);
+   if (index > 512) debug("thread %d added (size=%d)", currentThread, index+1);
    return(index);
 }
 

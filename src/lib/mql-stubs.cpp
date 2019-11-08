@@ -143,7 +143,7 @@ int WINAPI onDeinitFailed() {
 }
 
 
-int WINAPI onDeinitParameterChange() {
+int WINAPI onDeinitParameters() {
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
