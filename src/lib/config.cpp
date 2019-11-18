@@ -223,7 +223,7 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
  *
   * Note: The memory for the returned string was allocated with "new[]" and should be released after usage (with "delete[]").
 */
-char* WINAPI GetIniString(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
+char* WINAPI GetIniStringA(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
    char* value = GetIniStringRawA(fileName, section, key, defaultValue);
    if (!value || !*value)
       return(value);
