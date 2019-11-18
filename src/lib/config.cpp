@@ -224,7 +224,7 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
   * Note: The memory for the returned string was allocated with "new[]" and should be released after usage (with "delete[]").
 */
 char* WINAPI GetIniString(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
-   char* value = GetIniStringRaw(fileName, section, key, defaultValue);
+   char* value = GetIniStringRawA(fileName, section, key, defaultValue);
    if (!value || !*value)
       return(value);
 
@@ -251,7 +251,7 @@ char* WINAPI GetIniString(const char* fileName, const char* section, const char*
  *
  * Note: The memory for the returned string was allocated with "new[]" and should be released after usage (with "delete[]").
  */
-char* WINAPI GetIniStringRaw(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
+char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
    if ((uint)fileName     < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName)));
    if (!*fileName)                             return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)")));
    if ((uint)section      < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section)));
