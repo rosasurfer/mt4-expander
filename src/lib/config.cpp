@@ -397,7 +397,7 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsLocalConfigKey(const char* section, const char* key) {
+BOOL WINAPI IsLocalConfigKeyA(const char* section, const char* key) {
    const char* localConfig = GetLocalConfigPathA();
    if (localConfig)
       return(IsIniKeyA(localConfig, section, key));
