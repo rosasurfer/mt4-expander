@@ -20,7 +20,7 @@
  *
  * @param  char* path - full directory path
  *
- * @return int - ERROR_SUCCESS or an error code
+ * @return int - error status
  */
 int WINAPI CreateDirectoryRecursive(const char* path) {
    if ((uint)path < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
@@ -39,7 +39,7 @@ int WINAPI CreateDirectoryRecursive(const char* path) {
  *
  * @param  string& path - full directory path
  *
- * @return int - ERROR_SUCCESS or an error code
+ * @return int - error status
  */
 int WINAPI CreateDirectoryRecursive(const string& path) {
    int error = SHCreateDirectoryEx(NULL, path.c_str(), NULL);
