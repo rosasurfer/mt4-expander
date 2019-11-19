@@ -29,7 +29,7 @@ BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValu
 
 
 /**
- * Return the full filename of the MQL framework's global configuration file. The gobal file is used for configuration of all
+ * Return the full filename of the MQL framework's global configuration file. The global file is used for configuration of all
  * terminals executed by the current user. If the file does not exist an attempt is made to create it.
  *
  * @return char* - filename or a NULL pointer in case of errors,
@@ -286,7 +286,7 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
 BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
    const char* globalConfig = GetGlobalConfigPathA();
    if (globalConfig)
-      return(IsIniKey(globalConfig, section, key));
+      return(IsIniKeyA(globalConfig, section, key));
    return(FALSE);
    #pragma EXPANDER_EXPORT
 }
@@ -301,7 +301,7 @@ BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsIniKey(const char* fileName, const char* section, const char* key) {
+BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key) {
    if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
    if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
@@ -400,7 +400,7 @@ BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
 BOOL WINAPI IsLocalConfigKey(const char* section, const char* key) {
    const char* localConfig = GetLocalConfigPathA();
    if (localConfig)
-      return(IsIniKey(localConfig, section, key));
+      return(IsIniKeyA(localConfig, section, key));
    return(FALSE);
    #pragma EXPANDER_EXPORT
 }

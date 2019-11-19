@@ -102,9 +102,9 @@ HMODULE WINAPI GetLibraryModuleW2K() {
 
 
 /**
- * Get the module handle of the current module, i.e. of this DLL.
+ * Get the module handle of the current module (i.e. the module handle of this DLL).
  *
- * @return HMODULE - DLL module handle (not the terminal.exe's module handle)
+ * @return HMODULE - DLL module handle (not the module handle of "terminal.exe")
  *
  * Note: requires at least Windows XP or Windows Server 2003
  */

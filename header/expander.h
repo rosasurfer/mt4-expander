@@ -70,17 +70,17 @@ enum ModuleType {
 
 // MQL program launch types
 enum LaunchType {
-   LT_TEMPLATE  = LAUNCHTYPE_TEMPLATE,                      // launched via template
-   LT_PROGRAM   = LAUNCHTYPE_PROGRAM,                       // launched via call of iCustom()
-   LT_MANUAL    = LAUNCHTYPE_MANUAL                         // launched manually (by hand)
+   LT_TEMPLATE = LAUNCHTYPE_TEMPLATE,                       // launched via template
+   LT_PROGRAM  = LAUNCHTYPE_PROGRAM,                        // launched via call of iCustom()
+   LT_MANUAL   = LAUNCHTYPE_MANUAL                          // launched manually (by hand)
 };
 
 
 // MQL program core functions
 enum CoreFunction {
-   CF_INIT      = COREFUNCTION_INIT,
-   CF_START     = COREFUNCTION_START,
-   CF_DEINIT    = COREFUNCTION_DEINIT
+   CF_INIT   = COREFUNCTION_INIT,
+   CF_START  = COREFUNCTION_START,
+   CF_DEINIT = COREFUNCTION_DEINIT
 };
 
 
