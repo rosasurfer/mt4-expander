@@ -283,7 +283,7 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
  *
  * @return BOOL
  */
-BOOL WINAPI IsGlobalConfigKey(const char* section, const char* key) {
+BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
    const char* globalConfig = GetGlobalConfigPathA();
    if (globalConfig)
       return(IsIniKeyA(globalConfig, section, key));
