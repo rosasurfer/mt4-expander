@@ -350,7 +350,7 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
  *
  * @return BOOL
  */
-BOOL WINAPI IsIniSection(const char* fileName, const char* section) {
+BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
    if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
    if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
