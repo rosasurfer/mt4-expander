@@ -6,11 +6,11 @@
 
 
 /**
- * Wrap a C string in double quote characters.
+ * Wrap a string in double quote characters.
  *
  * @param  char* value
  *
- * @return char* - wrapped C string or the string "(null)" if a NULL pointer was specified
+ * @return char* - wrapped string or the string "(null)" if a NULL pointer was specified
  */
 char* WINAPI DoubleQuoteStr(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
@@ -85,10 +85,10 @@ std::istream& getline(std::istream& is, string& line) {
 
 
 /**
- * Return the passed pointer to an Ansi string. Essentially this is a no-op, used by MQL to read and convert a C string to
+ * Return the passed pointer to a C string. Essentially this is a no-op, used by MQL to read and convert a C string to
  * it's MQL representation. The terminal will allocate new memory and copy the passed string to the resulting MQL string.
  *
- * @param  char* value - Ansi string
+ * @param  char* value - string
  *
  * @return char* - the same string or NULL in case of errors
  */
@@ -276,9 +276,9 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
 
 
 /**
- * Convert a C string to lower-case.
+ * Convert a C string to lower-case using the current locale. The function modifies the string.
  *
- * @param  _In_Out_ char* str
+ * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
@@ -295,9 +295,9 @@ char* WINAPI StrToLower(char* const str) {
 
 
 /**
- * Convert a std::string to lower-case.
+ * Convert a std::string to lower-case. The function modifies the string.
  *
- * @param  _In_Out_ string& str
+ * @param  _InOut_ string& str
  *
  * @return string& - the same string
  */
@@ -310,9 +310,9 @@ string& WINAPI StrToLower(string& str) {
 
 
 /**
- * Convert a std::wstring to lower-case.
+ * Convert a std::wstring to lower-case. The function modifies the string.
  *
- * @param  _In_Out_ wstring& str
+ * @param  _InOut_ wstring& str
  *
  * @return wstring& - the same string
  */
@@ -325,9 +325,9 @@ wstring& WINAPI StrToLower(wstring& str) {
 
 
 /**
- * Convert a C string to upper-case.
+ * Convert a C string to upper-case using the current locale. The function modifies the string.
  *
- * @param  _In_Out_ char* str
+ * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
@@ -342,9 +342,9 @@ char* WINAPI StrToUpper(char* const str) {
 
 
 /**
- * Convert a std::string to upper-case.
+ * Convert a std::string to upper-case. The function modifies the string.
  *
- * @param  _In_Out_ string& str
+ * @param  _InOut_ string& str
  *
  * @return string& - the same string
  */
@@ -357,9 +357,9 @@ string& WINAPI StrToUpper(string& str) {
 
 
 /**
- * Convert a std::wstring to upper-case.
+ * Convert a std::wstring to upper-case. The function modifies the string.
  *
- * @param  _In_Out_ wstring& str
+ * @param  _InOut_ wstring& str
  *
  * @return wstring& - the same string
  */
@@ -372,9 +372,9 @@ wstring& WINAPI StrToUpper(wstring& str) {
 
 
 /**
- * Trim leading white-space from a C string.
+ * Trim leading white-space off a C string. The function modifies the string.
  *
- * @param  _In_Out_ char* str
+ * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
@@ -399,9 +399,9 @@ char* WINAPI strLTrim(char* const str) {
 
 
 /**
- * Trim trailing white-space from a C string.
+ * Trim trailing white-space off a C string. The function modifies the string.
  *
- * @param  _In_Out_ char* str
+ * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
@@ -422,9 +422,9 @@ char* WINAPI strRTrim(char* const str) {
 
 
 /**
- * Trim leading and trailing white-space from a C string.
+ * Trim leading and trailing white-space off a C string. The function modifies the string.
  *
- * @param  _In_Out_ char* str
+ * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
@@ -436,14 +436,14 @@ char* WINAPI strTrim(char* const str) {
 
 
 /**
- * Convert a C Ansi string to a Unicode string (UTF-16). Conversion stops at the end of the Ansi string or when the size
+ * Convert an ANSI string to a Unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
  * limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
  *
- * @param  _In_  char*   source   - C Ansi or multi-byte UTF-8 source string
+ * @param  _In_  char*   source   - ANSI or UTF-8 source string
  * @param  _Out_ wchar*  dest     - buffer the converted Unicode string is written to
  * @param  _In_  size_t  destSize - size of the destination buffer in bytes
  *
- * @return uint - number of converted characters (equal to the wide-character length of the resulting string)
+ * @return uint - number of converted Unicode characters (equal to the length of the resulting string)
  */
 uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, size_t destSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
@@ -466,11 +466,11 @@ uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, size_t destSize) {
 
 
 /**
- * Convert a Unicode string (UTF-16) to a C Ansi string. Conversion stops at the end of the Unicode string or when the
+ * Convert a Unicode string (UTF-16) to an ANSI string. Conversion stops at the end of the Unicode string or when the
  * size limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
  *
  * @param  _In_  wchar* source   - Unicode source string
- * @param  _Out_ char*  dest     - destination buffer the converted Ansi string is written to
+ * @param  _Out_ char*  dest     - destination buffer the converted ANSI string is written to
  * @param  _In_  size_t destSize - size of the destination buffer in bytes
  *
  * @return uint - the single-byte character length of the resulting string
@@ -498,12 +498,14 @@ namespace rsf {
 
 /**
  * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
- * for the string itself. The caller is responsible for releasing the string's memory after usage with free().
+ * for the string itself.
  *
  * @param  char* format - string with format codes
  * @param        ...    - variable number of additional arguments
  *
  * @return char*
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "free".
  */
 char* WINAPI strformat(const char* format, ...) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
@@ -520,12 +522,14 @@ char* WINAPI strformat(const char* format, ...) {
 
 /**
  * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
- * for the string itself. The caller is responsible for releasing the string's memory after usage with free().
+ * for the string itself.
  *
  * @param  char*    format - string with format codes
  * @param  va_list& args   - variable list of additional arguments
  *
  * @return char*
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "free".
  */
 char* WINAPI strformat(const char* format, const va_list& args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
@@ -540,14 +544,13 @@ char* WINAPI strformat(const char* format, const va_list& args) {
 
 
 /**
- * Convert a Unicode string (UTF-16) to a C multi-byte string.
+ * Convert a Unicode string (UTF-16) to a UTF-8 string.
  *
  * @param  wchar* str - null-terminated Unicode string
  *
- * @return char* - null-terminated C string or a NULL pointer in case of errors
+ * @return char* - null-terminated UTF-8 string or a NULL pointer in case of errors
  *
- *
- * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
+ * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
 char* WINAPI wchartombs(const wchar* str) {
    return(wchartombs(str, wcslen(str)));
@@ -555,15 +558,14 @@ char* WINAPI wchartombs(const wchar* str) {
 
 
 /**
- * Convert a sequence of Unicode characters (UTF-16) to a C multi-byte string.
+ * Convert a sequence of Unicode characters (UTF-16) to a UTF-8 string.
  *
- * @param  wchar* sequence - sequence of wide characters
+ * @param  wchar* sequence - sequence of wide characters (not necessarily null-terminated)
  * @param  size_t count    - number of wide characters
  *
- * @return char* - null-terminated C string or a NULL pointer in case of errors
+ * @return char* - null-terminated UTF-8 string or a NULL pointer in case of errors
  *
- *
- * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
+ * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
 char* WINAPI wchartombs(const wchar* sequence, size_t count) {
    wchar* source = wcsncpy(new wchar[count+1], sequence, count);
@@ -575,7 +577,7 @@ char* WINAPI wchartombs(const wchar* sequence, size_t count) {
    uint bytes = wcstombs(dest, source, size);
 
    if (bytes == -1) {
-      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert Unicode to multi-byte characters");
+      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert Unicode to multibyte characters");
       free(dest);
       dest = NULL;
    }
@@ -589,14 +591,13 @@ char* WINAPI wchartombs(const wchar* sequence, size_t count) {
 
 
 /**
- * Convert a Unicode string (UTF-16) to a C multi-byte string.
+ * Convert a Unicode string (UTF-16) to a UTF-8 string.
  *
  * @param  wstring& str
  *
- * @return char* - null-terminated C string or a NULL pointer in case of errors
+ * @return char* - null-terminated UTF-8 string or a NULL pointer in case of errors
  *
- *
- * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
+ * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
 char* WINAPI wchartombs(const wstring& str) {
    return(wchartombs(str.c_str(), str.length()));

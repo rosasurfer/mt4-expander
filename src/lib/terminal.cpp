@@ -119,7 +119,7 @@ HMODULE WINAPI GetLibraryModuleXP() {
 /**
  * Return the full path of the MQL directory the terminal currently uses.
  *
- * @return char* - MQL directory name as an Ansi string or a NULL pointer in case of errors
+ * @return char* - MQL directory name as an ANSI string or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
@@ -514,7 +514,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  *
  * @param  HWND        hChart      - handle of the chart to load the program to = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  char*       programName - MQL program name (Ansi string)
+ * @param  char*       programName - MQL program name (ANSI string)
  *
  * @return BOOL - whether the load command was successfully queued; not if the MQL program was indeed launched
  */

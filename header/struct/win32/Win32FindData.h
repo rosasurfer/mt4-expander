@@ -3,7 +3,7 @@
 
 
 /**
- * Win32 struct WIN32_FIND_DATAA (Ansi-Version)
+ * Win32 struct WIN32_FIND_DATAA (ANSI-Version)
  *
  * struct WIN32_FIND_DATAA {
  *    DWORD    dwFileAttributes;          //   4

@@ -1,5 +1,5 @@
 /**
- * Win32 struct STARTUPINFOA (Ansi-Version)
+ * Win32 struct STARTUPINFOA (ANSI-Version)
  *
  * struct STARTUPINFOA {
  *    DWORD   cb;                         //  4    Getter/Setter-Alias: si_Size() / si_setSize()

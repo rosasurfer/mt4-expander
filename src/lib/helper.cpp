@@ -233,7 +233,7 @@ char* WINAPI MD5Hash(const void* input, uint length) {
 
 
 /**
- * Calculate the MD5 hash of a C string (Ansi).
+ * Calculate the MD5 hash of a C string.
  *
  * @param  char* input - C input string
  *

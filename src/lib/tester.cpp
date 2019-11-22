@@ -202,8 +202,7 @@ datetime WINAPI Tester_GetEndDate() {
  *
  * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
  *
- *
- * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage (with "delete").
+ * Note: The caller is responsible for releasing the returned struct's memory after usage with "delete".
  */
 const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel) {
    if ((uint)symbol < MIN_VALID_POINTER) return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
