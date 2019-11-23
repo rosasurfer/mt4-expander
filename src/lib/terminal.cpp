@@ -575,7 +575,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
 BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
 
-   size_t bufSize = wcslen(programName) + 1;
+   uint bufSize = wcslen(programName) + 1;
    char* ansiName = new char[bufSize];
    WCharToAnsiStr(programName, ansiName, bufSize);
 

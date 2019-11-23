@@ -217,8 +217,8 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
    if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
 
-   size_t strLen    = strlen(str);
-   size_t prefixLen = strlen(prefix);
+   uint strLen    = strlen(str);
+   uint prefixLen = strlen(prefix);
    if (!prefixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
 
    if (strLen >= prefixLen)
@@ -241,8 +241,8 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
    if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
 
-   size_t strLen    = wcslen(str);
-   size_t prefixLen = wcslen(prefix);
+   uint strLen    = wcslen(str);
+   uint prefixLen = wcslen(prefix);
    if (!prefixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
 
    if (strLen >= prefixLen)
@@ -264,8 +264,8 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
    if (!suffix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
    if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
 
-   size_t strLen    = strlen(str);
-   size_t suffixLen = strlen(suffix);
+   uint strLen    = strlen(str);
+   uint suffixLen = strlen(suffix);
    if (!suffixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
 
    if (strLen >= suffixLen)
@@ -439,13 +439,13 @@ char* WINAPI strTrim(char* const str) {
  * Convert an ANSI string to a Unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
  * limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
  *
- * @param  _In_  char*   source   - ANSI or UTF-8 source string
- * @param  _Out_ wchar*  dest     - buffer the converted Unicode string is written to
- * @param  _In_  size_t  destSize - size of the destination buffer in bytes
+ * @param  _In_  char*  source   - ANSI source string
+ * @param  _Out_ wchar* dest     - buffer the converted Unicode string is written to
+ * @param  _In_  uint   destSize - size of the destination buffer in bytes
  *
  * @return uint - number of converted Unicode characters (equal to the length of the resulting string)
  */
-uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, size_t destSize) {
+uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
    if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
    if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
@@ -471,11 +471,11 @@ uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, size_t destSize) {
  *
  * @param  _In_  wchar* source   - Unicode source string
  * @param  _Out_ char*  dest     - destination buffer the converted ANSI string is written to
- * @param  _In_  size_t destSize - size of the destination buffer in bytes
+ * @param  _In_  uint   destSize - size of the destination buffer in bytes
  *
  * @return uint - the single-byte character length of the resulting string
  */
-uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, size_t destSize) {
+uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
    if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
    if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
@@ -561,23 +561,23 @@ char* WINAPI wchartombs(const wchar* str) {
  * Convert a sequence of Unicode characters (UTF-16) to a UTF-8 string.
  *
  * @param  wchar* sequence - sequence of wide characters (not necessarily null-terminated)
- * @param  size_t count    - number of wide characters
+ * @param  uint   count    - number of wide characters
  *
  * @return char* - null-terminated UTF-8 string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
-char* WINAPI wchartombs(const wchar* sequence, size_t count) {
+char* WINAPI wchartombs(const wchar* sequence, uint count) {
    wchar* source = wcsncpy(new wchar[count+1], sequence, count);
    source[count] = 0;
 
-   size_t size = (count << 1) + 1;
+   uint size = (count << 1) + 1;
    char* dest = (char*)malloc(size);
 
    uint bytes = wcstombs(dest, source, size);
 
    if (bytes == -1) {
-      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert Unicode to multibyte characters");
+      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert Unicode to UTF-8 characters");
       free(dest);
       dest = NULL;
    }

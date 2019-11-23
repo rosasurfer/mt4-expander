@@ -16,7 +16,7 @@ Locks g_locks;                                              // a map holding poi
  */
 Lock* WINAPI GetLocalizedLock(char* file, uint line) {
    // generate the mapping key
-   size_t size = strlen(file) + 10;                         // file +"#FFFFFFFF"<NUL>: 1 + 8 + 1
+   uint size = strlen(file) + 10;                           // file +"#FFFFFFFF"<NUL>: 1 + 8 + 1
    char* key = (char*) alloca(size);                        // on the stack
    sprintf_s(key, size, "%s#%p", file, line);
 

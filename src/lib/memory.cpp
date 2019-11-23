@@ -95,13 +95,13 @@ uint WINAPI GetPointedAddress(const void* value) {
  * Whether the content of two memory ranges is considered equal. Convenient helper to hide the non-intuitive memcmp()
  * syntax.
  *
- * @param  void*   bufferA - first memory location
- * @param  void*   bufferB - second memory location
- * @param  size_t* size    - size of the memory ranges to compare in bytes
+ * @param  void* bufferA - first memory location
+ * @param  void* bufferB - second memory location
+ * @param  uint* size    - size of the memory ranges to compare in bytes
  *
  * @return BOOL
  */
-BOOL WINAPI MemCompare(const void* bufferA, const void* bufferB, size_t size) {
+BOOL WINAPI MemCompare(const void* bufferA, const void* bufferB, uint size) {
    if (bufferA == bufferB)   return(TRUE);                           // if pointers are equal values are too
    if (!bufferA || !bufferB) return(FALSE);                          // if one is a NULL pointer the other can't
    return(memcmp(bufferA, bufferB, size) == 0);                      // both are not NULL pointers

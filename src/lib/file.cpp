@@ -263,16 +263,16 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    // read the reparse data
    if (IsReparseTagMicrosoft(rdata->ReparseTag)) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
-         size_t offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
-         size_t len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
+         uint offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
+         uint len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
          char* target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
          //debug("mount point to \"%s\"", target);
          result = strdup(target + strlen("\\??\\"));
          free(target);
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
-         size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
-         size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
+         uint offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
+         uint len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
          char* target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
          BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
          //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target);

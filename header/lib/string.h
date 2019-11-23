@@ -26,8 +26,8 @@ char*         WINAPI strLTrim(char* const str);
 char*         WINAPI strRTrim(char* const str);
 char*         WINAPI strTrim(char* const str);
 
-uint          WINAPI AnsiToWCharStr(const char* source, wchar* dest, size_t destSize);
-uint          WINAPI WCharToAnsiStr(const wchar* source, char* dest, size_t destSize);
+uint          WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize);
+uint          WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSize);
 
 
 namespace rsf {
@@ -36,6 +36,6 @@ inline wchar* WINAPI copywchars(const wchar* str) { return(wcscpy(new wchar[wcsl
 char*         WINAPI strformat(const char* format, ...);
 char*         WINAPI strformat(const char* format, const va_list& args);
 char*         WINAPI wchartombs(const wchar* str);
-char*         WINAPI wchartombs(const wchar* sequence, size_t count);
+char*         WINAPI wchartombs(const wchar* sequence, uint count);
 char*         WINAPI wchartombs(const wstring& str);
 }
