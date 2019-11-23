@@ -468,7 +468,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
 
    // (3) synchronize loaded libraries
-   ContextChain& chain = *g_mqlPrograms[currentPid];
+   ContextChain &chain = *g_mqlPrograms[currentPid];
    uint          size  = chain.size();
    EXECUTION_CONTEXT *lib, bak;
 
@@ -518,7 +518,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    DWORD    threadId      = GetCurrentThreadId();
    BOOL     logging       = ec->logging;
 
-   ContextChain& chain = *g_mqlPrograms[ec->pid];
+   ContextChain &chain = *g_mqlPrograms[ec->pid];
    uint size = chain.size();
    EXECUTION_CONTEXT* ctx;
 
@@ -603,7 +603,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
    SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
 
-   ContextChain&      chain    = *g_mqlPrograms[ec->pid];
+   ContextChain       &chain   = *g_mqlPrograms[ec->pid];
    uint               size     = chain.size();
    DWORD              threadId = GetCurrentThreadId();
    EXECUTION_CONTEXT* ctx;
@@ -714,7 +714,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                isPartialChain = FALSE;
             }
             else {                                                   // get the last executed program: it's myself or something else
-               ContextChain& chain = *g_mqlPrograms[currentPid];     // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
+               ContextChain &chain = *g_mqlPrograms[currentPid];     // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
                isPartialChain = (chain.size()>2 && (master=chain[0]) && chain[0]->programCoreFunction==CF_INIT && !chain[1]);
                if (!isPartialChain) warn(ERR_ILLEGAL_STATE, "unexpected library with UR_RECOMPILE in tester: a former library (pid=%d) seems to not have created a partial context chain");
             }
@@ -854,7 +854,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          isPartialChain = FALSE;                                     // or the program is the finished test (probably in an optimization)
       }
       else {                                                         // get the last executed program: it's myself or something else
-         ContextChain& chain = *g_mqlPrograms[currentPid];           // if partial chain found, it's myself with one more re-used library
+         ContextChain &chain = *g_mqlPrograms[currentPid];           // if partial chain found, it's myself with one more re-used library
          isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
          if (!isPartialChain) debug("unseen library init cycle in tester (the former program seems not to be the former test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
@@ -944,7 +944,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    ec->moduleCoreFunction = CF_DEINIT;                   // update library specific values
    ec->moduleUninitReason = uninitReason;
 
-   ContextChain& chain    = *g_mqlPrograms[ec->pid];
+   ContextChain &chain    = *g_mqlPrograms[ec->pid];
    uint          size     = chain.size();
    DWORD         threadId = GetCurrentThreadId();
 
@@ -989,7 +989,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
    if (g_mqlPrograms.size() <= ec->pid)     return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_mqlPrograms.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
 
-   ContextChain& chain = *g_mqlPrograms[ec->pid];
+   ContextChain &chain = *g_mqlPrograms[ec->pid];
    uint chainSize = chain.size();
    if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
@@ -1099,7 +1099,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
          // TODO: In a test the hChart window is ignored - atm.
          if (testing) {
             for (uint i=1; i < chainsSize; ++i) {                                   // index[0] is always empty
-               ContextChain& chain = *g_mqlPrograms[i];
+               ContextChain &chain = *g_mqlPrograms[i];
                uint size = chain.size();
                if (size) {
                   if (master = chain[0]) {
@@ -1130,7 +1130,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
          else {
             if (hChart) {
                for (uint i=1; i < chainsSize; ++i) {                                // index[0] is always empty
-                  ContextChain& chain = *g_mqlPrograms[i];
+                  ContextChain &chain = *g_mqlPrograms[i];
                   if (chain.size()) {
                      if (master = chain[0]) {
                         if (master->programType == MT_INDICATOR) {
@@ -1432,11 +1432,11 @@ int WINAPI SetLastThreadProgram(uint pid) {
  * @param  int                droppedOnChart - WindowOnDropped() as passed by the terminal (possibly incorrect)
  * @param  int                droppedOnPosX  - WindowXOnDropped() as passed by the terminal (possibly incorrect)
  * @param  int                droppedOnPosY  - WindowYOnDropped() as passed by the terminal (possibly incorrect)
- * @param  uint&              previousPid    - variable receiving the previous pid of a program instance (if any)
+ * @param  uint               &previousPid   - variable receiving the previous pid of a program instance (if any)
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint& previousPid) {
+InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint &previousPid) {
 
    if (programType == PT_INDICATOR) return(GetInitReason_indicator(ec, sec, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, previousPid));
    if (programType == PT_EXPERT)    return(GetInitReason_expert   (ec,      programName, uninitReason, symbol, isTesting, droppedOnPosX, droppedOnPosY));
@@ -1458,11 +1458,11 @@ InitializeReason WINAPI GetInitReason(EXECUTION_CONTEXT* ec, const EXECUTION_CON
  * @param  BOOL               isVisualMode   - IsVisualMode() as passed by the terminal (possibly incorrect)
  * @param  HWND               hChart         - correct WindowHandle() value
  * @param  int                droppedOnChart - WindowOnDropped() as passed by the terminal (possibly incorrect)
- * @param  uint&              previousPid    - variable receiving the previous pid of the indicator instance (if any)
+ * @param  uint               &previousPid   - variable receiving the previous pid of the indicator instance (if any)
  *
  * @return InitializeReason - init reason or NULL in case of errors
  */
-InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint& previousPid) {
+InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, BOOL isVisualMode, HWND hChart, int droppedOnChart, uint &previousPid) {
    /*
    History:
    ------------------------------------------------------------------------------------------------------------------------------------
@@ -1775,7 +1775,7 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
    if (!pid) return(FALSE);
 
    if (g_mqlPrograms.size() > pid) {
-      ContextChain& chain = *g_mqlPrograms[pid];
+      ContextChain &chain = *g_mqlPrograms[pid];
 
       if (chain.size() > 2) {                                  // needs to vae at least one registered library
          EXECUTION_CONTEXT* master = chain[0];

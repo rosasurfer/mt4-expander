@@ -24,12 +24,12 @@ char* WINAPI DoubleQuoteStr(const char* value) {
 /**
  * Dropin-replacement for std::getline(). Read the next line from an input stream auto-detecting standard line endings.
  *
- * @param  istream& is   - input stream
- * @param  string&  line - string into which the next line is read
+ * @param  istream &is   - input stream
+ * @param  string  &line - string into which the next line is read
  *
  * @return istream& - the same input stream
  */
-std::istream& getline(std::istream& is, string& line) {
+std::istream& getline(std::istream &is, string &line) {
    // CR     = 0D     = 13       = \r       Mac
    // LF     = 0A     = 10       = \n       Linux
    // CRLF   = 0D0A   = 13,10    = \r\n     Windows
@@ -297,11 +297,11 @@ char* WINAPI StrToLower(char* const str) {
 /**
  * Convert a std::string to lower-case. The function modifies the string.
  *
- * @param  _InOut_ string& str
+ * @param  _InOut_ string &str
  *
  * @return string& - the same string
  */
-string& WINAPI StrToLower(string& str) {
+string& WINAPI StrToLower(string &str) {
    for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
       *it = tolower(*it);
    }
@@ -312,11 +312,11 @@ string& WINAPI StrToLower(string& str) {
 /**
  * Convert a std::wstring to lower-case. The function modifies the string.
  *
- * @param  _InOut_ wstring& str
+ * @param  _InOut_ wstring &str
  *
  * @return wstring& - the same string
  */
-wstring& WINAPI StrToLower(wstring& str) {
+wstring& WINAPI StrToLower(wstring &str) {
    for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
       *it = towlower(*it);
    }
@@ -344,11 +344,11 @@ char* WINAPI StrToUpper(char* const str) {
 /**
  * Convert a std::string to upper-case. The function modifies the string.
  *
- * @param  _InOut_ string& str
+ * @param  _InOut_ string &str
  *
  * @return string& - the same string
  */
-string& WINAPI StrToUpper(string& str) {
+string& WINAPI StrToUpper(string &str) {
    for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
       *it = toupper(*it);
    }
@@ -359,11 +359,11 @@ string& WINAPI StrToUpper(string& str) {
 /**
  * Convert a std::wstring to upper-case. The function modifies the string.
  *
- * @param  _InOut_ wstring& str
+ * @param  _InOut_ wstring &str
  *
  * @return wstring& - the same string
  */
-wstring& WINAPI StrToUpper(wstring& str) {
+wstring& WINAPI StrToUpper(wstring &str) {
    for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
       *it = towupper(*it);
    }
@@ -378,7 +378,7 @@ wstring& WINAPI StrToUpper(wstring& str) {
  *
  * @return char* - the same string
  */
-char* WINAPI strLTrim(char* const str) {
+char* WINAPI StrLTrim(char* const str) {
    if (str && *str) {                           // handle NULL pointer and empty string
       char* first = str;
       while (isspace(*first)) {                 // find first non-space character
@@ -405,7 +405,7 @@ char* WINAPI strLTrim(char* const str) {
  *
  * @return char* - the same string
  */
-char* WINAPI strRTrim(char* const str) {
+char* WINAPI StrRTrim(char* const str) {
    if (str && *str) {                           // handle NULL pointer and empty string
       char* last = str + strlen(str);
 
@@ -428,16 +428,14 @@ char* WINAPI strRTrim(char* const str) {
  *
  * @return char* - the same string
  */
-char* WINAPI strTrim(char* const str) {
-   strRTrim(str);
-   strLTrim(str);
-   return(str);
+char* WINAPI StrTrim(char* const str) {
+   return(StrLTrim(StrRTrim(str)));
 }
 
 
 /**
  * Convert an ANSI string to a Unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
- * limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
+ * limit of the destination buffer is hit, whichever comes first. The resulting string is always null terminated.
  *
  * @param  _In_  char*  source   - ANSI source string
  * @param  _Out_ wchar* dest     - buffer the converted Unicode string is written to
@@ -467,7 +465,7 @@ uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize) {
 
 /**
  * Convert a Unicode string (UTF-16) to an ANSI string. Conversion stops at the end of the Unicode string or when the
- * size limit of the destination buffer is hit, whichever comes first. The resulting string is always null-terminated.
+ * size limit of the destination buffer is hit, whichever comes first. The resulting string is always null terminated.
  *
  * @param  _In_  wchar* source   - Unicode source string
  * @param  _Out_ char*  dest     - destination buffer the converted ANSI string is written to
@@ -524,14 +522,14 @@ char* WINAPI strformat(const char* format, ...) {
  * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
  * for the string itself.
  *
- * @param  char*    format - string with format codes
- * @param  va_list& args   - variable list of additional arguments
+ * @param  char*   format - string with format codes
+ * @param  va_list &args  - variable list of additional arguments
  *
  * @return char*
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free".
  */
-char* WINAPI strformat(const char* format, const va_list& args) {
+char* WINAPI strformat(const char* format, const va_list &args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
@@ -546,9 +544,9 @@ char* WINAPI strformat(const char* format, const va_list& args) {
 /**
  * Convert a Unicode string (UTF-16) to a UTF-8 string.
  *
- * @param  wchar* str - null-terminated Unicode string
+ * @param  wchar* str - null terminated Unicode string
  *
- * @return char* - null-terminated UTF-8 string or a NULL pointer in case of errors
+ * @return char* - null terminated UTF-8 string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
@@ -560,10 +558,10 @@ char* WINAPI wchartombs(const wchar* str) {
 /**
  * Convert a sequence of Unicode characters (UTF-16) to a UTF-8 string.
  *
- * @param  wchar* sequence - sequence of wide characters (not necessarily null-terminated)
+ * @param  wchar* sequence - sequence of wide characters (not necessarily null terminated)
  * @param  uint   count    - number of wide characters
  *
- * @return char* - null-terminated UTF-8 string or a NULL pointer in case of errors
+ * @return char* - null terminated UTF-8 string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
@@ -593,13 +591,13 @@ char* WINAPI wchartombs(const wchar* sequence, uint count) {
 /**
  * Convert a Unicode string (UTF-16) to a UTF-8 string.
  *
- * @param  wstring& str
+ * @param  wstring &str
  *
- * @return char* - null-terminated UTF-8 string or a NULL pointer in case of errors
+ * @return char* - null terminated UTF-8 string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
-char* WINAPI wchartombs(const wstring& str) {
+char* WINAPI wchartombs(const wstring &str) {
    return(wchartombs(str.c_str(), str.length()));
 }
 }

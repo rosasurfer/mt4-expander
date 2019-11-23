@@ -34,10 +34,10 @@ Lock* WINAPI GetLocalizedLock(char* file, uint line) {
  *
  * @param  char* file - ignored
  * @param  uint  line - ignored
- * @param  Lock& lock
+ * @param  Lock  &lock
  *
  * @return Lock*
  */
-Lock* WINAPI GetLocalizedLock(char* file, uint line, Lock& lock) {
+Lock* WINAPI GetLocalizedLock(char* file, uint line, Lock &lock) {
    return(&lock);
 }

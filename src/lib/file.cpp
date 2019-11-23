@@ -37,11 +37,11 @@ int WINAPI CreateDirectoryRecursive(const char* path) {
 /**
  * Create a directory recursively. No error is returned if the directory already exists.
  *
- * @param  string& path - full directory path
+ * @param  string &path - full directory path
  *
  * @return int - error status
  */
-int WINAPI CreateDirectoryRecursive(const string& path) {
+int WINAPI CreateDirectoryRecursive(const string &path) {
    int error = SHCreateDirectoryEx(NULL, path.c_str(), NULL);
 
    if (error==ERROR_FILE_EXISTS || error==ERROR_ALREADY_EXISTS)
@@ -91,11 +91,11 @@ BOOL WINAPI IsFileA(const char* name) {
 /**
  * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
- * @param  string& name - full filename with support for forward and backward slashes
+ * @param  string &name - full filename with support for forward and backward slashes
  *
  * @return BOOL
  */
-BOOL WINAPI IsFileA(const string& name) {
+BOOL WINAPI IsFileA(const string &name) {
    return(IsFileA(name.c_str()));
 }
 

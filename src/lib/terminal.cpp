@@ -614,11 +614,11 @@ BOOL WINAPI TerminalHasWritePermission(const char* dir) {
  * Whether the specified file exists and is locked with the sharing modes of a logfile. This function cannot see which
  * process is holding the lock.
  *
- * @param  string& filename - full filename
+ * @param  string &filename - full filename
  *
  * @return BOOL
  */
-BOOL WINAPI TerminalIsLockedLogfile(const string& filename) {
+BOOL WINAPI TerminalIsLockedLogfile(const string &filename) {
    if (IsFileA(filename.c_str())) {
       // OF_READWRITE|OF_SHARE_COMPAT must succeed
       HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);

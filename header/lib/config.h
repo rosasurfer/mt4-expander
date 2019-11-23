@@ -4,6 +4,7 @@
 
 const char* WINAPI GetGlobalConfigPathA();
 DWORD       WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize);
+DWORD       WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSize);
 char*       WINAPI GetIniStringA(const char* fileName, const char* section, const char* key, const char* defaultValue = "");
 char*       WINAPI GetIniStringRawA(const char* fileName, const char* section, const char* key, const char* defaultValue = "");
 const char* WINAPI GetLocalConfigPathA();

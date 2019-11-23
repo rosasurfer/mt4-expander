@@ -183,19 +183,19 @@ const char* WINAPI GetLocalConfigPathA() {
 
 
 /**
- * Alias of GetPrivateProfileStringA() to enable the use of different function signatures in MQL4
- *
  * Return all keys of an .ini file section.
  *
- * @param  __In__  char* fileName   - initialization file name
- * @param  __In__  char* section    - initialization file section name
- * @param  __Out__ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
- *                                    null-terminated strings. The last string is followed by a second null character.
- * @param  __In__  DWORD bufferSize - size of the buffer in bytes (minimum 2 bytes)
+ * Alias of GetPrivateProfileString(). Required for MQL4 which doesn't support multiple different function signatures.
+ *
+ * @param  _In_  char* fileName   - initialization file name
+ * @param  _In_  char* section    - case-insensitive section name
+ * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
+ *                                  null terminated strings. The last string is followed by a second null character.
+ * @param  _In_  DWORD bufferSize - size of the buffer in bytes
  *
  * @return DWORD - Number of bytes copied to the specified buffer, not including the last terminating null character.
- *                 If the buffer is not large enough to hold all found keys the first non-fitting key is truncated and the
- *                 return value is equal to the size of bufferSize minus two.
+ *                 If the buffer is to small to hold all keys the first non-fitting key is truncated and followed by two null
+ *                 characters. In this case, the return value is equal to bufferSize-2.
  */
 DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize) {
    if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
@@ -205,7 +205,30 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
    if ((uint)buffer   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
    if (bufferSize < 2)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
 
-   return(GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName));
+   return(GetPrivateProfileStringA(section, NULL, NULL, buffer, bufferSize, fileName));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return all section names of an .ini file.
+ *
+ * @param  _In_  char* fileName   - initialization file name
+ * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found section names. The buffer is filled with one
+ *                                  or more null terminated strings. The last string is followed by a second null character.
+ * @param  _In_  DWORD bufferSize - size of the buffer in bytes
+ *
+ * @return DWORD - Number of bytes copied to the specified buffer, not including the last terminating null character.
+ *                 If the buffer is to small to hold all section names the first non-fitting name is truncated and followed by
+ *                 two null characters. In this case, the return value is equal to bufferSize-2.
+ */
+DWORD WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSize) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)buffer   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
+   if (bufferSize < 2)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
+
+   return(GetPrivateProfileStringA(NULL, NULL, NULL, buffer, bufferSize, fileName));
    #pragma EXPANDER_EXPORT
 }
 
@@ -233,7 +256,7 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
       return(value);
    value[pos] = '\0';
 
-   return(strRTrim(value));                        // trim white space
+   return(StrRTrim(value));                        // trim white space
    #pragma EXPANDER_EXPORT
 }
 
@@ -311,24 +334,23 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
 
    // read all keys
    char* buffer    = NULL;
-   uint bufferSize = 256;
+   uint bufferSize = 512;
    uint chars = bufferSize-2;
-
    while (chars == bufferSize-2) {                       // handle a too small buffer
       delete[] buffer;
       bufferSize <<= 1;
       buffer = new char[bufferSize];                     // on the heap as a section may be big
-      chars = GetPrivateProfileString(section, NULL, NULL, buffer, bufferSize, fileName);
+      chars = GetIniKeysA(fileName, section, buffer, bufferSize);
    }
 
-   // look for a case-insensitive match
-   bufferSize  = strlen(key)+1;
-   char* lKey  = StrToLower(strTrim((char*)memcpy(alloca(bufferSize), key, bufferSize)));
-   BOOL result = FALSE;
+   // convert the passed key to lower-case
+   bufferSize = strlen(key)+1;
+   char* lKey = StrToLower(StrTrim((char*)memcpy(alloca(bufferSize), key, bufferSize)));
 
-   char* name = buffer;                                  // The buffer is filled with one or more trimmed and null-terminated
+   // look for a case-insensitive match
+   BOOL result = FALSE;
+   char* name = buffer;                                  // The buffer is filled with one or more trimmed and null terminated
    while (*name) {                                       // strings. The last string is followed by a second null character.
-      // loop as long as there are non-empty key names
       if (StrCompare(StrToLower(name), lKey)) {
          result = TRUE;
          break;
@@ -358,24 +380,23 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
 
    // read all sections
    char* buffer    = NULL;
-   uint bufferSize = 256;
+   uint bufferSize = 512;
    uint chars = bufferSize-2;
-
    while (chars == bufferSize-2) {                       // handle a too small buffer
       delete[] buffer;
       bufferSize <<= 1;
       buffer = new char[bufferSize];                     // on the heap as there may be plenty of sections
-      chars = GetPrivateProfileSectionNames(buffer, bufferSize, fileName);
+      chars = GetIniSectionsA(fileName, buffer, bufferSize);
    }
 
-   // look for a case-insensitive match
+   // convert the passed section to lower-case
    bufferSize = strlen(section)+1;
-   char* lSection = StrToLower(strTrim((char*)memcpy(alloca(bufferSize), section, bufferSize)));
-   BOOL result = FALSE;
+   char* lSection = StrToLower(StrTrim((char*)memcpy(alloca(bufferSize), section, bufferSize)));
 
-   char* name = buffer;                                  // The buffer is filled with one or more trimmed and null-terminated
+   // look for a case-insensitive match
+   BOOL result = FALSE;
+   char* name = buffer;                                  // The buffer is filled with one or more trimmed and null terminated
    while (*name) {                                       // strings. The last string is followed by a second null character.
-      // loop as long as there are non-empty section names
       if (StrCompare(StrToLower(name), lSection)) {
          result = TRUE;
          break;
