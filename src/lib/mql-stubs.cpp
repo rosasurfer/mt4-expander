@@ -3,7 +3,7 @@
  */
 #include "expander.h"
 #include "lib/executioncontext.h"
-#include "struct/mt4/MqlStr.h"
+#include "struct/mt4/MqlString.h"
 
 
 extern MqlProgramList g_mqlPrograms;            // all MQL programs: vector<ContextChain> with index = program id
@@ -197,7 +197,7 @@ void WINAPI DummyCalls() {
 }
 
 
-BOOL WINAPI EventListener_ChartCommand(const MqlStr commands[]) {
+BOOL WINAPI EventListener_ChartCommand(const MqlStringA commands[]) {
    return(error(ERR_NOT_IMPLEMENTED, ""));
    #pragma EXPANDER_EXPORT
 }

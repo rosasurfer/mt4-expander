@@ -2,6 +2,8 @@
 #include "struct/rsf/Test.h"
 #include <vector>
 
+#pragma pack(push, 1)
+
 
 /**
  * Framework struct EXECUTION_CONTEXT
@@ -22,8 +24,6 @@
  *
  *  • Data exchange between multiple MQL programs.
  */
-#pragma pack(push, 1)
-
 struct EXECUTION_CONTEXT {                         // -- offset --- size --- description --------------------------------------------------------------------------------------
    uint               pid;                         //         0        4     MQL program id starting from 1                      (const) => index in g_mqlPrograms[]
    uint               previousPid;                 //         4        4     previous pid of the program or NULL                 (const)

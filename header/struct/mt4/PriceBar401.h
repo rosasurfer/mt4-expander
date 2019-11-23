@@ -1,6 +1,8 @@
 #pragma once
 #include "expander.h"
 
+#pragma pack(push, 1)
+
 
 /**
  * MT4 struct PRICE_BAR_401
@@ -11,8 +13,6 @@
  *
  * @see  https://docs.mql4.com/mql4changes
  */
-#pragma pack(push, 1)
-
 struct PRICE_BAR_401 {                             // -- offset --- size --- description --------------------
    datetime time;                                  //         0        8     (MetaQuotes: low part of int64)
    DWORD    _reserved1;                            //         4        4     (MetaQuotes: high part of int64)

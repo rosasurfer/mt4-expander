@@ -525,40 +525,16 @@ int WINAPI Test_synchronize() {
    char* s1 = "Hello";
    char* s2 = " world";
    char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
-   debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);  // TODO: fix me
+   debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);                       // TODO: fix me
 
    return(0);
 }
-
-
-#include "lib/config.h"
 
 
 /**
  * @return int
  */
 int WINAPI Test(const char* fileName) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-
-   // read all sections
-   char* buffer    = NULL;
-   uint bufferSize = 256;
-   uint chars = bufferSize-2;
-   while (chars == bufferSize-2) {
-      delete[] buffer;
-      bufferSize <<= 1;
-      buffer = new char[bufferSize];
-      chars = GetIniSectionsA(fileName, buffer, bufferSize);
-   }
-
-   char* name = buffer;
-   while (*name) {
-      debug("section: %s", name);
-      name += strlen(name) + 1;
-   }
-
-   delete[] buffer;
    return(NULL);
    #pragma EXPANDER_EXPORT
 }

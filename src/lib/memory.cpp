@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "struct/mt4/MqlStr.h"
+#include "struct/mt4/MqlString.h"
 
 
 /**
@@ -66,11 +66,11 @@ uint WINAPI GetStringAddress(const TCHAR* value) {
 /**
  * Return the memory location of an MQL string array. Helper function to resolve addresses in MQL.
  *
- * @param  MqlStr values[] - MQL string array
+ * @param  MqlStringA values[] - MQL string array
  *
  * @return uint - memory location or NULL in case of errors
  */
-uint WINAPI GetStringsAddress(const MqlStr values[]) {
+uint WINAPI GetStringsAddress(const MqlStringA values[]) {
    if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT

@@ -1,14 +1,14 @@
 #pragma once
 #include "expander.h"
 
+#pragma pack(push, 1)
+
 
 /**
  * MT4 struct SYMBOL_GROUP (file format of "symgroups.raw")
  *
  * The file size is fixed, a file always contains 32 groups. Unused group entries are just empty (zeroed).
  */
-#pragma pack(push, 1)
-
 struct SYMBOL_GROUP {                              // -- offset ---- size --- description -----------------------------------
    char name       [16];                           //         0        16     group name
    char description[60];                           //        16        60     unused: group description, original size 64

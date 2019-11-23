@@ -1,12 +1,12 @@
 #include "expander.h"
 #include "lib/string.h"
-#include "struct/mt4/MqlStr.h"
+#include "struct/mt4/MqlString.h"
 
 #include <ctype.h>
 
 
 /**
- * Wrap a string in double quote characters.
+ * Wrap a C string in double quote characters.
  *
  * @param  char* value
  *
@@ -29,7 +29,7 @@ char* WINAPI DoubleQuoteStr(const char* value) {
  *
  * @return istream& - the same input stream
  */
-std::istream& getline(std::istream &is, string &line) {
+std::istream& getline(std::istream &is, std::string &line) {
    // CR     = 0D     = 13       = \r       Mac
    // LF     = 0A     = 10       = \n       Linux
    // CRLF   = 0D0A   = 13,10    = \r\n     Windows
@@ -85,8 +85,8 @@ std::istream& getline(std::istream &is, string &line) {
 
 
 /**
- * Return the passed pointer to a C string. Essentially this is a no-op, used by MQL to read and convert a C string to
- * it's MQL representation. The terminal will allocate new memory and copy the passed string to the resulting MQL string.
+ * Return the pointer to a C string. Essentially this is a no-op used in MQL to convert a C string to it's MQL
+ * representation. The terminal will allocate new memory and copy the passed string to the resulting MQL string.
  *
  * @param  char* value - string
  *
@@ -100,9 +100,8 @@ const char* WINAPI GetStringA(const char* value) {
 
 
 /**
- * Return the passed pointer to a Unicode string. Essentially this is a no-op, used by MQL to read and convert a wide-characer
- * string to it's MQL representation. The terminal will allocate new memory and copy the passed string to the resulting MQL
- * string.
+ * Return the pointer to a Unicode string. Essentially this is a no-op used in MQL to convert a Unicode string to it's MQL
+ * representation. The terminal will allocate new memory and copy the passed string to the resulting MQL string.
  *
  * @param  wchar* value - Unicode string
  *
@@ -178,15 +177,15 @@ char* WINAPI StrFormat(const char* format, ...) {
 /**
  * Whether two strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
  *
- * @param  char* a
- * @param  char* b
+ * @param  char* s1
+ * @param  char* s2
  *
  * @return BOOL
  */
-BOOL WINAPI StrCompare(const char* a, const char* b) {
-   if (a == b)   return(TRUE);                              // if pointers are equal values are too
-   if (!a || !b) return(FALSE);                             // if one is a NULL pointer the other can't
-   return(strcmp(a, b) == 0);                               // both are not NULL pointers
+BOOL WINAPI StrCompare(const char* s1, const char* s2) {
+   if (s1 == s2)   return(TRUE);                            // if pointers are equal values are too
+   if (!s1 || !s2) return(FALSE);                           // if one is a NULL pointer the other can't
+   return(strcmp(s1, s2) == 0);                             // both are not NULL pointers
    #pragma EXPANDER_EXPORT
 }
 
@@ -205,7 +204,7 @@ BOOL WINAPI StrIsNull(const char* value) {
 
 
 /**
- * Whether a string starts with the specified substring.
+ * Whether a C string starts with the specified substring.
  *
  * @param  char* str
  * @param  char* prefix
@@ -229,7 +228,7 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
 
 
 /**
- * Whether a string starts with the specified substring.
+ * Whether a Unicode string (UTF-16) starts with the specified substring.
  *
  * @param  wchar* str
  * @param  wchar* prefix
@@ -534,7 +533,7 @@ char* WINAPI strformat(const char* format, const va_list &args) {
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
-   char * buffer = (char*)malloc(size);
+   char* buffer = (char*)malloc(size);
    vsprintf_s(buffer, size, format, args);
 
    return(buffer);
