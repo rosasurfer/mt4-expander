@@ -36,11 +36,11 @@ struct REPARSE_DATA_BUFFER {
 
 
 int         WINAPI CreateDirectoryRecursive(const char* path);
-int         WINAPI CreateDirectoryRecursive(const string& path);
+int         WINAPI CreateDirectoryRecursive(const string &path);
 const char* WINAPI GetFinalPathNameA(const char* name);
 const char* WINAPI GetReparsePointTargetA(const char* name);
 BOOL        WINAPI IsDirectoryA(const char* name);
 BOOL        WINAPI IsFileA(const char* name);
-BOOL        WINAPI IsFileA(const string& name);
+BOOL        WINAPI IsFileA(const string &name);
 BOOL        WINAPI IsJunctionA(const char* name);
 BOOL        WINAPI IsSymlinkA(const char* name);

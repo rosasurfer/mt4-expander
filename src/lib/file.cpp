@@ -20,7 +20,7 @@
  *
  * @param  char* path - full directory path
  *
- * @return int - ERROR_SUCCESS or an error code
+ * @return int - error status
  */
 int WINAPI CreateDirectoryRecursive(const char* path) {
    if ((uint)path < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
@@ -37,11 +37,11 @@ int WINAPI CreateDirectoryRecursive(const char* path) {
 /**
  * Create a directory recursively. No error is returned if the directory already exists.
  *
- * @param  string& path - full directory path
+ * @param  string &path - full directory path
  *
- * @return int - ERROR_SUCCESS or an error code
+ * @return int - error status
  */
-int WINAPI CreateDirectoryRecursive(const string& path) {
+int WINAPI CreateDirectoryRecursive(const string &path) {
    int error = SHCreateDirectoryEx(NULL, path.c_str(), NULL);
 
    if (error==ERROR_FILE_EXISTS || error==ERROR_ALREADY_EXISTS)
@@ -91,11 +91,11 @@ BOOL WINAPI IsFileA(const char* name) {
 /**
  * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
- * @param  string& name - full filename with support for forward and backward slashes
+ * @param  string &name - full filename with support for forward and backward slashes
  *
  * @return BOOL
  */
-BOOL WINAPI IsFileA(const string& name) {
+BOOL WINAPI IsFileA(const string &name) {
    return(IsFileA(name.c_str()));
 }
 
@@ -230,8 +230,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
  * @see    http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
  * @see    https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
  *
- *
- * Note: The memory for the returned string was allocated with "malloc" and should be released after usage (with "free").
+ * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
  */
 const char* WINAPI GetReparsePointTargetA(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
@@ -264,16 +263,16 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    // read the reparse data
    if (IsReparseTagMicrosoft(rdata->ReparseTag)) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
-         size_t offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
-         size_t len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
+         uint offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
+         uint len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
          char* target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
          //debug("mount point to \"%s\"", target);
          result = strdup(target + strlen("\\??\\"));
          free(target);
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
-         size_t offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
-         size_t len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
+         uint offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
+         uint len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
          char* target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
          BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
          //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target);

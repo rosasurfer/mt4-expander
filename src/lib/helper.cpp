@@ -162,14 +162,14 @@ BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, doub
 
 /**
  * Copy the symbol-timeframe description as in the title bar of a chart window to the specified buffer. If the buffer is too
- * small the string in the buffer is truncated. The string is always terminated with a NULL character.
+ * small the string in the buffer is truncated. The string is always terminated with a null character.
  *
  * @param  char* symbol
  * @param  uint  timeframe
  * @param  char* buffer
  * @param  uint  bufferSize
  *
- * @return uint - Amount of copied characters not counting the terminating NULL character or {bufferSize} if the buffer is
+ * @return uint - Amount of copied characters not counting the terminating null character or {bufferSize} if the buffer is
  *                too small and the string in the buffer was truncated. NULL in case of errors.
  */
 uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
@@ -233,7 +233,7 @@ char* WINAPI MD5Hash(const void* input, uint length) {
 
 
 /**
- * Calculate the MD5 hash of a C string (Ansi).
+ * Calculate the MD5 hash of a C string.
  *
  * @param  char* input - C input string
  *

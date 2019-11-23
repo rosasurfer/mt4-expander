@@ -202,8 +202,7 @@ datetime WINAPI Tester_GetEndDate() {
  *
  * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
  *
- *
- * Note: The memory for the returned FXT_HEADER was allocated with "new" and should be released after usage (with "delete").
+ * Note: The caller is responsible for releasing the returned struct's memory after usage with "delete".
  */
 const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel) {
    if ((uint)symbol < MIN_VALID_POINTER) return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
@@ -311,7 +310,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
    if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
    if (!ec->test->openPositions)                return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: NULL"));
 
-   OrderList& openPositions = *ec->test->openPositions;
+   OrderList &openPositions = *ec->test->openPositions;
    uint size = openPositions.size();
    ORDER* order = NULL;
 
@@ -341,7 +340,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
          ec->test->closedPositions->push_back(order);                // add it to closed positions
 
          if (order->type == OP_LONG) {
-            OrderList& openLongs = *ec->test->openLongPositions;
+            OrderList &openLongs = *ec->test->openLongPositions;
             size = openLongs.size();
             for (i=0; i < size; ++i) {
                if (openLongs[i]->ticket == ticket) {
@@ -353,7 +352,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
             ec->test->closedLongPositions->push_back(order);         // add it to closed long positions
          }
          else {
-            OrderList& openShorts = *ec->test->openShortPositions;
+            OrderList &openShorts = *ec->test->openShortPositions;
             size = openShorts.size();
             for (i=0; i < size; ++i) {
                if (openShorts[i]->ticket == ticket) {
@@ -402,7 +401,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    free(sTest);
 
    // process closed positions (skip open positions closed automatically by the tester at test end)
-   OrderList& trades = *test->closedPositions;
+   OrderList &trades = *test->closedPositions;
    uint size = trades.size();
 
    for (uint i=0; i < size; ++i) {
@@ -466,7 +465,7 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
    test_SetEndTime(test, endTime              );
 
    // update test statistics
-   OrderList& trades = *test->closedPositions;
+   OrderList &trades = *test->closedPositions;
    uint allTrades   = trades.size();
    uint longTrades  = test->closedLongPositions->size();
    uint shortTrades = test->closedShortPositions->size();
@@ -532,10 +531,34 @@ int WINAPI Test_synchronize() {
 }
 
 
+#include "lib/config.h"
+
+
 /**
  * @return int
  */
-int WINAPI Test() {
+int WINAPI Test(const char* fileName) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+
+   // read all sections
+   char* buffer    = NULL;
+   uint bufferSize = 256;
+   uint chars = bufferSize-2;
+   while (chars == bufferSize-2) {
+      delete[] buffer;
+      bufferSize <<= 1;
+      buffer = new char[bufferSize];
+      chars = GetIniSectionsA(fileName, buffer, bufferSize);
+   }
+
+   char* name = buffer;
+   while (*name) {
+      debug("section: %s", name);
+      name += strlen(name) + 1;
+   }
+
+   delete[] buffer;
    return(NULL);
    #pragma EXPANDER_EXPORT
 }
