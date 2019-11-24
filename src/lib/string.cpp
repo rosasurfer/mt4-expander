@@ -117,8 +117,8 @@ const wchar* WINAPI GetStringW(const wchar* value) {
 /**
  * Resolve and return the difference between the passed string representations of input parameters.
  *
- * @param  char* initial - initial input parameters
  * @param  char* current - current input parameters
+ * @param  char* initial - initial input parameters
  *
  * @return char* - modified input parameters
  */
@@ -135,8 +135,9 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
 
    while (getline(stInitial, lineInitial)) {
       if (getline(stCurrent, lineCurrent)) {
-         if (lineInitial != lineCurrent)
+         if (lineInitial != lineCurrent) {
             diff.append(lineCurrent).append(NL);
+         }
       }
       else {
          diff.append("REMOVED ").append(lineInitial).append(NL);
@@ -148,6 +149,86 @@ const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
    }
 
    return(strdup(diff.c_str()));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Compare two ANSI MqlStrings.
+ *
+ * @param  void* first
+ * @param  void* second
+ *
+ * @return int - positive value if the first string is considered greater than the second;
+ *               negative value if the first string is considered lower than the second;
+ *               0 if both strings are considered equal
+ */
+int __cdecl CompareMqlStringsA(const void* first, const void* second) {
+   MqlStringA* s1 = (MqlStringA*) first;
+   MqlStringA* s2 = (MqlStringA*) second;
+
+   if (s1 == s2) return( 0);
+   if (!s1)      return(-1);
+   if (!s2)      return(+1);
+   return(strcmp(s1->value, s2->value));
+}
+
+
+/**
+ * Compare two Unicode MqlStrings.
+ *
+ * @param  void* first
+ * @param  void* second
+ *
+ * @return int - positive value if the first string is considered greater than the second;
+ *               negative value if the first string is considered lower than the second;
+ *               0 if both strings are considered equal
+ */
+int __cdecl CompareMqlStringsW(const void* first, const void* second) {
+   MqlStringW* s1 = (MqlStringW*) first;
+   MqlStringW* s2 = (MqlStringW*) second;
+
+   if (s1 == s2) return( 0);
+   if (!s1)      return(-1);
+   if (!s2)      return(+1);
+   return(wcscmp(s1->value, s2->value));
+}
+
+
+/**
+ * Sort an MqlStringA array.
+ *
+ * @param  MqlStringA strings[] - array
+ * @param  int        size      - size of array
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI SortMqlStringsA(MqlStringA strings[], int size) {
+   if ((uint)strings < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
+   if (size <= 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+   if (size == 1) return(TRUE);           // nothing to do
+
+   qsort(strings, size, sizeof(MqlStringA), CompareMqlStringsA);
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Sort an MqlStringW array.
+ *
+ * @param  MqlStringW strings[] - array
+ * @param  int        size      - size of array
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI SortMqlStringsW(MqlStringW strings[], int size) {
+   if ((uint)strings < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
+   if (size <= 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+   if (size == 1) return(TRUE);           // nothing to do
+
+   qsort(strings, size, sizeof(MqlStringW), CompareMqlStringsW);
+   return(TRUE);
    #pragma EXPANDER_EXPORT
 }
 
@@ -445,7 +526,7 @@ char* WINAPI StrTrim(char* const str) {
 uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
    if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
-   if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
+   if ((int)destSize < 0)                return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
 
    uint wchars         = destSize >> 1;
    uint charsToConvert = wchars - 1;
@@ -475,7 +556,7 @@ uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize) {
 uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSize) {
    if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
    if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
-   if (destSize < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
+   if ((int)destSize < 0)                return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
 
    uint destLength = 0;
 

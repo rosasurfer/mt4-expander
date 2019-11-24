@@ -1,5 +1,6 @@
 #pragma once
 #include "expander.h"
+#include "struct/mt4/MqlString.h"
 
 
 char*         WINAPI DoubleQuoteStr(const char* value);
@@ -8,6 +9,9 @@ const char*   WINAPI GetStringA(const char* value);
 const wchar*  WINAPI GetStringW(const wchar* value);
 
 const char*   WINAPI InputParamsDiff(const char* initial, const char* current);
+
+BOOL          WINAPI SortMqlStringsA(MqlStringA strings[], int size);
+BOOL          WINAPI SortMqlStringsW(MqlStringW strings[], int size);
 
 BOOL          WINAPI StrCompare(const char* s1, const char* s2);
 char*         WINAPI StrFormat(const char* format, ...);

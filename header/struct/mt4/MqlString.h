@@ -12,7 +12,7 @@
  * @see  type definition in MetaTrader4 DLL example project
  */
 struct MqlStringA {
-   uint  bufsize;                   // size of buffer allocated for the string; 0 if the string is a C literal (CRT managed)
+   uint  size;                      // size of the buffer allocated for the string; 0 if the string is a C literal (CRT managed)
    char* value;                     // ANSI string
 };
 //typedef MqlStringA MqlStr;        // MetaQuotes alias
@@ -28,8 +28,8 @@ struct MqlStringA {
  * @see  https://www.mql5.com/en/forum/149412          (cross-solutions)
  */
 struct MqlStringW {
-   int    size;                     // size of the buffer allocated for the string
-   wchar* buffer;                   // Unicode string
+   uint   size;                     // size of the buffer allocated for the string
+   wchar* value;                    // Unicode string
    int    reserved;                 // reserved
 };
 //typedef MqlStringW MqlString;     // MetaQuotes alias

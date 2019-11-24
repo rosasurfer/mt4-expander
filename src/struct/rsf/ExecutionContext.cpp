@@ -1601,7 +1601,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
  */
 uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (id <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (must be greater than zero)", id));
+   if ((int)id <= 0)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (must be greater than zero)", id));
 
    ec->threadId = id;
 
