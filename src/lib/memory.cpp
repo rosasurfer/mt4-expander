@@ -78,20 +78,6 @@ uint WINAPI GetStringsAddress(const MqlStringA values[]) {
 
 
 /**
- * Return the memory location of any type instance. Helper function to resolve addresses in MQL.
- *
- * @param  void* value - pointer to an instance of any type
- *
- * @return uint - memory location or NULL in case of errors
- */
-uint WINAPI GetPointedAddress(const void* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", value));
-   return((uint) value);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether the content of two memory ranges is considered equal. Convenient helper to hide the non-intuitive memcmp()
  * syntax.
  *

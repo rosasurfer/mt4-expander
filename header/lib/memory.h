@@ -9,5 +9,4 @@ uint WINAPI GetIntsAddress(const int values[]);
 uint WINAPI GetStringAddress(const TCHAR* value);
 uint WINAPI GetStringsAddress(const MqlStringA values[]);
 
-uint WINAPI GetPointedAddress(const void* value);
 BOOL WINAPI MemCompare(const void* a, const void* b, uint size);
