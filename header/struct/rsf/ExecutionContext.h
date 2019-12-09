@@ -45,7 +45,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
                                                    //
    char               symbol[MAX_SYMBOL_LENGTH+1]; //       564       12     current symbol           = MQL::Symbol()            (var)
    uint               timeframe;                   //       576        4     current chart period     = MQL::Period()            (var)
-   const void*        rates;                       //       580        4     current price series     = MQL::ArrayCopyRates()    (var)   => RateInfo[] | MqlRates[]
+   const void*        rates;                       //       580        4     current price series     = MQL::ArrayCopyRates()    (var)   => HistoryBar400[] or HistoryBar401[]
    int                bars;                        //       584        4     current number of bars   = MQL::Bars                (var)
    int                changedBars;                 //       588        4     number of changed bars                              (var)
    int                unchangedBars;               //       592        4     number of unchanged bars = MQL::IndicatorCounted()  (var)

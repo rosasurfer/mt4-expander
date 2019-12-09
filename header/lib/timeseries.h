@@ -1,7 +1,7 @@
 #pragma once
 #include "expander.h"
-#include "struct/mt4/PriceBar400.h"
-#include "struct/mt4/PriceBar401.h"
+#include "struct/mt4/HistoryBar400.h"
+#include "struct/mt4/HistoryBar401.h"
 
 
 extern uint g_terminalBuild;              // terminal build number
@@ -21,8 +21,8 @@ inline double WINAPI iOpen(const void* rates, uint bars, uint bar) {
 
    double open;
    uint shift = bars-1-bar;
-   if (g_terminalBuild <= 509) open = ((RateInfo*) rates)[shift].open;
-   else                        open = ((MqlRates*) rates)[shift].open;
+   if (g_terminalBuild <= 509) open = ((HistoryBar400*) rates)[shift].open;
+   else                        open = ((HistoryBar401*) rates)[shift].open;
    return(open);
 }
 
@@ -41,8 +41,8 @@ inline double WINAPI iHigh(const void* rates, uint bars, uint bar) {
 
    double high;
    uint shift = bars-1-bar;
-   if (g_terminalBuild <= 509) high = ((RateInfo*) rates)[shift].high;
-   else                        high = ((MqlRates*) rates)[shift].high;
+   if (g_terminalBuild <= 509) high = ((HistoryBar400*) rates)[shift].high;
+   else                        high = ((HistoryBar401*) rates)[shift].high;
    return(high);
 }
 
@@ -61,8 +61,8 @@ inline double WINAPI iLow(const void* rates, uint bars, uint bar) {
 
    double low;
    uint shift = bars-1-bar;
-   if (g_terminalBuild <= 509) low = ((RateInfo*) rates)[shift].low;
-   else                        low = ((MqlRates*) rates)[shift].low;
+   if (g_terminalBuild <= 509) low = ((HistoryBar400*) rates)[shift].low;
+   else                        low = ((HistoryBar401*) rates)[shift].low;
    return(low);
 }
 
@@ -81,8 +81,8 @@ inline double WINAPI iClose(const void* rates, uint bars, uint bar) {
 
    double close;
    uint shift = bars-1-bar;
-   if (g_terminalBuild <= 509) close = ((RateInfo*) rates)[shift].close;
-   else                        close = ((MqlRates*) rates)[shift].close;
+   if (g_terminalBuild <= 509) close = ((HistoryBar400*) rates)[shift].close;
+   else                        close = ((HistoryBar401*) rates)[shift].close;
    return(close);
 }
 
@@ -101,8 +101,8 @@ inline uint WINAPI iVolume(const void* rates, uint bars, uint bar) {
 
    uint volume;
    uint shift = bars-1-bar;
-   if (g_terminalBuild <= 509) volume = (uint)((RateInfo*) rates)[shift].ticks;
-   else                        volume = (uint)((MqlRates*) rates)[shift].ticks;
+   if (g_terminalBuild <= 509) volume = (uint)((HistoryBar400*) rates)[shift].ticks;
+   else                        volume = (uint)((HistoryBar401*) rates)[shift].ticks;
    return(volume);
 }
 
@@ -121,7 +121,7 @@ inline datetime WINAPI iTime(const void* rates, int bars, int bar) {
 
    datetime time;
    uint shift = bars-1-bar;
-   if (g_terminalBuild <= 509) time = ((RateInfo*) rates)[shift].time;
-   else                        time = ((MqlRates*) rates)[shift].time;
+   if (g_terminalBuild <= 509) time = ((HistoryBar400*) rates)[shift].time;
+   else                        time = ((HistoryBar401*) rates)[shift].time;
    return(time);
 }

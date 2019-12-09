@@ -311,19 +311,19 @@
 						>
 					</File>
 					<File
+						RelativePath=".\header\struct\mt4\HistoryBar400.h"
+						>
+					</File>
+					<File
+						RelativePath=".\header\struct\mt4\HistoryBar401.h"
+						>
+					</File>
+					<File
 						RelativePath=".\header\struct\mt4\HistoryHeader.h"
 						>
 					</File>
 					<File
 						RelativePath=".\header\struct\mt4\MqlString.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\struct\mt4\PriceBar400.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\struct\mt4\PriceBar401.h"
 						>
 					</File>
 					<File
