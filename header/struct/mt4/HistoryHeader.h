@@ -11,7 +11,7 @@
  */
 struct HISTORY_HEADER {                            // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint     barFormat;                             //         0         4     bar format id, builds <= 509: 400, builds > 509: 401
-   char     copyright[64];                         //         4        64     copyright, constantly overwritten by the terminal
+   char     copyright[64];                         //         4        64     copyright (overwritten by the terminal)
    char     symbol[MAX_SYMBOL_LENGTH+1];           //        68        12     symbol
    uint     period;                                //        80         4     timeframe in minutes
    uint     digits;                                //        84         4     digits
