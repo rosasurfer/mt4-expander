@@ -1,5 +1,6 @@
 #pragma once
 #include "expander.h"
+#include "struct/mt4/MqlString.h"
 
 
 char*         WINAPI DoubleQuoteStr(const char* value);
@@ -9,7 +10,10 @@ const wchar*  WINAPI GetStringW(const wchar* value);
 
 const char*   WINAPI InputParamsDiff(const char* initial, const char* current);
 
-BOOL          WINAPI StrCompare(const char* a, const char* b);
+BOOL          WINAPI SortMqlStringsA(MqlStringA strings[], int size);
+BOOL          WINAPI SortMqlStringsW(MqlStringW strings[], int size);
+
+BOOL          WINAPI StrCompare(const char* s1, const char* s2);
 char*         WINAPI StrFormat(const char* format, ...);
 BOOL          WINAPI StrIsNull(const char* value);
 BOOL          WINAPI StrStartsWith(const char* str, const char* prefix);
@@ -31,11 +35,10 @@ uint          WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSi
 
 
 namespace rsf {
-
-inline wchar* WINAPI copywchars(const wchar* str) { return(wcscpy(new wchar[wcslen(str)+1], str)); };
-char*         WINAPI strformat(const char* format, ...);
-char*         WINAPI strformat(const char* format, const va_list &args);
-char*         WINAPI wchartombs(const wchar* str);
-char*         WINAPI wchartombs(const wchar* sequence, uint count);
-char*         WINAPI wchartombs(const wstring &str);
+   inline wchar* WINAPI copywchars(const wchar* str) { return(wcscpy(new wchar[wcslen(str)+1], str)); };
+   char*         WINAPI strformat(const char* format, ...);
+   char*         WINAPI strformat(const char* format, const va_list &args);
+   char*         WINAPI wchartombs(const wchar* str);
+   char*         WINAPI wchartombs(const wchar* sequence, uint count);
+   char*         WINAPI wchartombs(const wstring &str);
 }

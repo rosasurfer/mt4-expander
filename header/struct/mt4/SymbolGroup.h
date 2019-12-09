@@ -1,14 +1,14 @@
 #pragma once
 #include "expander.h"
 
+#pragma pack(push, 1)
+
 
 /**
  * MT4 struct SYMBOL_GROUP (file format of "symgroups.raw")
  *
  * The file size is fixed, a file always contains 32 groups. Unused group entries are just empty (zeroed).
  */
-#pragma pack(push, 1)
-
 struct SYMBOL_GROUP {                              // -- offset ---- size --- description -----------------------------------
    char name       [16];                           //         0        16     group name
    char description[60];                           //        16        60     unused: group description, original size 64
@@ -17,7 +17,7 @@ struct SYMBOL_GROUP {                              // -- offset ---- size --- de
 #pragma pack(pop)                                  //                = 80
 
 
-// getters (used by MQL4)
+// getters
 const char* WINAPI sg_Name            (const SYMBOL_GROUP* sg);
 const char* WINAPI sg_Description     (const SYMBOL_GROUP* sg);
 uint        WINAPI sg_BackgroundColor (const SYMBOL_GROUP* sg);
@@ -26,7 +26,7 @@ const char* WINAPI sgs_Name           (const SYMBOL_GROUP sgs[], int index);
 const char* WINAPI sgs_Description    (const SYMBOL_GROUP sgs[], int index);
 uint        WINAPI sgs_BackgroundColor(const SYMBOL_GROUP sgs[], int index);
 
-// validating setters (also used by MQL4)
+// setters
 const char* WINAPI sg_SetName            (SYMBOL_GROUP* sg, const char* name       );
 const char* WINAPI sg_SetDescription     (SYMBOL_GROUP* sg, const char* description);
 int         WINAPI sg_SetBackgroundColor (SYMBOL_GROUP* sg, uint        color      );

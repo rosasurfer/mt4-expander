@@ -1,28 +1,28 @@
 #pragma once
 #include "expander.h"
 
-
-/**
- * MT4 struct HISTORY_HEADER (Header der Kursreihen im "history"-Verzeichnis)
- *
- * HistoryFile Header
- */
 #pragma pack(push, 1)
 
+
+/**
+ * MT4 struct HISTORY_HEADER (header format of history files in "<data-dir>\history")
+ *
+ * History file header
+ */
 struct HISTORY_HEADER {                            // -- offset ---- size --- description ----------------------------------------------------------------------------
-   uint     barFormat;                             //         0         4     Barformat, bis Build 509: 400, danach: 401
-   char     copyright[64];                         //         4        64     Copyright (szchar), wird vom Terminal bei Schreibzugriff überschrieben
-   char     symbol[MAX_SYMBOL_LENGTH+1];           //        68        12     Symbol    (szchar)
-   uint     period;                                //        80         4     Timeframe in Minuten
-   uint     digits;                                //        84         4     Digits
-   datetime syncMarker;                            //        88         4     SyncMarker   (timestamp), wird vom Terminal beim Refresh mit Serverversion überschrieben
-   datetime lastSyncTime;                          //        92         4     LastSyncTime (unbenutzt), wird vom Terminal nicht überschrieben
+   uint     barFormat;                             //         0         4     bar format id, builds <= 509: 400, builds > 509: 401
+   char     copyright[64];                         //         4        64     copyright, constantly overwritten by the terminal
+   char     symbol[MAX_SYMBOL_LENGTH+1];           //        68        12     symbol
+   uint     period;                                //        80         4     timeframe in minutes
+   uint     digits;                                //        84         4     digits
+   datetime syncMarker;                            //        88         4     data server synchronization marker, updated by the terminal on Chart->Refresh
+   datetime lastSyncTime;                          //        92         4     unused (not overwritten by the terminal)
    BYTE     reserved[52];                          //        96        52
 };                                                 // ----------------------------------------------------------------------------------------------------------------
 #pragma pack(pop)                                  //               = 148
 
 
-// Getter
+// getters
 uint        WINAPI hh_BarFormat    (const HISTORY_HEADER* hh);
 const char* WINAPI hh_Copyright    (const HISTORY_HEADER* hh);
 const char* WINAPI hh_Symbol       (const HISTORY_HEADER* hh);
@@ -41,7 +41,7 @@ uint        WINAPI hhs_Digits      (const HISTORY_HEADER hhs[], int index);
 datetime    WINAPI hhs_SyncMarker  (const HISTORY_HEADER hhs[], int index);
 datetime    WINAPI hhs_LastSyncTime(const HISTORY_HEADER hhs[], int index);
 
-// Setter
+// setters
 uint        WINAPI hh_SetBarFormat    (HISTORY_HEADER* hh, int         format   );
 const char* WINAPI hh_SetCopyright    (HISTORY_HEADER* hh, const char* copyright);
 const char* WINAPI hh_SetSymbol       (HISTORY_HEADER* hh, const char* symbol   );

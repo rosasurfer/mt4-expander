@@ -633,7 +633,7 @@ int __cdecl CompareSymbols(const void* a, const void* b) {
 
 
 /**
- * Sort an array of SYMBOLs alphabetically by name.
+ * Sort a SYMBOL array by name.
  *
  * @param  SYMBOL symbols[] - array
  * @param  int    size      - size of array

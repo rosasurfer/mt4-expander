@@ -262,7 +262,7 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
 
 
 /**
- * Return a configuration value from an .ini file as a string. Trailing configuration comments are not removed.
+ * Return a configuration value from an .ini file as a string. Configuration comments are not removed.
  *
  * @param  char* fileName                - name of the .ini file
  * @param  char* section                 - case-insensitive configuration section name

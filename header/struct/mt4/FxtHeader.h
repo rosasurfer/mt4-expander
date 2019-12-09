@@ -1,6 +1,8 @@
 #pragma once
 #include "expander.h"
 
+#pragma pack(push, 1)
+
 
 /**
  * MT4 struct FXT_HEADER (Tickdatei-Header)
@@ -13,8 +15,6 @@
  *    modellierte Tick befindet sich an der 1001-sten Bar. Der Expert muß prüfen, ob diese History für seine Strategie
  *    ausreichend ist und ggf. auf das Eintreffen ausreichender Bars warten.
  */
-#pragma pack(push, 1)
-
 struct FXT_HEADER {                                // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint     version;                               //         0         4     Header-Version                             = 405
    char     description[64];                       //         4        64     z.B. Copyright (szchar)

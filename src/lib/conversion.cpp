@@ -272,25 +272,27 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_WEBREQUEST_REQUEST_FAILED                    : return("ERR_WEBREQUEST_REQUEST_FAILED"        );    //   5203
 
       // user defined errors: 65536-99999 (0x10000-0x1869F)
-      case ERR_RUNTIME_ERROR                                : return("ERR_RUNTIME_ERROR"                    );    //  65536
-      case ERR_NOT_IMPLEMENTED                              : return("ERR_NOT_IMPLEMENTED"                  );    //  65537
-      case ERR_FUNC_NOT_ALLOWED                             : return("ERR_FUNC_NOT_ALLOWED"                 );    //  65538
-      case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65539      status, no error
-      case ERR_TERMINAL_INIT_FAILURE                        : return("ERR_TERMINAL_INIT_FAILURE"            );    //  65540
-      case ERR_INVALID_INPUT_PARAMETER                      : return("ERR_INVALID_INPUT_PARAMETER"          );    //  65541
-      case ERR_INVALID_CONFIG_VALUE                         : return("ERR_INVALID_CONFIG_VALUE"             );    //  65542
-      case ERR_INVALID_TIMEZONE_CONFIG                      : return("ERR_INVALID_TIMEZONE_CONFIG"          );    //  65543
-      case ERR_INVALID_MARKET_DATA                          : return("ERR_INVALID_MARKET_DATA"              );    //  65544
-      case ERR_INVALID_COMMAND                              : return("ERR_INVALID_COMMAND"                  );    //  65545
-      case ERR_CANCELLED_BY_USER                            : return("ERR_CANCELLED_BY_USER"                );    //  65546
-      case ERS_EXECUTION_STOPPING                           : return("ERS_EXECUTION_STOPPING"               );    //  65547      status, no error
-      case ERR_ORDER_CHANGED                                : return("ERR_ORDER_CHANGED"                    );    //  65548
-      case ERR_HISTORY_INSUFFICIENT                         : return("ERR_HISTORY_INSUFFICIENT"             );    //  65549
-      case ERR_CONCURRENT_MODIFICATION                      : return("ERR_CONCURRENT_MODIFICATION"          );    //  65550
-      case ERR_INVALID_ACCESS                               : return("ERR_INVALID_ACCESS"                   );    //  65551
-      case ERR_ILLEGAL_STATE                                : return("ERR_ILLEGAL_STATE"                    );    //  65552
-      case ERR_MIXED_SYMBOLS                                : return("ERR_MIXED_SYMBOLS"                    );    //  65553
-      case ERR_TOTAL_POSITION_NOT_FLAT                      : return("ERR_TOTAL_POSITION_NOT_FLAT"          );    //  65554
+      case ERR_USER_ERROR_FIRST                             : return("ERR_USER_ERROR_FIRST"                 );    //  65536
+      case ERR_CANCELLED_BY_USER                            : return("ERR_CANCELLED_BY_USER"                );    //  65537
+      case ERR_CONCURRENT_MODIFICATION                      : return("ERR_CONCURRENT_MODIFICATION"          );    //  65538
+      case ERS_EXECUTION_STOPPING                           : return("ERS_EXECUTION_STOPPING"               );    //  65539   status
+      case ERR_FUNC_NOT_ALLOWED                             : return("ERR_FUNC_NOT_ALLOWED"                 );    //  65540
+      case ERR_HISTORY_INSUFFICIENT                         : return("ERR_HISTORY_INSUFFICIENT"             );    //  65541
+      case ERR_ILLEGAL_STATE                                : return("ERR_ILLEGAL_STATE"                    );    //  65542
+      case ERR_INVALID_ACCESS                               : return("ERR_INVALID_ACCESS"                   );    //  65543
+      case ERR_INVALID_COMMAND                              : return("ERR_INVALID_COMMAND"                  );    //  65544
+      case ERR_INVALID_CONFIG_VALUE                         : return("ERR_INVALID_CONFIG_VALUE"             );    //  65545
+      case ERR_INVALID_FILE_FORMAT                          : return("ERR_INVALID_FILE_FORMAT"              );    //  65546
+      case ERR_INVALID_INPUT_PARAMETER                      : return("ERR_INVALID_INPUT_PARAMETER"          );    //  65547
+      case ERR_INVALID_MARKET_DATA                          : return("ERR_INVALID_MARKET_DATA"              );    //  65548
+      case ERR_INVALID_TIMEZONE_CONFIG                      : return("ERR_INVALID_TIMEZONE_CONFIG"          );    //  65549
+      case ERR_MIXED_SYMBOLS                                : return("ERR_MIXED_SYMBOLS"                    );    //  65550
+      case ERR_NOT_IMPLEMENTED                              : return("ERR_NOT_IMPLEMENTED"                  );    //  65551
+      case ERR_ORDER_CHANGED                                : return("ERR_ORDER_CHANGED"                    );    //  65552
+      case ERR_RUNTIME_ERROR                                : return("ERR_RUNTIME_ERROR"                    );    //  65553
+      case ERR_TERMINAL_INIT_FAILURE                        : return("ERR_TERMINAL_INIT_FAILURE"            );    //  65554
+      case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65555   status
+      case ERR_TOTAL_POSITION_NOT_FLAT                      : return("ERR_TOTAL_POSITION_NOT_FLAT"          );    //  65556
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                  : return("win32:NO_ERROR"                       );    // 100000 +    0

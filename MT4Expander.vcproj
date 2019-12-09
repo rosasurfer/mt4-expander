@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="MT4Expander"
 	ProjectGUID="{2E0F4332-3519-400E-9AC1-4B83EA652CCD}"
 	RootNamespace="Expander"
@@ -27,7 +27,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Pre-build event:"
-				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;   echo Shared header &quot;$(ProjectDir)header\shared\defines.h&quot; missing, using backup...&#x0D;&#x0A;   copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;   echo Shared header &quot;$(ProjectDir)header\shared\errors.h&quot; missing, using backup...&#x0D;&#x0A;   copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\defines.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\errors.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -101,7 +101,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;    echo Copying DLL to MetaTrader library folder...&#x0D;&#x0A;    copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copying DLL to MetaTrader library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -115,7 +115,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Pre-build event:"
-				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;   echo Shared header &quot;$(ProjectDir)header\shared\defines.h&quot; missing, using backup...&#x0D;&#x0A;   copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;   echo Shared header &quot;$(ProjectDir)header\shared\errors.h&quot; missing, using backup...&#x0D;&#x0A;   copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\defines.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\errors.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -188,7 +188,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;    echo Copying DLL to MetaTrader library folder...&#x0D;&#x0A;    copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copying DLL to MetaTrader library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -315,7 +315,7 @@
 						>
 					</File>
 					<File
-						RelativePath=".\header\struct\mt4\MqlStr.h"
+						RelativePath=".\header\struct\mt4\MqlString.h"
 						>
 					</File>
 					<File

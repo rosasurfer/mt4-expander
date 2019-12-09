@@ -1,14 +1,14 @@
 #pragma once
 #include "expander.h"
 
+#pragma pack(push, 1)
+
 
 /**
  * MT4 struct SYMBOL (file format of "symbols.raw")
  *
  * All symbols of a file are sorted alphabetically by "name".
  */
-#pragma pack(push, 1)
-
 struct SYMBOL {                                    // -- offset ---- size --- description -------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     broker specific symbol (e.g. "AUDCAD.m")
    char   description [54];                        //        12        54     description, original size = 64
@@ -63,7 +63,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double marginDivider;                           //      1768         8     leverage: absolute (symbol specific) or relative to the account
 
    double pointSize;                               //      1776         8     point size
-   double pointsPerUnit;                           //      1784         8     ooints per unit
+   double pointsPerUnit;                           //      1784         8     points per unit
 
    BYTE   unknown10[24];                           //      1792        24
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     margin currency
@@ -74,7 +74,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 #pragma pack(pop)                                  //              = 1936
 
 
-// getters (used by MQL4)
+// getters
 const char* WINAPI symbol_Name                 (const SYMBOL* symbol);
 const char* WINAPI symbol_Description          (const SYMBOL* symbol);
 const char* WINAPI symbol_Origin               (const SYMBOL* symbol);
@@ -106,7 +106,7 @@ const char* WINAPI symbols_Name                (const SYMBOL symbols[], int inde
 uint        WINAPI symbols_ArrayKey            (const SYMBOL symbols[], int index);
 uint        WINAPI symbols_Id                  (const SYMBOL symbols[], int index);
 
-// Setter
+// setters
 const char* WINAPI symbol_SetName           (SYMBOL* symbol, const char* name       );
 const char* WINAPI symbol_SetDescription    (SYMBOL* symbol, const char* description);
 const char* WINAPI symbol_SetBaseCurrency   (SYMBOL* symbol, const char* currency   );
