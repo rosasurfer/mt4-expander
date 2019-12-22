@@ -107,7 +107,7 @@ const char* WINAPI ErrorToStr(int error) {
 
       // trade server errors
       case ERR_NO_RESULT                                    : return("ERR_NO_RESULT"                        );    //      1
-      case ERR_TRADE_SERVER_GONE                            : return("ERR_TRADE_SERVER_GONE"                );    //      2
+      case ERR_TRADESERVER_GONE                             : return("ERR_TRADESERVER_GONE"                 );    //      2
       case ERR_INVALID_TRADE_PARAMETERS                     : return("ERR_INVALID_TRADE_PARAMETERS"         );    //      3
       case ERR_SERVER_BUSY                                  : return("ERR_SERVER_BUSY"                      );    //      4
       case ERR_OLD_VERSION                                  : return("ERR_OLD_VERSION"                      );    //      5
