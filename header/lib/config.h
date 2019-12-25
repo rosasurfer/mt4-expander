@@ -2,6 +2,7 @@
 #include "expander.h"
 
 
+BOOL        WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key);
 const char* WINAPI GetGlobalConfigPathA();
 DWORD       WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize);
 DWORD       WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSize);

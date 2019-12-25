@@ -20,11 +20,35 @@
  *
  * @return BOOL - configuration value
  */
-BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
-   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
-   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
-   //return(GetLocalConfigBool (section, key, result));
-   return(FALSE);
+//BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
+//   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
+//   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
+//   //return(GetLocalConfigBool (section, key, result));
+//   return(FALSE);
+//}
+
+
+/**
+ * Delete a configuration key from an .ini file.
+ *
+ * @param  char* fileName - name of the .ini file
+ * @param  char* section  - case-insensitive configuration section name
+ * @param  char* key      - case-insensitive configuration key to delete
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!*section)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)key      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
+   if (!*key)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
+
+   if (!WritePrivateProfileStringA(section, key, NULL, fileName))
+      return(_FALSE(error(ERR_WIN32_ERROR+GetLastError(), "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key)));
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
 }
 
 
