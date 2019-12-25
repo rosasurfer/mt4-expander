@@ -29,7 +29,8 @@
 
 
 /**
- * Delete a configuration key from an .ini file.
+ * Delete a configuration key from an .ini file. If the file does not exist an attempt is made to create it. No error is
+ * returned if creation of a non-existing file fails.
  *
  * @param  char* fileName - name of the .ini file
  * @param  char* section  - case-insensitive configuration section name
@@ -45,15 +46,18 @@ BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char*
    if ((uint)key      < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
    if (!*key)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
 
-   if (!WritePrivateProfileStringA(section, key, NULL, fileName))
-      return(_FALSE(error(ERR_WIN32_ERROR+GetLastError(), "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key)));
+   if (!WritePrivateProfileStringA(section, key, NULL, fileName)) {
+      int error = GetLastError();
+      if (error != ERROR_PATH_NOT_FOUND) return(error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key));
+   }
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Delete a configuration section from an .ini file.
+ * Delete a configuration section from an .ini file. If the file does not exist an attempt is made to create it. No error is
+ * returned if creation of a non-existing file fails.
  *
  * @param  char* fileName - name of the .ini file
  * @param  char* section  - case-insensitive configuration section name to delete
@@ -66,15 +70,19 @@ BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
    if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
    if (!*section)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
 
-   if (!WritePrivateProfileStringA(section, NULL, NULL, fileName))
-      return(_FALSE(error(ERR_WIN32_ERROR+GetLastError(), "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section)));
+   if (!WritePrivateProfileStringA(section, NULL, NULL, fileName)) {
+      int error = GetLastError();
+      if (error != ERROR_PATH_NOT_FOUND) return(error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section));
+   }
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Delete all keys from an .ini file's configuration section but don't delete the section itself.
+ * Delete all keys from an .ini file's configuration section but don't delete the section itself. If the section does not
+ * exist it is created. If the file does not exist an attempt is made to create it. No error is returned if creation of a
+ * non-existing file fails.
  *
  * @param  char* fileName - name of the .ini file
  * @param  char* section  - case-insensitive configuration section name to empty
@@ -89,8 +97,10 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
 
    char values[2] = {};                   // a NUL-terminated string followed by a second NUL terminator
 
-   if (!WritePrivateProfileSectionA(section, values, fileName))
-      return(_FALSE(error(ERR_WIN32_ERROR+GetLastError(), "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section)));
+   if (!WritePrivateProfileSectionA(section, values, fileName)) {
+      int error = GetLastError();
+      if (error != ERROR_PATH_NOT_FOUND) return(error(ERR_WIN32_ERROR+error, "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section));
+   }
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
