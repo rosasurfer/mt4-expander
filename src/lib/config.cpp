@@ -53,6 +53,27 @@ BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char*
 
 
 /**
+ * Delete a configuration section from an .ini file.
+ *
+ * @param  char* fileName - name of the .ini file
+ * @param  char* section  - case-insensitive configuration section name to delete
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
+   if ((uint)fileName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!*fileName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!*section)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+
+   if (!WritePrivateProfileStringA(section, NULL, NULL, fileName))
+      return(_FALSE(error(ERR_WIN32_ERROR+GetLastError(), "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section)));
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the full filename of the MQL framework's global configuration file. The global file is used for configuration of all
  * terminals executed by the current user. If the file does not exist an attempt is made to create it.
  *
