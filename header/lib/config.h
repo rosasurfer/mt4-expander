@@ -4,6 +4,7 @@
 
 BOOL        WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key);
 BOOL        WINAPI DeleteIniSectionA(const char* fileName, const char* section);
+BOOL        WINAPI EmptyIniSectionA(const char* fileName, const char* section);
 const char* WINAPI GetGlobalConfigPathA();
 DWORD       WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize);
 DWORD       WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSize);
