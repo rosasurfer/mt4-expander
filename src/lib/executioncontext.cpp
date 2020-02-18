@@ -456,7 +456,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetExtReporting (ec, extReporting);
    ec_SetRecordEquity (ec, recordEquity);
 
-   ec_SetLogging      (ec, Program_IsLogging    (ec));            // TODO: atm an empty stub defaulting to TRUE
+   ec_SetLogEnabled   (ec, Program_IsLogEnabled (ec));            // TODO: atm an empty stub defaulting to TRUE
    ec_SetCustomLogFile(ec, Program_CustomLogFile(ec));            // TODO: atm an empty stub defaulting to NULL
 
    // TODO: reset errors if not in an init() call from start()
@@ -516,7 +516,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint     cycleTicks    = ec->cycleTicks + 1;
    datetime lastTickTime  = ec->lastTickTime; if (time < lastTickTime) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "ticktime is counting backwards:  time=%s  lastTickTime=%s  ec=%s", GmtTimeFormat(time, "%Y.%m.%d %H:%M:%S"), GmtTimeFormat(lastTickTime, "%Y.%m.%d %H:%M:%S"), EXECUTION_CONTEXT_toStr(ec))));
    DWORD    threadId      = GetCurrentThreadId();
-   BOOL     logging       = ec->logging;
+   BOOL     logEnabled    = ec->logEnabled;
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    uint size = chain.size();
@@ -540,7 +540,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->ask                 = ask;
 
          ctx->threadId            = threadId;
-         ctx->logging             = logging;                         // As long as ec.logging is configured after SyncMainContext_init()
+         ctx->logEnabled          = logEnabled;                      // As long as ec.logEnabled is configured after SyncMainContext_init()
       }                                                              // the flag needs to be synchronized on each tick.
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
@@ -1721,17 +1721,17 @@ const char* WINAPI Program_CustomLogFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether logging is activated for the program.
+ * Whether logging is enabled for the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
  */
-BOOL WINAPI Program_IsLogging(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI Program_IsLogEnabled(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->logging);
+      return(ec->superContext->logEnabled);
 
-   switch (ec->programType) {                      // TODO: move mql::IsLogging() to Expander
+   switch (ec->programType) {                      // TODO: move stdfunctions::init.IsLogEnabled() to Expander
       case PT_INDICATOR:
       case PT_EXPERT:
       case PT_SCRIPT:

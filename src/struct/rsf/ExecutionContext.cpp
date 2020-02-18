@@ -875,9 +875,9 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL
  */
-BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logging);
+   return(ec->logEnabled);
    #pragma EXPANDER_EXPORT
 }
 
@@ -891,7 +891,7 @@ BOOL WINAPI ec_Logging(const EXECUTION_CONTEXT* ec) {
  */
 BOOL WINAPI ec_CustomLogging(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logging && ec->customLogFile && *ec->customLogFile);
+   return(ec->logEnabled && ec->customLogFile && *ec->customLogFile);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1896,16 +1896,16 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
  *
  * @return BOOL - derselbe Logging-Status
  */
-BOOL WINAPI ec_SetLogging(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->logging = status;
+   ec->logEnabled = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->logging = status;
+         chain[0]->logEnabled = status;
    }
    return(status);
    #pragma EXPANDER_EXPORT
@@ -2023,7 +2023,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", mqlError="            <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
          << ", dllError="            <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="          <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
-         << ", logging="             <<         BoolToStr(ec->logging)
+         << ", logEnabled="          <<         BoolToStr(ec->logEnabled)
          << ", customLogFile="       <<    DoubleQuoteStr(ec->customLogFile)
          << "}";
    }

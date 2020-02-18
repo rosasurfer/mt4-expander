@@ -28,7 +28,7 @@ InitializeReason   WINAPI GetInitReason_expert   (EXECUTION_CONTEXT* ec,        
 InitializeReason   WINAPI GetInitReason_script   (EXECUTION_CONTEXT* ec,                                                        const char* programName,                                                                                                                      int droppedOnPosX, int droppedOnPosY);
 
 const char*        WINAPI Program_CustomLogFile (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI Program_IsLogging     (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI Program_IsLogEnabled  (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI Program_IsOptimization(const EXECUTION_CONTEXT* ec, BOOL isOptimization);
 BOOL               WINAPI Program_IsPartialTest (uint pid, const char* programName);
 BOOL               WINAPI Program_IsTesting     (const EXECUTION_CONTEXT* ec, BOOL isTesting);
