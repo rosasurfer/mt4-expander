@@ -883,29 +883,29 @@ BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether custom logging is enabled for a program.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_CustomLogging(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logEnabled && ec->customLogFile && *ec->customLogFile);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an EXECUTION_CONTEXT's log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return char* - filename
  */
-const char* WINAPI ec_CustomLogFile(const EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_LogFilename(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->customLogFile);
+   return(ec->logFilename);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether the program has a separate logfile.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_SeparateLog(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->logEnabled && ec->logFilename && *ec->logFilename);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1916,34 +1916,34 @@ BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
  * Setzt den Namen der Logdatei eines EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  char*              fileName - statt eines NULL-Pointers kann auch ein Leerstring angegeben werden
+ * @param  char*              filename - statt eines NULL-Pointers kann auch ein Leerstring angegeben werden
  *
  * @return char* - derselbe Dateiname
  */
-const char* WINAPI ec_SetCustomLogFile(EXECUTION_CONTEXT* ec, const char* fileName) {
-   if ((uint)ec < MIN_VALID_POINTER)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
+   if ((uint)ec < MIN_VALID_POINTER)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   if (fileName) {
+   if (filename) {
       // fileName is not a NULL pointer
-      if ((uint)fileName < MIN_VALID_POINTER)             return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-      if (strlen(fileName) > sizeof(ec->customLogFile)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName: \"%s\" (max %d characters)", fileName, sizeof(ec->customLogFile)-1));
+      if ((uint)filename < MIN_VALID_POINTER)           return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", filename));
+      if (strlen(filename) > sizeof(ec->logFilename)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName: \"%s\" (max %d characters)", filename, sizeof(ec->logFilename)-1));
 
-      if (!strcpy(ec->customLogFile, fileName))
+      if (!strcpy(ec->logFilename, filename))
          return(NULL);
    }
    else {
       // fileName is a NULL pointer, store an empty string
-      ec->customLogFile[0] = '\0';
+      ec->logFilename[0] = '\0';
    }
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         if (!strcpy(chain[0]->customLogFile, ec->customLogFile))
+         if (!strcpy(chain[0]->logFilename, ec->logFilename))
             return(NULL);
    }
-   return(fileName);
+   return(filename);
 }
 
 
@@ -2024,7 +2024,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", dllError="            <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="          <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << ", logEnabled="          <<         BoolToStr(ec->logEnabled)
-         << ", customLogFile="       <<    DoubleQuoteStr(ec->customLogFile)
+         << ", logFilename="         <<    DoubleQuoteStr(ec->logFilename)
          << "}";
    }
    ss << StrFormat(" (0x%p)", ec);
