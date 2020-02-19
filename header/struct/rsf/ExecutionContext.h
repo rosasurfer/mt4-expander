@@ -87,7 +87,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    int                dllWarning;                  //       732        4     last DLL warning                                    (var)
    char*              dllWarningMsg;               //       736        4     DLL warning message                                 (var)
    BOOL               logEnabled;                  //       740        4     whether logging is enabled                          (var)
-   char               logFilename[MAX_PATH];       //       744      260     separate log filename                               (const) => logfile location
+   char               customLogFilename[MAX_PATH]; //       744      260     custom log filename                                 (const) => logfile location
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
 #pragma pack(pop)                                  //             = 1004
 
@@ -165,7 +165,7 @@ int                WINAPI ec_DllError           (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllWarning         (const EXECUTION_CONTEXT* ec);
 //                        ec.dllWarningMsg
 BOOL               WINAPI ec_LogEnabled         (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_LogFilename        (const EXECUTION_CONTEXT* ec);
+const char*        WINAPI ec_CustomLogFilename  (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_SeparateLog        (const EXECUTION_CONTEXT* ec);
 
 
@@ -221,7 +221,7 @@ int                WINAPI ec_SetDllError           (EXECUTION_CONTEXT* ec, int  
 int                WINAPI ec_SetDllWarning         (EXECUTION_CONTEXT* ec, int                error    );
 //                        ...
 BOOL               WINAPI ec_SetLogEnabled         (EXECUTION_CONTEXT* ec, BOOL               status   );
-const char*        WINAPI ec_SetLogFilename        (EXECUTION_CONTEXT* ec, const char*        filename );
+const char*        WINAPI ec_SetCustomLogFilename  (EXECUTION_CONTEXT* ec, const char*        filename );
 
 
 // helpers
