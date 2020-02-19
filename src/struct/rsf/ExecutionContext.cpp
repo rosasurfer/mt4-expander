@@ -869,7 +869,7 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether logging is enabled for a program.
+ * Whether general logging is enabled for a program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -878,6 +878,20 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->logEnabled);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a custom logfile is enabled for a program.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_CustomLogEnabled(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->customLogEnabled);
    #pragma EXPANDER_EXPORT
 }
 
@@ -892,20 +906,6 @@ BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
 const char* WINAPI ec_CustomLogFilename(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->customLogFilename);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether a program uses a custom logfile.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_SeparateLog(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logEnabled && ec->customLogFilename && *ec->customLogFilename);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1889,12 +1889,12 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Setzt den Logging-Status eines EXECUTION_CONTEXT.
+ * Set the logging status of a program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
- * @return BOOL - derselbe Logging-Status
+ * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1913,18 +1913,42 @@ BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Setzt den Namen des CustomLogs eines Programms.
+ * Set the custom logging status of a program.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  char*              filename - statt eines NULL-Pointers kann auch ein Leerstring angegeben werden
+ * @param  BOOL               status
  *
- * @return char* - derselbe Dateiname
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetCustomLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->customLogEnabled = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (ec==chain[1] && chain[0])
+         chain[0]->customLogEnabled = status;
+   }
+   return(status);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set the custom log filename of a program.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  char*              filename - pass a NULL pointer or an empty string to reset the filename
+ *
+ * @return char* - the same filename
  */
 const char* WINAPI ec_SetCustomLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
    if ((uint)ec < MIN_VALID_POINTER)                          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    if (filename) {
-      // fileName is not a NULL pointer
+      // filename is not a NULL pointer
       if ((uint)filename < MIN_VALID_POINTER)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", filename));
       if (strlen(filename) > sizeof(ec->customLogFilename)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName: \"%s\" (max %d characters)", filename, sizeof(ec->customLogFilename)-1));
 
@@ -1932,7 +1956,7 @@ const char* WINAPI ec_SetCustomLogFilename(EXECUTION_CONTEXT* ec, const char* fi
          return(NULL);
    }
    else {
-      // fileName is a NULL pointer, store an empty string
+      // filename is a NULL pointer, convert to empty string
       ec->customLogFilename[0] = '\0';
    }
 
@@ -2024,6 +2048,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", dllError="            <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="          <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << ", logEnabled="          <<         BoolToStr(ec->logEnabled)
+         << ", customLogEnabled="    <<         BoolToStr(ec->customLogEnabled)
          << ", customLogFilename="   <<    DoubleQuoteStr(ec->customLogFilename)
          << "}";
    }

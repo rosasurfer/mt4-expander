@@ -86,10 +86,11 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    char*              dllErrorMsg;                 //       728        4     DLL error message                                   (var)
    int                dllWarning;                  //       732        4     last DLL warning                                    (var)
    char*              dllWarningMsg;               //       736        4     DLL warning message                                 (var)
-   BOOL               logEnabled;                  //       740        4     whether logging is enabled                          (var)
-   char               customLogFilename[MAX_PATH]; //       744      260     custom log filename                                 (const) => logfile location
+   BOOL               logEnabled;                  //       740        4     whether general logging is enabled                  (var)
+   BOOL               customLogEnabled;            //       744        4     whether a custom logfile is enabled                 (var)
+   char               customLogFilename[MAX_PATH]; //       748      260     custom log filename                                 (const) => logfile location
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                  //             = 1004
+#pragma pack(pop)                                  //             = 1008
 
 
 // getters (exported to MQL)
@@ -165,8 +166,8 @@ int                WINAPI ec_DllError           (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllWarning         (const EXECUTION_CONTEXT* ec);
 //                        ec.dllWarningMsg
 BOOL               WINAPI ec_LogEnabled         (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_CustomLogEnabled   (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_CustomLogFilename  (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_SeparateLog        (const EXECUTION_CONTEXT* ec);
 
 
 // validating setters
@@ -221,6 +222,7 @@ int                WINAPI ec_SetDllError           (EXECUTION_CONTEXT* ec, int  
 int                WINAPI ec_SetDllWarning         (EXECUTION_CONTEXT* ec, int                error    );
 //                        ...
 BOOL               WINAPI ec_SetLogEnabled         (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_SetCustomLogEnabled   (EXECUTION_CONTEXT* ec, BOOL               status   );
 const char*        WINAPI ec_SetCustomLogFilename  (EXECUTION_CONTEXT* ec, const char*        filename );
 
 

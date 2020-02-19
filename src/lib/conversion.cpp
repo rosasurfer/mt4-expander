@@ -434,7 +434,7 @@ char* WINAPI InitFlagsToStr(DWORD flags) {
    if (flags & INIT_TIMEZONE           ) str.append("|INIT_TIMEZONE"           );
    if (flags & INIT_PIPVALUE           ) str.append("|INIT_PIPVALUE"           );
    if (flags & INIT_BARS_ON_HIST_UPDATE) str.append("|INIT_BARS_ON_HIST_UPDATE");
-   if (flags & INIT_SEPARATE_LOG       ) str.append("|INIT_SEPARATE_LOG"       );
+   if (flags & INIT_CUSTOM_LOG         ) str.append("|INIT_CUSTOM_LOG"         );
    if (flags & INIT_NO_BARS_REQUIRED   ) str.append("|INIT_NO_BARS_REQUIRED"   );
    if (!str.length())                    str.append("|"+ to_string(flags)      );
 

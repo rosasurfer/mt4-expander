@@ -27,11 +27,12 @@ InitializeReason   WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const E
 InitializeReason   WINAPI GetInitReason_expert   (EXECUTION_CONTEXT* ec,                                                        const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL testing,                                                   int droppedOnPosX, int droppedOnPosY);
 InitializeReason   WINAPI GetInitReason_script   (EXECUTION_CONTEXT* ec,                                                        const char* programName,                                                                                                                      int droppedOnPosX, int droppedOnPosY);
 
-BOOL               WINAPI Program_IsLogEnabled     (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI Program_IsOptimization   (const EXECUTION_CONTEXT* ec, BOOL isOptimization);
-BOOL               WINAPI Program_IsPartialTest    (uint pid, const char* programName);
-BOOL               WINAPI Program_IsTesting        (const EXECUTION_CONTEXT* ec, BOOL isTesting);
-BOOL               WINAPI Program_IsVisualMode     (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
-const char*        WINAPI Program_CustomLogFilename(const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI Program_IsLogEnabled      (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI Program_IsCustomLogEnabled(const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI Program_IsOptimization    (const EXECUTION_CONTEXT* ec, BOOL isOptimization);
+BOOL               WINAPI Program_IsPartialTest     (uint pid, const char* programName);
+BOOL               WINAPI Program_IsTesting         (const EXECUTION_CONTEXT* ec, BOOL isTesting);
+BOOL               WINAPI Program_IsVisualMode      (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
+const char*        WINAPI Program_CustomLogFilename (const EXECUTION_CONTEXT* ec);
 
 uint               WINAPI PushProgram(ContextChain* chain);
