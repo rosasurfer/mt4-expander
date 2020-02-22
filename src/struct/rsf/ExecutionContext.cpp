@@ -889,9 +889,9 @@ BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL
  */
-BOOL WINAPI ec_LogToDebug(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_LogToDebugEnabled(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logToDebug);
+   return(ec->logToDebugEnabled);
    #pragma EXPANDER_EXPORT
 }
 
@@ -903,9 +903,9 @@ BOOL WINAPI ec_LogToDebug(const EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL
  */
-BOOL WINAPI ec_LogToTerminal(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_LogToTerminalEnabled(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logToTerminal);
+   return(ec->logToTerminalEnabled);
    #pragma EXPANDER_EXPORT
 }
 
@@ -917,9 +917,9 @@ BOOL WINAPI ec_LogToTerminal(const EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL
  */
-BOOL WINAPI ec_LogToCustom(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_LogToCustomEnabled(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logToCustom);
+   return(ec->logToCustomEnabled);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1948,16 +1948,16 @@ BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetLogToDebug(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetLogToDebugEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->logToDebug = status;
+   ec->logToDebugEnabled = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->logToDebug = status;
+         chain[0]->logToDebugEnabled = status;
    }
    return(status);
    #pragma EXPANDER_EXPORT
@@ -1972,16 +1972,16 @@ BOOL WINAPI ec_SetLogToDebug(EXECUTION_CONTEXT* ec, BOOL status) {
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetLogToTerminal(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->logToTerminal = status;
+   ec->logToTerminalEnabled = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->logToTerminal = status;
+         chain[0]->logToTerminalEnabled = status;
    }
    return(status);
    #pragma EXPANDER_EXPORT
@@ -1996,16 +1996,16 @@ BOOL WINAPI ec_SetLogToTerminal(EXECUTION_CONTEXT* ec, BOOL status) {
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetLogToCustom(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetLogToCustomEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->logToCustom = status;
+   ec->logToCustomEnabled = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->logToCustom = status;
+         chain[0]->logToCustomEnabled = status;
    }
    return(status);
    #pragma EXPANDER_EXPORT
@@ -2066,66 +2066,69 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
    }
    else {
       ss << std::fixed
-         <<  "{pid="                 <<                     ec->pid
-         << ", previousPid="         <<                     ec->previousPid
+         <<  "{pid="                  <<                      ec->pid
+         << ", previousPid="          <<                      ec->previousPid
 
-         << ", programType="         <<    ProgramTypeToStr(ec->programType)
-         << ", programName="         <<      DoubleQuoteStr(ec->programName)
-         << ", programCoreFunction=" <<   CoreFunctionToStr(ec->programCoreFunction)
-         << ", programInitReason="   <<     InitReasonToStr(ec->programInitReason)
-         << ", programUninitReason=" <<   UninitReasonToStr(ec->programUninitReason)
-         << ", programInitFlags="    <<      InitFlagsToStr(ec->programInitFlags)
-         << ", programDeinitFlags="  <<    DeinitFlagsToStr(ec->programDeinitFlags)
+         << ", programType="          <<     ProgramTypeToStr(ec->programType)
+         << ", programName="          <<       DoubleQuoteStr(ec->programName)
+         << ", programCoreFunction="  <<    CoreFunctionToStr(ec->programCoreFunction)
+         << ", programInitReason="    <<      InitReasonToStr(ec->programInitReason)
+         << ", programUninitReason="  <<    UninitReasonToStr(ec->programUninitReason)
+         << ", programInitFlags="     <<       InitFlagsToStr(ec->programInitFlags)
+         << ", programDeinitFlags="   <<     DeinitFlagsToStr(ec->programDeinitFlags)
 
-         << ", moduleType="          <<     ModuleTypeToStr(ec->moduleType)
-         << ", moduleName="          <<      DoubleQuoteStr(ec->moduleName)
-         << ", moduleCoreFunction="  <<   CoreFunctionToStr(ec->moduleCoreFunction)
-         << ", moduleUninitReason="  <<   UninitReasonToStr(ec->moduleUninitReason)
-         << ", moduleInitFlags="     <<      InitFlagsToStr(ec->moduleInitFlags)
-         << ", moduleDeinitFlags="   <<    DeinitFlagsToStr(ec->moduleDeinitFlags)
+         << ", moduleType="           <<      ModuleTypeToStr(ec->moduleType)
+         << ", moduleName="           <<       DoubleQuoteStr(ec->moduleName)
+         << ", moduleCoreFunction="   <<    CoreFunctionToStr(ec->moduleCoreFunction)
+         << ", moduleUninitReason="   <<    UninitReasonToStr(ec->moduleUninitReason)
+         << ", moduleInitFlags="      <<       InitFlagsToStr(ec->moduleInitFlags)
+         << ", moduleDeinitFlags="    <<     DeinitFlagsToStr(ec->moduleDeinitFlags)
 
-         << ", symbol="              <<      DoubleQuoteStr(ec->symbol)
-         << ", timeframe="           <<         PeriodToStr(ec->timeframe)
-         << ", rates="               <<                    (ec->rates ? StrFormat("0x%p", ec->rates) : "NULL")
-         << ", bars="                <<                     ec->bars
-         << ", changedBars="         <<                     ec->changedBars
-         << ", unchangedBars="       <<                     ec->unchangedBars
-         << ", ticks="               <<                     ec->ticks
-         << ", cycleTicks="          <<                     ec->cycleTicks
-         << ", lastTickTime="        <<                    (ec->lastTickTime ? GmtTimeFormat(ec->lastTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
-         << ", prevTickTime="        <<                    (ec->prevTickTime ? GmtTimeFormat(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
+         << ", timeframe="            <<          PeriodToStr(ec->timeframe)
+         << ", rates="                <<                     (ec->rates ? StrFormat("0x%p", ec->rates) : "NULL")
+         << ", bars="                 <<                      ec->bars
+         << ", changedBars="          <<                      ec->changedBars
+         << ", unchangedBars="        <<                      ec->unchangedBars
+         << ", ticks="                <<                      ec->ticks
+         << ", cycleTicks="           <<                      ec->cycleTicks
+         << ", lastTickTime="         <<                     (ec->lastTickTime ? GmtTimeFormat(ec->lastTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormat(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
          << ", bid=" << std::setprecision(ec->bid ? ec->digits : 0) << ec->bid
          << ", ask=" << std::setprecision(ec->ask ? ec->digits : 0) << ec->ask
 
-         << ", digits="              <<                     ec->digits
-         << ", pipDigits="           <<                     ec->pipDigits
-         << ", subPipDigits="        <<                     ec->subPipDigits
-         << ", pip=" << std::setprecision(ec->pipDigits) << ec->pip
-         << ", point=" << std::setprecision(ec->digits)  << ec->point
-         << ", pipPoints="           <<                     ec->pipPoints
-         << ", priceFormat="         <<      DoubleQuoteStr(ec->priceFormat)
-         << ", pipPriceFormat="      <<      DoubleQuoteStr(ec->pipPriceFormat)
-         << ", subPipPriceFormat="   <<      DoubleQuoteStr(ec->subPipPriceFormat)
+         << ", digits="               <<                      ec->digits
+         << ", pipDigits="            <<                      ec->pipDigits
+         << ", subPipDigits="         <<                      ec->subPipDigits
+         << ", pip="   << std::setprecision(ec->pipDigits) << ec->pip
+         << ", point=" << std::setprecision(ec->digits)    << ec->point
+         << ", pipPoints="            <<                      ec->pipPoints
+         << ", priceFormat="          <<       DoubleQuoteStr(ec->priceFormat)
+         << ", pipPriceFormat="       <<       DoubleQuoteStr(ec->pipPriceFormat)
+         << ", subPipPriceFormat="    <<       DoubleQuoteStr(ec->subPipPriceFormat)
 
-         << ", superContext="        <<                  (ec->superContext ? StrFormat("0x%p", ec->superContext) : "NULL")
-         << ", threadId="            <<                   ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
-         << ", hChart="              <<                  (ec->hChart       ? StrFormat("0x%p", ec->hChart       ) : "NULL")
-         << ", hChartWindow="        <<                  (ec->hChartWindow ? StrFormat("0x%p", ec->hChartWindow ) : "NULL")
+         << ", superContext="         <<                     (ec->superContext ? StrFormat("0x%p", ec->superContext) : "NULL")
+         << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
+         << ", hChart="               <<                     (ec->hChart       ? StrFormat("0x%p", ec->hChart       ) : "NULL")
+         << ", hChartWindow="         <<                     (ec->hChartWindow ? StrFormat("0x%p", ec->hChartWindow ) : "NULL")
 
-         << ", test="                <<                  (ec->test ? StrFormat("0x%p", ec->test) : "NULL")
-         << ", testing="             <<         BoolToStr(ec->testing)
-         << ", visualMode="          <<         BoolToStr(ec->visualMode)
-         << ", optimization="        <<         BoolToStr(ec->optimization)
+         << ", test="                 <<                     (ec->test ? StrFormat("0x%p", ec->test) : "NULL")
+         << ", testing="              <<            BoolToStr(ec->testing)
+         << ", visualMode="           <<            BoolToStr(ec->visualMode)
+         << ", optimization="         <<            BoolToStr(ec->optimization)
 
-         << ", extReporting="        <<         BoolToStr(ec->extReporting)
-         << ", recordEquity="        <<         BoolToStr(ec->recordEquity)
+         << ", extReporting="         <<            BoolToStr(ec->extReporting)
+         << ", recordEquity="         <<            BoolToStr(ec->recordEquity)
 
-         << ", mqlError="            <<                 (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
-         << ", dllError="            <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
-         << ", dllWarning="          <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
-         << ", logEnabled="          <<         BoolToStr(ec->logEnabled)
-         << ", logToCustom="         <<         BoolToStr(ec->logToCustom)
-         << ", customLogFilename="   <<    DoubleQuoteStr(ec->customLogFilename)
+         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
+         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
+         << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
+         << ", logEnabled="           <<            BoolToStr(ec->logEnabled)
+         << ", logToDebugEnabled="    <<            BoolToStr(ec->logToDebugEnabled)
+         << ", logToTerminalEnabled=" <<            BoolToStr(ec->logToTerminalEnabled)
+         << ", logToCustomEnabled="   <<            BoolToStr(ec->logToCustomEnabled)
+         << ", customLogFile="        <<                     (ec->customLogFile ? StrFormat("0x%p", ec->customLogFile) : "NULL")
+         << ", customLogFilename="    <<       DoubleQuoteStr(ec->customLogFilename)
          << "}";
    }
    ss << StrFormat(" (0x%p)", ec);

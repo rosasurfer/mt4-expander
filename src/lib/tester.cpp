@@ -217,11 +217,11 @@ const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
    ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return((FXT_HEADER*)warn(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str()));
+   if (!file) return((FXT_HEADER*)warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
    FXT_HEADER* fxt = new FXT_HEADER();
    file.read((char*)fxt, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return((FXT_HEADER*)error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+   file.close(); if (file.fail()) return((FXT_HEADER*)error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
 
    return(fxt);
 }
@@ -392,7 +392,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
                                               .append(to_string(test->reportId))
                                               .append(LocalTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
    std::ofstream file(logfile.c_str());
-   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
+   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", logfile.c_str()));
 
    char* sTest = TEST_toStr(test);
    file << "test=" << sTest << NL;
@@ -535,8 +535,12 @@ int WINAPI Test_synchronize() {
  * @return int
  */
 int WINAPI Test(const char* fileName) {
+   using namespace std;
+
+   ofstream* file = new ofstream;
+
    return(NULL);
-   #pragma EXPANDER_EXPORT
+   //#pragma EXPANDER_EXPORT
 }
 
 

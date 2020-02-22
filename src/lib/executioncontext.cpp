@@ -330,13 +330,13 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((int)timeframe <= 0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
    if ((int)digits    <  0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
-   if (ec->pid) SetLastThreadProgram(ec->pid);                       // set the currently executed program asap (error handling)
+   if (ec->pid) SetLastThreadProgram(ec->pid);                          // set the currently executed program asap (error handling)
 
    //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid           = ec->pid;
    BOOL isPid                = (currentPid);
-   uint previousPid          = NULL;                                 // pid of a previous program instance (if any)
+   uint previousPid          = NULL;                                    // pid of a previous program instance (if any)
    EXECUTION_CONTEXT* master = NULL;
 
    // fix an unset chart handle (older terminals)
@@ -358,39 +358,39 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    // (3) synchronize loaded libraries
 
    if (!isPid) {
-      if (programType==PT_INDICATOR && previousPid) {                // reuse the previous program chain and keep instance data
+      if (programType==PT_INDICATOR && previousPid) {                   // reuse the previous program chain and keep instance data
          currentPid = previousPid;
-         SetLastThreadProgram(currentPid);                           // set the currently executed program asap (error handling)
+         SetLastThreadProgram(currentPid);                              // set the currently executed program asap (error handling)
 
          master = (*g_mqlPrograms[currentPid])[0];
          if (initReason == IR_PROGRAM_AFTERTEST)
-            master->superContext = sec = NULL;                       // reset the super context (the expert has already been released)
-         *ec = *master;                                              // restore main from master context (restores the pid)
-         (*g_mqlPrograms[currentPid])[1] = ec;                       // store main context at original (now empty) position
+            master->superContext = sec = NULL;                          // reset the super context (the expert has already been released)
+         *ec = *master;                                                 // restore main from master context (restores the pid)
+         (*g_mqlPrograms[currentPid])[1] = ec;                          // store main context at original (now empty) position
       }
       else {
          // new indicator, new expert or new script
-         uint lastPid = GetLastThreadProgram();                      // pid of the last program executed by the current thread
+         uint lastPid = GetLastThreadProgram();                         // pid of the last program executed by the current thread
 
          // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
          if (programType==PT_EXPERT && isTesting && lastPid && Program_IsPartialTest(lastPid, programName)) {
             currentPid = lastPid;
-            SetLastThreadProgram(currentPid);                        // set the currently executed program asap (error handling)
+            SetLastThreadProgram(currentPid);                           // set the currently executed program asap (error handling)
 
             master = (*g_mqlPrograms[currentPid])[0];
-            *ec = *master;                                           // copy master to main context
-            (*g_mqlPrograms[currentPid])[1] = ec;                    // store main context at old (empty) position
+            *ec = *master;                                              // copy master to main context
+            (*g_mqlPrograms[currentPid])[1] = ec;                       // store main context at old (empty) position
          }
          else {
-            // create a new context chain                            // TODO: on IR_PROGRAM_AFTERTEST somewhere exists a used context
-            master  = new EXECUTION_CONTEXT();                       // create new master context
-            *master = *ec;                                           // copy main to master context
+            // create a new context chain                               // TODO: on IR_PROGRAM_AFTERTEST somewhere exists a used context
+            master  = new EXECUTION_CONTEXT();                          // create new master context
+            *master = *ec;                                              // copy main to master context
             ContextChain* chain = new ContextChain();
             chain->reserve(8);
-            chain->push_back(master);                                // store master and main context in a new context chain
+            chain->push_back(master);                                   // store master and main context in a new context chain
             chain->push_back(ec);
 
-            currentPid = PushProgram(chain);                         // store the chain and update master and main context
+            currentPid = PushProgram(chain);                            // store the chain and update master and main context
             master->pid = ec->pid = currentPid;
             SetLastThreadProgram(currentPid);
          }
@@ -399,68 +399,69 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    else {
       // ec.pid is set: an expert in init cycle or any other program after a repeated init() call
       master = (*g_mqlPrograms[currentPid])[0];
-      (*g_mqlPrograms[currentPid])[1] = ec;                          // store main context at old (possibly empty) position
+      (*g_mqlPrograms[currentPid])[1] = ec;                             // store main context at old (possibly empty) position
    }
 
 
    // (2) update main and master context
-   ec_SetProgramType        (ec, programType );
-   ec_SetProgramName        (ec, programName );
-   ec_SetProgramCoreFunction(ec, CF_INIT     );                      // TODO: wrong for init() calls from start()
-   ec_SetProgramInitReason  (ec, initReason  );
-   ec_SetProgramUninitReason(ec, uninitReason);
-   ec_SetProgramInitFlags   (ec, initFlags   );
-   ec_SetProgramDeinitFlags (ec, deinitFlags );
+   ec_SetProgramType         (ec, programType );
+   ec_SetProgramName         (ec, programName );
+   ec_SetProgramCoreFunction (ec, CF_INIT     );                        // TODO: wrong for init() calls from start()
+   ec_SetProgramInitReason   (ec, initReason  );
+   ec_SetProgramUninitReason (ec, uninitReason);
+   ec_SetProgramInitFlags    (ec, initFlags   );
+   ec_SetProgramDeinitFlags  (ec, deinitFlags );
 
-   ec_SetModuleType         (ec, (ModuleType)ec->programType);       // for main modules program and module values are the same
-   ec_SetModuleName         (ec, ec->programName            );
-   ec_SetModuleCoreFunction (ec, ec->programCoreFunction    );
-   ec_SetModuleUninitReason (ec, ec->programUninitReason    );
-   ec_SetModuleInitFlags    (ec, ec->programInitFlags       );
-   ec_SetModuleDeinitFlags  (ec, ec->programDeinitFlags     );
+   ec_SetModuleType          (ec, (ModuleType)ec->programType);         // for main modules program and module values are the same
+   ec_SetModuleName          (ec, ec->programName            );
+   ec_SetModuleCoreFunction  (ec, ec->programCoreFunction    );
+   ec_SetModuleUninitReason  (ec, ec->programUninitReason    );
+   ec_SetModuleInitFlags     (ec, ec->programInitFlags       );
+   ec_SetModuleDeinitFlags   (ec, ec->programDeinitFlags     );
 
-   ec_SetSymbol             (ec, symbol      );
-   ec_SetTimeframe          (ec, timeframe   );
-   master->rates = ec->rates = NULL;                                 // re-initialized on the next tick        // TODO: may be wrong for multiple
-   ec_SetBars               (ec,  0          );                      // ...                                    //       init() calls from start()
-   ec_SetChangedBars        (ec, -1          );                      // ...                                    //       reset only on UR_CHARTCHANGE
-   ec_SetUnchangedBars      (ec, -1          );                      // ...                                    //
- //ec_SetTicks              (ec, ticks       );                      // NULL or kept from the last init() call
+   ec_SetSymbol              (ec, symbol      );
+   ec_SetTimeframe           (ec, timeframe   );
+   master->rates = ec->rates = NULL;                                    // re-initialized on the next tick        // TODO: may be wrong for multiple
+   ec_SetBars                (ec,  0          );                        // ...                                    //       init() calls from start()
+   ec_SetChangedBars         (ec, -1          );                        // ...                                    //       reset only on UR_CHARTCHANGE
+   ec_SetUnchangedBars       (ec, -1          );                        // ...                                    //
+ //ec_SetTicks               (ec, ticks       );                        // NULL or kept from the last init() call
    master->cycleTicks = ec->cycleTicks = 0;
- //ec_SetLastTickTime       (ec, lastTickTime);                      // ...
- //ec_SetPrevTickTime       (ec, prevTickTime);                      // ...
- //ec_SetBid                (ec, bid         );                      // ...
- //ec_SetAsk                (ec, ask         );                      // ...
+ //ec_SetLastTickTime        (ec, lastTickTime);                        // ...
+ //ec_SetPrevTickTime        (ec, prevTickTime);                        // ...
+ //ec_SetBid                 (ec, bid         );                        // ...
+ //ec_SetAsk                 (ec, ask         );                        // ...
 
-   ec_SetDigits             (ec, digits);                            // TODO: fix terminal bug
-   ec_SetPipDigits          (ec, digits & (~1));
-   ec_SetSubPipDigits       (ec, ec->pipDigits + 1);
-   ec_SetPip                (ec, round(1./pow(10., (int)ec->pipDigits), ec->pipDigits));
-   ec_SetPoint              (ec, point);
-   ec_SetPipPoints          (ec, (uint)round(pow(10., (int)(digits & 1))));
+   ec_SetDigits              (ec, digits);                              // TODO: fix terminal bug
+   ec_SetPipDigits           (ec, digits & (~1));
+   ec_SetSubPipDigits        (ec, ec->pipDigits + 1);
+   ec_SetPip                 (ec, round(1./pow(10., (int)ec->pipDigits), ec->pipDigits));
+   ec_SetPoint               (ec, point);
+   ec_SetPipPoints           (ec, (uint)round(pow(10., (int)(digits & 1))));
 
    master->pipPriceFormat    = ec->pipPriceFormat    = strformat(".%d", ec->pipDigits);
    master->subPipPriceFormat = ec->subPipPriceFormat = strformat("%s'", ec->pipPriceFormat);
    master->priceFormat       = ec->priceFormat       = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : ec->subPipPriceFormat;
 
-   ec_SetSuperContext       (ec, sec         );
-   ec_SetThreadId           (ec, GetCurrentThreadId());
-   ec_SetHChart             (ec, hChart      );                      // chart handles must be set before test values
-   ec_SetHChartWindow       (ec, hChart ? GetParent(hChart) : NULL);
+   ec_SetSuperContext        (ec, sec         );
+   ec_SetThreadId            (ec, GetCurrentThreadId());
+   ec_SetHChart              (ec, hChart      );                        // chart handles must be set before test values
+   ec_SetHChartWindow        (ec, hChart ? GetParent(hChart) : NULL);
 
    master->test = ec->test = Expert_InitTest(ec, isTesting);
-   ec_SetTesting            (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
-   ec_SetVisualMode         (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
-   ec_SetOptimization       (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
+   ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
+   ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
+   ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
 
-   ec_SetExtReporting       (ec, extReporting);
-   ec_SetRecordEquity       (ec, recordEquity);
+   ec_SetExtReporting        (ec, extReporting);
+   ec_SetRecordEquity        (ec, recordEquity);
 
-   ec_SetLogEnabled         (ec, Program_IsLogEnabled     (ec));  // TODO: atm an empty stub defaulting to TRUE
-   ec_SetLogToDebug         (ec, Program_IsLogToDebug     (ec));  // TODO: atm an empty stub defaulting to TRUE
-   ec_SetLogToTerminal      (ec, Program_IsLogToTerminal  (ec));  // TODO: atm an empty stub defaulting to TRUE
-   ec_SetLogToCustom        (ec, Program_IsLogToCustom    (ec));  // TODO: atm an empty stub defaulting to FALSE
-   ec_SetCustomLogFilename  (ec, Program_CustomLogFilename(ec));  // TODO: atm an empty stub defaulting to NULL
+   ec_SetLogEnabled          (ec, Program_IsLogEnabled          (ec));  // TODO: atm an empty stub defaulting to TRUE
+   ec_SetLogToDebugEnabled   (ec, Program_IsLogToDebugEnabled   (ec));  // TODO: atm an empty stub defaulting to TRUE
+   ec_SetLogToTerminalEnabled(ec, Program_IsLogToTerminalEnabled(ec));  // TODO: atm an empty stub defaulting to TRUE
+   ec_SetLogToCustomEnabled  (ec, Program_IsLogToCustomEnabled  (ec));  // TODO: atm an empty stub defaulting to FALSE
+   ec_SetCustomLogFilename   (ec, Program_CustomLogFilename     (ec));  // TODO: atm an empty stub defaulting to NULL
+   master->customLogFile = ec->customLogFile = NULL;
 
    // TODO: reset errors if not in an init() call from start()
    //ec->mqlError      = NULL;
@@ -475,11 +476,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    uint          size  = chain.size();
    EXECUTION_CONTEXT *lib, bak;
 
-   for (uint i=2; i < size; ++i) {                                // skip master and main context
+   for (uint i=2; i < size; ++i) {                                      // skip master and main context
       if (lib = chain[i]) {
-          bak = *lib;                                             // backup the library context
-         *lib = *master;                                          // overwrite library with master context
-         lib->moduleType         = bak.moduleType;                // keep library-specific values
+          bak = *lib;                                                   // backup the library context
+         *lib = *master;                                                // overwrite library with master context
+         lib->moduleType         = bak.moduleType;                      // keep library-specific values
          strcpy(lib->moduleName,   bak.moduleName);
          lib->moduleCoreFunction = bak.moduleCoreFunction;
          lib->moduleUninitReason = bak.moduleUninitReason;
@@ -524,26 +525,28 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint size = chain.size();
    EXECUTION_CONTEXT* ctx;
 
-   // update context values of all modules
+   // update variable values in all loaded modules
    for (uint i=0; i < size; ++i) {
       if (ctx = chain[i]) {
-         ctx->programCoreFunction = CF_START; if (i < 2)
-         ctx->moduleCoreFunction  = ctx->programCoreFunction;        // in master and main context only
-         ctx->rates               = rates;
-         ctx->bars                = bars;
-         ctx->changedBars         = changedBars;
-         ctx->unchangedBars       = unchangedBars;
-         ctx->ticks               = ticks;
-         ctx->cycleTicks          = cycleTicks;
-         ctx->prevTickTime        = lastTickTime;
-         ctx->lastTickTime        = time;
-         ctx->bid                 = bid;
-         ctx->ask                 = ask;
-         ctx->threadId            = threadId;
-         ctx->logEnabled          = ec->logEnabled;                  // logging can be configured at runtime and needs to be synchronized on each tick
-         ctx->logToDebug          = ec->logToDebug;
-         ctx->logToTerminal       = ec->logToTerminal;
-         ctx->logToCustom         = ec->logToCustom;
+         ctx->programCoreFunction = CF_START;
+         if (i < 2) ctx->moduleCoreFunction  = ctx->programCoreFunction;   // update master and main context only
+         ctx->rates                = rates;
+         ctx->bars                 = bars;
+         ctx->changedBars          = changedBars;
+         ctx->unchangedBars        = unchangedBars;
+         ctx->ticks                = ticks;
+         ctx->cycleTicks           = cycleTicks;
+         ctx->prevTickTime         = lastTickTime;
+         ctx->lastTickTime         = time;
+         ctx->bid                  = bid;
+         ctx->ask                  = ask;
+         ctx->threadId             = threadId;
+         ctx->logEnabled           = ec->logEnabled;                       // configurable at runtime, needs syncing on each tick
+         ctx->logToDebugEnabled    = ec->logToDebugEnabled;
+         ctx->logToTerminalEnabled = ec->logToTerminalEnabled;
+         ctx->logToCustomEnabled   = ec->logToCustomEnabled;
+         ctx->customLogFile        = ec->customLogFile;
+         //strcpy(ctx->customLogFilename, ec->customLogFilename);          // is this needed on each tick???
       }
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
@@ -587,7 +590,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 
 /**
  * Update a main module's execution context before the module is unloaded. Called only from the core function Module::deinit().
- * After deinit() is left the module is unloaded and it's memory must not be accessed until the module re-enters the core
+ * After deinit() was left the module is unloaded and it's memory must not be accessed until the module re-enters the core
  * function Module::init(). If the module is an expert and the expert is reloaded (UR_CHARTCHANGE in an online chart) the
  * module keeps state.
  *
@@ -596,7 +599,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
  *
  * @return int - error status
  *
- * @see    additional notes at the top of this file
+ * @see  additional notes at the top of this file
  */
 int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -627,8 +630,6 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
-
-
 
 
 /**
@@ -1755,9 +1756,9 @@ BOOL WINAPI Program_IsLogEnabled(const EXECUTION_CONTEXT* ec) {
  *
  * @todo   atm an empty stub defaulting to TRUE
  */
-BOOL WINAPI Program_IsLogToDebug(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI Program_IsLogToDebugEnabled(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->logToDebug);
+      return(ec->superContext->logToDebugEnabled);
 
    switch (ec->programType) {
       case PT_INDICATOR:
@@ -1778,9 +1779,9 @@ BOOL WINAPI Program_IsLogToDebug(const EXECUTION_CONTEXT* ec) {
  *
  * @todo   atm an empty stub defaulting to TRUE
  */
-BOOL WINAPI Program_IsLogToTerminal(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI Program_IsLogToTerminalEnabled(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->logToTerminal);
+      return(ec->superContext->logToTerminalEnabled);
 
    switch (ec->programType) {
       case PT_INDICATOR:
@@ -1801,9 +1802,9 @@ BOOL WINAPI Program_IsLogToTerminal(const EXECUTION_CONTEXT* ec) {
  *
  * @todo   atm an empty stub defaulting to FALSE
  */
-BOOL WINAPI Program_IsLogToCustom(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI Program_IsLogToCustomEnabled(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->logToCustom);
+      return(ec->superContext->logToCustomEnabled);
 
    switch (ec->programType) {
       case PT_INDICATOR:
