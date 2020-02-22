@@ -553,20 +553,6 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's chart frame handle.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - handle, equal to the return vale of MQL::WindowHandle()
- */
-HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChart);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an EXECUTION_CONTEXT's chart window handle.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -592,6 +578,20 @@ int WINAPI ec_TestId(const EXECUTION_CONTEXT* ec) {
    if (ec->test)
       return(ec->test->id);
    return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's chart frame handle.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - handle, equal to the return vale of MQL::WindowHandle()
+ */
+HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChart);
    #pragma EXPANDER_EXPORT
 }
 
@@ -869,7 +869,7 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether general logging is enabled for a program.
+ * Whether logging in general is enabled for a program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -883,15 +883,43 @@ BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a custom logfile is enabled for a program.
+ * Whether a program's log messages are sent to the system debugger.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
  */
-BOOL WINAPI ec_CustomLogEnabled(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_LogToDebug(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->customLogEnabled);
+   return(ec->logToDebug);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a program's log messages are sent to the terminal log.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_LogToTerminal(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->logToTerminal);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a program's log messages are sent to a custom logger.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_LogToCustom(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->logToCustom);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1889,10 +1917,10 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Set the logging status of a program.
+ * Set the general logging status of a program.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
+ * @param  BOOL               status - whether to enable general logging
  *
  * @return BOOL - the same status
  */
@@ -1913,23 +1941,71 @@ BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set the custom logging status of a program.
+ * Set the debug logging status of a program.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
+ * @param  BOOL               status - whether to send log messages to the system debugger
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetCustomLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetLogToDebug(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->customLogEnabled = status;
+   ec->logToDebug = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->customLogEnabled = status;
+         chain[0]->logToDebug = status;
+   }
+   return(status);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set the terminal logging status of a program.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status - whether to send log messages to the terminal log
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetLogToTerminal(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->logToTerminal = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (ec==chain[1] && chain[0])
+         chain[0]->logToTerminal = status;
+   }
+   return(status);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set the custom logging status of a program.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status - whether to send log messages to a custom logger
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetLogToCustom(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->logToCustom = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (ec==chain[1] && chain[0])
+         chain[0]->logToCustom = status;
    }
    return(status);
    #pragma EXPANDER_EXPORT
@@ -2048,7 +2124,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", dllError="            <<                 (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="          <<                 (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
          << ", logEnabled="          <<         BoolToStr(ec->logEnabled)
-         << ", customLogEnabled="    <<         BoolToStr(ec->customLogEnabled)
+         << ", logToCustom="         <<         BoolToStr(ec->logToCustom)
          << ", customLogFilename="   <<    DoubleQuoteStr(ec->customLogFilename)
          << "}";
    }

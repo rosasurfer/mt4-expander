@@ -456,9 +456,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetExtReporting       (ec, extReporting);
    ec_SetRecordEquity       (ec, recordEquity);
 
-   ec_SetLogEnabled         (ec, Program_IsLogEnabled      (ec));    // TODO: atm an empty stub defaulting to TRUE
-   ec_SetCustomLogEnabled   (ec, Program_IsCustomLogEnabled(ec));    // TODO: atm an empty stub defaulting to FALSE
-   ec_SetCustomLogFilename  (ec, Program_CustomLogFilename (ec));    // TODO: atm an empty stub defaulting to NULL
+   ec_SetLogEnabled         (ec, Program_IsLogEnabled     (ec));  // TODO: atm an empty stub defaulting to TRUE
+   ec_SetLogToDebug         (ec, Program_IsLogToDebug     (ec));  // TODO: atm an empty stub defaulting to TRUE
+   ec_SetLogToTerminal      (ec, Program_IsLogToTerminal  (ec));  // TODO: atm an empty stub defaulting to TRUE
+   ec_SetLogToCustom        (ec, Program_IsLogToCustom    (ec));  // TODO: atm an empty stub defaulting to FALSE
+   ec_SetCustomLogFilename  (ec, Program_CustomLogFilename(ec));  // TODO: atm an empty stub defaulting to NULL
 
    // TODO: reset errors if not in an init() call from start()
    //ec->mqlError      = NULL;
@@ -517,7 +519,6 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint     cycleTicks    = ec->cycleTicks + 1;
    datetime lastTickTime  = ec->lastTickTime; if (time < lastTickTime) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "ticktime is counting backwards:  time=%s  lastTickTime=%s  ec=%s", GmtTimeFormat(time, "%Y.%m.%d %H:%M:%S"), GmtTimeFormat(lastTickTime, "%Y.%m.%d %H:%M:%S"), EXECUTION_CONTEXT_toStr(ec))));
    DWORD    threadId      = GetCurrentThreadId();
-   BOOL     logEnabled    = ec->logEnabled;
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    uint size = chain.size();
@@ -539,8 +540,11 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->bid                 = bid;
          ctx->ask                 = ask;
          ctx->threadId            = threadId;
-         ctx->logEnabled          = logEnabled;                      // As long as ec.logEnabled is configured after SyncMainContext_init()
-      }                                                              // the flag needs to be synchronized on each tick.
+         ctx->logEnabled          = ec->logEnabled;                  // logging can be configured at runtime and needs to be synchronized on each tick
+         ctx->logToDebug          = ec->logToDebug;
+         ctx->logToTerminal       = ec->logToTerminal;
+         ctx->logToCustom         = ec->logToCustom;
+      }
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
@@ -1720,11 +1724,13 @@ const char* WINAPI Program_CustomLogFilename(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether logging is enabled for a program.
+ * Whether logging in general is enabled for a program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
+ *
+ * @todo   atm an empty stub defaulting to TRUE
  */
 BOOL WINAPI Program_IsLogEnabled(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
@@ -1741,15 +1747,63 @@ BOOL WINAPI Program_IsLogEnabled(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a custom logfile is enabled for a program.
+ * Whether a program's log messages are sent to the system debugger.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
+ *
+ * @todo   atm an empty stub defaulting to TRUE
  */
-BOOL WINAPI Program_IsCustomLogEnabled(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI Program_IsLogToDebug(const EXECUTION_CONTEXT* ec) {
    if (ec->superContext)
-      return(ec->superContext->customLogEnabled);
+      return(ec->superContext->logToDebug);
+
+   switch (ec->programType) {
+      case PT_INDICATOR:
+      case PT_EXPERT:
+      case PT_SCRIPT:
+         return(TRUE);
+   }
+   return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
+}
+
+
+/**
+ * Whether a program's log messages are sent to the terminal log.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ *
+ * @todo   atm an empty stub defaulting to TRUE
+ */
+BOOL WINAPI Program_IsLogToTerminal(const EXECUTION_CONTEXT* ec) {
+   if (ec->superContext)
+      return(ec->superContext->logToTerminal);
+
+   switch (ec->programType) {
+      case PT_INDICATOR:
+      case PT_EXPERT:
+      case PT_SCRIPT:
+         return(TRUE);
+   }
+   return(error(ERR_INVALID_PARAMETER, "invalid value ec.programType: %d", ec->programType));
+}
+
+
+/**
+ * Whether a program's log messages are sent to a custom logger.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ *
+ * @todo   atm an empty stub defaulting to FALSE
+ */
+BOOL WINAPI Program_IsLogToCustom(const EXECUTION_CONTEXT* ec) {
+   if (ec->superContext)
+      return(ec->superContext->logToCustom);
 
    switch (ec->programType) {
       case PT_INDICATOR:
