@@ -86,6 +86,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    char*              dllErrorMsg;                 //       728        4     DLL error message                                    (var)
    int                dllWarning;                  //       732        4     last DLL warning                                     (var)
    char*              dllWarningMsg;               //       736        4     DLL warning message                                  (var)
+                                                   //
    BOOL               logEnabled;                  //       740        4     whether logging in general is enabled                (var)
    BOOL               logToDebugEnabled;           //       744        4     whether log messages are sent to the system debugger (var)
    BOOL               logToTerminalEnabled;        //       748        4     whether log messages are sent to the terminal log    (var)

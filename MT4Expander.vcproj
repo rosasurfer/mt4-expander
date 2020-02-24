@@ -248,6 +248,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\lib\log.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\lib\math.h"
 					>
 				</File>
@@ -620,6 +624,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\log.cpp"
+					>
 				</File>
 				<File
 					RelativePath=".\src\lib\math.cpp"

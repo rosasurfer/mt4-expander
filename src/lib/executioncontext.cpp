@@ -1852,7 +1852,7 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
    if (g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
 
-      if (chain.size() > 2) {                                  // needs to vae at least one registered library
+      if (chain.size() > 2) {                                  // needs to have at least one registered library
          EXECUTION_CONTEXT* master = chain[0];
          EXECUTION_CONTEXT* main   = chain[1];
 

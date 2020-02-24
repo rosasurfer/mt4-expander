@@ -517,7 +517,8 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
  * @return int
  */
 int WINAPI Test_synchronize() {
-   { synchronize();
+   {
+      synchronize();
       debug("inside synchronized block");
    }
    return(0);
@@ -537,25 +538,8 @@ int WINAPI Test_synchronize() {
 int WINAPI Test(const char* fileName) {
    using namespace std;
 
-   ofstream* file = new ofstream;
+   ofstream* file = new ofstream();
 
    return(NULL);
    //#pragma EXPANDER_EXPORT
 }
-
-
-/**
- *
- *\/
-extern "C" __declspec(dllexport) int __cdecl Test_cdecl(int a) {
-   return(NULL);
-}
-
-
-/**
- *
- *\/
-extern "C" __declspec(dllexport) int __stdcall Test_stdcall(double b) {
-   return(NULL);
-}
-/**/

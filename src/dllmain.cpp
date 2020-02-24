@@ -4,7 +4,6 @@
 #include "lib/lock/Lock.h"
 #include "struct/rsf/ExecutionContext.h"
 
-
 extern uint               g_terminalBuild;                     // terminal build number
 extern CRITICAL_SECTION   g_terminalMutex;                     // mutex for application-wide locking
 extern Locks              g_locks;                             // a map holding pointers to fine-granular locks
