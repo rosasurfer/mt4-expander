@@ -81,7 +81,8 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
    }
    else {
       // disable custom logging
-      ec_SetLogToCustomEnabled(ec, FALSE);
+      ec_SetLogToTerminalEnabled(ec, TRUE);
+      ec_SetLogToCustomEnabled  (ec, FALSE);
       if (master->customLog && master->customLog->is_open()) {
          master->customLog->close();
          debug("%-13s  file \"%s\" closed", master->programName, master->customLogFilename);

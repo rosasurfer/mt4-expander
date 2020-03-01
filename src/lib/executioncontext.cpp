@@ -3,7 +3,6 @@
 #include "lib/executioncontext.h"
 #include "lib/format.h"
 #include "lib/helper.h"
-#include "lib/log.h"
 #include "lib/math.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
@@ -457,16 +456,12 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetExtReporting        (ec, extReporting);
    ec_SetRecordEquity        (ec, recordEquity);
 
-   ec_SetLogEnabled          (ec, Program_IsLogEnabled          (master)); // TODO: atm always set to the master value
    ec_SetLogToDebugEnabled   (ec, Program_IsLogToDebugEnabled   (master)); // TODO: atm always set to the master value
-   ec_SetLogToTerminalEnabled(ec, Program_IsLogToTerminalEnabled(master)); // TODO: atm always set to the master value
-   ec_SetLogToCustomEnabled  (ec, Program_IsLogToCustomEnabled  (master)); // TODO: atm always set to the master value
-   ec_SetCustomLogFilename   (ec, Program_CustomLogFilename     (master)); // TODO: atm always set to the master value
-
-   // re-initialize and open a custom log stream
-   ec->customLog = master->customLog;
-   if (ec->logToCustomEnabled)
-      SetCustomLogA(ec, ec->customLogFilename);
+   ec_SetLogToTerminalEnabled(ec, Program_IsLogToTerminalEnabled(master)); // ...
+   ec_SetLogToCustomEnabled  (ec, Program_IsLogToCustomEnabled  (master)); // ...
+   ec_SetCustomLogFilename   (ec, Program_CustomLogFilename     (master)); // ...
+   ec->customLog = master->customLog;                                      // ...
+   ec_SetLogEnabled          (ec, Program_IsLogEnabled          (master)); // after ec_SetLogToCustomEnabled() => re-opens a custom logger
 
    // TODO: reset errors if not in an init() call from start()
    //ec->mqlError      = NULL;

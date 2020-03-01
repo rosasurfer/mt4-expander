@@ -2,6 +2,7 @@
 #include "lib/conversion.h"
 #include "lib/format.h"
 #include "lib/helper.h"
+#include "lib/log.h"
 #include "lib/memory.h"
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
@@ -1932,8 +1933,12 @@ BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logEnabled from a non-main module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logEnabled = status;
+
    if (chain[0])                                                     // synchronize main and master context
       chain[0]->logEnabled = status;
+
+   if (ec->logToCustomEnabled)                                       // update a custom logger
+      SetCustomLogA(ec, ec->logEnabled ? ec->customLogFilename : NULL);
 
    return(status);
    #pragma EXPANDER_EXPORT
