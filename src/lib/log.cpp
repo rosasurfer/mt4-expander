@@ -23,7 +23,7 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error) {
    if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
 
    EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
-   if (!master->logEnabled) return(debug("%-13s  logging is disabled", master->programName));
+   if (!master->logEnabled) return(debug("%-13s  logging is fully disabled", master->programName));
 
    //if (master->logToDebugEnabled)                         // send the message to the system debugger (if configured)
 
@@ -63,19 +63,19 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
       std::ofstream* log = master->customLog;
       if (!log) {
          log = master->customLog = ec->customLog = new std::ofstream();
-         debug("%-13s  new ofstream instance created", master->programName);
+         debug("new ofstream instance created");
       }
       if (!StrCompare(filename, master->customLogFilename)) {
          if (log->is_open()) {
             log->close();
-            debug("%-13s  file \"%s\" closed", master->programName, master->customLogFilename);
+            debug("\"%s\" closed", master->customLogFilename);
          }
          ec_SetCustomLogFilename(ec, filename);
       }
       if (!log->is_open()) {
          log->open(master->customLogFilename, std::ios::app);
-         if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "%-13s  opening \"%s\" failed (%s)", master->programName, master->customLogFilename, strerror(errno)));
-         debug("%-13s  file \"%s\" opened", master->programName, master->customLogFilename);
+         if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening \"%s\" failed (%s)", master->customLogFilename, strerror(errno)));
+         debug("\"%s\" opened", master->customLogFilename);
       }
       ec_SetLogToCustomEnabled(ec, TRUE);
    }
@@ -85,7 +85,7 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
       ec_SetLogToCustomEnabled  (ec, FALSE);
       if (master->customLog && master->customLog->is_open()) {
          master->customLog->close();
-         debug("%-13s  file \"%s\" closed", master->programName, master->customLogFilename);
+         debug("\"%s\" closed", master->customLogFilename);
       }
    }
 

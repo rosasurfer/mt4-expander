@@ -415,7 +415,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
       wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
       StrToUpper(terminalPath);                                                        // convert to upper case
-      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()* sizeof(wchar)); // calculate MD5 hash
+      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar));  // calculate MD5 hash
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
                                       .append(StrToUpper(md5));
