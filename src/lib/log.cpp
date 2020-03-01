@@ -33,7 +33,6 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error) {
 
       *log << message << std::endl;
    }
-   else debug("%-13s  custom logging is disabled", master->programName);
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -61,21 +60,17 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
    if (filename && *filename) {
       // enable custom logging
       std::ofstream* log = master->customLog;
-      if (!log) {
+      if (!log)
          log = master->customLog = ec->customLog = new std::ofstream();
-         debug("new ofstream instance created");
-      }
+
       if (!StrCompare(filename, master->customLogFilename)) {
-         if (log->is_open()) {
+         if (log->is_open())
             log->close();
-            debug("\"%s\" closed", master->customLogFilename);
-         }
          ec_SetCustomLogFilename(ec, filename);
       }
       if (!log->is_open()) {
          log->open(master->customLogFilename, std::ios::app);
-         if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening \"%s\" failed (%s)", master->customLogFilename, strerror(errno)));
-         debug("\"%s\" opened", master->customLogFilename);
+         if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "%s opening \"%s\" failed (%s)", master->programName, master->customLogFilename, strerror(errno)));
       }
       ec_SetLogToCustomEnabled(ec, TRUE);
    }
@@ -83,10 +78,8 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
       // disable custom logging
       ec_SetLogToTerminalEnabled(ec, TRUE);
       ec_SetLogToCustomEnabled  (ec, FALSE);
-      if (master->customLog && master->customLog->is_open()) {
+      if (master->customLog && master->customLog->is_open())
          master->customLog->close();
-         debug("\"%s\" closed", master->customLogFilename);
-      }
    }
 
    return(TRUE);

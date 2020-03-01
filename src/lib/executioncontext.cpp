@@ -1022,12 +1022,8 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
          chain[1] = NULL;                                                  // reset the main execution context but keep its slot in the chain
 
          // close an open logfile
-         if (ec->customLog) {
-            if (ec->customLog->is_open()) {
-               ec->customLog->close();                                     // automatically re-opened in init() due to master.logToCustomEnabled = TRUE
-               debug("\"%s\" closed", ec->customLogFilename);
-            }
-         }
+         if (ec->customLog && ec->customLog->is_open())
+            ec->customLog->close();                                        // automatically re-opened in init() due to master.logToCustomEnabled = TRUE
          break;
 
       // --- library module --------------------------------------------------------------------------------------------------
