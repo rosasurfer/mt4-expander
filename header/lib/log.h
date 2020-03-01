@@ -2,4 +2,5 @@
 #include "stdafx.h"
 
 
-BOOL WINAPI Logger(uint pid, const char* message, int error = NO_ERROR);
+BOOL WINAPI LogA         (EXECUTION_CONTEXT* ec, const char* message, int error = NO_ERROR);
+BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename);

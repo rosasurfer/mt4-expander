@@ -6,7 +6,6 @@
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 
-
 extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<ContextChain> with index = program id
 
 
@@ -939,7 +938,7 @@ const char* WINAPI ec_CustomLogFilename(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Set a program's type.
+ * Set an EXECUTION_CONTEXT's programType value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  ProgramType        type
@@ -969,7 +968,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
 
 
 /**
- * Set a program's name.
+ * Set an EXECUTION_CONTEXT's programName value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
@@ -996,7 +995,7 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Set a program's InitializeReason.
+ * Set an EXECUTION_CONTEXT's programInitReason value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  InitializeReason   reason
@@ -1034,7 +1033,7 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
 
 
 /**
- * Set a program's UninitializeReason.
+ * Set an EXECUTION_CONTEXT's programUninitReason value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  UninitializeReason reason
@@ -1075,7 +1074,7 @@ UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, Unini
 
 
 /**
- * Set the program's CoreFunction id.
+ * Set an EXECUTION_CONTEXT's programCoreFunction value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  CoreFunction       id
@@ -1107,7 +1106,7 @@ CoreFunction WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunctio
 
 
 /**
- * Set the init flags of a program.
+ * Set an EXECUTION_CONTEXT's programInitFlags value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -1130,7 +1129,7 @@ DWORD WINAPI ec_SetProgramInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set the deinit flags of a program.
+ * Set an EXECUTION_CONTEXT's programDeinitFlags value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -1153,7 +1152,7 @@ DWORD WINAPI ec_SetProgramDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's module type.
+ * Set an EXECUTION_CONTEXT's moduleType value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  ModuleType         type of the executed module
@@ -1184,7 +1183,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
 
 
 /**
- * Set a module's name
+ * Set an EXECUTION_CONTEXT's moduleName value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
@@ -1211,7 +1210,7 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Set a module's UninitializeReason.
+ * Set an EXECUTION_CONTEXT's moduleUninitReason value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  UninitializeReason reason
@@ -1252,7 +1251,7 @@ UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, Uninit
 
 
 /**
- * Set the current module's CoreFunction id.
+ * Set an EXECUTION_CONTEXT's moduleCoreFunction value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  CoreFunction       id
@@ -1283,7 +1282,7 @@ CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction
 
 
 /**
- * Set the init flags of a module.
+ * Set an EXECUTION_CONTEXT's moduleInitFlags value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -1306,7 +1305,7 @@ DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set the deinit flags of a module.
+ * Set an EXECUTION_CONTEXT's moduleDeinitFlags value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -1329,7 +1328,7 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set a program's chart symbol.
+ * Set an EXECUTION_CONTEXT's symbol value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              symbol
@@ -1356,7 +1355,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
 
 
 /**
- * Set a programs chart timeframe.
+ * Set an EXECUTION_CONTEXT's timeframe value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               timeframe
@@ -1380,7 +1379,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's "Bars" value (the number of price bars).
+ * Set an EXECUTION_CONTEXT's bars value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                count
@@ -1404,7 +1403,7 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int count) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's "ChangedBars" value (the number of changed indicator values).
+ * Set an EXECUTION_CONTEXT's changedBars value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                count
@@ -1428,7 +1427,7 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int count) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's "UnchangedBars" value (the number of unchanged indicator values).
+ * Set an EXECUTION_CONTEXT's unchangedBars value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                count
@@ -1452,7 +1451,7 @@ int WINAPI ec_SetUnchangedBars(EXECUTION_CONTEXT* ec, int count) {
 
 
 /**
- * Set the current symbol's "Digits" value.
+ * Set an EXECUTION_CONTEXT's digits value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               digits
@@ -1476,7 +1475,7 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
 
 /**
- * Set the current symbol's "PipDigits" value.
+ * Set an EXECUTION_CONTEXT's pipDigits value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               digits
@@ -1500,7 +1499,7 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
 
 /**
- * Set the current symbol's "SubPipDigits" value.
+ * Set an EXECUTION_CONTEXT's subPipDigits value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               digits
@@ -1524,7 +1523,7 @@ uint WINAPI ec_SetSubPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
 
 /**
- * Set the current symbol's "Pip" size.
+ * Set an EXECUTION_CONTEXT' pip value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  double             size
@@ -1548,7 +1547,7 @@ double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
 
 
 /**
- * Set the current symbol's "Point" size.
+ * Set an EXECUTION_CONTEXT's point value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  double             size
@@ -1572,7 +1571,7 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
 
 
 /**
- * Set the current symbol's "PipPoints" value.
+ * Set an EXECUTION_CONTEXT's pipPoints value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               points - number of points per pip
@@ -1596,7 +1595,7 @@ uint WINAPI ec_SetPipPoints(EXECUTION_CONTEXT* ec, uint points) {
 
 
 /**
- * Set a program's super EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's superContext value.
  *
  * @param  EXECUTION_CONTEXT* ec  - a program's execution context
  * @param  EXECUTION_CONTEXT* sec - a super context
@@ -1620,7 +1619,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
 
 
 /**
- * Set an EXECUTION_CONTEXT's current thread id.
+ * Set an EXECUTION_CONTEXT's threadId value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               id - thread id
@@ -1644,12 +1643,12 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
 
 
 /**
- * Setzt das Handle des Chart-Frames eines EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's hChart value.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  HWND               hWnd - entspricht dem Rückgabewert von WindowHandle()
+ * @param  HWND               hWnd - return value of MQL::WindowHandle()
  *
- * @return HWND - dasselbe Handle
+ * @return HWND - the same handle
  */
 HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1667,12 +1666,12 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Setzt das Handle des Chart-Fensters eines EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's hChartWindow value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  HWND               hWnd
  *
- * @return HWND - dasselbe Handle
+ * @return HWND - the same handle
  */
 HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1690,7 +1689,7 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Set a program's testing status.
+ * Set an EXECUTION_CONTEXT's testing value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
@@ -1713,12 +1712,12 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Setzt den VisualMode-Status eines EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's visualMode value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
- * @return BOOL - derselbe Status
+ * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1736,12 +1735,12 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Setzt den Optimization-Status eines EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's optimization value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
- * @return BOOL - derselbe Status
+ * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1759,7 +1758,7 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set a program's "extended reporting" status.
+ * Set an EXECUTION_CONTEXT's extReporting value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
@@ -1782,7 +1781,7 @@ BOOL WINAPI ec_SetExtReporting(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set a program's "record equity" status.
+ * Set an EXECUTION_CONTEXT's recordEquity value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
@@ -1805,7 +1804,7 @@ BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set the MQL error code of an EXECUTION_CONTEXT. Called by MQL::SetLastError().
+ * Set an EXECUTION_CONTEXT's mqlError value.
  *
  * If called with a library context the error will bubble up to the library's main module. If called with an indicator context
  * loaded by iCustom() the error will bubble up to the loading program. The error code NO_ERROR will never bubble up.
@@ -1813,7 +1812,7 @@ BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
  *
- * @return int - same error or EMPTY (-1) in case of errors
+ * @return int - the same error or EMPTY (-1) in case of errors
  */
 int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -1844,7 +1843,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Setzt den DLL-Fehler eines EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's dllError value.
  *
  * Zusätzlich wird der DLL-Fehler in den jeweiligen Hauptkontext propagiert (Propagation zum aufrufenden Hauptmodul).
  * Fehler werden nur beim Setzen propagiert, nicht beim Zurücksetzen.
@@ -1852,7 +1851,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
  *
- * @return int - derselbe Fehler oder -1, falls ein Fehler auftrat
+ * @return int - the same error or EMPTY (-1) in case of errors
  */
 int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -1882,7 +1881,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Setzt die DLL-Warnung eines EXECUTION_CONTEXT.
+ * Set an EXECUTION_CONTEXT's dllWarning value.
  *
  * Zusätzlich wird die DLL-Warnung in den jeweiligen Hauptkontext propagiert (Propagation zum aufrufenden Hauptmodul).
  * Warnungen werden nur beim Setzen propagiert, nicht beim Zurücksetzen.
@@ -1890,7 +1889,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                error
  *
- * @return int - derselbe Fehler oder -1, falls ein Fehler auftrat
+ * @return int - the same error or EMPTY (-1) in case of errors
  */
 int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
@@ -1917,7 +1916,7 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Set the general logging status of a program.
+ * Set an EXECUTION_CONTEXT's logEnabled value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status - whether to enable general logging
@@ -1925,23 +1924,24 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
  * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+
+   ContextChain &chain = *g_mqlPrograms[ec->pid];
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logEnabled from a non-main module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logEnabled = status;
+   if (chain[0])                                                     // synchronize main and master context
+      chain[0]->logEnabled = status;
 
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->logEnabled = status;
-   }
    return(status);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Set the debug logging status of a program.
+ * Set an EXECUTION_CONTEXT's logToDebugEnabled value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status - whether to send log messages to the system debugger
@@ -1949,23 +1949,24 @@ BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetLogToDebugEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+
+   ContextChain &chain = *g_mqlPrograms[ec->pid];
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToDebugEnabled from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logToDebugEnabled = status;
+   if (chain[0])                                                     // synchronize main and master context
+      chain[0]->logToDebugEnabled = status;
 
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->logToDebugEnabled = status;
-   }
    return(status);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Set the terminal logging status of a program.
+ * Set an EXECUTION_CONTEXT's logToTerminalEnabled value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status - whether to send log messages to the terminal log
@@ -1973,23 +1974,24 @@ BOOL WINAPI ec_SetLogToDebugEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+
+   ContextChain &chain = *g_mqlPrograms[ec->pid];
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToTerminalEnabled from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logToTerminalEnabled = status;
+   if (chain[0])                                                     // synchronize main and master context
+      chain[0]->logToTerminalEnabled = status;
 
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->logToTerminalEnabled = status;
-   }
    return(status);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Set the custom logging status of a program.
+ * Set an EXECUTION_CONTEXT's logToCustomEnabled value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status - whether to send log messages to a custom logger
@@ -1997,43 +1999,40 @@ BOOL WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return BOOL - the same status
  */
 BOOL WINAPI ec_SetLogToCustomEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+
+   ContextChain &chain = *g_mqlPrograms[ec->pid];
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToCustomEnabled from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logToCustomEnabled = status;
+   if (chain[0])                                                     // synchronize main and master context
+      chain[0]->logToCustomEnabled = status;
 
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->logToCustomEnabled = status;
-   }
    return(status);
-   #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Set the custom log filename of a program.
+ * Set an EXECUTION_CONTEXT's customLogFilename value.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  char*              filename - pass a NULL pointer or an empty string to reset the filename
+ * @param  char*              filename - a NULL pointer or an empty string reset the filename
  *
  * @return char* - the same filename
  */
 const char* WINAPI ec_SetCustomLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
-   if ((uint)ec < MIN_VALID_POINTER)                          return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (            (uint)ec       < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (filename && (uint)filename < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
 
-   if (filename) {
-      // filename is not a NULL pointer
-      if ((uint)filename < MIN_VALID_POINTER)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", filename));
-      if (strlen(filename) > sizeof(ec->customLogFilename)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter fileName: \"%s\" (max %d characters)", filename, sizeof(ec->customLogFilename)-1));
-
-      if (!strcpy(ec->customLogFilename, filename))
-         return(NULL);
+   if (!filename) {
+      ec->customLogFilename[0] = '\0';                               // convert NULL pointer to an empty string
    }
    else {
-      // filename is a NULL pointer, convert to empty string
-      ec->customLogFilename[0] = '\0';
+      if (strlen(filename) > sizeof(ec->customLogFilename)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter filename: \"%s\" (max %d characters)", filename, sizeof(ec->customLogFilename)-1));
+      if (!strcpy(ec->customLogFilename, filename))
+         return(NULL);
    }
 
    uint pid = ec->pid;                                               // synchronize main and master context
@@ -2127,7 +2126,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", logToDebugEnabled="    <<            BoolToStr(ec->logToDebugEnabled)
          << ", logToTerminalEnabled=" <<            BoolToStr(ec->logToTerminalEnabled)
          << ", logToCustomEnabled="   <<            BoolToStr(ec->logToCustomEnabled)
-         << ", customLogFile="        <<                     (ec->customLogFile ? StrFormat("0x%p", ec->customLogFile) : "NULL")
+         << ", customLog="            <<                     (ec->customLog ? StrFormat("0x%p", ec->customLog) : "NULL")
          << ", customLogFilename="    <<       DoubleQuoteStr(ec->customLogFilename)
          << "}";
    }

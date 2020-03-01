@@ -13,8 +13,8 @@
 #include "shared/errors.h"                                  // shared between C++ and MQL
 
 #include <iomanip>
-#include <string>
 #include <sstream>
+#include <string>
 
 
 // type aliases

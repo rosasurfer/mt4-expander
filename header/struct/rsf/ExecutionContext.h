@@ -91,7 +91,7 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    BOOL               logToDebugEnabled;           //       744        4     whether log messages are sent to the system debugger (var)
    BOOL               logToTerminalEnabled;        //       748        4     whether log messages are sent to the terminal log    (var)
    BOOL               logToCustomEnabled;          //       752        4     whether log messages are sent to a custom logger     (var)
-   std::ofstream*     customLogFile;               //       756        4     custom logfile instance                              (var)
+   std::ofstream*     customLog;                   //       756        4     custom log instance                                  (var)
    char               customLogFilename[MAX_PATH]; //       760      260     custom logfile name                                  (var)
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
 #pragma pack(pop)                                  //             = 1020
@@ -173,7 +173,7 @@ BOOL               WINAPI ec_LogEnabled          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_LogToDebugEnabled   (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_LogToTerminalEnabled(const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_LogToCustomEnabled  (const EXECUTION_CONTEXT* ec);
-//                        ec.customLogFile
+//                        ec.customLog
 const char*        WINAPI ec_CustomLogFilename   (const EXECUTION_CONTEXT* ec);
 
 
@@ -210,30 +210,30 @@ uint               WINAPI ec_SetPipPoints           (EXECUTION_CONTEXT* ec, uint
 //                        ec.pipPriceFormat
 //                        ec.subPipPriceFormat
 
-EXECUTION_CONTEXT* WINAPI ec_SetSuperContext        (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec      );
-uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint               id       );
-HWND               WINAPI ec_SetHChart              (EXECUTION_CONTEXT* ec, HWND               hWnd     );
-HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND               hWnd     );
+EXECUTION_CONTEXT* WINAPI ec_SetSuperContext        (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec     );
+uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint               id      );
+HWND               WINAPI ec_SetHChart              (EXECUTION_CONTEXT* ec, HWND               hWnd    );
+HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND               hWnd    );
 
 //                        ec.test
-BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
 
-BOOL               WINAPI ec_SetExtReporting        (EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetRecordEquity        (EXECUTION_CONTEXT* ec, BOOL               status   );
+BOOL               WINAPI ec_SetExtReporting        (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetRecordEquity        (EXECUTION_CONTEXT* ec, BOOL               status  );
 
-int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error    );
-int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error    );
+int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
+int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );
 //                        ...
-int                WINAPI ec_SetDllWarning          (EXECUTION_CONTEXT* ec, int                error    );
+int                WINAPI ec_SetDllWarning          (EXECUTION_CONTEXT* ec, int                error   );
 //                        ...
-BOOL               WINAPI ec_SetLogEnabled          (EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetLogToDebugEnabled   (EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL               status   );
-BOOL               WINAPI ec_SetLogToCustomEnabled  (EXECUTION_CONTEXT* ec, BOOL               status   );
-//                        ec.customLogFile
-const char*        WINAPI ec_SetCustomLogFilename   (EXECUTION_CONTEXT* ec, const char*        filename );
+BOOL               WINAPI ec_SetLogEnabled          (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetLogToDebugEnabled   (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetLogToCustomEnabled  (EXECUTION_CONTEXT* ec, BOOL               status  );
+//                        ec.customLog
+const char*        WINAPI ec_SetCustomLogFilename   (EXECUTION_CONTEXT* ec, const char*        filename);
 
 
 // helpers

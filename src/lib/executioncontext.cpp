@@ -12,6 +12,7 @@
 #include "struct/rsf/Order.h"
 #include "struct/rsf/Test.h"
 
+#include <fstream>
 #include <math.h>
 #include <time.h>
 #include <vector>
@@ -330,7 +331,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((int)timeframe <= 0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe)));
    if ((int)digits    <  0)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits)));
    if (sec && (uint)sec  < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec)));
-   if (ec->pid) SetLastThreadProgram(ec->pid);                          // set the currently executed program asap (error handling)
+   if (ec->pid) SetLastThreadProgram(ec->pid);                          // set the thread's currently executed program asap (error handling)
 
    //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
@@ -360,7 +361,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (!isPid) {
       if (programType==PT_INDICATOR && previousPid) {                   // reuse the previous program chain and keep instance data
          currentPid = previousPid;
-         SetLastThreadProgram(currentPid);                              // set the currently executed program asap (error handling)
+         SetLastThreadProgram(currentPid);                              // set the thread's currently executed program asap (error handling)
 
          master = (*g_mqlPrograms[currentPid])[0];
          if (initReason == IR_PROGRAM_AFTERTEST)
@@ -375,7 +376,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          // if an expert in tester check for a partially initialized context chain (master!=NULL, main=NULL, lib1!=NULL)
          if (programType==PT_EXPERT && isTesting && lastPid && Program_IsPartialTest(lastPid, programName)) {
             currentPid = lastPid;
-            SetLastThreadProgram(currentPid);                           // set the currently executed program asap (error handling)
+            SetLastThreadProgram(currentPid);                           // set the thread's currently executed program asap (error handling)
 
             master = (*g_mqlPrograms[currentPid])[0];
             *ec = *master;                                              // copy master to main context
@@ -461,7 +462,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetLogToTerminalEnabled(ec, Program_IsLogToTerminalEnabled(ec));  // TODO: atm an empty stub defaulting to TRUE
    ec_SetLogToCustomEnabled  (ec, Program_IsLogToCustomEnabled  (ec));  // TODO: atm an empty stub defaulting to FALSE
    ec_SetCustomLogFilename   (ec, Program_CustomLogFilename     (ec));  // TODO: atm an empty stub defaulting to NULL
-   master->customLogFile = ec->customLogFile = NULL;
+   master->customLog = ec->customLog = NULL;
 
    // TODO: reset errors if not in an init() call from start()
    //ec->mqlError      = NULL;
@@ -512,9 +513,9 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  */
 int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime time, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d %s  ec=%s", GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
+   if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d  %s  ec=%s", GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
 
-   SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
+   SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
    int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
    uint     cycleTicks    = ec->cycleTicks + 1;
@@ -529,7 +530,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    for (uint i=0; i < size; ++i) {
       if (ctx = chain[i]) {
          ctx->programCoreFunction = CF_START;
-         if (i < 2) ctx->moduleCoreFunction  = ctx->programCoreFunction;   // update master and main context only
+         if (i < 2) ctx->moduleCoreFunction = ctx->programCoreFunction;    // update master and main context only
          ctx->rates                = rates;
          ctx->bars                 = bars;
          ctx->changedBars          = changedBars;
@@ -541,11 +542,12 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->bid                  = bid;
          ctx->ask                  = ask;
          ctx->threadId             = threadId;
+
          ctx->logEnabled           = ec->logEnabled;                       // configurable at runtime, needs syncing on each tick
          ctx->logToDebugEnabled    = ec->logToDebugEnabled;
          ctx->logToTerminalEnabled = ec->logToTerminalEnabled;
          ctx->logToCustomEnabled   = ec->logToCustomEnabled;
-         ctx->customLogFile        = ec->customLogFile;
+         ctx->customLog            = ec->customLog;
          //strcpy(ctx->customLogFilename, ec->customLogFilename);          // is this needed on each tick???
       }
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
@@ -607,21 +609,31 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
    //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
-   SetLastThreadProgram(ec->pid);                                    // set the currently executed program asap (error handling)
+   SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
    ContextChain       &chain   = *g_mqlPrograms[ec->pid];
    uint               size     = chain.size();
    DWORD              threadId = GetCurrentThreadId();
    EXECUTION_CONTEXT* ctx;
 
+   // close and release an open logfile instance                     // TODO: move to LeaveContext()
+   if (size && (ctx=chain[0]) && ctx->customLog) {
+      delete ctx->customLog;
+      ctx->customLog = NULL;
+      debug("%-13s  file \"%s\" closed", ec->programName, ec->customLogFilename);
+   }
+
    // update values of all modules
    for (uint i=0; i < size; ++i) {
       if (ctx = chain[i]) {
-         ctx->programCoreFunction = CF_DEINIT;    if (i < 2)
-         ctx->moduleCoreFunction  = ctx->programCoreFunction;        // in master and main context only
-         ctx->programUninitReason = uninitReason; if (i < 2)
-         ctx->moduleUninitReason  = ctx->programUninitReason;        // in master and main context only
-         ctx->threadId            = threadId;
+         ctx->programCoreFunction   = CF_DEINIT;                     // all contexts
+         ctx->programUninitReason   = uninitReason;
+         ctx->threadId              = threadId;
+         ctx->customLog             = NULL;
+         if (i < 2) {                                                // master and main context only
+            ctx->moduleCoreFunction = ctx->programCoreFunction;
+            ctx->moduleUninitReason = ctx->programUninitReason;
+         }
       }
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
    }
@@ -796,7 +808,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    else if (IsUIThread()) {
       // (2.1) ec.pid is set: indicator in init cycle or in IR_PROGRAM_AFTERTEST (both UI thread)
       //       ec.pid points to the original indicator (still in limbo), Library::init() is called before Indicator::init()
-      SetLastThreadProgram(ec->pid);                                 // set the currently executed program asap (error handling)
+      SetLastThreadProgram(ec->pid);                                 // set the thread's currently executed program asap (error handling)
 
       EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
       if (isTesting)                                                 // indicator in IR_PROGRAM_AFTERTEST
@@ -939,7 +951,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
 
    //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
-   SetLastThreadProgram(ec->pid);                        // set the currently executed program asap (error handling)
+   SetLastThreadProgram(ec->pid);                        // set the thread's currently executed program asap (error handling)
 
    // try to fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_DEINIT, uninitReason);
@@ -1027,7 +1039,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
          // on recompilation store the module details for look-up after recompilation
          if (ec->moduleUninitReason == UR_RECOMPILE) {
-            if (!IsUIThread()) warn(ERR_INVALID_ACCESS, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
+            if (!IsUIThread()) warn(ERR_UNDEFINED_STATE, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
             if (g_recompiledModule.pid != ec->pid) {                       // there can be at most one recompilation per program
                g_recompiledModule.pid        = ec->pid;
                g_recompiledModule.type       = ec->moduleType;
