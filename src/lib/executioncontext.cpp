@@ -616,20 +616,12 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    DWORD              threadId = GetCurrentThreadId();
    EXECUTION_CONTEXT* ctx;
 
-   // close and release an open logfile instance                     // TODO: move to LeaveContext()
-   if (size && (ctx=chain[0]) && ctx->customLog) {
-      delete ctx->customLog;
-      ctx->customLog = NULL;
-      debug("%-13s  file \"%s\" closed", ec->programName, ec->customLogFilename);
-   }
-
    // update values of all modules
    for (uint i=0; i < size; ++i) {
       if (ctx = chain[i]) {
          ctx->programCoreFunction   = CF_DEINIT;                     // all contexts
          ctx->programUninitReason   = uninitReason;
          ctx->threadId              = threadId;
-         ctx->customLog             = NULL;
          if (i < 2) {                                                // master and main context only
             ctx->moduleCoreFunction = ctx->programCoreFunction;
             ctx->moduleUninitReason = ctx->programUninitReason;
@@ -977,28 +969,29 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
 
 
 /**
- * Handle leaving of an MQL module's core function Module::deinit(). Called in deinit() as the very last statement. After
- * deinit() is left the module is unloaded and it's memory must not be accessed anymore.
+ * Process leaving of an MQL module's core function deinit(). Called only from deinit() and must be the very last statement.
+ * After deinit() was left the module is unloaded and it's memory must not be accessed anymore.
  *
- *  - If the module is a main module (an indicator, expert or script) the index of the context in the program's context chain
- *    is set to NULL (the chain size doesn't change).
- *
- *  - If the module is not a main module (a library) the context is removed from the program's context chain (the chain size
- *    decreases).
- *
- *  - TODO:
- *    When a program's last library is unloaded and the program is not reloaded (on UR_REMOVE, UR_TEMPLATE, UR_CHARTCLOSE,
- *    UR_CLOSE, UR_RECOMPILE) the program may be removed from the list of known programs >> if it's the last one <<.
- *
- *  - If an expert is reloaded (on UR_CHARTCHANGE) the expert's main module keeps state.
- *
- * An unloaded module's memory must not be accessed until the module re-enters the core function Module::init().
- *
- * @param  EXECUTION_CONTEXT* ec
+ * @param  EXECUTION_CONTEXT* ec - execution context of the module in deinit()
  *
  * @return int - error status
+ *
+ *
+ * Notes: (1) If the module is an MQL main module (an indicator, an expert or a script) the index of the main context in the
+ *            program's context chain is set to NULL but the chain size dosen't change.
+ *
+ *        (2) If the module is not a main module (a library) the context is completely removed from the context chain and the
+ *            chain size decreases.
+ *
+ *        (3) If an expert leaves deinit() and goes through an init cycle (UR_CHARTCHANGE or UR_PARAMETERS) its main module
+ *            keeps state. If an indicator leaves deinit() and goes through an init cycle its main module doesn't keep state.
+ *            Modules of any type going through an init cycle due to UR_RECOMPILE never keep state.
+ *
+ *        (4) An unloaded module's memory must not be accessed (read/write) until the module re-enters the core function init().
+ *            Use the master context at chain index 0 to access data stored in the execution context of an unloaded module.
  */
 int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
+
    if ((uint)ec < MIN_VALID_POINTER)        return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    //debug("          %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
    if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
@@ -1007,40 +1000,60 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    uint chainSize = chain.size();
-   if (chain.size() < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
+   if (chainSize < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
    switch (ec->moduleType) {
-      // -----------------------------------------------------------------
+      // --- main module -----------------------------------------------------------------------------------------------------
       case MT_INDICATOR:
       case MT_SCRIPT:
       case MT_EXPERT:
          EXECUTION_CONTEXT* ctx;
          for (uint i=0; i < chainSize; ++i) {
             if (ctx = chain[i]) {
-               ctx->programCoreFunction = (CoreFunction)NULL; if (i < 2)   // mark MainModule::deinit() as left
-               ctx->moduleCoreFunction  = (CoreFunction)NULL;
+               ctx->programCoreFunction   = (CoreFunction)NULL;            // mark MainModule::deinit() as left
+               if (i < 2)
+                  ctx->moduleCoreFunction = (CoreFunction)NULL;
             }
             else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
          }
-         chain[1] = NULL;                                                  // reset main index in program chain (don't remove it)
+         chain[1] = NULL;                                                  // reset the main execution context but keep its slot in the chain
+
+         // close an open logfile
+         if (ec->customLog) {
+            if (ec->customLog->is_open()) {
+               ec->customLog->close();                                     // automatically re-opened in init() due to master.logToCustomEnabled = TRUE
+               debug("\"%s\" closed", ec->customLogFilename);
+            }
+         }
+
+         // on recompilation release a log instance
+         if (ec->moduleUninitReason == UR_RECOMPILE) {
+            if (ec->customLog) {
+               delete ec->customLog;
+               for (uint i=0; i < chainSize; ++i) {
+                  if (ctx = chain[i]) ctx->customLog = NULL;
+               }
+               debug("log filestream released");
+            }
+         }
          break;
 
-      // -----------------------------------------------------------------
+      // --- library module --------------------------------------------------------------------------------------------------
       case MT_LIBRARY:
          ec->moduleCoreFunction = (CoreFunction)NULL;                      // mark Module::deinit() as left
          int i;
          for (i=chainSize-1; i >= 0; --i) {                                // iterate backwards (faster match)
             if (chain[i] == ec) {
-               chain.erase(chain.begin() + i);                             // remove library context from the program chain
+               chain.erase(chain.begin() + i);                             // remove library context and slot from the chain
                break;
             }
          }
          if (i < 0) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "library context not found in context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));
 
-         // on recompilation store the module details for look-up after recompilation
+         // on recompilation store the library identifiers for look-up after recompilation
          if (ec->moduleUninitReason == UR_RECOMPILE) {
             if (!IsUIThread()) warn(ERR_UNDEFINED_STATE, "access to global var g_recompiledModule from non-UI thread: %d  ec=%s", GetCurrentThreadId(), EXECUTION_CONTEXT_toStr(ec));
-            if (g_recompiledModule.pid != ec->pid) {                       // there can be at most one recompilation per program
+            if (g_recompiledModule.pid != ec->pid) {                       // there can be only one recompilation at any time
                g_recompiledModule.pid        = ec->pid;
                g_recompiledModule.type       = ec->moduleType;
                strcpy(g_recompiledModule.name, ec->moduleName);
@@ -1048,7 +1061,6 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
          }
          break;
 
-      // -----------------------------------------------------------------
       default:
          return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal execution context (unknown ec.moduleType):  ec=%s", EXECUTION_CONTEXT_toStr(ec))));
    }
