@@ -30,9 +30,9 @@ typedef time_t             datetime;                        // MQL type datetime
 namespace rsf {}                                            // define and always prefer the project's main namespace
 using namespace rsf;
 
+using std::size_t;
 using std::string;
 using std::wstring;
-
 
 #define CLR_NONE             0xFFFFFFFFL                    // different types/same value in C++ and MQL
 #define NO_ERROR                      0L                    // different types/same value in C++ and MQL
@@ -43,12 +43,12 @@ using std::wstring;
 #define MAX_CHARTDESCRIPTION_LENGTH    ((MAX_SYMBOL_LENGTH) + 1 + 7) // e.g. "SYMBOL,Monthly"
 
 #if !defined(MAX_PATH)                                      // e.g. the max. path on drive D is "D:\some-256-chars-path-string<NUL>"
-#define MAX_PATH                        _MAX_PATH           // max. length of full pathname
+ #define MAX_PATH                      _MAX_PATH            // max. length of full pathname
 #endif
-#define MAX_DRIVE                       _MAX_DRIVE          // max. length of drive component
-#define MAX_DIR                         _MAX_DIR            // max. length of path component
-#define MAX_FNAME                       _MAX_FNAME          // max. length of file name component
-#define MAX_EXT                         _MAX_EXT            // max. length of extension component
+#define MAX_DRIVE                      _MAX_DRIVE           // max. length of drive component
+#define MAX_DIR                        _MAX_DIR             // max. length of path component
+#define MAX_FNAME                      _MAX_FNAME           // max. length of file name component
+#define MAX_EXT                        _MAX_EXT             // max. length of extension component
 
 
 // MQL program types (flags)

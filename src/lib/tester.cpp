@@ -535,11 +535,21 @@ int WINAPI Test_synchronize() {
 /**
  * @return int
  */
-int WINAPI Test(const char* fileName) {
-   using namespace std;
+int WINAPI Test(const char* filename) {
+   if ((uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+   if (!strlen(filename))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
 
-   ofstream* file = new ofstream();
+   std::ofstream file = std::ofstream();
 
+   file.open(filename, std::ios::app);
+
+   if (!file.is_open()) {
+      error(ERR_WIN32_ERROR+GetLastError(), "opening \"%s\" failed", filename);
+      return(CreateDirectoryA(filename));
+   }
+   else {
+      file.close();
+   }
    return(NULL);
    //#pragma EXPANDER_EXPORT
 }

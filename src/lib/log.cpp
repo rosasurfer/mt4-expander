@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "lib/file.h"
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 

@@ -11,38 +11,61 @@
 #include "lib/file.h"
 #include "lib/string.h"
 
-#include <shlobj.h>
 #include <winioctl.h>
 
 
 /**
- * Create a directory recursively. No error is returned if the directory already exists.
+ * Create a directory.
  *
- * @param  char* path - full directory path
- *
+ * @param  char* path             - full directory path
+ * @param  DWORD flags [optional] - MKDIR_PARENT: create parent directories as needed, no error on an existing directory
+ *                                  (default: create only the final directory and report an error if it exists)
  * @return int - error status
  */
-int WINAPI CreateDirectoryRecursiveA(const char* path) {
-   if ((uint)path < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+int WINAPI CreateDirectoryA(const char* path, DWORD flags/*=NULL*/) {
+   if ((uint)path < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path)));
 
-   int error = SHCreateDirectoryEx(NULL, path, NULL);
+   // check whether such a file or directory already exists
+   if (IsFileOrDirectoryA(path)) {
+      if (!IsDirectoryA(path)) return(_int(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path)));
+      if (flags & MKDIR_PARENT)
+         return(NO_ERROR);
+      return(_int(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path)));
+   }
 
-   if (error==ERROR_FILE_EXISTS || error==ERROR_ALREADY_EXISTS)
-      error = ERROR_SUCCESS;
-   return(error);
+   // make sure a parent directory exists
+   if (flags & MKDIR_PARENT) {
+      string sPath = string(path);
+      size_t pos = sPath.find_last_of("\\/");
+      if (pos != string::npos) {
+         int error = CreateDirectoryA(sPath.substr(0, pos).c_str(), flags);
+         if (error) return(error);
+      }
+   }
+
+   // create the final directory
+   if (CreateDirectory(path, (LPSECURITY_ATTRIBUTES)NULL))
+      return(NO_ERROR);
+
+   // with multiple path separators it may already exist
+   int error = GetLastError();
+   if (error==ERROR_ALREADY_EXISTS && (flags & MKDIR_PARENT))
+      return(NO_ERROR);
+   return(_int(ERR_WIN32_ERROR+error, error(ERR_WIN32_ERROR+error, "creation of \"%s\" failed", path)));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Create a directory recursively. No error is returned if the directory already exists.
+ * Create a directory.
  *
- * @param  string &path - full directory path
- *
+ * @param  string &path            - full directory path
+ * @param  DWORD  flags [optional] - MKDIR_PARENT: create parent directories as needed, no error on an existing directory
+ *                                   (default: create only the final directory and report an error if it exists)
  * @return int - error status
  */
-int WINAPI CreateDirectoryRecursiveA(const string &path) {
-   return(CreateDirectoryRecursiveA(path.c_str()));
+int WINAPI CreateDirectoryA(const string &path, DWORD flags/*=NULL*/) {
+   return(CreateDirectoryA(path.c_str(), flags));
 }
 
 
@@ -57,8 +80,8 @@ BOOL WINAPI IsDirectoryA(const char* name) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
-      DWORD attrib = GetFileAttributes(name);
-      return(attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY));
+      DWORD attributes = GetFileAttributes(name);
+      return((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY));
    }
    return(FALSE);
    #pragma EXPANDER_EXPORT
@@ -76,8 +99,8 @@ BOOL WINAPI IsFileA(const char* name) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
-      DWORD attrib = GetFileAttributes(name);
-      return(attrib!=INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+      DWORD attributes = GetFileAttributes(name);
+      return((attributes!=INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
    }
    return(FALSE);
    #pragma EXPANDER_EXPORT
@@ -97,6 +120,37 @@ BOOL WINAPI IsFileA(const string &name) {
 
 
 /**
+ * Whether the specified file or directory exists. Symbolic links and junctions are supported.
+ *
+ * @param  char* name - full name with support for forward, backward and trailing slashes
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsFileOrDirectoryA(const char* name) {
+   if (name) {
+      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+
+      DWORD attributes = GetFileAttributes(name);
+      return(attributes != INVALID_FILE_ATTRIBUTES);
+   }
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether the specified file or directory exists. Symbolic links and junctions are supported.
+ *
+ * @param  string &name - full name with support for forward, backward and trailing slashes
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsFileOrDirectoryA(const string &name) {
+   return(IsFileOrDirectoryA(name.c_str()));
+}
+
+
+/**
  * Whether the specified directory exists and is a junction.
  *
  * @param  char* name - full directory name with support for forward and backward slashes
@@ -111,8 +165,8 @@ BOOL WINAPI IsJunctionA(const char* name) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
-      DWORD attrib = GetFileAttributes(name);
-      if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
+      DWORD attributes = GetFileAttributes(name);
+      if ((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
          char* _name = strdup(name);                                          // on the heap
 
          int pos = strlen(_name);
@@ -148,12 +202,12 @@ BOOL WINAPI IsSymlinkA(const char* name) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
-      DWORD attrib = GetFileAttributes(name);
+      DWORD attributes = GetFileAttributes(name);
 
-      if (attrib!=INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_REPARSE_POINT)) {
+      if ((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_REPARSE_POINT)) {
          char* _name = strdup(name);                                          // on the heap
 
-         if (attrib & FILE_ATTRIBUTE_DIRECTORY) {
+         if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
             int pos = strlen(_name);
             while (--pos >=0 && (_name[pos]=='\\' || _name[pos]=='/')) {      // cut-off trailing slashes
                _name[pos] = '\0';
