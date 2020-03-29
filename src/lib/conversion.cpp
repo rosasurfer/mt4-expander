@@ -279,7 +279,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_FUNC_NOT_ALLOWED                             : return("ERR_FUNC_NOT_ALLOWED"                 );    //  65540
       case ERR_HISTORY_INSUFFICIENT                         : return("ERR_HISTORY_INSUFFICIENT"             );    //  65541
       case ERR_ILLEGAL_STATE                                : return("ERR_ILLEGAL_STATE"                    );    //  65542
-      case ERR_INVALID_ACCESS                               : return("ERR_INVALID_ACCESS"                   );    //  65543
+      case ERR_ACCESS_DENIED                                : return("ERR_ACCESS_DENIED"                    );    //  65543
       case ERR_INVALID_COMMAND                              : return("ERR_INVALID_COMMAND"                  );    //  65544
       case ERR_INVALID_CONFIG_VALUE                         : return("ERR_INVALID_CONFIG_VALUE"             );    //  65545
       case ERR_INVALID_FILE_FORMAT                          : return("ERR_INVALID_FILE_FORMAT"              );    //  65546
@@ -293,6 +293,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_TERMINAL_INIT_FAILURE                        : return("ERR_TERMINAL_INIT_FAILURE"            );    //  65554
       case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65555   status
       case ERR_TOTAL_POSITION_NOT_FLAT                      : return("ERR_TOTAL_POSITION_NOT_FLAT"          );    //  65556
+      case ERR_UNDEFINED_STATE                              : return("ERR_UNDEFINED_STATE"                  );    //  65557
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                  : return("win32:NO_ERROR"                       );    // 100000 +    0
@@ -434,7 +435,6 @@ char* WINAPI InitFlagsToStr(DWORD flags) {
    if (flags & INIT_TIMEZONE           ) str.append("|INIT_TIMEZONE"           );
    if (flags & INIT_PIPVALUE           ) str.append("|INIT_PIPVALUE"           );
    if (flags & INIT_BARS_ON_HIST_UPDATE) str.append("|INIT_BARS_ON_HIST_UPDATE");
-   if (flags & INIT_CUSTOMLOG          ) str.append("|INIT_CUSTOMLOG"          );
    if (flags & INIT_NO_BARS_REQUIRED   ) str.append("|INIT_NO_BARS_REQUIRED"   );
    if (!str.length())                    str.append("|"+ to_string(flags)      );
 

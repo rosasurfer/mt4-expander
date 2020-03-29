@@ -126,7 +126,7 @@ const char* WINAPI GetGlobalConfigPathA() {
       configPath = strdup(iniFile.c_str());                                // on the heap
 
       if (!IsFileA(configPath)) {
-         int error = CreateDirectoryRecursive(string(commonPath));         // make sure the directory exists
+         int error = CreateDirectoryA(commonPath, MKDIR_PARENT);           // make sure the directory exists
          if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStr(ERR_WIN32_ERROR+error));
          else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", commonPath);
 
@@ -200,7 +200,7 @@ const char* WINAPI GetLocalConfigPathA() {
                if (hFile == HFILE_ERROR) {
                   debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                   // 4.2 permission denied => create a file in the roaming data directory
-                  int error = CreateDirectoryRecursive(roamingDataPath);                  // make sure the directory exists
+                  int error = CreateDirectoryA(roamingDataPath, MKDIR_PARENT);            // make sure the directory exists
                   if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
                   else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
                   if (!error) {
@@ -237,7 +237,7 @@ const char* WINAPI GetLocalConfigPathA() {
                   if (hFile == HFILE_ERROR) {
                      debug("cannot create file \"%s\"  [%s]", filename.c_str(), ErrorToStr(ERR_WIN32_ERROR+GetLastError()));
                      // 4.2 permission denied => create a file in the roaming data directory
-                     int error = CreateDirectoryRecursive(roamingDataPath);               // make sure the directory exists
+                     int error = CreateDirectoryA(roamingDataPath, MKDIR_PARENT);         // make sure the directory exists
                      if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", roamingDataPath, ErrorToStr(ERR_WIN32_ERROR+error));
                      else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", roamingDataPath);
                      if (!error) {
@@ -329,8 +329,8 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
    if (!value || !*value)
       return(value);
 
-   int pos = string(value).find_first_of(";");     // drop trailing comments
-   if (pos == -1)
+   size_t pos = string(value).find_first_of(";");  // drop trailing comments
+   if (pos == string::npos)
       return(value);
    value[pos] = '\0';
 

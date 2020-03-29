@@ -85,7 +85,7 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
    char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, msg);
 
-   OutputDebugString(fullMsg);      // @see  limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
+   OutputDebugStringA(fullMsg);           // @see  limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
    free(msg);
    free(fullMsg);
    return(NULL);
@@ -126,7 +126,7 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
       free(msg);
       msg = newMsg;
    }
-   OutputDebugString(msg);
+   OutputDebugStringA(msg);
    free(msg);
 
    // store the warning in the EXECUTION_CONTEXT of the currently executed MQL program
@@ -175,7 +175,7 @@ int WINAPI _error(const char* fileName, const char* funcName, int line, int erro
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
    char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, msg, ErrorToStr(error_code));
 
-   OutputDebugString(fullMsg);
+   OutputDebugStringA(fullMsg);
    free(msg);
    free(fullMsg);
 

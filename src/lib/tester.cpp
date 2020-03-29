@@ -217,11 +217,11 @@ const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
    ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return((FXT_HEADER*)warn(ERR_WIN32_ERROR+GetLastError(), "ifstream() cannot open file \"%s\"", fxtFile.c_str()));
+   if (!file) return((FXT_HEADER*)warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
    FXT_HEADER* fxt = new FXT_HEADER();
    file.read((char*)fxt, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return((FXT_HEADER*)error(ERR_WIN32_ERROR+GetLastError(), "ifstream.read() cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+   file.close(); if (file.fail()) return((FXT_HEADER*)error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
 
    return(fxt);
 }
@@ -385,14 +385,14 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
 BOOL WINAPI Test_SaveReport(const TEST* test) {
    if (!test->closedPositions) return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.closedPositions: NULL"));
 
-   // create logfile
+   // create report file
    string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
                                               .append(test->ec->programName)
                                               .append(" #")
                                               .append(to_string(test->reportId))
                                               .append(LocalTimeFormat(test->created, "  %d.%m.%Y %H.%M.%S.log"));
    std::ofstream file(logfile.c_str());
-   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "ofstream()  cannot open file \"%s\"", logfile.c_str()));
+   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", logfile.c_str(), strerror(errno)));
 
    char* sTest = TEST_toStr(test);
    file << "test=" << sTest << NL;
@@ -517,7 +517,8 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
  * @return int
  */
 int WINAPI Test_synchronize() {
-   { synchronize();
+   {
+      synchronize();
       debug("inside synchronized block");
    }
    return(0);
@@ -534,24 +535,21 @@ int WINAPI Test_synchronize() {
 /**
  * @return int
  */
-int WINAPI Test(const char* fileName) {
+int WINAPI Test(const char* filename) {
+   if ((uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+   if (!strlen(filename))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
+
+   std::ofstream file = std::ofstream();
+
+   file.open(filename, std::ios::app);
+
+   if (!file.is_open()) {
+      error(ERR_WIN32_ERROR+GetLastError(), "opening \"%s\" failed", filename);
+      return(CreateDirectoryA(filename));
+   }
+   else {
+      file.close();
+   }
    return(NULL);
-   #pragma EXPANDER_EXPORT
+   //#pragma EXPANDER_EXPORT
 }
-
-
-/**
- *
- *\/
-extern "C" __declspec(dllexport) int __cdecl Test_cdecl(int a) {
-   return(NULL);
-}
-
-
-/**
- *
- *\/
-extern "C" __declspec(dllexport) int __stdcall Test_stdcall(double b) {
-   return(NULL);
-}
-/**/
