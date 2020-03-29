@@ -4,15 +4,15 @@
 
 // ticktimer data
 struct TICK_TIMER_DATA {
-   uint  id;                                                         // timer id
-   HWND  hWnd;                                                       // the chart window receiving ticks
-   DWORD flags;                                                      // flags for timer configuration
-   DWORD userdata1;                                                  // storage for custom user data (cookies etc.)
-   DWORD userdata2;                                                  // ...
-   DWORD userdata3;                                                  // ...
+   uint  id;                                          // timer id
+   HWND  hWnd;                                        // chart window to receive ticks
+   DWORD flags;                                       // timer configuration
+   DWORD userdata1;                                   // storage for user data (e.g. cookies)
+   DWORD userdata2;                                   // ...
+   DWORD userdata3;                                   // ...
 };
 
 
-uint WINAPI SetupTickTimer(HWND hWnd, int millis, DWORD flags = NULL);
-BOOL WINAPI RemoveTickTimer(int timerId);
+uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags = NULL);
+BOOL WINAPI RemoveTickTimer(uint timerId);
 void WINAPI RemoveTickTimers();
