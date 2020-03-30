@@ -133,6 +133,10 @@
 #define TRADE_DIRECTION_BOTH              3
 
 
+// file system related constants
+#define MKDIR_PARENT                      1              // create non-existing parent directories as needed => @see CreateDirectory()
+
+
 // time constants
 #define SECOND                            1
 #define MINUTE                           60              //  60 seconds
@@ -189,7 +193,7 @@
 #define zFEB                      zFEBRUARY
 #define zMAR                         zMARCH
 #define zAPR                         zAPRIL
-//efine zMAY                           zMAY              // short form equals long form
+//      zMAY                           zMAY              // short form equals long form
 #define zJUN                          zJUNE
 #define zJUL                          zJULY
 #define zAUG                        zAUGUST
@@ -217,7 +221,7 @@
 #define FEB                        FEBRUARY
 #define MAR                           MARCH
 #define APR                           APRIL
-//efine MAY                             MAY              // short form equals long form
+//      MAY                             MAY              // short form equals long form
 #define JUN                            JUNE
 #define JUL                            JULY
 #define AUG                          AUGUST
@@ -231,8 +235,7 @@
 #define INIT_TIMEZONE                     1              // initialize/check the timezone configuration
 #define INIT_PIPVALUE                     2              // check availability of the current pip value (requires tick size and value)
 #define INIT_BARS_ON_HIST_UPDATE          4              //
-#define INIT_CUSTOMLOG                    8              // use a custom logfile
-#define INIT_NO_BARS_REQUIRED            16              // scripts only: executable without existing bars (no history)
+#define INIT_NO_BARS_REQUIRED             8              // executable without history (scripts only)
 
 
 // known timezones
@@ -324,6 +327,10 @@
 #define IDC_MDI_CLIENT                      59648        // MDI container (holding all charts)
 #define IDC_DOCKABLES_CONTAINER             59422        // window containing all child windows docked to the main application window
 #define IDC_UNDOCKED_CONTAINER              59423        // window containing a single undocked/floating dockable child window (possibly more than one, not a toplevel window)
+
+#define IDC_CUSTOM_INDICATOR_OK                 1        // load dialog "Custom Indicator"
+#define IDC_CUSTOM_INDICATOR_CANCEL             2        // ...
+#define IDC_CUSTOM_INDICATOR_RESET          12321        // ...
 
 #define IDC_MARKETWATCH                        80        // Market Watch
 #define IDC_MARKETWATCH_SYMBOLS             35441        // Market Watch - Symbols

@@ -72,7 +72,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="version.lib"
+				AdditionalDependencies="shlwapi.lib version.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -160,7 +160,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="version.lib"
+				AdditionalDependencies="shlwapi.lib version.lib"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -248,6 +248,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\lib\log.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\lib\math.h"
 					>
 				</File>
@@ -265,6 +269,10 @@
 				</File>
 				<File
 					RelativePath=".\header\lib\tester.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\lib\timer.h"
 					>
 				</File>
 				<File
@@ -622,6 +630,10 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\lib\log.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\lib\math.cpp"
 					>
 					<FileConfiguration
@@ -740,6 +752,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\timer.cpp"
+					>
 				</File>
 			</Filter>
 			<Filter

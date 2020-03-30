@@ -4,7 +4,7 @@
 
 
 /**
- * A class to aquire a lock on instance construction, and to relase it on instance destruction (i.e. a scoped lock).
+ * A class to aquire a lock on instance construction, and to release it on instance destruction (i.e. a scoped lock).
  */
 class Locker {
 

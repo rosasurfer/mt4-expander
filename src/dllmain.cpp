@@ -1,17 +1,18 @@
 #include "expander.h"
-#include "lib/datetime.h"
 #include "lib/terminal.h"
+#include "lib/timer.h"
 #include "lib/lock/Lock.h"
 #include "struct/rsf/ExecutionContext.h"
 
 
-extern uint               g_terminalBuild;                     // terminal build number
-extern CRITICAL_SECTION   g_terminalMutex;                     // mutex for application-wide locking
-extern Locks              g_locks;                             // a map holding pointers to fine-granular locks
+extern uint                          g_terminalBuild;          // terminal build number
+extern CRITICAL_SECTION              g_terminalMutex;          // mutex for application-wide locking
+extern Locks                         g_locks;                  // a map holding pointers to fine-granular locks
 
-extern MqlProgramList     g_mqlPrograms;                       // all MQL programs: vector<ContextChain> with index = program id
-extern std::vector<DWORD> g_threads;                           // all known threads executing MQL programs
-extern std::vector<uint>  g_threadsPrograms;                   // the last MQL program executed by a thread
+extern MqlProgramList                g_mqlPrograms;            // all MQL programs: vector<ContextChain> with index = program id
+extern std::vector<DWORD>            g_threads;                // all known threads executing MQL programs
+extern std::vector<uint>             g_threadsPrograms;        // the last MQL program executed by a thread
+extern std::vector<TICK_TIMER_DATA*> g_tickTimers;             // all registered ticktimers
 
 
 //
@@ -63,6 +64,7 @@ void WINAPI onProcessAttach() {
    g_mqlPrograms    .reserve(128);
    g_threads        .reserve(512);
    g_threadsPrograms.reserve(512);
+   g_tickTimers     .reserve(32);
 
    InitializeCriticalSection(&g_terminalMutex);
 }
@@ -78,7 +80,7 @@ void WINAPI onProcessDetach(BOOL isTerminating) {
       return;
 
    DeleteCriticalSection(&g_terminalMutex);
-   RemoveTickTimers();
+   ReleaseTickTimers();
 
    for (Locks::iterator it=g_locks.begin(), end=g_locks.end(); it != end; ++it) {
       delete it->second;
