@@ -272,6 +272,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\lib\timer.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\lib\timeseries.h"
 					>
 				</File>
@@ -748,6 +752,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\timer.cpp"
+					>
 				</File>
 			</Filter>
 			<Filter
