@@ -5,7 +5,8 @@
 #include <vector>
 
 
-std::vector<TICK_TIMER_DATA> tickTimers;                 // all registered ticktimers
+extern CRITICAL_SECTION       g_terminalMutex;           // mutex for application-wide locking
+std::vector<TICK_TIMER_DATA*> g_tickTimers;              // all registered ticktimers
 
 
 /**
@@ -14,27 +15,33 @@ std::vector<TICK_TIMER_DATA> tickTimers;                 // all registered tickt
  * @param  TICK_TIMER_DATA* ttd        - tick timer configuration as passed to CreateTimerQueueTimer()
  * @param  BOOLEAN          timerFired - always TRUE for queued timer callbacks
  */
-VOID CALLBACK TickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
-   debug("tick timer event: id=%d  hWnd=%p  flags=%d", ttd->timerId, ttd->hWnd, ttd->flags);
+VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
+   if (!ttd->hTimer) return;                             // skip queued events of an already released timer
 
-   if (ttd->flags & TICK_IF_VISIBLE) {                // check if the chart is visible
-      RECT rect;
-      HDC hDC = GetDC(ttd->hWnd);
-      int rgn = GetClipBox(hDC, &rect);
-      ReleaseDC(ttd->hWnd, hDC);
+   if (IsWindow(ttd->hWnd)) {
+      if (ttd->flags & TICK_IF_VISIBLE) {                // check if the chart is visible
+         RECT rect;
+         HDC hDC = GetDC(ttd->hWnd);
+         int rgn = GetClipBox(hDC, &rect);
+         ReleaseDC(ttd->hWnd, hDC);
 
-      if (rgn == NULLREGION)                          // skip timer event if the chart is completely invisible
-         return;
-      if (rgn == RGN_ERROR) {
-         warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
-         return;
+         if (rgn == NULLREGION)                          // skip timer event if the chart is completely invisible
+            return;
+         if (rgn == RGN_ERROR) {
+            warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
+            return;
+         }
       }
-   }
-   if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
+      if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
 
-   if      (ttd->flags & TICK_CHART_REFRESH) PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);
-   else if (ttd->flags & TICK_TESTER)        PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-   else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // standard tick
+      if      (ttd->flags & TICK_CHART_REFRESH) PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);
+      else if (ttd->flags & TICK_TESTER)        PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
+      else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // standard tick
+   }
+   else {
+      debug("releasing obsolete tick timer with id=%d (references non-existing window hWnd=%p)", ttd->timerId, ttd->hWnd);
+      RemoveTickTimer(ttd->timerId);
+   }
 }
 
 
@@ -62,19 +69,29 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter flags: combination of TICK_CHART_REFRESH & TICK_TESTER"));
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
-   // generate a new timer id and store timer metadata
-   static uint lastTimerId = 0;                             // simple counter
+   // generate a new timer id and timer metadata
+   if (!TryEnterCriticalSection(&g_terminalMutex)) {
+      debug("waiting to aquire lock on g_terminalMutex...");
+      EnterCriticalSection(&g_terminalMutex);
+   }
+   static uint lastTimerId = 0;                                // a simple counter
    uint timerId = ++lastTimerId;
-   TICK_TIMER_DATA data = {timerId, NULL, hWnd, flags};
-   tickTimers.push_back(data);                              // TODO: avoid push_back() creating a copy
-   TICK_TIMER_DATA &ttd = tickTimers.back();
+
+   TICK_TIMER_DATA* ttd = new TICK_TIMER_DATA();
+   ttd->timerId  = timerId;
+   ttd->hTimer   = NULL;
+   ttd->interval = millis;
+   ttd->hWnd     = hWnd;
+   ttd->flags    = flags;
+   g_tickTimers.push_back(ttd);                                // may re-allocate, thus needs to be synchronized
+   LeaveCriticalSection(&g_terminalMutex);
 
    // create the timer
-   if (!CreateTimerQueueTimer(&ttd.hTimer, NULL, (WAITORTIMERCALLBACK)TickTimerEvent, (void*)&ttd, millis, millis, WT_EXECUTEINTIMERTHREAD))
+   if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK)onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD))
       return(error(ERR_WIN32_ERROR+GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis));
 
-   debug("tick timer created: id=%d  hTimer=%p  interval=%d", ttd.timerId, ttd.hTimer, millis);
-   return(ttd.timerId);
+   //debug("tick timer created: ttd=%p  id=%d  hTimer=%p  interval=%d", ttd, ttd->timerId, ttd->hTimer, ttd->interval);
+   return(ttd->timerId);
    #pragma EXPANDER_EXPORT
 }
 
@@ -89,22 +106,21 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
 BOOL WINAPI RemoveTickTimer(uint timerId) {
    if ((int)timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId: %d", timerId));
 
-   uint size = tickTimers.size();
+   // The timer is released and marked as invalid. The vector holding all timer entries is not modified.
+   uint size = g_tickTimers.size();
 
    for (uint i=0; i < size; i++) {
-      TICK_TIMER_DATA &ttd = tickTimers[i];
+      TICK_TIMER_DATA* ttd = g_tickTimers[i];
 
-      if (ttd.timerId == timerId) {
-         if (HANDLE hTimer = ttd.hTimer) {
-            ttd.hTimer = NULL;                           // reset handle to prevent multiple release errors
+      if (ttd->timerId == timerId) {
+         if (HANDLE hTimer = ttd->hTimer) {
+            ttd->hTimer = NULL;                          // reset handle to prevent multiple release errors
             DeleteTimerQueueTimer(NULL, hTimer, NULL) || error(ERR_WIN32_ERROR+GetLastError(), "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
-            debug("tick timer removed: id=%d  hTimer=%p", timerId, hTimer);
          }
-         else warn(ERR_ILLEGAL_STATE, "tick timer already released: id=%d", timerId);
+         else warn(ERR_ILLEGAL_STATE, "tick timer has already been released: id=%d", timerId);
          return(TRUE);
       }
    }
-
    return(warn(ERR_ILLEGAL_STATE, "tick timer not found: id=%d", timerId));
    #pragma EXPANDER_EXPORT
 }
@@ -114,14 +130,14 @@ BOOL WINAPI RemoveTickTimer(uint timerId) {
  * Clean-up and release all unreleased tick timers. Called only in DLL::onProcessDetach().
  */
 void WINAPI ReleaseTickTimers() {
-   uint size = tickTimers.size();
+   uint size = g_tickTimers.size();
 
    for (uint i=0; i < size; i++) {
-      TICK_TIMER_DATA &ttd = tickTimers[i];
+      TICK_TIMER_DATA* ttd = g_tickTimers[i];
 
-      if (ttd.hTimer) {
-         warn(NO_ERROR, "releasing orphaned tick timer: id=%d", ttd.timerId);
-         RemoveTickTimer(ttd.timerId);
+      if (ttd->hTimer) {
+         warn(NO_ERROR, "releasing orphaned tick timer: id=%d", ttd->timerId);
+         RemoveTickTimer(ttd->timerId);
       }
    }
 }
