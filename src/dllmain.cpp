@@ -78,7 +78,7 @@ void WINAPI onProcessDetach(BOOL isTerminating) {
       return;
 
    DeleteCriticalSection(&g_terminalMutex);
-   RemoveTickTimers();
+   ReleaseTickTimers();
 
    for (Locks::iterator it=g_locks.begin(), end=g_locks.end(); it != end; ++it) {
       delete it->second;

@@ -2,17 +2,15 @@
 #include "expander.h"
 
 
-// ticktimer data
+// ticktimer metadata
 struct TICK_TIMER_DATA {
-   uint  id;                                          // timer id
-   HWND  hWnd;                                        // chart window to receive ticks
-   DWORD flags;                                       // timer configuration
-   DWORD userdata1;                                   // storage for user data (e.g. cookies)
-   DWORD userdata2;                                   // ...
-   DWORD userdata3;                                   // ...
+   uint   timerId;                              // timer id
+   HANDLE hTimer;                               // timer handle if the timer is a queued timer, NULL otherwise
+   HWND   hWnd;                                 // chart window to receive virtual ticks
+   DWORD  flags;                                // tick configuration
 };
 
 
 uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags = NULL);
 BOOL WINAPI RemoveTickTimer(uint timerId);
-void WINAPI RemoveTickTimers();
+void WINAPI ReleaseTickTimers();

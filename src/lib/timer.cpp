@@ -9,43 +9,32 @@ std::vector<TICK_TIMER_DATA> tickTimers;                 // all registered tickt
 
 
 /**
- * Callback function for custom WM_TIMER messages.
+ * Callback function for tick timer events.
  *
- * @param  HWND     hWnd    - handle of the window associated with the timer
- * @param  UINT     msg     - WM_TIMER message
- * @param  UINT_PTR timerId - the timer's identifier
- * @param  DWORD    time    - timer event creation time in system ticks as returned by GetTickCount()
+ * @param  TICK_TIMER_DATA* ttd        - tick timer configuration as passed to CreateTimerQueueTimer()
+ * @param  BOOLEAN          timerFired - always TRUE for queued timer callbacks
  */
-VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
-   int size = tickTimers.size();
-   GetTickCount();
+VOID CALLBACK TickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
+   debug("tick timer event: id=%d  hWnd=%p  flags=%d", ttd->timerId, ttd->hWnd, ttd->flags);
 
-   for (int i=0; i < size; i++) {
-      if (tickTimers[i].id == timerId) {
-         TICK_TIMER_DATA &ttd = tickTimers[i];
+   if (ttd->flags & TICK_IF_VISIBLE) {                // check if the chart is visible
+      RECT rect;
+      HDC hDC = GetDC(ttd->hWnd);
+      int rgn = GetClipBox(hDC, &rect);
+      ReleaseDC(ttd->hWnd, hDC);
 
-         if (ttd.flags & TICK_IF_VISIBLE) {              // check if the chart is visible
-            RECT rect;
-            HDC hDC = GetDC(hWnd);
-            int rgn = GetClipBox(hDC, &rect);
-            ReleaseDC(hWnd, hDC);
-
-            if (rgn == NULLREGION)                       // skip timer event if the chart is completely invisible
-               return;
-            if (rgn == RGN_ERROR) {
-               warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
-               return;
-            }
-         }
-         if (ttd.flags & TICK_PAUSE_ON_WEEKEND) {}       // skip timer event on weekends: not yet implemented
-
-         if      (ttd.flags & TICK_CHART_REFRESH) PostMessage(hWnd, WM_COMMAND, ID_CHART_REFRESH, 0);
-         else if (ttd.flags & TICK_TESTER)        PostMessage(hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-         else                                     PostMessage(hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // a standard tick
+      if (rgn == NULLREGION)                          // skip timer event if the chart is completely invisible
+         return;
+      if (rgn == RGN_ERROR) {
+         warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
          return;
       }
    }
-   warn(ERR_RUNTIME_ERROR, "timer not found, id: %d", timerId);
+   if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
+
+   if      (ttd->flags & TICK_CHART_REFRESH) PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);
+   else if (ttd->flags & TICK_TESTER)        PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
+   else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // standard tick
 }
 
 
@@ -65,30 +54,27 @@ VOID CALLBACK TimerCallback(HWND hWnd, UINT msg, UINT_PTR timerId, DWORD time) {
  */
 uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    // validate parameters
-   DWORD wndThreadId = GetWindowThreadProcessId(hWnd, NULL);
-   if (wndThreadId != GetCurrentThreadId()) {
-      if (!wndThreadId)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %p (not a window)", hWnd));
-                                                          return(error(ERR_INVALID_PARAMETER, "window hWnd=%p not owned by the current thread", hWnd));
-   }
+   DWORD processId = NULL;
+   DWORD threadId = GetWindowThreadProcessId(hWnd, &processId);
+   if (!threadId)                                         return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd=%p (not a window)", hWnd));
+   if (processId != GetCurrentProcessId())                return(error(ERR_INVALID_PARAMETER, "window hWnd=%p is not owned by the current process", hWnd));
    if ((int)millis <= 0)                                  return(error(ERR_INVALID_PARAMETER, "invalid parameter millis: %d", (int)millis));
-   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter flags combination: TICK_CHART_REFRESH & TICK_TESTER"));
+   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter flags: combination of TICK_CHART_REFRESH & TICK_TESTER"));
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
-   // generate a timer id (starting at 10000)
-   static uint timerId = 10000;
-   timerId++;
+   // generate a new timer id and store timer metadata
+   static uint lastTimerId = 0;                             // simple counter
+   uint timerId = ++lastTimerId;
+   TICK_TIMER_DATA data = {timerId, NULL, hWnd, flags};
+   tickTimers.push_back(data);                              // TODO: avoid push_back() creating a copy
+   TICK_TIMER_DATA &ttd = tickTimers.back();
 
-   // set the timer
-   uint result = SetTimer(hWnd, timerId, millis, (TIMERPROC)TimerCallback);
-   if (result != timerId)                             // equal if hWnd is set
-      return(error(ERR_WIN32_ERROR+GetLastError(), "SetTimer(hWnd=%p, timerId=%d, millis=%d) => %d", hWnd, timerId, millis, result));
-   //debug("SetTimer(hWnd=%d, timerId=%d, millis=%d) success", hWnd, timerId, millis);
+   // create the timer
+   if (!CreateTimerQueueTimer(&ttd.hTimer, NULL, (WAITORTIMERCALLBACK)TickTimerEvent, (void*)&ttd, millis, millis, WT_EXECUTEINTIMERTHREAD))
+      return(error(ERR_WIN32_ERROR+GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis));
 
-   // store timer metadata
-   TICK_TIMER_DATA ttd = {timerId, hWnd, flags};
-   tickTimers.push_back(ttd);                         // TODO: avoid push_back() creating a copy
-
-   return(timerId);
+   debug("tick timer created: id=%d  hTimer=%p  interval=%d", ttd.timerId, ttd.hTimer, millis);
+   return(ttd.timerId);
    #pragma EXPANDER_EXPORT
 }
 
@@ -103,31 +89,39 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
 BOOL WINAPI RemoveTickTimer(uint timerId) {
    if ((int)timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId: %d", timerId));
 
-   uint timersSize = tickTimers.size();
+   uint size = tickTimers.size();
 
-   for (uint i=0; i < timersSize; i++) {
-      if (tickTimers[i].id == timerId) {
-         if (!KillTimer(tickTimers[i].hWnd, timerId))
-            return(error(ERR_WIN32_ERROR+GetLastError(), "KillTimer(hWnd=%p, timerId=%d)", tickTimers[i].hWnd, timerId));
-         tickTimers.erase(tickTimers.begin() + i);
+   for (uint i=0; i < size; i++) {
+      TICK_TIMER_DATA &ttd = tickTimers[i];
+
+      if (ttd.timerId == timerId) {
+         if (HANDLE hTimer = ttd.hTimer) {
+            ttd.hTimer = NULL;                           // reset handle to prevent multiple release errors
+            DeleteTimerQueueTimer(NULL, hTimer, NULL) || error(ERR_WIN32_ERROR+GetLastError(), "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
+            debug("tick timer removed: id=%d  hTimer=%p", timerId, hTimer);
+         }
+         else warn(ERR_ILLEGAL_STATE, "tick timer already released: id=%d", timerId);
          return(TRUE);
       }
    }
 
-   return(error(ERR_RUNTIME_ERROR, "timer not found, id: %d", timerId));
+   return(warn(ERR_ILLEGAL_STATE, "tick timer not found: id=%d", timerId));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Clean-up and remove all remaining timers (forgotten to release). Called only in DLL::onProcessDetach().
+ * Clean-up and release all unreleased tick timers. Called only in DLL::onProcessDetach().
  */
-void WINAPI RemoveTickTimers() {
-   uint timersSize = tickTimers.size();
+void WINAPI ReleaseTickTimers() {
+   uint size = tickTimers.size();
 
-   for (uint i=timersSize-1; i>=0; i--) {             // iterate backwards as RemoveTickTimer() modifies the vector
-      uint id = tickTimers[i].id;
-      warn(NO_ERROR, "removing orphaned tick timer (id: %d)", id);
-      RemoveTickTimer(id);
+   for (uint i=0; i < size; i++) {
+      TICK_TIMER_DATA &ttd = tickTimers[i];
+
+      if (ttd.hTimer) {
+         warn(NO_ERROR, "releasing orphaned tick timer: id=%d", ttd.timerId);
+         RemoveTickTimer(ttd.timerId);
+      }
    }
 }
