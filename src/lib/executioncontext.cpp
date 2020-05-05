@@ -1846,11 +1846,11 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
 
          // (1) indicator was loaded manually                        // we have no super context
          //     (1.1) not in Tester:                     chart exists, title is set and doesn't end with "(visual)"
-         //     (1.2) in Tester:                         chart exists, title is set and does    end with "(visual)"
+         //     (1.2) in Tester:                         chart exists, title is set and ends with        "(visual)"
 
          // (2) indicator was loaded by template
          //     (2.1) not in Tester:                     chart exists, title is empty or doesn't end with "(visual)"
-         //     (2.2) in Tester:                         chart exists, title is set and does     end with "(visual)"
+         //     (2.2) in Tester:                         chart exists, title is set and ends with         "(visual)"
          //     (2.3) in Tester                       or chart doesn't exist with VisualMode=Off
          HWND hWnd = ec->hChartWindow;
          if (!hWnd) return(TRUE);                                    // (2.3) no chart => in Tester with VisualMode=Off
