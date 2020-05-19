@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "expander.h"
 #include "struct/mt4/MqlString.h"
 
 

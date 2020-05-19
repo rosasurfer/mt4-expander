@@ -260,6 +260,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\lib\ssa.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\lib\string.h"
 					>
 				</File>
@@ -692,6 +696,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\ssa.cpp"
+					>
 				</File>
 				<File
 					RelativePath=".\src\lib\string.cpp"
