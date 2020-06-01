@@ -87,15 +87,13 @@ const char* WINAPI GetExpanderFileNameA() {
 
 
 /**
- * Get the module handle of the current module, i.e. of this DLL.
+ * Get the module handle of the loaded MT4Expander DLL in Windows 2000.
  *
- * @return HMODULE - DLL module handle (not the terminal.exe's module handle)
- *
- * Note: backward-compatible to Windows 2000
+ * @return HMODULE - DLL module handle
  */
-HMODULE WINAPI GetLibraryModuleW2K() {
+HMODULE WINAPI GetExpanderModuleW2K() {
    MEMORY_BASIC_INFORMATION mbi = {};
-   VirtualQuery(GetLibraryModuleW2K, &mbi, sizeof(mbi));
+   VirtualQuery(GetExpanderModuleW2K, &mbi, sizeof(mbi));
    return((HMODULE)mbi.AllocationBase);
    #pragma EXPANDER_EXPORT
 }

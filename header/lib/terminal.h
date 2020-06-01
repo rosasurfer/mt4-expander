@@ -8,7 +8,7 @@ extern "C" IMAGE_DOS_HEADER     __ImageBase;             // this DLL's module ha
 
 HWND                    WINAPI FindInputDialog(ProgramType programType, const char* programName);
 const char*             WINAPI GetExpanderFileNameA();
-HMODULE                 WINAPI GetLibraryModuleW2K();
+HMODULE                 WINAPI GetExpanderModuleW2K();
 HMODULE                 WINAPI GetLibraryModuleXP();
 const char*             WINAPI GetMqlDirectoryA();
 uint                    WINAPI GetTerminalBuild();
