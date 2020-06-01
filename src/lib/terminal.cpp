@@ -87,7 +87,7 @@ const char* WINAPI GetExpanderFileNameA() {
 
 
 /**
- * Get the module handle of the loaded MT4Expander DLL in Windows 2000.
+ * Get the module handle of the loaded MT4Expander DLL under Windows 2000.
  *
  * @return HMODULE - DLL module handle
  */
@@ -100,15 +100,13 @@ HMODULE WINAPI GetExpanderModuleW2K() {
 
 
 /**
-* Get the module handle of the current module, i.e. of this DLL.
+ * Get the module handle of the loaded MT4Expander DLL under Windows XP, Windows Server 2003 or higher.
  *
- * @return HMODULE - DLL module handle (not the terminal.exe's module handle)
- *
- * Note: requires at least Windows XP or Windows Server 2003
+ * @return HMODULE - DLL module handle
  */
-HMODULE WINAPI GetLibraryModuleXP() {
+HMODULE WINAPI GetExpanderModuleXP() {
    HMODULE hModule = NULL;
-   GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetLibraryModuleXP, &hModule);
+   GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetExpanderModuleXP, &hModule);
    return(hModule);
    #pragma EXPANDER_EXPORT
 }
