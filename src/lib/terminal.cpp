@@ -66,7 +66,7 @@ HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
  *
  * @return char* - filename or a NULL pointer in case of errors
  */
-const char* WINAPI GetLibraryModuleFileNameA() {
+const char* WINAPI GetExpanderFileNameA() {
    static char* filename;
 
    if (!filename) {
@@ -291,7 +291,7 @@ const char* WINAPI GetTerminalDataPathA() {
    return(dataPath);
    #pragma EXPANDER_EXPORT
 
-   //StrEndsWith(GetLibraryModuleFileNameA(), "Release.dll") && debug("%s", GetLibraryModuleFileNameA());
+   //StrEndsWith(GetExpanderFileNameA(), "Release.dll") && debug("%s", GetExpanderFileNameA());
 }
 
 
