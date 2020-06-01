@@ -11,9 +11,6 @@
 #include <shlobj.h>
 
 
-uint g_terminalBuild;                                 // terminal build number
-
-
 /**
  * Find the window handle of the "Input parameters" dialog of the MQL program matching the specified type and
  * case-insensitive name.
@@ -125,8 +122,8 @@ const char* WINAPI GetMqlDirectoryA() {
       if (!dataPath) return(NULL);
 
       string dir(dataPath);
-      if (g_terminalBuild <= 509) dir.append("\\experts");
-      else                        dir.append("\\mql4");
+      if (GetTerminalBuild() <= 509) dir.append("\\experts");
+      else                           dir.append("\\mql4");
 
       mqlDirectory = strdup(dir.c_str());
    }
@@ -211,23 +208,48 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
  */
 const char* WINAPI GetTerminalDataPathA() {
+   // 1) Is old terminal or launched in portable mode?
+   //    yes => data path is installation directory (independant of write permissions, redirection to VirtualStore where appropriate)
+   //    no  => new terminal in non-portable mode with UAC-aware behaviour => (2)
    //
-   // 1. check if old build or launched in portable mode
-   // 1.1  yes => use installation directory (WoW64 redirection of old builds to the virtual store)                  !!! nonsense
-   // 1.2  no  => new build in standard mode
-   //      2. check if the executable was removed (the terminal removed a reparse point)
-   //      2.1  yes
-   //           3. check if a locked logfile exists
-   //           3.1  yes => use the directory (write permission granted)
-   //           3.2  no  => use roaming data directory
-   //      2.2  no
-   //           4. explicitely check write permission (the logfile location may be symlinked)
-   //              4.1  permission granted => use the directory
-   //              4.2  permission denied  => use roaming data directory
+   // 2) Check UAC status
+   //    on  => data path is %AppData%\Roaming (additionally we may cross-check for a locked terminal log)
+   //    off => (3)
+   //
+   // 2) Check locked terminal logs in %InstallDir% and %AppData%\Roaming
+   //    1 locked logfile  => data path according to locked logfile
+   //    2 locked logfiles => ambiguous: preferred data path is %AppData%\Roaming                     // room for error
+   //    0 locked logfiles => error
    //
    static char* dataPath;
 
    if (!dataPath) {
+
+      if (TerminalIsPortableMode()) {
+         //
+      }
+      else {
+         // continue with (2)
+      }
+
+
+
+
+
+
+
+      // 1. check if old build or launched in portable mode
+      // 1.1  yes => use installation directory (WoW64 redirection of old builds to the virtual store)
+      // 1.2  no  => new build in standard mode
+      //      2. check if the executable was removed (the terminal removed a reparse point)
+      //      2.1  yes
+      //           3. check if a locked logfile exists
+      //           3.1  yes => use the directory (write permission granted)
+      //           3.2  no  => use roaming data directory
+      //      2.2  no
+      //           4. explicitely check write permission (the logfile location may be symlinked)
+      //              4.1  permission granted => use the directory
+      //              4.2  permission denied  => use roaming data directory
       const char* terminalPath    = GetTerminalPathA();
       const char* roamingDataPath = GetTerminalRoamingDataPathA();
 
@@ -550,7 +572,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
          break;
 
       case PT_EXPERT:
-         file.append(g_terminalBuild <= 509 ? "\\":"\\experts\\").append(programName).append(".ex4");
+         file.append(GetTerminalBuild() <= 509 ? "\\":"\\experts\\").append(programName).append(".ex4");
          cmd = MT4_LOAD_EXPERT;
          break;
 
@@ -667,10 +689,10 @@ BOOL WINAPI TerminalIsPortableMode() {
    static int isPortable = -1;
 
    if (isPortable < 0) {
-      if (!g_terminalBuild)
-         return(FALSE);
+      static uint terminalBuild = GetTerminalBuild();
+      if (!terminalBuild) return(FALSE);
 
-      if (g_terminalBuild <= 509) {
+      if (terminalBuild <= 509) {
          isPortable = TRUE;                                    // always TRUE, on access errors the system uses virtualization
       }
       else {
