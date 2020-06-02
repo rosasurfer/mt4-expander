@@ -25,6 +25,4 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile();
 const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage();
 BOOL                    WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName);
 BOOL                    WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName);
-BOOL                    WINAPI TerminalHasWritePermission(const char* dir);
-BOOL                    WINAPI TerminalIsLockedLogfile(const string &filename);
 BOOL                    WINAPI TerminalIsPortableMode();
