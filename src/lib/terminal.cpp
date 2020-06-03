@@ -11,9 +11,6 @@
 #include <shlobj.h>
 
 
-uint g_terminalBuild;                                 // terminal build number
-
-
 /**
  * Find the window handle of the "Input parameters" dialog of the MQL program matching the specified type and
  * case-insensitive name.
@@ -62,11 +59,40 @@ HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
 
 
 /**
+ * Whether the specified file exists and is locked with the sharing modes of a terminal logfile. The function cannot see which
+ * process is holding a lock.
+ *
+ * @param  string &filename - full filename
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsLockedFile(const string &filename) {
+   if (IsFileA(filename.c_str())) {
+      // OF_READWRITE|OF_SHARE_COMPAT must succeed
+      HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
+      if (hFile == HFILE_ERROR)
+         return(FALSE);
+      _lclose(hFile);                                                // success
+
+      // OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
+      hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
+      if (hFile == HFILE_ERROR)
+         return(GetLastError() == ERROR_SHARING_VIOLATION);
+      _lclose(hFile);                                                // success is an error
+   }
+   else {
+      //debug("file not found: %s", filename.c_str());
+   }
+   return(FALSE);
+}
+
+
+/**
  * Return the full filename of the loaded MT4Expander DLL.
  *
  * @return char* - filename or a NULL pointer in case of errors
  */
-const char* WINAPI GetLibraryModuleFileNameA() {
+const char* WINAPI GetExpanderFileNameA() {
    static char* filename;
 
    if (!filename) {
@@ -75,9 +101,9 @@ const char* WINAPI GetLibraryModuleFileNameA() {
       while (length >= size) {
          size <<= 1;
          buffer = (char*) alloca(size);                              // on the stack
-         length = GetModuleFileName(HMODULE_DLL, buffer, size);      // may return a path longer than MAX_PATH
+         length = GetModuleFileNameA(HMODULE_DLL, buffer, size);     // may return a path longer than MAX_PATH
       }
-      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
+      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameA()"));
 
       filename = strdup(buffer);                                     // on the heap
    }
@@ -87,30 +113,26 @@ const char* WINAPI GetLibraryModuleFileNameA() {
 
 
 /**
- * Get the module handle of the current module, i.e. of this DLL.
+ * Get the module handle of the loaded MT4Expander DLL under Windows 2000.
  *
- * @return HMODULE - DLL module handle (not the terminal.exe's module handle)
- *
- * Note: backward-compatible to Windows 2000
+ * @return HMODULE - DLL module handle
  */
-HMODULE WINAPI GetLibraryModuleW2K() {
+HMODULE WINAPI GetExpanderModuleW2K() {
    MEMORY_BASIC_INFORMATION mbi = {};
-   VirtualQuery(GetLibraryModuleW2K, &mbi, sizeof(mbi));
+   VirtualQuery(GetExpanderModuleW2K, &mbi, sizeof(mbi));
    return((HMODULE)mbi.AllocationBase);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Get the module handle of the current module (i.e. the module handle of this DLL).
+ * Get the module handle of the loaded MT4Expander DLL under Windows XP, Windows Server 2003 or higher.
  *
- * @return HMODULE - DLL module handle (not the module handle of "terminal.exe")
- *
- * Note: requires at least Windows XP or Windows Server 2003
+ * @return HMODULE - DLL module handle
  */
-HMODULE WINAPI GetLibraryModuleXP() {
+HMODULE WINAPI GetExpanderModuleXP() {
    HMODULE hModule = NULL;
-   GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetLibraryModuleXP, &hModule);
+   GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetExpanderModuleXP, &hModule);
    return(hModule);
    #pragma EXPANDER_EXPORT
 }
@@ -119,7 +141,7 @@ HMODULE WINAPI GetLibraryModuleXP() {
 /**
  * Return the full path of the MQL directory the terminal currently uses.
  *
- * @return char* - MQL directory name as an ANSI string or a NULL pointer in case of errors
+ * @return char* - directory name or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
@@ -129,8 +151,8 @@ const char* WINAPI GetMqlDirectoryA() {
       if (!dataPath) return(NULL);
 
       string dir(dataPath);
-      if (g_terminalBuild <= 509) dir.append("\\experts");
-      else                        dir.append("\\mql4");
+      if (GetTerminalBuild() <= 509) dir.append("\\experts");
+      else                           dir.append("\\mql4");
 
       mqlDirectory = strdup(dir.c_str());
    }
@@ -140,7 +162,7 @@ const char* WINAPI GetMqlDirectoryA() {
 
 
 /**
- * Return the terminal's build number.
+ * Return the terminal's build number (same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL4.5).
  *
  * @return uint - build number or 0 in case of errors
  */
@@ -158,12 +180,12 @@ uint WINAPI GetTerminalBuild() {
 
 
 /**
- * Return the full path of the terminal's common data directory. This function emulates the functionality of
- * TerminalInfoString(TERMINAL_COMMONDATA_PATH)) introduced by MQL4.5. The common data directory is shared between all
- * terminals installed by a user. The function does not check if the returned path exists.
+ * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
+ * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does
+ * not check whether the returned directory exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
- *                 e.g. %UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common
+ * @return char* - directory name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
    static char* result;
@@ -182,49 +204,49 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
 
 /**
- * Return the full path of the data directory the terminal currently uses.
+ * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
+ * introduced in MQL4.5). The function does not check whether the returned directory exists.
  *
- * @return char* - data directory name or a NULL pointer in case of errors
- *
- *
- * VirtualStore: File and Registry Virtualization (since Vista)
- * ============================================================
- * - Used on write to a protected directory without a full administrator access token.
- * - Affected programs cannot tell the difference between their native folder and the VirtualStore.
- * - File changes are redirected to %UserProfile%\AppData\Local\VirtualStore.
- * - Protected file system locations (including subfolders):
- *   %ProgramFiles%     e.g. "C:\Program Files"
- *   %AllUsersProfile%  e.g. "C:\ProgramData" (previously "C:\Documents and Settings\All Users")
- *   %SystemRoot%       e.g. "C:\Windows"
- *
- *
- * Roaming Data Directory (since terminal build 600)
- * =================================================
- * Used in the following cases:
- *   - If UAC system is enabled. Exception: The terminal is installed in a non-protected location or runs in portable mode.
- *   - If the current user has limited rights to write data to the installation directory.
- *
- * If none of the above conditions is true data is stored in the installation directory.
- *
- *
- * @see  https://www.mql5.com/en/articles/1388
- * @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
- * @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
+ * @return char* - directory name or a NULL pointer in case of errors, e.g. "%ProgramFiles%\MetaTrader4"
  */
 const char* WINAPI GetTerminalDataPathA() {
+   // VirtualStore: File and Registry Virtualization (since Vista)
+   // ------------------------------------------------------------
+   // - Used on write to a protected directory without a full administrator access token.
+   // - Affected programs cannot tell the difference between their native folder and the VirtualStore.
+   // - File changes are redirected to %UserProfile%\AppData\Local\VirtualStore.
+   // - Protected file system locations:
+   //    %ProgramFiles%     e.g. "C:\Program Files"
+   //    %AllUsersProfile%  e.g. "C:\ProgramData" (previously "C:\Documents and Settings\All Users")
+   //    %SystemRoot%       e.g. "C:\Windows"
    //
-   // 1. check if old build or launched in portable mode
-   // 1.1  yes => use installation directory (WoW64 redirection of old builds to the virtual store)
-   // 1.2  no  => new build in standard mode
-   //      2. check if the executable was removed (the terminal removed a reparse point)
-   //      2.1  yes
-   //           3. check if a locked logfile exists
-   //           3.1  yes => use the directory (write permission granted)
-   //           3.2  no  => use roaming data directory
-   //      2.2  no
-   //           4. explicitely check write permission (the logfile location may be linked)
-   //              4.1  permission granted => use the directory
-   //              4.2  permission denied  => use roaming data directory
+   //
+   // Roaming Data Directory (terminal build > 509)
+   // ---------------------------------------------
+   // Used in any of the following cases if the terminal was not launched in portable mode:
+   //  - If UAC is enabled and the terminal was not launched from a portable device.
+   //  - If the user cannot write to the installation directory, e.g. a read-only network share.
+   //  - If the user is working via remote desktop (RDP).
+   //
+   // If none of these conditions apply data is stored in the installation directory.
+   //
+   // @see  https://www.mql5.com/en/articles/1388
+   // @see  https://social.technet.microsoft.com/wiki/contents/articles/6083.windows-xp-folders-and-locations-vs-windows-7-and-vista.aspx
+   // @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
+   //
+   //
+   // 1) Is terminal old or launched in portable mode?
+   //    yes => data path is %InstallDir% (independant of write permissions, redirection to VirtualStore where appropriate)
+   //    no  => new terminal in non-portable mode with UAC-aware behaviour => (2)
+   //
+   // 2) Check UAC status
+   //    on  => data path is "%UserProfile%\AppData\Roaming"
+   //    off => (3)
+   //
+   // 3) Check for locked terminal logs in "%InstallDir%" and "%UserProfile%\AppData\Roaming"
+   //    1 locked logfile  => data path according to locked logfile
+   //    2 locked logfiles => ambiguous: deliberately prefer "%UserProfile%\AppData\Roaming" (may cause errors)
+   //    0 locked logfiles => error
    //
    static char* dataPath;
 
@@ -232,45 +254,28 @@ const char* WINAPI GetTerminalDataPathA() {
       const char* terminalPath    = GetTerminalPathA();
       const char* roamingDataPath = GetTerminalRoamingDataPathA();
 
-      // 1. check if an old build or launched in portable mode
-      if (TerminalIsPortableMode()) {
-         // 1.1 yes => use installation directory (WoW64 redirection of old builds to the virtual store)
-         //debug("1.1  TerminalIsPortableMode() = TRUE");
-         dataPath = strdup(terminalPath);                               // on the heap
+      //BOOL debugOn = StrEndsWith(GetExpanderFileNameA(), "Release.dll");
+      //debugOn && debug("terminalPath:    %s", terminalPath);
+      //debugOn && debug("roamingDataPath: %s", roamingDataPath);
+
+      // 1) check portable mode
+      if (GetTerminalBuild() <= 509 || TerminalIsPortableMode()) {
+         // data path is always installation directory, independant of write permissions
+         dataPath = strdup(terminalPath);                                                 // on the heap
+         //debugOn && debug("TerminalBuild <= 509 || PortableMode = 1");
       }
+      // 2 check for locked terminal logs
       else {
-         // 1.2 no => new build in standard mode => 2. check if the executable was removed (the terminal removed a reparse point)
-         //debug("1.2  TerminalIsPortableMode() = FALSE");
+         const char* dateName = LocalTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log");
+         BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(dateName));
+         BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(dateName));
+         //debugOn && debug("TerminalBuild > 509 && PortableMode = 0");
+         //debugOn && debug("terminalPathIsLocked: %d", terminalPathIsLocked);
+         //debugOn && debug("roamingPathIsLocked:  %d", roamingPathIsLocked);
 
-         if (!IsFileA(GetTerminalModuleFileNameA())) {
-            //debug("2.1  the executable was removed");
-
-            // 2.1 yes => 3. check if a locked logfile exists
-            if (TerminalIsLockedLogfile(string(terminalPath).append(LocalTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log")))) {
-               // 3.1 yes => use the directory (write permission must exist)
-               //debug("3.1  a locked logfile exists");
-               dataPath = strdup(terminalPath);                         // on the heap
-            }
-            else {
-               // 3.2 no => use roaming data directory
-               //debug("3.2  a locked logfile doesn't exist");
-               dataPath = strdup(roamingDataPath);                      // on the heap
-            }
-         }
-         else {
-            //debug("2.1  the executable exists");
-            // 2.2 no => 4. check write permission (the logfile location may be linked)
-            if (TerminalHasWritePermission(terminalPath)) {
-               // 4.1 permission granted => use the directory
-               //debug("4.1  write permission in %s", terminalPath);
-               dataPath = strdup(terminalPath);                         // on the heap
-            }
-            else {
-               // 4.2 permission denied => use roaming data directory
-               //debug("4.2  no write permission in %s", terminalPath);
-               dataPath = strdup(roamingDataPath);                      // on the heap
-            }
-         }
+         if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap    // check UAC status
+         else if (terminalPathIsLocked) dataPath = strdup(terminalPath);                  // on the heap
+         else return((char*)error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
       }
    }
    return(dataPath);
@@ -316,7 +321,7 @@ HWND WINAPI GetTerminalMainWindow() {
  *
  * @return char* - filename or a NULL pointer in case of errors
  */
-const char* WINAPI GetTerminalModuleFileNameA() {
+const char* WINAPI GetTerminalFileNameA() {
    static char* filename;
 
    if (!filename) {
@@ -341,7 +346,7 @@ const char* WINAPI GetTerminalModuleFileNameA() {
  *
  * @return wchar* - filename or a NULL pointer in case of errors
  */
-const wchar* WINAPI GetTerminalModuleFileNameW() {
+const wchar* WINAPI GetTerminalFileNameW() {
    static wchar* filename;
 
    if (!filename) {
@@ -361,7 +366,8 @@ const wchar* WINAPI GetTerminalModuleFileNameW() {
 
 
 /**
- * Return the name of the terminal's installation directory.
+ * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
+ * introduced in MQL4.5).
  *
  * @return char* - directory name without trailing path separator
  */
@@ -369,7 +375,7 @@ const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
-      path = strdup(GetTerminalModuleFileNameA());                   // on the heap
+      path = strdup(GetTerminalFileNameA());                         // on the heap
       path[string(path).find_last_of("\\")] = '\0';
    }
    return(path);
@@ -378,15 +384,16 @@ const char* WINAPI GetTerminalPathA() {
 
 
 /**
- * Return the name of the terminal's installation directory.
+* Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
+* introduced in MQL4.5).
  *
  * @return wstring& - directory name or an empty string in case of errors
  */
-const wstring& WINAPI GetTerminalPathWS() {
+const wstring& WINAPI GetTerminalPathW() {
    static wstring path;
 
    if (path.empty()) {
-      const wchar* filename = GetTerminalModuleFileNameW();
+      const wchar* filename = GetTerminalFileNameW();
       if (filename) {
          wstring str(filename);
          path = str.substr(0, str.find_last_of(L"\\"));
@@ -397,11 +404,11 @@ const wstring& WINAPI GetTerminalPathWS() {
 
 
 /**
- * Return the full path of the terminal's roaming data directory. The function does not check if the returned path exists.
- * Depending on terminal version and runtime mode the currently used data directory may differ.
+ * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the data
+ * directory may differ. The function does not check if the returned path exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
- *                 i.e. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}"
+ * @return char* - directory name or a NULL pointer in case of errors
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
  *
  * @see  GetTerminalDataPath() to get the path of the data directory currently used
  */
@@ -413,7 +420,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
 
-      wstring terminalPath = GetTerminalPathWS();                                      // get terminal installation path
+      wstring terminalPath = GetTerminalPathW();                                       // get terminal installation path
       StrToUpper(terminalPath);                                                        // convert to upper case
       char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar));  // calculate MD5 hash
 
@@ -463,7 +470,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
    static VS_FIXEDFILEINFO* fileInfo;
 
    if (!fileInfo) {
-      const char* fileName = GetTerminalModuleFileNameA();
+      const char* fileName = GetTerminalFileNameA();
       DWORD fileInfoSize = GetFileVersionInfoSize(fileName, &fileInfoSize);
       if (!fileInfoSize) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize()"));
 
@@ -512,11 +519,11 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
 /**
  * Load a custom MQL program for execution on the specified chart.
  *
- * @param  HWND        hChart      - handle of the chart to load the program to = value of MQL::WindowHandle()
+ * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
  * @param  char*       programName - MQL program name (ANSI string)
  *
- * @return BOOL - whether the load command was successfully queued; not if the MQL program was indeed launched
+ * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
    if (hChart <= 0)                           return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not a window handle)", hChart));
@@ -535,7 +542,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
          break;
 
       case PT_EXPERT:
-         file.append(g_terminalBuild <= 509 ? "\\":"\\experts\\").append(programName).append(".ex4");
+         file.append(GetTerminalBuild() <= 509 ? "\\":"\\experts\\").append(programName).append(".ex4");
          cmd = MT4_LOAD_EXPERT;
          break;
 
@@ -566,11 +573,11 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
 /**
  * Load a custom MQL program for execution on the specified chart.
  *
- * @param  HWND        hChart      - handle of the chart to load the program to = value of MQL::WindowHandle()
+ * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
  * @param  wchar*      programName - MQL program name (Unicode string)
  *
- * @return BOOL - whether the load command was successfully queued; not if the MQL program was indeed launched
+ * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
@@ -588,82 +595,31 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 
 
 /**
- * Whether the terminal has write permission to the specified directory.
- *
- * @param  char* dir - directory name
- *
- * @return BOOL
- */
-BOOL WINAPI TerminalHasWritePermission(const char* dir) {
-   if (!IsDirectoryA(dir))
-      return(FALSE);
-
-   char tmpFilename[MAX_PATH];
-
-   if (!GetTempFileName(dir, "rsf", 0, tmpFilename))
-      return(FALSE);
-
-   if (!DeleteFile(tmpFilename))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "DeleteFile(%s)", tmpFilename));
-
-   return(TRUE);
-}
-
-
-/**
- * Whether the specified file exists and is locked with the sharing modes of a logfile. This function cannot see which
- * process is holding the lock.
- *
- * @param  string &filename - full filename
- *
- * @return BOOL
- */
-BOOL WINAPI TerminalIsLockedLogfile(const string &filename) {
-   if (IsFileA(filename.c_str())) {
-      // OF_READWRITE|OF_SHARE_COMPAT must succeed
-      HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
-      if (hFile == HFILE_ERROR)
-         return(FALSE);
-      _lclose(hFile);                                                // success
-
-      // OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
-      hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
-      if (hFile == HFILE_ERROR)
-         return(GetLastError() == ERROR_SHARING_VIOLATION);
-      _lclose(hFile);                                                // success is an error
-   }
-   else {
-      //debug("file not found: %s", filename.c_str());
-   }
-   return(FALSE);
-}
-
-
-/**
- * Whether the terminal was launched in portable mode.
+ * Whether the terminal operates in portable mode, i.e. it was launched with the command line parameter "/portable". In portable
+ * mode the terminal behaves like in Windows XP or ealier. It uses the installation directory for program data and ignores a
+ * UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
  *
  * @return BOOL
  *
- * Bug: The terminal's command line parser checks parameters incorrectly. It also enables the "portable mode" switch if one
- *      of the command line parameters *starts* with the string "/portable" (e.g. "/portablepoo" enables portable mode too).
- *      The logic of this function mirrors the bug.
+ * Note: The terminal also enables portable mode if a command line parameter only *starts* with the prefix "/portable".
+ *       For example the parameter "/portablepoo" enables portable mode, too. The function mirrors this behaviour.
  */
 BOOL WINAPI TerminalIsPortableMode() {
    static int isPortable = -1;
 
    if (isPortable < 0) {
-      if (!g_terminalBuild)
-         return(FALSE);
+      static uint terminalBuild = GetTerminalBuild();
+      if (!terminalBuild) return(FALSE);
 
-      if (g_terminalBuild <= 509) {
-         isPortable = TRUE;                                    // always TRUE, on access errors the system uses virtualization
+      if (terminalBuild <= 509) {
+         isPortable = TRUE;                                    // always TRUE
       }
       else {
          int argc;
          LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
          for (int i=1; i < argc; ++i) {
-            if (StrStartsWith(argv[i], L"/portable")) {        // StrStartsWith() instead of StrCompare()
+            if (StrStartsWith(argv[i], L"/portable")) {        // starts-with instead of compare
                isPortable = TRUE;
                break;
             }
@@ -673,5 +629,15 @@ BOOL WINAPI TerminalIsPortableMode() {
       }
    }
    return(isPortable);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+   debug("hello world: %s", "Radegast 3");
+   return(0);
    #pragma EXPANDER_EXPORT
 }

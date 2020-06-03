@@ -63,7 +63,7 @@ std::istream& getline(std::istream &is, std::string &line) {
    return(is);
 
    /*
-   char* fileName = "local-config.ini";
+   char* fileName = "terminal-config.ini";
    std::ifstream fs(fileName);
    if (fs) {
       string line;

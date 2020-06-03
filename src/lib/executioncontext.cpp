@@ -23,7 +23,6 @@ std::vector<DWORD> g_threads;                      // all known threads executin
 std::vector<uint>  g_threadsPrograms;              // pid of the last MQL program executed by a thread
 uint               g_lastUIThreadProgram;          // pid of the last MQL program executed by the UI thread
 CRITICAL_SECTION   g_terminalMutex;                // mutex for application-wide locking
-extern uint        g_terminalBuild;                // terminal build number
 
 
 struct RECOMPILED_MODULE {                         // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
@@ -1395,7 +1394,7 @@ uint WINAPI GetCurrentThreadIndex() {
    uint index = g_threads.size() - 1;
    LeaveCriticalSection(&g_terminalMutex);
 
-   if (index > 512) debug("thread %d added (size=%d)", currentThread, index+1);
+   if (index > 768) debug("thread %d added (size=%d)", currentThread, index+1);
    return(index);
 }
 
@@ -1503,13 +1502,15 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    - Build 577:     onInitTimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
    -----------------------------------------------------------------------------------------------------------------------------------
    */
-   BOOL isUIThread = IsUIThread();
+   static uint terminalBuild = GetTerminalBuild();
+   if (!terminalBuild) return((InitializeReason)NULL);
 
+   BOOL isUIThread = IsUIThread();
 
    // (1) UR_PARAMETERS
    if (uninitReason == UR_PARAMETERS) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_PARAMETERS:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_PARAMETERS:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
       BOOL isProgramNew;
       uint pid = ec->pid;
@@ -1518,7 +1519,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       }
       else {
          pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
-         if (!pid && g_terminalBuild >= 654) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
+         if (!pid && terminalBuild >= 654) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_PARAMETERS  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid  = pid;
          isProgramNew = !pid;
       }
@@ -1530,7 +1531,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (2) UR_CHARTCHANGE
    if (uninitReason == UR_CHARTCHANGE) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCHANGE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCHANGE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
       uint pid = ec->pid;
       if (!pid) {
@@ -1548,19 +1549,19 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    if (uninitReason == UR_UNDEFINED) {
       // außerhalb iCustom(): je nach Umgebung
       if (!sec) {
-         if (g_terminalBuild < 654) return(IR_TEMPLATE);             // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
-         if (droppedOnChart >= 0)   return(IR_TEMPLATE);
-         else                       return(IR_USER    );             // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
+         if (terminalBuild < 654) return(IR_TEMPLATE);               // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
+         if (droppedOnChart >= 0) return(IR_TEMPLATE);
+         else                     return(IR_USER    );               // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
       }
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
-         if (g_terminalBuild <= 229) {
+         if (terminalBuild <= 229) {
             uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
             if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_UNDEFINED  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
             previousPid = pid;
             return(IR_PROGRAM_AFTERTEST);
          }
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_UNDEFINED:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_UNDEFINED:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       }
       return(IR_PROGRAM);
    }
@@ -1569,22 +1570,22 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (4) UR_REMOVE
    if (uninitReason == UR_REMOVE) {
       // außerhalb iCustom(): nie
-      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
       if (!pid)                      return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_REMOVE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
 
-      if (!isVisualMode/*Fix*/ && 388<=g_terminalBuild && g_terminalBuild<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
-      if ( isVisualMode/*Fix*/ && 578<=g_terminalBuild && g_terminalBuild<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (!isVisualMode/*Fix*/ && 388<=terminalBuild && terminalBuild<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
+      if ( isVisualMode/*Fix*/ && 578<=terminalBuild && terminalBuild<=628) { previousPid = pid; return(IR_PROGRAM_AFTERTEST); }
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
    // (5) UR_RECOMPILE
    if (uninitReason == UR_RECOMPILE) {
       // innerhalb iCustom(): nie
-      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_RECOMPILE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (sec) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_RECOMPILE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // außerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
 
       uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
@@ -1598,16 +1599,16 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    // (6) UR_CHARTCLOSE
    if (uninitReason == UR_CHARTCLOSE) {
       // außerhalb iCustom(): nie
-      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (!sec)                      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
-      if (g_terminalBuild >= 633) {
+      if (!isTesting || !isUIThread) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      if (terminalBuild >= 633) {
          uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
          if (!pid) return((InitializeReason)error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_CHARTCLOSE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
          previousPid = pid;
          return(IR_PROGRAM_AFTERTEST);
       }
-      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+      return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
    }
 
 
@@ -1616,10 +1617,10 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
       case UR_TEMPLATE:      // build > 509
       case UR_INITFAILED:    // ...
       case UR_CLOSE:         // ...
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected %s:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", UninitializeReasonToStr(uninitReason), sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected %s:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", UninitializeReasonToStr(uninitReason), sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
    }
 
-   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", uninitReason, sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", g_terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
+   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", uninitReason, sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
 }
 
 
@@ -1639,6 +1640,9 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
 InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
    //debug("uninitReason=%s  testing=%d  droppedX=%d  droppedY=%d  build=%d", UninitReasonToStr(uninitReason), isTesting, droppedOnPosX, droppedOnPosY, build);
 
+   static uint terminalBuild = GetTerminalBuild();
+   if (!terminalBuild) return((InitializeReason)NULL);
+
    // UR_PARAMETERS                                      // input parameters changed
    if (uninitReason == UR_PARAMETERS) {
       return(IR_PARAMETERS);
@@ -1647,7 +1651,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
    // UR_CHARTCHANGE                                     // chart symbol or period changed
    if (uninitReason == UR_CHARTCHANGE) {
       int pid = ec->pid;
-      if (!pid) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.pid=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
+      if (!pid) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (ec.pid=0  Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, terminalBuild));
       char* masterSymbol = (*g_mqlPrograms[pid])[0]->symbol;
       if (StrCompare(masterSymbol, symbol)) return(IR_TIMEFRAMECHANGE);
       else                                  return(IR_SYMBOLCHANGE);
@@ -1660,7 +1664,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
 
    // UR_CHARTCLOSE                                      // loaded into an existing chart after new template was loaded
    if (uninitReason == UR_CHARTCLOSE) {                  // (old builds only, corresponds to UR_TEMPLATE of new builds)
-      if (g_terminalBuild > 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
+      if (terminalBuild > 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, terminalBuild));
       return(IR_USER);
    }
 
@@ -1683,7 +1687,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
 
    // UR_TEMPLATE                                        // loaded into an existing chart after a previously loaded one was removed by LoadTemplate()
    if (uninitReason == UR_TEMPLATE) {
-      if (g_terminalBuild <= 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
+      if (terminalBuild <= 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, terminalBuild));
       if (droppedOnPosX >= 0)     return(IR_USER);       // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
       HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
       if (hWndDlg)                return(IR_TERMINAL_FAILURE);
@@ -1694,9 +1698,9 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
       case UR_ACCOUNT:
       case UR_CLOSE:
       case UR_INITFAILED:
-         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, g_terminalBuild));
+         return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, terminalBuild));
    }
-   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d (Testing=%d  build=%d)", uninitReason, isTesting, g_terminalBuild));
+   return((InitializeReason)error(ERR_ILLEGAL_STATE, "unknown UninitializeReason %d (Testing=%d  build=%d)", uninitReason, isTesting, terminalBuild));
 }
 
 
@@ -1846,11 +1850,11 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
 
          // (1) indicator was loaded manually                        // we have no super context
          //     (1.1) not in Tester:                     chart exists, title is set and doesn't end with "(visual)"
-         //     (1.2) in Tester:                         chart exists, title is set and does    end with "(visual)"
+         //     (1.2) in Tester:                         chart exists, title is set and ends with        "(visual)"
 
          // (2) indicator was loaded by template
          //     (2.1) not in Tester:                     chart exists, title is empty or doesn't end with "(visual)"
-         //     (2.2) in Tester:                         chart exists, title is set and does     end with "(visual)"
+         //     (2.2) in Tester:                         chart exists, title is set and ends with         "(visual)"
          //     (2.3) in Tester                       or chart doesn't exist with VisualMode=Off
          HWND hWnd = ec->hChartWindow;
          if (!hWnd) return(TRUE);                                    // (2.3) no chart => in Tester with VisualMode=Off
