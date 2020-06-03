@@ -240,12 +240,12 @@ const char* WINAPI GetTerminalDataPathA() {
    //    no  => new terminal in non-portable mode with UAC-aware behaviour => (2)
    //
    // 2) Check UAC status
-   //    on  => data path is %AppData%\Roaming
+   //    on  => data path is "%UserProfile%\AppData\Roaming"
    //    off => (3)
    //
-   // 3) Check for locked terminal logs in %InstallDir% and %AppData%\Roaming
+   // 3) Check for locked terminal logs in "%InstallDir%" and "%UserProfile%\AppData\Roaming"
    //    1 locked logfile  => data path according to locked logfile
-   //    2 locked logfiles => ambiguous: deliberately prefer %AppData%\Roaming (may cause errors)
+   //    2 locked logfiles => ambiguous: deliberately prefer "%UserProfile%\AppData\Roaming" (may cause errors)
    //    0 locked logfiles => error
    //
    static char* dataPath;
@@ -254,24 +254,24 @@ const char* WINAPI GetTerminalDataPathA() {
       const char* terminalPath    = GetTerminalPathA();
       const char* roamingDataPath = GetTerminalRoamingDataPathA();
 
-      BOOL debugOn = StrEndsWith(GetExpanderFileNameA(), "Release.dll");
-      debugOn && debug("terminalPath:    %s", terminalPath);
-      debugOn && debug("roamingDataPath: %s", roamingDataPath);
+      //BOOL debugOn = StrEndsWith(GetExpanderFileNameA(), "Release.dll");
+      //debugOn && debug("terminalPath:    %s", terminalPath);
+      //debugOn && debug("roamingDataPath: %s", roamingDataPath);
 
       // 1) check portable mode
       if (GetTerminalBuild() <= 509 || TerminalIsPortableMode()) {
          // data path is always installation directory, independant of write permissions
          dataPath = strdup(terminalPath);                                                 // on the heap
-         debugOn && debug("TerminalBuild <= 509 || PortableMode = 1");
+         //debugOn && debug("TerminalBuild <= 509 || PortableMode = 1");
       }
       // 2 check for locked terminal logs
       else {
          const char* dateName = LocalTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log");
          BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(dateName));
          BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(dateName));
-         debugOn && debug("TerminalBuild > 509 && PortableMode = 0");
-         debugOn && debug("terminalPathIsLocked: %d", terminalPathIsLocked);
-         debugOn && debug("roamingPathIsLocked:  %d", roamingPathIsLocked);
+         //debugOn && debug("TerminalBuild > 509 && PortableMode = 0");
+         //debugOn && debug("terminalPathIsLocked: %d", terminalPathIsLocked);
+         //debugOn && debug("roamingPathIsLocked:  %d", roamingPathIsLocked);
 
          if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap    // check UAC status
          else if (terminalPathIsLocked) dataPath = strdup(terminalPath);                  // on the heap
