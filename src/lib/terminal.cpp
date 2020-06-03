@@ -519,11 +519,11 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
 /**
  * Load a custom MQL program for execution on the specified chart.
  *
- * @param  HWND        hChart      - handle of the chart to load the program to = value of MQL::WindowHandle()
+ * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
  * @param  char*       programName - MQL program name (ANSI string)
  *
- * @return BOOL - whether the load command was successfully queued; not if the MQL program was indeed launched
+ * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
    if (hChart <= 0)                           return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not a window handle)", hChart));
@@ -573,11 +573,11 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
 /**
  * Load a custom MQL program for execution on the specified chart.
  *
- * @param  HWND        hChart      - handle of the chart to load the program to = value of MQL::WindowHandle()
+ * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
  * @param  wchar*      programName - MQL program name (Unicode string)
  *
- * @return BOOL - whether the load command was successfully queued; not if the MQL program was indeed launched
+ * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
