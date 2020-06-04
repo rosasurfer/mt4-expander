@@ -237,7 +237,7 @@ const char* WINAPI GetTerminalDataPathA() {
    //
    // 1) Is terminal old or launched in portable mode?
    //    yes => data path is %InstallDir% (independant of write permissions, redirection to VirtualStore where appropriate)
-   //    no  => new terminal in non-portable mode with UAC-aware behaviour => (2)
+   //    no  => new terminal in non-portable mode with UAC-aware behavior => (2)
    //
    // 2) Check UAC status
    //    on  => data path is "%UserProfile%\AppData\Roaming"
@@ -602,7 +602,7 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
  * @return BOOL
  *
  * Note: The terminal also enables portable mode if a command line parameter only *starts* with the prefix "/portable".
- *       For example the parameter "/portablepoo" enables portable mode, too. The function mirrors this behaviour.
+ *       For example the parameter "/portablepoo" enables portable mode, too. The function mirrors this behavior.
  */
 BOOL WINAPI TerminalIsPortableMode() {
    static int isPortable = -1;

@@ -21,7 +21,7 @@ struct MqlStringA {
 /**
  * Internal MT4 representation of an MQL5 string. MQL5 strings are stored as Unicode strings.
  *
- * TODO: document behaviour when passing variables and arrays to C functions
+ * TODO: document behavior when passing variables and arrays to C functions
  *
  * @see  https://docs.mql4.com/basis/types/stringconst (type definition)
  * @see  https://www.mql5.com/en/forum/149943
