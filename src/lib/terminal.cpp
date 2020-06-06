@@ -239,14 +239,13 @@ const char* WINAPI GetTerminalDataPathA() {
    //    yes => data path is %InstallDir% (independant of write permissions, redirection to VirtualStore where appropriate)
    //    no  => new terminal in non-portable mode with UAC-aware behavior => (2)
    //
-   // 2) Check UAC status
+   // 2) Check for locked terminal logfiles in "%InstallDir%" and "%UserProfile%\AppData\Roaming"
+   //    1 file       => data path according to the locked file
+   //    0 or 2 files => logfiles can't be used for data path determination => (3)
+   //
+   // 3) Check UAC status
    //    on  => data path is "%UserProfile%\AppData\Roaming"
    //    off => (3)
-   //
-   // 3) Check for locked terminal logs in "%InstallDir%" and "%UserProfile%\AppData\Roaming"
-   //    1 locked logfile  => data path according to locked logfile
-   //    2 locked logfiles => ambiguous: deliberately prefer "%UserProfile%\AppData\Roaming" (may cause errors)
-   //    0 locked logfiles => error
    //
    static char* dataPath;
 
@@ -273,7 +272,7 @@ const char* WINAPI GetTerminalDataPathA() {
          //debugOn && debug("terminalPathIsLocked: %d", terminalPathIsLocked);
          //debugOn && debug("roamingPathIsLocked:  %d", roamingPathIsLocked);
 
-         if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap    // check UAC status
+         if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap, check UAC status
          else if (terminalPathIsLocked) dataPath = strdup(terminalPath);                  // on the heap
          else return((char*)error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
       }
@@ -601,8 +600,8 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
  *
  * @return BOOL
  *
- * Note: The terminal also enables portable mode if a command line parameter only *starts* with the prefix "/portable".
- *       For example the parameter "/portablepoo" enables portable mode, too. The function mirrors this behavior.
+ * Note: The terminal also enables portable mode if a command line parameter *starts* with the prefix "/portable". For example
+ *       passing the parameter "/portablepoo" enables portable mode, too. This function mirrors that behavior.
  */
 BOOL WINAPI TerminalIsPortableMode() {
    static int isPortable = -1;
@@ -637,7 +636,7 @@ BOOL WINAPI TerminalIsPortableMode() {
  * @return int
  */
 int WINAPI Test() {
-   debug("hello world: %s", "Radegast 3");
+   debug("hello world: %s", "Radegast");
    return(0);
-   #pragma EXPANDER_EXPORT
+   //#pragma EXPANDER_EXPORT
 }
