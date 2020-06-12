@@ -19,10 +19,8 @@
  *  • Data exchange between MQL modules and the Expander DLL:
  *    The MQL modules pass MQL runtime state and market information to the DLL, the DLL passes back calculation results and
  *    DLL runtime state (MQL program management, errors).
- *
- *  • Data exchange between MQL modules of the same program.
- *
- *  • Data exchange between multiple MQL programs.
+ *  • Data exchange between MQL modules of the same program (i.e. main module and library modules).
+ *  • Data exchange between different MQL programs (e.g. experts and indicators).
  */
 struct EXECUTION_CONTEXT {                         // -- offset --- size --- description --------------------------------------------------------------------------------------
    uint               pid;                         //         0        4     MQL program id starting from 1                       (const) => index in g_mqlPrograms[]

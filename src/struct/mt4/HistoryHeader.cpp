@@ -343,6 +343,7 @@ uint WINAPI hh_SetDigits(HISTORY_HEADER* hh, int digits) {
  */
 int WINAPI hh_SetSyncMarker(HISTORY_HEADER* hh, int timestamp) {
    if ((uint)hh  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hh: 0x%p (not a valid pointer)", hh));
+   if (timestamp == NaT)              return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
    if (timestamp < 0)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp));
    return(hh->syncMarker = timestamp);
    #pragma EXPANDER_EXPORT
@@ -359,6 +360,7 @@ int WINAPI hh_SetSyncMarker(HISTORY_HEADER* hh, int timestamp) {
  */
 int WINAPI hh_SetLastSyncTime(HISTORY_HEADER* hh, int timestamp) {
    if ((uint)hh  < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hh: 0x%p (not a valid pointer)", hh));
+   if (timestamp == NaT)              return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
    if (timestamp < 0)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (must be non-negative)", timestamp));
    return(hh->lastSyncTime = timestamp);
    #pragma EXPANDER_EXPORT

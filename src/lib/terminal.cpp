@@ -2,7 +2,6 @@
 #include "lib/conversion.h"
 #include "lib/datetime.h"
 #include "lib/file.h"
-#include "lib/format.h"
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
