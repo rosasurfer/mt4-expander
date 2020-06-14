@@ -20,9 +20,9 @@ int WINAPI GetLastWin32Error() {
 
 
 /**
- * Ob die angegebene Timeframe-ID einen MetaTrader-Standard-Timeframe darstellt.
+ * Whether the specified value is a MetaTrader standard timeframe identifier.
  *
- * @param  int timeframe - Timeframe-ID
+ * @param  int timeframe
  *
  * @return BOOL
  */
@@ -44,9 +44,9 @@ BOOL WINAPI IsStdTimeframe(int timeframe) {
 
 
 /**
- * Ob die angegebene Timeframe-ID einen benutzerdefinierten Timeframe darstellt.
+ * Whether the specified value is a custom timeframe identifier.
  *
- * @param  int timeframe - Timeframe-ID
+ * @param  int timeframe
  *
  * @return BOOL
  */

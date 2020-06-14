@@ -661,9 +661,9 @@ const char* WINAPI OrderTypeToStr(int type) {
 
 
 /**
- * Return a description of a period id.
+ * Return the description of a timeframe identifier. Supports custom timeframes.
  *
- * @param  int period - period id or amount of minutes per period bar
+ * @param  int period - timeframe identifier or amount of minutes per bar period
  *
  * @return char* - description or NULL if the parameter is invalid
  */
@@ -677,11 +677,15 @@ const char* WINAPI PeriodDescription(int period) {
       case PERIOD_M15: return("M15");     // 15 minutes
       case PERIOD_M30: return("M30");     // 30 minutes
       case PERIOD_H1 : return("H1" );     // 1 hour
-      case PERIOD_H4 : return("H4" );     // 4 hour
+      case PERIOD_H2 : return("H2" );     // 2 hours (custom timeframe)
+      case PERIOD_H3 : return("H3" );     // 3 hours (custom timeframe)
+      case PERIOD_H4 : return("H4" );     // 4 hours
+      case PERIOD_H6 : return("H6" );     // 6 hours (custom timeframe)
+      case PERIOD_H8 : return("H8" );     // 8 hours (custom timeframe)
       case PERIOD_D1 : return("D1" );     // 1 day
       case PERIOD_W1 : return("W1" );     // 1 week
       case PERIOD_MN1: return("MN1");     // 1 month
-      case PERIOD_Q1 : return("Q1" );     // 1 quarter
+      case PERIOD_Q1 : return("Q1" );     // 1 quarter (custom timeframe)
    }
    return(StrFormat("%d", period));
    #pragma EXPANDER_EXPORT
@@ -689,11 +693,11 @@ const char* WINAPI PeriodDescription(int period) {
 
 
 /**
- * Return a readable version of a period id.
+ * Return a human-readable version of a timeframe identifier. Supports custom timeframes.
  *
- * @param  int period - period id
+ * @param  int period - timeframe identifier
  *
- * @return char* - readable version or NULL if the parameter is invalid
+ * @return char* - string or NULL if the parameter is invalid
  */
 const char* WINAPI PeriodToStr(int period) {
    if (period < 0) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
@@ -705,11 +709,15 @@ const char* WINAPI PeriodToStr(int period) {
       case PERIOD_M15: return("PERIOD_M15");     // 15 minutes
       case PERIOD_M30: return("PERIOD_M30");     // 30 minutes
       case PERIOD_H1 : return("PERIOD_H1" );     // 1 hour
-      case PERIOD_H4 : return("PERIOD_H4" );     // 4 hour
+      case PERIOD_H2 : return("PERIOD_H2" );     // 2 hours (custom timeframe)
+      case PERIOD_H3 : return("PERIOD_H3" );     // 3 hours (custom timeframe)
+      case PERIOD_H4 : return("PERIOD_H4" );     // 4 hours
+      case PERIOD_H6 : return("PERIOD_H6" );     // 6 hours (custom timeframe)
+      case PERIOD_H8 : return("PERIOD_H8" );     // 8 hours (custom timeframe)
       case PERIOD_D1 : return("PERIOD_D1" );     // 1 day
       case PERIOD_W1 : return("PERIOD_W1" );     // 1 week
       case PERIOD_MN1: return("PERIOD_MN1");     // 1 month
-      case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter
+      case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter (custom timeframe)
    }
    return((char*)error(ERR_INVALID_PARAMETER, "unknown parameter period: %d", period));
    #pragma EXPANDER_EXPORT
