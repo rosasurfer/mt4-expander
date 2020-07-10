@@ -115,10 +115,10 @@ const wchar* WINAPI GetStringW(const wchar* value) {
 
 
 /**
- * Resolve and return the difference between the passed string representations of input parameters.
+ * Return the difference between two string representations of input parameters.
  *
- * @param  char* current - current input parameters
  * @param  char* initial - initial input parameters
+ * @param  char* current - current input parameters
  *
  * @return char* - modified input parameters
  */
