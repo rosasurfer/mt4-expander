@@ -310,7 +310,7 @@ const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    StringMap::iterator result = stringProperties.find(key);
 
    if (result != stringProperties.end()) {
-      string value(result->second);             // copy of result->second
+      string value = result->second;
       stringProperties.erase(result);           // invalidates result and releases result->second
       return(value.c_str());
    }

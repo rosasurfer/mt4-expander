@@ -67,8 +67,8 @@ void WINAPI onProcessAttach() {
 
    InitializeCriticalSection(&g_terminalMutex);
 
-   // make sure the production version of the DLL cannot be automatically unloaded
-   if (!StrEndsWith(GetExpanderFileNameA(), ".Release.dll")) {
+   // all versions except the build version of the DLL are locked in memory
+   if (!StrEndsWith(GetExpanderFileNameA(), "rsfExpander.Release.dll")) {
       HMODULE hModule = NULL;
       GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
    }
