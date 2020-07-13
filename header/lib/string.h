@@ -1,6 +1,23 @@
 #pragma once
 #include "expander.h"
 #include "struct/mt4/MqlString.h"
+#include <sstream>
+
+
+/**
+ * C++11 to_string() replacement for VS 2008.
+ *
+ * @param  <typename T> value
+ *
+ * @return string
+ *
+ * Note: The returned string is a temporary object that will be destructed at the end of the expression.
+ */
+template <typename T> string to_string(T value) {
+   std::ostringstream os;
+   os << value;
+   return(os.str());
+}
 
 
 char*         WINAPI DoubleQuoteStr(const char* value);

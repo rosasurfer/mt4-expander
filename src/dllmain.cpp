@@ -1,4 +1,6 @@
 #include "expander.h"
+#include "lib/helper.h"
+#include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/timer.h"
 #include "lib/lock/Lock.h"
@@ -64,6 +66,12 @@ void WINAPI onProcessAttach() {
    g_tickTimers     .reserve(32);
 
    InitializeCriticalSection(&g_terminalMutex);
+
+   // make sure the production version of the DLL cannot be automatically unloaded
+   if (!StrEndsWith(GetExpanderFileNameA(), ".Release.dll")) {
+      HMODULE hModule = NULL;
+      GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
+   }
 }
 
 
@@ -78,6 +86,7 @@ void WINAPI onProcessDetach(BOOL isTerminating) {
 
    DeleteCriticalSection(&g_terminalMutex);
    ReleaseTickTimers();
+   ReleaseWindowProperties();
 
    for (Locks::iterator it=g_locks.begin(), end=g_locks.end(); it != end; ++it) {
       delete it->second;

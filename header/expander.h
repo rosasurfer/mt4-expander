@@ -13,7 +13,6 @@
 #include "shared/errors.h"                                  // shared between C++ and MQL
 
 #include <iomanip>
-#include <sstream>
 #include <string>
 
 
@@ -128,6 +127,7 @@ int WINAPI _error(const char* fileName, const char* funcName, int line, int code
 
 // Helper functions returning constant values. All parameters are ignored.
 inline int         WINAPI _EMPTY        (...) { return(EMPTY       ); }
+inline int         WINAPI _EMPTY_VALUE  (...) { return(EMPTY_VALUE ); }
 inline const char* WINAPI _EMPTY_STR    (...) { return(""          ); }
 inline       char* WINAPI _EMPTY_NEW_STR(...) { char* s = new char[1]; s[0] = 0; return(s); }
 inline HWND        WINAPI _INVALID_HWND (...) { return(INVALID_HWND); }
@@ -154,17 +154,3 @@ inline double      WINAPI _double(double value, ...) { return(value); }
  * Return the size of a type member without an actual instance.
  */
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)
-
-
-/**
- * C++11 to_string() replacement for VS 2008.
- *
- * @param  <typename T> value
- *
- * @return string
- */
-template <typename T> string to_string(T value) {
-   std::ostringstream os;
-   os << value;
-   return(os.str());
-}
