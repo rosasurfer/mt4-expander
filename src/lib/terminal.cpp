@@ -418,18 +418,19 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    static char* result;
 
    if (!result) {
-      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
+      char appDataPath[MAX_PATH];                                                               // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
 
-      wstring terminalPath = GetTerminalPathW();                                       // get terminal installation path
-      StrToUpper(terminalPath);                                                        // convert to upper case
-      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar));  // calculate MD5 hash
+      wstring terminalPath = GetTerminalPathW();                                                // get terminal installation path
+      StrToUpper(terminalPath);
 
-      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
-                                      .append(StrToUpper(md5));
-      free(md5);
-      result = strdup(dir.c_str());                                                    // on the heap
+      string md5(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));           // calculate MD5
+      StrToUpper(md5);
+
+      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")                       // create the resulting path
+                                      .append(md5);
+      result = strdup(dir.c_str());                                                             // cache the result
    }
    return(result);
    #pragma EXPANDER_EXPORT

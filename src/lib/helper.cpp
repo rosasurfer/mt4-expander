@@ -221,8 +221,6 @@ double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
  * @param  char* name - string identifier
  *
  * @return char* - stored string or a NULL pointer if the name was not found or an error occurred
- *
- * Note: The string pointed to by the returned value is a temporary object that will be destructed at the end of the expression.
  */
 const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -298,8 +296,6 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
  * @param  char* name - double name
  *
  * @return char* - removed string or a NULL pointer if the name was not found or an error occurred
- *
- * Note: The string pointed to by the returned value is a temporary object that will be destructed at the end of the expression.
  */
 const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -312,7 +308,7 @@ const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    if (result != stringProperties.end()) {
       string value = result->second;
       stringProperties.erase(result);           // invalidates result and releases result->second
-      return(value.c_str());
+      return(strdup(value.c_str()));            // TODO: close memory leak
    }
    return(NULL);
    #pragma EXPANDER_EXPORT
@@ -406,7 +402,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  *
  * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-char* WINAPI MD5Hash(const void* input, uint length) {
+const char* WINAPI MD5Hash(const void* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
    if (length < 1)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
 
@@ -421,20 +417,19 @@ char* WINAPI MD5Hash(const void* input, uint length) {
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
-
-   return(strdup(ss.str().c_str()));                                 // TODO: add to GC (close memory leak)
+   return(strdup(ss.str().c_str()));                                 // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Calculate the MD5 hash of a C string.
+ * Calculate the MD5 hash of a string.
  *
- * @param  char* input - C input string
+ * @param  char* input - input string
  *
  * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-char* WINAPI MD5HashA(const char* input) {
+const char* WINAPI MD5HashA(const char* input) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
 
    return(MD5Hash(input, strlen(input)));
