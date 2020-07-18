@@ -37,16 +37,17 @@ LONG WINAPI tzi_Bias(const TIME_ZONE_INFORMATION* tzi) {
 
 
 /**
- * Gibt den Standard-Namen einer TIME_ZONE_INFORMATION zurück.
+ * Return the standard name of a timezone.
  *
  * @param  TIME_ZONE_INFORMATION* tzi
  *
- * @return char* - Name als C-String
+ * @return char* - standard name
  */
 const char* WINAPI tzi_StandardName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
 
-   return(wchartombs(tzi->StandardName, sizeof(tzi->StandardName)));       // TODO: add to GC (close memory leak)
+   wstring name = wstring(tzi->StandardName, sizeof(tzi->StandardName));
+   return(strdup(unicodeToAnsi(name).c_str()));                            // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
@@ -81,16 +82,17 @@ LONG WINAPI tzi_StandardBias(const TIME_ZONE_INFORMATION* tzi) {
 
 
 /**
- * Gibt den Daylight-Namen einer TIME_ZONE_INFORMATION zurück.
+ * Return the daylight name of a timezone.
  *
  * @param  TIME_ZONE_INFORMATION* tzi
  *
- * @return char* - Name als C-String
+ * @return char* - daylight name
  */
 const char* WINAPI tzi_DaylightName(const TIME_ZONE_INFORMATION* tzi) {
    if ((uint)tzi < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter tzi: 0x%p (not a valid pointer)", tzi));
 
-   return(wchartombs(tzi->DaylightName, sizeof(tzi->DaylightName)));    // TODO: add to GC (close memory leak)
+   wstring name = wstring(tzi->DaylightName, sizeof(tzi->DaylightName));
+   return(strdup(unicodeToAnsi(name).c_str()));                            // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
