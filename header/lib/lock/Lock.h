@@ -26,4 +26,4 @@ class Lock {
 };
 
 
-typedef std::map<char*, Lock*> Locks;                                // a map holding pointers to fine-granular locks
+typedef std::map<string, Lock*> Locks;          // a map holding pointers to fine-granular locks

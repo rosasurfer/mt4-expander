@@ -70,14 +70,16 @@ int WINAPI _dump(const char* fileName, const char* funcName, int line, const voi
  * @return int - 0 (NULL)
  */
 int WINAPI _debug(const char* fileName, const char* funcName, int line, const char* msgFormat, ...) {
-   if (!msgFormat)  msgFormat = "(null)";
-   if (!*msgFormat) msgFormat = "(empty)";
+   if (!msgFormat) msgFormat = "(NULL)";
 
    // format the variable parameters
-   va_list args;
-   va_start(args, msgFormat);
-   char* msg = strformat(msgFormat, args);
-   va_end(args);
+   char* msg = "";
+   if (strlen(msgFormat)) {
+      va_list args;
+      va_start(args, msgFormat);
+      msg = strformat(msgFormat, args);
+      va_end(args);
+   }
 
    // insert the call location at the beginning: {basename.ext(line)}
    char baseName[MAX_FNAME], ext[MAX_EXT];
@@ -86,8 +88,9 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
    char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, msg);
 
    OutputDebugStringA(fullMsg);           // @see  limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
-   free(msg);
    free(fullMsg);
+
+   if (strlen(msgFormat)) free(msg);
    return(NULL);
 }
 

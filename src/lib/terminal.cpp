@@ -10,6 +10,10 @@
 #include <shlobj.h>
 
 
+extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
+#define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
+
+
 /**
  * Find the window handle of the "Input parameters" dialog of the MQL program matching the specified type and
  * case-insensitive name.
@@ -99,12 +103,12 @@ const char* WINAPI GetExpanderFileNameA() {
       uint size=MAX_PATH >> 1, length=size;
       while (length >= size) {
          size <<= 1;
-         buffer = (char*) alloca(size);                              // on the stack
-         length = GetModuleFileNameA(HMODULE_DLL, buffer, size);     // may return a path longer than MAX_PATH
+         buffer = (char*) alloca(size);                                 // on the stack
+         length = GetModuleFileNameA(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
       }
       if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameA()"));
 
-      filename = strdup(buffer);                                     // on the heap
+      filename = strdup(buffer);                                        // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -414,18 +418,19 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    static char* result;
 
    if (!result) {
-      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
+      char appDataPath[MAX_PATH];                                                               // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
 
-      wstring terminalPath = GetTerminalPathW();                                       // get terminal installation path
-      StrToUpper(terminalPath);                                                        // convert to upper case
-      char* md5 = MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar));  // calculate MD5 hash
+      wstring terminalPath = GetTerminalPathW();                                                // get terminal installation path
+      StrToUpper(terminalPath);
 
-      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")              // create the resulting path
-                                      .append(StrToUpper(md5));
-      free(md5);
-      result = strdup(dir.c_str());                                                    // on the heap
+      string md5(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));           // calculate MD5
+      StrToUpper(md5);
+
+      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")                       // create the resulting path
+                                      .append(md5);
+      result = strdup(dir.c_str());                                                             // cache the result
    }
    return(result);
    #pragma EXPANDER_EXPORT
@@ -524,7 +529,6 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
-   if (hChart <= 0)                           return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not a window handle)", hChart));
    if (!IsWindow(hChart))                     return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (!strlen(programName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
@@ -560,8 +564,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
 
    // prevent the DLL from getting unloaded before the message is processed
    HMODULE hModule = NULL;
-   if (!GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_PIN|GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)LoadMqlProgramA, &hModule))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=>GetModuleHandleEx()"));
+   GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)LoadMqlProgramA, &hModule);
 
    return(TRUE);
    #pragma EXPANDER_EXPORT

@@ -2,10 +2,6 @@
 #include "expander.h"
 
 
-extern "C" IMAGE_DOS_HEADER     __ImageBase;             // this DLL's module handle
-#define HMODULE_DLL ((HMODULE) &__ImageBase)             // this DLL's module handle
-
-
 HWND                    WINAPI FindInputDialog(ProgramType programType, const char* programName);
 const char*             WINAPI GetExpanderFileNameA();
 HMODULE                 WINAPI GetExpanderModuleW2K();
