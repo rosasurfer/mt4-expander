@@ -571,6 +571,130 @@ uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSize) {
 }
 
 
+/**
+ * Convert an ANSI string to a wide Unicode string (UTF-16).
+ *
+ * @param  string &str - ANSI string
+ *
+ * @return wstring - converted string or an empty string in case of errors
+ */
+wstring ansiToUnicode(const string &str) {
+   int length = str.length();
+   if (!length) return(wstring(L""));
+
+   uint codePage = CP_ACP;
+   DWORD flags = MB_ERR_INVALID_CHARS;
+
+   int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
+   if (bufSize) {
+      wstring wstr(bufSize, 0);
+      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize))
+         return(wstr);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert ANSI string to wide Unicode");
+   return(wstring(L""));
+}
+
+
+/**
+ * Convert an ANSI string to a UTF-8 string.
+ *
+ * @param  string &str - ANSI string
+ *
+ * @return string - converted string or an empty string in case of errors
+ */
+string ansiToUtf8(const string &str) {
+   return(unicodeToUtf8(ansiToUnicode(str)));
+}
+
+
+/**
+ * Convert a wide Unicode string (UTF-16) to an ANSI string.
+ *
+ * @param  wstring &wstr - wide Unicode string
+ *
+ * @return string - converted string or an empty string in case of errors
+ */
+string unicodeToAnsi(const wstring &wstr) {
+   int length = wstr.length();
+   if (!length) return(string(""));
+
+   uint codePage = CP_ACP;
+   DWORD flags = 0;
+
+   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
+   if (bufSize) {
+      string str(bufSize, 0);
+      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL))
+         return(str);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert wide Unicode string to ANSI");
+   return(string(""));
+}
+
+
+/**
+ * Convert a wide Unicode string (UTF-16) to a UTF-8 string.
+ *
+ * @param  wstring &wstr - wide Unicode string
+ *
+ * @return string - converted string or an empty string in case of errors
+ */
+string unicodeToUtf8(const wstring &wstr) {
+   int length = wstr.length();
+   if (!length) return(string(""));
+
+   uint codePage = CP_UTF8;
+   DWORD flags = 0;
+
+   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
+   if (bufSize) {
+      string str(bufSize, 0);
+      WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL);
+      return(str);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert wide Unicode string to UTF-8");
+   return(string(""));
+}
+
+
+/**
+ * Convert a UTF-8 string to an ANSI string.
+ *
+ * @param  string &str - UTF-8 string
+ *
+ * @return string - converted string or an empty string in case of errors
+ */
+string utf8ToAnsi(const string &str) {
+   return(unicodeToAnsi(utf8ToUnicode(str)));
+}
+
+
+/**
+ * Convert a UTF-8 string to a wide Unicode string (UTF-16).
+ *
+ * @param  string &str - UTF-8 string
+ *
+ * @return wstring - converted string or an empty string in case of errors
+ */
+wstring utf8ToUnicode(const string &str) {
+   int length = str.length();
+   if (!length) return(wstring(L""));
+
+   uint codePage = CP_UTF8;
+   DWORD flags = MB_ERR_INVALID_CHARS;
+
+   int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
+   if (bufSize) {
+      wstring wstr(bufSize, 0);
+      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize))
+         return(wstr);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-8 string to wide Unicode");
+   return(wstring(L""));
+}
+
+
 namespace rsf {
 
 
@@ -585,7 +709,7 @@ namespace rsf {
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free".
  */
-char* WINAPI strformat(const char* format, ...) {
+char* strformat(const char* format, ...) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
@@ -609,7 +733,7 @@ char* WINAPI strformat(const char* format, ...) {
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free".
  */
-char* WINAPI strformat(const char* format, const va_list &args) {
+char* strformat(const char* format, const va_list &args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
@@ -619,65 +743,25 @@ char* WINAPI strformat(const char* format, const va_list &args) {
 
    return(buffer);
 }
-
-
-/**
- * Convert a Unicode string (UTF-16) to a UTF-8 string.
- *
- * @param  wchar* str - null terminated Unicode string
- *
- * @return char* - null terminated UTF-8 string or a NULL pointer in case of errors
- *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
- */
-char* WINAPI wchartombs(const wchar* str) {
-   return(wchartombs(str, wcslen(str)));
 }
 
 
 /**
- * Convert a sequence of Unicode characters (UTF-16) to a UTF-8 string.
- *
- * @param  wchar* sequence - sequence of wide characters (not necessarily null terminated)
- * @param  uint   count    - number of wide characters
- *
- * @return char* - null terminated UTF-8 string or a NULL pointer in case of errors
- *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
+ * @return int
  */
-char* WINAPI wchartombs(const wchar* sequence, uint count) {
-   wchar* source = wcsncpy(new wchar[count+1], sequence, count);
-   source[count] = 0;
+int WINAPI StringTest(const char* str) {
 
-   uint size = (count << 1) + 1;
-   char* dest = (char*)malloc(size);
+   string  s     = string(str);
+   wstring utf16 = ansiToUnicode(s);
 
-   uint bytes = wcstombs(dest, source, size);
+   debug("char*=\"%s\"  string=\"%s\"  wstring=\"%s\"", str, s.c_str(), unicodeToAnsi(utf16).c_str());
 
-   if (bytes == -1) {
-      error(ERR_WIN32_ERROR+GetLastError(), "cannot convert Unicode to UTF-8 characters");
-      free(dest);
-      dest = NULL;
-   }
-   else {
-      dest[size-1] = 0;
-   }
+   wstring s4 = wstring(utf16.c_str(), 4);
+   debug("s4=\"%s\"", unicodeToAnsi(s4).c_str());
 
-   delete[] source;
-   return(dest);
-}
+   string utf8 = unicodeToUtf8(utf16);
+   debug("utf8=\"%s\"", utf8.c_str());
 
-
-/**
- * Convert a Unicode string (UTF-16) to a UTF-8 string.
- *
- * @param  wstring &str
- *
- * @return char* - null terminated UTF-8 string or a NULL pointer in case of errors
- *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "free".
- */
-char* WINAPI wchartombs(const wstring &str) {
-   return(wchartombs(str.c_str(), str.length()));
-}
+   return(NULL);
+   //#pragma EXPANDER_EXPORT
 }

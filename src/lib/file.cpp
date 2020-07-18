@@ -313,30 +313,28 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    // read the reparse data
    if (IsReparseTagMicrosoft(rdata->ReparseTag)) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
-         uint offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
-         uint len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
-         char* target = wchartombs(&rdata->MountPointReparseBuffer.PathBuffer[offset], len);
-         //debug("mount point to \"%s\"", target);
-         result = strdup(target + strlen("\\??\\"));
-         free(target);
+         uint   offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
+         uint   len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
+         string target = unicodeToAnsi(wstring(&rdata->MountPointReparseBuffer.PathBuffer[offset], len));
+         //debug("mount point to \"%s\"", target.c_str());
+         result = strdup(target.c_str() + strlen("\\??\\"));
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
-         uint offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
-         uint len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
-         char* target = wchartombs(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len);
+         uint   offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
+         uint   len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
+         string target = unicodeToAnsi(wstring(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len));
+
          BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
-         //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target);
+         //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target.c_str());
 
          if (isRelative) {
             char drive[_MAX_DRIVE], dir[_MAX_DIR];
             _splitpath(name, drive, dir, NULL, NULL);
-            string s = string(drive).append(dir).append(target);
-            result = strdup(s.c_str());
+            result = strdup(string(drive).append(dir).append(target).c_str());
          }
          else {
-            result = strdup(target + strlen("\\??\\"));
+            result = strdup(target.c_str() + strlen("\\??\\"));
          }
-         free(target);
       }
       else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
    }
