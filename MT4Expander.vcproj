@@ -311,6 +311,14 @@
 			<Filter
 				Name="struct"
 				>
+				<File
+					RelativePath="..\..\other\mikha-dev\mtmanapi\MT4ManagerAPI.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\struct\MT4ManagerAPI.rsf.h"
+					>
+				</File>
 				<Filter
 					Name="mt4"
 					>
