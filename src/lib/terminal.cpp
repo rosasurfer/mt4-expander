@@ -599,9 +599,10 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 /**
  * Reopen the terminal's "Alert" dialog box after it was closed by the user.
  *
- * @param  BOOL sound [optional] - whether to confirm the re-opening with the standard "Alert" sound (default: yes)
+ * @param  BOOL sound [optional] - Whether to confirm the re-opening with the standard "Alert" sound (default: yes).
+ *                                 No sound is played if the dialog is already open.
  *
- * @return BOOL - success status; FALSE if the "Alert" dialog box is empty (i.e. it was not opened before)
+ * @return BOOL - success status; FALSE if the "Alert" dialog is empty (i.e. it was not opened before)
  */
 BOOL WINAPI ReopenAlertDialog(BOOL sound/*=TRUE*/) {
    HWND hWndAlert=NULL, hWndNext=GetTopWindow(NULL);
@@ -631,10 +632,10 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound/*=TRUE*/) {
    }
 
    // show the found window
-   ShowWindow(hWndAlert, SW_SHOW);
+   bool wasHidden = !ShowWindow(hWndAlert, SW_SHOW);
 
    // play the standard "Alert" sound
-   if (sound) {
+   if (wasHidden && sound) {
       string soundfile("sounds/alert.wav");
 
       // look-up the .wav file in the terminal's installation and the user's data directory
