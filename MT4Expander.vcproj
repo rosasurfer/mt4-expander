@@ -72,7 +72,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib version.lib"
+				AdditionalDependencies="shlwapi.lib version.lib winmm.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -160,7 +160,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib version.lib"
+				AdditionalDependencies="shlwapi.lib version.lib winmm.lib"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -311,6 +311,14 @@
 			<Filter
 				Name="struct"
 				>
+				<File
+					RelativePath="..\..\other\mikha-dev\mtmanapi\MT4ManagerAPI.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\struct\MT4ManagerAPI.rsf.h"
+					>
+				</File>
 				<Filter
 					Name="mt4"
 					>
