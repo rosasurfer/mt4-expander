@@ -6,6 +6,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
+#include <MMSystem.h>
 #include <shellapi.h>
 #include <shlobj.h>
 
@@ -591,6 +592,60 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
    delete[] ansiName;
 
    return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Show the terminal's "Alert" dialog box after it was closed. The function can display the dialog only if it's not empty,
+ * i.e. it was already displayed and closed by the user.
+ *
+ * @param  BOOL sound [optional] - whether to confirm re-opening of the dialog with the standard "Alert" sound (default: yes)
+ *
+ * @return BOOL - success status; FALSE if the "Alert" dialog box is empty (i.e. it was not displayed before)
+ */
+BOOL WINAPI ShowAlertDialog(BOOL sound/*=TRUE*/) {
+   HWND hWndAlert=NULL, hWndNext=GetTopWindow(NULL);
+   DWORD processId, self = GetCurrentProcessId();
+
+   uint bufSize = 8;                                        // big enough to hold class name "#32770" or title "Alert"
+   char* className = (char*)alloca(bufSize);                // both on the stack
+   char* wndTitle  = (char*)alloca(bufSize);
+
+   // enumerate top-level windows
+   while (hWndNext) {
+      GetWindowThreadProcessId(hWndNext, &processId);
+      if (processId == self) {                              // the window belongs to us
+         if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+         if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+
+         if (StrCompare(className, "#32770") && StrCompare(wndTitle, "Alert")) {
+            hWndAlert = hWndNext;
+            break;
+         }
+      }
+      hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+   }
+   if (!hWndAlert) {
+      debug("\"Alert\" dialog not found (was it displayed before?)");
+      return(FALSE);
+   }
+
+   // show the found window
+   ShowWindow(hWndAlert, SW_SHOW);
+
+   // play the standard "Alert" sound
+   if (sound) {
+      string soundfile("sounds/alert.wav");
+
+      // look-up the .wav file in the terminal's installation and the user's data directory
+      string filepath = string(GetTerminalPathA()).append("/").append(soundfile);
+      if (IsFileA(filepath) || IsFileA(filepath=string(GetTerminalDataPathA()).append("/").append(soundfile))) {
+         PlaySoundA(filepath.c_str(), NULL, SND_FILENAME|SND_ASYNC);
+      }
+      else debug("sound file not found: \"%s\"", soundfile.c_str());
+   }
+   return(TRUE);
    #pragma EXPANDER_EXPORT
 }
 
