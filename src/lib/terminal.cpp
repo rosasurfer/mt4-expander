@@ -597,14 +597,13 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 
 
 /**
- * Show the terminal's "Alert" dialog box after it was closed. The function can display the dialog only if it's not empty,
- * i.e. it was already displayed and closed by the user.
+ * Reopen the terminal's "Alert" dialog box after it was closed by the user.
  *
- * @param  BOOL sound [optional] - whether to confirm re-opening of the dialog with the standard "Alert" sound (default: yes)
+ * @param  BOOL sound [optional] - whether to confirm the re-opening with the standard "Alert" sound (default: yes)
  *
- * @return BOOL - success status; FALSE if the "Alert" dialog box is empty (i.e. it was not displayed before)
+ * @return BOOL - success status; FALSE if the "Alert" dialog box is empty (i.e. it was not opened before)
  */
-BOOL WINAPI ShowAlertDialog(BOOL sound/*=TRUE*/) {
+BOOL WINAPI ReopenAlertDialog(BOOL sound/*=TRUE*/) {
    HWND hWndAlert=NULL, hWndNext=GetTopWindow(NULL);
    DWORD processId, self = GetCurrentProcessId();
 
@@ -627,7 +626,7 @@ BOOL WINAPI ShowAlertDialog(BOOL sound/*=TRUE*/) {
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    }
    if (!hWndAlert) {
-      debug("\"Alert\" dialog not found (was it displayed before?)");
+      debug("\"Alert\" dialog not found (was it opened before?)");
       return(FALSE);
    }
 
