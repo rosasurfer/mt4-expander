@@ -49,8 +49,8 @@ struct EXECUTION_CONTEXT {                         // -- offset --- size --- des
    int                unchangedBars;               //       592        4     number of unchanged bars = MQL::IndicatorCounted()   (var)
    uint               ticks;                       //       596        4     number of times start() was called for the instance  (var)
    uint               cycleTicks;                  //       600        4     number of times start() was called for the cycle     (var)
-   datetime           lastTickTime;                //       604        4     server time of the last received tick                (var)
-   datetime           prevTickTime;                //       608        4     server time of the previous received tick            (var)
+   datetime           currTickTime;                //       604        4     server time of the currently processed tick          (var)
+   datetime           prevTickTime;                //       608        4     server time of the previously processed tick         (var)
    BYTE               _alignment1[4];              //       612        4     (alignment to the next double)
    double             bid;                         //       616        8     current bid price        = MQL::Bid                  (var)
    double             ask;                         //       624        8     current ask price        = MQL::Ask                  (var)
@@ -122,7 +122,7 @@ int                WINAPI ec_ChangedBars         (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_UnchangedBars       (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Ticks               (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_cycleTicks          (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_LastTickTime        (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_CurrTickTime        (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_PrevTickTime        (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                 (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                 (const EXECUTION_CONTEXT* ec);
