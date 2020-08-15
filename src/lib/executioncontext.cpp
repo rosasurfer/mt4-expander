@@ -347,7 +347,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
    if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_INIT_FAILURE, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
 
-
    // (1) if ec.pid is not set: check if an indicator to be reused or something else
    //     - indicator in init cycle           (UI thread) => reuse the previous program and keep instance data
    //     - indicator in IR_PROGRAM_AFTERTEST (UI thread) => reuse the previous program and keep instance data
@@ -418,18 +417,22 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetModuleInitFlags     (ec, ec->programInitFlags       );
    ec_SetModuleDeinitFlags   (ec, ec->programDeinitFlags     );
 
-   ec_SetSymbol              (ec, symbol      );
-   ec_SetTimeframe           (ec, timeframe   );
+   ec_SetSymbol              (ec, symbol   );
+   ec_SetTimeframe           (ec, timeframe);
    master->rates = ec->rates = NULL;                                       // re-initialized on the next tick        // TODO: may be wrong for multiple
-   ec_SetBars                (ec,  0          );                           // ...                                    //       init() calls from start()
-   ec_SetChangedBars         (ec, -1          );                           // ...                                    //       reset only on UR_CHARTCHANGE
-   ec_SetUnchangedBars       (ec, -1          );                           // ...                                    //
- //ec_SetTicks               (ec, ticks       );                           // NULL or kept from the last init() call
+   ec_SetBars                (ec,  0);                                     // ...                                    //       init() calls from start()
+   ec_SetChangedBars         (ec, -1);                                     // ...                                    //       reset only on UR_CHARTCHANGE
+   ec_SetUnchangedBars       (ec, -1);                                     // ...                                    //
+
+   if (initReason == IR_SYMBOLCHANGE) {
+      master->ticks        = ec->ticks        = 0;
+      master->prevTickTime = ec->prevTickTime = 0;
+      master->currTickTime = ec->currTickTime = 0;
+      master->bid          = ec->bid          = 0;
+      master->ask          = ec->ask          = 0;
+   }
+   else {}                                                                 // all values NULL or kept from the previous tick
    master->cycleTicks = ec->cycleTicks = 0;
- //ec_SetCurrTickTime        (ec, lastTickTime);                           // ...
- //ec_SetPrevTickTime        (ec, prevTickTime);                           // ...
- //ec_SetBid                 (ec, bid         );                           // ...
- //ec_SetAsk                 (ec, ask         );                           // ...
 
    ec_SetDigits              (ec, digits);                                 // TODO: fix terminal bug
    ec_SetPipDigits           (ec, digits & (~1));
@@ -473,7 +476,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    // (3) synchronize already loaded libraries
    ContextChain &chain = *g_mqlPrograms[currentPid];
    uint chainSize = chain.size();
-   EXECUTION_CONTEXT *lib, bak;                                            // bak is not a pointer
+   EXECUTION_CONTEXT bak, *lib;
 
    for (uint i=2; i < chainSize; ++i) {                                    // skip master and main context
       if (lib = chain[i]) {
@@ -746,8 +749,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                master->programType  = PT_EXPERT;
                master->moduleType   = MT_EXPERT;
 
-               strcpy(master->symbol, symbol);                       // first moment a new symbol/timeframe show up
-               master->timeframe    = timeframe;
+               strcpy(master->newSymbol, symbol);                    // first moment a new symbol/timeframe show up
+               master->newTimeframe = timeframe;
 
                master->digits       = digits;                        // TODO: fix terminal bug
                master->pipDigits    = digits & (~1);
@@ -775,6 +778,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             ec->moduleUninitReason = uninitReason;
             ec->moduleInitFlags    = initFlags;
             ec->moduleDeinitFlags  = deinitFlags;
+            strcpy(ec->symbol,       symbol);
+            ec->timeframe          = timeframe;
 
             g_mqlPrograms[currentPid]->push_back(ec);                // add library to the expert's context chain
          }
@@ -813,8 +818,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       else {}                                                        // indicator in init cycle
 
       // update known master values
-      strcpy(master->symbol,  symbol);                               // first moment a new symbol/timeframe show up
-      master->timeframe     = timeframe;
+      strcpy(master->newSymbol, symbol);                             // first moment a new symbol/timeframe show up
+      master->newTimeframe  = timeframe;
       master->rates         = NULL;
       master->bars          =  0;
       master->changedBars   = -1;
@@ -849,8 +854,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec->moduleUninitReason = uninitReason;
       ec->moduleInitFlags    = initFlags;
       ec->moduleDeinitFlags  = deinitFlags;
+      strcpy(ec->symbol,       symbol);
+      ec->timeframe          = timeframe;
 
-      g_mqlPrograms[ec->pid]->push_back(ec);                         // re-add context to the old indicator's chain
+      g_mqlPrograms[ec->pid]->push_back(ec);                         // add library context to the previous indicator's chain
    }
 
    else {
@@ -890,8 +897,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->moduleType        = (ModuleType)master->programType;
          strcpy(master->moduleName,  master->programName);
 
-         strcpy(master->symbol,  symbol);                            // first moment symbol/timeframe show up
-         master->timeframe     = timeframe;
+         strcpy(master->newSymbol, symbol);                          // first moment symbol/timeframe show up
+         master->newTimeframe  = timeframe;
          master->bars          =  0;
          master->changedBars   = -1;
          master->unchangedBars = -1;
@@ -921,6 +928,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       ec->moduleUninitReason = uninitReason;
       ec->moduleInitFlags    = initFlags;
       ec->moduleDeinitFlags  = deinitFlags;
+      strcpy(ec->symbol,       symbol);
+      ec->timeframe          = timeframe;
 
       g_mqlPrograms[currentPid]->push_back(ec);                      // add library to the new test's context chain
    }
@@ -972,25 +981,24 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
 
 
 /**
- * Process leaving of an MQL module's core function deinit(). Called only from deinit() and must be the very last statement.
- * After deinit() was left the module is unloaded and it's memory must not be accessed anymore.
+ * Process leaving of an MQL module's core function deinit(). Called only from MQL::deinit() and must be the very last
+ * statement. After MQL::deinit() was left the module is unloaded and it's memory must not be accessed anymore.
  *
- * @param  EXECUTION_CONTEXT* ec - execution context of the module in deinit()
+ * @param  EXECUTION_CONTEXT* ec - execution context of the module
  *
  * @return int - error status
  *
  *
  * Notes: (1) If the module is an MQL main module (an indicator, an expert or a script) the index of the main context in the
- *            program's context chain is set to NULL but the chain size dosen't change.
+ *            program's context chain is set to NULL (the chain size doesn't change).
  *
- *        (2) If the module is not a main module (a library) the context is completely removed from the context chain and the
- *            chain size decreases.
+ *        (2) If the module is an MQL library module the context is removed from the context chain and the chain size decreased.
  *
- *        (3) If an expert leaves deinit() and goes through an init cycle (UR_CHARTCHANGE or UR_PARAMETERS) its main module
- *            keeps state. If an indicator leaves deinit() and goes through an init cycle its main module doesn't keep state.
- *            Modules of any type going through an init cycle due to UR_RECOMPILE never keep state.
+ *        (3) If an expert leaves MQL::deinit() and goes through an init cycle (UR_CHARTCHANGE or UR_PARAMETERS) its main module
+ *            keeps state. If an indicator leaves MQL::deinit() and goes through an init cycle its main module doesn't keep
+ *            state. Modules of any type going through an init cycle due to UR_RECOMPILE don't keep state.
  *
- *        (4) An unloaded module's memory must not be accessed (read/write) until the module re-enters the core function init().
+ *        (4) An unloaded module's memory must not be accessed (read/write) until the module re-enters the function MQL::init().
  *            Use the master context at chain index 0 to access data stored in the execution context of an unloaded module.
  */
 int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
@@ -1015,10 +1023,12 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
                ctx->programCoreFunction   = (CoreFunction)NULL;            // mark MainModule::deinit() as left
                if (i < 2)
                   ctx->moduleCoreFunction = (CoreFunction)NULL;
+               *ctx->newSymbol   = '\0';
+               ctx->newTimeframe = NULL;
             }
             else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
          }
-         chain[1] = NULL;                                                  // reset the main execution context but keep its slot in the chain
+         chain[1] = NULL;                                                  // reset the main execution context but keep the slot in the chain
 
          // close an open logfile
          if (ec->customLog && ec->customLog->is_open())
