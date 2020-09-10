@@ -5,7 +5,7 @@
 
 #include <fstream>
 
-extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<ContextChain> with index = program id
+extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<ContextChain*> with index = program id
 
 
 /**
@@ -24,7 +24,7 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error) {
    if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
 
    EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
-   if (!master->logEnabled) return(debug("%-13s  logging is fully disabled", master->programName));
+   if (!master->logEnabled) return(debug("%-13s  all logging is disabled", master->programName));
 
    //if (master->logToDebugEnabled)                         // send the message to the system debugger (if configured)
 
