@@ -319,20 +319,6 @@ uint WINAPI ec_CycleTicks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's last tick time.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return datetime - server time
- */
-datetime WINAPI ec_LastTickTime(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->lastTickTime);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an EXECUTION_CONTEXT's previous tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -342,6 +328,20 @@ datetime WINAPI ec_LastTickTime(const EXECUTION_CONTEXT* ec) {
 datetime WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->prevTickTime);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an EXECUTION_CONTEXT's current tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - server time
+ */
+datetime WINAPI ec_CurrTickTime(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->currTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2090,14 +2090,16 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
          << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
          << ", timeframe="            <<          PeriodToStr(ec->timeframe)
+         << ", newSymbol="            <<       DoubleQuoteStr(ec->newSymbol)
+         << ", newTimeframe="         <<          PeriodToStr(ec->newTimeframe)
          << ", rates="                <<                     (ec->rates ? StrFormat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
          << ", changedBars="          <<                      ec->changedBars
          << ", unchangedBars="        <<                      ec->unchangedBars
          << ", ticks="                <<                      ec->ticks
          << ", cycleTicks="           <<                      ec->cycleTicks
-         << ", lastTickTime="         <<                     (ec->lastTickTime ? GmtTimeFormat(ec->lastTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
          << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormat(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", currTickTime="         <<                     (ec->currTickTime ? GmtTimeFormat(ec->currTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
          << ", bid=" << std::setprecision(ec->bid ? ec->digits : 0) << ec->bid
          << ", ask=" << std::setprecision(ec->ask ? ec->digits : 0) << ec->ask
 

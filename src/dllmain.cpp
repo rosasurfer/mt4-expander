@@ -67,9 +67,9 @@ void WINAPI onProcessAttach() {
 
    InitializeCriticalSection(&g_terminalMutex);
 
-   // all versions except the build version of the DLL are locked in memory
+   // the production version of the DLL is locked in memory
    const char* dllName = GetExpanderFileNameA();
-   if (!StrEndsWith(dllName, "rsfExpander.Debug.dll") && !StrEndsWith(dllName, "rsfExpander.Release.dll")) {
+   if (StrEndsWith(dllName, "rsfExpander.dll") || StrEndsWith(dllName, "rsfMT4Expander.dll")) {
       HMODULE hModule = NULL;
       GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
    }
