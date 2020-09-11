@@ -12,4 +12,3 @@
 
 # never ignore the following files
 !.gitattributes
-!/bin/Release/MT4Expander.dll

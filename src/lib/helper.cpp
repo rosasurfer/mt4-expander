@@ -1,10 +1,20 @@
 #include "expander.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include <map>
 
 extern "C" {
-#include "etc/md5.h"
+   #include "etc/md5.h"
 }
+
+
+typedef std::map<string, int>    IntegerMap;       // all data is copied into the container
+typedef std::map<string, double> DoubleMap;
+typedef std::map<string, string> StringMap;
+
+IntegerMap integerProperties;                      // a map with integers stored as window properties
+DoubleMap  doubleProperties;                       // a map with doubles stored as window properties
+StringMap  stringProperties;                       // a map with strings stored as window properties
 
 
 /**
@@ -20,9 +30,9 @@ int WINAPI GetLastWin32Error() {
 
 
 /**
- * Ob die angegebene Timeframe-ID einen MetaTrader-Standard-Timeframe darstellt.
+ * Whether the specified value is a MetaTrader standard timeframe identifier.
  *
- * @param  int timeframe - Timeframe-ID
+ * @param  int timeframe
  *
  * @return BOOL
  */
@@ -44,9 +54,9 @@ BOOL WINAPI IsStdTimeframe(int timeframe) {
 
 
 /**
- * Ob die angegebene Timeframe-ID einen benutzerdefinierten Timeframe darstellt.
+ * Whether the specified value is a custom timeframe identifier.
  *
- * @param  int timeframe - Timeframe-ID
+ * @param  int timeframe
  *
  * @return BOOL
  */
@@ -79,8 +89,8 @@ DWORD WINAPI GetUIThreadId() {
 /**
  * Whether the specified thread is the application's UI thread.
  *
- * @param  DWORD threadId [optional] - thread id; if this value is NULL the current thread is used
- *                                     (default: the current thread)
+ * @param  DWORD threadId [optional] - thread id (default: the current thread)
+ *
  * @return BOOL
  */
 BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
@@ -92,45 +102,226 @@ BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
 
 
 /**
- * Wrapper für die Win32-API-Funktion GetProp(). Gibt den Wert einer Window-Property zurück.
+ * Store a named integer value and link it to the specified window.
  *
- * @param  HWND  hWnd   - Fensterhandle
- * @param  char* lpName - Property-Name
+ * @param  HWND  hWnd  - window handle
+ * @param  char* name  - integer name
+ * @param  int   value - integer value
  *
- * @return HANDLE - Property-Value
+ * @return BOOL - success status
  */
-HANDLE WINAPI GetWindowProperty(HWND hWnd, const char* lpName) {
-   return(GetProp(hWnd, lpName));
+BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
+   if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   integerProperties[key] = value;
+
+   return(TRUE);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Wrapper für die Win32-API-Funktion RemoveProp(). Gibt den Wert einer Window-Property zurück und löscht sie.
+ * Store a named double value and link it to the specified window.
  *
- * @param  HWND  hWnd   - Fensterhandle
- * @param  char* lpName - Property-Name
+ * @param  HWND   hWnd  - window handle
+ * @param  char*  name  - integer name
+ * @param  double value - double value
  *
- * @return HANDLE - Property-Value
+ * @return BOOL - success status
  */
-HANDLE WINAPI RemoveWindowProperty(HWND hWnd, const char* lpName) {
-   return(RemoveProp(hWnd, lpName));
+BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
+   if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   doubleProperties[key] = value;
+
+   return(TRUE);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Wrapper für die Win32-API-Funktion SetProp(). Setzt eine Window-Property.
+ * Store a named string and link it to the specified window.
  *
- * @param  HWND   hWnd   - Fensterhandle
- * @param  char*  lpName - Property-Name
- * @param  HANDLE value  - Property-Value
+ * @param  HWND  hWnd  - window handle
+ * @param  char* name  - string identifier
+ * @param  char* value - string (must not be a NULL pointer)
  *
- * @return BOOL - Erfolgsstatus
+ * @return BOOL - success status
  */
-BOOL WINAPI SetWindowProperty(HWND hWnd, const char* lpName, HANDLE value) {
-   return(SetProp(hWnd, lpName, value));
+BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
+   if (!IsWindow(hWnd))                 return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER)  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if ((uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+
+   string key = to_string(hWnd).append("|").append(name);
+   stringProperties[key] = value;
+
+   return(TRUE);
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a named integer value linked to the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - integer name
+ *
+ * @return int - stored value or NULL if the name was not found or an error occurred
+ */
+int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
+   if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   IntegerMap::iterator result = integerProperties.find(key);
+
+   if (result != integerProperties.end())
+      return(result->second);
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a named double value linked to the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - double name
+ *
+ * @return double - stored value or NULL if the name was not found or an error occurred
+ */
+double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
+   if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   DoubleMap::iterator result = doubleProperties.find(key);
+
+   if (result != doubleProperties.end())
+      return(result->second);
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a named string linked to the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - string identifier
+ *
+ * @return char* - stored string or a NULL pointer if the name was not found or an error occurred
+ */
+const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
+   if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   StringMap::iterator result = stringProperties.find(key);
+
+   if (result != stringProperties.end())
+      return(result->second.c_str());
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Remove and return a named integer value linked to the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - integer name
+ *
+ * @return int - removed value or NULL if the name was not found or an error occurred
+ */
+int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
+   if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   IntegerMap::iterator result = integerProperties.find(key);
+
+   if (result != integerProperties.end()) {
+      int value = result->second;
+      integerProperties.erase(result);
+      return(value);
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Remove and return a named double value linked to the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - double name
+ *
+ * @return double - removed value or NULL if the name was not found or an error occurred
+ */
+double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
+   if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   DoubleMap::iterator result = doubleProperties.find(key);
+
+   if (result != doubleProperties.end()) {
+      double value = result->second;
+      doubleProperties.erase(result);
+      return(value);
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Remove and return a named string linked to the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - double name
+ *
+ * @return char* - removed string or a NULL pointer if the name was not found or an error occurred
+ */
+const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
+   if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if (!strlen(name))                  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+
+   string key = to_string(hWnd).append("|").append(name);
+   StringMap::iterator result = stringProperties.find(key);
+
+   if (result != stringProperties.end()) {
+      string value = result->second;
+      stringProperties.erase(result);           // invalidates result and releases result->second
+      return(strdup(value.c_str()));            // TODO: close memory leak
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Release all stored window values. Called from DLL::onProcessDetach().
+ */
+void WINAPI ReleaseWindowProperties() {
+   integerProperties.clear();
+   doubleProperties.clear();
+   stringProperties.clear();
 }
 
 
@@ -211,7 +402,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
  *
  * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-char* WINAPI MD5Hash(const void* input, uint length) {
+const char* WINAPI MD5Hash(const void* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
    if (length < 1)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
 
@@ -226,20 +417,19 @@ char* WINAPI MD5Hash(const void* input, uint length) {
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
-
-   return(strdup(ss.str().c_str()));                                 // TODO: add to GC (close memory leak)
+   return(strdup(ss.str().c_str()));                                 // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Calculate the MD5 hash of a C string.
+ * Calculate the MD5 hash of a string.
  *
- * @param  char* input - C input string
+ * @param  char* input - input string
  *
  * @return char* - MD5 hash or a NULL pointer in case of errors
  */
-char* WINAPI MD5HashA(const char* input) {
+const char* WINAPI MD5HashA(const char* input) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
 
    return(MD5Hash(input, strlen(input)));
