@@ -869,6 +869,104 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return a program's main loglevel.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_Loglevel(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevel);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's loglevel for the terminal alert appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_LoglevelAlert(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevelAlert);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's loglevel for the terminal log appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_LoglevelTerminal(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevelTerminal);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's loglevel for the debug output appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_LoglevelDebugger(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevelDebugger);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's loglevel for the custom logfile appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_LoglevelFile(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevelFile);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's loglevel for the mail appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_LoglevelMail(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevelMail);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's loglevel for the SMS appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_LoglevelSMS(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevelSMS);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether logging in general is enabled for a program.
  *
  * @param  EXECUTION_CONTEXT* ec
