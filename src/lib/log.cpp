@@ -9,15 +9,16 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
- * Send a message to the log appenders of the specified program.
+* Send a log message to a custom logfile.
  *
- * @param  EXECUTION_CONTEXT* ec               - execution context of the program
- * @param  char*              message          - log message
- * @param  int                error [optional] - error to log (default: none)
+ * @param  EXECUTION_CONTEXT* ec      - execution context of the program
+ * @param  char*              message - log message
+ * @param  int                error   - error linked to the message (if any)
+ * @param  int                level   - log level of the message
  *
  * @return BOOL - success status
  */
-BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error) {
+BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, int level) {
    if ((uint)ec < MIN_VALID_POINTER)      return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (g_mqlPrograms.size() <= ec->pid)   return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));

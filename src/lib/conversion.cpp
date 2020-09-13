@@ -409,12 +409,11 @@ const char* WINAPI ErrorToStr(int error) {
 
 /**
  * Return the hexadecimale representation of an integer.
+ *  e.g. IntToHexStr(13465610) => "00CD780A"
  *
  * @param  int value - 4 byte integer value
  *
- * @return char* - 8 characters string value
- *
- * @example IntToHexStr(13465610) => "00CD780A"
+ * @return char* - 8 character string
  */
 char* WINAPI IntToHexStr(int value) {
    return(StrFormat("%p", value));
