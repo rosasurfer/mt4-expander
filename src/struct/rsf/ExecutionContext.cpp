@@ -39,7 +39,7 @@ uint WINAPI ec_PreviousPid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's MQL program type.
+ * Return an MQL program's type.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -53,7 +53,7 @@ ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's MQL program name.
+ * Return an MQL program's name.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -67,11 +67,11 @@ const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the program's core function id.
+ * Return an MQL program's core function id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return CoreFunction id or NULL if the program's main module is unloaded from memory
+ * @return CoreFunction id or NULL if the program's main module is currently unloaded from memory
  */
 CoreFunction WINAPI ec_ProgramCoreFunction(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((CoreFunction)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -81,7 +81,7 @@ CoreFunction WINAPI ec_ProgramCoreFunction(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's initialization reason.
+ * Return an MQL program's initialization reason.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -95,7 +95,7 @@ InitializeReason WINAPI ec_ProgramInitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's uninitialization reason.
+ * Return an MQL program's uninitialization reason.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -109,7 +109,7 @@ UninitializeReason WINAPI ec_ProgramUninitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's init flags.
+ * Return an MQL program's init flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -123,7 +123,7 @@ DWORD WINAPI ec_ProgramInitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's deinit flags.
+ * Return an MQL program's deinit flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -137,7 +137,7 @@ DWORD WINAPI ec_ProgramDeinitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's MQL module type.
+ * Return an MQL program's current module type.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -151,7 +151,7 @@ ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's MQL module name.
+ * Return an MQL program's current module name.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -165,7 +165,7 @@ const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current module's core function id.
+ * Return an MQL program's current module core function id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -179,7 +179,7 @@ CoreFunction WINAPI ec_ModuleCoreFunction(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a module's uninitialization reason.
+ * Return an MQL program's current module uninitialization reason.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -193,7 +193,7 @@ UninitializeReason WINAPI ec_ModuleUninitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a module's init flags.
+ * Return an MQL program's current module init flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -207,7 +207,7 @@ DWORD WINAPI ec_ModuleInitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a module's deinit flags.
+ * Return an MQL program's current module deinit flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -221,7 +221,7 @@ DWORD WINAPI ec_ModuleDeinitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's symbol.
+ * Return an MQL program's current symbol.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -235,7 +235,7 @@ const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's timeframe.
+ * Return an MQL program's current timeframe.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -249,7 +249,7 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's "Bars" value.
+ * Return an MQL program's current amount of chart bars.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -263,7 +263,7 @@ int WINAPI ec_Bars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's "ChangedBars" value.
+ * Return an MQL program's current amount of changed chart bars.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -277,7 +277,7 @@ int WINAPI ec_ChangedBars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's "UnchangedBars" value.
+ * Return an MQL program's current amount of unchanged chart bars.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -291,7 +291,7 @@ int WINAPI ec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the number of times the start() function was called during the program's lifetime.
+ * Return the number of times the start() function was called during an MQL program's lifetime.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -305,7 +305,7 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the number of times the start() function was called during the program's last init() cycle.
+ * Return the number of times the start() function was called during an MQL program's last init() cycle.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -319,7 +319,7 @@ uint WINAPI ec_CycleTicks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's previous tick time.
+ * Return an MQL program's previous tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -333,7 +333,7 @@ datetime WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's current tick time.
+ * Return an MQL program's current tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -347,7 +347,7 @@ datetime WINAPI ec_CurrTickTime(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's current bid price.
+ * Return an MQL program's current bid price.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -361,7 +361,7 @@ double WINAPI ec_Bid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's current ask price.
+ * Return an MQL program's current ask price.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -375,7 +375,7 @@ double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbol's "Digits" value.
+ * Return an MQL program's current symbol "Digits".
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -389,7 +389,7 @@ uint WINAPI ec_Digits(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbol's "PipDigits" value.
+ * Return an MQL program's current symbol "PipDigits".
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -403,7 +403,7 @@ uint WINAPI ec_PipDigits(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbol's "SubPipDigits" value.
+ * Return an MQL program's current symbol "SubPipDigits".
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -417,7 +417,7 @@ uint WINAPI ec_SubPipDigits(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbol's "Pip" size.
+ * Return an MQL program's current symbol "Pip" size.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -431,7 +431,7 @@ double WINAPI ec_Pip(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbol's "Point" size.
+ * Return an MQL program's current symbol "Point" size.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -445,7 +445,7 @@ double WINAPI ec_Point(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbol's "PipPoints" value.
+ * Return an MQL program's current symbol "PipPoints" value.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -459,7 +459,7 @@ uint WINAPI ec_PipPoints(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbols standard price format.
+ * Return an MQL program's current symbol standard price format.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -473,7 +473,7 @@ const char* WINAPI ec_PriceFormat(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbols pip price format (never contains subpips).
+ * Return an MQL program's current symbol pip price format (doesn't contain subpips).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -487,7 +487,7 @@ const char* WINAPI ec_PipPriceFormat(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the current symbols subpip price format (always contains subpips).
+ * Return an MQL program's current symbol subpip price format (contains subpips).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -525,11 +525,11 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* cons
 
 
 /**
- * Return a pointer to the super context contained in an EXECUTION_CONTEXT. Used by MQL4.
+ * Return an MQL program's pointer to the super context (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return EXECUTION_CONTEXT* - pointer or NULL if the context contained no super context
+ * @return EXECUTION_CONTEXT* - pointer or NULL if the context contains no super context
  */
 EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -539,7 +539,7 @@ EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's current thread id.
+ * Return an MQL program's current thread id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -553,11 +553,11 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's chart window handle.
+ * Return an MQL program's chart window handle.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return HWND - handle, identifying the parent window of the chart frame
+ * @return HWND - handle identifying the parent window of the chart frame
  */
 HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -567,7 +567,7 @@ HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the id of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's TEST id (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -583,11 +583,11 @@ int WINAPI ec_TestId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's chart frame handle.
+ * Return an MQL program's chart frame handle.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return HWND - handle, equal to the return vale of MQL::WindowHandle()
+ * @return HWND - handle, same as return value of MQL::WindowHandle()
  */
 HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -597,7 +597,7 @@ HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the creation time of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's test creation time (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -613,7 +613,7 @@ datetime WINAPI ec_TestCreated(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the start time of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's test start time (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -629,7 +629,7 @@ datetime WINAPI ec_TestStartTime(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the end time of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's test end time (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -645,7 +645,7 @@ datetime WINAPI ec_TestEndTime(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the bar model used in the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's bar model used in a test (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -661,7 +661,7 @@ uint WINAPI ec_TestBarModel(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the number of bars of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's number of bars of a test (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -677,7 +677,7 @@ uint WINAPI ec_TestBars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the number of ticks of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's number of ticks of a test (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -693,7 +693,7 @@ uint WINAPI ec_TestTicks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the spread used in the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's spread used in a test (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -709,7 +709,7 @@ double WINAPI ec_TestSpread(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the trade directions of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's trade directions of a test (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -725,7 +725,7 @@ DWORD WINAPI ec_TestTradeDirections(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the reporting id of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's reporting id of a test (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -741,7 +741,7 @@ int WINAPI ec_TestReportId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the reporting symbol of the TEST linked to an EXECUTION_CONTEXT.
+ * Return an MQL program's reporting symbol of a TEST (if any).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -757,7 +757,7 @@ const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a program is running in the Strategy Tester or on a test chart.
+ * Whether an MQL program is executed in the tester or on a chart in the tester.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -771,7 +771,7 @@ BOOL WINAPI ec_Testing(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a program is running in the Strategy Tester or on a test chart with "VisualMode" on.
+ * Whether an MQL program is executed in the tester with "VisualMode" on.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -785,7 +785,7 @@ BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a program is running in the Strategy Tester with "Optimization" on.
+ * Whether an MQL program is executed in the tester with "Optimization" on.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -799,7 +799,7 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether an expert's input parameter "EA.CreateReport" is activated.
+ * Whether an MQL program's input parameter "EA.CreateReport" is activated (experts only).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -813,7 +813,7 @@ BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether an expert's input parameter "EA.RecordEquity" is activated.
+ * Whether an MQL program's input parameter "EA.RecordEquity" is activated (experts only).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -827,7 +827,7 @@ BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's MQL error code.
+ * Return an MQL program's current MQL error code.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -841,7 +841,7 @@ int WINAPI ec_MqlError(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's DLL error code.
+ * Return an MQL program's current DLL error code.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -855,7 +855,7 @@ int WINAPI ec_DllError(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an EXECUTION_CONTEXT's DLL warning code.
+ * Return an MQL program's current DLL warning code.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -869,7 +869,7 @@ int WINAPI ec_DllWarning(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's main loglevel.
+ * Return an MQL program's main loglevel.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -883,7 +883,7 @@ int WINAPI ec_Loglevel(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's loglevel for the terminal alert appender.
+ * Return an MQL program's loglevel for the alert appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -897,7 +897,7 @@ int WINAPI ec_LoglevelAlert(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's loglevel for the terminal log appender.
+ * Return an MQL program's loglevel for the terminal log appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -911,7 +911,7 @@ int WINAPI ec_LoglevelTerminal(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's loglevel for the debug output appender.
+ * Return an MQL program's loglevel for the debug output appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -925,7 +925,7 @@ int WINAPI ec_LoglevelDebugger(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's loglevel for the custom logfile appender.
+ * Return an MQL program's loglevel for the custom logfile appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -939,7 +939,7 @@ int WINAPI ec_LoglevelFile(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's loglevel for the mail appender.
+ * Return an MQL program's loglevel for the mail appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -953,7 +953,7 @@ int WINAPI ec_LoglevelMail(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's loglevel for the SMS appender.
+ * Return an MQL program's loglevel for the SMS appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -967,7 +967,7 @@ int WINAPI ec_LoglevelSMS(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether logging in general is enabled for a program.
+ * Whether logging in general is enabled for an MQL program.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -981,7 +981,7 @@ BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a program's log messages are sent to the system debugger.
+ * Whether an MQL program's log messages are sent to the system debugger.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -995,7 +995,7 @@ BOOL WINAPI ec_LogToDebugEnabled(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a program's log messages are sent to the terminal log.
+ * Whether an MQL program's log messages are sent to the terminal log.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1009,7 +1009,7 @@ BOOL WINAPI ec_LogToTerminalEnabled(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether a program's log messages are sent to a custom logger.
+ * Whether an MQL program's log messages are sent to a custom logger.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1023,7 +1023,7 @@ BOOL WINAPI ec_LogToCustomEnabled(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's custom log filename.
+ * Return an MQL program's custom log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1702,7 +1702,7 @@ uint WINAPI ec_SetPipPoints(EXECUTION_CONTEXT* ec, uint points) {
  * @return EXECUTION_CONTEXT* - the same super context
  */
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
-   if (       (uint)ec  < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec         < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec));
 
    ec->superContext = sec;
@@ -2015,6 +2015,167 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
+ * Set an MQL program's main loglevel.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevel = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevel = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an MQL program's loglevel of the terminal alert appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevelAlert = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevelAlert = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an MQL program's loglevel of the terminal log appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevelTerminal = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevelTerminal = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an MQL program's loglevel of the debug output appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevelDebugger = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevelDebugger = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an MQL program's loglevel of the custom logfile appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevelFile = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevelFile = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an MQL program's loglevel of the mail appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevelMail = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevelMail = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an MQL program's loglevel of the SMS appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevelSMS = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevelSMS = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Set an EXECUTION_CONTEXT's logEnabled value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -2028,10 +2189,9 @@ BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logEnabled from a non-main module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logEnabled = status;
-
    if (chain[0])                                                     // synchronize main and master context
       chain[0]->logEnabled = status;
 
@@ -2057,7 +2217,7 @@ BOOL WINAPI ec_SetLogToDebugEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToDebugEnabled from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToDebugEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logToDebugEnabled = status;
    if (chain[0])                                                     // synchronize main and master context
@@ -2082,7 +2242,7 @@ BOOL WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToTerminalEnabled from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToTerminalEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logToTerminalEnabled = status;
    if (chain[0])                                                     // synchronize main and master context
@@ -2107,7 +2267,7 @@ BOOL WINAPI ec_SetLogToCustomEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
    if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToCustomEnabled from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToCustomEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    ec->logToCustomEnabled = status;
    if (chain[0])                                                     // synchronize main and master context

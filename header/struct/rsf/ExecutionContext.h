@@ -88,7 +88,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    char*              dllWarningMsg;                  //       752        4     DLL warning message                                       (var)
                                                       //
    int                loglevel;                       //       756        4     program main loglevel                                     (var)
-   int                loglevelAlert;                  //       760        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelAlert;                  //       760        4     loglevel of the alert appender                            (var)
    int                loglevelTerminal;               //       764        4     loglevel of the terminal log appender                     (var)
    int                loglevelDebugger;               //       768        4     loglevel of the debug output appender                     (var)
    int                loglevelFile;                   //       772        4     loglevel of the custom logfile appender                   (var)
@@ -244,9 +244,17 @@ BOOL               WINAPI ec_SetRecordEquity        (EXECUTION_CONTEXT* ec, BOOL
 
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
 int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );
-//                        ...
+//                        ec.dllErrorMsg
 int                WINAPI ec_SetDllWarning          (EXECUTION_CONTEXT* ec, int                error   );
-//                        ...
+//                        ec.dllWarningMsg
+
+int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelAlert       (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelDebugger    (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int                level   );
 BOOL               WINAPI ec_SetLogEnabled          (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetLogToDebugEnabled   (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL               status  );
