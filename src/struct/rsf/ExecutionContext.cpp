@@ -883,20 +883,6 @@ int WINAPI ec_Loglevel(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's loglevel for the alert appender.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - loglevel
- */
-int WINAPI ec_LoglevelAlert(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   return(ec->loglevelAlert);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an MQL program's loglevel for the terminal log appender.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -906,6 +892,20 @@ int WINAPI ec_LoglevelAlert(const EXECUTION_CONTEXT* ec) {
 int WINAPI ec_LoglevelTerminal(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    return(ec->loglevelTerminal);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an MQL program's loglevel for the terminal alert appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - loglevel
+ */
+int WINAPI ec_LoglevelAlert(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   return(ec->loglevelAlert);
    #pragma EXPANDER_EXPORT
 }
 
@@ -962,62 +962,6 @@ int WINAPI ec_LoglevelMail(const EXECUTION_CONTEXT* ec) {
 int WINAPI ec_LoglevelSMS(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    return(ec->loglevelSMS);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether logging in general is enabled for an MQL program.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_LogEnabled(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logEnabled);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether an MQL program's log messages are sent to the system debugger.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_LogToDebugEnabled(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logToDebugEnabled);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether an MQL program's log messages are sent to the terminal log.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_LogToTerminalEnabled(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logToTerminalEnabled);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether an MQL program's log messages are sent to a custom logger.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_LogToCustomEnabled(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->logToCustomEnabled);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2027,10 +1971,15 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
 
    ec->loglevel = level;
 
-   uint pid = ec->pid;                                               // synchronize master context
+   uint pid = ec->pid;
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevel = level;
+      if (EXECUTION_CONTEXT* master = chain[0]) {                                   // synchronize master context
+         master->loglevel = level;
+         if (master->loglevelFile && master->loglevelFile!=LOG_OFF) {
+            SetCustomLogA(ec, level==LOG_OFF ? NULL : master->customLogFilename);   // open/close a logfile instance
+         }
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2038,30 +1987,7 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel of the terminal alert appender.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  int                level - loglevel
- *
- * @return int - the same loglevel
- */
-int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->loglevelAlert = level;
-
-   uint pid = ec->pid;                                               // synchronize master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelAlert = level;
-   }
-   return(level);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Set an MQL program's loglevel of the terminal log appender.
+ * Set an MQL program's loglevel for the terminal log appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2084,7 +2010,30 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel of the debug output appender.
+ * Set an MQL program's loglevel for the terminal alert appender.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                level - loglevel
+ *
+ * @return int - the same loglevel
+ */
+int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
+   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->loglevelAlert = level;
+
+   uint pid = ec->pid;                                               // synchronize master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (chain[0]) chain[0]->loglevelAlert = level;
+   }
+   return(level);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an MQL program's loglevel for the debug output appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2107,7 +2056,7 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel of the custom logfile appender.
+ * Set an MQL program's loglevel for the custom logfile appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2130,7 +2079,7 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel of the mail appender.
+ * Set an MQL program's loglevel for the mail appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2153,7 +2102,7 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel of the SMS appender.
+ * Set an MQL program's loglevel for the SMS appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2176,108 +2125,6 @@ int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's logEnabled value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status - whether to enable general logging
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetLogEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
-
-   ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   ec->logEnabled = status;
-   if (chain[0])                                                     // synchronize main and master context
-      chain[0]->logEnabled = status;
-
-   if (ec->logToCustomEnabled)                                       // update a custom logger
-      SetCustomLogA(ec, ec->logEnabled ? ec->customLogFilename : NULL);
-
-   return(status);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's logToDebugEnabled value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status - whether to send log messages to the system debugger
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetLogToDebugEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
-
-   ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToDebugEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   ec->logToDebugEnabled = status;
-   if (chain[0])                                                     // synchronize main and master context
-      chain[0]->logToDebugEnabled = status;
-
-   return(status);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's logToTerminalEnabled value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status - whether to send log messages to the terminal log
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
-
-   ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToTerminalEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   ec->logToTerminalEnabled = status;
-   if (chain[0])                                                     // synchronize main and master context
-      chain[0]->logToTerminalEnabled = status;
-
-   return(status);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's logToCustomEnabled value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status - whether to send log messages to a custom logger
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetLogToCustomEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                        return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlPrograms.size() <= ec->pid) return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
-
-   ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1])                  return(error(ERR_ACCESS_DENIED, "cannot write to ec.logToCustomEnabled from an MQL library module,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   ec->logToCustomEnabled = status;
-   if (chain[0])                                                     // synchronize main and master context
-      chain[0]->logToCustomEnabled = status;
-
-   return(status);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT's customLogFilename value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -2286,16 +2133,13 @@ BOOL WINAPI ec_SetLogToCustomEnabled(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return char* - the same filename
  */
 const char* WINAPI ec_SetCustomLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
-   if (            (uint)ec       < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (filename && (uint)filename < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-
+   // note: this setter is not exported
    if (!filename) {
       ec->customLogFilename[0] = '\0';                               // convert NULL pointer to an empty string
    }
    else {
       if (strlen(filename) > sizeof(ec->customLogFilename)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter filename: \"%s\" (max %d characters)", filename, sizeof(ec->customLogFilename)-1));
-      if (!strcpy(ec->customLogFilename, filename))
-         return(NULL);
+      if (!strcpy(ec->customLogFilename, filename))           return(NULL);
    }
 
    uint pid = ec->pid;                                               // synchronize main and master context
@@ -2387,10 +2231,14 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
          << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
          << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
-         << ", logEnabled="           <<            BoolToStr(ec->logEnabled)
-         << ", logToDebugEnabled="    <<            BoolToStr(ec->logToDebugEnabled)
-         << ", logToTerminalEnabled=" <<            BoolToStr(ec->logToTerminalEnabled)
-         << ", logToCustomEnabled="   <<            BoolToStr(ec->logToCustomEnabled)
+
+         << ", loglevel="             <<  LoglevelDescription(ec->loglevel)
+         << ", loglevelTerminal="     <<  LoglevelDescription(ec->loglevelTerminal)
+         << ", loglevelAlert="        <<  LoglevelDescription(ec->loglevelAlert)
+         << ", loglevelDebugger="     <<  LoglevelDescription(ec->loglevelDebugger)
+         << ", loglevelFile="         <<  LoglevelDescription(ec->loglevelFile)
+         << ", loglevelMail="         <<  LoglevelDescription(ec->loglevelMail)
+         << ", loglevelSMS="          <<  LoglevelDescription(ec->loglevelSMS)
          << ", customLog="            <<                     (ec->customLog ? StrFormat("0x%p", ec->customLog) : "NULL")
          << ", customLogFilename="    <<       DoubleQuoteStr(ec->customLogFilename)
          << "}";

@@ -24,10 +24,11 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, i
    if (g_mqlPrograms.size() <= ec->pid)   return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
    if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
 
+   /*
    EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
    if (!master->logEnabled) return(debug("%-13s  all logging is disabled", master->programName));
 
-   //if (master->logToDebugEnabled)                         // send the message to the system debugger (if configured)
+   if (master->logToDebugEnabled)                           // send the message to the system debugger (if configured)
 
    if (master->logToCustomEnabled) {                        // log the message to a custom logfile (if configured)
       std::ofstream* log = master->customLog;
@@ -35,6 +36,7 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, i
 
       *log << message << std::endl;
    }
+   */
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -59,6 +61,7 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
    if (ec != chain[1]) return(error(ERR_ACCESS_DENIED, "cannot modify custom logging from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    EXECUTION_CONTEXT* master = chain[0];
 
+   /*
    if (filename && *filename) {
       // enable custom logging
       std::ofstream* log = master->customLog;
@@ -83,6 +86,7 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->customLog && master->customLog->is_open())
          master->customLog->close();
    }
+   */
 
    return(TRUE);
    #pragma EXPANDER_EXPORT

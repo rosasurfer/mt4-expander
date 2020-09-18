@@ -88,20 +88,17 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    char*              dllWarningMsg;                  //       752        4     DLL warning message                                       (var)
                                                       //
    int                loglevel;                       //       756        4     program main loglevel                                     (var)
-   int                loglevelAlert;                  //       760        4     loglevel of the alert appender                            (var)
-   int                loglevelTerminal;               //       764        4     loglevel of the terminal log appender                     (var)
+   int                loglevelTerminal;               //       760        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       764        4     loglevel of the terminal alert appender                   (var)
    int                loglevelDebugger;               //       768        4     loglevel of the debug output appender                     (var)
    int                loglevelFile;                   //       772        4     loglevel of the custom logfile appender                   (var)
    int                loglevelMail;                   //       776        4     loglevel of the mail appender                             (var)
    int                loglevelSMS;                    //       780        4     loglevel of the SMS appender                              (var)
-   BOOL               logEnabled;                     //       784        4     whether logging in general is enabled                     (var)
-   BOOL               logToDebugEnabled;              //       788        4     whether log messages are sent to the system debugger      (var)
-   BOOL               logToTerminalEnabled;           //       792        4     whether log messages are sent to the terminal log         (var)
-   BOOL               logToCustomEnabled;             //       796        4     whether log messages are sent to a custom logger          (var)
-   std::ofstream*     customLog;                      //       800        4     custom log instance                                       (var)
-   char               customLogFilename[MAX_PATH];    //       804      260     custom logfile name                                       (var)
+
+   std::ofstream*     customLog;                      //       784        4     logfile instance                                          (var)
+   char               customLogFilename[MAX_PATH];    //       788      260     logfile name                                              (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1064
+#pragma pack(pop)                                     //             = 1048
 
 
 // getters (exported to MQL)
@@ -180,16 +177,12 @@ int                WINAPI ec_DllWarning          (const EXECUTION_CONTEXT* ec);
 //                        ec.dllWarningMsg
 
 int                WINAPI ec_Loglevel            (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_LoglevelAlert       (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelTerminal    (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_LoglevelAlert       (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelDebugger    (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelFile        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelMail        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelSMS         (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_LogEnabled          (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_LogToDebugEnabled   (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_LogToTerminalEnabled(const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_LogToCustomEnabled  (const EXECUTION_CONTEXT* ec);
 //                        ec.customLog
 const char*        WINAPI ec_CustomLogFilename   (const EXECUTION_CONTEXT* ec);
 
@@ -249,16 +242,12 @@ int                WINAPI ec_SetDllWarning          (EXECUTION_CONTEXT* ec, int 
 //                        ec.dllWarningMsg
 
 int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelAlert       (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelAlert       (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelDebugger    (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int                level   );
-BOOL               WINAPI ec_SetLogEnabled          (EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetLogToDebugEnabled   (EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetLogToTerminalEnabled(EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetLogToCustomEnabled  (EXECUTION_CONTEXT* ec, BOOL               status  );
 //                        ec.customLog
 const char*        WINAPI ec_SetCustomLogFilename   (EXECUTION_CONTEXT* ec, const char*        filename);
 

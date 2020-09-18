@@ -495,6 +495,52 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
 
 
 /**
+ * Return the description of a loglevel.
+ *
+ * @param  int level - loglevel
+ *
+ * @return char* - description or NULL if the parameter is invalid
+ */
+const char* WINAPI LoglevelDescription(int level) {
+   switch (level) {
+      case NULL:       return("NULL"  );
+      case LOG_DEBUG:  return("DEBUG" );
+      case LOG_INFO:   return("INFO"  );
+      case LOG_NOTICE: return("NOTICE");
+      case LOG_WARN:   return("WARN"  );
+      case LOG_ERROR:  return("ERROR" );
+      case LOG_FATAL:  return("FATAL" );
+      case LOG_OFF:    return("OFF"   );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a readable version of a loglevel constant.
+ *
+ * @param  int level - loglevel
+ *
+ * @return char* - readable version or NULL if the parameter is invalid
+ */
+const char* WINAPI LoglevelToStr(int level) {
+   switch (level) {
+      case NULL:       return("NULL"      );
+      case LOG_DEBUG:  return("LOG_DEBUG" );
+      case LOG_INFO:   return("LOG_INFO"  );
+      case LOG_NOTICE: return("LOG_NOTICE");
+      case LOG_WARN:   return("LOG_WARN"  );
+      case LOG_ERROR:  return("LOG_ERROR" );
+      case LOG_FATAL:  return("LOG_FATAL" );
+      case LOG_OFF:    return("LOG_OFF"   );
+   }
+   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return a description of a ModuleType.
  *
  * @param  ModuleType type

@@ -458,12 +458,15 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetExtReporting        (ec, extReporting);
    ec_SetRecordEquity        (ec, recordEquity);
 
-   ec_SetLogToDebugEnabled   (ec, Program_IsLogToDebugEnabled   (master)); // TODO: atm always set to the master value
-   ec_SetLogToTerminalEnabled(ec, Program_IsLogToTerminalEnabled(master)); // ...
-   ec_SetLogToCustomEnabled  (ec, Program_IsLogToCustomEnabled  (master)); // ...
-   ec_SetCustomLogFilename   (ec, Program_CustomLogFilename     (master)); // ...
-   ec->customLog = master->customLog;                                      // ...
-   ec_SetLogEnabled          (ec, Program_IsLogEnabled          (master)); // after ec_SetLogToCustomEnabled() => re-opens a custom logger
+   ec_SetLoglevelTerminal    (ec, (master->superContext ? master->superContext : master)->loglevelTerminal );
+   ec_SetLoglevelAlert       (ec, (master->superContext ? master->superContext : master)->loglevelAlert    );
+   ec_SetLoglevelDebugger    (ec, (master->superContext ? master->superContext : master)->loglevelDebugger );
+   ec_SetLoglevelFile        (ec, (master->superContext ? master->superContext : master)->loglevelFile     );
+   ec_SetLoglevelMail        (ec, (master->superContext ? master->superContext : master)->loglevelMail     );
+   ec_SetLoglevelSMS         (ec, (master->superContext ? master->superContext : master)->loglevelSMS      );
+   ec_SetCustomLogFilename   (ec, (master->superContext ? master->superContext : master)->customLogFilename);
+   ec->customLog =                (master->superContext ? master->superContext : master)->customLog;
+   ec_SetLoglevel            (ec, (master->superContext ? master->superContext : master)->loglevel);     // after logfile settings as it re-opens a logfile instance
 
    // TODO: reset errors if not in an init() call from start()
    //ec->mqlError      = NULL;
@@ -471,7 +474,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    //ec->dllWarning    = NULL;
    //ec->dllErrorMsg   = NULL;
    //ec->dllWarningMsg = NULL;
-
 
    // (3) synchronize already loaded libraries
    ContextChain &chain = *g_mqlPrograms[currentPid];
@@ -542,10 +544,13 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->ask                  = ask;
          ctx->threadId             = threadId;
 
-         ctx->logEnabled           = ec->logEnabled;                 // configurable at runtime
-         ctx->logToDebugEnabled    = ec->logToDebugEnabled;
-         ctx->logToTerminalEnabled = ec->logToTerminalEnabled;
-         ctx->logToCustomEnabled   = ec->logToCustomEnabled;
+         ctx->loglevel             = ec->loglevel;                   // configurable at runtime
+         ctx->loglevelTerminal     = ec->loglevelTerminal;
+         ctx->loglevelAlert        = ec->loglevelAlert;
+         ctx->loglevelDebugger     = ec->loglevelDebugger;
+         ctx->loglevelFile         = ec->loglevelFile;
+         ctx->loglevelMail         = ec->loglevelMail;
+         ctx->loglevelSMS          = ec->loglevelSMS;
          ctx->customLog            = ec->customLog;
          strcpy(ctx->customLogFilename, ec->customLogFilename);
 
@@ -624,10 +629,13 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
          ctx->programUninitReason  = uninitReason;
          ctx->threadId             = threadId;
 
-         ctx->logEnabled           = ec->logEnabled;                 // configurable at runtime
-         ctx->logToDebugEnabled    = ec->logToDebugEnabled;
-         ctx->logToTerminalEnabled = ec->logToTerminalEnabled;
-         ctx->logToCustomEnabled   = ec->logToCustomEnabled;
+         ctx->loglevel             = ec->loglevel;                   // configurable at runtime
+         ctx->loglevelTerminal     = ec->loglevelTerminal;
+         ctx->loglevelAlert        = ec->loglevelAlert;
+         ctx->loglevelDebugger     = ec->loglevelDebugger;
+         ctx->loglevelFile         = ec->loglevelFile;
+         ctx->loglevelMail         = ec->loglevelMail;
+         ctx->loglevelSMS          = ec->loglevelSMS;
          ctx->customLog            = ec->customLog;
          strcpy(ctx->customLogFilename, ec->customLogFilename);
 
@@ -1032,7 +1040,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
          // close an open logfile
          if (ec->customLog && ec->customLog->is_open())
-            ec->customLog->close();                                        // automatically re-opened in init() due to master.logToCustomEnabled = TRUE
+            ec->customLog->close();                                        // is automatically re-opened in init()
          break;
 
       // --- library module --------------------------------------------------------------------------------------------------
@@ -1726,76 +1734,6 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
  */
 InitializeReason WINAPI GetInitReason_script(EXECUTION_CONTEXT* ec, const char* programName, int droppedOnPosX, int droppedOnPosY) {
    return(IR_USER);
-}
-
-
-/**
- * Return the custom logfile a program uses (if any). Called from SyncMainContext_init() only.
- *
- * @param  EXECUTION_CONTEXT* master
- *
- * @return char*
- */
-const char* WINAPI Program_CustomLogFilename(const EXECUTION_CONTEXT* master) {
-   if (master->superContext)
-      return(master->superContext->customLogFilename);
-   return(master->customLogFilename);
-}
-
-
-/**
- * Whether logging in general is enabled for a program. Called from SyncMainContext_init() only.
- *
- * @param  EXECUTION_CONTEXT* master
- *
- * @return BOOL
- */
-BOOL WINAPI Program_IsLogEnabled(const EXECUTION_CONTEXT* master) {
-   if (master->superContext)
-      return(master->superContext->logEnabled);
-   return(master->logEnabled);                  // TODO: move stdfunctions::init.ReadLogConfig() to here
-}
-
-
-/**
- * Whether a program's log messages are sent to the system debugger. Called from SyncMainContext_init() only.
- *
- * @param  EXECUTION_CONTEXT* master
- *
- * @return BOOL
- */
-BOOL WINAPI Program_IsLogToDebugEnabled(const EXECUTION_CONTEXT* master) {
-   if (master->superContext)
-      return(master->superContext->logToDebugEnabled);
-   return(master->logToDebugEnabled);
-}
-
-
-/**
- * Whether a program's log messages are sent to the terminal log. Called from SyncMainContext_init() only.
- *
- * @param  EXECUTION_CONTEXT* master
- *
- * @return BOOL
- */
-BOOL WINAPI Program_IsLogToTerminalEnabled(const EXECUTION_CONTEXT* master) {
-   if (master->superContext)
-      return(master->superContext->logToTerminalEnabled);
-   return(master->logToTerminalEnabled);
-}
-
-
-/**
- * Whether a program's log messages are sent to a custom logger. Called from SyncMainContext_init() only.
- *
- * @param  EXECUTION_CONTEXT* master
- *
- * @return BOOL
- */
-BOOL WINAPI Program_IsLogToCustomEnabled(const EXECUTION_CONTEXT* master) {
-   if (master->superContext)
-      return(master->superContext->logToCustomEnabled);
-   return(master->logToCustomEnabled);
 }
 
 
