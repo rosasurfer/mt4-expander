@@ -9,7 +9,7 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
-* Send a log message to a custom logfile.
+* Append a log message to a program's separate logfile.
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
  * @param  char*              message - log message
@@ -24,19 +24,21 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, i
    if (g_mqlPrograms.size() <= ec->pid)   return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
    if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
 
-   /*
    EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
-   if (!master->logEnabled) return(debug("%-13s  all logging is disabled", master->programName));
 
-   if (master->logToDebugEnabled)                           // send the message to the system debugger (if configured)
+   // check the configured loglevels
+   if (!master->loglevel     || master->loglevel==LOG_OFF)     return(FALSE);
+   if (!master->loglevelFile || master->loglevelFile==LOG_OFF) return(FALSE);
 
-   if (master->logToCustomEnabled) {                        // log the message to a custom logfile (if configured)
-      std::ofstream* log = master->customLog;
-      if (!log || !log->is_open()) return(error(ERR_ILLEGAL_STATE, "invalid execution context (ec.customLog is not an open stream)  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   // check the logger status
+   std::ofstream* log = master->customLog;
+   if (!log) return(debug("file logger is not instantiated: master=%s", EXECUTION_CONTEXT_toStr(master)));
 
-      *log << message << std::endl;
+   if (!log->is_open()) {
+      log->open(master->customLogFilename, std::ios::app);
+      if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->customLogFilename, strerror(errno)));
    }
-   */
+   *log << message << std::endl;          // TODO: format the message
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -44,49 +46,48 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, i
 
 
 /**
- * Enable or disable a program's custom logfile.
+ * Set a program's separate logfile.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  char*              filename - if a non-empty string is passed custom logging to the specified file is enabled;
- *                                       if a NULL pointer or an empty string is passed custom logging is disabled
+ * @param  char*              filename - if a non-empty string is passed logging to the specified file is enabled;
+ *                                       if an empty string or a NULL pointer are passed the logfile is disabled
  * @return BOOL - success status
  */
 BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
-   if (            (uint)ec       < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (filename && (uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
    if (!ec->pid)                                       return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (g_mqlPrograms.size() <= ec->pid)                return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
-   if (ec != chain[1]) return(error(ERR_ACCESS_DENIED, "cannot modify custom logging from an MQL library,  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    EXECUTION_CONTEXT* master = chain[0];
 
-   /*
    if (filename && *filename) {
-      // enable custom logging
+      // enable the file logger
       std::ofstream* log = master->customLog;
-      if (!log)
-         log = master->customLog = ec->customLog = new std::ofstream();
+      if (!log) log = master->customLog = ec->customLog = new std::ofstream();
 
+      // close a previous logfile
       if (!StrCompare(filename, master->customLogFilename)) {
-         if (log->is_open())
-            log->close();
+         if (log->is_open()) log->close();
          ec_SetCustomLogFilename(ec, filename);
       }
-      if (!log->is_open()) {
-         log->open(master->customLogFilename, std::ios::app);
-         if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "%s opening \"%s\" failed (%s)", master->programName, master->customLogFilename, strerror(errno)));
+
+      // open the new logfile if loglevels are configured
+      if (master->loglevel && master->loglevel!=LOG_OFF) {
+         if (master->loglevelFile || master->loglevelFile!=LOG_OFF) {
+            if (!log->is_open()) {
+               log->open(master->customLogFilename, std::ios::app);
+               if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->customLogFilename, strerror(errno)));
+            }
+         }
       }
-      ec_SetLogToCustomEnabled(ec, TRUE);
    }
    else {
-      // disable custom logging
-      ec_SetLogToTerminalEnabled(ec, TRUE);
-      ec_SetLogToCustomEnabled  (ec, FALSE);
+      // close the logfile but keep an existing instance
       if (master->customLog && master->customLog->is_open())
          master->customLog->close();
    }
-   */
 
    return(TRUE);
    #pragma EXPANDER_EXPORT

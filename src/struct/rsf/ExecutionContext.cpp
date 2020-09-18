@@ -1974,10 +1974,14 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
    uint pid = ec->pid;
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (EXECUTION_CONTEXT* master = chain[0]) {                                   // synchronize master context
+      if (EXECUTION_CONTEXT* master = chain[0]) {                    // synchronize master context
          master->loglevel = level;
-         if (master->loglevelFile && master->loglevelFile!=LOG_OFF) {
-            SetCustomLogA(ec, level==LOG_OFF ? NULL : master->customLogFilename);   // open/close a logfile instance
+
+         if (!master->loglevel || master->loglevel==LOG_OFF || !master->loglevelFile || master->loglevelFile==LOG_OFF) {
+            SetCustomLogA(ec, NULL);                                 // close an open logfile
+         }
+         else {
+            SetCustomLogA(ec, master->customLogFilename);            // open a closed logfile
          }
       }
    }
@@ -2068,10 +2072,19 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
 
    ec->loglevelFile = level;
 
-   uint pid = ec->pid;                                               // synchronize master context
+   uint pid = ec->pid;
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelFile = level;
+      if (EXECUTION_CONTEXT* master = chain[0]) {                    // synchronize master context
+         master->loglevelFile = level;
+
+         if (!master->loglevel || master->loglevel==LOG_OFF || !master->loglevelFile || master->loglevelFile==LOG_OFF) {
+            SetCustomLogA(ec, NULL);                                 // close an open logfile
+         }
+         else {
+            SetCustomLogA(ec, master->customLogFilename);            // open a closed logfile
+         }
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2125,10 +2138,10 @@ int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's customLogFilename value.
+ * Set an MQL program's separate log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  char*              filename - a NULL pointer or an empty string reset the filename
+ * @param  char*              filename - an empty string or a NULL pointer reset the filename
  *
  * @return char* - the same filename
  */
