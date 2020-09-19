@@ -1969,6 +1969,8 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
    if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
+   debug("level=%s  ec=%s", LoglevelDescription(level), EXECUTION_CONTEXT_toStr(ec));
+
    ec->loglevel = level;
 
    uint pid = ec->pid;
@@ -2069,6 +2071,8 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
  */
 int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
    if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   debug("level=%s  ec=%s", LoglevelDescription(level), EXECUTION_CONTEXT_toStr(ec));
 
    ec->loglevelFile = level;
 

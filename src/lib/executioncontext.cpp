@@ -1014,7 +1014,8 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    if (!ec->pid)                            return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
    if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
    if (g_mqlPrograms.size() <= ec->pid)     return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_mqlPrograms.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
-   //debug("          %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, "", EXECUTION_CONTEXT_toStr(ec));
+
+   debug("ec=%s", EXECUTION_CONTEXT_toStr(ec));
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    uint chainSize = chain.size();
@@ -1039,8 +1040,10 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
          chain[1] = NULL;                                                  // reset the main execution context but keep the slot in the chain
 
          // close an open logfile
-         if (ec->logfile && ec->logfile->is_open())
+         if (ec->logfile && ec->logfile->is_open()) {
             ec->logfile->close();                                          // is automatically re-opened in init()
+            debug("logfile closed  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         }
          break;
 
       // --- library module --------------------------------------------------------------------------------------------------
