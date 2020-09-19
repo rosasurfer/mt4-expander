@@ -9,7 +9,7 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
-* Append a log message to a program's separate logfile.
+* Append a log message to a program's logfile.
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
  * @param  char*              message - log message
@@ -46,7 +46,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, const char* message, int er
 
 
 /**
- * Set a program's separate log filename.
+ * Set a program's log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              filename - if a non-empty string is passed logging to the specified file is enabled;
@@ -84,7 +84,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       }
    }
    else {
-      // close the logfile but keep an existing instance
+      // close the logfile but keep an existing instance (we may be in an init cycle)
       if (master->logfile && master->logfile->is_open())
          master->logfile->close();
    }
