@@ -1015,8 +1015,6 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    if (ec->moduleCoreFunction != CF_DEINIT) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.moduleCoreFunction not CF_DEINIT):  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec))));
    if (g_mqlPrograms.size() <= ec->pid)     return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal list of ContextChains (size=%d) for pid=%d:  ec=%s", g_mqlPrograms.size(), ec->pid, EXECUTION_CONTEXT_toStr(ec))));
 
-   debug("ec=%s", EXECUTION_CONTEXT_toStr(ec));
-
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    uint chainSize = chain.size();
    if (chainSize < 2) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "illegal context chain (size=%d):  ec=%s", chainSize, EXECUTION_CONTEXT_toStr(ec))));

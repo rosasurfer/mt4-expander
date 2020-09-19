@@ -38,11 +38,9 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, const char* message, int er
    if (!log->is_open()) {
       if (!strlen(master->logFilename) ) return(FALSE);        // logfile not set => logger is inactive
       log->open(master->logFilename, std::ios::app);
-      debug("logfile opened  master=%s", EXECUTION_CONTEXT_toStr(master));
       if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
    }
 
-   debug("writing \"%s\" to logfile  master=%s", message, EXECUTION_CONTEXT_toStr(master));
    *log << message << std::endl;                               // TODO: format the message
 
    return(TRUE);
@@ -67,22 +65,14 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
 
-   debug("filename=\"%s\"  ec=%s", filename, EXECUTION_CONTEXT_toStr(ec));
-
    if (filename && *filename) {
       // enable the file logger
       std::ofstream* log = master->logger;
-      if (!log) {
-         log = master->logger = ec->logger = new std::ofstream();
-         debug("logfile instance created  master=%s", EXECUTION_CONTEXT_toStr(master));
-      }
+      if (!log) log = master->logger = ec->logger = new std::ofstream();
 
       // close a previous logfile
       if (!StrCompare(filename, master->logFilename)) {
-         if (log->is_open()) {
-            log->close();
-            debug("previous logfile closed  master=%s", EXECUTION_CONTEXT_toStr(master));
-         }
+         if (log->is_open()) log->close();
       }
       ec_SetLogFilename(ec, filename);
 
@@ -91,7 +81,6 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
          if (master->loglevelFile || master->loglevelFile!=LOG_OFF) {
             if (!log->is_open()) {
                log->open(master->logFilename, std::ios::app);
-               debug("new logfile opened  master=%s", EXECUTION_CONTEXT_toStr(master));
                if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
             }
          }
@@ -99,10 +88,8 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    }
    else {
       // close the logfile but keep an existing instance (we may be in an init cycle)
-      if (master->logger && master->logger->is_open()) {
+      if (master->logger && master->logger->is_open()) 
          master->logger->close();
-         debug("logfile closed  master=%s", EXECUTION_CONTEXT_toStr(master));
-      }
       ec_SetLogFilename(ec, filename);
    }
 
