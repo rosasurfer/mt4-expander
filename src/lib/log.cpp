@@ -31,12 +31,12 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, i
    if (!master->loglevelFile || master->loglevelFile==LOG_OFF) return(FALSE);
 
    // check the logger status
-   std::ofstream* log = master->customLog;
+   std::ofstream* log = master->logfile;
    if (!log) return(debug("file logger is not instantiated: master=%s", EXECUTION_CONTEXT_toStr(master)));
 
    if (!log->is_open()) {
-      log->open(master->customLogFilename, std::ios::app);
-      if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->customLogFilename, strerror(errno)));
+      log->open(master->logfileName, std::ios::app);
+      if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logfileName, strerror(errno)));
    }
    *log << message << std::endl;          // TODO: format the message
 
@@ -46,14 +46,14 @@ BOOL WINAPI LogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, i
 
 
 /**
- * Set a program's separate logfile.
+ * Set a program's separate log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              filename - if a non-empty string is passed logging to the specified file is enabled;
  *                                       if an empty string or a NULL pointer are passed the logfile is disabled
  * @return BOOL - success status
  */
-BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
+BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    if ((uint)ec < MIN_VALID_POINTER)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (filename && (uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
    if (!ec->pid)                                       return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
@@ -64,29 +64,29 @@ BOOL WINAPI SetCustomLogA(EXECUTION_CONTEXT* ec, const char* filename) {
 
    if (filename && *filename) {
       // enable the file logger
-      std::ofstream* log = master->customLog;
-      if (!log) log = master->customLog = ec->customLog = new std::ofstream();
+      std::ofstream* log = master->logfile;
+      if (!log) log = master->logfile = ec->logfile = new std::ofstream();
 
       // close a previous logfile
-      if (!StrCompare(filename, master->customLogFilename)) {
+      if (!StrCompare(filename, master->logfileName)) {
          if (log->is_open()) log->close();
-         ec_SetCustomLogFilename(ec, filename);
+         ec_SetLogfileName(ec, filename);
       }
 
       // open the new logfile if loglevels are configured
       if (master->loglevel && master->loglevel!=LOG_OFF) {
          if (master->loglevelFile || master->loglevelFile!=LOG_OFF) {
             if (!log->is_open()) {
-               log->open(master->customLogFilename, std::ios::app);
-               if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->customLogFilename, strerror(errno)));
+               log->open(master->logfileName, std::ios::app);
+               if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logfileName, strerror(errno)));
             }
          }
       }
    }
    else {
       // close the logfile but keep an existing instance
-      if (master->customLog && master->customLog->is_open())
-         master->customLog->close();
+      if (master->logfile && master->logfile->is_open())
+         master->logfile->close();
    }
 
    return(TRUE);

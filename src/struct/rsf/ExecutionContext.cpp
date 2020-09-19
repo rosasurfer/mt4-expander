@@ -925,7 +925,7 @@ int WINAPI ec_LoglevelDebugger(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's loglevel for the custom logfile appender.
+ * Return an MQL program's loglevel for the separate logfile appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -967,15 +967,15 @@ int WINAPI ec_LoglevelSMS(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's custom log filename.
+ * Return an MQL program's separate log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return char* - filename
  */
-const char* WINAPI ec_CustomLogFilename(const EXECUTION_CONTEXT* ec) {
+const char* WINAPI ec_LogfileName(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->customLogFilename);
+   return(ec->logfileName);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1978,10 +1978,10 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
          master->loglevel = level;
 
          if (!master->loglevel || master->loglevel==LOG_OFF || !master->loglevelFile || master->loglevelFile==LOG_OFF) {
-            SetCustomLogA(ec, NULL);                                 // close an open logfile
+            SetLogfileA(ec, NULL);                                   // close an open logfile
          }
          else {
-            SetCustomLogA(ec, master->customLogFilename);            // open a closed logfile
+            SetLogfileA(ec, master->logfileName);                    // open a closed logfile
          }
       }
    }
@@ -2060,7 +2060,7 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel for the custom logfile appender.
+ * Set an MQL program's loglevel for the separate logfile appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2079,10 +2079,10 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
          master->loglevelFile = level;
 
          if (!master->loglevel || master->loglevel==LOG_OFF || !master->loglevelFile || master->loglevelFile==LOG_OFF) {
-            SetCustomLogA(ec, NULL);                                 // close an open logfile
+            SetLogfileA(ec, NULL);                                   // close an open logfile
          }
          else {
-            SetCustomLogA(ec, master->customLogFilename);            // open a closed logfile
+            SetLogfileA(ec, master->logfileName);                    // open a closed logfile
          }
       }
    }
@@ -2145,21 +2145,21 @@ int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
  *
  * @return char* - the same filename
  */
-const char* WINAPI ec_SetCustomLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
+const char* WINAPI ec_SetLogfileName(EXECUTION_CONTEXT* ec, const char* filename) {
    // note: this setter is not exported
    if (!filename) {
-      ec->customLogFilename[0] = '\0';                               // convert NULL pointer to an empty string
+      ec->logfileName[0] = '\0';                                     // convert NULL pointer to an empty string
    }
    else {
-      if (strlen(filename) > sizeof(ec->customLogFilename)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter filename: \"%s\" (max %d characters)", filename, sizeof(ec->customLogFilename)-1));
-      if (!strcpy(ec->customLogFilename, filename))           return(NULL);
+      if (strlen(filename) > sizeof(ec->logfileName)-1) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter filename: \"%s\" (max %d characters)", filename, sizeof(ec->logfileName)-1));
+      if (!strcpy(ec->logfileName, filename))           return(NULL);
    }
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         if (!strcpy(chain[0]->customLogFilename, ec->customLogFilename))
+         if (!strcpy(chain[0]->logfileName, ec->logfileName))
             return(NULL);
    }
    return(filename);
@@ -2252,8 +2252,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
          << ", loglevelFile="         <<  LoglevelDescription(ec->loglevelFile)
          << ", loglevelMail="         <<  LoglevelDescription(ec->loglevelMail)
          << ", loglevelSMS="          <<  LoglevelDescription(ec->loglevelSMS)
-         << ", customLog="            <<                     (ec->customLog ? StrFormat("0x%p", ec->customLog) : "NULL")
-         << ", customLogFilename="    <<       DoubleQuoteStr(ec->customLogFilename)
+         << ", logfile="              <<                     (ec->logfile ? StrFormat("0x%p", ec->logfile) : "NULL")
+         << ", logfileName="          <<       DoubleQuoteStr(ec->logfileName)
          << "}";
    }
    ss << StrFormat(" (0x%p)", ec);
