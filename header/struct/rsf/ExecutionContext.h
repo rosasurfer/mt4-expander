@@ -95,8 +95,8 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    int                loglevelMail;                   //       776        4     loglevel of the mail appender                             (var)
    int                loglevelSMS;                    //       780        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logfile;                        //       784        4     logfile instance                                          (var)
-   char               logfileName[MAX_PATH];          //       788      260     logfile name                                              (var)
+   std::ofstream*     logger;                         //       784        4     logger instance                                           (var)
+   char               logFilename[MAX_PATH];          //       788      260     logger filename                                           (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
 #pragma pack(pop)                                     //             = 1048
 
@@ -183,8 +183,8 @@ int                WINAPI ec_LoglevelDebugger    (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelFile        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelMail        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelSMS         (const EXECUTION_CONTEXT* ec);
-//                        ec.logfile
-const char*        WINAPI ec_LogfileName         (const EXECUTION_CONTEXT* ec);
+//                        ec.logger
+const char*        WINAPI ec_LogFilename         (const EXECUTION_CONTEXT* ec);
 
 
 // validating setters
@@ -248,8 +248,8 @@ int                WINAPI ec_SetLoglevelDebugger    (EXECUTION_CONTEXT* ec, int 
 int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int                level   );
-//                        ec.logfile
-const char*        WINAPI ec_SetLogfileName         (EXECUTION_CONTEXT* ec, const char*        filename);
+//                        ec.logger
+const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, const char*        filename);
 
 
 // helpers
