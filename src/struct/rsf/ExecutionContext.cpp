@@ -7,6 +7,8 @@
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 
+#include <fstream>
+
 extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<ContextChain> with index = program id
 
 
@@ -1975,14 +1977,14 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
-         if (master->loglevel != level) {                            // synchronize master context
-            master->loglevel = level;
+         if (master->loglevel != level) {
+            master->loglevel = level;                                      // synchronize master context
 
-            if (!master->loglevel || master->loglevel==LOG_OFF || !master->loglevelFile || master->loglevelFile==LOG_OFF) {
-               SetLogfileA(ec, NULL);                                // close an open logfile
+            if (master->loglevel && master->loglevel!=LOG_OFF) {
+               SetLogfileA(ec, master->logFilename);                       // (re-)initialize the logger
             }
-            else {
-               SetLogfileA(ec, master->logFilename);                 // open a closed logfile
+            else if (master->logger && master->logger->is_open()) {
+               master->logger->close();                                    // close an open logfile
             }
          }
       }
@@ -2078,14 +2080,14 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
-         if (master->loglevelFile != level) {                        // synchronize master context
-            master->loglevelFile = level;
+         if (master->loglevelFile != level) {
+            master->loglevelFile = level;                                  // synchronize master context
 
-            if (!master->loglevel || master->loglevel==LOG_OFF || !master->loglevelFile || master->loglevelFile==LOG_OFF) {
-               SetLogfileA(ec, NULL);                                // close an open logfile
+            if (master->loglevelFile && master->loglevelFile!=LOG_OFF) {
+               SetLogfileA(ec, master->logFilename);                       // (re-)initialize the logger
             }
-            else {
-               SetLogfileA(ec, master->logFilename);                 // open a closed logfile
+            else if (master->logger && master->logger->is_open()) {
+               master->logger->close();                                    // close an open logfile
             }
          }
       }
