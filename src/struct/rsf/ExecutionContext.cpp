@@ -2177,11 +2177,10 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
  * Return a human-readable version of an EXECUTION_CONTEXT.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               outputDebug [optional] - whether to duplicate the result to OutputDebugString()
- *                                                     (default: no)
+ *
  * @return char*
  */
-const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug/*=FALSE*/) {
+const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    std::stringstream ss;
@@ -2266,7 +2265,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
    ss << StrFormat(" (0x%p)", ec);
    char* result = strdup(ss.str().c_str());                             // TODO: add to GC (close memory leak)
 
-   if (outputDebug) debug(result);
    return(result);
    #pragma EXPANDER_EXPORT
 }
@@ -2274,8 +2272,12 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL out
 
 /**
  * Alias of EXECUTION_CONTEXT_toStr() with a different MQL import signature
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char*
  */
-const char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec, BOOL outputDebug/*=FALSE*/) {
-   return(EXECUTION_CONTEXT_toStr(ec, outputDebug));
+const char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
+   return(EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
