@@ -13,7 +13,7 @@ const char* WINAPI ErrorToStr(int error);
 const char* WINAPI InitializeReasonToStr(InitializeReason reason);
 const char* WINAPI InitReasonToStr(InitializeReason reason);
       char* WINAPI IntToHexStr(int value);
-const char* WINAPI LoglevelDescription(int level);
+const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase = TRUE);
 const char* WINAPI LoglevelToStr(int level);
 const char* WINAPI ModuleTypeDescription(ModuleType type);
 const char* WINAPI ModuleTypeToStr(ModuleType type);

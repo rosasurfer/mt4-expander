@@ -6,6 +6,7 @@
 #include "struct/rsf/ExecutionContext.h"
 
 #include <fstream>
+#include <time.h>
 
 extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<ContextChain*> with index = program id
 
@@ -35,16 +36,39 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, const char* message, int er
 
    // check the logger status
    std::ofstream* log = master->logger;
-   if (!log) return(FALSE);                                    // logger not instantiated => logger is inactive
+   if (!log) return(FALSE);                                                                     // logger not instantiated => logger is inactive
 
    if (!log->is_open()) {
-      if (!strlen(master->logFilename) ) return(FALSE);        // logfile not set => logger is inactive
+      if (!strlen(master->logFilename) ) return(FALSE);                                         // logfile not set => logger is inactive
       log->open(master->logFilename, std::ios::app);
       if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
    }
 
-   *log << LocalTimeFormatA(GetGmtTime(), "%Y-%m-%d %H:%M:%S") << " [" << LoglevelDescription(level) << "] " << message << std::endl;
+   // compose parts of the final log entry
+   SYSTEMTIME st; GetSystemTime(&st);
+   tm tt = {};
+   tt.tm_year  = st.wYear - 1900;               // years since 1900
+   tt.tm_mon   = st.wMonth - 1;                 // months since January:   0..11
+   tt.tm_mday  = st.wDay;                       // day of the month:       1..31
+   tt.tm_hour  = st.wHour;                      // hours since midnight:   0..23
+   tt.tm_min   = st.wMinute;                    // minutes of the hour:    0..59
+   tt.tm_sec   = st.wSecond;                    // seconds of the minute:  0..59
+   tt.tm_isdst = -1;                            // have the CRT compute whether DST is in effect
+   datetime gmtime = _mkgmtime(&tt);
+   const char* sTime = LocalTimeFormatA(gmtime, "%Y-%m-%d %H:%M:%S");                           // formatted time with seconds
 
+   string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                         // loglevel (INFO is blanked out)
+   string sTester(ec->testing ? "Tester::" : "");                                               // tester identification
+   string sExecPath(ec->programName); sExecPath.append("::");                                   // execution path
+   if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");
+   string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");        // error description
+
+   // write the log entry to the file
+   *log << sTime << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds << " " << std::setw(6) << sLoglevel << " "
+        << sTester << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  "
+        << sExecPath << message << sError << std::endl;
+
+   // @see  https://www.codeguru.com/cpp/cpp/date_time/routines/article.php/c1615/Extended-Time-Format-Functions-with-Milliseconds.htm
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }

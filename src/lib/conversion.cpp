@@ -99,9 +99,8 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
  * @return char*
  */
 const char* WINAPI ErrorToStr(int error) {
-   //
    // for Win32 error codes see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
-   //
+
    switch (error) {
       case NO_ERROR                                         : return("NO_ERROR"                             );    //      0
 
@@ -189,7 +188,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_INTEGER_PARAMETER_EXPECTED                   : return("ERR_INTEGER_PARAMETER_EXPECTED"       );    //   4063
       case ERR_DOUBLE_PARAMETER_EXPECTED                    : return("ERR_DOUBLE_PARAMETER_EXPECTED"        );    //   4064
       case ERR_ARRAY_AS_PARAMETER_EXPECTED                  : return("ERR_ARRAY_AS_PARAMETER_EXPECTED"      );    //   4065
-      case ERS_HISTORY_UPDATE                               : return("ERS_HISTORY_UPDATE"                   );    //   4066      status, no error
+      case ERS_HISTORY_UPDATE                               : return("ERS_HISTORY_UPDATE"                   );    //   4066   status (not an error)
       case ERR_TRADE_ERROR                                  : return("ERR_TRADE_ERROR"                      );    //   4067
       case ERR_RESOURCE_NOT_FOUND                           : return("ERR_RESOURCE_NOT_FOUND"               );    //   4068
       case ERR_RESOURCE_NOT_SUPPORTED                       : return("ERR_RESOURCE_NOT_SUPPORTED"           );    //   4069
@@ -275,7 +274,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_USER_ERROR_FIRST                             : return("ERR_USER_ERROR_FIRST"                 );    //  65536
       case ERR_CANCELLED_BY_USER                            : return("ERR_CANCELLED_BY_USER"                );    //  65537
       case ERR_CONCURRENT_MODIFICATION                      : return("ERR_CONCURRENT_MODIFICATION"          );    //  65538
-      case ERS_EXECUTION_STOPPING                           : return("ERS_EXECUTION_STOPPING"               );    //  65539   status
+      case ERS_EXECUTION_STOPPING                           : return("ERS_EXECUTION_STOPPING"               );    //  65539   status (not an error)
       case ERR_FUNC_NOT_ALLOWED                             : return("ERR_FUNC_NOT_ALLOWED"                 );    //  65540
       case ERR_HISTORY_INSUFFICIENT                         : return("ERR_HISTORY_INSUFFICIENT"             );    //  65541
       case ERR_ILLEGAL_STATE                                : return("ERR_ILLEGAL_STATE"                    );    //  65542
@@ -291,7 +290,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_ORDER_CHANGED                                : return("ERR_ORDER_CHANGED"                    );    //  65552
       case ERR_RUNTIME_ERROR                                : return("ERR_RUNTIME_ERROR"                    );    //  65553
       case ERR_TERMINAL_INIT_FAILURE                        : return("ERR_TERMINAL_INIT_FAILURE"            );    //  65554
-      case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65555   status
+      case ERS_TERMINAL_NOT_YET_READY                       : return("ERS_TERMINAL_NOT_YET_READY"           );    //  65555   status (not an error)
       case ERR_TOTAL_POSITION_NOT_FLAT                      : return("ERR_TOTAL_POSITION_NOT_FLAT"          );    //  65556
       case ERR_UNDEFINED_STATE                              : return("ERR_UNDEFINED_STATE"                  );    //  65557
 
@@ -497,20 +496,35 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
 /**
  * Return the description of a loglevel.
  *
- * @param  int level - loglevel
+ * @param  int level                 - loglevel
+ * @param  BOOL upperCase [optional] - whether to return an uppercase string (default: yes)
  *
  * @return char* - description or NULL if the parameter is invalid
  */
-const char* WINAPI LoglevelDescription(int level) {
-   switch (level) {
-      case NULL:       return("NULL"  );
-      case LOG_DEBUG:  return("DEBUG" );
-      case LOG_INFO:   return("INFO"  );
-      case LOG_NOTICE: return("NOTICE");
-      case LOG_WARN:   return("WARN"  );
-      case LOG_ERROR:  return("ERROR" );
-      case LOG_FATAL:  return("FATAL" );
-      case LOG_OFF:    return("OFF"   );
+const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
+   if (upperCase) {
+      switch (level) {
+         case NULL:       return("NULL"  );
+         case LOG_DEBUG:  return("DEBUG" );
+         case LOG_INFO:   return("INFO"  );
+         case LOG_NOTICE: return("NOTICE");
+         case LOG_WARN:   return("WARN"  );
+         case LOG_ERROR:  return("ERROR" );
+         case LOG_FATAL:  return("FATAL" );
+         case LOG_OFF:    return("OFF"   );        // not a regular loglevel
+      }
+   }
+   else {
+      switch (level) {
+         case NULL:       return("null"  );
+         case LOG_DEBUG:  return("debug" );
+         case LOG_INFO:   return("info"  );
+         case LOG_NOTICE: return("notice");
+         case LOG_WARN:   return("warn"  );
+         case LOG_ERROR:  return("error" );
+         case LOG_FATAL:  return("fatal" );
+         case LOG_OFF:    return("off"   );        // not a regular loglevel
+      }
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
    #pragma EXPANDER_EXPORT
