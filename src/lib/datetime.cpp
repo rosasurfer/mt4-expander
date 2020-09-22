@@ -30,15 +30,36 @@ datetime WINAPI GetLocalTime() {
 /**
  * Format a timestamp as a string representing GMT time.
  *
+ * @param  char*    buffer    - target buffer to receive the resulting string
+ * @param  size_t   bufSize   - buffer size
  * @param  datetime timestamp - Unix timestamp (GMT)
- * @param  char*    format    - strftime() format control string
+ * @param  char*    format    - format control string as supported by strftime()
+ *
+ * @return size_t - number of characters copied to the target buffer or 0 in case of errors
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
+ */
+size_t WINAPI gmtimeFormat(char* buffer, size_t bufSize, datetime timestamp, const char* format) {
+   if (timestamp == NaT) return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
+   if (timestamp < 0)    return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
+
+   return(strftime(buffer, bufSize, format, gmtime(&timestamp)));
+}
+
+
+/**
+ * Format a timestamp as a string representing GMT time.
+ *
+ * @param  datetime timestamp - Unix timestamp (GMT)
+ * @param  char*    format    - format control string supported by strftime()
  *
  * @return char* - GMT time string or a NULL pointer in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-const char* WINAPI GmtTimeFormat(datetime timestamp, const char* format) {
+const char* WINAPI GmtTimeFormatA(datetime timestamp, const char* format) {
    if (timestamp == NaT)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
@@ -57,17 +78,64 @@ const char* WINAPI GmtTimeFormat(datetime timestamp, const char* format) {
 
 
 /**
- * Format a timestamp as a C string representing local time.
+ * Format a timestamp as a string representing local time.
  *
+ * @param  char*    buffer    - target buffer to receive the resulting string
+ * @param  size_t   bufSize   - buffer size
  * @param  datetime timestamp - Unix timestamp (GMT)
- * @param  char*    format    - strftime() format control string
+ * @param  char*    format    - format control string as supported by strftime()
  *
- * @return char* - local time string
+ * @return size_t - number of characters copied to the target buffer or 0 in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-const char* WINAPI LocalTimeFormat(datetime timestamp, const char* format) {
+size_t WINAPI localtimeFormat(char* buffer, size_t bufSize, datetime timestamp, const char* format) {
+   if (timestamp == NaT) return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
+   if (timestamp < 0)    return(error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
+
+   return(strftime(buffer, bufSize, format, localtime(&timestamp)));
+}
+
+
+/**
+ * Format a SYSTEMTIME structure as a string representing local time.
+ *
+ * @param  char*      buffer  - target buffer to receive the resulting string
+ * @param  size_t     bufSize - buffer size
+ * @param  SYSTEMTIME st      - SYSTEMTIME structure
+ * @param  char*      format  - format control string as supported by strftime()
+ *
+ * @return size_t - number of characters copied to the target buffer or 0 in case of errors
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
+ */
+size_t WINAPI localtimeFormat(char* buffer, size_t bufSize, SYSTEMTIME st, const char* format) {
+   tm tt = {};
+   tt.tm_year  = st.wYear - 1900;                     // years since 1900
+   tt.tm_mon   = st.wMonth - 1;                       // months since January:   0..11
+   tt.tm_mday  = st.wDay;                             // day of the month:       1..31
+   tt.tm_hour  = st.wHour;                            // hours since midnight:   0..23
+   tt.tm_min   = st.wMinute;                          // minutes of the hour:    0..59
+   tt.tm_sec   = st.wSecond;                          // seconds of the minute:  0..59
+   tt.tm_isdst = -1;                                  // let the CRT compute whether DST is in effect
+   return(strftime(buffer, bufSize, format, &tt));
+}
+
+
+/**
+ * Format a timestamp as a string representing local time.
+ *
+ * @param  datetime timestamp - Unix timestamp (GMT)
+ * @param  char*    format    - format control string supported by strftime()
+ *
+ * @return char* - local time string or a NULL pointer in case of errors
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
+ */
+const char* WINAPI LocalTimeFormatA(datetime timestamp, const char* format) {
    if (timestamp == NaT)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));

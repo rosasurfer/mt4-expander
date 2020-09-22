@@ -167,12 +167,12 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
       uint digits=test->ec->digits, pipDigits=test->ec->pipDigits;
       ss << std::fixed
          <<  "{id="              <<                         test->id
-         << ", created="         <<                        (test->created   ? LocalTimeFormat(test->created, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", created="         <<                        (test->created   ? LocalTimeFormatA(test->created, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
          << ", strategy="        <<                        (test->ec        ? DoubleQuoteStr(test->ec->programName) :"NULL")
          << ", symbol="          <<                        (test->ec        ? test->ec->symbol : "NULL")
          << ", timeframe="       <<                        (test->ec        ? TimeframeToStr(test->ec->timeframe) : "0")
-         << ", startTime="       <<                        (test->startTime ? GmtTimeFormat(test->startTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
-         << ", endTime="         <<                        (test->endTime   ? GmtTimeFormat(test->endTime,   "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", startTime="       <<                        (test->startTime ? GmtTimeFormatA(test->startTime, "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
+         << ", endTime="         <<                        (test->endTime   ? GmtTimeFormatA(test->endTime,   "\"%a, %d-%b-%Y %H:%M:%S\"") : "0")
          << ", barModel="        <<     BarModelDescription(test->barModel)
          << ", bars="            <<                         test->bars
          << ", ticks="           <<                         test->ticks
