@@ -15,13 +15,14 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 * Append a log message to a program's logfile.
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
+ * @param  datetime           time    - current time (used only in tester)
  * @param  char*              message - log message
  * @param  int                error   - error linked to the message (if any)
  * @param  int                level   - log level of the message
  *
  * @return BOOL - success status
  */
-BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, const char* message, int error, int level) {
+BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* message, int error, int level) {
    if ((uint)ec < MIN_VALID_POINTER)      return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (g_mqlPrograms.size() <= ec->pid)   return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
@@ -44,29 +45,28 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, const char* message, int er
       if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
    }
 
-   // compose parts of the final log entry
-   SYSTEMTIME st; GetSystemTime(&st);
-   tm tt = {};
-   tt.tm_year  = st.wYear - 1900;               // years since 1900
-   tt.tm_mon   = st.wMonth - 1;                 // months since January:   0..11
-   tt.tm_mday  = st.wDay;                       // day of the month:       1..31
-   tt.tm_hour  = st.wHour;                      // hours since midnight:   0..23
-   tt.tm_min   = st.wMinute;                    // minutes of the hour:    0..59
-   tt.tm_sec   = st.wSecond;                    // seconds of the minute:  0..59
-   tt.tm_isdst = -1;                            // have the CRT compute whether DST is in effect
-   datetime gmtime = _mkgmtime(&tt);
-   const char* sTime = LocalTimeFormatA(gmtime, "%Y-%m-%d %H:%M:%S");                           // formatted time with seconds
-
+   // compose the parts of the final log entry
    string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                         // loglevel (INFO is blanked out)
-   string sTester(ec->testing ? "Tester::" : "");                                               // tester identification
    string sExecPath(ec->programName); sExecPath.append("::");                                   // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");
    string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");        // error description
 
-   // write the log entry to the file
-   *log << sTime << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds << " " << std::setw(6) << sLoglevel << " "
-        << sTester << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  "
-        << sExecPath << message << sError << std::endl;
+   // generate the appropriate timestring and write the log entry to the file
+   if (ec->testing) {
+      size_t bufSize = 20;
+      char* sTime = (char*)alloca(bufSize);
+      gmtimeFormat(sTime, bufSize, time, "%Y-%m-%d %H:%M:%S");                                  // time with seconds
+      *log << "Tester " << sTime << " ";
+   }
+   else {
+      SYSTEMTIME st; GetSystemTime(&st);
+      size_t bufSize = 20;
+      char* sTime = (char*)alloca(bufSize);
+      localtimeFormat(sTime, bufSize, st, "%Y-%m-%d %H:%M:%S");
+      *log << sTime << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds << " ";     // time with milliseconds
+   }
+
+   *log << std::setw(6) << std::setfill(' ') << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << message << sError << std::endl;
 
    // @see  https://www.codeguru.com/cpp/cpp/date_time/routines/article.php/c1615/Extended-Time-Format-Functions-with-Milliseconds.htm
    return(TRUE);
