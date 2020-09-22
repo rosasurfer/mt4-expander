@@ -269,7 +269,7 @@ const char* WINAPI GetTerminalDataPathA() {
       }
       // 2 check for locked terminal logs
       else {
-         const char* dateName = LocalTimeFormat(GetGmtTime(), "\\logs\\%Y%m%d.log");
+         const char* dateName = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
          BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(dateName));
          BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(dateName));
          //debugOn && debug("TerminalBuild > 509 && PortableMode = 0");

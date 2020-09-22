@@ -521,7 +521,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 
    int      unchangedBars = changedBars==-1 ? -1 : bars-changedBars;
    uint     cycleTicks    = ec->cycleTicks + 1;
-   datetime lastTickTime  = ec->currTickTime; if (tickTime < lastTickTime) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "ticktime is counting backwards:  tickTime=%s  lastTickTime=%s  ec=%s", GmtTimeFormat(tickTime, "%Y.%m.%d %H:%M:%S"), GmtTimeFormat(lastTickTime, "%Y.%m.%d %H:%M:%S"), EXECUTION_CONTEXT_toStr(ec))));
+   datetime lastTickTime  = ec->currTickTime; if (tickTime < lastTickTime) return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "ticktime is counting backwards:  tickTime=%s  lastTickTime=%s  ec=%s", GmtTimeFormatA(tickTime, "%Y.%m.%d %H:%M:%S"), GmtTimeFormatA(lastTickTime, "%Y.%m.%d %H:%M:%S"), EXECUTION_CONTEXT_toStr(ec))));
    DWORD    threadId      = GetCurrentThreadId();
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];

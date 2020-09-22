@@ -1,5 +1,7 @@
 #include "expander.h"
+#include "lib/datetime.h"
 #include "lib/file.h"
+#include "lib/conversion.h"
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 
@@ -41,7 +43,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, const char* message, int er
       if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
    }
 
-   *log << message << std::endl;                               // TODO: format the message
+   *log << LocalTimeFormatA(GetGmtTime(), "%Y-%m-%d %H:%M:%S") << " [" << LoglevelDescription(level) << "] " << message << std::endl;
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -88,7 +90,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    }
    else {
       // close the logfile but keep an existing instance (we may be in an init cycle)
-      if (master->logger && master->logger->is_open()) 
+      if (master->logger && master->logger->is_open())
          master->logger->close();
       ec_SetLogFilename(ec, filename);
    }

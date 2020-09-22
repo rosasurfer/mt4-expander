@@ -2219,8 +2219,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", unchangedBars="        <<                      ec->unchangedBars
          << ", ticks="                <<                      ec->ticks
          << ", cycleTicks="           <<                      ec->cycleTicks
-         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormat(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
-         << ", currTickTime="         <<                     (ec->currTickTime ? GmtTimeFormat(ec->currTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormatA(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", currTickTime="         <<                     (ec->currTickTime ? GmtTimeFormatA(ec->currTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
          << ", bid=" << std::setprecision(ec->bid ? ec->digits : 0) << ec->bid
          << ", ask=" << std::setprecision(ec->ask ? ec->digits : 0) << ec->ask
 
