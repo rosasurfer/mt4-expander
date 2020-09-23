@@ -115,45 +115,6 @@ const wchar* WINAPI GetStringW(const wchar* value) {
 
 
 /**
- * Return the difference between two string representations of input parameters.
- *
- * @param  char* initial - initial input parameters
- * @param  char* current - current input parameters
- *
- * @return char* - modified input parameters
- */
-const char* WINAPI InputParamsDiff(const char* initial, const char* current) {
-   if (initial && (uint)initial < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter initial: 0x%p (not a valid pointer)", initial));
-   if (           (uint)current < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter current: 0x%p (not a valid pointer)", current));
-
-   if (!initial || !*initial)                // all current parameters
-      return(current);
-
-   // diff input strings
-   std::stringstream stInitial(initial), stCurrent(current);
-   string lineInitial, lineCurrent, diff;
-
-   while (getline(stInitial, lineInitial)) {
-      if (getline(stCurrent, lineCurrent)) {
-         if (lineInitial != lineCurrent) {
-            diff.append(lineCurrent).append(NL);
-         }
-      }
-      else {
-         diff.append("REMOVED ").append(lineInitial).append(NL);
-      }
-   }
-
-   while (getline(stCurrent, lineCurrent)) {
-      diff.append("ADDED ").append(lineCurrent).append(NL);
-   }
-
-   return(strdup(diff.c_str()));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Compare two ANSI MqlStrings.
  *
  * @param  void* first
