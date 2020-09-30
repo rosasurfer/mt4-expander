@@ -2258,7 +2258,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", loglevelFile="         << LoglevelDescriptionA(ec->loglevelFile)
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
          << ", loglevelSMS="          << LoglevelDescriptionA(ec->loglevelSMS)
-         << ", logger="               <<                     (ec->logger ? StrFormat("0x%p", ec->logger) : "NULL")
+         << ", logger="               <<                     (ec->logger    ? StrFormat("0x%p", ec->logger) : "NULL")
+         << ", logBuffer="            <<              "(" << (ec->logBuffer ? ec->logBuffer->size() : 0) << ")"
          << ", logFilename="          <<       DoubleQuoteStr(ec->logFilename)
          << "}";
    }

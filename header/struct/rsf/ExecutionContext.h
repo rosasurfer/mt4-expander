@@ -2,7 +2,7 @@
 #include "struct/rsf/Test.h"
 #include <vector>
 
-#pragma pack(push, 1)
+typedef std::vector<string*> LogBuffer;
 
 
 /**
@@ -22,6 +22,8 @@
  *  • Data exchange between MQL modules of the same program (i.e. MQL main and library modules).
  *  • Data exchange between different MQL programs (e.g. experts and indicators).
  */
+#pragma pack(push, 1)
+
 struct EXECUTION_CONTEXT {                            // -- offset --- size --- description --------------------------------------------------------------------------------------
    uint               pid;                            //         0        4     MQL program id starting from 1                            (const) => index in g_mqlPrograms[]
    uint               previousPid;                    //         4        4     previous pid of the program or NULL                       (const)
@@ -96,9 +98,10 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    int                loglevelSMS;                    //       780        4     loglevel of the SMS appender                              (var)
 
    std::ofstream*     logger;                         //       784        4     logger instance                                           (var)
-   char               logFilename[MAX_PATH];          //       788      260     logger filename                                           (var)
+   LogBuffer*         logBuffer;                      //       788        4     log buffer                                                (var)
+   char               logFilename[MAX_PATH];          //       792      260     logger filename                                           (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1048
+#pragma pack(pop)                                     //             = 1052
 
 
 // getters (exported to MQL)
@@ -184,6 +187,7 @@ int                WINAPI ec_LoglevelFile        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelMail        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelSMS         (const EXECUTION_CONTEXT* ec);
 //                        ec.logger
+//                        ec.logBuffer
 const char*        WINAPI ec_LogFilename         (const EXECUTION_CONTEXT* ec);
 
 
@@ -249,6 +253,7 @@ int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int 
 int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int                level   );
 //                        ec.logger
+//                        ec.logBuffer
 const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, const char*        filename);
 
 
