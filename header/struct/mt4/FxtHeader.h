@@ -70,8 +70,8 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
 
    // commission calculation parameters            // ----------------------------------------------------------------------------------------------------------------
    double   commissionValue;                       //       424         8     commission rate
-   uint     commissionCalculationMode;             //       432         4     0=Money|1=Pip|2=Percent                      @see COMMISSION_MODE_*
-   uint     commissionType;                        //       436         4     0=RoundTurn|1=PerDeal                        @see COMMISSION_TYPE_*
+   uint     commissionCalculationMode;             //       432         4     0=Money|1=Point|2=Percent                    @see COMM_TYPE_*
+   uint     commissionType;                        //       436         4     0=RoundTurn|1=PerDeal                        @see COMMISSION_PER_*
 
    // later additions                              // ----------------------------------------------------------------------------------------------------------------
    uint     firstBar;                              //       440         4     bar number/index??? of first bar (ohne Prolog) or 0 for first bar
