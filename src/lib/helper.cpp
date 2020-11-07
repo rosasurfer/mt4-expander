@@ -412,7 +412,7 @@ const char* WINAPI MD5Hash(const void* input, uint length) {
    uchar buffer[16];                                                 // on the stack
    MD5_FINAL((uchar*)&buffer, &context);                             // fill buffer with binary MD5 hash (16 bytes)
 
-   std::stringstream ss;                                             // convert hash to hex string (32 chars)
+   std::ostringstream ss;                                            // convert hash to hex string (32 chars)
    ss << std::hex;
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];

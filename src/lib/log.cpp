@@ -35,44 +35,61 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    if (!master->loglevelFile || master->loglevelFile==LOG_OFF) return(FALSE);
    if (level < master->loglevelFile || level==LOG_OFF)         return(FALSE);
 
-   // check the logger status
-   std::ofstream* log = master->logger;
-   if (!log) return(FALSE);                                                                  // logger not instantiated => logger is inactive
+   // check whether to use an existing logger or a logbuffer
+   BOOL useLogger    = (master->logger && strlen(master->logFilename));
+   BOOL useLogBuffer = (!useLogger && master->programInitFlags & INIT_BUFFERED_LOG);
+   if (!useLogger && !useLogBuffer) return(FALSE);                                        // logger and buffered log are inactive
 
-   if (!log->is_open()) {
-      if (!strlen(master->logFilename) ) return(FALSE);                                      // logfile not set => logger is inactive
+   // open a closed logger
+   if (useLogger && !master->logger->is_open()) {
       if (!IsFileA(master->logFilename)) {
-         char drive[MAX_DRIVE], dir[MAX_DIR];                                                // extract the directory part of logFilename
+         char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
-         if (CreateDirectoryA(string(drive).append(dir), MKDIR_PARENT))                      // make sure the directory exists
+         if (CreateDirectoryA(string(drive).append(dir), MKDIR_PARENT))                   // make sure the directory exists
             return(FALSE);
       }
-      log->open(master->logFilename, std::ios::app);                                         // open the logfile
-      if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
+      master->logger->open(master->logFilename, std::ios::app);                           // open the logfile
+      if (!master->logger->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
+      if (master->logBuffer && master->logBuffer->size()) {
+         uint size = master->logBuffer->size();
+         for (uint i=0; i < size; ++i) {                                                  // flush existing logbuffer entries
+            string* entry = (*master->logBuffer)[i];
+            *master->logger << *entry << std::endl;
+            delete entry;
+         }
+         master->logBuffer->clear();
+      }
+   }
+   else if (useLogBuffer && !master->logBuffer) {
+      master->logBuffer = ec->logBuffer = new LogBuffer();
+      master->logBuffer->reserve(16);
    }
 
-   // compose the parts of the final log entry
-   string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                      // loglevel (INFO is blanked out)
-   string sExecPath(ec->programName); sExecPath.append("::");                                // execution path
+   // compose the log entry
+   std::ostringstream ss;
+   string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                   // loglevel (INFO is blanked out)
+   string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");
-   string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");     // error description
+   string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");  // error description
 
-   // generate the appropriate timestring and write the log entry to the file
-   if (ec->testing) {
+   if (ec->testing) {                                                                     // generate the appropriate time string
       size_t bufSize = 20;
-      char* sTime = (char*)alloca(bufSize);
-      gmtimeFormat(sTime, bufSize, time, "%Y-%m-%d %H:%M:%S");                               // time with seconds
-      *log << "Tester " << sTime;
+      char* buffer = (char*)alloca(bufSize);
+      gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // time with seconds
+      ss << "Tester " << buffer;
    }
    else {
       SYSTEMTIME st; GetLocalTime(&st);
       size_t bufSize = 20;
-      char* sTime = (char*)alloca(bufSize);
-      localtimeFormat(sTime, bufSize, st, "%Y-%m-%d %H:%M:%S");
-      *log << sTime << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;         // time with milliseconds
+      char* buffer = (char*)alloca(bufSize);
+      localtimeFormat(buffer, bufSize, st, "%Y-%m-%d %H:%M:%S");
+      ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // time with milliseconds
    }
+   ss << " " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << message << sError;
 
-   *log << " " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << message << sError << std::endl;
+   // write the log entry to logfile or logbuffer
+   if (useLogger) *master->logger << ss.str() << std::endl;                               // std::endl flushes the logfile
+   else           master->logBuffer->push_back(new string(ss.str()));
 
    // @see  https://www.codeguru.com/cpp/cpp/date_time/routines/article.php/c1615/Extended-Time-Format-Functions-with-Milliseconds.htm
    return(TRUE);
@@ -120,6 +137,15 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
             }
             log->open(filename, std::ios::app);                                  // open the logfile
             if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
+            if (master->logBuffer && master->logBuffer->size()) {
+               uint size = master->logBuffer->size();
+               for (uint i=0; i < size; ++i) {                                   // flush existing logbuffer entries
+                  string* entry = (*master->logBuffer)[i];
+                  *master->logger << *entry << std::endl;
+                  delete entry;
+               }
+               master->logBuffer->clear();
+            }
          }
       }
    }

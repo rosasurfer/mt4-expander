@@ -26,7 +26,7 @@ int WINAPI _dump(const char* fileName, const char* funcName, int line, const voi
    if (size < 1)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
 
    char* bytes = (char*) data;
-   std::stringstream ss;
+   std::ostringstream ss;
 
    switch (mode) {
       case DUMPMODE_HEX:
