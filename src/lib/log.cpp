@@ -69,7 +69,8 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    std::ostringstream ss;
    string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                   // loglevel (INFO is blanked out)
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
-   if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");
+   if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
+   string sMessage(message);                                                              // TODO: process linebreaks
    string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");  // error description
 
    if (ec->testing) {                                                                     // generate the appropriate time string
@@ -85,7 +86,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
       localtimeFormat(buffer, bufSize, st, "%Y-%m-%d %H:%M:%S");
       ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // time with milliseconds
    }
-   ss << " " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << message << sError;
+   ss << " " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << sMessage << sError;
 
    // write the log entry to logfile or logbuffer
    if (useLogger) *master->logger << ss.str() << std::endl;                               // std::endl flushes the logfile
