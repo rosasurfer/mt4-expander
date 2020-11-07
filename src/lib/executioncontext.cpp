@@ -28,7 +28,7 @@ CRITICAL_SECTION   g_terminalMutex;                // mutex for application-wide
 struct RECOMPILED_MODULE {                         // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
    uint       pid;                                 // Only one module is tracked (the last one) and the variable is accessed
    ModuleType type;                                // from the UI thread only.
-   char       name[_MAX_FNAME];
+   char       name[MAX_FNAME];
 } g_recompiledModule;
 
 

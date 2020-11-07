@@ -103,7 +103,7 @@ size_t WINAPI localtimeFormat(char* buffer, size_t bufSize, datetime timestamp, 
  *
  * @param  char*      buffer  - target buffer to receive the resulting string
  * @param  size_t     bufSize - buffer size
- * @param  SYSTEMTIME st      - SYSTEMTIME structure
+ * @param  SYSTEMTIME st      - SYSTEMTIME structure as returned by GetLocalTime(SYSTEMTIME &st)
  * @param  char*      format  - format control string as supported by strftime()
  *
  * @return size_t - number of characters copied to the target buffer or 0 in case of errors

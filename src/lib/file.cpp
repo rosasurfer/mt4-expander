@@ -328,7 +328,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
          //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target.c_str());
 
          if (isRelative) {
-            char drive[_MAX_DRIVE], dir[_MAX_DIR];
+            char drive[MAX_DRIVE], dir[MAX_DIR];
             _splitpath(name, drive, dir, NULL, NULL);
             result = strdup(string(drive).append(dir).append(target).c_str());
          }

@@ -1980,11 +1980,10 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
          if (master->loglevel != level) {
             master->loglevel = level;                                      // synchronize master context
 
-            if (master->loglevel && master->loglevel!=LOG_OFF) {
-               SetLogfileA(ec, master->logFilename);                       // (re-)initialize the logger
-            }
-            else if (master->logger && master->logger->is_open()) {
-               master->logger->close();                                    // close an open logfile
+            if (!master->loglevel || master->loglevel==LOG_OFF) {
+               if (master->logger && master->logger->is_open()) {
+                  master->logger->close();                                 // close an open logfile if logging was disabled
+               }
             }
          }
       }
@@ -2083,11 +2082,10 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
          if (master->loglevelFile != level) {
             master->loglevelFile = level;                                  // synchronize master context
 
-            if (master->loglevelFile && master->loglevelFile!=LOG_OFF) {
-               SetLogfileA(ec, master->logFilename);                       // (re-)initialize the logger
-            }
-            else if (master->logger && master->logger->is_open()) {
-               master->logger->close();                                    // close an open logfile
+            if (!master->loglevelFile || master->loglevelFile==LOG_OFF) {
+               if (master->logger && master->logger->is_open()) {
+                  master->logger->close();                                 // close an open logfile if the logfile appender was disabled
+               }
             }
          }
       }
