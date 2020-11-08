@@ -71,18 +71,13 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                   // loglevel (INFO is blanked out)
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
-   string sMessage(message);
-
-
-
-
-                                                                 // TODO: process linebreaks
+   string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", "\n"), "\n", " ");   // replace linebreaks with spaces
    string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");  // error description
 
    if (ec->testing) {                                                                     // generate the appropriate time string
       size_t bufSize = 20;
       char* buffer = (char*)alloca(bufSize);
-      gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // time with seconds
+      gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // tester: time with seconds
       ss << "Tester " << buffer;
    }
    else {
@@ -90,7 +85,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
       size_t bufSize = 20;
       char* buffer = (char*)alloca(bufSize);
       localtimeFormat(buffer, bufSize, st, "%Y-%m-%d %H:%M:%S");
-      ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // time with milliseconds
+      ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // online: time with milliseconds
    }
    ss << " " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << sMessage << sError;
 
