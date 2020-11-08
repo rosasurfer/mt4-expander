@@ -457,7 +457,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    ec_SetExtReporting        (ec, extReporting);
    ec_SetRecordEquity        (ec, recordEquity);
-                                                                           // logfile before loglevels as the logfile may be closed/re-opened
+                                                                           // logfile instance before loglevels in case the logfile is needed for modification
    ec->logger =                   (master->superContext ? master->superContext : master)->logger;
    ec_SetLoglevel            (ec, (master->superContext ? master->superContext : master)->loglevel        );
    ec_SetLoglevelTerminal    (ec, (master->superContext ? master->superContext : master)->loglevelTerminal);

@@ -157,7 +157,7 @@ const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
 char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
    if ((uint)test < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
 
-   std::stringstream ss;
+   std::ostringstream ss;
    TEST empty = {};
 
    if (MemCompare(test, &empty, sizeof(TEST))) {

@@ -2181,7 +2181,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
 const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   std::stringstream ss;
+   std::ostringstream ss;
    EXECUTION_CONTEXT empty = {};
 
    if (MemCompare(ec, &empty, sizeof(EXECUTION_CONTEXT))) {
