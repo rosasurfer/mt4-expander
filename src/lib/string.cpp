@@ -334,11 +334,11 @@ string& WINAPI StrReplace(string &subject, const string &search, const string &r
 
    size_t replacements = 0, pos = 0;
    while (replacements < count && (pos = subject.find(search, pos)) != string::npos) {
-      if (searchLength == replaceLength) {                     // if both are the same length use replace()...
-         subject.replace(pos, searchLength, replace);
+      if (searchLength == replaceLength) {
+         subject.replace(pos, searchLength, replace);          // if both are the same length use replace()...
       }
-      else {                                                   // ...otherwise use erase() + insert()
-         subject.erase(pos, searchLength);
+      else {
+         subject.erase(pos, searchLength);                     // ...otherwise use erase() + insert()
          subject.insert(pos, replace);
       }
       pos += replaceLength;
