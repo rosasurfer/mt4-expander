@@ -71,7 +71,12 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                   // loglevel (INFO is blanked out)
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
-   string sMessage(message);                                                              // TODO: process linebreaks
+   string sMessage(message);
+
+
+
+
+                                                                 // TODO: process linebreaks
    string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");  // error description
 
    if (ec->testing) {                                                                     // generate the appropriate time string

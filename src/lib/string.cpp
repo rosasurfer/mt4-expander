@@ -317,6 +317,38 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
 
 
 /**
+ * Replace a substring of a string by another substring. The function modifies the string.
+ *
+ * @param  _InOut_ string &subject         - string to process
+ * @param  _In_    string &search          - search string
+ * @param  _In_    string &replace         - replacement string
+ * @param  _In_    size_t count [optional] - max. number of replacements to perform (default: no limit)
+ *
+ * @return string& - the same string
+ */
+string& WINAPI StrReplace(string &subject, const string &search, const string &replace, size_t count/*=INT_MAX*/) {
+   size_t subjectLength = subject.length(); if (!subjectLength) return(subject);
+   size_t searchLength  = search .length(); if (!searchLength)  return(subject);
+   size_t replaceLength = replace.length();
+   if (subjectLength < searchLength || !search.compare(replace)) return(subject);
+
+   size_t replacements = 0, pos = 0;
+   while (replacements < count && (pos = subject.find(search, pos)) != string::npos) {
+      if (searchLength == replaceLength) {                     // if both are the same length use replace()...
+         subject.replace(pos, searchLength, replace);
+      }
+      else {                                                   // ...otherwise use erase() + insert()
+         subject.erase(pos, searchLength);
+         subject.insert(pos, replace);
+      }
+      pos += replaceLength;
+      ++replacements;
+   }
+   return(subject);
+}
+
+
+/**
  * Convert a C string to lower-case using the current locale. The function modifies the string.
  *
  * @param  _InOut_ char* str
@@ -413,13 +445,25 @@ wstring& WINAPI StrToUpper(wstring &str) {
 
 
 /**
+ * Trim leading and trailing white-space off a C string. The function modifies the string.
+ *
+ * @param  _InOut_ char* str
+ *
+ * @return char* - the same string
+ */
+char* WINAPI StrTrim(char* const str) {
+   return(StrTrimLeft(StrTrimRight(str)));
+}
+
+
+/**
  * Trim leading white-space off a C string. The function modifies the string.
  *
  * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
-char* WINAPI StrLTrim(char* const str) {
+char* WINAPI StrTrimLeft(char* const str) {
    if (str && *str) {                           // handle NULL pointer and empty string
       char* first = str;
       while (isspace(*first)) {                 // find first non-space character
@@ -446,7 +490,7 @@ char* WINAPI StrLTrim(char* const str) {
  *
  * @return char* - the same string
  */
-char* WINAPI StrRTrim(char* const str) {
+char* WINAPI StrTrimRight(char* const str) {
    if (str && *str) {                           // handle NULL pointer and empty string
       char* last = str + strlen(str);
 
@@ -459,18 +503,6 @@ char* WINAPI StrRTrim(char* const str) {
       *(last+1) = '\0';
    }
    return(str);
-}
-
-
-/**
- * Trim leading and trailing white-space off a C string. The function modifies the string.
- *
- * @param  _InOut_ char* str
- *
- * @return char* - the same string
- */
-char* WINAPI StrTrim(char* const str) {
-   return(StrLTrim(StrRTrim(str)));
 }
 
 

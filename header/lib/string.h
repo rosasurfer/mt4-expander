@@ -33,6 +33,7 @@ BOOL         WINAPI StrIsNull(const char* value);
 BOOL         WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL         WINAPI StrStartsWith(const wchar* str, const wchar* prefix);
 BOOL         WINAPI StrEndsWith(const char* str, const char* suffix);
+string&      WINAPI StrReplace(string &subject, const string &search, const string &replace, size_t count=INT_MAX);
 char*        WINAPI StrToLower(char* const str);
 string&      WINAPI StrToLower(string &str);
 wstring&     WINAPI StrToLower(wstring &str);
@@ -40,9 +41,9 @@ char*        WINAPI StrToUpper(char* const str);
 string&      WINAPI StrToUpper(string &str);
 wstring&     WINAPI StrToUpper(wstring &str);
 
-char*        WINAPI StrLTrim(char* const str);
-char*        WINAPI StrRTrim(char* const str);
 char*        WINAPI StrTrim(char* const str);
+char*        WINAPI StrTrimLeft(char* const str);
+char*        WINAPI StrTrimRight(char* const str);
 
 uint         WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize);
 uint         WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSize);

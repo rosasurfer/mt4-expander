@@ -272,7 +272,7 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
       return(value);
    value[pos] = '\0';
 
-   return(StrRTrim(value));                        // trim white space
+   return(StrTrimRight(value));                    // trim white space
    #pragma EXPANDER_EXPORT
 }
 
