@@ -391,7 +391,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
                                               .append(" #")
                                               .append(to_string(test->reportId))
                                               .append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
-   std::ofstream file(logfile.c_str());
+   std::ofstream file(logfile.c_str(), std::ios::binary);
    if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", logfile.c_str(), strerror(errno)));
 
    char* sTest = TEST_toStr(test);

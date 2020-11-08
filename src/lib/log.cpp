@@ -48,15 +48,16 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
          if (CreateDirectoryA(string(drive).append(dir), MKDIR_PARENT))                   // make sure the directory exists
             return(FALSE);
       }
-      master->logger->open(master->logFilename, std::ios::app);                           // open the logfile
+      master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
       if (!master->logger->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
       if (master->logBuffer && master->logBuffer->size()) {
          uint size = master->logBuffer->size();
-         for (uint i=0; i < size; ++i) {                                                  // flush existing logbuffer entries
+         for (uint i=0; i < size; ++i) {
             string* entry = (*master->logBuffer)[i];
-            *master->logger << *entry << std::endl;
+            *master->logger << *entry << NL;                                              // flush existing logbuffer entries
             delete entry;
          }
+         master->logger->flush();
          master->logBuffer->clear();
       }
    }
@@ -89,7 +90,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    ss << " " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << sMessage << sError;
 
    // write the log entry to logfile or logbuffer
-   if (useLogger) *master->logger << ss.str() << std::endl;                               // std::endl flushes the logfile
+   if (useLogger) *master->logger << ss.str() << std::endl;
    else           master->logBuffer->push_back(new string(ss.str()));
 
    // @see  https://www.codeguru.com/cpp/cpp/date_time/routines/article.php/c1615/Extended-Time-Format-Functions-with-Milliseconds.htm
@@ -136,15 +137,16 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
                if (CreateDirectoryA(string(drive).append(dir), MKDIR_PARENT))    // make sure the directory exists
                   return(FALSE);
             }
-            log->open(filename, std::ios::app);                                  // open the logfile
+            log->open(filename, std::ios::binary|std::ios::app);                 // open the logfile
             if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
             if (master->logBuffer && master->logBuffer->size()) {
                uint size = master->logBuffer->size();
-               for (uint i=0; i < size; ++i) {                                   // flush existing logbuffer entries
+               for (uint i=0; i < size; ++i) {
                   string* entry = (*master->logBuffer)[i];
-                  *master->logger << *entry << std::endl;
+                  *master->logger << *entry << NL;                               // flush existing logbuffer entries
                   delete entry;
                }
+               master->logger->flush();
                master->logBuffer->clear();
             }
          }
