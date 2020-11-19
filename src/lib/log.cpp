@@ -12,7 +12,8 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
-* Append a log message to a program's logfile.
+ * Append a log message to a program's logfile.
+ * The caller is responsible for checking the configured loglevel. Intentionally the function does not check it again.
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
  * @param  datetime           time    - current time (used only in tester)
@@ -27,13 +28,9 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (g_mqlPrograms.size() <= ec->pid)   return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
    if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
+   if (level == LOG_OFF)                  return(FALSE);
 
    EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
-
-   // check and apply the configured loglevels
-   if (!master->loglevel     || master->loglevel    ==LOG_OFF) return(FALSE);
-   if (!master->loglevelFile || master->loglevelFile==LOG_OFF) return(FALSE);
-   if (level < master->loglevelFile || level==LOG_OFF)         return(FALSE);
 
    // check whether to use an existing logger or a logbuffer
    BOOL useLogger    = (master->logger && strlen(master->logFilename));
