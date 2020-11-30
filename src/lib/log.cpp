@@ -74,17 +74,17 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    if (ec->testing) {                                                                     // generate the appropriate time string
       size_t bufSize = 20;
       char* buffer = (char*)alloca(bufSize);
-      gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // tester: time with seconds
-      ss << "Tester " << buffer;
+      gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // tester: the passed tester time with seconds only
+      ss << buffer;
    }
    else {
       SYSTEMTIME st; GetLocalTime(&st);
       size_t bufSize = 20;
       char* buffer = (char*)alloca(bufSize);
       localtimeFormat(buffer, bufSize, st, "%Y-%m-%d %H:%M:%S");
-      ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // online: time with milliseconds
+      ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // online: current time with milliseconds
    }
-   ss << " " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << " " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << sMessage << sError;
+   ss << "  " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << "  " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << sMessage << sError;
 
    // write the log entry to logfile or logbuffer
    if (useLogger) *master->logger << ss.str() << std::endl;
