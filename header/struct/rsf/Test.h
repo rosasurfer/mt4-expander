@@ -16,7 +16,7 @@ struct EXECUTION_CONTEXT;
 struct TEST {
    int                id;                                // unique id greater 0 (zero)
    datetime           created;                           // creation time of the test
-   EXECUTION_CONTEXT* ec;                                // master context of the expert under test
+   EXECUTION_CONTEXT* ec;                                // master context of the tested expert
    datetime           startTime;                         // time of the first tick of testing
    datetime           endTime;                           // time of the last tick of testing
    uint               barModel;                          // used bar model: 0=EveryTick | 1=ControlPoints | 2=BarOpen
@@ -50,7 +50,7 @@ struct TEST {
 };
 
 
-// getters: Access from MQL is possible via the program's execution context.
+// getters: access from MQL is possible via the EXECUTION_CONTEXT getters ec_Test*()
 // @see  "header/struct/rsf/ExecutionContext.h"
 
 

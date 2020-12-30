@@ -499,17 +499,17 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
       }
    }
 
-   test->stat_avgRunupPip         = round(runup   /allTrades, 1);
-   test->stat_avgDrawdownPip      = round(drawdown/allTrades, 1);
-   test->stat_avgPlPip            = round(pl      /allTrades, 1);
+   test->stat_avgRunupPip         = allTrades ? round(runup   /allTrades, 1) : 0;
+   test->stat_avgDrawdownPip      = allTrades ? round(drawdown/allTrades, 1) : 0;
+   test->stat_avgPlPip            = allTrades ? round(pl      /allTrades, 1) : 0;
 
-   test->stat_avgLongRunupPip     = round(longRunup   /longTrades, 1);
-   test->stat_avgLongDrawdownPip  = round(longDrawdown/longTrades, 1);
-   test->stat_avgLongPlPip        = round(longPl      /longTrades, 1);
+   test->stat_avgLongRunupPip     = longTrades ? round(longRunup   /longTrades, 1) : 0;
+   test->stat_avgLongDrawdownPip  = longTrades ? round(longDrawdown/longTrades, 1) : 0;
+   test->stat_avgLongPlPip        = longTrades ? round(longPl      /longTrades, 1) : 0;
 
-   test->stat_avgShortRunupPip    = round(shortRunup   /shortTrades, 1);
-   test->stat_avgShortDrawdownPip = round(shortDrawdown/shortTrades, 1);
-   test->stat_avgShortPlPip       = round(shortPl      /shortTrades, 1);
+   test->stat_avgShortRunupPip    = shortTrades ? round(shortRunup   /shortTrades, 1) : 0;
+   test->stat_avgShortDrawdownPip = shortTrades ? round(shortDrawdown/shortTrades, 1) : 0;
+   test->stat_avgShortPlPip       = shortTrades ? round(shortPl      /shortTrades, 1) : 0;
 
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT
