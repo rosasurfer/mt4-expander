@@ -385,14 +385,20 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
 BOOL WINAPI Test_SaveReport(const TEST* test) {
    if (!test->closedPositions) return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.closedPositions: NULL"));
 
-   // create report file
-   string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
-                                              .append(test->ec->programName)
-                                              .append(" #")
-                                              .append(to_string(test->reportId))
-                                              .append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
-   std::ofstream file(logfile.c_str(), std::ios::binary);
-   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", logfile.c_str(), strerror(errno)));
+   // define report directory and filename
+   string path     = string(GetTerminalPathA()).append("/tester/files/testresults/");
+   string filename = string(path).append(test->ec->programName)
+                                 .append(" #")
+                                 .append(to_string(test->reportId))
+                                 .append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
+
+   // make sure the directory exists
+   int error = CreateDirectoryA(path, MKDIR_PARENT);
+   if (error) return(error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", path.c_str()));
+
+   // create the report file
+   std::ofstream file(filename.c_str(), std::ios::binary);
+   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", filename.c_str(), strerror(errno)));
 
    char* sTest = TEST_toStr(test);
    file << "test=" << sTest << NL;
