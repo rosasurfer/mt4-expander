@@ -287,7 +287,7 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
    if (order->type == OP_LONG)  longPositions->push_back(order);
    if (order->type == OP_SHORT) shortPositions->push_back(order);
 
-   debug("position opened:  %s", ORDER_toStr(order));
+   //debug("position opened:  %s", ORDER_toStr(order));
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
