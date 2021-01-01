@@ -14,25 +14,24 @@ struct TEST;
  */
 struct ORDER {
    uint     id;                                    // unique id greater 0 (zero)
-   TEST*    test;                                  // test the order belongs to
+   TEST*    test;                                  // the test the order belongs to
    int      ticket;
    int      type;
    double   lots;
    char     symbol[MAX_SYMBOL_LENGTH+1];
-   double   openPrice;
    datetime openTime;
+   double   openPrice;
    double   stopLoss;
    double   takeProfit;
-   double   closePrice;
    datetime closeTime;
+   double   closePrice;
    double   commission;                            // values in money terms
    double   swap;                                  // ...
    double   profit;                                // ...
    int      magicNumber;
    char     comment[MAX_ORDER_COMMENT_LENGTH+1];
-
-   double   high;                                  // high/low of the open position
-   double   low;
+   double   high;                                  // high of the open position
+   double   low;                                   // low of the open position
    double   runupPip;                              // values in pip
    double   drawdownPip;                           // ...
    double   plPip;                                 // ...

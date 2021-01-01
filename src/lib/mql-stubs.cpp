@@ -101,11 +101,11 @@ int WINAPI onDeinitAccountChange() {
       EXECUTION_CONTEXT* ec = (*g_mqlPrograms[pid])[0];
 
       if (ec->programType == PT_EXPERT) {
-         error(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-         return(ERR_ILLEGAL_STATE);
+         error(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         return(ERR_UNDEFINED_STATE);
       }
       if (ec->programType == PT_INDICATOR) {
-         warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
    }
    return(NO_ERROR);
@@ -172,10 +172,10 @@ int WINAPI onDeinitUndefined() {
    if (uint pid = GetLastThreadProgram()) {
       EXECUTION_CONTEXT* ec = (*g_mqlPrograms[pid])[0];
       if (ec->programType==PT_EXPERT && !ec->testing) {
-         warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
       if (ec->programType == PT_INDICATOR) {
-         warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
    }
    return(NO_ERROR);

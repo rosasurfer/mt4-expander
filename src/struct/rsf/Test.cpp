@@ -176,25 +176,22 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", barModel="        <<     BarModelDescription(test->barModel)
          << ", bars="            <<                         test->bars
          << ", ticks="           <<                         test->ticks
-         << ", spread="          << std::setprecision(digits==pipDigits ? 0 : 1) << test->spread
+         << ", spread="          << std::setprecision(1) << test->spread
          << ", reportId="        <<                         test->reportId
          << ", reportSymbol="    <<                        (test->reportSymbol ? (*test->reportSymbol ? test->reportSymbol : "\"\"") : "NULL")
-         << ", tradeDirections=" <<                         test->tradeDirections   // TODO: Long|Short|Both
+         << ", tradeDirections=" << "?"                  // test->tradeDirections      // TODO: Long|Short|Both
          << ", trades="          <<                        (test->closedPositions      ? StrFormat("%d", test->closedPositions     ->size()) : "NULL")
          << " ("                 <<                        (test->closedLongPositions  ? StrFormat("%d", test->closedLongPositions ->size()) : "NULL")
          << "/"                  <<                        (test->closedShortPositions ? StrFormat("%d", test->closedShortPositions->size()) : "NULL") << ")"
          << ", avgRunup="        << std::setprecision(1) << test->stat_avgRunupPip
-         << " ("                 <<                         test->stat_avgLongRunupPip
-         << "/"                  <<                         test->stat_avgShortRunupPip << ")"
+         << " ("                 <<                         test->stat_avgLongRunupPip    << "/" << test->stat_avgShortRunupPip    << ")"
          << ", avgDrawdown="     <<                         test->stat_avgDrawdownPip
-         << " ("                 <<                         test->stat_avgLongDrawdownPip
-         << "/"                  <<                         test->stat_avgShortDrawdownPip << ")"
+         << " ("                 <<                         test->stat_avgLongDrawdownPip << "/" << test->stat_avgShortDrawdownPip << ")"
          << ", avgResult="       <<                         test->stat_avgPlPip
-         << " ("                 <<                         test->stat_avgLongPlPip
-         << "/"                  <<                         test->stat_avgShortPlPip << ")"
+         << " ("                 <<                         test->stat_avgLongPlPip       << "/" << test->stat_avgShortPlPip       << ")"
          << "}";
    }
-   char* result = strdup(ss.str().c_str());                                         // TODO: add to GC (close memory leak)
+   char* result = strdup(ss.str().c_str());                                            // TODO: add to GC (close memory leak)
 
    if (outputDebug) debug(result);
    return(result);

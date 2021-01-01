@@ -385,14 +385,20 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
 BOOL WINAPI Test_SaveReport(const TEST* test) {
    if (!test->closedPositions) return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.closedPositions: NULL"));
 
-   // create report file
-   string logfile = string(GetTerminalPathA()).append("/tester/files/testresults/")
-                                              .append(test->ec->programName)
-                                              .append(" #")
-                                              .append(to_string(test->reportId))
-                                              .append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
-   std::ofstream file(logfile.c_str(), std::ios::binary);
-   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", logfile.c_str(), strerror(errno)));
+   // define report directory and filename
+   string path     = string(GetTerminalPathA()).append("/tester/files/testresults/");
+   string filename = string(path).append(test->ec->programName)
+                                 .append(" #")
+                                 .append(to_string(test->reportId))
+                                 .append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
+
+   // make sure the directory exists
+   int error = CreateDirectoryA(path, MKDIR_PARENT);
+   if (error) return(error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", path.c_str()));
+
+   // create the report file
+   std::ofstream file(filename.c_str(), std::ios::binary);
+   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", filename.c_str(), strerror(errno)));
 
    char* sTest = TEST_toStr(test);
    file << "test=" << sTest << NL;
@@ -493,17 +499,17 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
       }
    }
 
-   test->stat_avgRunupPip         = round(runup   /allTrades, 1);
-   test->stat_avgDrawdownPip      = round(drawdown/allTrades, 1);
-   test->stat_avgPlPip            = round(pl      /allTrades, 1);
+   test->stat_avgRunupPip         = allTrades ? round(runup   /allTrades, 1) : 0;
+   test->stat_avgDrawdownPip      = allTrades ? round(drawdown/allTrades, 1) : 0;
+   test->stat_avgPlPip            = allTrades ? round(pl      /allTrades, 1) : 0;
 
-   test->stat_avgLongRunupPip     = round(longRunup   /longTrades, 1);
-   test->stat_avgLongDrawdownPip  = round(longDrawdown/longTrades, 1);
-   test->stat_avgLongPlPip        = round(longPl      /longTrades, 1);
+   test->stat_avgLongRunupPip     = longTrades ? round(longRunup   /longTrades, 1) : 0;
+   test->stat_avgLongDrawdownPip  = longTrades ? round(longDrawdown/longTrades, 1) : 0;
+   test->stat_avgLongPlPip        = longTrades ? round(longPl      /longTrades, 1) : 0;
 
-   test->stat_avgShortRunupPip    = round(shortRunup   /shortTrades, 1);
-   test->stat_avgShortDrawdownPip = round(shortDrawdown/shortTrades, 1);
-   test->stat_avgShortPlPip       = round(shortPl      /shortTrades, 1);
+   test->stat_avgShortRunupPip    = shortTrades ? round(shortRunup   /shortTrades, 1) : 0;
+   test->stat_avgShortDrawdownPip = shortTrades ? round(shortDrawdown/shortTrades, 1) : 0;
+   test->stat_avgShortPlPip       = shortTrades ? round(shortPl      /shortTrades, 1) : 0;
 
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT

@@ -389,6 +389,8 @@ const char* WINAPI ErrorToStr(int error) {
       case ERS_TERMINAL_NOT_YET_READY                                                  : return("ERS_TERMINAL_NOT_YET_READY"                                      );    //  65555   status (not an error)
       case ERR_TOTAL_POSITION_NOT_FLAT                                                 : return("ERR_TOTAL_POSITION_NOT_FLAT"                                     );    //  65556
       case ERR_UNDEFINED_STATE                                                         : return("ERR_UNDEFINED_STATE"                                             );    //  65557
+      case ERR_STOP_DISTANCE_VIOLATED                                                  : return("ERR_STOP_DISTANCE_VIOLATED"                                      );    //  65558
+      case ERR_MARGIN_STOPOUT                                                          : return("ERR_MARGIN_STOPOUT"                                              );    //  65559
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                                             : return("win32:NO_ERROR"                                                  );    // 100000 +    0
