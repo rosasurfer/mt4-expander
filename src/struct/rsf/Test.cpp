@@ -183,12 +183,12 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", trades="          <<                        (test->closedPositions      ? StrFormat("%d", test->closedPositions     ->size()) : "NULL")
          << " ("                 <<                        (test->closedLongPositions  ? StrFormat("%d", test->closedLongPositions ->size()) : "NULL")
          << "/"                  <<                        (test->closedShortPositions ? StrFormat("%d", test->closedShortPositions->size()) : "NULL") << ")"
-         << ", avgRunup="        << std::setprecision(1) << test->stat_avgRunupPip
-         << " ("                 <<                         test->stat_avgLongRunupPip    << "/" << test->stat_avgShortRunupPip    << ")"
-         << ", avgDrawdown="     <<                         test->stat_avgDrawdownPip
-         << " ("                 <<                         test->stat_avgLongDrawdownPip << "/" << test->stat_avgShortDrawdownPip << ")"
-         << ", avgResult="       <<                         test->stat_avgPlPip
-         << " ("                 <<                         test->stat_avgLongPlPip       << "/" << test->stat_avgShortPlPip       << ")"
+         << ", avgRunup="        << std::setprecision(1) << test->stat_avgRunup
+         << " ("                 <<                         test->stat_avgLongRunup    << "/" << test->stat_avgShortRunup    << ")"
+         << ", avgDrawdown="     <<                         test->stat_avgDrawdown
+         << " ("                 <<                         test->stat_avgLongDrawdown << "/" << test->stat_avgShortDrawdown << ")"
+         << ", avgResult="       <<                         test->stat_avgPips
+         << " ("                 <<                         test->stat_avgLongPips     << "/" << test->stat_avgShortPips     << ")"
          << "}";
    }
    char* result = strdup(ss.str().c_str());                                            // TODO: add to GC (close memory leak)
