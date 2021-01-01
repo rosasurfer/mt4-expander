@@ -48,7 +48,7 @@ char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
          << ", lowPrice="    <<       std::setprecision(order->lowPrice  ? digits : 0) << order->lowPrice
          << ", runup="       << std::setprecision(1) << order->runup
          << ", drawdown="    << std::setprecision(1) << order->drawdown
-         << ", result="      << std::setprecision(1) << order->result
+         << ", realized="    << std::setprecision(1) << order->realized
          << ", test="        <<                        (order->test ? StrFormat("0x%p", order->test) : "NULL")
          << "}";
    }

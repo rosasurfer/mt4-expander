@@ -37,7 +37,7 @@ struct ORDER {                                     // -- offset --- size --- des
    double   lowPrice;                              //       144        8     low of the open position
    double   runup;                                 //       152        8     max. PL runup in pip
    double   drawdown;                              //       160        8     max. PL drawdown in pip
-   double   result;                                //       168        8     PL result in pip
+   double   realized;                              //       168        8     realized PL result in pip
 };                                                 // -------------------------------------------------------------------------------------------------------------------------
 #pragma pack(pop)                                  //              = 176
 

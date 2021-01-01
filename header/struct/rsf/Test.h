@@ -45,9 +45,9 @@ struct TEST {
    double             stat_avgLongDrawdown;              // average long drawdown in pip
    double             stat_avgShortDrawdown;             // average short drawdown in pip
 
-   double             stat_avgPips;                      // average PL of all trades in pip
-   double             stat_avgLongPips;                  // average long PL in pip
-   double             stat_avgShortPips;                 // average short PL in pip
+   double             stat_avgRealized;                  // average realized PL of all trades in pip
+   double             stat_avgLongRealized;              // average realized PL of long trades in pip
+   double             stat_avgShortRealized;             // average realized PL of short trades in pip
 };
 #pragma pack(pop)
 

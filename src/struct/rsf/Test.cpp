@@ -187,8 +187,8 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << " ("                 <<                         test->stat_avgLongRunup    << "/" << test->stat_avgShortRunup    << ")"
          << ", avgDrawdown="     <<                         test->stat_avgDrawdown
          << " ("                 <<                         test->stat_avgLongDrawdown << "/" << test->stat_avgShortDrawdown << ")"
-         << ", avgResult="       <<                         test->stat_avgPips
-         << " ("                 <<                         test->stat_avgLongPips     << "/" << test->stat_avgShortPips     << ")"
+         << ", avgRealized="     <<                         test->stat_avgRealized
+         << " ("                 <<                         test->stat_avgLongRealized << "/" << test->stat_avgShortRealized << ")"
          << "}";
    }
    char* result = strdup(ss.str().c_str());                                            // TODO: add to GC (close memory leak)

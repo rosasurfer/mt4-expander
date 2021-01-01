@@ -326,12 +326,12 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, dateti
          if (order->type == OP_LONG) {
             order->runup    = round((order->highPrice  - order->openPrice)/ec->pip, 1);
             order->drawdown = round((order->lowPrice   - order->openPrice)/ec->pip, 1);
-            order->result   = round((order->closePrice - order->openPrice)/ec->pip, 1);
+            order->realized = round((order->closePrice - order->openPrice)/ec->pip, 1);
          }
          else {
             order->runup    = round((order->openPrice - order->lowPrice  )/ec->pip, 1);
             order->drawdown = round((order->openPrice - order->highPrice )/ec->pip, 1);
-            order->result   = round((order->openPrice - order->closePrice)/ec->pip, 1);
+            order->realized = round((order->openPrice - order->closePrice)/ec->pip, 1);
          }
 
          // move the order to closed positions
@@ -477,38 +477,38 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
 
    double runup    = 0, longRunup    = 0, shortRunup    = 0;
    double drawdown = 0, longDrawdown = 0, shortDrawdown = 0;
-   double pips     = 0, longPips     = 0, shortPips     = 0;
+   double realized = 0, longRealized = 0, shortRealized = 0;
 
    for (uint i=0; i < allTrades; ++i) {
       ORDER* order = trades[i];
 
       runup    += order->runup;
       drawdown += order->drawdown;
-      pips     += order->result;
+      realized += order->realized;
 
       if (order->type == OP_LONG) {
          longRunup    += order->runup;
          longDrawdown += order->drawdown;
-         longPips     += order->result;
+         longRealized += order->realized;
       }
       else {
          shortRunup    += order->runup;
          shortDrawdown += order->drawdown;
-         shortPips     += order->result;
+         shortRealized += order->realized;
       }
    }
 
    test->stat_avgRunup         = allTrades ? round(runup   /allTrades, 1) : 0;
    test->stat_avgDrawdown      = allTrades ? round(drawdown/allTrades, 1) : 0;
-   test->stat_avgPips          = allTrades ? round(pips    /allTrades, 1) : 0;
+   test->stat_avgRealized      = allTrades ? round(realized/allTrades, 1) : 0;
 
    test->stat_avgLongRunup     = longTrades ? round(longRunup   /longTrades, 1) : 0;
    test->stat_avgLongDrawdown  = longTrades ? round(longDrawdown/longTrades, 1) : 0;
-   test->stat_avgLongPips      = longTrades ? round(longPips    /longTrades, 1) : 0;
+   test->stat_avgLongRealized  = longTrades ? round(longRealized/longTrades, 1) : 0;
 
    test->stat_avgShortRunup    = shortTrades ? round(shortRunup   /shortTrades, 1) : 0;
    test->stat_avgShortDrawdown = shortTrades ? round(shortDrawdown/shortTrades, 1) : 0;
-   test->stat_avgShortPips     = shortTrades ? round(shortPips    /shortTrades, 1) : 0;
+   test->stat_avgShortRealized = shortTrades ? round(shortRealized/shortTrades, 1) : 0;
 
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT
