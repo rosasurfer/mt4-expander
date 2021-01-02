@@ -333,34 +333,36 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, dateti
             order->drawdown = round((order->openPrice - order->highPrice )/ec->pip, 1);
             order->realized = round((order->openPrice - order->closePrice)/ec->pip, 1);
          }
+         if (order->realized > order->runup)    order->runup    = order->realized;  // fix for applyment of closing spread
+         if (order->realized < order->drawdown) order->drawdown = order->realized;
 
          // move the order to closed positions
-         openPositions.erase(openPositions.begin() + i);             // drop open position
-         ec->test->closedPositions->push_back(order);                // add it to closed positions
+         openPositions.erase(openPositions.begin() + i);                            // drop open position
+         ec->test->closedPositions->push_back(order);                               // add it to closed positions
 
          if (order->type == OP_LONG) {
             OrderList &openLongs = *ec->test->openLongPositions;
             size = openLongs.size();
             for (i=0; i < size; ++i) {
                if (openLongs[i]->ticket == ticket) {
-                  openLongs.erase(openLongs.begin() + i);            // drop open long position
+                  openLongs.erase(openLongs.begin() + i);                           // drop open long position
                   break;
                }
             }
             if (i >= size) return(error(ERR_RUNTIME_ERROR, "open long position #%d not found (%d long positions)", ticket, size));
-            ec->test->closedLongPositions->push_back(order);         // add it to closed long positions
+            ec->test->closedLongPositions->push_back(order);                        // add it to closed long positions
          }
          else {
             OrderList &openShorts = *ec->test->openShortPositions;
             size = openShorts.size();
             for (i=0; i < size; ++i) {
                if (openShorts[i]->ticket == ticket) {
-                  openShorts.erase(openShorts.begin() + i);          // drop open short position
+                  openShorts.erase(openShorts.begin() + i);                         // drop open short position
                   break;
                }
             }
             if (i >= size) return(error(ERR_RUNTIME_ERROR, "open short position #%d not found (%d short positions)", ticket, size));
-            ec->test->closedShortPositions->push_back(order);        // add it to closed short positions
+            ec->test->closedShortPositions->push_back(order);                       // add it to closed short positions
          }
 
          //debug("position closed:  %s", ORDER_toStr(order));
