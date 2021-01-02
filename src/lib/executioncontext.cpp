@@ -568,7 +568,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 
       TEST* test = ec->test;
       OrderList* positions = test->openPositions;
-      double high, low;
+      double high=INT_MIN, low=INT_MAX;
 
       if (positions->size()) {
          switch (test->barModel) {
@@ -581,13 +581,14 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
             }
             case BARMODEL_CONTROLPOINTS:
             case BARMODEL_EVERYTICK:
-               high = low = bid;
+               high = bid;                                           // inner prices to prevent stats distortion by spread widening
+               low  = ask;
                break;
          }
          for (OrderList::iterator it=positions->begin(), end=positions->end(); it!=end; ++it) {
             ORDER* order = *it;
-            if (high > order->high) order->high = high;
-            if (low  < order->low ) order->low  = low;               // explicite check for max. performance
+            if (high > order->highPrice) order->highPrice = high;    // explicite check for max. performance
+            if (low  < order->lowPrice)  order->lowPrice  = low;
          }
       }
    }

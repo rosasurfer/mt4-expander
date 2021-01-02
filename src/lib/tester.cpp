@@ -255,7 +255,7 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*
 /**
  * TODO: validation
  */
-BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, double openPrice, datetime openTime, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
+BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, datetime openTime, double openPrice, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
    if ((uint)ec        < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->test)    return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
    if ((uint)symbol    < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
@@ -273,22 +273,21 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
       order->type          = type;
       order->lots          = lots;
       strcpy(order->symbol,  symbol);
-      order->openPrice     = openPrice;
       order->openTime      = openTime;
+      order->openPrice     = openPrice;
       order->stopLoss      = stopLoss;
       order->takeProfit    = takeProfit;
       order->commission    = commission;
       order->magicNumber   = magicNumber;
       strcpy(order->comment, comment);
-
-      order->high          = ec->bid;
-      order->low           = ec->bid;
+      order->highPrice     = ec->bid;              // inner prices to prevent stats distortion by spread widening
+      order->lowPrice      = ec->ask;
    positions->push_back(order);
 
    if (order->type == OP_LONG)  longPositions->push_back(order);
    if (order->type == OP_SHORT) shortPositions->push_back(order);
 
-   //debug(" position opened:  %s", ORDER_toStr(order));
+   //debug("position opened:  %s", ORDER_toStr(order));
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
@@ -305,7 +304,7 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
  *
  * @return BOOL - success status
  */
-BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double closePrice, datetime closeTime, double swap, double profit) {
+BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, datetime closeTime, double closePrice, double swap, double profit) {
    if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
    if (!ec->test->openPositions)                return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: NULL"));
@@ -318,53 +317,55 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, double
       order = openPositions[i];
       if (order->ticket == ticket) {
          // update order data
-         order->closePrice = closePrice;
          order->closeTime  = closeTime;
+         order->closePrice = closePrice;
          order->swap       = swap;
          order->profit     = profit;
 
          // update/calculate metrics
          if (order->type == OP_LONG) {
-            order->runupPip    = round((order->high - order->openPrice)/ec->pip, 1);
-            order->drawdownPip = round((order->low  - order->openPrice)/ec->pip, 1);
-            order->plPip       = round((order->closePrice - order->openPrice)/ec->pip, 1);
+            order->runup    = round((order->highPrice  - order->openPrice)/ec->pip, 1);
+            order->drawdown = round((order->lowPrice   - order->openPrice)/ec->pip, 1);
+            order->realized = round((order->closePrice - order->openPrice)/ec->pip, 1);
          }
          else {
-            order->runupPip    = round((order->openPrice - order->low )/ec->pip, 1);
-            order->drawdownPip = round((order->openPrice - order->high)/ec->pip, 1);
-            order->plPip       = round((order->openPrice - order->closePrice)/ec->pip, 1);
+            order->runup    = round((order->openPrice - order->lowPrice  )/ec->pip, 1);
+            order->drawdown = round((order->openPrice - order->highPrice )/ec->pip, 1);
+            order->realized = round((order->openPrice - order->closePrice)/ec->pip, 1);
          }
+         if (order->realized > order->runup)    order->runup    = order->realized;  // fix for applyment of closing spread
+         if (order->realized < order->drawdown) order->drawdown = order->realized;
 
          // move the order to closed positions
-         openPositions.erase(openPositions.begin() + i);             // drop open position
-         ec->test->closedPositions->push_back(order);                // add it to closed positions
+         openPositions.erase(openPositions.begin() + i);                            // drop open position
+         ec->test->closedPositions->push_back(order);                               // add it to closed positions
 
          if (order->type == OP_LONG) {
             OrderList &openLongs = *ec->test->openLongPositions;
             size = openLongs.size();
             for (i=0; i < size; ++i) {
                if (openLongs[i]->ticket == ticket) {
-                  openLongs.erase(openLongs.begin() + i);            // drop open long position
+                  openLongs.erase(openLongs.begin() + i);                           // drop open long position
                   break;
                }
             }
             if (i >= size) return(error(ERR_RUNTIME_ERROR, "open long position #%d not found (%d long positions)", ticket, size));
-            ec->test->closedLongPositions->push_back(order);         // add it to closed long positions
+            ec->test->closedLongPositions->push_back(order);                        // add it to closed long positions
          }
          else {
             OrderList &openShorts = *ec->test->openShortPositions;
             size = openShorts.size();
             for (i=0; i < size; ++i) {
                if (openShorts[i]->ticket == ticket) {
-                  openShorts.erase(openShorts.begin() + i);          // drop open short position
+                  openShorts.erase(openShorts.begin() + i);                         // drop open short position
                   break;
                }
             }
             if (i >= size) return(error(ERR_RUNTIME_ERROR, "open short position #%d not found (%d short positions)", ticket, size));
-            ec->test->closedShortPositions->push_back(order);        // add it to closed short positions
+            ec->test->closedShortPositions->push_back(order);                       // add it to closed short positions
          }
 
-         debug("position closed:  %s", ORDER_toStr(order));
+         //debug("position closed:  %s", ORDER_toStr(order));
          break;
       }
    }
@@ -478,38 +479,38 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
 
    double runup    = 0, longRunup    = 0, shortRunup    = 0;
    double drawdown = 0, longDrawdown = 0, shortDrawdown = 0;
-   double pl       = 0, longPl       = 0, shortPl       = 0;
+   double realized = 0, longRealized = 0, shortRealized = 0;
 
    for (uint i=0; i < allTrades; ++i) {
       ORDER* order = trades[i];
 
-      runup    += order->runupPip;
-      drawdown += order->drawdownPip;
-      pl       += order->plPip;
+      runup    += order->runup;
+      drawdown += order->drawdown;
+      realized += order->realized;
 
       if (order->type == OP_LONG) {
-         longRunup    += order->runupPip;
-         longDrawdown += order->drawdownPip;
-         longPl       += order->plPip;
+         longRunup    += order->runup;
+         longDrawdown += order->drawdown;
+         longRealized += order->realized;
       }
       else {
-         shortRunup    += order->runupPip;
-         shortDrawdown += order->drawdownPip;
-         shortPl       += order->plPip;
+         shortRunup    += order->runup;
+         shortDrawdown += order->drawdown;
+         shortRealized += order->realized;
       }
    }
 
-   test->stat_avgRunupPip         = allTrades ? round(runup   /allTrades, 1) : 0;
-   test->stat_avgDrawdownPip      = allTrades ? round(drawdown/allTrades, 1) : 0;
-   test->stat_avgPlPip            = allTrades ? round(pl      /allTrades, 1) : 0;
+   test->stat_avgRunup         = allTrades ? round(runup   /allTrades, 1) : 0;
+   test->stat_avgDrawdown      = allTrades ? round(drawdown/allTrades, 1) : 0;
+   test->stat_avgRealized      = allTrades ? round(realized/allTrades, 1) : 0;
 
-   test->stat_avgLongRunupPip     = longTrades ? round(longRunup   /longTrades, 1) : 0;
-   test->stat_avgLongDrawdownPip  = longTrades ? round(longDrawdown/longTrades, 1) : 0;
-   test->stat_avgLongPlPip        = longTrades ? round(longPl      /longTrades, 1) : 0;
+   test->stat_avgLongRunup     = longTrades ? round(longRunup   /longTrades, 1) : 0;
+   test->stat_avgLongDrawdown  = longTrades ? round(longDrawdown/longTrades, 1) : 0;
+   test->stat_avgLongRealized  = longTrades ? round(longRealized/longTrades, 1) : 0;
 
-   test->stat_avgShortRunupPip    = shortTrades ? round(shortRunup   /shortTrades, 1) : 0;
-   test->stat_avgShortDrawdownPip = shortTrades ? round(shortDrawdown/shortTrades, 1) : 0;
-   test->stat_avgShortPlPip       = shortTrades ? round(shortPl      /shortTrades, 1) : 0;
+   test->stat_avgShortRunup    = shortTrades ? round(shortRunup   /shortTrades, 1) : 0;
+   test->stat_avgShortDrawdown = shortTrades ? round(shortDrawdown/shortTrades, 1) : 0;
+   test->stat_avgShortRealized = shortTrades ? round(shortRealized/shortTrades, 1) : 0;
 
    return(Test_SaveReport(test));
    #pragma EXPANDER_EXPORT

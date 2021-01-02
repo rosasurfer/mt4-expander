@@ -44,9 +44,12 @@ char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
          << ", profit="      << std::setprecision(2) << order->profit
          << ", magicNumber=" <<                         order->magicNumber
          << ", comment="     <<          DoubleQuoteStr(order->comment)
-         << ", runup="       << std::setprecision(1) << order->runupPip
-         << ", drawdown="    << std::setprecision(1) << order->drawdownPip
-         << ", result="      << std::setprecision(1) << order->plPip
+         << ", highPrice="   <<       std::setprecision(order->highPrice ? digits : 0) << order->highPrice
+         << ", lowPrice="    <<       std::setprecision(order->lowPrice  ? digits : 0) << order->lowPrice
+         << ", runup="       << std::setprecision(1) << order->runup
+         << ", drawdown="    << std::setprecision(1) << order->drawdown
+         << ", realized="    << std::setprecision(1) << order->realized
+         << ", test="        <<                        (order->test ? StrFormat("0x%p", order->test) : "NULL")
          << "}";
    }
    char* result = strdup(ss.str().c_str());                          // TODO: add to GC (close memory leak)

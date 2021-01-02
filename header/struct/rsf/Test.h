@@ -11,8 +11,9 @@ struct EXECUTION_CONTEXT;
  * Framework struct TEST
  *
  * A structure holding test data (i.e. tester settings, strategy settings, trade history).
- *
  */
+#pragma pack(push, 1)
+
 struct TEST {
    int                id;                                // unique id greater 0 (zero)
    datetime           created;                           // creation time of the test
@@ -36,18 +37,19 @@ struct TEST {
    OrderList*         closedLongPositions;
    OrderList*         closedShortPositions;
 
-   double             stat_avgRunupPip;                  // average runup of all trades in pip
-   double             stat_avgLongRunupPip;              // average long runup in pip
-   double             stat_avgShortRunupPip;             // average short runup in pip
+   double             stat_avgRunup;                     // average runup of all trades in pip
+   double             stat_avgLongRunup;                 // average long runup in pip
+   double             stat_avgShortRunup;                // average short runup in pip
 
-   double             stat_avgDrawdownPip;               // average drawdown of all trades in pip
-   double             stat_avgLongDrawdownPip;           // average long drawdown in pip
-   double             stat_avgShortDrawdownPip;          // average short drawdown in pip
+   double             stat_avgDrawdown;                  // average drawdown of all trades in pip
+   double             stat_avgLongDrawdown;              // average long drawdown in pip
+   double             stat_avgShortDrawdown;             // average short drawdown in pip
 
-   double             stat_avgPlPip;                     // average PL of all trades in pip
-   double             stat_avgLongPlPip;                 // average long PL in pip
-   double             stat_avgShortPlPip;                // average short PL in pip
+   double             stat_avgRealized;                  // average realized PL of all trades in pip
+   double             stat_avgLongRealized;              // average realized PL of long trades in pip
+   double             stat_avgShortRealized;             // average realized PL of short trades in pip
 };
+#pragma pack(pop)
 
 
 // getters: access from MQL is possible via the EXECUTION_CONTEXT getters ec_Test*()

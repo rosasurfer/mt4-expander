@@ -8,11 +8,14 @@
  *
  * TODO: in EXECUTION_CONTEXT integrieren
  */
+#pragma pack(push, 1)
+
 struct LOG_MESSAGE {
    int   level;                  // log level
    int   code;
    char* text;
 };
+#pragma pack(pop)
 
 
 // in EXECUTION_CONTEXT:
