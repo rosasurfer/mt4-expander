@@ -20,7 +20,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 
    uint   tradeMode;                               //       108         4     0=NoTrading | 1=CloseOnly | 2=FullTrading
    uint   backgroundColor;                         //       112         4     color in "MarketWatch" window
-   uint   arrayKey;                                //       116         4     unique but varibale array/vector id >= 0 (not the array/vector index)
+   uint   arrayKey;                                //       116         4     unique but variable array/vector id >= 0 (not the array/vector index)
    uint   id;                                      //       120         4     unique and constant symbol id >= 0
 
    BYTE   unknown1[32];                            //       124        32
