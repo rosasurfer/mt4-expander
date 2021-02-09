@@ -166,7 +166,7 @@ const char* WINAPI GetMqlDirectoryA() {
 
 
 /**
- * Return the terminal's build number (same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL4.5).
+ * Return the terminal's build number (same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL5).
  *
  * @return uint - build number or 0 in case of errors
  */
@@ -185,8 +185,8 @@ uint WINAPI GetTerminalBuild() {
 
 /**
  * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
- * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does
- * not check whether the returned directory exists.
+ * introduced in MQL5). The common data directory is shared between all terminals installed by a user. The function does not
+ * check whether the returned directory exists.
  *
  * @return char* - directory name or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
@@ -209,7 +209,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
 /**
  * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
- * introduced in MQL4.5). The function does not check whether the returned directory exists.
+ * introduced in MQL5). The function does not check whether the returned directory exists.
  *
  * @return char* - directory name or a NULL pointer in case of errors, e.g. "%ProgramFiles%\MetaTrader4"
  */
@@ -370,7 +370,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
 
 /**
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
- * introduced in MQL4.5).
+ * introduced in MQL5).
  *
  * @return char* - directory name without trailing path separator
  */
@@ -388,7 +388,7 @@ const char* WINAPI GetTerminalPathA() {
 
 /**
 * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
-* introduced in MQL4.5).
+* introduced in MQL5).
  *
  * @return wstring& - directory name or an empty string in case of errors
  */
