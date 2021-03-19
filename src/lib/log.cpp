@@ -65,7 +65,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
 
    // compose the log entry
    std::ostringstream ss;
-   string sLoglevel(level==LOG_INFO ? "": LoglevelDescriptionA(level));                   // loglevel (INFO is blanked out)
+   string sLoglevel(level==LOG_DEBUG ? "": LoglevelDescriptionA(level));                  // loglevel (LOG_DEBUG is blanked out)
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
    string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", "\n"), "\n", " ");   // replace linebreaks with spaces
