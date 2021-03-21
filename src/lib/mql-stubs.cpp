@@ -191,6 +191,18 @@ int WINAPI afterDeinit() {
 /**
  * Other
  */
+BOOL WINAPI onBarOpen() {
+   return(error(ERR_NOT_IMPLEMENTED, "must be implemented in the MQL main module"));
+   #pragma EXPANDER_EXPORT
+}
+
+
+BOOL WINAPI onCommand(const MqlStringA commands[]) {
+   return(error(ERR_NOT_IMPLEMENTED, "must be implemented in the MQL main module"));
+   #pragma EXPANDER_EXPORT
+}
+
+
 void WINAPI DummyCalls() {
    return;
    #pragma EXPANDER_EXPORT
