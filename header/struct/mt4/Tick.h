@@ -1,12 +1,12 @@
 #pragma once
 #include "expander.h"
 
-#pragma pack(push, 1)
-
 
 /**
  * MT4 struct TICK (file format of "ticks.raw")
  */
+#pragma pack(push, 1)
+
 struct TICK {                                      // -- offset ---- size --- description ----------------------------------------------------------------------------
    char     symbol[MAX_SYMBOL_LENGTH+1];           //         0        12     symbol
    datetime time;                                  //        12         4     timestamp

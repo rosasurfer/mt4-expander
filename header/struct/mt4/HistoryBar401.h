@@ -1,8 +1,6 @@
 #pragma once
 #include "expander.h"
 
-#pragma pack(push, 1)
-
 
 /**
  * MT4 struct HISTORY_BAR_401
@@ -11,9 +9,11 @@
  *
  * @see  https://docs.mql4.com/mql4changes
  */
+#pragma pack(push, 1)
+
 struct HISTORY_BAR_401 {                           // -- offset --- size --- description --------------------
-   datetime time;                                  //         0        8     MetaQuotes: low part of int64
-   DWORD    _reserved1;                            //         4        4     MetaQuotes: high part of int64
+   datetime time;                                  //         0        4     MetaQuotes: low part of datetime64
+   DWORD    _reserved1;                            //         4        4     MetaQuotes: high part of datetime64
    double   open;                                  //         8        8
    double   high;                                  //        16        8
    double   low;                                   //        24        8
@@ -25,5 +25,5 @@ struct HISTORY_BAR_401 {                           // -- offset --- size --- des
 };                                                 // -------------------------------------------------------
 #pragma pack(pop)                                  //               = 60
 
-typedef HISTORY_BAR_401 HistoryBar401;             //
-//typedef HISTORY_BAR_401 MqlRates;                // MetaQuotes alias
+typedef HISTORY_BAR_401 HistoryBar401;
+typedef HISTORY_BAR_401 MqlRates;                  // MetaQuotes alias

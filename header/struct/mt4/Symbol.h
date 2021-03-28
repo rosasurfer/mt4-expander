@@ -1,14 +1,14 @@
 #pragma once
 #include "expander.h"
 
-#pragma pack(push, 1)
-
 
 /**
  * MT4 struct SYMBOL (file format of "symbols.raw")
  *
  * All symbols of a file are sorted alphabetically by "name".
  */
+#pragma pack(push, 1)
+
 struct SYMBOL {                                    // -- offset ---- size --- description -------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     broker specific symbol (e.g. "AUDCAD.m")
    char   description [54];                        //        12        54     description, original size = 64

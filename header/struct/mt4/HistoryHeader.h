@@ -1,14 +1,14 @@
 #pragma once
 #include "expander.h"
 
-#pragma pack(push, 1)
-
 
 /**
  * MT4 struct HISTORY_HEADER (header format of history files in "<data-dir>\history")
  *
  * History file header
  */
+#pragma pack(push, 1)
+
 struct HISTORY_HEADER {                            // -- offset ---- size --- description ----------------------------------------------------------------------------
    uint     barFormat;                             //         0         4     bar format id, builds <= 509: 400, builds > 509: 401
    char     copyright[64];                         //         4        64     copyright (overwritten by the terminal)
