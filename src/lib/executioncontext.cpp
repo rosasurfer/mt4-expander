@@ -1068,7 +1068,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
    // close an open logfile
    if (ec->logger && ec->logger->is_open())
-      ec->logger->close();                                                 // is automatically re-opened on next use
+      ec->logger->close();                                                 // it's re-opened automatically on next use
 
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
