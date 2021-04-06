@@ -284,7 +284,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_INTEGER_PARAMETER_EXPECTED                                              : return("ERR_INTEGER_PARAMETER_EXPECTED"                                  );    //   4063
       case ERR_DOUBLE_PARAMETER_EXPECTED                                               : return("ERR_DOUBLE_PARAMETER_EXPECTED"                                   );    //   4064
       case ERR_ARRAY_AS_PARAMETER_EXPECTED                                             : return("ERR_ARRAY_AS_PARAMETER_EXPECTED"                                 );    //   4065
-      case ERS_HISTORY_UPDATE                                                          : return("ERS_HISTORY_UPDATE"                                              );    //   4066   status (not an error)
+      case ERS_HISTORY_UPDATE                                                          : return("ERS_HISTORY_UPDATE"                                              );    //   4066   non-terminating status
       case ERR_TRADE_ERROR                                                             : return("ERR_TRADE_ERROR"                                                 );    //   4067
       case ERR_RESOURCE_NOT_FOUND                                                      : return("ERR_RESOURCE_NOT_FOUND"                                          );    //   4068
       case ERR_RESOURCE_NOT_SUPPORTED                                                  : return("ERR_RESOURCE_NOT_SUPPORTED"                                      );    //   4069
@@ -370,7 +370,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_USER_ERROR_FIRST                                                        : return("ERR_USER_ERROR_FIRST"                                            );    //  65536
       case ERR_CANCELLED_BY_USER                                                       : return("ERR_CANCELLED_BY_USER"                                           );    //  65537
       case ERR_CONCURRENT_MODIFICATION                                                 : return("ERR_CONCURRENT_MODIFICATION"                                     );    //  65538
-      case ERS_EXECUTION_STOPPING                                                      : return("ERS_EXECUTION_STOPPING"                                          );    //  65539   status (not an error)
+      case ERS_EXECUTION_STOPPING                                                      : return("ERS_EXECUTION_STOPPING"                                          );    //  65539   non-terminating status
       case ERR_FUNC_NOT_ALLOWED                                                        : return("ERR_FUNC_NOT_ALLOWED"                                            );    //  65540
       case ERR_HISTORY_INSUFFICIENT                                                    : return("ERR_HISTORY_INSUFFICIENT"                                        );    //  65541
       case ERR_ILLEGAL_STATE                                                           : return("ERR_ILLEGAL_STATE"                                               );    //  65542
@@ -386,7 +386,7 @@ const char* WINAPI ErrorToStr(int error) {
       case ERR_ORDER_CHANGED                                                           : return("ERR_ORDER_CHANGED"                                               );    //  65552
       case ERR_RUNTIME_ERROR                                                           : return("ERR_RUNTIME_ERROR"                                               );    //  65553
       case ERR_TERMINAL_INIT_FAILURE                                                   : return("ERR_TERMINAL_INIT_FAILURE"                                       );    //  65554
-      case ERS_TERMINAL_NOT_YET_READY                                                  : return("ERS_TERMINAL_NOT_YET_READY"                                      );    //  65555   status (not an error)
+      case ERS_TERMINAL_NOT_YET_READY                                                  : return("ERS_TERMINAL_NOT_YET_READY"                                      );    //  65555   non-terminating status
       case ERR_TOTAL_POSITION_NOT_FLAT                                                 : return("ERR_TOTAL_POSITION_NOT_FLAT"                                     );    //  65556
       case ERR_UNDEFINED_STATE                                                         : return("ERR_UNDEFINED_STATE"                                             );    //  65557
       case ERR_STOP_DISTANCE_VIOLATED                                                  : return("ERR_STOP_DISTANCE_VIOLATED"                                      );    //  65558
