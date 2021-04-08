@@ -9,7 +9,7 @@
 
 
 /**
- * Return a terminal configuration value as a boolean. Queries the global and the local configuration with the local configu-
+ * Return a terminal configuration value as a boolean. Queries the global and the terminal configuration with the terminal configu-
  * ration superseding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
  * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
  * its nominal value is non-zero. Trailing configuration comments (text following the ";" character) are ignored.
@@ -23,7 +23,7 @@
 //BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
 //   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
 //   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
-//   //return(GetLocalConfigBool (section, key, result));
+//   //return(GetTerminalConfigBool(section, key, result));
 //   return(FALSE);
 //}
 
@@ -155,7 +155,7 @@ const char* WINAPI GetGlobalConfigPathA() {
  * @return char* - filename or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\terminal-config.ini"
  */
-const char* WINAPI GetLocalConfigPathA() {
+const char* WINAPI GetTerminalConfigPathA() {
    // The string returned by this function is static and its memory must not be released.
    static char* configPath;
 
@@ -427,17 +427,17 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
 
 
 /**
- * Whether the specified local configuration key exists.
+ * Whether the specified terminal configuration key exists.
  *
  * @param  char* section - case-insensitive configuration section name
  * @param  char* key     - case-insensitive configuration key
  *
  * @return BOOL
  */
-BOOL WINAPI IsLocalConfigKeyA(const char* section, const char* key) {
-   const char* localConfig = GetLocalConfigPathA();
-   if (localConfig)
-      return(IsIniKeyA(localConfig, section, key));
+BOOL WINAPI IsTerminalConfigKeyA(const char* section, const char* key) {
+   const char* terminalConfig = GetTerminalConfigPathA();
+   if (terminalConfig)
+      return(IsIniKeyA(terminalConfig, section, key));
    return(FALSE);
    #pragma EXPANDER_EXPORT
 }
