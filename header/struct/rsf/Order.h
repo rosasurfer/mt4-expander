@@ -7,13 +7,12 @@
 struct TEST;
 
 
+#pragma pack(push, 1)
 /**
  * Framework struct ORDER
  *
  * Represents an order ticket, i.e. a pending order or an openened or closed position.
  */
-#pragma pack(push, 1)
-
 struct ORDER {                                     // -- offset --- size --- description --------------------------------------------------------------------------------------
    uint     id;                                    //         0        4     unique id greater 0 (zero)
    TEST*    test;                                  //         4        4     the test the order belongs to

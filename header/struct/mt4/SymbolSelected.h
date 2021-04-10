@@ -2,11 +2,10 @@
 #include "expander.h"
 
 
+#pragma pack(push, 1)
 /**
  * MT4 struct SYMBOL_SELECTED (file format "symbols.sel")
  */
-#pragma pack(push, 1)
-
 struct SYMBOL_SELECTED {                           // -- offset ---- size --- description -----------------------------------
    char     symbol[MAX_SYMBOL_LENGTH+1];           //         0        12     symbol (szchar)
    uint     digits;                                //        12         4     digits

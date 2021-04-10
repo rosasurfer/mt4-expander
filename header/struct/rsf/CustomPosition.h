@@ -2,6 +2,7 @@
 #include "expander.h"
 
 
+#pragma pack(push, 1)
 /**
  * Binäre Repräsentation eines einzelnen Konfigurationsterms einer individuellen Position. Die Konfiguration einer CustomPosition besteht
  * aus ein oder mehreren durch Kommas voneinander getrennten Termen.
@@ -10,8 +11,6 @@
  *
  * @see  MQL: double positions.config[][5];
  */
-#pragma pack(push, 1)
-
 struct POSITION_CONFIG_TERM {
    double type;               // [ Ticket | TERM_OPEN_LONG | TERM_OPEN_SHORT | TERM_OPEN_SYMBOL | TERM_OPEN_ALL | TERM_HISTORY_SYMBOL | TERM_HISTORY_ALL | TERM_ADJUSTMENT | TERM_EQUITY ]
    double confValue1;         // [ EMPTY  | LotSize | FromDateTime ]
@@ -22,14 +21,13 @@ struct POSITION_CONFIG_TERM {
 #pragma pack(pop)
 
 
+#pragma pack(push, 1)
 /**
  * Report-Datensatz einer Position zur Anzeige im Chart.
  *
  * @see  MQL: int    positions.idata[][3];
  *       MQL: double positions.ddata[][9];
  */
-#pragma pack(push, 1)
-
 struct POSITION_DATA {
    uint   configType;         // [ CONFIG_AUTO | CONFIG_REAL | CONFIG_VIRTUAL ]
    uint   positionType;       // [ POSITION_LONG | POSITION_SHORT | POSITION_HEDGE | POSITION_HISTORY ]

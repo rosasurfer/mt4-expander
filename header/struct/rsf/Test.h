@@ -7,13 +7,12 @@
 struct EXECUTION_CONTEXT;
 
 
+#pragma pack(push, 1)
 /**
  * Framework struct TEST
  *
  * A structure holding test data (i.e. tester settings, strategy settings, trade history).
  */
-#pragma pack(push, 1)
-
 struct TEST {
    int                id;                                // unique id greater 0 (zero)
    datetime           created;                           // creation time of the test
