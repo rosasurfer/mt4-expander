@@ -1,9 +1,8 @@
 #pragma once
 #include "expander.h"
 
+
 #pragma pack(push, 1)
-
-
 /**
  * MT4 struct FXT_HEADER (Tickdatei-Header)
  *

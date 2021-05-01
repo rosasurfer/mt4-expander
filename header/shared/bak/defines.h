@@ -14,7 +14,8 @@
 #define MAX_SYMBOL_GROUP_LENGTH                15
 #define MAX_SYMBOL_LENGTH                      11
 
-#define NL                                   "\n"        // new line: 0x0A (in text mode MQL/Win32 file functions auto-convert 0x0A to 0x0D0A)
+#define NL                                   "\n"        // Linux line separator:   0x0A (in text mode MQL/Win32 file functions auto-convert 0x0A to 0x0D0A)
+#define CRLF                               "\r\n"        // Windows line separator: 0x0D0A
 #define TAB                                  "\t"        // tab: 0x09
 
 
@@ -25,8 +26,8 @@
 #define LOG_NOTICE                              4
 #define LOG_WARN                                8
 #define LOG_ERROR                              16
-#define LOG_FATAL                              32        // max. loglevel for built-in appenders (terminal, alert)
-#define LOG_OFF                           INT_MAX        // max. loglevel for custom appenders
+#define LOG_FATAL                              32        // used by catch() only, i.e. on unexpected errors
+#define LOG_OFF                           INT_MAX        // custom log appenders can be switched off, built-in appenders (terminal alerts and terminal log) can't
 
 
 // MQL module type flags
@@ -81,7 +82,7 @@
 #define INITREASON_TIMEFRAMECHANGE              6        // | chart period changed                          | no input dialog |   I, E      |
 #define INITREASON_SYMBOLCHANGE                 7        // | chart symbol changed                          | no input dialog |   I, E      |
 #define INITREASON_RECOMPILE                    8        // | reloaded after recompilation                  | no input dialog |   I, E      |
-#define INITREASON_TERMINAL_FAILURE             9        // | terminal failure                              |    input dialog |      E      |   @see https://github.com/rosasurfer/mt4-mql/issues/1
+#define INITREASON_TERMINAL_FAILURE             9        // | terminal failure                              |    input dialog |      E      |   @see  https://github.com/rosasurfer/mt4-mql/issues/1
                                                          // +-----------------------------------------------+-----------------+-------------+
 
 // UninitializeReason codes (matching the MetaQuotes REASON_* codes)
@@ -362,7 +363,7 @@
  * MT4 command ids (menu, toolbar and hotkey ids). ID naming and numbering conventions for resources, commands, strings,
  * controls and child windows as defined by MFC 2.0:
  *
- *  @see  https://msdn.microsoft.com/en-us/library/t2zechd4.aspx
+ *  @link  https://msdn.microsoft.com/en-us/library/t2zechd4.aspx
  */
 #define ID_EXPERTS_ONOFF                    33020        // Toolbar: Experts on/off                    Ctrl+E
 

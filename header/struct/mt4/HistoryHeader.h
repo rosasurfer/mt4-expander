@@ -1,11 +1,10 @@
 #pragma once
 #include "expander.h"
 
+
 #pragma pack(push, 1)
-
-
 /**
- * MT4 struct HISTORY_HEADER (header format of history files in "<data-dir>\history")
+ * MT4 struct HISTORY_HEADER (header format of history files in "<terminal-data-dir>/history/")
  *
  * History file header
  */

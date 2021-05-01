@@ -12,8 +12,8 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
- * Append a log message to a program's logfile.
- * The caller is responsible for checking the configured loglevel. Intentionally the function does not check it again.
+ * Append a log message to a program's logfile. The caller is responsible for checking the configured loglevel. Intentionally
+ * this function doesn't check it again.
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
  * @param  datetime           time    - current time (used only in tester)
@@ -119,7 +119,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       std::ofstream* log = master->logger;
       if (!log) log = master->logger = ec->logger = new std::ofstream();
 
-      // close a different previous logfile
+      // close a previous logfile with a different name
       if (!StrCompare(filename, master->logFilename)) {
          if (log->is_open()) log->close();
       }

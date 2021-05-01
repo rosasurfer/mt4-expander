@@ -41,8 +41,8 @@ echo Backing up shared header files...
 copy "$(ProjectDir)header\shared\*.h" "$(ProjectDir)header\shared\bak\"
 
 if exist "$(ProjectDir)bin\mql4-libraries\" (
-    echo Copying DLL to MetaTrader MQL library folder...
-    copy "$(TargetPath)" "$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)"
+   echo Copying DLL to MetaTrader MQL libraries...
+   copy "$(TargetPath)" "$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)"
 )
 ```
 <br>

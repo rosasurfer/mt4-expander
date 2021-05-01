@@ -1,9 +1,8 @@
 #pragma once
 #include "expander.h"
 
+
 #pragma pack(push, 1)
-
-
 /**
  * MT4 struct HISTORY_BAR_400
  *
@@ -21,5 +20,5 @@ struct HISTORY_BAR_400 {                           // -- offset --- size --- des
 };                                                 // -------------------------------------------
 #pragma pack(pop)                                  //               = 44
 
-typedef HISTORY_BAR_400 HistoryBar400;             //
-//typedef HISTORY_BAR_400 RateInfo;                // MetaQuotes alias
+typedef HISTORY_BAR_400 HistoryBar400;
+typedef HISTORY_BAR_400 RateInfo;                  // MetaQuotes alias
