@@ -326,32 +326,6 @@ void WINAPI ReleaseWindowProperties() {
 
 
 /**
- * Shifted die Werte eines IndicatorBuffers um eine Anzahl von Bars nach hinten. Die ältesten Werte verfallen.
- *
- * @param  double buffer[]   - MQL-Double-Array (IndicatorBuffer)
- * @param  int    bufferSize - Größe des Arrays
- * @param  int    bars       - Anzahl der zu shiftenden Bars
- * @param  double emptyValue - Initialisierungswert für freiwerdende Bufferelemente
- *
- * @return BOOL - Erfolgsstatus
- */
-BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, double emptyValue) {
-   if (buffer && (uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
-   if (bufferSize < 0)                             return(error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d", bufferSize));
-   if (bars < 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d", bars));
-   if (!bufferSize || !bars) return(TRUE);
-
-   MoveMemory((void*)&buffer[0], &buffer[bars], (bufferSize-bars)*sizeof(buffer[0]));
-
-   for (int i=bufferSize-bars; i < bufferSize; i++) {
-      buffer[i] = emptyValue;
-   }
-   return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Copy the symbol-timeframe description as in the title bar of a chart window to the specified buffer. If the buffer is too
  * small the string in the buffer is truncated. The string is always terminated with a null character.
  *
