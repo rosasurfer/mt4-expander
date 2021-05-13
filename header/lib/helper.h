@@ -11,7 +11,6 @@ BOOL        WINAPI IsUIThread(DWORD threadId = NULL);
 const char* WINAPI MD5Hash(const void* input, uint length);
 const char* WINAPI MD5HashA(const char* input);
 uint        WINAPI MT4InternalMsg();
-BOOL        WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int bars, double emptyValue);
 uint        WINAPI WM_MT4();
 
 BOOL        WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value);
