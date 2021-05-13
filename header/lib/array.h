@@ -2,4 +2,5 @@
 #include "expander.h"
 
 
+BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, int from, int count = EMPTY);
 BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int elements, double emptyValue);
