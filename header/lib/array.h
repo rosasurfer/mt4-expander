@@ -3,4 +3,4 @@
 
 
 BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, int from, int count = INT_MAX);
-BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int bufferSize, int elements, double emptyValue);
+BOOL WINAPI ShiftIndicatorBuffer(double buffer[], int size, int count, double emptyValue);
