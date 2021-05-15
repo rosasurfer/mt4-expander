@@ -217,7 +217,7 @@ char* WINAPI StrFormat(const char* format, ...) {
 
 
 /**
- * Whether two strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
+ * Whether two C strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
  *
  * @param  char* s1
  * @param  char* s2
@@ -229,6 +229,21 @@ BOOL WINAPI StrCompare(const char* s1, const char* s2) {
    if (!s1 || !s2) return(FALSE);                           // if one is a NULL pointer the other can't
    return(strcmp(s1, s2) == 0);                             // both are not NULL pointers
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether two wide Unicode strings (UTF-16) are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
+ *
+ * @param  wchar* s1
+ * @param  wchar* s2
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StrCompare(const wchar* s1, const wchar* s2) {
+   if (s1 == s2)   return(TRUE);                            // if pointers are equal values are too
+   if (!s1 || !s2) return(FALSE);                           // if one is a NULL pointer the other can't
+   return(wcscmp(s1, s2) == 0);                             // both are not NULL pointers
 }
 
 
@@ -270,7 +285,7 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
 
 
 /**
- * Whether a Unicode string (UTF-16) starts with the specified substring.
+ * Whether a wide Unicode string (UTF-16) starts with the specified substring.
  *
  * @param  wchar* str
  * @param  wchar* prefix
@@ -293,7 +308,7 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
 
 
 /**
- * Whether a string ends with the specified substring.
+ * Whether a C string ends with the specified substring.
  *
  * @param  char* str
  * @param  char* suffix
@@ -313,6 +328,29 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
       return(strcmp(str + strLen - suffixLen, suffix) == 0);
    return(FALSE);
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a wide Unicode string (UTF-16) ends with the specified substring.
+ *
+ * @param  wchar* str
+ * @param  wchar* suffix
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
+   if (!str)          return(FALSE);
+   if (!suffix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
+   if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
+
+   uint strLen    = wcslen(str);
+   uint suffixLen = wcslen(suffix);
+   if (!suffixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+
+   if (strLen >= suffixLen)
+      return(wcscmp(str + strLen - suffixLen, suffix) == 0);
+   return(FALSE);
 }
 
 
@@ -507,7 +545,7 @@ char* WINAPI StrTrimRight(char* const str) {
 
 
 /**
- * Convert an ANSI string to a Unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
+ * Convert an ANSI string to a wide Unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
  * limit of the destination buffer is hit, whichever comes first. The resulting string is always null terminated.
  *
  * @param  _In_  char*  source   - ANSI source string
@@ -537,7 +575,7 @@ uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize) {
 
 
 /**
- * Convert a Unicode string (UTF-16) to an ANSI string. Conversion stops at the end of the Unicode string or when the
+ * Convert a wide Unicode string (UTF-16) to an ANSI string. Conversion stops at the end of the Unicode string or when the
  * size limit of the destination buffer is hit, whichever comes first. The resulting string is always null terminated.
  *
  * @param  _In_  wchar* source   - Unicode source string
