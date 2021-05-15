@@ -61,7 +61,6 @@ wstring       utf8ToUnicode(const string &str);
 
 
 namespace rsf {
-   inline wchar* copywchars(const wchar* str) { return(wcscpy(new wchar[wcslen(str)+1], str)); };
-   char*         strformat(const char* format, ...);
-   char*         strformat(const char* format, const va_list &args);
+   char* strformat(const char* format, ...);
+   char* strformat(const char* format, const va_list &args);
 }

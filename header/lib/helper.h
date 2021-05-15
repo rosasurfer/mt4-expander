@@ -3,10 +3,12 @@
 
 
 uint         WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize);
-int          WINAPI GetLastWin32Error();
-DWORD        WINAPI GetUIThreadId();
 char*        WINAPI GetInternalWindowTextA(HWND hWnd);
 wchar*       WINAPI GetInternalWindowTextW(HWND hWnd);
+char*        WINAPI GetWindowTextA(HWND hWnd);
+wchar*       WINAPI GetWindowTextW(HWND hWnd);
+int          WINAPI GetLastWin32Error();
+DWORD        WINAPI GetUIThreadId();
 BOOL         WINAPI IsCustomTimeframe(int timeframe);
 BOOL         WINAPI IsStdTimeframe(int timeframe);
 BOOL         WINAPI IsUIThread(DWORD threadId = NULL);

@@ -1290,26 +1290,21 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       uint chars = GetChartDescription(symbol, timeframe, chartDescription, size);
       if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "GetChartDescription()")));
 
-      size = 128;
-      char* title = (char*)alloca(size);                             // on the stack
+      char* title = NULL;
       int id = INT_MAX;
 
       while (hWndChild) {                                            // iterate over all child windows
-         uint length = GetWindowTextA(hWndChild, title, size);       // Here we can't use GetInternalWindowText() as the window
-         if (length >= size-1) {                                     // creation needs to finish before we get a valid response.
-            size <<= 1;
-            title = (char*)alloca(size);                             // if (length == size-1) the string *may* have been truncated
-            continue;
-         }
-
+         title = GetWindowTextA(hWndChild);                          // Here we can't use GetInternalWindowText() as the window
+                                                                     // creation needs to finish before we get a valid response.
          if (StrEndsWith(title, " (offline)"))
-            title[length-10] = '\0';
+            title[strlen(title)-10] = '\0';
          if (StrCompare(title, chartDescription)) {                  // find all matching windows
             id = std::min(id, GetDlgCtrlID(hWndChild));              // track the smallest in absolute order
             if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
          }
          hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);              // next child in Z order
       }
+      delete[] title;
       if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no matching MDIClient child window found for \"%s\"", chartDescription)));
 
       hChartWindow = GetDlgItem(hWndMdi, id);                        // keep chart window (holding the chart AfxFrameOrView)

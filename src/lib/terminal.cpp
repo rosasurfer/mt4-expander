@@ -354,14 +354,15 @@ const wchar* WINAPI GetTerminalFileNameW() {
 
    if (!filename) {
       wchar* buffer;
-      uint size = MAX_PATH >> 1, length=size;
+      uint size=MAX_PATH >> 1, length=size;
+
       while (length >= size) {
          size <<= 1;
          buffer = (wchar*) alloca(size * sizeof(wchar));             // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
       if (!length) return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
-      filename = copywchars(buffer);                                 // on the heap
+      filename = wcsdup(buffer);                                     // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -695,6 +696,10 @@ BOOL WINAPI TerminalIsPortableMode() {
  *
  */
 char* WINAPI Test(HWND hWnd) {
+
+   wchar* test = L"test";
+   wcsdup(test);
+
    return(NULL);
    //#pragma EXPANDER_EXPORT
 }
