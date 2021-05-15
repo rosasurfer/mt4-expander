@@ -5,7 +5,7 @@
 
 
 /**
- * IEE754 can represent integers exactly as floats up to about 2^24 (16,777,216).
+ * IEE754 can represent integers exactly as floats up to about 2^24 (16'777'216).
  * IEE754 can represent all integers exactly as doubles.
  *
  *

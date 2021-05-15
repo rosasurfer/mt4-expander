@@ -12,17 +12,21 @@
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, int from, int count/*=WHOLE_ARRAY*/) {
+BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, int from, int count/*=INT_MAX*/) {
    if ((uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
    if (from < 0 || from >= size)         return(error(ERR_INVALID_PARAMETER, "invalid parameter from: %d", from));
    if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be non-negative)", count));
-   if (from+count > size)                return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds array boundaries)", count));
 
-   if (count == WHOLE_ARRAY)
+   if (count == INT_MAX) {
       count = size - from;
+   }
+   else {
+      if (from+count > size)             return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds array boundaries)", count));
+      if (from+count < 0)                return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (integer overflow)", count));
+   }
 
-   std::fill_n(&values[from], count, initValue);         // uses a for loop as memset() cannot write doubles
+   std::fill_n(&values[from], count, initValue);      // uses a for loop as memset() cannot write doubles
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
