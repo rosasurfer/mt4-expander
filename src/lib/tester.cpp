@@ -86,7 +86,7 @@ int WINAPI Tester_GetBarModel() {
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
    if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control \"Model\" in tab \"Settings\" of tester window not found")));
 
-   char* text = GetWindowTextA(hWndBarModel);                  // for this control we can't use GetInternalWindowText()
+   char* text = GetWindowTextA(hWndBarModel);      // we can't use GetInternalWindowText() as the control manages it's text in a non-standard way
    int result = EMPTY;
    if      (StrStartsWith(text, "Every tick"))       result = BARMODEL_EVERYTICK;
    else if (StrStartsWith(text, "Control points"))   result = BARMODEL_CONTROLPOINTS;
