@@ -1,7 +1,7 @@
 #include "expander.h"
 #include "lib/conversion.h"
-#include "lib/executioncontext.h"
 #include "lib/datetime.h"
+#include "lib/executioncontext.h"
 #include "lib/helper.h"
 #include "lib/math.h"
 #include "lib/string.h"
@@ -451,8 +451,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetHChartWindow        (ec, hChart ? GetParent(hChart) : NULL);
 
    master->test = ec->test = Expert_InitTest(ec, isTesting);
-   ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
-   ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
+   ec_SetTesting             (ec,      isTesting=Program_IsTesting     (ec, isTesting     ));
+   ec_SetVisualMode          (ec,   isVisualMode=Program_IsVisualMode  (ec, isVisualMode  ));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
 
    ec_SetExtReporting        (ec, extReporting);
@@ -1082,7 +1082,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
  *
- * @return TEST* - test instance or NULL if the program is not an expert in tester
+ * @return TEST* - test instance or NULL if the program is not an expert in tester or in case of errors
  */
 TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
    if (ec->test)
@@ -1092,8 +1092,8 @@ TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
       TEST* test = new TEST();
       test->ec        = ec;
       test->created   = time(NULL);
-      test->barModel  = Tester_GetBarModel();
-      test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+      test->barModel  = Tester_GetBarModel();                                            if (test->barModel == EMPTY) return(NULL);
+      test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel); if (!test->fxtHeader)        return(NULL);
 
       test->openPositions        = new OrderList(); test->openPositions     ->reserve(32);
       test->openLongPositions    = new OrderList(); test->openLongPositions ->reserve(32);
@@ -1285,35 +1285,26 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain)));
 
-      uint bufferSize = MAX_CHARTDESCRIPTION_LENGTH + 1;
-      char* chartDescription = (char*)alloca(bufferSize);            // on the stack
-      uint chars = GetChartDescription(symbol, timeframe, chartDescription, bufferSize);
+      uint size = MAX_CHARTDESCRIPTION_LENGTH + 1;
+      char* chartDescription = (char*)alloca(size);                  // on the stack
+      uint chars = GetChartDescription(symbol, timeframe, chartDescription, size);
       if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "GetChartDescription()")));
 
-      bufferSize = 128;
-      char* title = (char*)alloca(bufferSize);
+      char* title = NULL;
       int id = INT_MAX;
-      SetLastError(NO_ERROR);
 
       while (hWndChild) {                                            // iterate over all child windows
-         uint titleLen = GetWindowText(hWndChild, title, bufferSize);
-         if (!titleLen) if (int error=GetLastError()) return(_INVALID_HWND(error(ERR_WIN32_ERROR+error, "GetWindowText()")));
-
-         if (titleLen) {
-            if (titleLen >= bufferSize-1) {
-               bufferSize <<= 1;
-               title = (char*)alloca(bufferSize);
-               continue;
-            }
-            if (StrEndsWith(title, " (offline)"))
-               title[titleLen-10] = 0;
-            if (StrCompare(title, chartDescription)) {               // find all matching windows
-               id = std::min(id, GetDlgCtrlID(hWndChild));           // track the smallest in absolute order
-               if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
-            }
+         title = GetWindowTextA(hWndChild);                          // Here we can't use GetInternalWindowText() as the window
+                                                                     // creation needs to finish before we get a valid response.
+         if (StrEndsWith(title, " (offline)"))
+            title[strlen(title)-10] = '\0';
+         if (StrCompare(title, chartDescription)) {                  // find all matching windows
+            id = std::min(id, GetDlgCtrlID(hWndChild));              // track the smallest in absolute order
+            if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
          }
          hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);              // next child in Z order
       }
+      delete[] title;
       if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no matching MDIClient child window found for \"%s\"", chartDescription)));
 
       hChartWindow = GetDlgItem(hWndMdi, id);                        // keep chart window (holding the chart AfxFrameOrView)
@@ -1807,12 +1798,10 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
          HWND hWnd = ec->hChartWindow;
          if (!hWnd) return(TRUE);                                    // (2.3) no chart => in Tester with VisualMode=Off
 
-         int titleLen = GetWindowTextLength(hWnd);
-         if (!titleLen) return(FALSE);                               // (2.1) title is empty => not in Tester
-
-         char* title = (char*)alloca(titleLen+1);                    // on the stack
-         GetWindowText(hWnd, title, titleLen+1);
-         return(StrEndsWith(title, "(visual)"));                     // all remaining cases according to "(visual)" in title
+         wchar* title = GetInternalWindowTextW(hWnd);
+         BOOL result = StrEndsWith(title, L"(visual)");
+         delete[] title;
+         return(result);                                             // all remaining cases according to "(visual)" in title
       }
 
       case PT_EXPERT:
@@ -1821,13 +1810,10 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
       case PT_SCRIPT: {
          HWND hWnd = ec->hChartWindow;
          if (hWnd) {
-            int bufferSize = 128;
-            char* title = (char*)alloca(bufferSize);                 // on the stack
-            while (GetWindowText(hWnd, title, bufferSize) >= bufferSize-1) {
-               bufferSize <<= 1;
-               title = (char*)alloca(bufferSize);
-            }
-            return(StrEndsWith(title, "(visual)"));
+            wchar* title = GetInternalWindowTextW(hWnd);
+            BOOL result = StrEndsWith(title, L"(visual)");
+            delete[] title;
+            return(result);
          }
          return(error(ERR_ILLEGAL_STATE, "script without a chart:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
       }
@@ -1838,7 +1824,7 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
 
 
 /**
- * Whether the program is executed in the Strategy Tester or on a test chart with VisualMode=On.
+ * Whether the current program is executed in the Strategy Tester or on a test chart with VisualMode=On.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isVisualMode - MQL::IsVisualMode() status as passed by the terminal (possibly wrong)

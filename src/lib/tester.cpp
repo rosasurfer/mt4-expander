@@ -1,7 +1,8 @@
 #include "expander.h"
 #include "lib/conversion.h"
-#include "lib/file.h"
 #include "lib/datetime.h"
+#include "lib/file.h"
+#include "lib/helper.h"
 #include "lib/math.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
@@ -21,9 +22,8 @@ HWND WINAPI FindTesterWindow() {
    static HWND hWndTester;
 
    if (!hWndTester) {
-      // The window may be (1) docked at the terminal main window or it may (2) float in an independent top-level window.
+      // The window may be docked at the terminal main window or it may float in an independent top-level window.
       // In both cases the handle is the same.
-      // (last version using a dynamic classname for resolution: https://github.com/rosasurfer/mt4-mql CVS commit v1.498)
 
       // (1) check for a tester window docked at the terminal main window
       HWND hWndMain = GetTerminalMainWindow();
@@ -34,23 +34,23 @@ HWND WINAPI FindTesterWindow() {
 
       hWndTester = GetDlgItem(hWnd, IDC_TESTER);
       if (hWndTester) return(hWndTester);
-      SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
 
 
       // (2) check for a floating tester window owned by the current process
+      SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
       DWORD processId, self = GetCurrentProcessId();
-      uint bufSize = 12;                                                // big enough to hold the string "Tester"
-      char* wndTitle = (char*) alloca(bufSize);                         // on the stack: buffer for window title
+      wchar* wndTitle = NULL;
       HWND hWndNext = GetTopWindow(NULL);
       if (!hWndNext) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetTopWindow(NULL)"));
+      int error = NULL;
 
       while (hWndNext) {                                                // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {                                       // the window belongs to us
-            if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError())
-               return((HWND)error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+            wndTitle = GetInternalWindowTextW(hWndNext);
+            if (!wndTitle && (error=GetLastError())) return((HWND)error(ERR_WIN32_ERROR+error, "GetInternalWindowTextW()"));
 
-            if (StrStartsWith(wndTitle, "Tester")) {
+            if (StrStartsWith(wndTitle, L"Tester")) {
                hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);     // container for floating tester window
                if (!hWnd) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  container for floating tester window not found"));
 
@@ -61,6 +61,7 @@ HWND WINAPI FindTesterWindow() {
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
+      delete[] wndTitle;
 
       if (!hWndTester) debug("Tester window not found");                // the window doesn't yet exist
    }
@@ -85,18 +86,15 @@ int WINAPI Tester_GetBarModel() {
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
    if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control \"Model\" in tab \"Settings\" of tester window not found")));
 
-   uint bufSize = 20;                                                // big enough to hold the string "Open prices only"
-   char* text = (char*) alloca(bufSize);                             // on the stack
+   char* text = GetWindowTextA(hWndBarModel);      // we can't use GetInternalWindowText() as the control manages it's text in a non-standard way
+   int result = EMPTY;
+   if      (StrStartsWith(text, "Every tick"))       result = BARMODEL_EVERYTICK;
+   else if (StrStartsWith(text, "Control points"))   result = BARMODEL_CONTROLPOINTS;
+   else if (StrStartsWith(text, "Open prices only")) result = BARMODEL_BAROPEN;
+   else error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\" (hWnd=%p)", text, hWndBarModel);
 
-   if (!GetWindowText(hWndBarModel, text, bufSize)) if (int error=GetLastError())
-      return(_EMPTY(error(ERR_WIN32_ERROR+error, "GetWindowText()")));
-
-   if (StrStartsWith(text, "Every tick"))       return(BARMODEL_EVERYTICK);
-   if (StrStartsWith(text, "Control points"))   return(BARMODEL_CONTROLPOINTS);
-   if (StrStartsWith(text, "Open prices only")) return(BARMODEL_BAROPEN);
-
-   error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\"", text);
-   return(EMPTY);
+   delete[] text;
+   return(result);
    #pragma EXPANDER_EXPORT
 }
 
@@ -118,20 +116,21 @@ datetime WINAPI Tester_GetStartDate() {
    if (!hWndUseDate) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
 
    uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
-   char* wndTitle  = (char*)alloca(bufSize);
-   char* className = (char*)alloca(bufSize);                // both on the stack
+   char* className = (char*) alloca(bufSize);               // on the stack
 
-   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)            return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
+   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)     return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
 
-   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
-   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-   if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static"))        return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   char* wndTitle = GetInternalWindowTextA(hWndNext);
+   if (!GetClassNameA(hWndNext, className, bufSize))                       return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
+   if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static")) return(error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   free(wndTitle);
 
-   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)                    return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"From:\" label in \"Settings\" tab of tester window not found"));
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)             return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"From:\" label in \"Settings\" tab of tester window not found"));
 
-   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
-   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-   if (!StrCompare(className, "SysDateTimePick32"))                               return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"From:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   if (!GetClassNameA(hWndNext, className, bufSize))                       return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                        return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"From:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   wndTitle = GetInternalWindowTextA(hWndNext);
+   if (!wndTitle || strlen(wndTitle) < 10)                                 return(error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Startdate\" control: \"%s\"", wndTitle));
 
    char* date = wndTitle;
    date[4] = date[7] = '\0';                                // format: 2018.01.01
@@ -140,6 +139,7 @@ datetime WINAPI Tester_GetStartDate() {
    tmdate.tm_mon   = atoi(&date[5]) - 1;
    tmdate.tm_mday  = atoi(&date[8]);
    tmdate.tm_isdst = -1;
+   free(wndTitle);
 
    //debug("startdate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
    return(_mkgmtime(&tmdate));
@@ -164,20 +164,21 @@ datetime WINAPI Tester_GetEndDate() {
    if (!hWndOptimize) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
 
    uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
-   char* wndTitle  = (char*)alloca(bufSize);
-   char* className = (char*)alloca(bufSize);                // both on the stack
+   char* className = (char*)alloca(bufSize);                // on the stack
 
-   HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)           return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
+   HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)  return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
 
-   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
-   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-   if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static"))          return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   char* wndTitle = GetInternalWindowTextA(hWndNext);
+   if (!GetClassName(hWndNext, className, bufSize))                      return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static")) return(error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   free(wndTitle);
 
-   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)                    return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"To:\" label in \"Settings\" tab of tester window not found"));
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)           return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"To:\" label in \"Settings\" tab of tester window not found"));
 
-   if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
-   if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-   if (!StrCompare(className, "SysDateTimePick32"))                               return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"To:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   if (!GetClassName(hWndNext, className, bufSize))                      return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                      return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"To:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   wndTitle = GetInternalWindowTextA(hWndNext);
+   if (!wndTitle || strlen(wndTitle) < 10)                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Enddate\" control: \"%s\"", wndTitle));
 
    char* date = wndTitle;
    date[4] = date[7] = '\0';                                // format: 2018.01.01
@@ -186,6 +187,7 @@ datetime WINAPI Tester_GetEndDate() {
    tmdate.tm_mon   = atoi(&date[5]) - 1;
    tmdate.tm_mday  = atoi(&date[8]);
    tmdate.tm_isdst = -1;
+   free(wndTitle);
 
    //debug("enddate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
    return(_mkgmtime(&tmdate));

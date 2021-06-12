@@ -354,14 +354,15 @@ const wchar* WINAPI GetTerminalFileNameW() {
 
    if (!filename) {
       wchar* buffer;
-      uint size = MAX_PATH >> 1, length=size;
+      uint size=MAX_PATH >> 1, length=size;
+
       while (length >= size) {
          size <<= 1;
          buffer = (wchar*) alloca(size * sizeof(wchar));             // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
       if (!length) return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
-      filename = copywchars(buffer);                                 // on the heap
+      filename = wcsdup(buffer);                                     // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -413,7 +414,7 @@ const wstring& WINAPI GetTerminalPathW() {
  * @return char* - directory name or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
  *
- * @see  GetTerminalDataPath() to get the path of the data directory currently used
+ * @see  GetTerminalDataPath() to get the path of the currently used data directory
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
    static char* result;
@@ -610,24 +611,27 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound/*=TRUE*/) {
    HWND hWndAlert=NULL, hWndNext=GetTopWindow(NULL);
    DWORD processId, self = GetCurrentProcessId();
 
-   uint bufSize = 8;                                        // big enough to hold class name "#32770" or title "Alert"
-   char* className = (char*)alloca(bufSize);                // both on the stack
-   char* wndTitle  = (char*)alloca(bufSize);
+   uint bufSize = 8;                                        // big enough to hold class name "#32770"
+   char* className = (char*)alloca(bufSize);                // on the stack
+   wchar* wndTitle = NULL;
+   int error = NULL;
 
    // enumerate top-level windows
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
       if (processId == self) {                              // the window belongs to us
-         if (!GetClassName(hWndNext, className, bufSize))                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-         if (!GetWindowText(hWndNext, wndTitle, bufSize)) if (int error=GetLastError()) return(error(ERR_WIN32_ERROR+error, "GetWindowText()"));
+         wndTitle = GetInternalWindowTextW(hWndNext);
+         if (!wndTitle && (error=GetLastError()))          return(error(ERR_WIN32_ERROR+error, "GetInternalWindowTextW()"));
+         if (!GetClassNameA(hWndNext, className, bufSize)) return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
 
-         if (StrCompare(className, "#32770") && StrCompare(wndTitle, "Alert")) {
+         if (StrCompare(wndTitle, L"Alert") && StrCompare(className, "#32770")) {
             hWndAlert = hWndNext;
             break;
          }
       }
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    }
+   delete[] wndTitle;
    if (!hWndAlert) return(debug("\"Alert\" dialog window not found"));
 
    // show the found window
@@ -689,10 +693,13 @@ BOOL WINAPI TerminalIsPortableMode() {
 
 
 /**
- * @return int
+ *
  */
-int WINAPI Test() {
-   debug("hello world: %s", "Radegast");
-   return(0);
+char* WINAPI Test(HWND hWnd) {
+
+   wchar* test = L"test";
+   wcsdup(test);
+
+   return(NULL);
    //#pragma EXPANDER_EXPORT
 }

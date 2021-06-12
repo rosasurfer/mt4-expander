@@ -50,6 +50,10 @@ using std::wstring;
 #define MAX_FNAME                      _MAX_FNAME           // max. length of file name component
 #define MAX_EXT                        _MAX_EXT             // max. length of extension component
 
+#define strdup  _strdup                                     // duplicate a C string
+#define mbsdup  _mbsdup                                     // duplicate a UTF-8 string
+#define wcsdup  _wcsdup                                     // duplicate a wide Unicode (UTF-16) string
+
 
 // MQL program types (flags)
 enum ProgramType {

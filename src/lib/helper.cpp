@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include <map>
@@ -18,13 +19,117 @@ StringMap  stringProperties;                       // a map with strings stored 
 
 
 /**
- * Gibt den letzten aufgetretenen Windows-Fehler des aktuellen Threads zurück. Wrapper für kernel32::GetLastError(),
- * da MQL eine Funktion desselben Namens definiert.
+ * Return the last Windows error of the current thread and make it accessible to MQL.
  *
- * @return int - Fehlercode
+ * @return int - error code
  */
 int WINAPI GetLastWin32Error() {
    return(GetLastError());
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
+ *
+ * @param  HWND  hWnd - window handle
+ *
+ * @return char* - text or a NULL pointer if the window doesn't have a text or in case of errors
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "free()".
+ */
+char* WINAPI GetInternalWindowTextA(HWND hWnd) {
+   wchar* unicodeText = GetInternalWindowTextW(hWnd);
+   if (!unicodeText) return(NULL);
+
+   char* ansiText = strdup(unicodeToAnsi(wstring(unicodeText)).c_str());   // on the heap
+   delete[] unicodeText;
+
+   return(ansiText);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
+ *
+ * @param  HWND  hWnd - window handle
+ *
+ * @return wchar* - text or a NULL pointer if the window doesn't have a text or in case of errors
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "delete[]".
+ */
+wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
+   if (!IsWindow(hWnd)) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+
+   wchar* buffer = NULL;
+   uint size=32, length=size;
+
+   while (length >= size-1) {                               // if (length == size-1) the string *may* have been truncated
+      delete[] buffer;
+      size <<= 1;                                           // double the size
+      buffer = new wchar[size];                             // on the heap
+      length = InternalGetWindowText(hWnd, buffer, size);
+   }
+   if (!length) return(NULL);
+
+   return(buffer);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function gets the text as a response to a WM_GETTEXT message.
+ *
+ * @param  HWND  hWnd - window handle
+ *
+ * @return char* - text or a NULL pointer if the window doesn't have a text or in case of errors
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "delete[]".
+ */
+char* WINAPI GetWindowTextA(HWND hWnd) {
+   if (!IsWindow(hWnd)) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+
+   char* buffer = NULL;
+   uint size=32, length=size;
+
+   while (length >= size-1) {                               // if (length == size-1) the string *may* have been truncated
+      delete[] buffer;
+      size <<= 1;                                           // double the size
+      buffer = new char[size];                              // on the heap
+      length = GetWindowTextA(hWnd, buffer, size);
+   }
+   return(buffer);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function gets the text as a response to a WM_GETTEXT message.
+ *
+ * @param  HWND  hWnd - window handle
+ *
+ * @return wchar* - text or a NULL pointer if the window doesn't have a text or in case of errors
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "delete[]".
+ */
+wchar* WINAPI GetWindowTextW(HWND hWnd) {
+   if (!IsWindow(hWnd)) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+
+   wchar* buffer = NULL;
+   uint size=32, length=size;
+
+   while (length >= size-1) {                               // if (length == size-1) the string *may* have been truncated
+      delete[] buffer;
+      size <<= 1;                                           // double the size
+      buffer = new wchar[size];                             // on the heap
+      length = GetWindowTextW(hWnd, buffer, size);
+   }
+   return(buffer);
    #pragma EXPANDER_EXPORT
 }
 
