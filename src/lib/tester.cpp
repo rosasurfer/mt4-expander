@@ -86,13 +86,12 @@ int WINAPI Tester_GetBarModel() {
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
    if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control \"Model\" in tab \"Settings\" of tester window not found")));
 
-   wchar* text = GetInternalWindowTextW(hWndBarModel);
-
+   char* text = GetWindowTextA(hWndBarModel);                  // for this control we can't use GetInternalWindowText()
    int result = EMPTY;
-   if      (StrStartsWith(text, L"Every tick"))       result = BARMODEL_EVERYTICK;
-   else if (StrStartsWith(text, L"Control points"))   result = BARMODEL_CONTROLPOINTS;
-   else if (StrStartsWith(text, L"Open prices only")) result = BARMODEL_BAROPEN;
-   else                                               error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\"", text);
+   if      (StrStartsWith(text, "Every tick"))       result = BARMODEL_EVERYTICK;
+   else if (StrStartsWith(text, "Control points"))   result = BARMODEL_CONTROLPOINTS;
+   else if (StrStartsWith(text, "Open prices only")) result = BARMODEL_BAROPEN;
+   else error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\" (hWnd=%p)", text, hWndBarModel);
 
    delete[] text;
    return(result);

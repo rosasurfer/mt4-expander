@@ -738,7 +738,7 @@ namespace rsf {
  *
  * @return char*
  *
- * Note: The caller is responsible for releasing the string's memory after usage with "free".
+ * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 char* strformat(const char* format, ...) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
@@ -762,7 +762,7 @@ char* strformat(const char* format, ...) {
  *
  * @return char*
  *
- * Note: The caller is responsible for releasing the string's memory after usage with "free".
+ * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 char* strformat(const char* format, const va_list &args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));

@@ -37,7 +37,7 @@ int WINAPI GetLastWin32Error() {
  *
  * @return char* - text or a NULL pointer if the window doesn't have a text or in case of errors
  *
- * Note: The caller is responsible for releasing the string's memory after usage with "free".
+ * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 char* WINAPI GetInternalWindowTextA(HWND hWnd) {
    wchar* unicodeText = GetInternalWindowTextW(hWnd);

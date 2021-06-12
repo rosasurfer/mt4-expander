@@ -1082,7 +1082,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
  *
- * @return TEST* - test instance or NULL if the program is not an expert in tester
+ * @return TEST* - test instance or NULL if the program is not an expert in tester or in case of errors
  */
 TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
    if (ec->test)
@@ -1092,8 +1092,8 @@ TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
       TEST* test = new TEST();
       test->ec        = ec;
       test->created   = time(NULL);
-      test->barModel  = Tester_GetBarModel();
-      test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
+      test->barModel  = Tester_GetBarModel();                                            if (test->barModel == EMPTY) return(NULL);
+      test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel); if (!test->fxtHeader)        return(NULL);
 
       test->openPositions        = new OrderList(); test->openPositions     ->reserve(32);
       test->openLongPositions    = new OrderList(); test->openLongPositions ->reserve(32);
