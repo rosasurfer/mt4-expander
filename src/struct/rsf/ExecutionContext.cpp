@@ -969,7 +969,7 @@ int WINAPI ec_LoglevelSMS(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's separate log filename.
+ * Return an MQL program's custom log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -2142,10 +2142,10 @@ int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's separate log filename.
+ * Set an MQL program's custom log filename.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  char*              filename - an empty string or a NULL pointer reset the filename
+ * @param  char*              filename - filename (an empty string or a NULL pointer reset the field)
  *
  * @return char* - the same filename
  */
