@@ -77,6 +77,11 @@ HWND WINAPI FindTesterWindow() {
  * @return int - bar model id or EMPTY (-1) in case of errors
  */
 int WINAPI Tester_GetBarModel() {
+   // TODO: because of i18n we can't rely on the control's text
+   //
+   // @see  https://stackoverflow.com/questions/52734970/get-selected-item-in-dropdown-win32
+   // @see  https://docs.microsoft.com/en-us/windows/win32/controls/combo-boxes
+   //
    HWND hWndTester = FindTesterWindow();
    if (!hWndTester) return(EMPTY);
 
@@ -86,7 +91,7 @@ int WINAPI Tester_GetBarModel() {
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
    if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control \"Model\" in tab \"Settings\" of tester window not found")));
 
-   char* text = GetWindowTextA(hWndBarModel);      // we can't use GetInternalWindowText() as the control manages it's text in a non-standard way
+   char* text = GetWindowTextA(hWndBarModel);      // don't use GetInternalWindowText(), because of i18n the control manages it's text by itself
    int result = EMPTY;
    if      (StrStartsWith(text, "Every tick"))       result = BARMODEL_EVERYTICK;
    else if (StrStartsWith(text, "Control points"))   result = BARMODEL_CONTROLPOINTS;

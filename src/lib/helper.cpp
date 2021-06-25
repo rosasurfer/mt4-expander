@@ -279,7 +279,7 @@ BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
  * @param  HWND  hWnd - window handle
  * @param  char* name - integer name
  *
- * @return int - stored value or NULL if the name was not found or an error occurred
+ * @return int - stored value or NULL if the name was not found or in case of errors
  */
 int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -302,7 +302,7 @@ int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
  *
- * @return double - stored value or NULL if the name was not found or an error occurred
+ * @return double - stored value or NULL if the name was not found or in case of errors
  */
 double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -325,7 +325,7 @@ double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
  * @param  HWND  hWnd - window handle
  * @param  char* name - string identifier
  *
- * @return char* - stored string or a NULL pointer if the name was not found or an error occurred
+ * @return char* - stored string or a NULL pointer if the name was not found or in case of errors
  */
 const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -348,7 +348,7 @@ const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
  * @param  HWND  hWnd - window handle
  * @param  char* name - integer name
  *
- * @return int - removed value or NULL if the name was not found or an error occurred
+ * @return int - removed value or NULL if the name was not found or in case of errors
  */
 int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -374,7 +374,7 @@ int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
  *
- * @return double - removed value or NULL if the name was not found or an error occurred
+ * @return double - removed value or NULL if the name was not found or in case of errors
  */
 double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -400,7 +400,7 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
  *
- * @return char* - removed string or a NULL pointer if the name was not found or an error occurred
+ * @return char* - removed string or a NULL pointer if the name was not found or in case of errors
  */
 const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
