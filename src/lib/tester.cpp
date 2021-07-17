@@ -10,11 +10,12 @@
 
 #include <fstream>
 #include <time.h>
+#include <windowsx.h>
 
 
 /**
  * Find the window handle of the Stratetgy Tester's main window. The function returns NULL if the window doesn't yet exist
- * (i.e. before a floating tester window was openend by the user the first time).
+ * (i.e. before the window was openend the first time).
  *
  * @return HWND - handle or NULL (0) in case of errors
  */
@@ -22,48 +23,40 @@ HWND WINAPI FindTesterWindow() {
    static HWND hWndTester;
 
    if (!hWndTester) {
-      // The window may be docked at the terminal main window or it may float in an independent top-level window.
+      // The window may be docked at the terminal main window or may float in an independent top-level window.
       // In both cases the handle is the same.
 
-      // (1) check for a tester window docked at the terminal main window
+      // check for a tester window docked at the terminal main window
       HWND hWndMain = GetTerminalMainWindow();
       if (!hWndMain) return(NULL);
 
       HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKABLES_CONTAINER);        // top-level container for docked terminal windows
-      if (!hWnd) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  cannot find top-level window for docked terminal windows"));
+      if (!hWnd) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  cannot find top-level container for docked terminal windows"));
 
       hWndTester = GetDlgItem(hWnd, IDC_TESTER);
       if (hWndTester) return(hWndTester);
 
-
-      // (2) check for a floating tester window owned by the current process
+      // check for a floating tester window
       SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
       DWORD processId, self = GetCurrentProcessId();
-      wchar* wndTitle = NULL;
       HWND hWndNext = GetTopWindow(NULL);
       if (!hWndNext) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetTopWindow(NULL)"));
       int error = NULL;
 
-      while (hWndNext) {                                                // iterate over all top-level windows
+      while (hWndNext) {                                                // iterate over all top-level windows owned by the current process
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {                                       // the window belongs to us
-            wndTitle = GetInternalWindowTextW(hWndNext);
-            if (!wndTitle && (error=GetLastError())) return((HWND)error(ERR_WIN32_ERROR+error, "GetInternalWindowTextW()"));
-
-            if (StrStartsWith(wndTitle, L"Tester")) {
-               hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);     // container for floating tester window
-               if (!hWnd) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  container for floating tester window not found"));
-
+            hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);        // we can't rely on the window title as it's subject to i18n
+            if (hWnd) {
                hWndTester = GetDlgItem(hWnd, IDC_TESTER);
-               if (!hWndTester) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  no tester window found in container for floating tester window"));
-               break;
+               if (hWndTester) break;
+               error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  no tester window found in container for floating tester window");
             }
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
-      delete[] wndTitle;
 
-      if (!hWndTester) debug("Tester window not found");                // the window doesn't yet exist
+      if (!hWndTester) debug("floating tester window not found");       // the window doesn't yet exist
    }
    return(hWndTester);
    #pragma EXPANDER_EXPORT
@@ -81,20 +74,16 @@ int WINAPI Tester_GetBarModel() {
    if (!hWndTester) return(EMPTY);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  tab \"Settings\" in tester window not found")));
+   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found")));
 
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
-   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control \"Model\" in tab \"Settings\" of tester window not found")));
+   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control element \"Model\" not found")));
 
-   char* text = GetWindowTextA(hWndBarModel);      // we can't use GetInternalWindowText() as the control manages it's text in a non-standard way
-   int result = EMPTY;
-   if      (StrStartsWith(text, "Every tick"))       result = BARMODEL_EVERYTICK;
-   else if (StrStartsWith(text, "Control points"))   result = BARMODEL_CONTROLPOINTS;
-   else if (StrStartsWith(text, "Open prices only")) result = BARMODEL_BAROPEN;
-   else error(ERR_RUNTIME_ERROR, "unexpected window text of control Tester -> Settings -> Model: \"%s\" (hWnd=%p)", text, hWndBarModel);
-
-   delete[] text;
-   return(result);
+   int index = ComboBox_GetCurSel(hWndBarModel);
+   if (index == CB_ERR) {                          // CB_ERR = EMPTY = -1
+      error(ERR_RUNTIME_ERROR, "failed to retrieve current selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
+   }
+   return(index);
    #pragma EXPANDER_EXPORT
 }
 
@@ -106,21 +95,23 @@ int WINAPI Tester_GetBarModel() {
  * @return datetime - start date as a Unix timestamp or NULL (0) in case of errors
  */
 datetime WINAPI Tester_GetStartDate() {
+   // TODO: because of i18n we can't rely on the control's text
+
    HWND hWndTester = FindTesterWindow();
    if (!hWndTester) return(NULL);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found in tester window"));
+   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found"));
 
    HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
-   if (!hWndUseDate) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
+   if (!hWndUseDate) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  checkbox \"Use date\" in \"Settings\" tab not found"));
 
    uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
    char* className = (char*) alloca(bufSize);               // on the stack
 
-   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)     return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab of tester window not found"));
+   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)     return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab not found"));
 
-   char* wndTitle = GetInternalWindowTextA(hWndNext);
+   char* wndTitle = GetInternalWindowTextA(hWndNext);       // FIX-ME
    if (!GetClassNameA(hWndNext, className, bufSize))                       return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
    if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static")) return(error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    free(wndTitle);
@@ -154,6 +145,8 @@ datetime WINAPI Tester_GetStartDate() {
  * @return datetime - end date as a Unix timestamp or NULL (0) in case of errors
  */
 datetime WINAPI Tester_GetEndDate() {
+   // TODO: because of i18n we can't rely on the control's text
+
    HWND hWndTester = FindTesterWindow();
    if (!hWndTester) return(NULL);
 
@@ -168,7 +161,7 @@ datetime WINAPI Tester_GetEndDate() {
 
    HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)  return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
 
-   char* wndTitle = GetInternalWindowTextA(hWndNext);
+   char* wndTitle = GetInternalWindowTextA(hWndNext);       // FIX-ME
    if (!GetClassName(hWndNext, className, bufSize))                      return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
    if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static")) return(error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    free(wndTitle);

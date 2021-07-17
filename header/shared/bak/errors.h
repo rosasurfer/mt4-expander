@@ -32,7 +32,7 @@
 #define ERR_NOT_ENOUGH_MONEY                                        134
 #define ERR_PRICE_CHANGED                                           135    // price has changed and a retry can be made immediately
 #define ERR_OFF_QUOTES                                              136    // broker cannot provide prices (backend or liquidity issue)
-#define ERR_BROKER_BUSY                                             137    // automated trading is disabled (manual trading is not affected)
+#define ERR_BROKER_BUSY                                             137    // broker's request queue is allegedly full and automated trading is disabled (manual trading is not affected)
 #define ERR_REQUOTE                                                 138    // price has become stale and expired
 #define ERR_ORDER_LOCKED                                            139    // order has been locked and is under processing
 #define ERR_LONG_POSITIONS_ONLY_ALLOWED                             140
@@ -208,7 +208,7 @@
 #define ERS_TERMINAL_NOT_YET_READY                                65555    // terminal not yet ready (non-terminating status; in scripts a terminating error)
 #define ERR_TOTAL_POSITION_NOT_FLAT                               65556    // total position encountered when flat position was expected
 #define ERR_UNDEFINED_STATE                                       65557    // undefined state or behavior
-#define ERR_STOP_DISTANCE_VIOLATED                                65558    // stop or limit price violate the broker's stop distance
+#define ERR_STOP_DISTANCE_VIOLATED                                65558    // stop or limit price violates the broker's stop distance
 #define ERR_MARGIN_STOPOUT                                        65559    // margin stopout
 
 // user defined errors >=100000 are mapped Win32 errors: win32-error + 100000 = mql-error

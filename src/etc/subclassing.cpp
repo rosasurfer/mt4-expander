@@ -17,9 +17,9 @@ LRESULT WINAPI CustomWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 
 
 /**
- *
+ * There is already a macro SubclassWindow in windowsx.h
  */
-BOOL WINAPI SubclassWindow(HWND hWnd) {
+BOOL WINAPI _SubclassWindow(HWND hWnd) {
    if (!IsWindow(hWnd))                    return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %d (not a window)", hWnd));
    DWORD processId; GetWindowThreadProcessId(hWnd, &processId);
    if (processId != GetCurrentProcessId()) return(error(ERR_INVALID_PARAMETER, "window hWnd=%d not owned by the current process", hWnd));
