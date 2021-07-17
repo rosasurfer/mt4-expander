@@ -616,6 +616,8 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound/*=TRUE*/) {
    wchar* wndTitle = NULL;
    int error = NULL;
 
+   // TODO: because of i18n we can't rely on the control's text
+
    // enumerate top-level windows
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
