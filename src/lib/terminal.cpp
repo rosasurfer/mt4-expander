@@ -236,7 +236,8 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
  * introduced in MQL5). The function does not check whether the returned directory exists.
  *
- * @return char* - directory name or a NULL pointer in case of errors, e.g. "%ProgramFiles%\MetaTrader4"
+ * @return char* - directory name or a NULL pointer in case of errors,
+ *                 e.g. "%ProgramFiles%\MetaTrader4"
  */
 const char* WINAPI GetTerminalDataPathA() {
    // VirtualStore: File and Registry Virtualization (since Vista)
@@ -289,13 +290,51 @@ const char* WINAPI GetTerminalDataPathA() {
       }
       else {
          // check for locked terminal logs
-         const char* logFilename = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
+         char* logFilename = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
          BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(logFilename));
          BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(logFilename));
+         free(logFilename);
 
          if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap
          else if (terminalPathIsLocked) dataPath = strdup(terminalPath);
          else return((char*)error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
+      }
+   }
+   return(dataPath);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
+ * introduced in MQL5). The function does not check whether the returned directory exists.
+ *
+ * @return wchar* - directory name or a NULL pointer in case of errors,
+ *                  e.g. "%ProgramFiles%\MetaTrader4"
+ */
+const wchar* WINAPI GetTerminalDataPathW() {
+   // @see  process flow at GetTerminalDataPathA()
+   static wchar* dataPath;
+
+   if (!dataPath) {
+      const wchar* terminalPath    = GetTerminalPathW();
+      const wchar* roamingDataPath = GetTerminalRoamingDataPathW();
+
+      // check portable mode
+      if (GetTerminalBuild() <= 509 || TerminalIsPortableMode()) {
+         // data path is always the installation directory, independant of write permissions
+         dataPath = wcsdup(terminalPath);                                                 // on the heap
+      }
+      else {
+         // check for locked terminal logs
+         char* logFilename = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
+         BOOL terminalPathIsLocked = IsLockedFile(unicodeToAnsi(wstring(terminalPath)).append(logFilename));
+         BOOL roamingPathIsLocked  = IsLockedFile(unicodeToAnsi(wstring(roamingDataPath)).append(logFilename));
+         free(logFilename);
+
+         if      (roamingPathIsLocked)  dataPath = wcsdup(roamingDataPath);               // on the heap
+         else if (terminalPathIsLocked) dataPath = wcsdup(terminalPath);
+         else return((wchar*)error(ERR_RUNTIME_ERROR, "no open terminal logfile found")); // both directories are write-protected
       }
    }
    return(dataPath);

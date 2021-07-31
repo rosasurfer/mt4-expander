@@ -11,6 +11,7 @@ const char*             WINAPI GetMqlDirectoryA();
 uint                    WINAPI GetTerminalBuild();
 const char*             WINAPI GetTerminalCommonDataPathA();
 const char*             WINAPI GetTerminalDataPathA();
+const wchar*            WINAPI GetTerminalDataPathW();
 const char*             WINAPI GetTerminalFileNameA();
 const wchar*            WINAPI GetTerminalFileNameW();
 HWND                    WINAPI GetTerminalMainWindow();
