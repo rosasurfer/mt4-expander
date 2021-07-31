@@ -177,13 +177,36 @@ const char* WINAPI GetMqlDirectoryA() {
 
    if (!mqlDirectory) {
       const char* dataPath = GetTerminalDataPathA();
-      if (!dataPath) return(NULL);
 
-      string dir(dataPath);
-      if (GetTerminalBuild() <= 509) dir.append("\\experts");
-      else                           dir.append("\\mql4");
+      if (dataPath) {
+         string dir(dataPath);
+         if (GetTerminalBuild() <= 509) dir.append("\\experts");
+         else                           dir.append("\\mql4");
+         mqlDirectory = strdup(dir.c_str());
+      }
+   }
+   return(mqlDirectory);
+   #pragma EXPANDER_EXPORT
+}
 
-      mqlDirectory = strdup(dir.c_str());
+
+/**
+ * Return the full path of the MQL directory the terminal currently uses.
+ *
+ * @return wchar* - directory name or a NULL pointer in case of errors
+ */
+const wchar* WINAPI GetMqlDirectoryW() {
+   static wchar* mqlDirectory;
+
+   if (!mqlDirectory) {
+      const wchar* dataPath = GetTerminalDataPathW();
+
+      if (dataPath) {
+         wstring dir(dataPath);
+         if (GetTerminalBuild() <= 509) dir.append(L"\\experts");
+         else                           dir.append(L"\\mql4");
+         mqlDirectory = wcsdup(dir.c_str());
+      }
    }
    return(mqlDirectory);
    #pragma EXPANDER_EXPORT

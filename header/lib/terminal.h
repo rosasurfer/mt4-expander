@@ -8,6 +8,7 @@ const wchar*            WINAPI GetExpanderFileNameW();
 HMODULE                 WINAPI GetExpanderModuleW2K();
 HMODULE                 WINAPI GetExpanderModuleXP();
 const char*             WINAPI GetMqlDirectoryA();
+const wchar*            WINAPI GetMqlDirectoryW();
 uint                    WINAPI GetTerminalBuild();
 const char*             WINAPI GetTerminalCommonDataPathA();
 const char*             WINAPI GetTerminalDataPathA();
