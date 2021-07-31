@@ -2,20 +2,26 @@
 #include "expander.h"
 
 
-HWND                    WINAPI FindInputDialog(ProgramType programType, const char* programName);
+HWND                    WINAPI FindInputDialogA(ProgramType programType, const char* programName);
 const char*             WINAPI GetExpanderFileNameA();
+const wchar*            WINAPI GetExpanderFileNameW();
 HMODULE                 WINAPI GetExpanderModuleW2K();
 HMODULE                 WINAPI GetExpanderModuleXP();
 const char*             WINAPI GetMqlDirectoryA();
+const wchar*            WINAPI GetMqlDirectoryW();
 uint                    WINAPI GetTerminalBuild();
 const char*             WINAPI GetTerminalCommonDataPathA();
+const wchar*            WINAPI GetTerminalCommonDataPathW();
 const char*             WINAPI GetTerminalDataPathA();
+const wchar*            WINAPI GetTerminalDataPathW();
 const char*             WINAPI GetTerminalFileNameA();
 const wchar*            WINAPI GetTerminalFileNameW();
 HWND                    WINAPI GetTerminalMainWindow();
 const char*             WINAPI GetTerminalPathA();
-const wstring&          WINAPI GetTerminalPathW();
+const wchar*            WINAPI GetTerminalPathW();
+const wstring&          WINAPI GetTerminalPathWs();
 const char*             WINAPI GetTerminalRoamingDataPathA();
+const wchar*            WINAPI GetTerminalRoamingDataPathW();
 const char*             WINAPI GetTerminalVersion();
 const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile();
 const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage();

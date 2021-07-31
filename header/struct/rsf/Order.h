@@ -3,7 +3,7 @@
 #include <vector>
 
 
-// forward declaration instead of #include to break circular struct references
+// forward declaration instead of an #include to break circular struct references
 struct TEST;
 
 

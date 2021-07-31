@@ -11,6 +11,7 @@ int          WINAPI GetLastWin32Error();
 DWORD        WINAPI GetUIThreadId();
 BOOL         WINAPI IsCustomTimeframe(int timeframe);
 BOOL         WINAPI IsStdTimeframe(int timeframe);
+BOOL         WINAPI IsProgramType(int type);
 BOOL         WINAPI IsUIThread(DWORD threadId = NULL);
 const char*  WINAPI MD5Hash(const void* input, uint length);
 const char*  WINAPI MD5HashA(const char* input);

@@ -545,64 +545,6 @@ char* WINAPI StrTrimRight(char* const str) {
 
 
 /**
- * Convert an ANSI string to a wide Unicode string (UTF-16). Conversion stops at the end of the ANSI string or when the size
- * limit of the destination buffer is hit, whichever comes first. The resulting string is always null terminated.
- *
- * @param  _In_  char*  source   - ANSI source string
- * @param  _Out_ wchar* dest     - buffer the converted Unicode string is written to
- * @param  _In_  uint   destSize - size of the destination buffer in bytes
- *
- * @return uint - number of converted Unicode characters (equal to the length of the resulting string)
- */
-uint WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize) {
-   if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
-   if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
-   if ((int)destSize < 0)                return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
-
-   uint wchars         = destSize >> 1;
-   uint charsToConvert = wchars - 1;
-   uint convertedChars = 0;
-
-   if (charsToConvert)
-      convertedChars = mbstowcs(dest, source, charsToConvert);
-
-   if (wchars)
-      dest[convertedChars] = 0;
-
-   return(convertedChars);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Convert a wide Unicode string (UTF-16) to an ANSI string. Conversion stops at the end of the Unicode string or when the
- * size limit of the destination buffer is hit, whichever comes first. The resulting string is always null terminated.
- *
- * @param  _In_  wchar* source   - Unicode source string
- * @param  _Out_ char*  dest     - destination buffer the converted ANSI string is written to
- * @param  _In_  uint   destSize - size of the destination buffer in bytes
- *
- * @return uint - the single-byte character length of the resulting string
- */
-uint WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSize) {
-   if ((uint)source < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter source: 0x%p (not a valid pointer)", source));
-   if ((uint)dest   < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter dest: 0x%p (not a valid pointer)", dest));
-   if ((int)destSize < 0)                return(error(ERR_INVALID_PARAMETER, "invalid parameter destSize: %d (must be non-negative)", destSize));
-
-   uint destLength = 0;
-
-   if (destSize) {
-      if (destSize > 1)
-         wcstombs(dest, source, destSize);
-      dest[destSize-1] = 0;
-      destLength = strlen(dest);
-   }
-   return(destLength);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Convert an ANSI string to a wide Unicode string (UTF-16).
  *
  * @param  string &str - ANSI string
