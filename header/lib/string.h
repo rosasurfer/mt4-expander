@@ -47,9 +47,6 @@ char*        WINAPI StrTrim(char* const str);
 char*        WINAPI StrTrimLeft(char* const str);
 char*        WINAPI StrTrimRight(char* const str);
 
-uint         WINAPI AnsiToWCharStr(const char* source, wchar* dest, uint destSize);
-uint         WINAPI WCharToAnsiStr(const wchar* source, char* dest, uint destSize);
-
 std::istream& getline(std::istream &is, string &line);
 
 wstring       ansiToUnicode(const string &str);

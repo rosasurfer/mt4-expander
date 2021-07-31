@@ -676,37 +676,40 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
    if (!IsWindow(hChart))                     return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
+   if (IsProgramType(programType))            return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)"));
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (!strlen(programName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
 
    string file(GetMqlDirectoryA());
+   char* sType = NULL;
    uint cmd = 0;
 
-   // check the file for existence
+   // check the program for existence
    switch (programType) {
       case PT_INDICATOR:
          file.append("\\indicators\\").append(programName).append(".ex4");
+         sType = "indicator";
          cmd = MT4_LOAD_CUSTOM_INDICATOR;
          break;
 
       case PT_EXPERT:
          file.append(GetTerminalBuild() <= 509 ? "\\":"\\experts\\").append(programName).append(".ex4");
+         sType = "expert";
          cmd = MT4_LOAD_EXPERT;
          break;
 
       case PT_SCRIPT:
          file.append("\\scripts\\").append(programName).append(".ex4");
+         sType = "script";
          cmd = MT4_LOAD_SCRIPT;
          break;
-
-      default:
-         return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
    }
    if (!IsFileA(file)) return(error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
 
    // trigger the launch of the program
    if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of "name" from the heap
       return(error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessage()"));
+   debug("queued launch of %s \"%s\"", sType, programName);
 
    // prevent the DLL from getting unloaded before the message is processed
    HMODULE hModule = NULL;
@@ -729,14 +732,8 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
 BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
 
-   uint bufSize = wcslen(programName) + 1;
-   char* ansiName = new char[bufSize];
-   WCharToAnsiStr(programName, ansiName, bufSize);
-
-   BOOL result = LoadMqlProgramA(hChart, programType, ansiName);
-   delete[] ansiName;
-
-   return(result);
+   string name = unicodeToAnsi(wstring(programName));
+   return(LoadMqlProgramA(hChart, programType, name.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
