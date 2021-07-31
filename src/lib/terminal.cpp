@@ -117,6 +117,31 @@ const char* WINAPI GetExpanderFileNameA() {
 
 
 /**
+ * Return the full filename of the loaded MT4Expander DLL.
+ *
+ * @return wchar* - filename or a NULL pointer in case of errors
+ */
+const wchar* WINAPI GetExpanderFileNameW() {
+   static wchar* filename;
+
+   if (!filename) {
+      wchar* buffer;
+      uint size=MAX_PATH >> 1, length=size;
+      while (length >= size) {
+         size <<= 1;
+         buffer = (wchar*) alloca(size);                                // on the stack
+         length = GetModuleFileNameW(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
+      }
+      if (!length) return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
+
+      filename = wcsdup(buffer);                                        // on the heap
+   }
+   return(filename);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Get the module handle of the loaded MT4Expander DLL under Windows 2000.
  *
  * @return HMODULE - DLL module handle
@@ -561,7 +586,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
    if (!IsFileA(file)) return(error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
 
    // trigger the launch of the program
-   if (!PostMessage(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))   // pass a copy of "name" from the heap
+   if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of "name" from the heap
       return(error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessage()"));
 
    // prevent the DLL from getting unloaded before the message is processed
