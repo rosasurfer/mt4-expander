@@ -244,11 +244,35 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
+      if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
       result = strdup(dir.c_str());                                                    // on the heap
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
+ * introduced in MQL5). The common data directory is shared between all terminals installed by a user. The function does not
+ * check whether the returned directory exists.
+ *
+ * @return wchar* - directory name or a NULL pointer in case of errors,
+ *                  e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
+ */
+const wchar* WINAPI GetTerminalCommonDataPathW() {
+   static wchar* result;
+
+   if (!result) {
+      wchar appDataPath[MAX_PATH];                                                     // resolve CSIDL_APPDATA
+      if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()"));
+
+      wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");    // create the resulting path
+      result = wcsdup(dir.c_str());                                                    // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
