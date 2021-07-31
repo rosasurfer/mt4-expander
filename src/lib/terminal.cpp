@@ -454,16 +454,14 @@ const wstring& WINAPI GetTerminalPathWs() {
  *
  * @return char* - directory name or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
- *
- * @see  GetTerminalDataPath() to get the path of the currently used data directory
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
    static char* result;
 
    if (!result) {
       char appDataPath[MAX_PATH];                                                               // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
+      if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
+         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
 
       wstring terminalPath = GetTerminalPathWs();                                               // get terminal installation path
       StrToUpper(terminalPath);
@@ -474,6 +472,28 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")                       // create the resulting path
                                       .append(md5);
       result = strdup(dir.c_str());                                                             // cache the result
+   }
+   return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the data
+ * directory may differ. The function does not check if the returned path exists.
+ *
+ * @return char* - directory name or a NULL pointer in case of errors
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
+ */
+const wchar* WINAPI GetTerminalRoamingDataPathW() {
+   static wchar* result;
+
+   if (!result) {
+      const char* apath = GetTerminalRoamingDataPathA();
+      if (apath) {
+         wstring wpath = ansiToUnicode(string(apath));
+         result = wcsdup(wpath.c_str());
+      }
    }
    return(result);
    #pragma EXPANDER_EXPORT
