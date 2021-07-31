@@ -1681,7 +1681,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
    if (uninitReason == UR_UNDEFINED) {
       if (isTesting)          return(IR_USER);
       if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
-      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      HWND hWndDlg = FindInputDialogA(PT_EXPERT, programName);
       if (hWndDlg)            return(IR_TERMINAL_FAILURE);
       else                    return(IR_TEMPLATE);
    }
@@ -1689,7 +1689,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
    // UR_REMOVE                                          // loaded into an existing chart after a previously loaded one was removed manually
    if (uninitReason == UR_REMOVE) {
       if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
-      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      HWND hWndDlg = FindInputDialogA(PT_EXPERT, programName);
       if (hWndDlg)            return(IR_TERMINAL_FAILURE);
       else                    return(IR_TEMPLATE);
    }
@@ -1698,7 +1698,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
    if (uninitReason == UR_TEMPLATE) {
       if (terminalBuild <= 509) return((InitializeReason)error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s  (Testing=%d  build=%d)", UninitializeReasonToStr(uninitReason), isTesting, terminalBuild));
       if (droppedOnPosX >= 0)     return(IR_USER);       // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
-      HWND hWndDlg = FindInputDialog(PT_EXPERT, programName);
+      HWND hWndDlg = FindInputDialogA(PT_EXPERT, programName);
       if (hWndDlg)                return(IR_TERMINAL_FAILURE);
       else                        return(IR_TEMPLATE);
    }

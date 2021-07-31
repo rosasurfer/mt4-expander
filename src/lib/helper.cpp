@@ -174,6 +174,24 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
 
 
 /**
+ * Whether the specified value is a MQL program type.
+ *
+ * @param  int type
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsProgramType(int type) {
+   switch (type) {
+      case PT_INDICATOR: return(TRUE);
+      case PT_EXPERT:    return(TRUE);
+      case PT_SCRIPT:    return(TRUE);
+   }
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Gibt die ID des Userinterface-Threads zurück.
  *
  * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat

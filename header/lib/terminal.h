@@ -2,7 +2,7 @@
 #include "expander.h"
 
 
-HWND                    WINAPI FindInputDialog(ProgramType programType, const char* programName);
+HWND                    WINAPI FindInputDialogA(ProgramType programType, const char* programName);
 const char*             WINAPI GetExpanderFileNameA();
 const wchar*            WINAPI GetExpanderFileNameW();
 HMODULE                 WINAPI GetExpanderModuleW2K();

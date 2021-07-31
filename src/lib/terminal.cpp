@@ -16,16 +16,16 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module ha
 
 
 /**
- * Find the window handle of the "Input parameters" dialog of the MQL program matching the specified type and
- * case-insensitive name.
+ * Find the window handle of the open configuration dialog of the specified MQL program.
  *
- * @param  ProgramType programType
- * @param  char*       programName
+ * @param  ProgramType programType - one of PT_INDICATOR | PT_EXPERT | PT_SCRIPT
+ * @param  char*       programName - name
  *
- * @return HWND - window handle or NULL if no open "Input parameters" dialog was found;
+ * @return HWND - window handle or NULL if no open configuration dialog was found;
  *                INVALID_HWND (-1) in case of errors
  */
-HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
+HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
+   if (IsProgramType(programType))            return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)")));
    if ((uint)programName < MIN_VALID_POINTER) return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if (!*programName)                         return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)")));
 
@@ -33,32 +33,29 @@ HWND WINAPI FindInputDialog(ProgramType programType, const char* programName) {
    if (programType == PT_INDICATOR) title.insert(0, "Custom Indicator - ");
 
    char* className = "#32770";
-   DWORD processId, self = GetCurrentProcessId();
+   DWORD processId, self=GetCurrentProcessId();
    HWND hWndDlg = NULL;
 
-   while (hWndDlg = FindWindowEx(NULL, hWndDlg, className, title.c_str())) {
+   while (hWndDlg = FindWindowExA(NULL, hWndDlg, className, title.c_str())) {
       GetWindowThreadProcessId(hWndDlg, &processId);
+
       if (processId == self) {
          if (programType == PT_INDICATOR) {
-            if (FindWindowEx(hWndDlg, NULL, className, "Common"))                      // common tab: "Common" (no tab "Parameters")
+            if (FindWindowExA(hWndDlg, NULL, className, "Common"))                     // FIX-ME: this text is subject to i18n
                break;
          }
-         else if (programType==PT_EXPERT || programType==PT_SCRIPT) {
-            if (FindWindowEx(hWndDlg, NULL, className, "Expert Advisor settings"))     // common tab: "Expert Advisor settings" (no tab "Parameters")
-               break;                                                                  // TODO: separate experts and scripts
+         else if (programType==PT_EXPERT || programType==PT_SCRIPT) {                  // expert and script dialogs are indistinguishable
+            if (FindWindowExA(hWndDlg, NULL, className, "Expert Advisor settings"))    // FIX-ME: this text is subject to i18n
+               break;
          }
          //else if (built-in-indicator) {
-         //   if (FindWindowEx(hWndDlg, NULL, className, "Parameters"))                // tab "Parameters" (no common tab)
+         //   if (FindWindowExA(hWndDlg, NULL, className, "Parameters"))               // FIX-ME: this text is subject to i18n
          //      break;
          //}
-         else return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType)));
       }
    }
-   //if (hWndDlg) debug("input dialog \"%s\" found: %p", programName, hWndDlg);
-   //else         debug("input dialog \"%s\" not found", programName);
-
    return(hWndDlg);
-   #pragma EXPANDER_EXPORT
+   //#pragma EXPANDER_EXPORT                                                           // not exported as i18n issues are not fixed
 }
 
 
