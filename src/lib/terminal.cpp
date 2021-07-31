@@ -282,27 +282,19 @@ const char* WINAPI GetTerminalDataPathA() {
       const char* terminalPath    = GetTerminalPathA();
       const char* roamingDataPath = GetTerminalRoamingDataPathA();
 
-      //BOOL debugOn = StrEndsWith(GetExpanderFileNameA(), "Release.dll");
-      //debugOn && debug("terminalPath:    %s", terminalPath);
-      //debugOn && debug("roamingDataPath: %s", roamingDataPath);
-
-      // 1) check portable mode
+      // check portable mode
       if (GetTerminalBuild() <= 509 || TerminalIsPortableMode()) {
-         // data path is always installation directory, independant of write permissions
+         // data path is always the installation directory, independant of write permissions
          dataPath = strdup(terminalPath);                                                 // on the heap
-         //debugOn && debug("TerminalBuild <= 509 || PortableMode = 1");
       }
-      // 2 check for locked terminal logs
       else {
-         const char* dateName = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
-         BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(dateName));
-         BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(dateName));
-         //debugOn && debug("TerminalBuild > 509 && PortableMode = 0");
-         //debugOn && debug("terminalPathIsLocked: %d", terminalPathIsLocked);
-         //debugOn && debug("roamingPathIsLocked:  %d", roamingPathIsLocked);
+         // check for locked terminal logs
+         const char* logFilename = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
+         BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(logFilename));
+         BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(logFilename));
 
-         if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap, check UAC status
-         else if (terminalPathIsLocked) dataPath = strdup(terminalPath);                  // on the heap
+         if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap
+         else if (terminalPathIsLocked) dataPath = strdup(terminalPath);
          else return((char*)error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
       }
    }
@@ -354,11 +346,11 @@ const char* WINAPI GetTerminalFileNameA() {
 
    if (!filename) {
       char* buffer;
-      uint size = MAX_PATH >> 1, length=size;
+      uint size=MAX_PATH >> 1, length=size;
       while (length >= size) {
-         size   <<= 1;
+         size <<= 1;
          buffer = (char*) alloca(size);                              // on the stack
-         length = GetModuleFileName(NULL, buffer, size);             // may return a path longer than MAX_PATH
+         length = GetModuleFileNameA(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
       if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
 
@@ -398,14 +390,38 @@ const wchar* WINAPI GetTerminalFileNameW() {
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
  * introduced in MQL5).
  *
- * @return char* - directory name without trailing path separator
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
-      path = strdup(GetTerminalFileNameA());                         // on the heap
-      path[string(path).find_last_of("\\")] = '\0';
+      const char* filename = GetTerminalFileNameA();
+      if (filename) {
+         path = strdup(filename);                        // on the heap
+         path[string(path).find_last_of("\\")] = '\0';
+      }
+   }
+   return(path);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
+ * introduced in MQL5).
+ *
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
+ */
+const wchar* WINAPI GetTerminalPathW() {
+   static wchar* path;
+
+   if (!path) {
+      const wchar* filename = GetTerminalFileNameW();
+      if (filename) {
+         path = wcsdup(filename);                        // on the heap
+         path[wstring(path).find_last_of(L"\\")] = '\0';
+      }
    }
    return(path);
    #pragma EXPANDER_EXPORT
@@ -418,7 +434,7 @@ const char* WINAPI GetTerminalPathA() {
  *
  * @return wstring& - directory name or an empty string in case of errors
  */
-const wstring& WINAPI GetTerminalPathW() {
+const wstring& WINAPI GetTerminalPathWs() {
    static wstring path;
 
    if (path.empty()) {
@@ -449,7 +465,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
       if (FAILED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPath()"));
 
-      wstring terminalPath = GetTerminalPathW();                                                // get terminal installation path
+      wstring terminalPath = GetTerminalPathWs();                                               // get terminal installation path
       StrToUpper(terminalPath);
 
       string md5(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));           // calculate MD5
