@@ -676,7 +676,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
    if (!IsWindow(hChart))                     return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
-   if (IsProgramType(programType))            return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)"));
+   if (!IsProgramType(programType))           return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (!strlen(programName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
 
@@ -707,13 +707,13 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
    if (!IsFileA(file)) return(error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
 
    // trigger the launch of the program
-   if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of "name" from the heap
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessage()"));
+   if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of 'name' from the heap
+      return(error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessageA()"));
    debug("queued launch of %s \"%s\"", sType, programName);
 
    // prevent the DLL from getting unloaded before the message is processed
    HMODULE hModule = NULL;
-   GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)LoadMqlProgramA, &hModule);
+   GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)LoadMqlProgramA, &hModule);
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
