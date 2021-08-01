@@ -676,7 +676,7 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
    if (!IsWindow(hChart))                     return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
-   if (IsProgramType(programType))            return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)"));
+   if (!IsProgramType(programType))           return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
    if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (!strlen(programName))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
 
