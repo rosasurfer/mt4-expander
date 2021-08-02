@@ -25,7 +25,7 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module ha
  *                INVALID_HWND (-1) in case of errors
  */
 HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
-   if (IsProgramType(programType))            return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)")));
+   if (!IsProgramType(programType))           return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType)));
    if ((uint)programName < MIN_VALID_POINTER) return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if (!*programName)                         return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)")));
 
