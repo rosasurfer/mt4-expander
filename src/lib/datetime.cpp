@@ -80,15 +80,15 @@ const char* WINAPI GmtTimeFormatA(datetime timestamp, const char* format) {
 /**
  * Format a timestamp as a string representing GMT time.
  *
- * @param  datetime timestamp - Unix timestamp (GMT)
- * @param  wchar*   format    - format control string supported by strftime()
+ * @param  datetime64 timestamp - 64-bit Unix timestamp (GMT)
+ * @param  wchar*     format    - format control string supported by strftime()
  *
  * @return wchar* - GMT time string or a NULL pointer in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-const wchar* WINAPI GmtTimeFormatW(datetime timestamp, const wchar* format) {
+const wchar* WINAPI GmtTimeFormatW(datetime64 timestamp, const wchar* format) {
    if (timestamp == NaT)                 return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
    if (timestamp < 0)                    return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
@@ -98,9 +98,10 @@ const wchar* WINAPI GmtTimeFormatW(datetime timestamp, const wchar* format) {
    for (;;) {
       size <<= 1;
       buffer = (wchar*)alloca(size);                                 // on the stack
-      if (wcsftime(buffer, size, format, gmtime(&timestamp)))
+      if (wcsftime(buffer, size, format, _gmtime64(&timestamp)))
          break;
    }
+
    return(wcsdup(buffer));                                           // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 
