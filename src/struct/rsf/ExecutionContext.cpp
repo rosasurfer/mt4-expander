@@ -2245,9 +2245,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", extReporting="         <<            BoolToStr(ec->extReporting)
          << ", recordEquity="         <<            BoolToStr(ec->recordEquity)
 
-         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
-         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
-         << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
+         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
+         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
+         << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStrA(ec->dllWarning))
 
          << ", loglevel="             << LoglevelDescriptionA(ec->loglevel)
          << ", loglevelTerminal="     << LoglevelDescriptionA(ec->loglevelTerminal)

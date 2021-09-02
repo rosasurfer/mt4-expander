@@ -69,7 +69,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
    string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", "\n"), "\n", " ");   // replace linebreaks with spaces
-   string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");  // error description
+   string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // error description
 
    if (ec->testing) {                                                                     // generate the appropriate time string
       size_t bufSize = 20;

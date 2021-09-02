@@ -98,7 +98,7 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
  *
  * @return char*
  */
-const char* WINAPI ErrorToStr(int error) {
+const char* WINAPI ErrorToStrA(int error) {
    // for Win32 error codes see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
    #ifndef ERROR_DEVICE_SUPPORT_IN_PROGRESS
    #define ERROR_DEVICE_SUPPORT_IN_PROGRESS                             171
@@ -680,6 +680,20 @@ const char* WINAPI ErrorToStr(int error) {
       format = "win32:%d";
    }
    return(StrFormat(format, error));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a readable version of an MQL error code.
+ *
+ * @param  int error
+ *
+ * @return wchar*
+ */
+const wchar* WINAPI ErrorToStrW(int error) {
+   wstring s = ansiToUnicode(string(ErrorToStrA(error)));
+   return(wcsdup(s.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
