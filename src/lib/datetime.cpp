@@ -59,7 +59,7 @@ size_t WINAPI gmtimeFormat(char* buffer, size_t bufSize, datetime timestamp, con
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-const char* WINAPI GmtTimeFormatA(datetime timestamp, const char* format) {
+char* WINAPI GmtTimeFormatA(datetime timestamp, const char* format) {
    if (timestamp == NaT)                 return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
    if (timestamp < 0)                    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
@@ -88,7 +88,7 @@ const char* WINAPI GmtTimeFormatA(datetime timestamp, const char* format) {
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-const wchar* WINAPI GmtTimeFormatW(datetime64 timestamp, const wchar* format) {
+wchar* WINAPI GmtTimeFormatW(datetime64 timestamp, const wchar* format) {
    if (timestamp == NaT)                 return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
    if (timestamp < 0)                    return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
    if ((uint)format < MIN_VALID_POINTER) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
@@ -181,5 +181,34 @@ char* WINAPI LocalTimeFormatA(datetime timestamp, const char* format) {
          break;
    }
    return(strdup(buffer));                                           // TODO: add to GC (close memory leak)
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Format a timestamp as a string representing local time.
+ *
+ * @param  datetime64 timestamp - Unix timestamp (GMT)
+ * @param  wchar*     format    - format control string supported by strftime()
+ *
+ * @return wchar* - local time string or a NULL pointer in case of errors
+ *
+ * @see  http://www.cplusplus.com/reference/ctime/strftime/
+ * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
+ */
+wchar* WINAPI LocalTimeFormatW(datetime64 timestamp, const wchar* format) {
+   if (timestamp == NaT)                 return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: Not-a-Time"));
+   if (timestamp < 0)                    return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter timestamp: %d (negative)", timestamp));
+   if ((uint)format < MIN_VALID_POINTER) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+
+   wchar* buffer = NULL;
+   uint size = 32;                                                   // initial buffer size is 64 (32<<1)
+   for (;;) {
+      size <<= 1;
+      buffer = (wchar*)alloca(size);                                 // on the stack
+      if (wcsftime(buffer, size, format, _localtime64(&timestamp)))
+         break;
+   }
+   return(wcsdup(buffer));                                           // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
