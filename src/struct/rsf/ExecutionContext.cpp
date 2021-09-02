@@ -2208,9 +2208,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", moduleDeinitFlags="    <<     DeinitFlagsToStr(ec->moduleDeinitFlags)
 
          << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
-         << ", timeframe="            <<    PeriodDescription(ec->timeframe)
+         << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
          << ", newSymbol="            <<       DoubleQuoteStr(ec->newSymbol)
-         << ", newTimeframe="         <<    PeriodDescription(ec->newTimeframe)
+         << ", newTimeframe="         <<   PeriodDescriptionA(ec->newTimeframe)
          << ", rates="                <<                     (ec->rates ? StrFormat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
          << ", changedBars="          <<                      ec->changedBars

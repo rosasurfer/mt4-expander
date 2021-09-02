@@ -1016,11 +1016,11 @@ const char* WINAPI OrderTypeToStr(int type) {
  *
  * @param  int period - timeframe identifier or amount of minutes per bar period
  *
- * @return char* - description or NULL if the parameter is invalid
+ * @return char* - description or a NULL pointer if the parameter is invalid
  *
  * Note: This implementation should match the one in MQL's stdfunctions.mqh.
  */
-const char* WINAPI PeriodDescription(int period) {
+const char* WINAPI PeriodDescriptionA(int period) {
    if (period < 0) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
@@ -1041,6 +1041,21 @@ const char* WINAPI PeriodDescription(int period) {
       case PERIOD_Q1 : return("Q1" );     // 1 quarter (custom timeframe)
    }
    return(StrFormat("%d", period));
+}
+
+
+/**
+ * Return the description of a timeframe identifier. Supports custom timeframes.
+ *
+ * @param  int period - timeframe identifier or amount of minutes per bar period
+ *
+ * @return wchar* - description or a NULL pointer if the parameter is invalid
+ */
+const wchar* WINAPI PeriodDescriptionW(int period) {
+   const char* s = PeriodDescriptionA(period);
+   if (!s) return(NULL);
+
+   return(wcsdup(ansiToUnicode(string(s)).c_str()));
 }
 
 
@@ -1121,10 +1136,10 @@ const char* WINAPI StringToStr(const char* value) {
 
 
 /**
- * Alias of PeriodDescription()
+ * Alias of PeriodDescriptionA()
  */
 const char* WINAPI TimeframeDescription(int timeframe) {
-   return(PeriodDescription(timeframe));
+   return(PeriodDescriptionA(timeframe));
 }
 
 
