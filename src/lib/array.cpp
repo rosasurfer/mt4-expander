@@ -28,7 +28,7 @@ BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, 
       if (from+count > size)             return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds array boundaries)", count));
    }
 
-   std::fill_n(&values[from], count, initValue);               // TODO: replace with faster memset()
+   std::fill_n(&values[from], count, initValue);
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
@@ -60,7 +60,7 @@ BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, i
       if (from+count > size)             return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds array boundaries)", count));
    }
 
-   std::fill_n(&values[from], count, initValue);               // uses a for loop as memset() cannot write doubles
+   std::fill_n(&values[from], count, initValue);
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
@@ -85,7 +85,7 @@ BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int empty
 
    MoveMemory((void*)&buffer[0], &buffer[count], (size-count)*sizeof(buffer[0]));
 
-   InitializeIntArray(buffer, size, emptyValue, size-count);   // TODO: replace with faster memset()
+   std::fill_n(&buffer[size-count], count, emptyValue);
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
@@ -110,7 +110,7 @@ BOOL WINAPI ShiftDoubleIndicatorBuffer(double buffer[], int size, int count, dou
 
    MoveMemory((void*)&buffer[0], &buffer[count], (size-count)*sizeof(buffer[0]));
 
-   InitializeDoubleArray(buffer, size, emptyValue, size-count);
+   std::fill_n(&buffer[size-count], count, emptyValue);
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
