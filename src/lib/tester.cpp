@@ -193,7 +193,7 @@ datetime WINAPI Tester_GetEndDate() {
  *
  * @param  char*  symbol    - tested symbol
  * @param  uint   timeframe - test timeframe
- * @param  uint   barModel  - test bar model: BARMODEL_EVERYTICK | BARMODEL_CONTROLPOINTS | BARMODEL_BAROPEN
+ * @param  uint   barModel  - test bar model: MODE_EVERYTICK | MODE_CONTROLPOINTS | MODE_BAROPEN
  *
  * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
  *

@@ -572,15 +572,15 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 
       if (positions->size()) {
          switch (test->barModel) {
-            case BARMODEL_BAROPEN: {
+            case MODE_BAROPEN: {
                datetime barTime = iTime(rates, bars, 0);
                uint bar = (tickTime == barTime);                     // use the closed [1] or the current bar [0] for stats
                high = iHigh(rates, bars, bar);                       // (the last tick of a BarOpen test can be a BarClose tick)
                low  = iLow (rates, bars, bar);
                break;
             }
-            case BARMODEL_CONTROLPOINTS:
-            case BARMODEL_EVERYTICK:
+            case MODE_CONTROLPOINTS:
+            case MODE_EVERYTICK:
                high = bid;                                           // inner prices to prevent stats distortion by spread widening
                low  = ask;
                break;
