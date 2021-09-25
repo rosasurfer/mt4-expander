@@ -12,7 +12,7 @@ extern MqlProgramList g_mqlPrograms;            // all MQL programs: vector<Cont
 /**
  * Initialization functions
  */
-int WINAPI onInit() {
+int WINAPI onInit(BOOL accountChange = FALSE) {
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
