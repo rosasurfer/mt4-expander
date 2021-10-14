@@ -41,6 +41,20 @@ uint WINAPI ec_PreviousPid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return an MQL program's creation time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - system time
+ */
+datetime WINAPI ec_Created(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->created);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return an MQL program's type.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -2191,6 +2205,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
       ss << std::fixed
          <<  "{pid="                  <<                      ec->pid
          << ", previousPid="          <<                      ec->previousPid
+         << ", created="              <<                     (ec->created ? LocalTimeFormatA(ec->created, "\"%Y.%m.%d %H:%M:%S\"") : "0")
 
          << ", programType="          <<     ProgramTypeToStr(ec->programType)
          << ", programName="          <<       DoubleQuoteStr(ec->programName)
@@ -2208,9 +2223,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", moduleDeinitFlags="    <<     DeinitFlagsToStr(ec->moduleDeinitFlags)
 
          << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
-         << ", timeframe="            <<    PeriodDescription(ec->timeframe)
+         << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
          << ", newSymbol="            <<       DoubleQuoteStr(ec->newSymbol)
-         << ", newTimeframe="         <<    PeriodDescription(ec->newTimeframe)
+         << ", newTimeframe="         <<   PeriodDescriptionA(ec->newTimeframe)
          << ", rates="                <<                     (ec->rates ? StrFormat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
          << ", changedBars="          <<                      ec->changedBars
@@ -2245,9 +2260,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", extReporting="         <<            BoolToStr(ec->extReporting)
          << ", recordEquity="         <<            BoolToStr(ec->recordEquity)
 
-         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStr(ec->mqlError  ))
-         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStr(ec->dllError  ))
-         << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStr(ec->dllWarning))
+         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
+         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
+         << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStrA(ec->dllWarning))
 
          << ", loglevel="             << LoglevelDescriptionA(ec->loglevel)
          << ", loglevelTerminal="     << LoglevelDescriptionA(ec->loglevelTerminal)

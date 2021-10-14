@@ -193,7 +193,7 @@ datetime WINAPI Tester_GetEndDate() {
  *
  * @param  char*  symbol    - tested symbol
  * @param  uint   timeframe - test timeframe
- * @param  uint   barModel  - test bar model: BARMODEL_EVERYTICK | BARMODEL_CONTROLPOINTS | BARMODEL_BAROPEN
+ * @param  uint   barModel  - test bar model: MODE_EVERYTICK | MODE_CONTROLPOINTS | MODE_BAROPEN
  *
  * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
  *
@@ -282,7 +282,7 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
    if (order->type == OP_LONG)  longPositions->push_back(order);
    if (order->type == OP_SHORT) shortPositions->push_back(order);
 
-   //debug("position opened:  %s", ORDER_toStr(order));
+   debug("position opened:  %s", ORDER_toStr(order));
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
@@ -307,6 +307,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, dateti
    OrderList &openPositions = *ec->test->openPositions;
    uint size = openPositions.size();
    ORDER* order = NULL;
+   BOOL positionFound = FALSE;
 
    for (uint i=0; i < size; ++i) {
       order = openPositions[i];
@@ -334,6 +335,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, dateti
          // move the order to closed positions
          openPositions.erase(openPositions.begin() + i);                            // drop open position
          ec->test->closedPositions->push_back(order);                               // add it to closed positions
+         positionFound = TRUE;
 
          if (order->type == OP_LONG) {
             OrderList &openLongs = *ec->test->openLongPositions;
@@ -360,12 +362,12 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, dateti
             ec->test->closedShortPositions->push_back(order);                       // add it to closed short positions
          }
 
-         //debug("position closed:  %s", ORDER_toStr(order));
+         debug("position closed:  %s", ORDER_toStr(order));
          break;
       }
    }
 
-   if (!order) return(error(ERR_RUNTIME_ERROR, "open position #%d not found (%d open positions)", ticket, size));
+   if (!positionFound) return(error(ERR_RUNTIME_ERROR, "open position #%d not found (%d open positions)", ticket, size));
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
@@ -459,7 +461,7 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, ui
 
    TEST* test = ec->test;
    if (!test)            return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (!test->startTime) return( warn(ERR_ILLEGAL_STATE, "reporting not yet started (skipping execution)"));
+   if (!test->startTime) return(debug("skipping (reporting not yet started)"));
    if (test->endTime)    return(error(ERR_ILLEGAL_STATE, "reporting already stopped:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    test_SetBars   (test, bars - test->bars + 1);

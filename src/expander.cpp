@@ -125,7 +125,7 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
 
    // add the error code at the end (if any)
    if (error_code) {
-      newMsg = strformat("%s  [%s]", msg, ErrorToStr(error_code));
+      newMsg = strformat("%s  [%s]", msg, ErrorToStrA(error_code));
       free(msg);
       msg = newMsg;
    }
@@ -176,7 +176,7 @@ int WINAPI _error(const char* fileName, const char* funcName, int line, int erro
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, msg, ErrorToStr(error_code));
+   char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, msg, ErrorToStrA(error_code));
 
    OutputDebugStringA(fullMsg);
    free(msg);

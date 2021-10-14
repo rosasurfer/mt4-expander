@@ -13,9 +13,9 @@
  */
 const char* WINAPI BarModelDescription(int id) {
    switch (id) {
-      case BARMODEL_EVERYTICK:     return("EveryTick"    );
-      case BARMODEL_CONTROLPOINTS: return("ControlPoints");
-      case BARMODEL_BAROPEN:       return("BarOpen"      );
+      case MODE_EVERYTICK:     return("EveryTick"    );
+      case MODE_CONTROLPOINTS: return("ControlPoints");
+      case MODE_BAROPEN:       return("BarOpen"      );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
@@ -31,9 +31,9 @@ const char* WINAPI BarModelDescription(int id) {
  */
 const char* WINAPI BarModelToStr(int id) {
    switch (id) {
-      case BARMODEL_EVERYTICK:     return("BARMODEL_EVERYTICK"    );
-      case BARMODEL_CONTROLPOINTS: return("BARMODEL_CONTROLPOINTS");
-      case BARMODEL_BAROPEN:       return("BARMODEL_BAROPEN"      );
+      case MODE_EVERYTICK:     return("MODE_EVERYTICK"    );
+      case MODE_CONTROLPOINTS: return("MODE_CONTROLPOINTS");
+      case MODE_BAROPEN:       return("MODE_BAROPEN"      );
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
@@ -98,7 +98,7 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
  *
  * @return char*
  */
-const char* WINAPI ErrorToStr(int error) {
+const char* WINAPI ErrorToStrA(int error) {
    // for Win32 error codes see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
    #ifndef ERROR_DEVICE_SUPPORT_IN_PROGRESS
    #define ERROR_DEVICE_SUPPORT_IN_PROGRESS                             171
@@ -685,6 +685,20 @@ const char* WINAPI ErrorToStr(int error) {
 
 
 /**
+ * Return a readable version of an MQL error code.
+ *
+ * @param  int error
+ *
+ * @return wchar*
+ */
+const wchar* WINAPI ErrorToStrW(int error) {
+   wstring s = ansiToUnicode(string(ErrorToStrA(error)));
+   return(wcsdup(s.c_str()));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the hexadecimale representation of an integer.
  *  e.g. IntToHexStr(13465610) => "00CD780A"
  *
@@ -1002,11 +1016,11 @@ const char* WINAPI OrderTypeToStr(int type) {
  *
  * @param  int period - timeframe identifier or amount of minutes per bar period
  *
- * @return char* - description or NULL if the parameter is invalid
+ * @return char* - description or a NULL pointer if the parameter is invalid
  *
  * Note: This implementation should match the one in MQL's stdfunctions.mqh.
  */
-const char* WINAPI PeriodDescription(int period) {
+const char* WINAPI PeriodDescriptionA(int period) {
    if (period < 0) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
@@ -1027,6 +1041,21 @@ const char* WINAPI PeriodDescription(int period) {
       case PERIOD_Q1 : return("Q1" );     // 1 quarter (custom timeframe)
    }
    return(StrFormat("%d", period));
+}
+
+
+/**
+ * Return the description of a timeframe identifier. Supports custom timeframes.
+ *
+ * @param  int period - timeframe identifier or amount of minutes per bar period
+ *
+ * @return wchar* - description or a NULL pointer if the parameter is invalid
+ */
+const wchar* WINAPI PeriodDescriptionW(int period) {
+   const char* s = PeriodDescriptionA(period);
+   if (!s) return(NULL);
+
+   return(wcsdup(ansiToUnicode(string(s)).c_str()));
 }
 
 
@@ -1107,10 +1136,10 @@ const char* WINAPI StringToStr(const char* value) {
 
 
 /**
- * Alias of PeriodDescription()
+ * Alias of PeriodDescriptionA()
  */
 const char* WINAPI TimeframeDescription(int timeframe) {
-   return(PeriodDescription(timeframe));
+   return(PeriodDescriptionA(timeframe));
 }
 
 

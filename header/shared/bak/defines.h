@@ -2,7 +2,6 @@
  * Constants shared by MQL4 and MT4Expander (C++).
  */
 
-
 // special constants
 #define EMPTY                          0xFFFFFFFF        // -1
 #define EMPTY_VALUE                       INT_MAX        // MetaQuotes: empty custom indicator value (integer)           min(datetime) = '1970-01-01 00:00:00'
@@ -67,7 +66,7 @@
 #define REASON_CHARTCLOSE                       4        // | chart closed or new template applied | chart closed                     |
                                                          // +--------------------------------------+----------------------------------+
 #define REASON_PARAMETERS                       5        // | input parameters changed                                                |
-#define REASON_ACCOUNT                          6        // | reconnection due to a changed trading account                           |
+#define REASON_ACCOUNT                          6        // | reconnection due to a changed trading account (experts only)            |
                                                          // +--------------------------------------+----------------------------------+
 #define REASON_TEMPLATE                         7        // | -                                    | new template applied             |
 #define REASON_INITFAILED                       8        // | -                                    | OnInit() returned an error       |
@@ -330,6 +329,7 @@
 #define INIT_NO_BARS_REQUIRED                   8        // executable without chart history (scripts only)
 #define INIT_BUFFERED_LOG                      16        // setup a logfile buffer for logging
 #define INIT_AUTOCONFIG                        32        // setup auto-configuration
+#define INIT_NO_EXTERNAL_REPORTING             64        // always disable external test reporting (experts only)
 
 
 // MT4 internal messages
@@ -342,15 +342,15 @@
 
 #define MT4_OPEN_CHART                         51
 
-#define MT4_COMPILE_REQUEST                 12345
-#define MT4_COMPILE_PERMISSION              12346
-#define MT4_MQL_REFRESH                     12349        // rescan und reload modified .ex4 files
+#define MT4_COMPILE_ANNOUNC                 12345
+#define MT4_COMPILE_ACK                     12346
+#define MT4_COMPILE_REFRESH                 12349        // rescan und reload modified .ex4 files
 
 
 // bar model types in tester
-#define BARMODEL_EVERYTICK                      0
-#define BARMODEL_CONTROLPOINTS                  1
-#define BARMODEL_BAROPEN                        2
+#define MODE_EVERYTICK                          0
+#define MODE_CONTROLPOINTS                      1
+#define MODE_BAROPEN                            2
 
 
 // configuration flags for synthetic ticks

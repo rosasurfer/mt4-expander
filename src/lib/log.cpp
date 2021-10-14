@@ -69,7 +69,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
    string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", "\n"), "\n", " ");   // replace linebreaks with spaces
-   string sError; if (error) sError.append("  [").append(ErrorToStr(error)).append("]");  // error description
+   string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // error description
 
    if (ec->testing) {                                                                     // generate the appropriate time string
       size_t bufSize = 20;
@@ -84,7 +84,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
       localtimeFormat(buffer, bufSize, st, "%Y-%m-%d %H:%M:%S");
       ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // online: current time with milliseconds
    }
-   ss << "  " << std::setw(6) << std::setfill(' ') << std::left << sLoglevel << "  " << ec->symbol << "," << PeriodDescription(ec->timeframe) << "  " << sExecPath << sMessage << sError;
+   ss << "  " << std::setfill(' ') << std::setw(6) << std::left << sLoglevel << "  " << ec->symbol << "," << std::setw(3) << std::left << PeriodDescriptionA(ec->timeframe) << "  " << sExecPath << sMessage << sError;
 
    // write the log entry to logfile or logbuffer
    if (useLogger) *master->logger << ss.str() << std::endl;

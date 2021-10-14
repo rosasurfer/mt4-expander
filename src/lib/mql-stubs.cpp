@@ -1,5 +1,5 @@
 /**
- * Empty function stubs for optional MQL functions. These stubs can be overwritten in MQL by custom implementations.
+ * Empty stubs for optional MQL event handlers or functions. Overwritten by custom MQL implementations.
  */
 #include "expander.h"
 #include "lib/executioncontext.h"
@@ -82,6 +82,12 @@ int WINAPI onStart() {
 
 
 int WINAPI onTick() {
+   return(NO_ERROR);
+   #pragma EXPANDER_EXPORT
+}
+
+
+int WINAPI onAccountChange(int oldAccount, int newAccount) {
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -188,29 +194,9 @@ int WINAPI afterDeinit() {
 }
 
 
-/**
- * Other
- */
-BOOL WINAPI onBarOpen() {
-   return(error(ERR_NOT_IMPLEMENTED, "must be implemented in the MQL main module"));
-   #pragma EXPANDER_EXPORT
-}
-
-
-BOOL WINAPI onCommand(const MqlStringA commands[]) {
-   return(error(ERR_NOT_IMPLEMENTED, "must be implemented in the MQL main module"));
-   #pragma EXPANDER_EXPORT
-}
-
-
+// other
 void WINAPI DummyCalls() {
    return;
-   #pragma EXPANDER_EXPORT
-}
-
-
-BOOL WINAPI EventListener_ChartCommand(const MqlStringA commands[]) {
-   return(error(ERR_NOT_IMPLEMENTED, ""));
    #pragma EXPANDER_EXPORT
 }
 
@@ -223,5 +209,26 @@ const char* WINAPI InputsToStr() {
 
 int WINAPI ShowStatus(int error) {
    return(error);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Error handlers for missing MQL function implementations (if a functionality is used).
+ */
+BOOL WINAPI onBarOpen() {
+   return(error(ERR_NOT_IMPLEMENTED, ""));
+   #pragma EXPANDER_EXPORT
+}
+
+
+BOOL WINAPI onCommand(const MqlStringA commands[]) {
+   return(error(ERR_NOT_IMPLEMENTED, ""));
+   #pragma EXPANDER_EXPORT
+}
+
+
+BOOL WINAPI EventListener_ChartCommand(const MqlStringA commands[]) {
+   return(error(ERR_NOT_IMPLEMENTED, ""));
    #pragma EXPANDER_EXPORT
 }
