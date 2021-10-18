@@ -220,15 +220,3 @@ BOOL WINAPI onBarOpen() {
    return(error(ERR_NOT_IMPLEMENTED, ""));
    #pragma EXPANDER_EXPORT
 }
-
-
-BOOL WINAPI onCommand(const MqlStringA commands[]) {
-   return(error(ERR_NOT_IMPLEMENTED, ""));
-   #pragma EXPANDER_EXPORT
-}
-
-
-BOOL WINAPI EventListener_ChartCommand(const MqlStringA commands[]) {
-   return(error(ERR_NOT_IMPLEMENTED, ""));
-   #pragma EXPANDER_EXPORT
-}
