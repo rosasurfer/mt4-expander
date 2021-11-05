@@ -42,7 +42,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
       if (!IsFileA(master->logFilename)) {
          char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
-         if (CreateDirectoryA(string(drive).append(dir), MODE_MKPARENT))                  // make sure the directory exists
+         if (CreateDirectoryA(string(drive).append(dir), MODE_OS|MODE_MKPARENT))          // make sure the directory exists
             return(FALSE);
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
@@ -129,18 +129,18 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
             if (!IsFileA(filename)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                              // extract the directory part of logFilename
+               char drive[MAX_DRIVE], dir[MAX_DIR];                                    // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
-               if (CreateDirectoryA(string(drive).append(dir), MODE_MKPARENT))   // make sure the directory exists
+               if (CreateDirectoryA(string(drive).append(dir), MODE_OS|MODE_MKPARENT)) // make sure the directory exists
                   return(FALSE);
             }
-            log->open(filename, std::ios::binary|std::ios::app);                 // open the logfile
+            log->open(filename, std::ios::binary|std::ios::app);                       // open the logfile
             if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
             if (master->logBuffer && master->logBuffer->size()) {
                uint size = master->logBuffer->size();
                for (uint i=0; i < size; ++i) {
                   string* entry = (*master->logBuffer)[i];
-                  *master->logger << *entry << NL;                               // flush existing logbuffer entries
+                  *master->logger << *entry << NL;                                     // flush existing logbuffer entries
                   delete entry;
                }
                master->logger->flush();

@@ -17,41 +17,50 @@
 /**
  * Create a directory.
  *
- * @param  char* path             - full directory path
- * @param  DWORD flags [optional] - MODE_MKPARENT: create parent directories as needed, no error on an existing directory
- *                                  (default: create only the final directory and report an error if it exists)
+ * @param  char* path  - full directory path
+ * @param  DWORD flags - MODE_MQL:      restrict the function's operation to the MQL sandbox
+ *                       MODE_OS:       allow the function to operate outside of the MQL sandbox
+ *                       MODE_MKPARENT: create parent directories as needed and report no error on an existing directory,
+ *                                      otherwise create only the final directory and report an error if it exists
  * @return int - error status
  */
-int WINAPI CreateDirectoryA(const char* path, DWORD flags/*=NULL*/) {
+int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
    if ((uint)path < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path)));
+   if (!(~flags & (MODE_MQL|MODE_OS))) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter flag: only one of MODE_MQL or MODE_OS can be specified")));
+   if (!( flags & (MODE_MQL|MODE_OS))) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter flag: one of MODE_MQL or MODE_OS must be specified")));
 
-   // check whether such a file or directory already exists
-   if (IsFileOrDirectoryA(path)) {
-      if (!IsDirectoryA(path)) return(_int(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path)));
-      if (flags & MODE_MKPARENT)
-         return(NO_ERROR);
-      return(_int(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path)));
+   if (flags & MODE_MQL) {
+      return(_int(ERR_NOT_IMPLEMENTED, error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented")));
    }
-
-   // make sure a parent directory exists
-   if (flags & MODE_MKPARENT) {
-      string sPath = string(path);
-      size_t pos = sPath.find_last_of("\\/");
-      if (pos != string::npos) {
-         int error = CreateDirectoryA(sPath.substr(0, pos).c_str(), flags);
-         if (error) return(error);
+   else /*flags & MODE_OS*/ {
+      // check whether such a file or directory already exists
+      if (IsFileOrDirectoryA(path)) {
+         if (!IsDirectoryA(path)) return(_int(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path)));
+         if (flags & MODE_MKPARENT)
+            return(NO_ERROR);
+         return(_int(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path)));
       }
+
+      // make sure a parent directory exists
+      if (flags & MODE_MKPARENT) {
+         string sPath = string(path);
+         size_t pos = sPath.find_last_of("\\/");
+         if (pos != string::npos) {
+            int error = CreateDirectoryA(sPath.substr(0, pos).c_str(), flags);
+            if (error) return(error);
+         }
+      }
+
+      // create the final directory
+      if (CreateDirectory(path, (LPSECURITY_ATTRIBUTES)NULL))
+         return(NO_ERROR);
+
+      // with multiple path separators it may already exist
+      int error = GetLastError();
+      if (error==ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT))
+         return(NO_ERROR);
+      return(_int(ERR_WIN32_ERROR+error, error(ERR_WIN32_ERROR+error, "creation of \"%s\" failed", path)));
    }
-
-   // create the final directory
-   if (CreateDirectory(path, (LPSECURITY_ATTRIBUTES)NULL))
-      return(NO_ERROR);
-
-   // with multiple path separators it may already exist
-   int error = GetLastError();
-   if (error==ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT))
-      return(NO_ERROR);
-   return(_int(ERR_WIN32_ERROR+error, error(ERR_WIN32_ERROR+error, "creation of \"%s\" failed", path)));
    #pragma EXPANDER_EXPORT
 }
 
@@ -59,12 +68,14 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags/*=NULL*/) {
 /**
  * Create a directory.
  *
- * @param  string &path            - full directory path
- * @param  DWORD  flags [optional] - MODE_MKPARENT: create parent directories as needed, no error on an existing directory
- *                                   (default: create only the final directory and report an error if it exists)
+ * @param  string &path - full directory path
+ * @param  DWORD  flags - MODE_MQL:      restrict the function's operation to the MQL sandbox
+ *                        MODE_OS:       allow the function to operate outside of the MQL sandbox
+ *                        MODE_MKPARENT: create parent directories as needed and report no error on an existing directory,
+ *                                       otherwise create only the final directory and report an error if it exists
  * @return int - error status
  */
-int WINAPI CreateDirectoryA(const string &path, DWORD flags/*=NULL*/) {
+int WINAPI CreateDirectoryA(const string &path, DWORD flags) {
    return(CreateDirectoryA(path.c_str(), flags));
 }
 

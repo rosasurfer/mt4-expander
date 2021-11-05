@@ -35,8 +35,8 @@ struct REPARSE_DATA_BUFFER {
 #define SYMLINK_FLAG_RELATIVE    1
 
 
-int         WINAPI CreateDirectoryA(const char* path, DWORD flags = NULL);
-int         WINAPI CreateDirectoryA(const string &path, DWORD flags = NULL);
+int         WINAPI CreateDirectoryA(const char* path, DWORD flags);
+int         WINAPI CreateDirectoryA(const string &path, DWORD flags);
 const char* WINAPI GetFinalPathNameA(const char* name);
 const char* WINAPI GetReparsePointTargetA(const char* name);
 BOOL        WINAPI IsDirectoryA(const char* name);
