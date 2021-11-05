@@ -35,7 +35,7 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
    else /*flags & MODE_OS*/ {
       // check whether such a file or directory already exists
       if (IsFileOrDirectoryA(path)) {
-         if (!IsDirectoryA(path)) return(_int(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path)));
+         if (!IsDirectoryA(path, MODE_OS)) return(_int(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path)));
          if (flags & MODE_MKPARENT)
             return(NO_ERROR);
          return(_int(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path)));
@@ -83,16 +83,24 @@ int WINAPI CreateDirectoryA(const string &path, DWORD flags) {
 /**
  * Whether the specified directory exists and is not a regular file. Symbolic links and junctions are supported.
  *
- * @param  char* name - full directory name with support for forward, backward and trailing slashes
- *
+ * @param  char* name - directory name with support for forward, backward and trailing slashes
+ * @param  DWORD mode - MODE_MQL: restrict the function's operation to the MQL sandbox
+ *                      MODE_OS:  allow the function to operate outside of the MQL sandbox
  * @return BOOL
  */
-BOOL WINAPI IsDirectoryA(const char* name) {
+BOOL WINAPI IsDirectoryA(const char* name, DWORD mode) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+      if (!(~mode & (MODE_MQL|MODE_OS)))  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_OS can be specified")));
+      if (!( mode & (MODE_MQL|MODE_OS)))  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_OS must be specified")));
 
-      DWORD attributes = GetFileAttributes(name);
-      return((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY));
+      if (mode & MODE_MQL) {
+         return(_int(ERR_NOT_IMPLEMENTED, error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented")));
+      }
+      else /*mode & MODE_OS*/ {
+         DWORD attributes = GetFileAttributes(name);
+         return((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY));
+      }
    }
    return(FALSE);
    #pragma EXPANDER_EXPORT

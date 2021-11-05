@@ -39,7 +39,7 @@ int         WINAPI CreateDirectoryA(const char* path, DWORD flags);
 int         WINAPI CreateDirectoryA(const string &path, DWORD flags);
 const char* WINAPI GetFinalPathNameA(const char* name);
 const char* WINAPI GetReparsePointTargetA(const char* name);
-BOOL        WINAPI IsDirectoryA(const char* name);
+BOOL        WINAPI IsDirectoryA(const char* name, DWORD mode);
 BOOL        WINAPI IsFileA(const char* name);
 BOOL        WINAPI IsFileA(const string &name);
 BOOL        WINAPI IsFileOrDirectoryA(const char* name);

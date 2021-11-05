@@ -166,7 +166,7 @@ const char* WINAPI GetTerminalConfigPathA() {
       string iniFile = string(dataPath).append("\\terminal-config.ini");
       configPath = strdup(iniFile.c_str());                                // on the heap
 
-      if (!IsDirectoryA(dataPath)) {
+      if (!IsDirectoryA(dataPath, MODE_OS)) {
          int error = CreateDirectoryA(dataPath, MODE_OS|MODE_MKPARENT);    // make sure the directory exists
          if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND)
             return((char*)debug("cannot create directory \"%s\"  [%s]", dataPath, ErrorToStrA(ERR_WIN32_ERROR+error)));
