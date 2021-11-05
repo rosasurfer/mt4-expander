@@ -125,7 +125,7 @@ const char* WINAPI GetGlobalConfigPathA() {
       string iniFile = string(commonPath).append("\\global-config.ini");
       configPath = strdup(iniFile.c_str());                                // on the heap
 
-      if (!IsFileA(configPath)) {
+      if (!IsFileA(configPath, MODE_OS)) {
          int error = CreateDirectoryA(commonPath, MODE_OS|MODE_MKPARENT);  // make sure the directory exists
          if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStrA(ERR_WIN32_ERROR+error));
          else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", commonPath);
@@ -186,7 +186,7 @@ const char* WINAPI GetTerminalConfigPathA() {
          }
       }
 
-      if (!IsFileA(configPath)) {
+      if (!IsFileA(configPath, MODE_OS)) {
          std::ofstream file(configPath);                                   // create the file
          if (file.is_open()) file.close();
          else debug("cannot create file \"%s\" (%s)  [%s]", configPath, strerror(errno), ErrorToStrA(ERR_WIN32_ERROR+GetLastError()));

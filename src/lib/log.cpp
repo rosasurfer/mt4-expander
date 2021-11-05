@@ -39,7 +39,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
 
    // open a closed logger
    if (useLogger && !master->logger->is_open()) {
-      if (!IsFileA(master->logFilename)) {
+      if (!IsFileA(master->logFilename, MODE_OS)) {
          char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
          if (CreateDirectoryA(string(drive).append(dir), MODE_OS|MODE_MKPARENT))          // make sure the directory exists
@@ -128,7 +128,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       // open the new logfile if the logfile appender is not disabled
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
-            if (!IsFileA(filename)) {
+            if (!IsFileA(filename, MODE_OS)) {
                char drive[MAX_DRIVE], dir[MAX_DIR];                                    // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
                if (CreateDirectoryA(string(drive).append(dir), MODE_OS|MODE_MKPARENT)) // make sure the directory exists

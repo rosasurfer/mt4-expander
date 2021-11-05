@@ -83,22 +83,22 @@ int WINAPI CreateDirectoryA(const string &path, DWORD flags) {
 /**
  * Whether the specified directory exists and is not a regular file. Symbolic links and junctions are supported.
  *
- * @param  char* name - directory name with support for forward, backward and trailing slashes
+ * @param  char* path - directory path with support for forward, backward and trailing slashes
  * @param  DWORD mode - MODE_MQL: restrict the function's operation to the MQL sandbox
  *                      MODE_OS:  allow the function to operate outside of the MQL sandbox
  * @return BOOL
  */
-BOOL WINAPI IsDirectoryA(const char* name, DWORD mode) {
-   if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-      if (!(~mode & (MODE_MQL|MODE_OS)))  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_OS can be specified")));
-      if (!( mode & (MODE_MQL|MODE_OS)))  return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_OS must be specified")));
+BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
+   if (path) {
+      if ((uint)path < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+      if (!(~mode & (MODE_MQL|MODE_OS)))  return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_OS can be specified"));
+      if (!( mode & (MODE_MQL|MODE_OS)))  return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_OS must be specified"));
 
       if (mode & MODE_MQL) {
-         return(_int(ERR_NOT_IMPLEMENTED, error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented")));
+         return(error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
       }
       else /*mode & MODE_OS*/ {
-         DWORD attributes = GetFileAttributes(name);
+         DWORD attributes = GetFileAttributesA(path);
          return((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY));
       }
    }
@@ -110,16 +110,24 @@ BOOL WINAPI IsDirectoryA(const char* name, DWORD mode) {
 /**
  * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
- * @param  char* name - full filename with support for forward and backward slashes
- *
+ * @param  char* path - file path with support for forward and backward slashes
+ * @param  DWORD mode - MODE_MQL: restrict the function's operation to the MQL sandbox
+ *                      MODE_OS:  allow the function to operate outside of the MQL sandbox
  * @return BOOL
  */
-BOOL WINAPI IsFileA(const char* name) {
-   if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+BOOL WINAPI IsFileA(const char* path, DWORD mode) {
+   if (path) {
+      if ((uint)path < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+      if (!(~mode & (MODE_MQL|MODE_OS)))  return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_OS can be specified"));
+      if (!( mode & (MODE_MQL|MODE_OS)))  return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_OS must be specified"));
 
-      DWORD attributes = GetFileAttributes(name);
-      return((attributes!=INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
+      if (mode & MODE_MQL) {
+         return(error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
+      }
+      else /*mode & MODE_OS*/ {
+         DWORD attributes = GetFileAttributesA(path);
+         return((attributes!=INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
+      }
    }
    return(FALSE);
    #pragma EXPANDER_EXPORT
@@ -129,12 +137,13 @@ BOOL WINAPI IsFileA(const char* name) {
 /**
  * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
- * @param  string &name - full filename with support for forward and backward slashes
- *
+ * @param  string &path - file path with support for forward and backward slashes
+ * @param  DWORD  mode  - MODE_MQL: restrict the function's operation to the MQL sandbox
+ *                        MODE_OS:  allow the function to operate outside of the MQL sandbox
  * @return BOOL
  */
-BOOL WINAPI IsFileA(const string &name) {
-   return(IsFileA(name.c_str()));
+BOOL WINAPI IsFileA(const string &path, DWORD mode) {
+   return(IsFileA(path.c_str(), mode));
 }
 
 
