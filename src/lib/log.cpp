@@ -42,7 +42,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
       if (!IsFileA(master->logFilename)) {
          char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
-         if (CreateDirectoryA(string(drive).append(dir), MKDIR_PARENT))                   // make sure the directory exists
+         if (CreateDirectoryA(string(drive).append(dir), MODE_MKPARENT))                  // make sure the directory exists
             return(FALSE);
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
@@ -131,7 +131,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
             if (!IsFileA(filename)) {
                char drive[MAX_DRIVE], dir[MAX_DIR];                              // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
-               if (CreateDirectoryA(string(drive).append(dir), MKDIR_PARENT))    // make sure the directory exists
+               if (CreateDirectoryA(string(drive).append(dir), MODE_MKPARENT))   // make sure the directory exists
                   return(FALSE);
             }
             log->open(filename, std::ios::binary|std::ios::app);                 // open the logfile

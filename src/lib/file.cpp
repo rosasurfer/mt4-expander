@@ -18,7 +18,7 @@
  * Create a directory.
  *
  * @param  char* path             - full directory path
- * @param  DWORD flags [optional] - MKDIR_PARENT: create parent directories as needed, no error on an existing directory
+ * @param  DWORD flags [optional] - MODE_MKPARENT: create parent directories as needed, no error on an existing directory
  *                                  (default: create only the final directory and report an error if it exists)
  * @return int - error status
  */
@@ -28,13 +28,13 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags/*=NULL*/) {
    // check whether such a file or directory already exists
    if (IsFileOrDirectoryA(path)) {
       if (!IsDirectoryA(path)) return(_int(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path)));
-      if (flags & MKDIR_PARENT)
+      if (flags & MODE_MKPARENT)
          return(NO_ERROR);
       return(_int(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path)));
    }
 
    // make sure a parent directory exists
-   if (flags & MKDIR_PARENT) {
+   if (flags & MODE_MKPARENT) {
       string sPath = string(path);
       size_t pos = sPath.find_last_of("\\/");
       if (pos != string::npos) {
@@ -49,7 +49,7 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags/*=NULL*/) {
 
    // with multiple path separators it may already exist
    int error = GetLastError();
-   if (error==ERROR_ALREADY_EXISTS && (flags & MKDIR_PARENT))
+   if (error==ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT))
       return(NO_ERROR);
    return(_int(ERR_WIN32_ERROR+error, error(ERR_WIN32_ERROR+error, "creation of \"%s\" failed", path)));
    #pragma EXPANDER_EXPORT
@@ -60,7 +60,7 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags/*=NULL*/) {
  * Create a directory.
  *
  * @param  string &path            - full directory path
- * @param  DWORD  flags [optional] - MKDIR_PARENT: create parent directories as needed, no error on an existing directory
+ * @param  DWORD  flags [optional] - MODE_MKPARENT: create parent directories as needed, no error on an existing directory
  *                                   (default: create only the final directory and report an error if it exists)
  * @return int - error status
  */
