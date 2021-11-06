@@ -41,15 +41,15 @@ uint WINAPI ec_PreviousPid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's creation time.
+ * Return an MQL program's start time.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return datetime - system time
  */
-datetime WINAPI ec_Created(const EXECUTION_CONTEXT* ec) {
+datetime WINAPI ec_Started(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->created);
+   return(ec->started);
    #pragma EXPANDER_EXPORT
 }
 
@@ -2205,7 +2205,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
       ss << std::fixed
          <<  "{pid="                  <<                      ec->pid
          << ", previousPid="          <<                      ec->previousPid
-         << ", created="              <<                     (ec->created ? LocalTimeFormatA(ec->created, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", started="              <<                     (ec->started ? LocalTimeFormatA(ec->started, "\"%Y.%m.%d %H:%M:%S\"") : "0")
 
          << ", programType="          <<     ProgramTypeToStr(ec->programType)
          << ", programName="          <<       DoubleQuoteStr(ec->programName)
