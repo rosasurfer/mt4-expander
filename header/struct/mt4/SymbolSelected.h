@@ -10,7 +10,7 @@ struct SYMBOL_SELECTED {                           // -- offset ---- size --- de
    char     symbol[MAX_SYMBOL_LENGTH+1];           //         0        12     symbol (szchar)
    uint     digits;                                //        12         4     digits
 
-   uint     arrayKey;                              //        16         4     = SYMBOL.arrayKey (@see "symbols.raw")
+   uint     symbolIndex;                           //        16         4     field SYMBOL.index (@see "symbols.raw")
    DWORD    unknown_1;                             //        20         4     always 0x0001
 
    uint     group;                                 //        24         4     the symbol's SYMBOL_GROUP index in "symgroups.raw"

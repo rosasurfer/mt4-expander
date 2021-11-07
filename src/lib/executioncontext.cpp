@@ -390,7 +390,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
             currentPid      = PushProgram(chain);                          // store the chain and update master and main context
             master->pid     = ec->pid     = currentPid;
-            master->created = ec->created = time(NULL);
+            master->started = ec->started = time(NULL);
             SetLastThreadProgram(currentPid);
          }
       }

@@ -26,7 +26,7 @@ typedef std::vector<string*> LogBuffer;
 struct EXECUTION_CONTEXT {                            // -- offset --- size --- description --------------------------------------------------------------------------------------
    uint               pid;                            //         0        4     MQL program id starting from 1                            (const) => index in g_mqlPrograms[]
    uint               previousPid;                    //         4        4     previous pid of the program or NULL                       (const)
-   datetime           created;                        //         8        4     GMT time the MQL program was loaded                       (const)
+   datetime           started;                        //         8        4     GMT time the MQL program was started                      (const)
                                                       //
    ProgramType        programType;                    //        12        4     MQL program type                                          (const) => type of MQL program
    char               programName[MAX_FNAME];         //        16      256     MQL program name                                          (const) => MQL program name
@@ -106,7 +106,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
 // getters (exported to MQL)
 uint               WINAPI ec_Pid                 (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PreviousPid         (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_Created             (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_Started             (const EXECUTION_CONTEXT* ec);
 
 ProgramType        WINAPI ec_ProgramType         (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_ProgramName         (const EXECUTION_CONTEXT* ec);

@@ -391,7 +391,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
                                  .append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
 
    // make sure the directory exists
-   int error = CreateDirectoryA(path, MKDIR_PARENT);
+   int error = CreateDirectoryA(path, MODE_OS|MODE_MKPARENT);
    if (error) return(error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", path.c_str()));
 
    // create the report file
@@ -549,7 +549,7 @@ int WINAPI Tester_Test(const char* filename) {
 
    if (!file.is_open()) {
       error(ERR_WIN32_ERROR+GetLastError(), "opening \"%s\" failed", filename);
-      return(CreateDirectoryA(filename));
+      return(CreateDirectoryA(filename, MODE_OS));
    }
    else {
       file.close();
