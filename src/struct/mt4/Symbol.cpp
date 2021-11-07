@@ -38,20 +38,6 @@ const char* WINAPI symbol_Description(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Herkunft eines SYMBOLs zurück.
- *
- * @param  SYMBOL* symbol
- *
- * @return char* - ursprünglicher Symbolname oder Leerstring, wenn kein solcher Name gesetzt ist
- */
-const char* WINAPI symbol_Origin(const SYMBOL* symbol) {
-   if ((uint)symbol < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   return(symbol->origin);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Gibt den alternativen Namen eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
@@ -139,15 +125,15 @@ uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Array-Key eines SYMBOLs zurück. Der Wert kann sich ändern, wenn die Datei "symbols.raw" gespeichert wird.
+ * Gibt den Array-Index eines SYMBOLs zurück. Der Wert kann sich ändern, wenn die Datei "symbols.raw" gespeichert wird.
  *
  * @param  SYMBOL* symbol
  *
- * @return uint - Array-Key
+ * @return uint - Index
  */
-uint WINAPI symbol_ArrayKey(const SYMBOL* symbol) {
+uint WINAPI symbol_Index(const SYMBOL* symbol) {
    if ((uint)symbol < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol)));
-   return(symbol->arrayKey);
+   return(symbol->index);
    #pragma EXPANDER_EXPORT
 }
 
@@ -393,17 +379,17 @@ const char* WINAPI symbols_Name(const SYMBOL symbols[], int index) {
 
 
 /**
- * Gibt den Array-Key eines SYMBOLs in einem Array zurück.
+ * Gibt das Feld "index" eines SYMBOLs in einem Array zurück.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index
  *
- * @return uint - Array-Key
+ * @return uint - field value
  */
-uint WINAPI symbols_ArrayKey(const SYMBOL symbols[], int index) {
+uint WINAPI symbols_Index(const SYMBOL symbols[], int index) {
    if ((uint)symbols < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter symbols: 0x%p (not a valid pointer)", symbols)));
    if (index         < 0)                 return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter index: %d (not a valid index)", index)));
-   return(symbols[index].arrayKey);
+   return(symbols[index].index);
    #pragma EXPANDER_EXPORT
 }
 
@@ -648,8 +634,8 @@ BOOL WINAPI SortSymbols(SYMBOL symbols[], int size) {
 
    qsort(symbols, size, sizeof(SYMBOL), CompareSymbols);
 
-   for (int i=0; i < size; i++) {            // assign new array keys
-      symbols[i].arrayKey = i;
+   for (int i=0; i < size; i++) {            // assign new array indexes
+      symbols[i].index = i;
    }
    return(TRUE);
    #pragma EXPANDER_EXPORT

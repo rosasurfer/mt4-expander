@@ -6,12 +6,11 @@
 /**
  * MT4 struct SYMBOL (file format of "symbols.raw")
  *
- * All symbols of a file are sorted alphabetically by "name".
+ * All symbols of a file are sorted alphabetically by field "name".
  */
 struct SYMBOL {                                    // -- offset ---- size --- description -------------------------------------------------------------------
-   char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     broker specific symbol (e.g. "AUDCAD.m")
-   char   description [54];                        //        12        54     description, original size = 64
-   char   origin      [10];                        //        66        10     custom: tracks the symbol a symbol template originated from
+   char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     broker symbol (e.g. "AUDCAD.m")
+   char   description [64];                        //        12        64     description
    char   altName     [MAX_SYMBOL_LENGTH+1];       //        76        12     standard symbol (e.g. "AUDCAD"), set only if different from "name"
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //        88        12     base currency
    uint   group;                                   //       100         4     index of the symbol group in "symgroups.raw" (zero based)
@@ -19,7 +18,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 
    uint   tradeMode;                               //       108         4     0=NoTrading | 1=CloseOnly | 2=FullTrading
    uint   backgroundColor;                         //       112         4     color in "MarketWatch" window
-   uint   arrayKey;                                //       116         4     unique but variable array/vector id >= 0 (not the array/vector index)
+   uint   index;                                   //       116         4     unique but variable symbol index >= 0 (for usage simplification recommended to be the array index)
    uint   id;                                      //       120         4     unique and constant symbol id >= 0
 
    BYTE   unknown1[32];                            //       124        32
@@ -76,14 +75,13 @@ struct SYMBOL {                                    // -- offset ---- size --- de
 // getters
 const char* WINAPI symbol_Name                 (const SYMBOL* symbol);
 const char* WINAPI symbol_Description          (const SYMBOL* symbol);
-const char* WINAPI symbol_Origin               (const SYMBOL* symbol);
 const char* WINAPI symbol_AltName              (const SYMBOL* symbol);
 const char* WINAPI symbol_BaseCurrency         (const SYMBOL* symbol);
 uint        WINAPI symbol_Group                (const SYMBOL* symbol);
 uint        WINAPI symbol_Digits               (const SYMBOL* symbol);
 uint        WINAPI symbol_TradeMode            (const SYMBOL* symbol);
 uint        WINAPI symbol_BackgroundColor      (const SYMBOL* symbol);
-uint        WINAPI symbol_ArrayKey             (const SYMBOL* symbol);
+uint        WINAPI symbol_Index                (const SYMBOL* symbol);
 uint        WINAPI symbol_Id                   (const SYMBOL* symbol);
 uint        WINAPI symbol_Spread               (const SYMBOL* symbol);
 BOOL        WINAPI symbol_SwapEnabled          (const SYMBOL* symbol);
@@ -102,7 +100,7 @@ double      WINAPI symbol_PointsPerUnit        (const SYMBOL* symbol);
 const char* WINAPI symbol_MarginCurrency       (const SYMBOL* symbol);
 
 const char* WINAPI symbols_Name                (const SYMBOL symbols[], int index);
-uint        WINAPI symbols_ArrayKey            (const SYMBOL symbols[], int index);
+uint        WINAPI symbols_Index               (const SYMBOL symbols[], int index);
 uint        WINAPI symbols_Id                  (const SYMBOL symbols[], int index);
 
 // setters
