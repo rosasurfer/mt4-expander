@@ -201,6 +201,12 @@ void WINAPI DummyCalls() {
 }
 
 
+const char* WINAPI GetUniqueSymbol() {
+   return("");
+   #pragma EXPANDER_EXPORT
+}
+
+
 const char* WINAPI InputsToStr() {
    return("");
    #pragma EXPANDER_EXPORT
@@ -214,7 +220,7 @@ int WINAPI ShowStatus(int error) {
 
 
 /**
- * Error handlers for missing MQL function implementations (if a functionality is used).
+ * Error handlers for missing MQL implementations (if such functionality is used).
  */
 BOOL WINAPI onBarOpen() {
    return(error(ERR_NOT_IMPLEMENTED, ""));

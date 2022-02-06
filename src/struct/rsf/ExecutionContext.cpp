@@ -741,38 +741,6 @@ DWORD WINAPI ec_TestTradeDirections(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's reporting id of a test (if any).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - reporting id
- */
-int WINAPI ec_TestReportId(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->reportId);
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an MQL program's reporting symbol of a TEST (if any).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - reporting symbol
- */
-const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->reportSymbol);
-   return((char*)NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether an MQL program is executed in the tester or on a chart in the tester.
  *
  * @param  EXECUTION_CONTEXT* ec

@@ -111,42 +111,6 @@ double WINAPI test_SetSpread(TEST* test, double spread) {
 
 
 /**
- * Set the reporting id of a TEST. Used for composition of TEST.reportingSymbol.
- *
- * @param  TEST* test
- * @param  int   id
- *
- * @return int - the same id
- */
-int WINAPI test_SetReportId(TEST* test, int id) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (id < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
-
-   test->reportId = id;
-   return(id);
-}
-
-
-/**
- * Set the reporting symbol of a TEST. Used as terminal symbol for charted reports.
- *
- * @param  TEST* test
- * @param  char* symbol
- *
- * @return char* - the same symbol
- */
-const char* WINAPI test_SetReportSymbol(TEST* test, const char* symbol) {
-   if ((uint)test   < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if ((uint)symbol < MIN_VALID_POINTER)   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if (strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
-
-   if (!strcpy(test->reportSymbol, symbol))
-      return(NULL);
-   return(symbol);
-}
-
-
-/**
  * Return a human-readable version of a TEST struct.
  *
  * @param  TEST* test
@@ -177,8 +141,6 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", bars="            <<                         test->bars
          << ", ticks="           <<                         test->ticks
          << ", spread="          << std::setprecision(1) << test->spread
-         << ", reportId="        <<                         test->reportId
-         << ", reportSymbol="    <<                        (test->reportSymbol ? (*test->reportSymbol ? test->reportSymbol : "\"\"") : "NULL")
          << ", tradeDirections=" << "?"                  // test->tradeDirections      // TODO: Long|Short|Both
          << ", trades="          <<                        (test->closedPositions      ? StrFormat("%d", test->closedPositions     ->size()) : "NULL")
          << " ("                 <<                        (test->closedLongPositions  ? StrFormat("%d", test->closedLongPositions ->size()) : "NULL")
