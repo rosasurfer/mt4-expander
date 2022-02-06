@@ -225,7 +225,7 @@ const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe
 /**
  * Get the commission value for the specified lotsize.
  *
- * @param  EXECUTION_CONTEXT* ec              - execution context of the tested expert
+ * @param  EXECUTION_CONTEXT* ec              - execution context of the expert under test
  * @param  double             lots [optional] - lotsize to calculate commission for (default: 1 lot)
  *
  * @return double - commission value or EMPTY (-1) in case of errors
@@ -429,7 +429,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
 /**
  * TODO: documentation
  */
-BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int reportId, const char* reportSymbol) {
+BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int reportId, const char* reportSymbol) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
