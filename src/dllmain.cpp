@@ -72,7 +72,6 @@ void WINAPI onProcessAttach() {
       HMODULE hModule = NULL;
       GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
    }
-   debug("DLL \"%s\" loaded", dllName);
 }
 
 

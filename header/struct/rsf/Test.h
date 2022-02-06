@@ -24,8 +24,6 @@ struct TEST {
    uint               ticks;                             // number of tested ticks
    double             spread;                            // spread in pip
    const FXT_HEADER*  fxtHeader;                         // FXT header of the test's price history
-   int                reportId;                          // reporting id (for composition of reportSymbol)
-   char               reportSymbol[MAX_SYMBOL_LENGTH+1]; // reporting symbol (terminal symbol for charted reports)
    DWORD              tradeDirections;                   // enabled trade directions: Long|Short|Both
 
    OrderList*         openPositions;
@@ -63,8 +61,6 @@ uint        WINAPI test_SetBars           (TEST* test, uint        bars     );
 uint        WINAPI test_SetTicks          (TEST* test, uint        ticks    );
 double      WINAPI test_SetSpread         (TEST* test, double      spread   );
 //DWORD     WINAPI test_SetTradeDirections(TEST* test, uint        types    );   // TODO
-int         WINAPI test_SetReportId       (TEST* test, int         id       );
-const char* WINAPI test_SetReportSymbol   (TEST* test, const char* symbol   );
 
 
 // helpers

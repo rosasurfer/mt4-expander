@@ -79,8 +79,8 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    BOOL               visualMode;                     //       720        4     expert IsVisualMode() status                              (const)
    BOOL               optimization;                   //       724        4     expert IsOptimization() status                            (const)
                                                       //
-   BOOL               extReporting;                   //       728        4     expert input parameter EA.CreateReport                    (var)
-   BOOL               recordEquity;                   //       732        4     expert input parameter EA.RecordEquity                    (var)
+   BOOL               eaExternalReporting;            //       728        4     an expert's input parameter "EA.ExternalReporting"        (var)
+   BOOL               eaRecordEquity;                 //       732        4     an expert's input parameter "EA.RecordEquity"             (var)
                                                       //
    int                mqlError;                       //       736        4     last MQL error (from all program modules)                 (var)
    int                dllError;                       //       740        4     last DLL error                                            (var)
@@ -164,14 +164,12 @@ uint               WINAPI ec_TestBars            (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestTicks           (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_TestSpread          (const EXECUTION_CONTEXT* ec);
 DWORD              WINAPI ec_TestTradeDirections (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_TestReportId        (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_TestReportSymbol    (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Testing             (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization        (const EXECUTION_CONTEXT* ec);
 
-BOOL               WINAPI ec_ExtReporting        (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_RecordEquity        (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_EaExternalReporting (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_EaRecordEquity      (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_MqlError            (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError            (const EXECUTION_CONTEXT* ec);
@@ -236,8 +234,8 @@ BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL
 BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
 
-BOOL               WINAPI ec_SetExtReporting        (EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetRecordEquity        (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetEaExternalReporting (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetEaRecordEquity      (EXECUTION_CONTEXT* ec, BOOL               status  );
 
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
 int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );

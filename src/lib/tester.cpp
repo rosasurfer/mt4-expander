@@ -225,7 +225,7 @@ const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe
 /**
  * Get the commission value for the specified lotsize.
  *
- * @param  EXECUTION_CONTEXT* ec              - execution context of the tested expert
+ * @param  EXECUTION_CONTEXT* ec              - execution context of the expert under test
  * @param  double             lots [optional] - lotsize to calculate commission for (default: 1 lot)
  *
  * @return double - commission value or EMPTY (-1) in case of errors
@@ -385,10 +385,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
 
    // define report directory and filename
    string path     = string(GetTerminalPathA()).append("/tester/files/testresults/");
-   string filename = string(path).append(test->ec->programName)
-                                 .append(" #")
-                                 .append(to_string(test->reportId))
-                                 .append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
+   string filename = string(path).append(test->ec->programName).append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
 
    // make sure the directory exists
    int error = CreateDirectoryA(path, MODE_OS|MODE_MKPARENT);
@@ -419,7 +416,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    // backup input parameters
    // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
    string source = string(GetTerminalPathA()) +"/tester/"+ test->ec->programName +".ini";
-   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName +" #"+ to_string(test->reportId) + LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.ini");
+   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName + LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(source.c_str(), target.c_str(), TRUE))
       return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile()"));
    return(TRUE);
@@ -429,7 +426,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
 /**
  * TODO: documentation
  */
-BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars, int reportId, const char* reportSymbol) {
+BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
@@ -443,8 +440,6 @@ BOOL WINAPI Test_StartReporting(const EXECUTION_CONTEXT* ec, datetime startTime,
    test_SetBars        (test, bars        );
    test_SetSpread      (test, spread      );
  //test_SetTradeDirections...                                  // TODO: read from "{expert-name}.ini"
-   test_SetReportId    (test, reportId    );
-   test_SetReportSymbol(test, reportSymbol);
 
    return(TRUE);
    #pragma EXPANDER_EXPORT

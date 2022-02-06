@@ -741,38 +741,6 @@ DWORD WINAPI ec_TestTradeDirections(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's reporting id of a test (if any).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - reporting id
- */
-int WINAPI ec_TestReportId(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->reportId);
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an MQL program's reporting symbol of a TEST (if any).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - reporting symbol
- */
-const char* WINAPI ec_TestReportSymbol(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->test)
-      return(ec->test->reportSymbol);
-   return((char*)NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether an MQL program is executed in the tester or on a chart in the tester.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -815,15 +783,15 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether an MQL program's input parameter "EA.CreateReport" is activated (experts only).
+ * Whether an MQL program's input parameter "EA.ExternalReporting" is activated (experts only).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
  */
-BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_EaExternalReporting(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->extReporting);
+   return(ec->eaExternalReporting);
    #pragma EXPANDER_EXPORT
 }
 
@@ -835,9 +803,9 @@ BOOL WINAPI ec_ExtReporting(const EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL
  */
-BOOL WINAPI ec_RecordEquity(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_EaRecordEquity(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->recordEquity);
+   return(ec->eaRecordEquity);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1817,46 +1785,46 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's extReporting value.
+ * Set an EXECUTION_CONTEXT's eaExternalReporting value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetExtReporting(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetEaExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->extReporting = status;
+   ec->eaExternalReporting = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->extReporting = status;
+         chain[0]->eaExternalReporting = status;
    }
    return(status);
 }
 
 
 /**
- * Set an EXECUTION_CONTEXT's recordEquity value.
+ * Set an EXECUTION_CONTEXT's eaRecordEquity value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetEaRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->recordEquity = status;
+   ec->eaRecordEquity = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->recordEquity = status;
+         chain[0]->eaRecordEquity = status;
    }
    return(status);
 }
@@ -2257,8 +2225,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
 
-         << ", extReporting="         <<            BoolToStr(ec->extReporting)
-         << ", recordEquity="         <<            BoolToStr(ec->recordEquity)
+         << ", eaExternalReporting="  <<            BoolToStr(ec->eaExternalReporting)
+         << ", eaRecordEquity="       <<            BoolToStr(ec->eaRecordEquity)
 
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
          << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
