@@ -6,7 +6,7 @@
 /**
  * MT4 struct SYMBOL_GROUP (file format of "symgroups.raw")
  *
- * The file size is fixed, a file always contains 32 groups. Unused group entries are just empty (zeroed).
+ * The file size is fix, a file always contains 32 groups. Unused group entries are empty (zeroed).
  */
 struct SYMBOL_GROUP {                              // -- offset ---- size --- description -----------------------------------
    char name       [16];                           //         0        16     group name

@@ -123,17 +123,17 @@ const char* WINAPI GetGlobalConfigPathA() {
       if (!commonPath) return(NULL);
 
       string iniFile = string(commonPath).append("\\global-config.ini");
-      configPath = strdup(iniFile.c_str());                                // on the heap
+      configPath = strdup(iniFile.c_str());                                    // on the heap
 
-      if (!IsFileA(configPath, MODE_OS)) {
-         int error = CreateDirectoryA(commonPath, MODE_OS|MODE_MKPARENT);  // make sure the directory exists
+      if (!IsFileA(configPath, MODE_SYSTEM)) {
+         int error = CreateDirectoryA(commonPath, MODE_SYSTEM|MODE_MKPARENT);  // make sure the directory exists
          if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND) debug("cannot create directory \"%s\"  [%s]", commonPath, ErrorToStrA(ERR_WIN32_ERROR+error));
          else if (error)                                                error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", commonPath);
 
-         if (!error) {                                                     // try to create the file
+         if (!error) {                                                         // try to create the file
             HFILE hFile = _lcreat(configPath, FILE_ATTRIBUTE_NORMAL);
             if (hFile == HFILE_ERROR) {
-               error = GetLastError();                                     // log errors but continue
+               error = GetLastError();                                         // log errors but continue
                if (error == ERROR_ACCESS_DENIED) debug("cannot create file \"%s\"  [%s]", configPath, ErrorToStrA(ERR_WIN32_ERROR+error));
                else                              error(ERR_WIN32_ERROR+error, "cannot create file \"%s\"", configPath);
             }
@@ -164,10 +164,10 @@ const char* WINAPI GetTerminalConfigPathA() {
       if (!dataPath) return(NULL);
 
       string iniFile = string(dataPath).append("\\terminal-config.ini");
-      configPath = strdup(iniFile.c_str());                                // on the heap
+      configPath = strdup(iniFile.c_str());                                    // on the heap
 
-      if (!IsDirectoryA(dataPath, MODE_OS)) {
-         int error = CreateDirectoryA(dataPath, MODE_OS|MODE_MKPARENT);    // make sure the directory exists
+      if (!IsDirectoryA(dataPath, MODE_SYSTEM)) {
+         int error = CreateDirectoryA(dataPath, MODE_SYSTEM|MODE_MKPARENT);    // make sure the directory exists
          if (error==ERROR_ACCESS_DENIED || error==ERROR_PATH_NOT_FOUND)
             return((char*)debug("cannot create directory \"%s\"  [%s]", dataPath, ErrorToStrA(ERR_WIN32_ERROR+error)));
          if (error)
@@ -176,7 +176,7 @@ const char* WINAPI GetTerminalConfigPathA() {
          const char* terminalPath = GetTerminalPathA();
 
          if (!StrCompare(dataPath, terminalPath)) {
-            string originFile = string(dataPath).append("\\origin.txt");   // store file "origin.txt"
+            string originFile = string(dataPath).append("\\origin.txt");       // store file "origin.txt"
             std::ofstream file(originFile.c_str());
             if (file.is_open()) {
                file << terminalPath << NL;
@@ -186,8 +186,8 @@ const char* WINAPI GetTerminalConfigPathA() {
          }
       }
 
-      if (!IsFileA(configPath, MODE_OS)) {
-         std::ofstream file(configPath);                                   // create the file
+      if (!IsFileA(configPath, MODE_SYSTEM)) {
+         std::ofstream file(configPath);                                       // create the file
          if (file.is_open()) file.close();
          else debug("cannot create file \"%s\" (%s)  [%s]", configPath, strerror(errno), ErrorToStrA(ERR_WIN32_ERROR+GetLastError()));
       }
