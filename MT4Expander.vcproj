@@ -252,6 +252,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\lib\history.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\lib\log.h"
 					>
 				</File>
@@ -624,6 +628,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\history.cpp"
+					>
 				</File>
 				<File
 					RelativePath=".\src\lib\lock.cpp"
