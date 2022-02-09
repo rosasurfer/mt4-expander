@@ -19,7 +19,7 @@ const wchar*            WINAPI GetTerminalFileNameW();
 HWND                    WINAPI GetTerminalMainWindow();
 const char*             WINAPI GetTerminalPathA();
 const wchar*            WINAPI GetTerminalPathW();
-const wstring&          WINAPI GetTerminalPathWs();
+const wstring&          WINAPI getTerminalPathW();
 const char*             WINAPI GetTerminalRoamingDataPathA();
 const wchar*            WINAPI GetTerminalRoamingDataPathW();
 const char*             WINAPI GetTerminalVersion();
