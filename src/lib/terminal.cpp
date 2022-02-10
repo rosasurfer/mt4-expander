@@ -89,46 +89,6 @@ BOOL WINAPI IsLockedFile(const string &filename) {
 
 
 /**
- * Return the full path of the currently used history directory. The function doesn't check whether the directory exists.
- *
- * @return char* - directory name or a NULL pointer in case of errors
- */
-const char* WINAPI GetCommonHistoryPathA() {
-   static char* hstDirectory;
-   if (!hstDirectory) {
-      const char* dataPath = GetTerminalDataPathA();
-
-      if (dataPath) {
-         string path = string(dataPath).append("\\history");
-         hstDirectory = strdup(path.c_str());
-      }
-   }
-   return(hstDirectory);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the full path of the currently used history directory. The function doesn't check whether the directory exists.
- *
- * @return wchar* - directory name or a NULL pointer in case of errors
- */
-const wchar* WINAPI GetCommonHistoryPathW() {
-   static wchar* hstDirectory;
-   if (!hstDirectory) {
-      const wchar* dataPath = GetTerminalDataPathW();
-
-      if (dataPath) {
-         wstring path = wstring(dataPath).append(L"\\history");
-         hstDirectory = wcsdup(path.c_str());
-      }
-   }
-   return(hstDirectory);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the full filename of the loaded MT4Expander DLL.
  *
  * @return char* - filename or a NULL pointer in case of errors
@@ -200,6 +160,46 @@ HMODULE WINAPI GetExpanderModuleXP() {
    HMODULE hModule = NULL;
    GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetExpanderModuleXP, &hModule);
    return(hModule);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the history root directory. The function doesn't check whether the directory exists.
+ *
+ * @return char* - directory name or a NULL pointer in case of errors
+ */
+const char* WINAPI GetHistoryRootPathA() {
+   static char* hstDirectory;
+   if (!hstDirectory) {
+      const char* dataPath = GetTerminalDataPathA();
+
+      if (dataPath) {
+         string path = string(dataPath).append("\\history");
+         hstDirectory = strdup(path.c_str());
+      }
+   }
+   return(hstDirectory);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+* Return the full path of the history root directory. The function doesn't check whether the directory exists.
+ *
+ * @return wchar* - directory name or a NULL pointer in case of errors
+ */
+const wchar* WINAPI GetHistoryRootPathW() {
+   static wchar* hstDirectory;
+   if (!hstDirectory) {
+      const wchar* dataPath = GetTerminalDataPathW();
+
+      if (dataPath) {
+         wstring path = wstring(dataPath).append(L"\\history");
+         hstDirectory = wcsdup(path.c_str());
+      }
+   }
+   return(hstDirectory);
    #pragma EXPANDER_EXPORT
 }
 

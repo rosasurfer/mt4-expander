@@ -3,12 +3,12 @@
 
 
 HWND                    WINAPI FindInputDialogA(ProgramType programType, const char* programName);
-const char*             WINAPI GetCommonHistoryPathA();
-const wchar*            WINAPI GetCommonHistoryPathW();
 const char*             WINAPI GetExpanderFileNameA();
 const wchar*            WINAPI GetExpanderFileNameW();
 HMODULE                 WINAPI GetExpanderModuleW2K();
 HMODULE                 WINAPI GetExpanderModuleXP();
+const char*             WINAPI GetHistoryRootPathA();
+const wchar*            WINAPI GetHistoryRootPathW();
 const char*             WINAPI GetMqlDirectoryA();
 const wchar*            WINAPI GetMqlDirectoryW();
 uint                    WINAPI GetTerminalBuild();
