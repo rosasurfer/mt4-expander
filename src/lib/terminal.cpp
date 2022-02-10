@@ -89,6 +89,46 @@ BOOL WINAPI IsLockedFile(const string &filename) {
 
 
 /**
+ * Return the full path of the currently used history directory. The function doesn't check whether the directory exists.
+ *
+ * @return char* - directory name or a NULL pointer in case of errors
+ */
+const char* WINAPI GetCommonHistoryPathA() {
+   static char* hstDirectory;
+   if (!hstDirectory) {
+      const char* dataPath = GetTerminalDataPathA();
+
+      if (dataPath) {
+         string path = string(dataPath).append("\\history");
+         hstDirectory = strdup(path.c_str());
+      }
+   }
+   return(hstDirectory);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the currently used history directory. The function doesn't check whether the directory exists.
+ *
+ * @return wchar* - directory name or a NULL pointer in case of errors
+ */
+const wchar* WINAPI GetCommonHistoryPathW() {
+   static wchar* hstDirectory;
+   if (!hstDirectory) {
+      const wchar* dataPath = GetTerminalDataPathW();
+
+      if (dataPath) {
+         wstring path = wstring(dataPath).append(L"\\history");
+         hstDirectory = wcsdup(path.c_str());
+      }
+   }
+   return(hstDirectory);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the full filename of the loaded MT4Expander DLL.
  *
  * @return char* - filename or a NULL pointer in case of errors
@@ -165,21 +205,20 @@ HMODULE WINAPI GetExpanderModuleXP() {
 
 
 /**
- * Return the full path of the MQL directory the terminal currently uses.
+ * Return the full path of the currently used MQL directory.
  *
  * @return char* - directory name or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
-
    if (!mqlDirectory) {
       const char* dataPath = GetTerminalDataPathA();
 
       if (dataPath) {
-         string dir(dataPath);
-         if (GetTerminalBuild() <= 509) dir.append("\\experts");
-         else                           dir.append("\\mql4");
-         mqlDirectory = strdup(dir.c_str());
+         string path(dataPath);
+         if (GetTerminalBuild() <= 509) path.append("\\experts");
+         else                           path.append("\\mql4");
+         mqlDirectory = strdup(path.c_str());
       }
    }
    return(mqlDirectory);
@@ -188,7 +227,7 @@ const char* WINAPI GetMqlDirectoryA() {
 
 
 /**
- * Return the full path of the MQL directory the terminal currently uses.
+ * Return the full path of the currently used MQL directory.
  *
  * @return wchar* - directory name or a NULL pointer in case of errors
  */
@@ -199,10 +238,10 @@ const wchar* WINAPI GetMqlDirectoryW() {
       const wchar* dataPath = GetTerminalDataPathW();
 
       if (dataPath) {
-         wstring dir(dataPath);
-         if (GetTerminalBuild() <= 509) dir.append(L"\\experts");
-         else                           dir.append(L"\\mql4");
-         mqlDirectory = wcsdup(dir.c_str());
+         wstring path(dataPath);
+         if (GetTerminalBuild() <= 509) path.append(L"\\experts");
+         else                           path.append(L"\\mql4");
+         mqlDirectory = wcsdup(path.c_str());
       }
    }
    return(mqlDirectory);
@@ -532,8 +571,8 @@ const wstring& WINAPI getTerminalPathW() {
 
 
 /**
- * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the data
- * directory may differ. The function does not check if the returned path exists.
+ * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
+ * data directory may differ. The function does not check whether the returned path exists.
  *
  * @return char* - directory name or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
@@ -562,8 +601,8 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
 
 /**
- * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the data
- * directory may differ. The function does not check if the returned path exists.
+ * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
+ * data directory may differ. The function does not check whether the returned path exists.
  *
  * @return char* - directory name or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"

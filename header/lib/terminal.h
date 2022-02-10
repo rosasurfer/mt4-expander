@@ -3,6 +3,8 @@
 
 
 HWND                    WINAPI FindInputDialogA(ProgramType programType, const char* programName);
+const char*             WINAPI GetCommonHistoryPathA();
+const wchar*            WINAPI GetCommonHistoryPathW();
 const char*             WINAPI GetExpanderFileNameA();
 const wchar*            WINAPI GetExpanderFileNameW();
 HMODULE                 WINAPI GetExpanderModuleW2K();
