@@ -12,8 +12,8 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
- * Append a log message to a program's logfile. The caller is responsible for checking the configured loglevel. Intentionally
- * this function doesn't check it again.
+ * Append a log message to a program's logfile (functionality of a logfile appender). The caller is responsible for filtering
+ * messages (e.g. by loglevel).
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
  * @param  datetime           time    - current time (used only in tester)
