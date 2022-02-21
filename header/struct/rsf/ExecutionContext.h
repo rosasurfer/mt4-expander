@@ -80,7 +80,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    BOOL               optimization;                   //       724        4     expert IsOptimization() status                            (const)
                                                       //
    BOOL               eaExternalReporting;            //       728        4     an expert's input parameter "EA.ExternalReporting"        (var)
-   BOOL               eaRecordEquity;                 //       732        4     an expert's input parameter "EA.RecordEquity"             (var)
+   BOOL               eaRecorder;                     //       732        4     an expert's input parameter "EA.Recorder"                 (var)
                                                       //
    int                mqlError;                       //       736        4     last MQL error (from all program modules)                 (var)
    int                dllError;                       //       740        4     last DLL error                                            (var)
@@ -169,7 +169,7 @@ BOOL               WINAPI ec_VisualMode          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization        (const EXECUTION_CONTEXT* ec);
 
 BOOL               WINAPI ec_EaExternalReporting (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_EaRecordEquity      (const EXECUTION_CONTEXT* ec);
+BOOL               WINAPI ec_EaRecorder          (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_MqlError            (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError            (const EXECUTION_CONTEXT* ec);
@@ -235,7 +235,7 @@ BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL
 BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
 
 BOOL               WINAPI ec_SetEaExternalReporting (EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetEaRecordEquity      (EXECUTION_CONTEXT* ec, BOOL               status  );
+BOOL               WINAPI ec_SetEaRecorder          (EXECUTION_CONTEXT* ec, BOOL               status  );
 
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
 int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );

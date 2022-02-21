@@ -797,15 +797,15 @@ BOOL WINAPI ec_EaExternalReporting(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether an MQL program's input parameter "EA.RecordEquity" is activated (experts only).
+ * Whether an MQL program's input parameter "EA.Recorder" is activated (experts only).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
  */
-BOOL WINAPI ec_EaRecordEquity(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_EaRecorder(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->eaRecordEquity);
+   return(ec->eaRecorder);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1808,23 +1808,23 @@ BOOL WINAPI ec_SetEaExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's eaRecordEquity value.
+ * Set an EXECUTION_CONTEXT's eaRecorder value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetEaRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetEaRecorder(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->eaRecordEquity = status;
+   ec->eaRecorder = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->eaRecordEquity = status;
+         chain[0]->eaRecorder = status;
    }
    return(status);
 }
@@ -2226,7 +2226,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", optimization="         <<            BoolToStr(ec->optimization)
 
          << ", eaExternalReporting="  <<            BoolToStr(ec->eaExternalReporting)
-         << ", eaRecordEquity="       <<            BoolToStr(ec->eaRecordEquity)
+         << ", eaRecorder="           <<            BoolToStr(ec->eaRecorder)
 
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
          << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
