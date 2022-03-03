@@ -603,9 +603,9 @@ HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL
  */
-BOOL WINAPI ec_EaRecorder(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_Recording(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->eaRecorder);
+   return(ec->recording);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1716,23 +1716,23 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's eaRecorder value.
+ * Set an EXECUTION_CONTEXT's recording value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetEaRecorder(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetRecording(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->eaRecorder = status;
+   ec->recording = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->eaRecorder = status;
+         chain[0]->recording = status;
    }
    return(status);
 }
@@ -2220,7 +2220,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", hChart="               <<                     (ec->hChart       ? StrFormat("0x%p", ec->hChart       ) : "NULL")
          << ", hChartWindow="         <<                     (ec->hChartWindow ? StrFormat("0x%p", ec->hChartWindow ) : "NULL")
 
-         << ", eaRecorder="           <<            BoolToStr(ec->eaRecorder)
+         << ", recording="            <<            BoolToStr(ec->recording)
 
          << ", test="                 <<                     (ec->test ? StrFormat("0x%p", ec->test) : "NULL")
          << ", testing="              <<            BoolToStr(ec->testing)
