@@ -310,7 +310,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * @param  BOOL               isTesting           - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode        - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isOptimization      - value of IsOptimzation() as returned by the terminal
- * @param  BOOL               eaExternalReporting - an expert's input parameter "Test.ExternalReporting"
+ * @param  BOOL               isExternalReporting - an expert's input parameter "Test.ExternalReporting"
  * @param  EXECUTION_CONTEXT* sec                 - super context as managed by the terminal (memory possibly already released)
  * @param  HWND               hChart              - value of WindowHandle() as returned by the terminal (possibly not yet set)
  * @param  int                droppedOnChart      - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
@@ -321,7 +321,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  *
  * @see additional notes at the top of this file
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL eaRecorder, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, BOOL eaExternalReporting, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL eaRecorder, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, BOOL isExternalReporting, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if ((uint)programName < MIN_VALID_POINTER)          return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName)));
    if (strlen(programName) >= sizeof(ec->programName)) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1)));
@@ -455,7 +455,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
    ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
-   ec_SetEaExternalReporting (ec, eaExternalReporting);
+   ec_SetExternalReporting   (ec, isExternalReporting);
 
    ec_SetEaRecorder          (ec, eaRecorder);
                                                                            // logfile instance before loglevels in case the logfile is needed for modification

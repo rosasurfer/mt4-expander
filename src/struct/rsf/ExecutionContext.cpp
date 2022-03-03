@@ -789,9 +789,9 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
  *
  * @return BOOL
  */
-BOOL WINAPI ec_EaExternalReporting(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_ExternalReporting(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->eaExternalReporting);
+   return(ec->externalReporting);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1785,23 +1785,23 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's eaExternalReporting value.
+ * Set an EXECUTION_CONTEXT's externalReporting value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetEaExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->eaExternalReporting = status;
+   ec->externalReporting = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->eaExternalReporting = status;
+         chain[0]->externalReporting = status;
    }
    return(status);
 }
@@ -2224,7 +2224,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
-         << ", eaExternalReporting="  <<            BoolToStr(ec->eaExternalReporting)
+         << ", externalReporting="    <<            BoolToStr(ec->externalReporting)
 
          << ", eaRecorder="           <<            BoolToStr(ec->eaRecorder)
 
