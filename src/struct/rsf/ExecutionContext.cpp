@@ -2224,8 +2224,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
-
          << ", eaExternalReporting="  <<            BoolToStr(ec->eaExternalReporting)
+
          << ", eaRecorder="           <<            BoolToStr(ec->eaRecorder)
 
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
