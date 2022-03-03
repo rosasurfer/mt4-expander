@@ -78,7 +78,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    BOOL               testing;                        //       716        4     IsTesting() status                                        (const)
    BOOL               visualMode;                     //       720        4     expert IsVisualMode() status                              (const)
    BOOL               optimization;                   //       724        4     expert IsOptimization() status                            (const)
-   BOOL               eaExternalReporting;            //       728        4     an expert's input parameter "EA.ExternalReporting"        (var)
+   BOOL               eaExternalReporting;            //       728        4     an expert's input parameter "Test.ExternalReporting"      (var)
                                                       //
    BOOL               eaRecorder;                     //       732        4     an expert's input parameter "EA.Recorder"                 (var)
                                                       //

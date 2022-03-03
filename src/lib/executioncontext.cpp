@@ -310,7 +310,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * @param  BOOL               isTesting           - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode        - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isOptimization      - value of IsOptimzation() as returned by the terminal
- * @param  BOOL               eaExternalReporting - an expert's input parameter "EA.ExternalReporting"
+ * @param  BOOL               eaExternalReporting - an expert's input parameter "Test.ExternalReporting"
  * @param  EXECUTION_CONTEXT* sec                 - super context as managed by the terminal (memory possibly already released)
  * @param  HWND               hChart              - value of WindowHandle() as returned by the terminal (possibly not yet set)
  * @param  int                droppedOnChart      - value of WindowOnDropped() as returned by the terminal (possibly incorrect)

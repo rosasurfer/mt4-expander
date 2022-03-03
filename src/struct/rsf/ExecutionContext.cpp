@@ -783,7 +783,7 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether an MQL program's input parameter "EA.ExternalReporting" is activated (experts only).
+ * Whether an MQL program's input parameter "Test.ExternalReporting" is activated (experts only).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
