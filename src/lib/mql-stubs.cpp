@@ -201,7 +201,7 @@ void WINAPI DummyCalls() {
 }
 
 
-BOOL WINAPI Recorder_GetSymbolDefinitionA(int i, const char* symbol, const char* description, const char* group, int digits, const char* hstDirectory, int hstFormat) {
+BOOL WINAPI Recorder_GetSymbolDefinitionA(int i, BOOL enabled, const char* symbol, const char* symbolDescr, const char* symbolGroup, int symbolDigits, const char* hstDirectory, int hstFormat) {
    return(FALSE);
    #pragma EXPANDER_EXPORT
 }
