@@ -569,6 +569,20 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return an MQL program's chart frame handle.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - handle, same as return value of MQL::WindowHandle()
+ */
+HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChart);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return an MQL program's chart window handle.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -578,6 +592,20 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->hChartWindow);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether an MQL program's input parameter "EA.Recorder" is activated (experts only).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL
+ */
+BOOL WINAPI ec_EaRecorder(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->eaRecorder);
    #pragma EXPANDER_EXPORT
 }
 
@@ -594,20 +622,6 @@ int WINAPI ec_TestId(const EXECUTION_CONTEXT* ec) {
    if (ec->test)
       return(ec->test->id);
    return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an MQL program's chart frame handle.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - handle, same as return value of MQL::WindowHandle()
- */
-HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChart);
    #pragma EXPANDER_EXPORT
 }
 
@@ -792,20 +806,6 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_ExternalReporting(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->externalReporting);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether an MQL program's input parameter "EA.Recorder" is activated (experts only).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_EaRecorder(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->eaRecorder);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1716,6 +1716,29 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
+ * Set an EXECUTION_CONTEXT's eaRecorder value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  BOOL               status
+ *
+ * @return BOOL - the same status
+ */
+BOOL WINAPI ec_SetEaRecorder(EXECUTION_CONTEXT* ec, BOOL status) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->eaRecorder = status;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (ec==chain[1] && chain[0])
+         chain[0]->eaRecorder = status;
+   }
+   return(status);
+}
+
+
+/**
  * Set an EXECUTION_CONTEXT's testing value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1802,29 +1825,6 @@ BOOL WINAPI ec_SetExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->externalReporting = status;
-   }
-   return(status);
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's eaRecorder value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetEaRecorder(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->eaRecorder = status;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->eaRecorder = status;
    }
    return(status);
 }
@@ -2220,13 +2220,13 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", hChart="               <<                     (ec->hChart       ? StrFormat("0x%p", ec->hChart       ) : "NULL")
          << ", hChartWindow="         <<                     (ec->hChartWindow ? StrFormat("0x%p", ec->hChartWindow ) : "NULL")
 
+         << ", eaRecorder="           <<            BoolToStr(ec->eaRecorder)
+
          << ", test="                 <<                     (ec->test ? StrFormat("0x%p", ec->test) : "NULL")
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
          << ", externalReporting="    <<            BoolToStr(ec->externalReporting)
-
-         << ", eaRecorder="           <<            BoolToStr(ec->eaRecorder)
 
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
          << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
