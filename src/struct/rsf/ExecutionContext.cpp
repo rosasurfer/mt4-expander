@@ -597,15 +597,15 @@ HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether an MQL program's input parameter "EA.Recorder" is activated (experts only).
+ * Return an MQL program's "EA.Recorder" mode (experts only).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return BOOL
+ * @return int
  */
-BOOL WINAPI ec_Recording(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_RecordMode(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->recording);
+   return(ec->recordMode);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1716,25 +1716,25 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's recording value.
+ * Set an EXECUTION_CONTEXT's recordMode value.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
+ * @param  int                mode
  *
- * @return BOOL - the same status
+ * @return int - the same mode
  */
-BOOL WINAPI ec_SetRecording(EXECUTION_CONTEXT* ec, BOOL status) {
+int WINAPI ec_SetRecordMode(EXECUTION_CONTEXT* ec, int mode) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->recording = status;
+   ec->recordMode = mode;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->recording = status;
+         chain[0]->recordMode = mode;
    }
-   return(status);
+   return(mode);
 }
 
 
@@ -2220,7 +2220,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", hChart="               <<                     (ec->hChart       ? StrFormat("0x%p", ec->hChart       ) : "NULL")
          << ", hChartWindow="         <<                     (ec->hChartWindow ? StrFormat("0x%p", ec->hChartWindow ) : "NULL")
 
-         << ", recording="            <<            BoolToStr(ec->recording)
+         << ", recordMode="           <<                      ec->recordMode
 
          << ", test="                 <<                     (ec->test ? StrFormat("0x%p", ec->test) : "NULL")
          << ", testing="              <<            BoolToStr(ec->testing)

@@ -74,7 +74,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    HWND               hChart;                         //       704        4     chart handle             = MQL::WindowHandle()            (const) => handle of the chart frame
    HWND               hChartWindow;                   //       708        4     chart handle with title bar "Symbol,Period"               (const) => handle of the chart window
                                                       //
-   BOOL               recording;                      //       712        4     an expert's input parameter "EA.Recorder"                 (var)
+   int                recordMode;                     //       712        4     an expert's "EA.Recorder" mode                            (var)
                                                       //
    TEST*              test;                           //       716        4     test configuration, data and results                      (const)
    BOOL               testing;                        //       720        4     IsTesting() status                                        (const)
@@ -154,7 +154,7 @@ uint               WINAPI ec_ThreadId            (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart              (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChartWindow        (const EXECUTION_CONTEXT* ec);
 
-BOOL               WINAPI ec_Recording           (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_RecordMode          (const EXECUTION_CONTEXT* ec);
 
 //                        ec.test
 int                WINAPI ec_TestId              (const EXECUTION_CONTEXT* ec);
@@ -229,7 +229,7 @@ uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint
 HWND               WINAPI ec_SetHChart              (EXECUTION_CONTEXT* ec, HWND               hWnd    );
 HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND               hWnd    );
 
-BOOL               WINAPI ec_SetRecording           (EXECUTION_CONTEXT* ec, BOOL               status  );
+int                WINAPI ec_SetRecordMode          (EXECUTION_CONTEXT* ec, int                mode    );
 
 //                        ec.test
 BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status  );
