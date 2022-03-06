@@ -1735,6 +1735,7 @@ int WINAPI ec_SetRecordMode(EXECUTION_CONTEXT* ec, int mode) {
          chain[0]->recordMode = mode;
    }
    return(mode);
+   #pragma EXPANDER_EXPORT
 }
 
 
