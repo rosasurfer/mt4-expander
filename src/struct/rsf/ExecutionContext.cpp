@@ -1952,7 +1952,7 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevel = level;
 
@@ -1960,7 +1960,7 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
-         if (master->loglevel != level) {
+         if (master && master->loglevel != level) {
             master->loglevel = level;                                      // synchronize master context
 
             if (!master->loglevel || master->loglevel==LOG_OFF) {
@@ -1985,14 +1985,17 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelTerminal = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelTerminal = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelTerminal = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2008,14 +2011,17 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelAlert = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelAlert = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelAlert = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2031,14 +2037,17 @@ int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelDebugger = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelDebugger = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelDebugger = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2046,7 +2055,7 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel for the separate logfile appender.
+ * Set an MQL program's loglevel for the custom logfile appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2054,7 +2063,7 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelFile = level;
 
@@ -2062,7 +2071,7 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
-         if (master->loglevelFile != level) {
+         if (master && master->loglevelFile != level) {
             master->loglevelFile = level;                                  // synchronize master context
 
             if (!master->loglevelFile || master->loglevelFile==LOG_OFF) {
@@ -2087,14 +2096,17 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelMail = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelMail = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelMail = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2110,14 +2122,17 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelSMS = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelSMS = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelSMS = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2146,9 +2161,11 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         if (!strcpy(chain[0]->logFilename, ec->logFilename))
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master && ec==chain[1]) {
+         if (!strcpy(master->logFilename, ec->logFilename))
             return(NULL);
+      }
    }
    return(filename);
 }

@@ -451,23 +451,24 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetHChart              (ec, hChart);                                 // chart handles must be set before test values
    ec_SetHChartWindow        (ec, hChart ? GetParent(hChart) : NULL);
 
+   ec_SetRecordMode          (ec, recordMode);
+
    master->test = ec->test = Expert_InitTest(ec, isTesting);
    ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
    ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
    ec_SetExternalReporting   (ec, isExternalReporting);
 
-   ec_SetRecordMode          (ec, recordMode);
-                                                                           // logfile instance before loglevels in case the logfile is needed for modification
-   ec->logger =                   (master->superContext ? master->superContext : master)->logger;
-   ec_SetLoglevel            (ec, (master->superContext ? master->superContext : master)->loglevel        );
-   ec_SetLoglevelTerminal    (ec, (master->superContext ? master->superContext : master)->loglevelTerminal);
-   ec_SetLoglevelAlert       (ec, (master->superContext ? master->superContext : master)->loglevelAlert   );
-   ec_SetLoglevelDebugger    (ec, (master->superContext ? master->superContext : master)->loglevelDebugger);
-   ec_SetLoglevelFile        (ec, (master->superContext ? master->superContext : master)->loglevelFile    );
-   ec_SetLoglevelMail        (ec, (master->superContext ? master->superContext : master)->loglevelMail    );
-   ec_SetLoglevelSMS         (ec, (master->superContext ? master->superContext : master)->loglevelSMS     );
-   ec_SetLogFilename         (ec, (master->superContext ? master->superContext : master)->logFilename     );
+   EXECUTION_CONTEXT* ecRef = (master->superContext ? master->superContext : master);
+   ec->logger =                   ecRef->logger;                           // logger instance first to catch further messages (TODO: move more up)
+   ec_SetLoglevel            (ec, ecRef->loglevel        );
+   ec_SetLoglevelTerminal    (ec, ecRef->loglevelTerminal);
+   ec_SetLoglevelAlert       (ec, ecRef->loglevelAlert   );
+   ec_SetLoglevelDebugger    (ec, ecRef->loglevelDebugger);
+   ec_SetLoglevelFile        (ec, ecRef->loglevelFile    );
+   ec_SetLoglevelMail        (ec, ecRef->loglevelMail    );
+   ec_SetLoglevelSMS         (ec, ecRef->loglevelSMS     );
+   ec_SetLogFilename         (ec, ecRef->logFilename     );
 
    // TODO: reset errors if not in an init() call from start()
    //ec->mqlError      = NULL;
