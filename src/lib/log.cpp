@@ -31,6 +31,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    if (level == LOG_OFF)                  return(FALSE);
 
    EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
+   if (master->superContext) master = (*g_mqlPrograms[master->superContext->pid])[0];     // use a super context (if any)
 
    // check whether to use an existing logger or a logbuffer
    BOOL useLogger    = (master->logger && strlen(master->logFilename));
@@ -113,6 +114,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
+   if (master->superContext) return(TRUE);                                                // ignore the call if in iCustom()
 
    if (filename && *filename) {
       // enable the file logger
@@ -129,7 +131,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
             if (!IsFileA(filename, MODE_SYSTEM)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                                        // extract the directory part of logFilename
+               char drive[MAX_DRIVE], dir[MAX_DIR];                                       // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
                if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT)) // make sure the directory exists
                   return(FALSE);
