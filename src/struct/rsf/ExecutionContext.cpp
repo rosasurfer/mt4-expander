@@ -541,6 +541,174 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* cons
 
 
 /**
+ * Return the MQL program name of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return char* - program name
+ */
+const char* WINAPI ep_SuperProgramName(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->programName);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the main loglevel of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevel(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevel);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the terminal log appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelTerminal(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelTerminal);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the terminal alert appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelAlert(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelAlert);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the debug output appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelDebugger(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelDebugger);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the separate logfile appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelFile(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelFile);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the mail appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelMail(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelMail);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the SMS appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelSMS(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelSMS);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return an MQL program's current thread id.
  *
  * @param  EXECUTION_CONTEXT* ec

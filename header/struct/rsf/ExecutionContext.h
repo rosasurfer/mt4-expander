@@ -103,7 +103,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
 #pragma pack(pop)                                     //             = 1052
 
 
-// getters (exported to MQL)
+// getters expecting a struct (exported)
 uint               WINAPI ec_Pid                 (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PreviousPid         (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_Started             (const EXECUTION_CONTEXT* ec);
@@ -186,6 +186,18 @@ int                WINAPI ec_LoglevelSMS         (const EXECUTION_CONTEXT* ec);
 //                        ec.logger
 //                        ec.logBuffer
 const char*        WINAPI ec_LogFilename         (const EXECUTION_CONTEXT* ec);
+
+
+// getters expecting a pid (exported)
+const char*        WINAPI ep_SuperProgramName     (uint pid);
+
+int                WINAPI ep_SuperLoglevel        (uint pid);
+int                WINAPI ep_SuperLoglevelTerminal(uint pid);
+int                WINAPI ep_SuperLoglevelAlert   (uint pid);
+int                WINAPI ep_SuperLoglevelDebugger(uint pid);
+int                WINAPI ep_SuperLoglevelFile    (uint pid);
+int                WINAPI ep_SuperLoglevelMail    (uint pid);
+int                WINAPI ep_SuperLoglevelSMS     (uint pid);
 
 
 // validating setters
