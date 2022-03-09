@@ -149,7 +149,6 @@ const char*        WINAPI ec_PipPriceFormat      (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_SubPipPriceFormat   (const EXECUTION_CONTEXT* ec);
 
 BOOL               WINAPI ec_SuperContext        (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target);
-EXECUTION_CONTEXT* WINAPI ec_lpSuperContext      (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_ThreadId            (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart              (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChartWindow        (const EXECUTION_CONTEXT* ec);

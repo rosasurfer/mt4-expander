@@ -541,20 +541,6 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* cons
 
 
 /**
- * Return an MQL program's pointer to the super context (if any).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return EXECUTION_CONTEXT* - pointer or NULL if the context contains no super context
- */
-EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->superContext);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an MQL program's current thread id.
  *
  * @param  EXECUTION_CONTEXT* ec
