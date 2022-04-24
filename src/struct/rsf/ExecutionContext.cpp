@@ -503,20 +503,6 @@ const char* WINAPI ec_PipPriceFormat(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's current symbol subpip price format (contains subpips).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - format string
- */
-const char* WINAPI ec_SubPipPriceFormat(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->subPipPriceFormat);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
@@ -2385,7 +2371,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", pipPoints="            <<                      ec->pipPoints
          << ", priceFormat="          <<       DoubleQuoteStr(ec->priceFormat)
          << ", pipPriceFormat="       <<       DoubleQuoteStr(ec->pipPriceFormat)
-         << ", subPipPriceFormat="    <<       DoubleQuoteStr(ec->subPipPriceFormat)
 
          << ", superContext="         <<                     (ec->superContext ? StrFormat("0x%p", ec->superContext) : "NULL")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")

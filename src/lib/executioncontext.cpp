@@ -442,9 +442,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetPoint               (ec, point);
    ec_SetPipPoints           (ec, (uint)round(pow(10., (int)(digits & 1))));
 
-   master->pipPriceFormat    = ec->pipPriceFormat    = strformat(".%d", ec->pipDigits);
-   master->subPipPriceFormat = ec->subPipPriceFormat = strformat("%s'", ec->pipPriceFormat);
-   master->priceFormat       = ec->priceFormat       = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : ec->subPipPriceFormat;
+   master->pipPriceFormat = ec->pipPriceFormat = strformat(".%d", ec->pipDigits);
+   master->priceFormat    = ec->priceFormat    = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : strformat("%s'", ec->pipPriceFormat);
 
    ec_SetSuperContext        (ec, sec);
    ec_SetThreadId            (ec, GetCurrentThreadId());
@@ -756,29 +755,28 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                currentPid = PushProgram(chain);                      // store the chain
                uint threadIndex = SetLastThreadProgram(currentPid);
 
-               master->pid          = currentPid;                    // update master context with the known values
-               master->programType  = PT_EXPERT;
-               master->moduleType   = MT_EXPERT;
+               master->pid            = currentPid;                  // update master context with the known values
+               master->programType    = PT_EXPERT;
+               master->moduleType     = MT_EXPERT;
 
                strcpy(master->newSymbol, symbol);                    // first moment a new symbol/timeframe show up
-               master->newTimeframe = timeframe;
+               master->newTimeframe   = timeframe;
 
-               master->digits       = digits;                        // TODO: fix terminal bug
-               master->pipDigits    = digits & (~1);
-               master->subPipDigits = master->pipDigits + 1;
-               master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
-               master->point        = point;
-               master->pipPoints    = (uint)round(pow((double)10., (int)(digits & 1)));
+               master->digits         = digits;                      // TODO: fix terminal bug
+               master->pipDigits      = digits & (~1);
+               master->subPipDigits   = master->pipDigits + 1;
+               master->pip            = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
+               master->point          = point;
+               master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
 
-               master->pipPriceFormat    = strformat(".%d", master->pipDigits);
-               master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
-               master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
+               master->pipPriceFormat = strformat(".%d", master->pipDigits);
+               master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : strformat("%s'", master->pipPriceFormat);
 
-               master->superContext = FALSE;
-               master->threadId     = g_threads[threadIndex];
+               master->superContext   = FALSE;
+               master->threadId       = g_threads[threadIndex];
 
-               master->testing      = TRUE;                          // TODO: so wrong, we can be online and not in tester
-               master->optimization = isOptimization;
+               master->testing        = TRUE;                        // TODO: so wrong, we can be online and not in tester
+               master->optimization   = isOptimization;
             }
 
             // re-initialize the empty library context with the partial master context
@@ -830,31 +828,30 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
       // update known master values
       strcpy(master->newSymbol, symbol);                             // first moment a new symbol/timeframe show up
-      master->newTimeframe  = timeframe;
-      master->rates         = NULL;
-      master->bars          =  0;
-      master->changedBars   = -1;
-      master->unchangedBars = -1;
+      master->newTimeframe   = timeframe;
+      master->rates          = NULL;
+      master->bars           =  0;
+      master->changedBars    = -1;
+      master->unchangedBars  = -1;
 
-      master->digits        = digits;                                // TODO: fix terminal bug
-      master->pipDigits     = digits & (~1);
-      master->subPipDigits  = master->pipDigits + 1;
-      master->pip           = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
-      master->point         = point;
-      master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
+      master->digits         = digits;                               // TODO: fix terminal bug
+      master->pipDigits      = digits & (~1);
+      master->subPipDigits   = master->pipDigits + 1;
+      master->pip            = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
+      master->point          = point;
+      master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
 
-      master->pipPriceFormat    = strformat(".%d", master->pipDigits);
-      master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
-      master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
+      master->pipPriceFormat = strformat(".%d", master->pipDigits);
+      master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : strformat("%s'", master->pipPriceFormat);
 
-      master->superContext  = NULL;                                  // no super context at all or already released
-      master->threadId      = GetCurrentThreadId();
+      master->superContext   = NULL;                                 // no super context at all or already released
+      master->threadId       = GetCurrentThreadId();
 
-      master->mqlError      = NO_ERROR;
-      master->dllError      = NO_ERROR;
-      master->dllWarning    = NO_ERROR;
-      master->dllErrorMsg   = NULL;                                  // TODO: release memory of existing messages
-      master->dllWarningMsg = NULL;
+      master->mqlError       = NO_ERROR;
+      master->dllError       = NO_ERROR;
+      master->dllWarning     = NO_ERROR;
+      master->dllErrorMsg    = NULL;                                 // TODO: release memory of existing messages
+      master->dllWarningMsg  = NULL;
 
       // re-initialize the library context with the updated master context
       EXECUTION_CONTEXT bak = *ec;                                   // create backup
@@ -909,25 +906,24 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          strcpy(master->moduleName,  master->programName);
 
          strcpy(master->newSymbol, symbol);                          // first moment symbol/timeframe show up
-         master->newTimeframe  = timeframe;
-         master->bars          =  0;
-         master->changedBars   = -1;
-         master->unchangedBars = -1;
+         master->newTimeframe   = timeframe;
+         master->bars           =  0;
+         master->changedBars    = -1;
+         master->unchangedBars  = -1;
 
-         master->digits        = digits;                             // TODO: fix terminal bug
-         master->pipDigits     = digits & (~1);
-         master->subPipDigits  = master->pipDigits + 1;
-         master->pip           = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
-         master->point         = point;
-         master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
+         master->digits         = digits;                            // TODO: fix terminal bug
+         master->pipDigits      = digits & (~1);
+         master->subPipDigits   = master->pipDigits + 1;
+         master->pip            = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
+         master->point          = point;
+         master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
 
-         master->pipPriceFormat    = strformat(".%d", master->pipDigits);
-         master->subPipPriceFormat = strformat("%s'", master->pipPriceFormat);
-         master->priceFormat       = (master->digits==master->pipDigits) ? master->pipPriceFormat : master->subPipPriceFormat;
+         master->pipPriceFormat = strformat(".%d", master->pipDigits);
+         master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : strformat("%s'", master->pipPriceFormat);
 
-         master->threadId      = g_threads[threadIndex];
-         master->testing       = TRUE;
-         master->optimization  = isOptimization;
+         master->threadId       = g_threads[threadIndex];
+         master->testing        = TRUE;
+         master->optimization   = isOptimization;
       }
 
       // re-initialize the library context with the master context
