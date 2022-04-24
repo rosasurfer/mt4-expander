@@ -60,46 +60,44 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
                                                       //
    uint               digits;                         //       648        4     digits of the symbol     = MQL::Digits                    (var)
    uint               pipDigits;                      //       652        4     digits of a pip                                           (var)
-   uint               subPipDigits;                   //       656        4     digits of a subpip                                        (var)
-   BYTE               _alignment2[4];                 //       660        4     (alignment to the next double)
-   double             pip;                            //       664        8     size of a pip                                             (var)
-   double             point;                          //       672        8     size of a point          = MQL::Point                     (var)
-   uint               pipPoints;                      //       680        4     number of points of a pip: 1 or 10                        (var)
-   const char*        priceFormat;                    //       684        4     standard price format                                     (var)
-   const char*        pipPriceFormat;                 //       688        4     pip price format (never subpips)                          (var)
+   double             pip;                            //       658        8     size of a pip                                             (var)
+   double             point;                          //       664        8     size of a point          = MQL::Point                     (var)
+   uint               pipPoints;                      //       672        4     number of points of a pip: 1 or 10                        (var)
+   const char*        priceFormat;                    //       676        4     standard price format                                     (var)
+   const char*        pipPriceFormat;                 //       680        4     pip price format (never subpips)                          (var)
                                                       //
-   EXECUTION_CONTEXT* superContext;                   //       692        4     indicator host program                                    (const) => if loaded by iCustom()
-   uint               threadId;                       //       696        4     current executing thread                                  (var)
-   HWND               hChart;                         //       700        4     chart handle             = MQL::WindowHandle()            (const) => handle of the chart frame
-   HWND               hChartWindow;                   //       704        4     chart handle with title bar "Symbol,Period"               (const) => handle of the chart window
+   EXECUTION_CONTEXT* superContext;                   //       684        4     indicator host program                                    (const) => if loaded by iCustom()
+   uint               threadId;                       //       688        4     current executing thread                                  (var)
+   HWND               hChart;                         //       692        4     chart handle             = MQL::WindowHandle()            (const) => handle of the chart frame
+   HWND               hChartWindow;                   //       696        4     chart handle with title bar "Symbol,Period"               (const) => handle of the chart window
                                                       //
-   int                recordMode;                     //       708        4     an expert's "EA.Recorder" mode                            (var)
+   int                recordMode;                     //       700        4     an expert's "EA.Recorder" mode                            (var)
                                                       //
-   TEST*              test;                           //       712        4     test configuration, data and results                      (const)
-   BOOL               testing;                        //       716        4     IsTesting() status                                        (const)
-   BOOL               visualMode;                     //       720        4     expert IsVisualMode() status                              (const)
-   BOOL               optimization;                   //       724        4     expert IsOptimization() status                            (const)
-   BOOL               externalReporting;              //       728        4     an expert's input parameter "Test.ExternalReporting"      (var)
+   TEST*              test;                           //       704        4     test configuration, data and results                      (const)
+   BOOL               testing;                        //       708        4     IsTesting() status                                        (const)
+   BOOL               visualMode;                     //       712        4     expert IsVisualMode() status                              (const)
+   BOOL               optimization;                   //       716        4     expert IsOptimization() status                            (const)
+   BOOL               externalReporting;              //       720        4     an expert's input parameter "Test.ExternalReporting"      (var)
                                                       //
-   int                mqlError;                       //       732        4     last MQL error (from all program modules)                 (var)
-   int                dllError;                       //       736        4     last DLL error                                            (var)
-   char*              dllErrorMsg;                    //       740        4     DLL error message                                         (var)
-   int                dllWarning;                     //       744        4     last DLL warning                                          (var)
-   char*              dllWarningMsg;                  //       748        4     DLL warning message                                       (var)
+   int                mqlError;                       //       724        4     last MQL error (from all program modules)                 (var)
+   int                dllError;                       //       728        4     last DLL error                                            (var)
+   char*              dllErrorMsg;                    //       732        4     DLL error message                                         (var)
+   int                dllWarning;                     //       736        4     last DLL warning                                          (var)
+   char*              dllWarningMsg;                  //       740        4     DLL warning message                                       (var)
                                                       //
-   int                loglevel;                       //       752        4     program main loglevel                                     (var)
-   int                loglevelTerminal;               //       756        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       760        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelDebugger;               //       764        4     loglevel of the debug output appender                     (var)
-   int                loglevelFile;                   //       768        4     loglevel of the logfile appender                          (var)
-   int                loglevelMail;                   //       772        4     loglevel of the mail appender                             (var)
-   int                loglevelSMS;                    //       776        4     loglevel of the SMS appender                              (var)
+   int                loglevel;                       //       744        4     program main loglevel                                     (var)
+   int                loglevelTerminal;               //       748        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       752        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelDebugger;               //       756        4     loglevel of the debug output appender                     (var)
+   int                loglevelFile;                   //       760        4     loglevel of the logfile appender                          (var)
+   int                loglevelMail;                   //       764        4     loglevel of the mail appender                             (var)
+   int                loglevelSMS;                    //       768        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logger;                         //       780        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       784        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       788      260     logger filename                                           (var)
+   std::ofstream*     logger;                         //       772        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       776        4     log buffer                                                (var)
+   char               logFilename[MAX_PATH];          //       780      260     logger filename                                           (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1048
+#pragma pack(pop)                                     //             = 1040
 
 
 // getters expecting a struct (exported)
@@ -139,7 +137,6 @@ double             WINAPI ec_Ask                 (const EXECUTION_CONTEXT* ec);
 
 uint               WINAPI ec_Digits              (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PipDigits           (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_SubPipDigits        (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Pip                 (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Point               (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PipPoints           (const EXECUTION_CONTEXT* ec);
@@ -225,7 +222,6 @@ int                WINAPI ec_SetUnchangedBars       (EXECUTION_CONTEXT* ec, int 
 
 uint               WINAPI ec_SetDigits              (EXECUTION_CONTEXT* ec, uint               digits   );
 uint               WINAPI ec_SetPipDigits           (EXECUTION_CONTEXT* ec, uint               digits   );
-uint               WINAPI ec_SetSubPipDigits        (EXECUTION_CONTEXT* ec, uint               digits   );
 double             WINAPI ec_SetPip                 (EXECUTION_CONTEXT* ec, double             size     );
 double             WINAPI ec_SetPoint               (EXECUTION_CONTEXT* ec, double             size     );
 uint               WINAPI ec_SetPipPoints           (EXECUTION_CONTEXT* ec, uint               points   );

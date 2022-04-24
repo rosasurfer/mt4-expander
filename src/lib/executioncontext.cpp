@@ -437,7 +437,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    ec_SetDigits              (ec, digits);                                 // TODO: fix terminal bug
    ec_SetPipDigits           (ec, digits & (~1));
-   ec_SetSubPipDigits        (ec, ec->pipDigits + 1);
    ec_SetPip                 (ec, round(1./pow(10., (int)ec->pipDigits), ec->pipDigits));
    ec_SetPoint               (ec, point);
    ec_SetPipPoints           (ec, (uint)round(pow(10., (int)(digits & 1))));
@@ -764,7 +763,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
                master->digits         = digits;                      // TODO: fix terminal bug
                master->pipDigits      = digits & (~1);
-               master->subPipDigits   = master->pipDigits + 1;
                master->pip            = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
                master->point          = point;
                master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
@@ -836,7 +834,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
       master->digits         = digits;                               // TODO: fix terminal bug
       master->pipDigits      = digits & (~1);
-      master->subPipDigits   = master->pipDigits + 1;
       master->pip            = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
       master->point          = point;
       master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
@@ -913,7 +910,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
          master->digits         = digits;                            // TODO: fix terminal bug
          master->pipDigits      = digits & (~1);
-         master->subPipDigits   = master->pipDigits + 1;
          master->pip            = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
          master->point          = point;
          master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));

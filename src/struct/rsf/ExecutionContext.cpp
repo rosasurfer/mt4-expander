@@ -419,20 +419,6 @@ uint WINAPI ec_PipDigits(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's current symbol "SubPipDigits".
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint - digits of a subpip
- */
-uint WINAPI ec_SubPipDigits(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->subPipDigits);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an MQL program's current symbol "Pip" size.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1666,30 +1652,6 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's subPipDigits value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               digits
- *
- * @return uint - the same value
- */
-uint WINAPI ec_SetSubPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)digits < 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
-
-   ec->subPipDigits = digits;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->subPipDigits = digits;
-   }
-   return(digits);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT' pip value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -2365,7 +2327,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
 
          << ", digits="               <<                      ec->digits
          << ", pipDigits="            <<                      ec->pipDigits
-         << ", subPipDigits="         <<                      ec->subPipDigits
          << ", pip="   << std::setprecision(ec->pipDigits) << ec->pip
          << ", point=" << std::setprecision(ec->digits)    << ec->point
          << ", pipPoints="            <<                      ec->pipPoints
