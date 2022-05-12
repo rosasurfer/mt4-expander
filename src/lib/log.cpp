@@ -12,8 +12,7 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
- * Append a log message to a program's logfile (functionality of a logfile appender). The caller is responsible for filtering
- * messages (e.g. by loglevel).
+ * Append a log message to a program's logfile. The caller is responsible for filtering messages by loglevel.
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
  * @param  datetime           time    - current time (used only in tester)
@@ -76,7 +75,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
       size_t bufSize = 20;
       char* buffer = (char*)alloca(bufSize);
       gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // tester: the passed tester time with seconds only
-      ss << buffer;
+      ss << "T " << buffer;                                                               // prefixed by "T"
    }
    else {
       SYSTEMTIME st; GetLocalTime(&st);
