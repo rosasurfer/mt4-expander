@@ -1214,7 +1214,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
  * @param  BOOL               isTesting    - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  *
- * @return HWND - Window handle or NULL if the program runs in the Strategy Tester with VisualMode=Off;
+ * @return HWND - Window handle or NULL if the program runs in the tester with VisualMode=Off;
  *                INVALID_HWND (-1) in case of errors.
  */
 HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode) {
@@ -1671,7 +1671,7 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
       return(IR_USER);
    }
 
-   // UR_UNDEFINED                                       // loaded into a new chart (also at terminal start and in Strategy Tester)
+   // UR_UNDEFINED                                       // loaded into a new chart (also at terminal start and in tester)
    if (uninitReason == UR_UNDEFINED) {
       if (isTesting)          return(IR_USER);
       if (droppedOnPosX >= 0) return(IR_USER);           // TODO: It is rare but possible to manually load an expert with droppedOnPosX = -1.
@@ -1723,7 +1723,7 @@ InitializeReason WINAPI GetInitReason_script(EXECUTION_CONTEXT* ec, const char* 
 
 
 /**
- * Whether the program is executed in the Strategy Tester with Optimization=On.
+ * Whether the program is executed in the tester with Optimization=On.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isOptimization - MQL::IsOptimization() status as passed by the terminal
@@ -1768,7 +1768,7 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
 
 
 /**
- * Whether the program is executed in the Strategy Tester or on a test chart.
+ * Whether the program is executed in the tester or on a test chart.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isTesting - MQL::IsTesting() status as passed by the terminal (possibly wrong)
@@ -1818,7 +1818,7 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
 
 
 /**
- * Whether the current program is executed in the Strategy Tester or on a test chart with VisualMode=On.
+ * Whether the current program is executed in the tester or on a test chart with VisualMode=On.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isVisualMode - MQL::IsVisualMode() status as passed by the terminal (possibly wrong)

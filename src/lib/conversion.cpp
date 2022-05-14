@@ -5,7 +5,7 @@
 
 
 /**
- * Return a description of a Strategy Tester's bar model id.
+ * Return a description of a test's bar model id.
  *
  * @param  int id
  *
@@ -23,7 +23,7 @@ const char* WINAPI BarModelDescription(int id) {
 
 
 /**
- * Return a readable version of a Strategy Tester's bar model id.
+ * Return a readable version of a test's bar model id.
  *
  * @param  int id
  *
