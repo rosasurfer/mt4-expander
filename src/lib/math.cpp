@@ -16,6 +16,9 @@ int WINAPI DoubleExp(double value) {
    if (!absValue) return(0);
    return((int) floor(log10(absValue)));
    #pragma EXPANDER_EXPORT
+
+   // @see  https://stackoverflow.com/questions/29582919/find-exponent-and-mantissa-of-a-double-to-the-base-10
+   // @see  https://social.msdn.microsoft.com/Forums/vstudio/en-US/a5cca71e-75d0-4c3f-88af-3bf1899d6556/double-get-mantissa-and-exponent-in-base-10-representation
 }
 
 
