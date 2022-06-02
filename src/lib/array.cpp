@@ -3,13 +3,13 @@
 
 
 /**
- * Initialize the array elements in the specified range with a custom value.
+ * Initialize a range of array elements with a custom value.
  *
  * @param  T   values[]         - array
  * @param  int size             - number of elements in the array
- * @param  T   initValue        - initialization value
+ * @param  T   initValue        - custom initialization value
  * @param  int from             - start index of initialization
- * @param  int count [optional] - number of elements to initialize (default: all elements from start index to the end of the array)
+ * @param  int count [optional] - number of elements to initialize (default: all elements from the start index to the end)
  *
  * @return BOOL - success status
  */
@@ -34,17 +34,17 @@ BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int cou
 }
 
 
-// explicit template instantiation to make definitions accessible by the linker
+// explicit template instantiation to make definitions accessible to the linker
 template BOOL InitializeArray<int>   (int[],    int, int,    int, int);
 template BOOL InitializeArray<double>(double[], int, double, int, int);
 
 
 /**
- * Initialize the elements of an <int> array with a custom value.
+ * Initialize a range of <int> array elements with a custom value.
  *
  * @param  int values[]  - array
  * @param  int size      - number of elements in the array
- * @param  int initValue - initialization value
+ * @param  int initValue - custom initialization value
  * @param  int from      - start index of initialization
  * @param  int count     - number of elements to initialize
  *
@@ -57,11 +57,11 @@ BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, 
 
 
 /**
-* Initialize the elements of a <double> array with a custom value.
+ * Initialize a range of <double> array elements with a custom value.
  *
  * @param  double values[]  - array
  * @param  int    size      - number of elements in the array
- * @param  double initValue - initialization value
+ * @param  double initValue - custom initialization value
  * @param  int    from      - start index of initialization
  * @param  int    count     - number of elements to initialize
  *
@@ -74,8 +74,38 @@ BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, i
 
 
 /**
- * Shift the content of a timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards elements
- * at the beginning (the oldest values of a timeseries array).
+ * Shift the content of an MQL timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * elements at the beginning (the oldest values of a timeseries).
+ *
+ * @param  T   buffer[]   - timeseries array
+ * @param  int size       - number of elements in the array
+ * @param  int count      - number of elements to shift
+ * @param  T   emptyValue - initialization value for elements becoming "empty"
+ *
+ * @return BOOL - success status
+ */
+template <typename T>
+BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) {
+   if ((uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
+   if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+   if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d", count));
+   if (!size || !count) return(TRUE);
+
+   MoveMemory((void*)&buffer[0], &buffer[count], (size-count)*sizeof(buffer[0]));
+
+   std::fill_n(&buffer[size-count], count, emptyValue);
+   return(TRUE);
+}
+
+
+// explicit template instantiation to make definitions accessible to the linker
+template BOOL ShiftIndicatorBuffer<int>   (int[],    int, int, int);
+template BOOL ShiftIndicatorBuffer<double>(double[], int, int, double);
+
+
+/**
+ * Shift the content of an MQL timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * elements at the beginning (the oldest values of a timeseries).
  *
  * @param  int buffer[]   - timeseries array
  * @param  int size       - number of elements in the array
@@ -85,22 +115,14 @@ BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, i
  * @return BOOL - success status
  */
 BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int emptyValue) {
-   if ((uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
-   if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
-   if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d", count));
-   if (!size || !count) return(TRUE);
-
-   MoveMemory((void*)&buffer[0], &buffer[count], (size-count)*sizeof(buffer[0]));
-
-   std::fill_n(&buffer[size-count], count, emptyValue);
-   return(TRUE);
+   return(ShiftIndicatorBuffer(buffer, size, count, emptyValue));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Shift the content of a timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards elements
- * at the beginning (the oldest values of a timeseries array).
+ * Shift the content of an MQL timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * elements at the beginning (the oldest values of a timeseries).
  *
  * @param  double buffer[]   - timeseries array
  * @param  int    size       - number of elements in the array
@@ -110,14 +132,6 @@ BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int empty
  * @return BOOL - success status
  */
 BOOL WINAPI ShiftDoubleIndicatorBuffer(double buffer[], int size, int count, double emptyValue) {
-   if ((uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
-   if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
-   if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d", count));
-   if (!size || !count) return(TRUE);
-
-   MoveMemory((void*)&buffer[0], &buffer[count], (size-count)*sizeof(buffer[0]));
-
-   std::fill_n(&buffer[size-count], count, emptyValue);
-   return(TRUE);
+   return(ShiftIndicatorBuffer(buffer, size, count, emptyValue));
    #pragma EXPANDER_EXPORT
 }

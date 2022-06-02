@@ -2,9 +2,9 @@
 #include "expander.h"
 
 
-// separate template declarations/definitions to prevent bloated binaries
+// separate template declarations/definitions to prevent a bloated binary
 template <typename T>
 BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int count = INT_MAX);
 
-BOOL WINAPI ShiftIntIndicatorBuffer   (int    buffer[], int size, int count, int    emptyValue);
-BOOL WINAPI ShiftDoubleIndicatorBuffer(double buffer[], int size, int count, double emptyValue);
+template <typename T>
+BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue);
