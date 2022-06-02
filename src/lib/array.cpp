@@ -36,6 +36,7 @@ BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int cou
 
 // explicit template instantiation to make definitions accessible to the linker
 template BOOL InitializeArray<int>   (int[],    int, int,    int, int);
+template BOOL InitializeArray<float> (float[],  int, float,  int, int);
 template BOOL InitializeArray<double>(double[], int, double, int, int);
 
 
@@ -51,6 +52,23 @@ template BOOL InitializeArray<double>(double[], int, double, int, int);
  * @return BOOL - success status
  */
 BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, int count) {
+   return(InitializeArray(values, size, initValue, from, count));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Initialize a range of <float> array elements with a custom value.
+ *
+ * @param  float  values[]  - array
+ * @param  int    size      - number of elements in the array
+ * @param  float  initValue - custom initialization value
+ * @param  int    from      - start index of initialization
+ * @param  int    count     - number of elements to initialize
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI InitializeFloatArray(float values[], int size, float initValue, int from, int count) {
    return(InitializeArray(values, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
@@ -100,11 +118,12 @@ BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) 
 
 // explicit template instantiation to make definitions accessible to the linker
 template BOOL ShiftIndicatorBuffer<int>   (int[],    int, int, int);
+template BOOL ShiftIndicatorBuffer<float> (float[],  int, int, float);
 template BOOL ShiftIndicatorBuffer<double>(double[], int, int, double);
 
 
 /**
- * Shift the content of an MQL timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of an <int> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
  * @param  int buffer[]   - timeseries array
@@ -121,7 +140,24 @@ BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int empty
 
 
 /**
- * Shift the content of an MQL timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of a <float> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * elements at the beginning (the oldest values of a timeseries).
+ *
+ * @param  float  buffer[]   - timeseries array
+ * @param  int    size       - number of elements in the array
+ * @param  int    count      - number of elements to shift
+ * @param  float  emptyValue - initialization value for elements becoming "empty"
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI ShiftFloatIndicatorBuffer(float buffer[], int size, int count, float emptyValue) {
+   return(ShiftIndicatorBuffer(buffer, size, count, emptyValue));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Shift the content of a <double> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
  * @param  double buffer[]   - timeseries array
