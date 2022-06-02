@@ -7,13 +7,14 @@
 /**
  * C++11 to_string() replacement for VS 2008.
  *
- * @param  <typename T> value
+ * @param  T value
  *
  * @return string
  *
  * Note: The returned string is a temporary object that will be destructed at the end of the expression.
  */
-template <typename T> string to_string(T value) {
+template <typename T>
+string to_string(T value) {
    std::ostringstream os;
    os << value;
    return(os.str());

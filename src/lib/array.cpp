@@ -5,15 +5,16 @@
 /**
  * Initialize the array elements in the specified range with a custom value.
  *
- * @param  int values[]         - array
+ * @param  T   values[]         - array
  * @param  int size             - number of elements in the array
- * @param  int initValue        - initialization value
+ * @param  T   initValue        - initialization value
  * @param  int from             - start index of initialization
  * @param  int count [optional] - number of elements to initialize (default: all elements from start index to the end of the array)
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, int count/*=INT_MAX*/) {
+template <typename T>
+BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int count/*=INT_MAX*/) {
    if ((uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
    if (from < 0 || from >= size)         return(error(ERR_INVALID_PARAMETER, "invalid parameter from: %d", from));
@@ -24,44 +25,49 @@ BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, 
    }
    else {
       // @see  https://stackoverflow.com/questions/3944505/detecting-signed-overflow-in-c-c#3947943
-      if (count > INT_MAX-from)          return(error(ERR_INVALID_PARAMETER, "integer overflow detected (from: %d, count: %d)", from, count));
-      if (from+count > size)             return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds array boundaries)", count));
+      if (count > INT_MAX-from) return(error(ERR_INVALID_PARAMETER, "integer overflow detected (from: %d, count: %d)", from, count));
+      if (from+count > size)    return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds array boundaries)", count));
    }
 
    std::fill_n(&values[from], count, initValue);
    return(TRUE);
+}
+
+// explicit instantiation
+template BOOL InitializeArray<int>   (int[],    int, int,    int, int);
+template BOOL InitializeArray<double>(double[], int, double, int, int);
+
+
+/**
+ * Initialize the elements of an <int> array with a custom value.
+ *
+ * @param  int values[]  - array
+ * @param  int size      - number of elements in the array
+ * @param  int initValue - initialization value
+ * @param  int from      - start index of initialization
+ * @param  int count     - number of elements to initialize
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, int count) {
+   return(InitializeArray(values, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Initialize the array elements in the specified range with a custom value.
+* Initialize the elements of a <double> array with a custom value.
  *
- * @param  double values[]         - array
- * @param  int    size             - number of elements in the array
- * @param  double initValue        - initialization value
- * @param  int    from             - start index of initialization
- * @param  int    count [optional] - number of elements to initialize (default: all elements from start index to the end of the array)
+ * @param  double values[]  - array
+ * @param  int    size      - number of elements in the array
+ * @param  double initValue - initialization value
+ * @param  int    from      - start index of initialization
+ * @param  int    count     - number of elements to initialize
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, int from, int count/*=INT_MAX*/) {
-   if ((uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
-   if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
-   if (from < 0 || from >= size)         return(error(ERR_INVALID_PARAMETER, "invalid parameter from: %d", from));
-   if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be non-negative)", count));
-
-   if (count == INT_MAX) {
-      count = size - from;
-   }
-   else {
-      // @see  https://stackoverflow.com/questions/3944505/detecting-signed-overflow-in-c-c#3947943
-      if (count > INT_MAX-from)          return(error(ERR_INVALID_PARAMETER, "integer overflow detected (from: %d, count: %d)", from, count));
-      if (from+count > size)             return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds array boundaries)", count));
-   }
-
-   std::fill_n(&values[from], count, initValue);
-   return(TRUE);
+BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, int from, int count) {
+   return(InitializeArray(values, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
