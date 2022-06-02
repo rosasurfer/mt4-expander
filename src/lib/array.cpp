@@ -33,7 +33,8 @@ BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int cou
    return(TRUE);
 }
 
-// explicit instantiation
+
+// explicit template instantiation to make definitions accessible by the linker
 template BOOL InitializeArray<int>   (int[],    int, int,    int, int);
 template BOOL InitializeArray<double>(double[], int, double, int, int);
 
