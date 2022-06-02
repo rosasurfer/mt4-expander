@@ -35,9 +35,27 @@ BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int cou
 
 
 // explicit template instantiation to make definitions accessible to the linker
+template BOOL InitializeArray<char>  (char[],   int, char,   int, int);
 template BOOL InitializeArray<int>   (int[],    int, int,    int, int);
 template BOOL InitializeArray<float> (float[],  int, float,  int, int);
 template BOOL InitializeArray<double>(double[], int, double, int, int);
+
+
+/**
+ * Initialize a range of <char> array elements with a custom value.
+ *
+ * @param  char values[]  - array
+ * @param  int  size      - number of elements in the array
+ * @param  char initValue - custom initialization value
+ * @param  int  from      - start index of initialization
+ * @param  int  count     - number of elements to initialize
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI InitializeCharArray(char values[], int size, char initValue, int from, int count) {
+   return(InitializeArray(values, size, initValue, from, count));
+   #pragma EXPANDER_EXPORT
+}
 
 
 /**
@@ -117,9 +135,27 @@ BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) 
 
 
 // explicit template instantiation to make definitions accessible to the linker
+template BOOL ShiftIndicatorBuffer<char>  (char[],   int, int, char);
 template BOOL ShiftIndicatorBuffer<int>   (int[],    int, int, int);
 template BOOL ShiftIndicatorBuffer<float> (float[],  int, int, float);
 template BOOL ShiftIndicatorBuffer<double>(double[], int, int, double);
+
+
+/**
+ * Shift the content of a <char> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * elements at the beginning (the oldest values of a timeseries).
+ *
+ * @param  char buffer[]   - timeseries array
+ * @param  int  size       - number of elements in the array
+ * @param  int  count      - number of elements to shift
+ * @param  char emptyValue - initialization value for elements becoming "empty"
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI ShiftCharIndicatorBuffer(char buffer[], int size, int count, char emptyValue) {
+   return(ShiftIndicatorBuffer(buffer, size, count, emptyValue));
+   #pragma EXPANDER_EXPORT
+}
 
 
 /**
