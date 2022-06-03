@@ -38,6 +38,7 @@ BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int cou
 template BOOL InitializeArray<char>  (char[],   int, char,   int, int);
 template BOOL InitializeArray<short> (short[],  int, short,  int, int);
 template BOOL InitializeArray<int>   (int[],    int, int,    int, int);
+template BOOL InitializeArray<int64> (int64[],  int, int64,  int, int);
 template BOOL InitializeArray<float> (float[],  int, float,  int, int);
 template BOOL InitializeArray<double>(double[], int, double, int, int);
 
@@ -88,6 +89,25 @@ BOOL WINAPI InitializeShortArray(short values[], int size, short initValue, int 
  * @return BOOL - success status
  */
 BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, int count) {
+   return(InitializeArray(values, size, initValue, from, count));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Initialize a range of <int64> array elements with a custom value.
+ *
+ * @param  int64 values[]  - array
+ * @param  int   size      - number of elements in the array
+ * @param  int64 initValue - custom initialization value
+ * @param  int   from      - start index of initialization
+ * @param  int   count     - number of elements to initialize
+ *
+ * @return BOOL - success status
+ *
+ * Note: The function name refers to the MQL5 type <long> (a 64 bit wide integer).
+ */
+BOOL WINAPI InitializeLongArray(int64 values[], int size, int64 initValue, int from, int count) {
    return(InitializeArray(values, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
@@ -156,6 +176,7 @@ BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) 
 template BOOL ShiftIndicatorBuffer<char>  (char[],   int, int, char);
 template BOOL ShiftIndicatorBuffer<short> (short[],  int, int, short);
 template BOOL ShiftIndicatorBuffer<int>   (int[],    int, int, int);
+template BOOL ShiftIndicatorBuffer<int64> (int64[],  int, int, int64);
 template BOOL ShiftIndicatorBuffer<float> (float[],  int, int, float);
 template BOOL ShiftIndicatorBuffer<double>(double[], int, int, double);
 
@@ -206,6 +227,25 @@ BOOL WINAPI ShiftShortIndicatorBuffer(short buffer[], int size, int count, short
  * @return BOOL - success status
  */
 BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int emptyValue) {
+   return(ShiftIndicatorBuffer(buffer, size, count, emptyValue));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Shift the content of an <int64> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * elements at the beginning (the oldest values of a timeseries).
+ *
+ * @param  int64 buffer[]   - timeseries array
+ * @param  int   size       - number of elements in the array
+ * @param  int   count      - number of elements to shift
+ * @param  int64 emptyValue - initialization value for elements becoming "empty"
+ *
+ * @return BOOL - success status
+ *
+ * Note: The function name refers to the MQL5 type <long> (a 64 bit wide integer).
+ */
+BOOL WINAPI ShiftLongIndicatorBuffer(int64 buffer[], int size, int count, int64 emptyValue) {
    return(ShiftIndicatorBuffer(buffer, size, count, emptyValue));
    #pragma EXPANDER_EXPORT
 }

@@ -17,14 +17,14 @@
 
 
 // type aliases
-typedef unsigned   char    uchar;
-typedef            wchar_t wchar;
-typedef unsigned   int     uint;
-typedef          __int64   int64;
-typedef unsigned __int64   uint64;
-typedef          DWORD     color;                           // MQL4 color
-typedef          time_t    datetime;                        // MQL4: 32-bit time value (signed long)
-typedef        __time64_t  datetime64;                      // MQL5: 64-bit time value (int64)
+typedef unsigned   char      uchar;
+typedef            wchar_t   wchar;
+typedef unsigned   int       uint;
+typedef          __int64     int64;
+typedef unsigned __int64     uint64;
+typedef            DWORD     color;                         // MQL4 color
+typedef            time_t    datetime;                      // MQL4 32-bit timestamp (signed long)
+typedef          __time64_t  datetime64;                    // MQL5 64-bit timestamp (int64)
 
 
 namespace rsf {}                                            // define and always prefer the project's main namespace
