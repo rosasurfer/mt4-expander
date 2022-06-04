@@ -198,10 +198,12 @@ BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) 
    if ((uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
    if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
    if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
+   if (count > size)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter count=%d for size=%d (out of range)", count, size));
    if (!size || !count) return(TRUE);
 
-   MoveMemory((void*)&buffer[0], &buffer[count], (size-count)*sizeof(buffer[0]));
-
+   if (count < size) {
+      MoveMemory((void*)&buffer[0], &buffer[count], (size-count)*sizeof(buffer[0]));
+   }
    std::fill_n(&buffer[size-count], count, emptyValue);
    return(TRUE);
 }

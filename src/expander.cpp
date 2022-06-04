@@ -9,14 +9,14 @@ extern MqlProgramList g_mqlPrograms;                     // all MQL programs: ve
 
 
 /**
- * Dump data from a buffer to the debugger output console.
+ * Dump data from a buffer to the debugger output.
  *
- * @param  char* fileName        - name of the file where the dump operation occurred
- * @param  char* funcName        - name of the function where the dump operation occurred
- * @param  int   line            - line number in the file where the dump operation occurred
+ * @param  char* fileName        - file name of the call
+ * @param  char* funcName        - function name of the call
+ * @param  int   line            - line number of the call
  * @param  void* data            - pointer to the data to dump
  * @param  uint  size            - size of the data to dump in bytes
- * @param  uint  mode [optional] - mode controling the way of dumping (default: hex dump)
+ * @param  uint  mode [optional] - mode controling the output format (default: hex dump)
  *                                 DUMPMODE_HEX:  output a hex dump
  *                                 DUMPMODE_CHAR: output a readable character representation
  * @return int - 0 (NULL)
@@ -30,12 +30,12 @@ int WINAPI _dump(const char* fileName, const char* funcName, int line, const voi
 
    switch (mode) {
       case DUMPMODE_HEX:
-         ss << "dumping " << (int)size << " bytes:" << NL;
+         ss << "dumping " << (int)size << " byte:" << NL;
          ss << std::hex << std::uppercase;
          for (uint i=0; i < size; i++) {
             ss << std::setw(2) << std::setfill('0') << (int)bytes[i] << " ";
-            if      (i%16 == 15) ss << NL;
-            else if (i% 4 ==  3) ss << " ";
+            if      (i%16 == 15) ss << NL;      // a linebreak after 16 byte
+            else if (i% 4 ==  3) ss << " ";     // a space separator every 4 byte
          }
          break;
 
