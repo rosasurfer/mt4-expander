@@ -68,7 +68,7 @@ HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
  * @return BOOL
  */
 BOOL WINAPI IsLockedFile(const string &filename) {
-   if (IsFileA(filename.c_str(), MODE_OS)) {
+   if (IsFileA(filename.c_str(), MODE_SYSTEM)) {
       // OF_READWRITE|OF_SHARE_COMPAT must succeed
       HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
       if (hFile == HFILE_ERROR)
@@ -165,21 +165,60 @@ HMODULE WINAPI GetExpanderModuleXP() {
 
 
 /**
- * Return the full path of the MQL directory the terminal currently uses.
+ * Return the full path of the history root directory. The function doesn't check whether the directory exists.
+ *
+ * @return char* - directory name or a NULL pointer in case of errors
+ */
+const char* WINAPI GetHistoryRootPathA() {
+   static char* hstDirectory;
+   if (!hstDirectory) {
+      const char* dataPath = GetTerminalDataPathA();
+
+      if (dataPath) {
+         string path = string(dataPath).append("\\history");
+         hstDirectory = strdup(path.c_str());
+      }
+   }
+   return(hstDirectory);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+* Return the full path of the history root directory. The function doesn't check whether the directory exists.
+ *
+ * @return wchar* - directory name or a NULL pointer in case of errors
+ */
+const wchar* WINAPI GetHistoryRootPathW() {
+   static wchar* hstDirectory;
+   if (!hstDirectory) {
+      const wchar* dataPath = GetTerminalDataPathW();
+
+      if (dataPath) {
+         wstring path = wstring(dataPath).append(L"\\history");
+         hstDirectory = wcsdup(path.c_str());
+      }
+   }
+   return(hstDirectory);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the currently used MQL directory.
  *
  * @return char* - directory name or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
-
    if (!mqlDirectory) {
       const char* dataPath = GetTerminalDataPathA();
 
       if (dataPath) {
-         string dir(dataPath);
-         if (GetTerminalBuild() <= 509) dir.append("\\experts");
-         else                           dir.append("\\mql4");
-         mqlDirectory = strdup(dir.c_str());
+         string path(dataPath);
+         if (GetTerminalBuild() <= 509) path.append("\\experts");
+         else                           path.append("\\mql4");
+         mqlDirectory = strdup(path.c_str());
       }
    }
    return(mqlDirectory);
@@ -188,7 +227,7 @@ const char* WINAPI GetMqlDirectoryA() {
 
 
 /**
- * Return the full path of the MQL directory the terminal currently uses.
+ * Return the full path of the currently used MQL directory.
  *
  * @return wchar* - directory name or a NULL pointer in case of errors
  */
@@ -199,10 +238,10 @@ const wchar* WINAPI GetMqlDirectoryW() {
       const wchar* dataPath = GetTerminalDataPathW();
 
       if (dataPath) {
-         wstring dir(dataPath);
-         if (GetTerminalBuild() <= 509) dir.append(L"\\experts");
-         else                           dir.append(L"\\mql4");
-         mqlDirectory = wcsdup(dir.c_str());
+         wstring path(dataPath);
+         if (GetTerminalBuild() <= 509) path.append(L"\\experts");
+         else                           path.append(L"\\mql4");
+         mqlDirectory = wcsdup(path.c_str());
       }
    }
    return(mqlDirectory);
@@ -517,7 +556,7 @@ const wchar* WINAPI GetTerminalPathW() {
  *
  * @return wstring& - directory name or an empty string in case of errors
  */
-const wstring& WINAPI GetTerminalPathWs() {
+const wstring& WINAPI getTerminalPathW() {
    static wstring path;
 
    if (path.empty()) {
@@ -532,8 +571,8 @@ const wstring& WINAPI GetTerminalPathWs() {
 
 
 /**
- * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the data
- * directory may differ. The function does not check if the returned path exists.
+ * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
+ * data directory may differ. The function does not check whether the returned path exists.
  *
  * @return char* - directory name or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
@@ -546,7 +585,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
       if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
          return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
 
-      wstring terminalPath = GetTerminalPathWs();                                               // get terminal installation path
+      wstring terminalPath = getTerminalPathW();                                               // get terminal installation path
       StrToUpper(terminalPath);
 
       string md5(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));           // calculate MD5
@@ -562,8 +601,8 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
 
 /**
- * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the data
- * directory may differ. The function does not check if the returned path exists.
+ * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
+ * data directory may differ. The function does not check whether the returned path exists.
  *
  * @return char* - directory name or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
@@ -704,7 +743,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
          cmd = MT4_LOAD_SCRIPT;
          break;
    }
-   if (!IsFileA(file, MODE_OS)) return(error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
+   if (!IsFileA(file, MODE_SYSTEM)) return(error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
 
    // trigger the launch of the program
    if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of 'name' from the heap
@@ -786,7 +825,7 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound/*=TRUE*/) {
 
       // look-up the .wav file in the terminal's installation and the user's data directory
       string filepath = string(GetTerminalPathA()).append("/").append(soundfile);
-      if (IsFileA(filepath, MODE_OS) || IsFileA(filepath=string(GetTerminalDataPathA()).append("/").append(soundfile), MODE_OS)) {
+      if (IsFileA(filepath, MODE_SYSTEM) || IsFileA(filepath=string(GetTerminalDataPathA()).append("/").append(soundfile), MODE_SYSTEM)) {
          PlaySoundA(filepath.c_str(), NULL, SND_FILENAME|SND_ASYNC);
       }
       else debug("sound file not found: \"%s\"", soundfile.c_str());
@@ -835,13 +874,35 @@ BOOL WINAPI TerminalIsPortableMode() {
 }
 
 
-/**
- *
- */
-char* WINAPI Test(HWND hWnd) {
+#pragma pack(push, 1)
+struct TYPES {
+   char       a_char;
+   short      a_short;
+   long       a_long;
+   int        a_int;
+   int64      a_int64;
+   datetime   a_datetime;
+   datetime64 a_datetime64;
+   long long  a_longlong;
+};
+#pragma pack(pop)
 
-   wchar* test = L"test";
-   wcsdup(test);
+
+/**
+ * @return int
+ */
+int WINAPI Test() {
+
+   debug("sizes: char=%d  short=%d  long=%d  int=%d  int64=%d  datetime=%d  datetime64=%d  longlong=%d",
+          sizeofMember(TYPES, a_char),
+          sizeofMember(TYPES, a_short),
+          sizeofMember(TYPES, a_long),
+          sizeofMember(TYPES, a_int),
+          sizeofMember(TYPES, a_int64),
+          sizeofMember(TYPES, a_datetime),
+          sizeofMember(TYPES, a_datetime64),
+          sizeofMember(TYPES, a_longlong)
+   );
 
    return(NULL);
    //#pragma EXPANDER_EXPORT

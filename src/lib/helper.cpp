@@ -135,6 +135,21 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
 
 
 /**
+ * Whether a key is up or down at the time the function is called.
+ *
+ * @param  int vKey - one of 256 possible virtual-key codes
+ *
+ * @return BOOL
+ *
+ * @see  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate
+ */
+BOOL WINAPI IsAsyncKeyDown(int vKey) {
+   return(GetAsyncKeyState(vKey) & 0x8000);     // check the most significant bit of the SHORT result
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether the specified value is a MetaTrader standard timeframe identifier.
  *
  * @param  int timeframe

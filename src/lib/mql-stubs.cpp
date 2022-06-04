@@ -201,8 +201,8 @@ void WINAPI DummyCalls() {
 }
 
 
-const char* WINAPI GetUniqueSymbol() {
-   return("");
+BOOL WINAPI Recorder_GetSymbolDefinitionA(int i, BOOL enabled, const char* symbol, const char* symbolDescr, const char* symbolGroup, int symbolDigits, double hstBase, int hstMultiplier, const char* hstDirectory, int hstFormat) {
+   return(FALSE);
    #pragma EXPANDER_EXPORT
 }
 

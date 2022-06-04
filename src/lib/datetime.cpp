@@ -4,7 +4,7 @@
 
 
 /**
- * Return the system's current GMT time (also in Strategy Tester).
+ * Return the system's current GMT time (also in tester).
  *
  * @return datetime - Unix timestamp as seconds since 01.01.1970 00:00:00 GMT
  */
@@ -15,7 +15,7 @@ datetime WINAPI GetGmtTime() {
 
 
 /**
- * Return the system's current local time (also in Strategy Tester).
+ * Return the system's current local time (also in tester).
  *
  * @return datetime - local timestamp as seconds since 01.01.1970 00:00:00 local time
  */

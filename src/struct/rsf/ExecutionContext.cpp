@@ -419,20 +419,6 @@ uint WINAPI ec_PipDigits(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's current symbol "SubPipDigits".
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint - digits of a subpip
- */
-uint WINAPI ec_SubPipDigits(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->subPipDigits);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an MQL program's current symbol "Pip" size.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -503,20 +489,6 @@ const char* WINAPI ec_PipPriceFormat(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's current symbol subpip price format (contains subpips).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - format string
- */
-const char* WINAPI ec_SubPipPriceFormat(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->subPipPriceFormat);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
@@ -541,15 +513,169 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* cons
 
 
 /**
- * Return an MQL program's pointer to the super context (if any).
+ * Return the MQL program name of the linked super context (if any).
  *
- * @param  EXECUTION_CONTEXT* ec
+ * @param  uint pid - pid of the current program
  *
- * @return EXECUTION_CONTEXT* - pointer or NULL if the context contains no super context
+ * @return char* - program name
  */
-EXECUTION_CONTEXT* WINAPI ec_lpSuperContext(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->superContext);
+const char* WINAPI ep_SuperProgramName(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->programName);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the main loglevel of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevel(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevel);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the terminal log appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelTerminal(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelTerminal);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the terminal alert appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelAlert(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelAlert);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the debug output appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelDebugger(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelDebugger);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the separate logfile appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelFile(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelFile);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the mail appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelMail(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelMail);
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the loglevel for the SMS appender of the linked super context (if any).
+ *
+ * @param  uint pid - pid of the current program
+ *
+ * @return int - loglevel
+ */
+int WINAPI ep_SuperLoglevelSMS(uint pid) {
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+
+      if (master && master->superContext) {
+         return(master->superContext->loglevelSMS);
+      }
+   }
+   return(NULL);
    #pragma EXPANDER_EXPORT
 }
 
@@ -569,6 +695,20 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return an MQL program's chart frame handle.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - handle, same as return value of MQL::WindowHandle()
+ */
+HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChart);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return an MQL program's chart window handle.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -578,6 +718,20 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->hChartWindow);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an MQL program's "EA.Recorder" mode (experts only).
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int
+ */
+int WINAPI ec_RecordMode(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->recordMode);
    #pragma EXPANDER_EXPORT
 }
 
@@ -594,20 +748,6 @@ int WINAPI ec_TestId(const EXECUTION_CONTEXT* ec) {
    if (ec->test)
       return(ec->test->id);
    return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an MQL program's chart frame handle.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - handle, same as return value of MQL::WindowHandle()
- */
-HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChart);
    #pragma EXPANDER_EXPORT
 }
 
@@ -783,29 +923,15 @@ BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Whether an MQL program's input parameter "EA.ExternalReporting" is activated (experts only).
+ * Whether an MQL program's input parameter "Test.ExternalReporting" is activated (experts only).
  *
  * @param  EXECUTION_CONTEXT* ec
  *
  * @return BOOL
  */
-BOOL WINAPI ec_EaExternalReporting(const EXECUTION_CONTEXT* ec) {
+BOOL WINAPI ec_ExternalReporting(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->eaExternalReporting);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether an MQL program's input parameter "EA.RecordEquity" is activated (experts only).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_EaRecordEquity(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->eaRecordEquity);
+   return(ec->externalReporting);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1526,30 +1652,6 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's subPipDigits value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               digits
- *
- * @return uint - the same value
- */
-uint WINAPI ec_SetSubPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)digits < 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
-
-   ec->subPipDigits = digits;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->subPipDigits = digits;
-   }
-   return(digits);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT' pip value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1716,6 +1818,30 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
+ * Set an EXECUTION_CONTEXT's recordMode value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                mode
+ *
+ * @return int - the same mode
+ */
+int WINAPI ec_SetRecordMode(EXECUTION_CONTEXT* ec, int mode) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->recordMode = mode;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlPrograms.size() > pid) {
+      ContextChain &chain = *g_mqlPrograms[pid];
+      if (ec==chain[1] && chain[0])
+         chain[0]->recordMode = mode;
+   }
+   return(mode);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Set an EXECUTION_CONTEXT's testing value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1785,46 +1911,23 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's eaExternalReporting value.
+ * Set an EXECUTION_CONTEXT's externalReporting value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
  *
  * @return BOOL - the same status
  */
-BOOL WINAPI ec_SetEaExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
+BOOL WINAPI ec_SetExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->eaExternalReporting = status;
+   ec->externalReporting = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->eaExternalReporting = status;
-   }
-   return(status);
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's eaRecordEquity value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetEaRecordEquity(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->eaRecordEquity = status;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->eaRecordEquity = status;
+         chain[0]->externalReporting = status;
    }
    return(status);
 }
@@ -1951,7 +2054,7 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevel = level;
 
@@ -1959,7 +2062,7 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
-         if (master->loglevel != level) {
+         if (master && master->loglevel != level) {
             master->loglevel = level;                                      // synchronize master context
 
             if (!master->loglevel || master->loglevel==LOG_OFF) {
@@ -1984,14 +2087,17 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelTerminal = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelTerminal = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelTerminal = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2007,14 +2113,17 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelAlert = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelAlert = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelAlert = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2030,14 +2139,17 @@ int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelDebugger = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelDebugger = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelDebugger = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2045,7 +2157,7 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set an MQL program's loglevel for the separate logfile appender.
+ * Set an MQL program's loglevel for the custom logfile appender.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -2053,7 +2165,7 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelFile = level;
 
@@ -2061,7 +2173,7 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
-         if (master->loglevelFile != level) {
+         if (master && master->loglevelFile != level) {
             master->loglevelFile = level;                                  // synchronize master context
 
             if (!master->loglevelFile || master->loglevelFile==LOG_OFF) {
@@ -2086,14 +2198,17 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelMail = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelMail = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelMail = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2109,14 +2224,17 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel
  */
 int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    ec->loglevelSMS = level;
 
    uint pid = ec->pid;                                               // synchronize master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (chain[0]) chain[0]->loglevelSMS = level;
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master) {
+         master->loglevelSMS = level;
+      }
    }
    return(level);
    #pragma EXPANDER_EXPORT
@@ -2145,9 +2263,11 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlPrograms.size() > pid) {
       ContextChain &chain = *g_mqlPrograms[pid];
-      if (ec==chain[1] && chain[0])
-         if (!strcpy(chain[0]->logFilename, ec->logFilename))
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master && ec==chain[1]) {
+         if (!strcpy(master->logFilename, ec->logFilename))
             return(NULL);
+      }
    }
    return(filename);
 }
@@ -2207,26 +2327,24 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
 
          << ", digits="               <<                      ec->digits
          << ", pipDigits="            <<                      ec->pipDigits
-         << ", subPipDigits="         <<                      ec->subPipDigits
          << ", pip="   << std::setprecision(ec->pipDigits) << ec->pip
          << ", point=" << std::setprecision(ec->digits)    << ec->point
          << ", pipPoints="            <<                      ec->pipPoints
          << ", priceFormat="          <<       DoubleQuoteStr(ec->priceFormat)
          << ", pipPriceFormat="       <<       DoubleQuoteStr(ec->pipPriceFormat)
-         << ", subPipPriceFormat="    <<       DoubleQuoteStr(ec->subPipPriceFormat)
 
          << ", superContext="         <<                     (ec->superContext ? StrFormat("0x%p", ec->superContext) : "NULL")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
          << ", hChart="               <<                     (ec->hChart       ? StrFormat("0x%p", ec->hChart       ) : "NULL")
          << ", hChartWindow="         <<                     (ec->hChartWindow ? StrFormat("0x%p", ec->hChartWindow ) : "NULL")
 
+         << ", recordMode="           <<                      ec->recordMode
+
          << ", test="                 <<                     (ec->test ? StrFormat("0x%p", ec->test) : "NULL")
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
-
-         << ", eaExternalReporting="  <<            BoolToStr(ec->eaExternalReporting)
-         << ", eaRecordEquity="       <<            BoolToStr(ec->eaRecordEquity)
+         << ", externalReporting="    <<            BoolToStr(ec->externalReporting)
 
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
          << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))

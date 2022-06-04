@@ -53,7 +53,7 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
  * @param  DWORD flags  - tick configuration flags (default: standard ticks for experts and indicators)
  *                        TICK_CHART_REFRESH:    send command ID_CHART_REFRESH instead of standard ticks (for synthetic and
  *                                               offline charts)
- *                        TICK_TESTER:           send command ID_CHART_STEPFORWARD instead of standard ticks (for Strategy Tester)
+ *                        TICK_TESTER:           send command ID_CHART_STEPFORWARD instead of standard ticks (for tester)
  *                        TICK_IF_VISIBLE:       send ticks only if the chart is visible (saving of resources)
  *                        TICK_PAUSE_ON_WEEKEND: skip sending ticks during sessionbreaks (saving of resources, not yet implemented)
  *

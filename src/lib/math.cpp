@@ -5,6 +5,37 @@
 
 
 /**
+ * Return the exponent part of a double value.
+ *
+ * @param  double value
+ *
+ * @return int - exponent
+ */
+int WINAPI DoubleExp(double value) {
+   double absValue = abs(value);
+   if (!absValue) return(0);
+   return((int) floor(log10(absValue)));
+   #pragma EXPANDER_EXPORT
+
+   // @see  https://stackoverflow.com/questions/29582919/find-exponent-and-mantissa-of-a-double-to-the-base-10
+   // @see  https://social.msdn.microsoft.com/Forums/vstudio/en-US/a5cca71e-75d0-4c3f-88af-3bf1899d6556/double-get-mantissa-and-exponent-in-base-10-representation
+}
+
+
+/**
+ * Return the base-10 logarithm of a double value.
+ *
+ * @param  double value
+ *
+ * @return double - base-10 logarithm
+ */
+double WINAPI MathLog10(double value) {
+   return(log10(value));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * IEE754 can represent integers exactly as floats up to about 2^24 (16'777'216).
  * IEE754 can represent all integers exactly as doubles.
  *
@@ -52,8 +83,8 @@ float WINAPI round(float value, int digits/*=0*/) {
    if (!value) value = 0;                                // convert -0 to +0
 
    #pragma warning(push)
-   #pragma warning(disable:4244)
-   return(dValue);                                       // C4244: conversion from 'double' to 'float', possible loss of data
+   #pragma warning(disable:4244)                         // C4244: conversion from 'double' to 'float', possible loss of data
+   return(dValue);
    #pragma warning(pop)
 }
 

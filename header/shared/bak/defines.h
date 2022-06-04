@@ -20,7 +20,7 @@
 
 
 // log levels
-#define LOG_DEBUG                               1        // a message is logged if its loglevel matches or exceeds a program's configured loglevel
+#define LOG_DEBUG                               1        // a message is logged if its loglevel matches or exceeds the program's configured default loglevel
 #define LOG_ALL                         LOG_DEBUG        // alias to enable all loglevels
 #define LOG_INFO                                2
 #define LOG_NOTICE                              4
@@ -133,25 +133,26 @@
 #define F_PERIODS_ALL                  0x7FFFFFFF        // INT_MAX: covers all standard and custom timeframes
 
 
-// flags marking errors handled by custom error handlers (these errors don't trigger a fatal runtime error)
-#define F_ERR_CONCURRENT_MODIFICATION  0x00000001        //       1
-#define F_ERS_EXECUTION_STOPPING       0x00000002        //       2  temporary state
-#define F_ERS_HISTORY_UPDATE           0x00000004        //       4  temporary state
-#define F_ERR_INVALID_PARAMETER        0x00000008        //       8
-#define F_ERR_INVALID_STOP             0x00000010        //      16
-#define F_ERR_INVALID_TICKET           0x00000020        //      32
-#define F_ERR_INVALID_TRADE_PARAMETERS 0x00000040        //      64
-#define F_ERR_MARKET_CLOSED            0x00000080        //     128
-#define F_ERR_NO_CONNECTION            0x00000100        //     256
-#define F_ERR_NO_RESULT                0x00000200        //     512
-#define F_ERR_OFF_QUOTES               0x00000400        //    1024
-#define F_ERR_ORDER_CHANGED            0x00000800        //    2048
-#define F_ERR_SERIES_NOT_AVAILABLE     0x00001000        //    4096
-#define F_ERS_TERMINAL_NOT_YET_READY   0x00002000        //    8192  temporary state
-#define F_ERR_TRADE_DISABLED           0x00004000        //   16384
-#define F_ERR_TRADE_MODIFY_DENIED      0x00008000        //   32768
-#define F_ERR_STOP_DISTANCE_VIOLATED   0x00010000        //   65536
-#define F_ERR_TRADESERVER_GONE         0x00020000        //  131072
+// flags controling custom error handling (matching errors don't trigger a fatal runtime error)
+#define F_ERR_CONCURRENT_MODIFICATION  0x00000001        //           1
+#define F_ERS_EXECUTION_STOPPING       0x00000002        //           2  temporary state
+#define F_ERS_HISTORY_UPDATE           0x00000004        //           4  temporary state
+#define F_ERR_INVALID_PARAMETER        0x00000008        //           8
+#define F_ERR_INVALID_STOP             0x00000010        //          16
+#define F_ERR_INVALID_TICKET           0x00000020        //          32
+#define F_ERR_INVALID_TRADE_PARAMETERS 0x00000040        //          64
+#define F_ERR_MARKET_CLOSED            0x00000080        //         128
+#define F_ERR_NO_CONNECTION            0x00000100        //         256
+#define F_ERR_NO_RESULT                0x00000200        //         512
+#define F_ERR_OFF_QUOTES               0x00000400        //        1024
+#define F_ERR_ORDER_CHANGED            0x00000800        //        2048
+#define F_ERR_SERIES_NOT_AVAILABLE     0x00001000        //        4096
+#define F_ERS_TERMINAL_NOT_YET_READY   0x00002000        //        8192  temporary state
+#define F_ERR_TRADE_DISABLED           0x00004000        //       16384
+#define F_ERR_TRADE_MODIFY_DENIED      0x00008000        //       32768
+#define F_ERR_STOP_DISTANCE_VIOLATED   0x00010000        //       65536
+#define F_ERR_TRADESERVER_GONE         0x00020000        //      131072
+#define F_LOG_NOTICE                   0x40000000        //  1073741824  min. loglevel for matching errors (default: LOG_INFO)
 
 
 // flags controlling order execution
@@ -226,7 +227,7 @@
 
 // file function flags
 #define MODE_MQL                                1        // restrict file system operations to the MQL sandbox
-#define MODE_OS                                 2        // allow file system operations outside of the MQL sandbox
+#define MODE_SYSTEM                             2        // allow file system operations outside of the MQL sandbox
 #define MODE_MKPARENT                           4        // create non-existing parent directories as needed, @see CreateDirectory()
 
 
@@ -330,7 +331,7 @@
 #define INIT_BARS_ON_HIST_UPDATE                4        //
 #define INIT_NO_BARS_REQUIRED                   8        // executable without chart history (scripts only)
 #define INIT_BUFFERED_LOG                      16        // setup a logfile buffer for logging
-#define INIT_NO_EXTERNAL_REPORTING             32        // always disable external test reporting (experts only)
+#define INIT_NO_EXTERNAL_REPORTING             32        // disable external test reporting (experts only)
 
 
 // MT4 internal messages

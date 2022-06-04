@@ -5,7 +5,7 @@
 
 
 /**
- * Return a description of a Strategy Tester's bar model id.
+ * Return a description of a test's bar model id.
  *
  * @param  int id
  *
@@ -23,7 +23,7 @@ const char* WINAPI BarModelDescription(int id) {
 
 
 /**
- * Return a readable version of a Strategy Tester's bar model id.
+ * Return a readable version of a test's bar model id.
  *
  * @param  int id
  *
@@ -274,7 +274,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_ARRAY_ERROR                                                             : return("ERR_ARRAY_ERROR"                                                 );    //   4053
       case ERR_SERIES_NOT_AVAILABLE                                                    : return("ERR_SERIES_NOT_AVAILABLE"                                        );    //   4054
       case ERR_CUSTOM_INDICATOR_ERROR                                                  : return("ERR_CUSTOM_INDICATOR_ERROR"                                      );    //   4055
-      case ERR_INCOMPATIBLE_ARRAYS                                                     : return("ERR_INCOMPATIBLE_ARRAYS"                                         );    //   4056
+      case ERR_INCOMPATIBLE_ARRAY                                                      : return("ERR_INCOMPATIBLE_ARRAY"                                          );    //   4056
       case ERR_GLOBAL_VARIABLES_PROCESSING                                             : return("ERR_GLOBAL_VARIABLES_PROCESSING"                                 );    //   4057
       case ERR_GLOBAL_VARIABLE_NOT_FOUND                                               : return("ERR_GLOBAL_VARIABLE_NOT_FOUND"                                   );    //   4058
       case ERR_FUNC_NOT_ALLOWED_IN_TESTER                                              : return("ERR_FUNC_NOT_ALLOWED_IN_TESTER"                                  );    //   4059

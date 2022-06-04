@@ -12,8 +12,7 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 
 
 /**
- * Append a log message to a program's logfile. The caller is responsible for checking the configured loglevel. Intentionally
- * this function doesn't check it again.
+ * Append a log message to a program's logfile. The caller is responsible for filtering messages by loglevel.
  *
  * @param  EXECUTION_CONTEXT* ec      - execution context of the program
  * @param  datetime           time    - current time (used only in tester)
@@ -31,6 +30,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    if (level == LOG_OFF)                  return(FALSE);
 
    EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
+   if (master->superContext) master = (*g_mqlPrograms[master->superContext->pid])[0];     // use a super context (if any)
 
    // check whether to use an existing logger or a logbuffer
    BOOL useLogger    = (master->logger && strlen(master->logFilename));
@@ -39,10 +39,10 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
 
    // open a closed logger
    if (useLogger && !master->logger->is_open()) {
-      if (!IsFileA(master->logFilename, MODE_OS)) {
+      if (!IsFileA(master->logFilename, MODE_SYSTEM)) {
          char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
-         if (CreateDirectoryA(string(drive).append(dir), MODE_OS|MODE_MKPARENT))          // make sure the directory exists
+         if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT))      // make sure the directory exists
             return(FALSE);
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
@@ -75,7 +75,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
       size_t bufSize = 20;
       char* buffer = (char*)alloca(bufSize);
       gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // tester: the passed tester time with seconds only
-      ss << buffer;
+      ss << "T " << buffer;                                                               // prefixed by "T"
    }
    else {
       SYSTEMTIME st; GetLocalTime(&st);
@@ -113,6 +113,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
 
    ContextChain &chain = *g_mqlPrograms[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
+   if (master->superContext) return(TRUE);                                                // ignore the call if in iCustom()
 
    if (filename && *filename) {
       // enable the file logger
@@ -128,19 +129,19 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       // open the new logfile if the logfile appender is not disabled
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
-            if (!IsFileA(filename, MODE_OS)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                                    // extract the directory part of logFilename
+            if (!IsFileA(filename, MODE_SYSTEM)) {
+               char drive[MAX_DRIVE], dir[MAX_DIR];                                       // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
-               if (CreateDirectoryA(string(drive).append(dir), MODE_OS|MODE_MKPARENT)) // make sure the directory exists
+               if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT)) // make sure the directory exists
                   return(FALSE);
             }
-            log->open(filename, std::ios::binary|std::ios::app);                       // open the logfile
+            log->open(filename, std::ios::binary|std::ios::app);                           // open the logfile
             if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
             if (master->logBuffer && master->logBuffer->size()) {
                uint size = master->logBuffer->size();
                for (uint i=0; i < size; ++i) {
                   string* entry = (*master->logBuffer)[i];
-                  *master->logger << *entry << NL;                                     // flush existing logbuffer entries
+                  *master->logger << *entry << NL;                                         // flush existing logbuffer entries
                   delete entry;
                }
                master->logger->flush();

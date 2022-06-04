@@ -9,6 +9,7 @@ char*        WINAPI GetWindowTextA(HWND hWnd);
 wchar*       WINAPI GetWindowTextW(HWND hWnd);
 int          WINAPI GetLastWin32Error();
 DWORD        WINAPI GetUIThreadId();
+BOOL         WINAPI IsAsyncKeyDown(int vKey);
 BOOL         WINAPI IsCustomTimeframe(int timeframe);
 BOOL         WINAPI IsStdTimeframe(int timeframe);
 BOOL         WINAPI IsProgramType(int type);

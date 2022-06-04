@@ -252,6 +252,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\lib\history.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\lib\log.h"
 					>
 				</File>
@@ -315,14 +319,6 @@
 			<Filter
 				Name="struct"
 				>
-				<File
-					RelativePath="..\..\other\mikha-dev\mtmanapi\MT4ManagerAPI.h"
-					>
-				</File>
-				<File
-					RelativePath=".\header\struct\MT4ManagerAPI.rsf.h"
-					>
-				</File>
 				<Filter
 					Name="mt4"
 					>
@@ -624,6 +620,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\history.cpp"
+					>
 				</File>
 				<File
 					RelativePath=".\src\lib\lock.cpp"
