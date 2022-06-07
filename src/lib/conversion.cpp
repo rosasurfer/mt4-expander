@@ -101,151 +101,151 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
 const char* WINAPI ErrorToStrA(int error) {
    // for Win32 error codes see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
    #ifndef ERROR_DEVICE_SUPPORT_IN_PROGRESS
-   #define ERROR_DEVICE_SUPPORT_IN_PROGRESS                             171
+   #define ERROR_DEVICE_SUPPORT_IN_PROGRESS                             171L
    #endif
    #ifndef ERROR_INCOMPATIBLE_WITH_GLOBAL_SHORT_NAME_REGISTRY_SETTING
-   #define ERROR_INCOMPATIBLE_WITH_GLOBAL_SHORT_NAME_REGISTRY_SETTING   304
+   #define ERROR_INCOMPATIBLE_WITH_GLOBAL_SHORT_NAME_REGISTRY_SETTING   304L
    #endif
    #ifndef ERROR_SHORT_NAMES_NOT_ENABLED_ON_VOLUME
-   #define ERROR_SHORT_NAMES_NOT_ENABLED_ON_VOLUME                      305
+   #define ERROR_SHORT_NAMES_NOT_ENABLED_ON_VOLUME                      305L
    #endif
    #ifndef ERROR_SECURITY_STREAM_IS_INCONSISTENT
-   #define ERROR_SECURITY_STREAM_IS_INCONSISTENT                        306
+   #define ERROR_SECURITY_STREAM_IS_INCONSISTENT                        306L
    #endif
    #ifndef ERROR_INVALID_LOCK_RANGE
-   #define ERROR_INVALID_LOCK_RANGE                                     307
+   #define ERROR_INVALID_LOCK_RANGE                                     307L
    #endif
    #ifndef ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT
-   #define ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT                            308
+   #define ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT                            308L
    #endif
    #ifndef ERROR_NOTIFICATION_GUID_ALREADY_DEFINED
-   #define ERROR_NOTIFICATION_GUID_ALREADY_DEFINED                      309
+   #define ERROR_NOTIFICATION_GUID_ALREADY_DEFINED                      309L
    #endif
    #ifndef ERROR_INVALID_EXCEPTION_HANDLER
-   #define ERROR_INVALID_EXCEPTION_HANDLER                              310
+   #define ERROR_INVALID_EXCEPTION_HANDLER                              310L
    #endif
    #ifndef ERROR_DUPLICATE_PRIVILEGES
-   #define ERROR_DUPLICATE_PRIVILEGES                                   311
+   #define ERROR_DUPLICATE_PRIVILEGES                                   311L
    #endif
    #ifndef ERROR_NO_RANGES_PROCESSED
-   #define ERROR_NO_RANGES_PROCESSED                                    312
+   #define ERROR_NO_RANGES_PROCESSED                                    312L
    #endif
    #ifndef ERROR_NOT_ALLOWED_ON_SYSTEM_FILE
-   #define ERROR_NOT_ALLOWED_ON_SYSTEM_FILE                             313
+   #define ERROR_NOT_ALLOWED_ON_SYSTEM_FILE                             313L
    #endif
    #ifndef ERROR_DISK_RESOURCES_EXHAUSTED
-   #define ERROR_DISK_RESOURCES_EXHAUSTED                               314
+   #define ERROR_DISK_RESOURCES_EXHAUSTED                               314L
    #endif
    #ifndef ERROR_INVALID_TOKEN
-   #define ERROR_INVALID_TOKEN                                          315
+   #define ERROR_INVALID_TOKEN                                          315L
    #endif
    #ifndef ERROR_DEVICE_FEATURE_NOT_SUPPORTED
-   #define ERROR_DEVICE_FEATURE_NOT_SUPPORTED                           316
+   #define ERROR_DEVICE_FEATURE_NOT_SUPPORTED                           316L
    #endif
    #ifndef ERROR_UNDEFINED_SCOPE
-   #define ERROR_UNDEFINED_SCOPE                                        319
+   #define ERROR_UNDEFINED_SCOPE                                        319L
    #endif
    #ifndef ERROR_INVALID_CAP
-   #define ERROR_INVALID_CAP                                            320
+   #define ERROR_INVALID_CAP                                            320L
    #endif
    #ifndef ERROR_DEVICE_UNREACHABLE
-   #define ERROR_DEVICE_UNREACHABLE                                     321
+   #define ERROR_DEVICE_UNREACHABLE                                     321L
    #endif
    #ifndef ERROR_DEVICE_NO_RESOURCES
-   #define ERROR_DEVICE_NO_RESOURCES                                    322
+   #define ERROR_DEVICE_NO_RESOURCES                                    322L
    #endif
    #ifndef ERROR_DATA_CHECKSUM_ERROR
-   #define ERROR_DATA_CHECKSUM_ERROR                                    323
+   #define ERROR_DATA_CHECKSUM_ERROR                                    323L
    #endif
    #ifndef ERROR_INTERMIXED_KERNEL_EA_OPERATION
-   #define ERROR_INTERMIXED_KERNEL_EA_OPERATION                         324
+   #define ERROR_INTERMIXED_KERNEL_EA_OPERATION                         324L
    #endif
    #ifndef ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED
-   #define ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED                          326
+   #define ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED                          326L
    #endif
    #ifndef ERROR_OFFSET_ALIGNMENT_VIOLATION
-   #define ERROR_OFFSET_ALIGNMENT_VIOLATION                             327
+   #define ERROR_OFFSET_ALIGNMENT_VIOLATION                             327L
    #endif
    #ifndef ERROR_INVALID_FIELD_IN_PARAMETER_LIST
-   #define ERROR_INVALID_FIELD_IN_PARAMETER_LIST                        328
+   #define ERROR_INVALID_FIELD_IN_PARAMETER_LIST                        328L
    #endif
    #ifndef ERROR_OPERATION_IN_PROGRESS
-   #define ERROR_OPERATION_IN_PROGRESS                                  329
+   #define ERROR_OPERATION_IN_PROGRESS                                  329L
    #endif
    #ifndef ERROR_BAD_DEVICE_PATH
-   #define ERROR_BAD_DEVICE_PATH                                        330
+   #define ERROR_BAD_DEVICE_PATH                                        330L
    #endif
    #ifndef ERROR_TOO_MANY_DESCRIPTORS
-   #define ERROR_TOO_MANY_DESCRIPTORS                                   331
+   #define ERROR_TOO_MANY_DESCRIPTORS                                   331L
    #endif
    #ifndef ERROR_SCRUB_DATA_DISABLED
-   #define ERROR_SCRUB_DATA_DISABLED                                    332
+   #define ERROR_SCRUB_DATA_DISABLED                                    332L
    #endif
    #ifndef ERROR_NOT_REDUNDANT_STORAGE
-   #define ERROR_NOT_REDUNDANT_STORAGE                                  333
+   #define ERROR_NOT_REDUNDANT_STORAGE                                  333L
    #endif
    #ifndef ERROR_RESIDENT_FILE_NOT_SUPPORTED
-   #define ERROR_RESIDENT_FILE_NOT_SUPPORTED                            334
+   #define ERROR_RESIDENT_FILE_NOT_SUPPORTED                            334L
    #endif
    #ifndef ERROR_COMPRESSED_FILE_NOT_SUPPORTED
-   #define ERROR_COMPRESSED_FILE_NOT_SUPPORTED                          335
+   #define ERROR_COMPRESSED_FILE_NOT_SUPPORTED                          335L
    #endif
    #ifndef ERROR_DIRECTORY_NOT_SUPPORTED
-   #define ERROR_DIRECTORY_NOT_SUPPORTED                                336
+   #define ERROR_DIRECTORY_NOT_SUPPORTED                                336L
    #endif
    #ifndef ERROR_NOT_READ_FROM_COPY
-   #define ERROR_NOT_READ_FROM_COPY                                     337
+   #define ERROR_NOT_READ_FROM_COPY                                     337L
    #endif
    #ifndef ERROR_PWD_TOO_LONG
-   #define ERROR_PWD_TOO_LONG                                           657
+   #define ERROR_PWD_TOO_LONG                                           657L
    #endif
    #ifndef ERROR_DISK_REPAIR_REDIRECTED
-   #define ERROR_DISK_REPAIR_REDIRECTED                                 792
+   #define ERROR_DISK_REPAIR_REDIRECTED                                 792L
    #endif
    #ifndef ERROR_DISK_REPAIR_UNSUCCESSFUL
-   #define ERROR_DISK_REPAIR_UNSUCCESSFUL                               793
+   #define ERROR_DISK_REPAIR_UNSUCCESSFUL                               793L
    #endif
    #ifndef ERROR_CORRUPT_LOG_OVERFULL
-   #define ERROR_CORRUPT_LOG_OVERFULL                                   794
+   #define ERROR_CORRUPT_LOG_OVERFULL                                   794L
    #endif
    #ifndef ERROR_CORRUPT_LOG_CORRUPTED
-   #define ERROR_CORRUPT_LOG_CORRUPTED                                  795
+   #define ERROR_CORRUPT_LOG_CORRUPTED                                  795L
    #endif
    #ifndef ERROR_CORRUPT_LOG_UNAVAILABLE
-   #define ERROR_CORRUPT_LOG_UNAVAILABLE                                796
+   #define ERROR_CORRUPT_LOG_UNAVAILABLE                                796L
    #endif
    #ifndef ERROR_CORRUPT_LOG_DELETED_FULL
-   #define ERROR_CORRUPT_LOG_DELETED_FULL                               797
+   #define ERROR_CORRUPT_LOG_DELETED_FULL                               797L
    #endif
    #ifndef ERROR_CORRUPT_LOG_CLEARED
-   #define ERROR_CORRUPT_LOG_CLEARED                                    798
+   #define ERROR_CORRUPT_LOG_CLEARED                                    798L
    #endif
    #ifndef ERROR_ORPHAN_NAME_EXHAUSTED
-   #define ERROR_ORPHAN_NAME_EXHAUSTED                                  799
+   #define ERROR_ORPHAN_NAME_EXHAUSTED                                  799L
    #endif
    #ifndef ERROR_OPLOCK_SWITCHED_TO_NEW_HANDLE
-   #define ERROR_OPLOCK_SWITCHED_TO_NEW_HANDLE                          800
+   #define ERROR_OPLOCK_SWITCHED_TO_NEW_HANDLE                          800L
    #endif
    #ifndef ERROR_CANNOT_GRANT_REQUESTED_OPLOCK
-   #define ERROR_CANNOT_GRANT_REQUESTED_OPLOCK                          801
+   #define ERROR_CANNOT_GRANT_REQUESTED_OPLOCK                          801L
    #endif
    #ifndef ERROR_CANNOT_BREAK_OPLOCK
-   #define ERROR_CANNOT_BREAK_OPLOCK                                    802
+   #define ERROR_CANNOT_BREAK_OPLOCK                                    802L
    #endif
    #ifndef ERROR_OPLOCK_HANDLE_CLOSED
-   #define ERROR_OPLOCK_HANDLE_CLOSED                                   803
+   #define ERROR_OPLOCK_HANDLE_CLOSED                                   803L
    #endif
    #ifndef ERROR_NO_ACE_CONDITION
-   #define ERROR_NO_ACE_CONDITION                                       804
+   #define ERROR_NO_ACE_CONDITION                                       804L
    #endif
    #ifndef ERROR_INVALID_ACE_CONDITION
-   #define ERROR_INVALID_ACE_CONDITION                                  805
+   #define ERROR_INVALID_ACE_CONDITION                                  805L
    #endif
    #ifndef ERROR_FILE_HANDLE_REVOKED
-   #define ERROR_FILE_HANDLE_REVOKED                                    806
+   #define ERROR_FILE_HANDLE_REVOKED                                    806L
    #endif
    #ifndef ERROR_IMAGE_AT_DIFFERENT_BASE
-   #define ERROR_IMAGE_AT_DIFFERENT_BASE                                807
+   #define ERROR_IMAGE_AT_DIFFERENT_BASE                                807L
    #endif
 
    switch (error) {

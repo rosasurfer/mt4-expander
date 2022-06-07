@@ -115,7 +115,11 @@ BOOL WINAPI RemoveTickTimer(uint timerId) {
       if (ttd->timerId == timerId) {
          if (HANDLE hTimer = ttd->hTimer) {
             ttd->hTimer = NULL;                          // reset handle to prevent multiple release errors
-            DeleteTimerQueueTimer(NULL, hTimer, NULL) || error(ERR_WIN32_ERROR+GetLastError(), "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
+
+            if (!DeleteTimerQueueTimer(NULL, hTimer, NULL)) {
+               DWORD error = GetLastError();
+               if (error != ERROR_IO_PENDING) error(ERR_WIN32_ERROR+error, "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
+            }
          }
          else warn(ERR_ILLEGAL_STATE, "tick timer has already been released: id=%d", timerId);
          return(TRUE);
