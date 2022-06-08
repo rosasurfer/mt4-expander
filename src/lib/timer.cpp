@@ -114,10 +114,10 @@ BOOL WINAPI RemoveTickTimer(uint timerId) {
 
       if (ttd->timerId == timerId) {
          if (HANDLE hTimer = ttd->hTimer) {
-            ttd->hTimer = NULL;                          // reset handle to prevent multiple release errors
+            ttd->hTimer = NULL;                                // reset handle to prevent multiple release errors
 
-            if (!DeleteTimerQueueTimer(NULL, hTimer, NULL)) {
-               DWORD error = GetLastError();
+            if (!DeleteTimerQueueTimer(NULL, hTimer, NULL)) {  // ERROR_IO_PENDING: "Overlapped I/O operation in progress" is not an error
+               DWORD error = GetLastError();                   // but a status. It says that there is still an operation in progress.
                if (error != ERROR_IO_PENDING) error(ERR_WIN32_ERROR+error, "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
             }
          }
