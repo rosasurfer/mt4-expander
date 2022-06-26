@@ -1771,7 +1771,7 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
  * Whether the program is executed in the tester or on a test chart.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               isTesting - MQL::IsTesting() status as passed by the terminal (possibly wrong)
+ * @param  BOOL               isTesting - MQL::IsTesting() status as passed by the terminal (possibly incorrect)
  *
  * @return BOOL - real IsTesting() status
  */

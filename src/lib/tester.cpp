@@ -64,8 +64,7 @@ HWND WINAPI FindTesterWindow() {
 
 
 /**
- * Get the bar model currently selected in the tester. If the tester window wasn't yet opened by the user the function
- * returns EMPTY (-1).
+ * Get the bar model currently selected in the tester. If the tester window wasn't yet opened the function returns EMPTY (-1).
  *
  * @return int - bar model id or EMPTY (-1) in case of errors
  */
@@ -81,7 +80,7 @@ int WINAPI Tester_GetBarModel() {
 
    int index = ComboBox_GetCurSel(hWndBarModel);
    if (index == CB_ERR) {                          // CB_ERR = EMPTY = -1
-      error(ERR_RUNTIME_ERROR, "failed to retrieve current selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
+      error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
    }
    return(index);
    #pragma EXPANDER_EXPORT
