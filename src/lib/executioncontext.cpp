@@ -1062,7 +1062,7 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
    // close an open logfile
    if (ec->logger && ec->logger->is_open())
-      ec->logger->close();                                                 // it's re-opened automatically on next use
+      ec->logger->close();                                                 // re-opened automatically on next use
 
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
@@ -1076,30 +1076,35 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
  *
- * @return TEST* - test instance or NULL if the program is not an expert in tester or in case of errors
+ * @return TEST* - test instance or NULL if the program is not an expert under test or in case of errors
  */
 TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
-   if (ec->test)
-      return(ec->test);
+   if (ec->test)                                return(ec->test);
+   if (ec->moduleType!=MT_EXPERT || !isTesting) return(NULL);
 
-   if (ec->moduleType==MT_EXPERT && isTesting) {
-      TEST* test = new TEST();
-      test->ec        = ec;
-      test->created   = time(NULL);
-      test->barModel  = Tester_GetBarModel();                                            if (test->barModel == EMPTY) return(NULL);
-      test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel); if (!test->fxtHeader)        return(NULL);
+   int barModel = Tester_GetBarModel(); if (barModel == EMPTY) return(NULL);
 
-      test->openPositions        = new OrderList(); test->openPositions     ->reserve(32);
-      test->openLongPositions    = new OrderList(); test->openLongPositions ->reserve(32);
-      test->openShortPositions   = new OrderList(); test->openShortPositions->reserve(32);
-
-      test->closedPositions      = new OrderList(); test->closedPositions     ->reserve(1024);
-      test->closedLongPositions  = new OrderList(); test->closedLongPositions ->reserve(1024);
-      test->closedShortPositions = new OrderList(); test->closedShortPositions->reserve(1024);
-
-      return(test);
+   FXT_HEADER* fxtHeader = new FXT_HEADER();
+   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, barModel, fxtHeader)) {
+      delete fxtHeader;
+      return(NULL);
    }
-   return(NULL);
+
+   TEST* test = new TEST();
+   test->ec        = ec;
+   test->created   = time(NULL);
+   test->barModel  = barModel;
+   test->fxtHeader = fxtHeader;
+
+   test->openPositions        = new OrderList(); test->openPositions     ->reserve(32);
+   test->openLongPositions    = new OrderList(); test->openLongPositions ->reserve(32);
+   test->openShortPositions   = new OrderList(); test->openShortPositions->reserve(32);
+
+   test->closedPositions      = new OrderList(); test->closedPositions     ->reserve(1024);
+   test->closedLongPositions  = new OrderList(); test->closedLongPositions ->reserve(1024);
+   test->closedShortPositions = new OrderList(); test->closedShortPositions->reserve(1024);
+
+   return(test);
 }
 
 

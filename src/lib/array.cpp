@@ -181,6 +181,38 @@ BOOL WINAPI InitializeDoubleArray(double array[], int size, double initValue, in
 
 
 /**
+ * Search an <int> array for a value and return its index.
+ *
+ * @param  int  array[]                   - array to search
+ * @param  int  size                      - number of elements in the array
+ * @param  int  value                     - value to search
+ * @param  BOOL reverseIndexed [optional] - whether the array should be reverse indexed like an MQL timeseries array (default: no)
+ *
+ * @return int - index of the first match or EMPTY (-1) if the value was not found;
+ *               -2 in case of errors
+ */
+int WINAPI SearchIntArray(const int array[], int size, int value, BOOL reverseIndexed = FALSE) {
+
+   return(EMPTY);
+   #pragma EXPANDER_EXPORT
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
  * Shift the content of an MQL timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *

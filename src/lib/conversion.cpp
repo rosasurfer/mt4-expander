@@ -13,9 +13,9 @@
  */
 const char* WINAPI BarModelDescription(int id) {
    switch (id) {
-      case MODE_EVERYTICK:     return("EveryTick"    );
+      case MODE_EVERYTICK:     return("EveryTick");
       case MODE_CONTROLPOINTS: return("ControlPoints");
-      case MODE_BAROPEN:       return("OpenPrices"   );
+      case MODE_BAROPEN:       return("OpenPrices");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
@@ -31,9 +31,9 @@ const char* WINAPI BarModelDescription(int id) {
  */
 const char* WINAPI BarModelToStr(int id) {
    switch (id) {
-      case MODE_EVERYTICK:     return("MODE_EVERYTICK"    );
+      case MODE_EVERYTICK:     return("MODE_EVERYTICK");
       case MODE_CONTROLPOINTS: return("MODE_CONTROLPOINTS");
-      case MODE_BAROPEN:       return("MODE_BAROPEN"      );
+      case MODE_BAROPEN:       return("MODE_BAROPEN");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
@@ -62,9 +62,9 @@ const char* WINAPI BoolToStr(BOOL value) {
  */
 const char* WINAPI CoreFunctionDescription(CoreFunction func) {
    switch (func) {
-      case NULL     : return("NULL"  );
-      case CF_INIT  : return("init"  );
-      case CF_START : return("start" );
+      case NULL     : return("NULL");
+      case CF_INIT  : return("init");
+      case CF_START : return("start");
       case CF_DEINIT: return("deinit");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
@@ -81,9 +81,9 @@ const char* WINAPI CoreFunctionDescription(CoreFunction func) {
  */
 const char* WINAPI CoreFunctionToStr(CoreFunction func) {
    switch (func) {
-      case NULL     : return("NULL"     );
-      case CF_INIT  : return("CF_INIT"  );
-      case CF_START : return("CF_START" );
+      case NULL     : return("NULL");
+      case CF_INIT  : return("CF_INIT");
+      case CF_START : return("CF_START");
       case CF_DEINIT: return("CF_DEINIT");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
@@ -1044,11 +1044,11 @@ char* WINAPI IntToHexStr(int value) {
 char* WINAPI InitFlagsToStr(DWORD flags) {
    string str("");
 
-   if (flags & INIT_TIMEZONE           ) str.append("|INIT_TIMEZONE"           );
-   if (flags & INIT_PIPVALUE           ) str.append("|INIT_PIPVALUE"           );
+   if (flags & INIT_TIMEZONE           ) str.append("|INIT_TIMEZONE");
+   if (flags & INIT_PIPVALUE           ) str.append("|INIT_PIPVALUE");
    if (flags & INIT_BARS_ON_HIST_UPDATE) str.append("|INIT_BARS_ON_HIST_UPDATE");
-   if (flags & INIT_NO_BARS_REQUIRED   ) str.append("|INIT_NO_BARS_REQUIRED"   );
-   if (!str.length())                    str.append("|"+ to_string(flags)      );
+   if (flags & INIT_NO_BARS_REQUIRED   ) str.append("|INIT_NO_BARS_REQUIRED");
+   if (!str.length())                    str.append("|"+ to_string(flags));
 
    return(strcpy(new char[str.length()], str.c_str()+1));            // skip the leading "|"
    #pragma EXPANDER_EXPORT                                           // TODO: add to GC (close memory leak)
@@ -1238,9 +1238,9 @@ char* WINAPI NumberToStr(double value, const char* format) {
  */
 const char* WINAPI ProgramTypeDescription(ProgramType type) {
    switch (type) {
-      case NULL        : return("NULL"     );
-      case PT_EXPERT   : return("Expert"   );
-      case PT_SCRIPT   : return("Script"   );
+      case NULL        : return("NULL");
+      case PT_EXPERT   : return("Expert");
+      case PT_SCRIPT   : return("Script");
       case PT_INDICATOR: return("Indicator");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
@@ -1257,9 +1257,9 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
  */
 const char* WINAPI ProgramTypeToStr(ProgramType type) {
    switch (type) {
-      case NULL        : return("NULL"        );
-      case PT_EXPERT   : return("PT_EXPERT"   );
-      case PT_SCRIPT   : return("PT_SCRIPT"   );
+      case NULL        : return("NULL");
+      case PT_EXPERT   : return("PT_EXPERT");
+      case PT_SCRIPT   : return("PT_SCRIPT");
       case PT_INDICATOR: return("PT_INDICATOR");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
@@ -1347,20 +1347,20 @@ const char* WINAPI PeriodDescriptionA(int period) {
 
    switch (period) {
       case NULL      : return("NULL");
-      case PERIOD_M1 : return("M1" );     // 1 minute
-      case PERIOD_M5 : return("M5" );     // 5 minutes
+      case PERIOD_M1 : return("M1");      // 1 minute
+      case PERIOD_M5 : return("M5");      // 5 minutes
       case PERIOD_M15: return("M15");     // 15 minutes
       case PERIOD_M30: return("M30");     // 30 minutes
-      case PERIOD_H1 : return("H1" );     // 1 hour
-      case PERIOD_H2 : return("H2" );     // 2 hours (custom timeframe)
-      case PERIOD_H3 : return("H3" );     // 3 hours (custom timeframe)
-      case PERIOD_H4 : return("H4" );     // 4 hours
-      case PERIOD_H6 : return("H6" );     // 6 hours (custom timeframe)
-      case PERIOD_H8 : return("H8" );     // 8 hours (custom timeframe)
-      case PERIOD_D1 : return("D1" );     // 1 day
-      case PERIOD_W1 : return("W1" );     // 1 week
+      case PERIOD_H1 : return("H1");      // 1 hour
+      case PERIOD_H2 : return("H2");      // 2 hours (custom timeframe)
+      case PERIOD_H3 : return("H3");      // 3 hours (custom timeframe)
+      case PERIOD_H4 : return("H4");      // 4 hours
+      case PERIOD_H6 : return("H6");      // 6 hours (custom timeframe)
+      case PERIOD_H8 : return("H8");      // 8 hours (custom timeframe)
+      case PERIOD_D1 : return("D1");      // 1 day
+      case PERIOD_W1 : return("W1");      // 1 week
       case PERIOD_MN1: return("MN1");     // 1 month
-      case PERIOD_Q1 : return("Q1" );     // 1 quarter (custom timeframe)
+      case PERIOD_Q1 : return("Q1");      // 1 quarter (custom timeframe)
    }
    return(StrFormat("%d", period));
 }
@@ -1483,9 +1483,9 @@ const char* WINAPI TimeframeToStr(int timeframe) {
  */
 const char* WINAPI TradeDirectionDescription(int direction) {
    switch (direction) {
-      case TRADE_DIRECTION_LONG:  return("Long" );
+      case TRADE_DIRECTION_LONG:  return("Long");
       case TRADE_DIRECTION_SHORT: return("Short");
-      case TRADE_DIRECTION_BOTH:  return("Both" );
+      case TRADE_DIRECTION_BOTH:  return("Both");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
@@ -1501,9 +1501,9 @@ const char* WINAPI TradeDirectionDescription(int direction) {
  */
 const char* WINAPI TradeDirectionToStr(int direction) {
    switch (direction) {
-      case TRADE_DIRECTION_LONG:  return("TRADE_DIRECTION_LONG" );
+      case TRADE_DIRECTION_LONG:  return("TRADE_DIRECTION_LONG");
       case TRADE_DIRECTION_SHORT: return("TRADE_DIRECTION_SHORT");
-      case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH" );
+      case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH");
    }
    return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT

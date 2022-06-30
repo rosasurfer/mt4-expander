@@ -188,19 +188,18 @@ datetime WINAPI Tester_GetEndDate() {
 
 
 /**
- * Read and return the header of the test history file for the specified symbol, timeframe and bar model.
+ * Read the header of the test history file for the specified symbol, timeframe and bar model.
  *
- * @param  char*  symbol    - tested symbol
- * @param  uint   timeframe - test timeframe
- * @param  uint   barModel  - test bar model: MODE_EVERYTICK | MODE_CONTROLPOINTS | MODE_BAROPEN
+ * @param  _In_  char*       symbol    - tested symbol
+ * @param  _In_  uint        timeframe - test timeframe
+ * @param  _In_  uint        barModel  - test bar model: MODE_EVERYTICK | MODE_CONTROLPOINTS | MODE_BAROPEN
+ * @param  _Out_ FXT_HEADER* fxtHeader - pointer to a FXT_HEADER structure receiving the data
  *
- * @return FXT_HEADER* - FXT header or NULL (0) in case of errors (e.g. the file does not exist)
- *
- * Note: The caller is responsible for releasing the returned struct's memory after usage with "delete".
+ * @return BOOL - success status (e.g. FALSE on i/o errors or if the file does not exist)
  */
-const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel) {
-   if ((uint)symbol < MIN_VALID_POINTER) return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if ((int)timeframe <= 0)              return((FXT_HEADER*)error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
+BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER* fxtHeader) {
+   if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if ((int)timeframe <= 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    using namespace std;
 
    // e.g. string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
@@ -211,13 +210,12 @@ const FXT_HEADER* WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
    ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return((FXT_HEADER*)warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
+   if (!file) return(warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
-   FXT_HEADER* fxt = new FXT_HEADER();
-   file.read((char*)fxt, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return((FXT_HEADER*)error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+   file.read((char*)fxtHeader, sizeof(FXT_HEADER));
+   file.close(); if (file.fail()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
 
-   return(fxt);
+   return(TRUE);
 }
 
 
@@ -234,14 +232,17 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*
    if (ec->programType!=PT_EXPERT || !ec->test) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
 
    TEST* test = ec->test;
-   if (!test->fxtHeader) test->fxtHeader = Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel);
 
-   const FXT_HEADER* fxt = test->fxtHeader;
-   if (!fxt) return(EMPTY);
+   if (!test->fxtHeader) {
+      FXT_HEADER* fxtHeader = new FXT_HEADER();
+      if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel, fxtHeader)) {
+         delete fxtHeader;
+         return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header")));
+      }
+      test->fxtHeader = fxtHeader;
+   }
 
-   if (lots == 1)
-      return(fxt->commissionValue);
-   return(fxt->commissionValue * lots);
+   return(test->fxtHeader->commissionValue * lots);
    #pragma EXPANDER_EXPORT
 }
 
