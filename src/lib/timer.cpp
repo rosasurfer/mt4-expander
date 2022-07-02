@@ -25,8 +25,9 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
          int rgn = GetClipBox(hDC, &rect);
          ReleaseDC(ttd->hWnd, hDC);
 
-         if (rgn == NULLREGION)                          // skip timer event if the chart is completely invisible
+         if (rgn == NULLREGION) {                        // skip timer event if the chart is completely invisible
             return;
+         }
          if (rgn == RGN_ERROR) {
             warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
             return;
@@ -39,8 +40,9 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
       else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // standard tick
    }
    else {
-      debug("releasing obsolete tick timer with id=%d (references non-existing window hWnd=%p)", ttd->timerId, ttd->hWnd);
-      RemoveTickTimer(ttd->timerId);
+      // expected if a MQL program crashes and fails to release its resources
+      debug("releasing unreleased tick timer with id=%d (references non-existing window hWnd=%p)", ttd->timerId, ttd->hWnd);
+      ReleaseTickTimer(ttd->timerId);
    }
 }
 
@@ -90,20 +92,19 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK)onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD))
       return(error(ERR_WIN32_ERROR+GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis));
 
-   //debug("tick timer created: ttd=%p  id=%d  hTimer=%p  interval=%d", ttd, ttd->timerId, ttd->hTimer, ttd->interval);
    return(ttd->timerId);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Remove a tick timer.
+ * Release a single tick timer.
  *
  * @param  uint timerId - timer id as returned by SetupTickTimer()
  *
  * @return BOOL - success status
  */
-BOOL WINAPI RemoveTickTimer(uint timerId) {
+BOOL WINAPI ReleaseTickTimer(uint timerId) {
    if ((int)timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId: %d", timerId));
 
    // The timer is released and marked as invalid. The vector holding all timer entries is not modified.
@@ -140,8 +141,8 @@ void WINAPI ReleaseTickTimers() {
       TICK_TIMER_DATA* ttd = g_tickTimers[i];
 
       if (ttd->hTimer) {
-         warn(NO_ERROR, "releasing orphaned tick timer: id=%d", ttd->timerId);
-         RemoveTickTimer(ttd->timerId);
+         warn(NO_ERROR, "releasing unreleased tick timer: id=%d", ttd->timerId);
+         ReleaseTickTimer(ttd->timerId);
       }
    }
 }
