@@ -321,20 +321,6 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the number of times the start() function was called during an MQL program's last init() cycle.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint
- */
-uint WINAPI ec_CycleTicks(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->cycleTicks);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an MQL program's previous tick time.
  *
  * @param  EXECUTION_CONTEXT* ec

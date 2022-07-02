@@ -24,35 +24,35 @@ typedef std::vector<string*> LogBuffer;
  *  • Data exchange between different MQL programs (e.g. experts and indicators).
  */
 struct EXECUTION_CONTEXT {                            // -- offset --- size --- description --------------------------------------------------------------------------------------
-   uint               pid;                            //         0        4     MQL program id starting from 1                            (const) => index in g_mqlPrograms[]
+   uint               pid;                            //         0        4     MQL program id starting from 1                            (const)  index in g_mqlPrograms[]
    uint               previousPid;                    //         4        4     previous pid of the program or NULL                       (const)
    datetime           started;                        //         8        4     GMT time the MQL program was started                      (const)
                                                       //
-   ProgramType        programType;                    //        12        4     MQL program type                                          (const) => type of MQL program
-   char               programName[MAX_FNAME];         //        16      256     MQL program name                                          (const) => MQL program name
-   CoreFunction       programCoreFunction;            //       272        4     the program's current core function                       (var)   => where is it
+   ProgramType        programType;                    //        12        4     MQL program type                                          (const)  type of MQL program
+   char               programName[MAX_FNAME];         //        16      256     MQL program name                                          (const)  MQL program name
+   CoreFunction       programCoreFunction;            //       272        4     the program's current core function                       (var)    where is it
    InitializeReason   programInitReason;              //       276        4     last initialize reason                                    (var)
    UninitializeReason programUninitReason;            //       280        4     last MQL::UninitializeReason()                            (var)
-   DWORD              programInitFlags;               //       284        4     program init configuration                                (const) => how should it be initialized
-   DWORD              programDeinitFlags;             //       288        4     program deinit configuration                              (const) => how should it be deinitialized
+   DWORD              programInitFlags;               //       284        4     program init configuration                                (const)  how should it be initialized
+   DWORD              programDeinitFlags;             //       288        4     program deinit configuration                              (const)  how should it be deinitialized
                                                       //
-   ModuleType         moduleType;                     //       292        4     MQL module type                                           (const) => type of MQL module
-   char               moduleName[MAX_FNAME];          //       296      256     MQL module name = MQL::WindowExpertName()                 (const) => MQL module name
-   CoreFunction       moduleCoreFunction;             //       552        4     the module's current core function                        (var)   => where is it
+   ModuleType         moduleType;                     //       292        4     MQL module type                                           (const)  type of MQL module
+   char               moduleName[MAX_FNAME];          //       296      256     MQL module name = MQL::WindowExpertName()                 (const)  MQL module name
+   CoreFunction       moduleCoreFunction;             //       552        4     the module's current core function                        (var)    where is it
    UninitializeReason moduleUninitReason;             //       556        4     last MQL::UninitializeReason()                            (var)
-   DWORD              moduleInitFlags;                //       560        4     module init configuration                                 (const) => how should it be initialized
-   DWORD              moduleDeinitFlags;              //       564        4     module deinit configuration                               (const) => how should it be deinitialized
+   DWORD              moduleInitFlags;                //       560        4     module init configuration                                 (const)  how should it be initialized
+   DWORD              moduleDeinitFlags;              //       564        4     module deinit configuration                               (const)  how should it be deinitialized
                                                       //
    char               symbol[MAX_SYMBOL_LENGTH+1];    //       568       12     current chart symbol     = MQL::Symbol()                  (var)
    uint               timeframe;                      //       580        4     current chart timeframe  = MQL::Period()                  (var)
    char               newSymbol[MAX_SYMBOL_LENGTH+1]; //       584       12     new symbol set by Library::init() after IR_CHARTCHANGE    (var)
    uint               newTimeframe;                   //       596        4     new timeframe set by Library::init() after IR_CHARTCHANGE (var)
-   const void*        rates;                          //       600        4     current price series     = MQL::ArrayCopyRates()          (var)   => HistoryBar400[]|HistoryBar401[]
+   const void*        rates;                          //       600        4     current price series     = MQL::ArrayCopyRates()          (var)    HistoryBar400[]|HistoryBar401[]
    int                bars;                           //       604        4     current number of bars   = MQL::Bars                      (var)
    int                changedBars;                    //       608        4     number of changed bars                                    (var)
    int                unchangedBars;                  //       612        4     number of unchanged bars = MQL::IndicatorCounted()        (var)
    uint               ticks;                          //       616        4     number of times start() was called for the instance       (var)
-   uint               cycleTicks;                     //       620        4     number of times start() was called for the cycle          (var)
+   uint               cycleTicks;                     //       620        4     number of times start() was called since init()           (var)    used for debugging purposes in the DLL only
    datetime           prevTickTime;                   //       624        4     server time of the previously processed tick              (var)
    datetime           currTickTime;                   //       628        4     server time of the currently processed tick               (var)
    double             bid;                            //       632        8     current bid price        = MQL::Bid                       (var)
@@ -66,10 +66,10 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    const char*        priceFormat;                    //       676        4     standard price format                                     (var)
    const char*        pipPriceFormat;                 //       680        4     pip price format (never subpips)                          (var)
                                                       //
-   EXECUTION_CONTEXT* superContext;                   //       684        4     indicator host program                                    (const) => if loaded by iCustom()
+   EXECUTION_CONTEXT* superContext;                   //       684        4     indicator host program                                    (const)  if loaded by iCustom()
    uint               threadId;                       //       688        4     current executing thread                                  (var)
-   HWND               hChart;                         //       692        4     chart handle             = MQL::WindowHandle()            (const) => handle of the chart frame
-   HWND               hChartWindow;                   //       696        4     chart handle with title bar "Symbol,Period"               (const) => handle of the chart window
+   HWND               hChart;                         //       692        4     chart handle             = MQL::WindowHandle()            (const)  handle of the chart frame
+   HWND               hChartWindow;                   //       696        4     chart handle with title bar "Symbol,Period"               (const)  handle of the chart window
                                                       //
    int                recordMode;                     //       700        4     an expert's "EA.Recorder" mode                            (var)
                                                       //
@@ -129,7 +129,7 @@ int                WINAPI ec_Bars                (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_ChangedBars         (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_UnchangedBars       (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Ticks               (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_cycleTicks          (const EXECUTION_CONTEXT* ec);
+//                        ec.cycleTicks
 datetime           WINAPI ec_PrevTickTime        (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_CurrTickTime        (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                 (const EXECUTION_CONTEXT* ec);
