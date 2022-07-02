@@ -265,5 +265,5 @@ const char*        WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec)
 
 
 // type definitions
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // a chain holds all execution contexts of a single MQL program
-typedef std::vector<ContextChain*>      MqlProgramList;     // list of all MQL programs ever loaded (index: program id)
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // Each chain holds the execution contexts of all modules of a single MQL program.
+typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL program instances ever loaded (index = instance id aka pid).

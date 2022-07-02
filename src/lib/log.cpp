@@ -8,7 +8,7 @@
 #include <fstream>
 #include <time.h>
 
-extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<ContextChain*> with index = program id
+extern MqlInstanceList g_mqlInstances;             // all MQL program instances : vector<ContextChain*> with index = instance id aka pid
 
 
 /**
@@ -25,12 +25,12 @@ extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<C
 BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* message, int error, int level) {
    if ((uint)ec < MIN_VALID_POINTER)      return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlPrograms.size() <= ec->pid)   return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlInstances.size() <= ec->pid)  return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
    if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
    if (level == LOG_OFF)                  return(FALSE);
 
-   EXECUTION_CONTEXT* master = (*g_mqlPrograms[ec->pid])[0];
-   if (master->superContext) master = (*g_mqlPrograms[master->superContext->pid])[0];     // use a super context (if any)
+   EXECUTION_CONTEXT* master = (*g_mqlInstances[ec->pid])[0];
+   if (master->superContext) master = (*g_mqlInstances[master->superContext->pid])[0];    // use a super context (if any)
 
    // check whether to use an existing logger or a logbuffer
    BOOL useLogger    = (master->logger && strlen(master->logFilename));
@@ -109,9 +109,9 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    if (filename && (uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
    if (strlen(filename) > MAX_PATH)                    return(error(ERR_INVALID_PARAMETER, "too long parameter filename: \"%s\" (max. %d chars)", filename, MAX_PATH));
    if (!ec->pid)                                       return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlPrograms.size() <= ec->pid)                return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such program)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlInstances.size() <= ec->pid)               return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
-   ContextChain &chain = *g_mqlPrograms[ec->pid];
+   ContextChain &chain = *g_mqlInstances[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
    if (master->superContext) return(TRUE);                                                // ignore the call if in iCustom()
 

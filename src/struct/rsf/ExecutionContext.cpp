@@ -9,15 +9,15 @@
 
 #include <fstream>
 
-extern MqlProgramList g_mqlPrograms;               // all MQL programs: vector<ContextChain> with index = program id
+extern MqlInstanceList g_mqlInstances;             // all MQL program instances: vector<ContextChain> with index = instance id aka pid
 
 
 /**
- * Return an MQL program's id.
+ * Return an MQL program's instance id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - program id starting from 1
+ * @return uint - instance id starting from 1
  */
 uint WINAPI ec_Pid(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -27,11 +27,11 @@ uint WINAPI ec_Pid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's previous id.
+ * Return an MQL program's previous instance id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - previous program id starting from 1
+ * @return uint - previous instance id starting from 1
  */
 uint WINAPI ec_PreviousPid(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -506,8 +506,8 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* cons
  * @return char* - program name
  */
 const char* WINAPI ep_SuperProgramName(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -527,8 +527,8 @@ const char* WINAPI ep_SuperProgramName(uint pid) {
  * @return int - loglevel
  */
 int WINAPI ep_SuperLoglevel(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -548,8 +548,8 @@ int WINAPI ep_SuperLoglevel(uint pid) {
  * @return int - loglevel
  */
 int WINAPI ep_SuperLoglevelTerminal(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -569,8 +569,8 @@ int WINAPI ep_SuperLoglevelTerminal(uint pid) {
  * @return int - loglevel
  */
 int WINAPI ep_SuperLoglevelAlert(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -590,8 +590,8 @@ int WINAPI ep_SuperLoglevelAlert(uint pid) {
  * @return int - loglevel
  */
 int WINAPI ep_SuperLoglevelDebugger(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -611,8 +611,8 @@ int WINAPI ep_SuperLoglevelDebugger(uint pid) {
  * @return int - loglevel
  */
 int WINAPI ep_SuperLoglevelFile(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -632,8 +632,8 @@ int WINAPI ep_SuperLoglevelFile(uint pid) {
  * @return int - loglevel
  */
 int WINAPI ep_SuperLoglevelMail(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -653,8 +653,8 @@ int WINAPI ep_SuperLoglevelMail(uint pid) {
  * @return int - loglevel
  */
 int WINAPI ep_SuperLoglevelSMS(uint pid) {
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
@@ -1097,8 +1097,8 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
    ec->programType = type;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->programType = type;
    }
@@ -1123,8 +1123,8 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
       return(NULL);
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          if (!strcpy(chain[0]->programName, name))
             return(NULL);
@@ -1162,8 +1162,8 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
    ec->programInitReason = reason;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->programInitReason = reason;
    }
@@ -1203,8 +1203,8 @@ UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, Unini
    ec->programUninitReason = reason;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->programUninitReason = reason;
    }
@@ -1234,8 +1234,8 @@ CoreFunction WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunctio
    ec->programCoreFunction = id;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->programCoreFunction = id;
    }
@@ -1258,8 +1258,8 @@ DWORD WINAPI ec_SetProgramInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    ec->programInitFlags = flags;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->programInitFlags = flags;
    }
@@ -1281,8 +1281,8 @@ DWORD WINAPI ec_SetProgramDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    ec->programDeinitFlags = flags;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->programDeinitFlags = flags;
    }
@@ -1312,8 +1312,8 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
    ec->moduleType = type;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->moduleType = type;
    }
@@ -1338,8 +1338,8 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
       return(NULL);
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          if (!strcpy(chain[0]->moduleName, name))
             return(NULL);
@@ -1380,8 +1380,8 @@ UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, Uninit
    ec->moduleUninitReason = reason;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->moduleUninitReason = reason;
    }
@@ -1411,8 +1411,8 @@ CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction
    ec->moduleCoreFunction = id;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->moduleCoreFunction = id;
    }
@@ -1434,8 +1434,8 @@ DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    ec->moduleInitFlags = flags;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->moduleInitFlags = flags;
    }
@@ -1457,8 +1457,8 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
    ec->moduleDeinitFlags = flags;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->moduleDeinitFlags = flags;
    }
@@ -1483,8 +1483,8 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
       return(NULL);
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          if (!strcpy(chain[0]->symbol, symbol))
             return(NULL);
@@ -1508,8 +1508,8 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
    ec->timeframe = timeframe;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->timeframe = timeframe;
    }
@@ -1532,8 +1532,8 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int count) {
    ec->bars = count;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->bars = count;
    }
@@ -1556,8 +1556,8 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int count) {
    ec->changedBars = count;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->changedBars = count;
    }
@@ -1580,8 +1580,8 @@ int WINAPI ec_SetUnchangedBars(EXECUTION_CONTEXT* ec, int count) {
    ec->unchangedBars = count;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->unchangedBars = count;
    }
@@ -1604,8 +1604,8 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
    ec->digits = digits;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->digits = digits;
    }
@@ -1628,8 +1628,8 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint digits) {
    ec->pipDigits = digits;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->pipDigits = digits;
    }
@@ -1652,8 +1652,8 @@ double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
    ec->pip = size;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->pip = size;
    }
@@ -1676,8 +1676,8 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
    ec->point = size;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->point = size;
    }
@@ -1700,8 +1700,8 @@ uint WINAPI ec_SetPipPoints(EXECUTION_CONTEXT* ec, uint points) {
    ec->pipPoints = points;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->pipPoints = points;
    }
@@ -1724,8 +1724,8 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
    ec->superContext = sec;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->superContext = sec;
    }
@@ -1748,8 +1748,8 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
    ec->threadId = id;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->threadId = id;
    }
@@ -1771,8 +1771,8 @@ HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
    ec->hChart = hWnd;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->hChart = hWnd;
    }
@@ -1794,8 +1794,8 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
    ec->hChartWindow = hWnd;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->hChartWindow = hWnd;
    }
@@ -1817,8 +1817,8 @@ int WINAPI ec_SetRecordMode(EXECUTION_CONTEXT* ec, int mode) {
    ec->recordMode = mode;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->recordMode = mode;
    }
@@ -1841,8 +1841,8 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->testing = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->testing = status;
    }
@@ -1864,8 +1864,8 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->visualMode = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->visualMode = status;
    }
@@ -1887,8 +1887,8 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->optimization = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->optimization = status;
    }
@@ -1910,8 +1910,8 @@ BOOL WINAPI ec_SetExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
    ec->externalReporting = status;
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->externalReporting = status;
    }
@@ -1936,9 +1936,9 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
    ec->mqlError = error;
 
    uint pid = ec->pid;
-   if (pid && g_mqlPrograms.size() > pid) {
-      EXECUTION_CONTEXT* master = (*g_mqlPrograms[pid])[0];
-      EXECUTION_CONTEXT* main   = (*g_mqlPrograms[pid])[1];
+   if (pid && g_mqlInstances.size() > pid) {
+      EXECUTION_CONTEXT* master = (*g_mqlInstances[pid])[0];
+      EXECUTION_CONTEXT* main   = (*g_mqlInstances[pid])[1];
 
       if (ec == main) {
          if (master) master->mqlError = error;                       // synchronize main and master context
@@ -1975,9 +1975,9 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
    ec->dllError = error;
 
    uint pid = ec->pid;
-   if (pid && g_mqlPrograms.size() > pid) {
-      EXECUTION_CONTEXT* master = (*g_mqlPrograms[pid])[0];
-      EXECUTION_CONTEXT* main   = (*g_mqlPrograms[pid])[1];
+   if (pid && g_mqlInstances.size() > pid) {
+      EXECUTION_CONTEXT* master = (*g_mqlInstances[pid])[0];
+      EXECUTION_CONTEXT* main   = (*g_mqlInstances[pid])[1];
 
       if (ec == main) {                                              // synchronize main and master context
          if (master) master->dllError = error;
@@ -2013,9 +2013,9 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
    ec->dllWarning = error;
 
    uint pid = ec->pid;
-   if (pid && g_mqlPrograms.size() > pid) {
-      EXECUTION_CONTEXT* master = (*g_mqlPrograms[pid])[0];
-      EXECUTION_CONTEXT* main   = (*g_mqlPrograms[pid])[1];
+   if (pid && g_mqlInstances.size() > pid) {
+      EXECUTION_CONTEXT* master = (*g_mqlInstances[pid])[0];
+      EXECUTION_CONTEXT* main   = (*g_mqlInstances[pid])[1];
 
       if (ec == main) {                                              // synchronize main and master context
          if (master) master->dllWarning = error;
@@ -2045,8 +2045,8 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
    ec->loglevel = level;
 
    uint pid = ec->pid;
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
          if (master && master->loglevel != level) {
             master->loglevel = level;                                      // synchronize master context
@@ -2078,8 +2078,8 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
    ec->loglevelTerminal = level;
 
    uint pid = ec->pid;                                               // synchronize master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
       if (master) {
          master->loglevelTerminal = level;
@@ -2104,8 +2104,8 @@ int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
    ec->loglevelAlert = level;
 
    uint pid = ec->pid;                                               // synchronize master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
       if (master) {
          master->loglevelAlert = level;
@@ -2130,8 +2130,8 @@ int WINAPI ec_SetLoglevelDebugger(EXECUTION_CONTEXT* ec, int level) {
    ec->loglevelDebugger = level;
 
    uint pid = ec->pid;                                               // synchronize master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
       if (master) {
          master->loglevelDebugger = level;
@@ -2156,8 +2156,8 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
    ec->loglevelFile = level;
 
    uint pid = ec->pid;
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       if (EXECUTION_CONTEXT* master = chain[0]) {
          if (master && master->loglevelFile != level) {
             master->loglevelFile = level;                                  // synchronize master context
@@ -2189,8 +2189,8 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
    ec->loglevelMail = level;
 
    uint pid = ec->pid;                                               // synchronize master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
       if (master) {
          master->loglevelMail = level;
@@ -2215,8 +2215,8 @@ int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
    ec->loglevelSMS = level;
 
    uint pid = ec->pid;                                               // synchronize master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
       if (master) {
          master->loglevelSMS = level;
@@ -2247,8 +2247,8 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
    }
 
    uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlPrograms.size() > pid) {
-      ContextChain &chain = *g_mqlPrograms[pid];
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
       if (master && ec==chain[1]) {
          if (!strcpy(master->logFilename, ec->logFilename))
