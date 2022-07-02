@@ -19,7 +19,7 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
    if (!ttd->hTimer) return;                             // skip queued events of an already released timer
 
    if (IsWindow(ttd->hWnd)) {
-      if (ttd->flags & TICK_IF_VISIBLE) {                // check if the chart is visible
+      if (ttd->flags & TICK_IF_WINDOW_VISIBLE) {         // check if the chart is visible
          RECT rect;
          HDC hDC = GetDC(ttd->hWnd);
          int rgn = GetClipBox(hDC, &rect);
@@ -51,11 +51,11 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
  * @param  HWND  hWnd   - handle of the window to receive virtual ticks
  * @param  uint  millis - time interval of the virtual ticks in millicesonds
  * @param  DWORD flags  - tick configuration flags (default: standard ticks for experts and indicators)
- *                        TICK_CHART_REFRESH:    send command ID_CHART_REFRESH instead of standard ticks (for synthetic and
- *                                               offline charts)
- *                        TICK_TESTER:           send command ID_CHART_STEPFORWARD instead of standard ticks (for tester)
- *                        TICK_IF_VISIBLE:       send ticks only if the chart is visible (saving of resources)
- *                        TICK_PAUSE_ON_WEEKEND: skip sending ticks during sessionbreaks (saving of resources, not yet implemented)
+ *                        TICK_CHART_REFRESH:     send command ID_CHART_REFRESH instead of standard ticks (for synthetic and
+ *                                                offline charts)
+ *                        TICK_TESTER:            send command ID_CHART_STEPFORWARD instead of standard ticks (for tester)
+ *                        TICK_IF_WINDOW_VISIBLE: send ticks only if the receiving window is visible (saving of resources)
+ *                        TICK_PAUSE_ON_WEEKEND:  skip sending ticks during sessionbreaks (saving of resources, not yet implemented)
  *
  * @return uint - identifier of the registered timer or 0 (zero) in case of errors
  */
