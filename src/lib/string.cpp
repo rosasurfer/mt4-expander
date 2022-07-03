@@ -121,7 +121,7 @@ const wchar* WINAPI GetStringW(const wchar* value) {
  * @param  void* second
  *
  * @return int - positive value if the first string is considered greater than the second;
- *               negative value if the first string is considered lower than the second;
+ *               negative value if the first string is considered smaller than the second;
  *               0 if both strings are considered equal
  */
 int __cdecl CompareMqlStringsA(const void* first, const void* second) {

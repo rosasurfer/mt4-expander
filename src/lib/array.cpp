@@ -5,20 +5,20 @@
 /**
  * Initialize a range of array elements with a custom value.
  *
- * @param  T   values[]         - array
+ * @param  T   array[]          - array
  * @param  int size             - number of elements in the array
  * @param  T   initValue        - custom initialization value
  * @param  int from             - start index of initialization
- * @param  int count [optional] - number of elements to initialize (default: all elements from the start index to the end)
+ * @param  int count [optional] - number of elements to initialize (default: all elements from start index to the end)
  *
  * @return BOOL - success status
  */
 template <typename T>
-BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int count/*=INT_MAX*/) {
-   if ((uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
-   if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
-   if (from < 0 || from >= size)         return(error(ERR_INVALID_PARAMETER, "invalid parameter from: %d (out of range)", from));
-   if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
+BOOL WINAPI InitializeArray(T array[], int size, T initValue, int from, int count/*=INT_MAX*/) {
+   if ((uint)array < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter array: 0x%p (not a valid pointer)", array));
+   if (size < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
+   if (from < 0 || from >= size)        return(error(ERR_INVALID_PARAMETER, "invalid parameter from: %d (out of range)", from));
+   if (count < 0)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
 
    if (count == INT_MAX) {
       count = size - from;
@@ -29,7 +29,7 @@ BOOL WINAPI InitializeArray(T values[], int size, T initValue, int from, int cou
       if (from+count > size)    return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds range)", count));
    }
 
-   std::fill_n(&values[from], count, initValue);
+   std::fill_n(&array[from], count, initValue);
    return(TRUE);
 }
 
@@ -45,9 +45,9 @@ template BOOL InitializeArray<double>(double[], int, double, int, int);
 
 
 /**
- * Initialize a range of boolean array elements with a custom value.
+ * Initialize a range of <MQL4:bool> array elements with a custom value.
  *
- * @param  BOOL values[]  - array for the MQL4 type <bool> with sizeof(boolean) = 4
+ * @param  BOOL array[]   - array with sizeof(element) = 4
  * @param  int  size      - number of elements in the array
  * @param  BOOL initValue - custom initialization value
  * @param  int  from      - start index of initialization
@@ -55,16 +55,16 @@ template BOOL InitializeArray<double>(double[], int, double, int, int);
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeBOOLArray(BOOL values[], int size, BOOL initValue, int from, int count) {
-   return(InitializeArray(values, size, (int)(initValue!=0), from, count));
+BOOL WINAPI InitializeBOOLArray(BOOL array[], int size, BOOL initValue, int from, int count) {
+   return(InitializeArray(array, size, (int)(initValue!=0), from, count));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Initialize a range of boolean array elements with a custom value.
+ * Initialize a range of <MQL5:bool> array elements with a custom value.
  *
- * @param  bool values[]  - array for the MQL5 type <bool> with sizeof(boolean) = 1
+ * @param  bool array[]   - array with sizeof(element) = 1
  * @param  int  size      - number of elements in the array
  * @param  bool initValue - custom initialization value
  * @param  int  from      - start index of initialization
@@ -72,8 +72,8 @@ BOOL WINAPI InitializeBOOLArray(BOOL values[], int size, BOOL initValue, int fro
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeBoolArray(bool values[], int size, bool initValue, int from, int count) {
-   return(InitializeArray(values, size, initValue, from, count));
+BOOL WINAPI InitializeBoolArray(bool array[], int size, bool initValue, int from, int count) {
+   return(InitializeArray(array, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
@@ -81,7 +81,7 @@ BOOL WINAPI InitializeBoolArray(bool values[], int size, bool initValue, int fro
 /**
  * Initialize a range of <char> array elements with a custom value.
  *
- * @param  char values[]  - array
+ * @param  char array[]   - array
  * @param  int  size      - number of elements in the array
  * @param  char initValue - custom initialization value
  * @param  int  from      - start index of initialization
@@ -89,8 +89,8 @@ BOOL WINAPI InitializeBoolArray(bool values[], int size, bool initValue, int fro
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeCharArray(char values[], int size, char initValue, int from, int count) {
-   return(InitializeArray(values, size, initValue, from, count));
+BOOL WINAPI InitializeCharArray(char array[], int size, char initValue, int from, int count) {
+   return(InitializeArray(array, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
@@ -98,7 +98,7 @@ BOOL WINAPI InitializeCharArray(char values[], int size, char initValue, int fro
 /**
  * Initialize a range of <short> array elements with a custom value.
  *
- * @param  short values[]  - array
+ * @param  short array[]   - array
  * @param  int   size      - number of elements in the array
  * @param  short initValue - custom initialization value
  * @param  int   from      - start index of initialization
@@ -106,8 +106,8 @@ BOOL WINAPI InitializeCharArray(char values[], int size, char initValue, int fro
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeShortArray(short values[], int size, short initValue, int from, int count) {
-   return(InitializeArray(values, size, initValue, from, count));
+BOOL WINAPI InitializeShortArray(short array[], int size, short initValue, int from, int count) {
+   return(InitializeArray(array, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
@@ -115,7 +115,7 @@ BOOL WINAPI InitializeShortArray(short values[], int size, short initValue, int 
 /**
  * Initialize a range of <int> array elements with a custom value.
  *
- * @param  int values[]  - array
+ * @param  int array[]   - array
  * @param  int size      - number of elements in the array
  * @param  int initValue - custom initialization value
  * @param  int from      - start index of initialization
@@ -123,27 +123,25 @@ BOOL WINAPI InitializeShortArray(short values[], int size, short initValue, int 
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeIntArray(int values[], int size, int initValue, int from, int count) {
-   return(InitializeArray(values, size, initValue, from, count));
+BOOL WINAPI InitializeIntArray(int array[], int size, int initValue, int from, int count) {
+   return(InitializeArray(array, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Initialize a range of <int64> array elements with a custom value.
+ * Initialize a range of <MQL5:long> array elements with a custom value.
  *
- * @param  int64 values[]  - array
+ * @param  int64 array[]   - array with sizeof(element) = 8
  * @param  int   size      - number of elements in the array
  * @param  int64 initValue - custom initialization value
  * @param  int   from      - start index of initialization
  * @param  int   count     - number of elements to initialize
  *
  * @return BOOL - success status
- *
- * Note: The function name refers to the MQL5 type <long> (a 64 bit wide integer).
  */
-BOOL WINAPI InitializeLongArray(int64 values[], int size, int64 initValue, int from, int count) {
-   return(InitializeArray(values, size, initValue, from, count));
+BOOL WINAPI InitializeLongArray(int64 array[], int size, int64 initValue, int from, int count) {
+   return(InitializeArray(array, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
@@ -151,7 +149,7 @@ BOOL WINAPI InitializeLongArray(int64 values[], int size, int64 initValue, int f
 /**
  * Initialize a range of <float> array elements with a custom value.
  *
- * @param  float  values[]  - array
+ * @param  float  array[]   - array
  * @param  int    size      - number of elements in the array
  * @param  float  initValue - custom initialization value
  * @param  int    from      - start index of initialization
@@ -159,8 +157,8 @@ BOOL WINAPI InitializeLongArray(int64 values[], int size, int64 initValue, int f
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeFloatArray(float values[], int size, float initValue, int from, int count) {
-   return(InitializeArray(values, size, initValue, from, count));
+BOOL WINAPI InitializeFloatArray(float array[], int size, float initValue, int from, int count) {
+   return(InitializeArray(array, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
 
@@ -168,7 +166,7 @@ BOOL WINAPI InitializeFloatArray(float values[], int size, float initValue, int 
 /**
  * Initialize a range of <double> array elements with a custom value.
  *
- * @param  double values[]  - array
+ * @param  double array[]   - array
  * @param  int    size      - number of elements in the array
  * @param  double initValue - custom initialization value
  * @param  int    from      - start index of initialization
@@ -176,10 +174,42 @@ BOOL WINAPI InitializeFloatArray(float values[], int size, float initValue, int 
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitializeDoubleArray(double values[], int size, double initValue, int from, int count) {
-   return(InitializeArray(values, size, initValue, from, count));
+BOOL WINAPI InitializeDoubleArray(double array[], int size, double initValue, int from, int count) {
+   return(InitializeArray(array, size, initValue, from, count));
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Search an <int> array for a value and return its index.
+ *
+ * @param  int  array[]                   - array to search
+ * @param  int  size                      - number of elements in the array
+ * @param  int  value                     - value to search
+ * @param  BOOL reverseIndexed [optional] - whether the array should be reverse indexed like an MQL timeseries array (default: no)
+ *
+ * @return int - index of the first match or EMPTY (-1) if the value was not found;
+ *               -2 in case of errors
+ */
+int WINAPI SearchIntArray(const int array[], int size, int value, BOOL reverseIndexed = FALSE) {
+
+   return(EMPTY);
+   #pragma EXPANDER_EXPORT
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -220,10 +250,10 @@ template BOOL ShiftIndicatorBuffer<double>(double[], int, int, double);
 
 
 /**
- * Shift the content of a boolean timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of an <MQL4:bool> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
- * @param  BOOL buffer[]   - timeseries array for the MQL4 type <bool> with sizeof(boolean) = 4
+ * @param  BOOL buffer[]   - timeseries array with sizeof(element) = 4
  * @param  int  size       - number of elements in the array
  * @param  int  count      - number of elements to shift
  * @param  BOOL emptyValue - initialization value for elements interpreted as "empty"
@@ -237,10 +267,10 @@ BOOL WINAPI ShiftBOOLIndicatorBuffer(BOOL buffer[], int size, int count, BOOL em
 
 
 /**
- * Shift the content of a boolean timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of an <MQL5:bool> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
- * @param  bool buffer[]   - timeseries array for the MQL5 type <bool> with sizeof(boolean) = 1
+ * @param  bool buffer[]   - timeseries array with sizeof(element) = 1
  * @param  int  size       - number of elements in the array
  * @param  int  count      - number of elements to shift
  * @param  bool emptyValue - initialization value for elements interpreted as "empty"
@@ -305,10 +335,10 @@ BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int empty
 
 
 /**
- * Shift the content of an <int64> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of an <MQL5:long> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
- * @param  int64 buffer[]   - timeseries array
+ * @param  int64 buffer[]   - timeseries array with sizeof(element) = 8
  * @param  int   size       - number of elements in the array
  * @param  int   count      - number of elements to shift
  * @param  int64 emptyValue - initialization value for elements interpreted as "empty"

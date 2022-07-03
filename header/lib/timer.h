@@ -2,7 +2,7 @@
 #include "expander.h"
 
 
-// ticktimer metadata
+// tick timer metadata
 struct TICK_TIMER_DATA {
    uint   timerId;                              // timer id
    HANDLE hTimer;                               // timer handle if the timer is a queued timer, NULL otherwise
@@ -13,5 +13,5 @@ struct TICK_TIMER_DATA {
 
 
 uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags = NULL);
-BOOL WINAPI RemoveTickTimer(uint timerId);
+BOOL WINAPI ReleaseTickTimer(uint timerId);
 void WINAPI ReleaseTickTimers();

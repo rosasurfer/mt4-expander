@@ -135,21 +135,6 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
 
 
 /**
- * Whether a key is up or down at the time the function is called.
- *
- * @param  int vKey - one of 256 possible virtual-key codes
- *
- * @return BOOL
- *
- * @see  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate
- */
-BOOL WINAPI IsAsyncKeyDown(int vKey) {
-   return(GetAsyncKeyState(vKey) & 0x8000);     // check the most significant bit of the SHORT result
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether the specified value is a MetaTrader standard timeframe identifier.
  *
  * @param  int timeframe
@@ -207,19 +192,16 @@ BOOL WINAPI IsProgramType(int type) {
 
 
 /**
- * Gibt die ID des Userinterface-Threads zurück.
+ * Whether a virtual key is up or down at the time the function is called.
  *
- * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
+ * @param  int vKey - one of 256 possible virtual-key codes
+ *
+ * @return BOOL
+ *
+ * @see  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate
  */
-DWORD WINAPI GetUIThreadId() {
-   static DWORD uiThreadId;
-
-   if (!uiThreadId) {
-      HWND hWnd = GetTerminalMainWindow();
-      if (hWnd)
-         uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
-   }
-   return(uiThreadId);
+BOOL WINAPI IsVirtualKeyDown(int vKey) {
+   return(GetAsyncKeyState(vKey) & 0x8000);     // check the most significant bit of the SHORT result
    #pragma EXPANDER_EXPORT
 }
 
@@ -235,6 +217,24 @@ BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
    if (!threadId)
       threadId = GetCurrentThreadId();
    return(threadId == GetUIThreadId());
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Gibt die ID des Userinterface-Threads zurück.
+ *
+ * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
+ */
+DWORD WINAPI GetUIThreadId() {
+   static DWORD uiThreadId;
+
+   if (!uiThreadId) {
+      HWND hWnd = GetTerminalMainWindow();
+      if (hWnd)
+         uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
+   }
+   return(uiThreadId);
    #pragma EXPANDER_EXPORT
 }
 
