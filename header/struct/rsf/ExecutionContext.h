@@ -43,32 +43,32 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    DWORD              moduleInitFlags;                //       560        4     module init configuration                                 (const)  how should it be initialized
    DWORD              moduleDeinitFlags;              //       564        4     module deinit configuration                               (const)  how should it be deinitialized
                                                       //
-   char               symbol[MAX_SYMBOL_LENGTH+1];    //       568       12     current chart symbol     = MQL::Symbol()                  (var)
-   uint               timeframe;                      //       580        4     current chart timeframe  = MQL::Period()                  (var)
+   char               symbol[MAX_SYMBOL_LENGTH+1];    //       568       12     current chart symbol                                      (var)    MQL::Symbol()
+   uint               timeframe;                      //       580        4     current chart timeframe                                   (var)    MQL::Period()
    char               newSymbol[MAX_SYMBOL_LENGTH+1]; //       584       12     new symbol set by Library::init() after IR_CHARTCHANGE    (var)
    uint               newTimeframe;                   //       596        4     new timeframe set by Library::init() after IR_CHARTCHANGE (var)
-   const void*        rates;                          //       600        4     current price series     = MQL::ArrayCopyRates()          (var)    HistoryBar400[]|HistoryBar401[]
-   int                bars;                           //       604        4     current number of bars   = MQL::Bars                      (var)
-   int                changedBars;                    //       608        4     number of changed bars                                    (var)
-   int                unchangedBars;                  //       612        4     number of unchanged bars = MQL::IndicatorCounted()        (var)
+   const void*        rates;                          //       600        4     current price series from MQL::ArrayCopyRates()           (var)    HistoryBar400[]|HistoryBar401[]
+   int                bars;                           //       604        4     current number of bars                                    (var)    MQL::Bars
+   int                validBars;                      //       608        4     number of validBars bars                                  (var)    MQL::IndicatorCounted()
+   int                changedBars;                    //       612        4     number of changed bars                                    (var)
    uint               ticks;                          //       616        4     number of times start() was called for the instance       (var)
    uint               cycleTicks;                     //       620        4     number of times start() was called since init()           (var)    used for debugging purposes in the DLL only
-   datetime           prevTickTime;                   //       624        4     server time of the previously processed tick              (var)
-   datetime           currTickTime;                   //       628        4     server time of the currently processed tick               (var)
-   double             bid;                            //       632        8     current bid price        = MQL::Bid                       (var)
-   double             ask;                            //       640        8     current ask price        = MQL::Ask                       (var)
+   datetime           currTickTime;                   //       624        4     server time of the currently processed tick               (var)
+   datetime           prevTickTime;                   //       628        4     server time of the previously processed tick              (var)    used by MQL::IsBarOpen()
+   double             bid;                            //       632        8     current bid price                                         (var)    MQL::Bid
+   double             ask;                            //       640        8     current ask price                                         (var)    MQL::Ask
                                                       //
-   uint               digits;                         //       648        4     digits of the symbol     = MQL::Digits                    (var)
+   uint               digits;                         //       648        4     digits of the symbol                                      (var)    MQL::Digits
    uint               pipDigits;                      //       652        4     digits of a pip                                           (var)
    double             pip;                            //       658        8     size of a pip                                             (var)
-   double             point;                          //       664        8     size of a point          = MQL::Point                     (var)
+   double             point;                          //       664        8     size of a point                                           (var)    MQL::Point
    uint               pipPoints;                      //       672        4     number of points of a pip: 1 or 10                        (var)
    const char*        priceFormat;                    //       676        4     standard price format                                     (var)
    const char*        pipPriceFormat;                 //       680        4     pip price format (never subpips)                          (var)
                                                       //
    EXECUTION_CONTEXT* superContext;                   //       684        4     indicator host program                                    (const)  if loaded by iCustom()
    uint               threadId;                       //       688        4     current executing thread                                  (var)
-   HWND               hChart;                         //       692        4     chart handle             = MQL::WindowHandle()            (const)  handle of the chart frame
+   HWND               hChart;                         //       692        4     chart handle = MQL::WindowHandle()                        (const)  handle of the chart frame
    HWND               hChartWindow;                   //       696        4     chart handle with title bar "Symbol,Period"               (const)  handle of the chart window
                                                       //
    int                recordMode;                     //       700        4     an expert's "EA.Recorder" mode                            (var)
@@ -126,12 +126,12 @@ uint               WINAPI ec_Timeframe           (const EXECUTION_CONTEXT* ec);
 //                        ec.newTimeframe
 //                        ec.rates
 int                WINAPI ec_Bars                (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_ValidBars           (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_ChangedBars         (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_UnchangedBars       (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Ticks               (const EXECUTION_CONTEXT* ec);
 //                        ec.cycleTicks
-datetime           WINAPI ec_PrevTickTime        (const EXECUTION_CONTEXT* ec);
 datetime           WINAPI ec_CurrTickTime        (const EXECUTION_CONTEXT* ec);
+datetime           WINAPI ec_PrevTickTime        (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                 (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                 (const EXECUTION_CONTEXT* ec);
 
@@ -217,8 +217,8 @@ uint               WINAPI ec_SetTimeframe           (EXECUTION_CONTEXT* ec, uint
 //                        ec.newTimeframe
 //                        ec.rates
 int                WINAPI ec_SetBars                (EXECUTION_CONTEXT* ec, int                count    );
+int                WINAPI ec_SetValidBars           (EXECUTION_CONTEXT* ec, int                count    );
 int                WINAPI ec_SetChangedBars         (EXECUTION_CONTEXT* ec, int                count    );
-int                WINAPI ec_SetUnchangedBars       (EXECUTION_CONTEXT* ec, int                count    );
 
 uint               WINAPI ec_SetDigits              (EXECUTION_CONTEXT* ec, uint               digits   );
 uint               WINAPI ec_SetPipDigits           (EXECUTION_CONTEXT* ec, uint               digits   );

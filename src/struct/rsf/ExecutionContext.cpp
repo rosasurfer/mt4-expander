@@ -279,6 +279,20 @@ int WINAPI ec_Bars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return an MQL program's current amount of valid chart bars.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - valid bars
+ */
+int WINAPI ec_ValidBars(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->validBars);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return an MQL program's current amount of changed chart bars.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -288,20 +302,6 @@ int WINAPI ec_Bars(const EXECUTION_CONTEXT* ec) {
 int WINAPI ec_ChangedBars(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->changedBars);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return an MQL program's current amount of unchanged chart bars.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return int - unchanged bars
- */
-int WINAPI ec_UnchangedBars(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->unchangedBars);
    #pragma EXPANDER_EXPORT
 }
 
@@ -321,20 +321,6 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return an MQL program's previous tick time.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return datetime - server time
- */
-datetime WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->prevTickTime);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return an MQL program's current tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -344,6 +330,20 @@ datetime WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
 datetime WINAPI ec_CurrTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->currTickTime);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return an MQL program's previous tick time.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return datetime - server time
+ */
+datetime WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->prevTickTime);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1542,6 +1542,30 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int count) {
 
 
 /**
+ * Set an EXECUTION_CONTEXT's validBars value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                count
+ *
+ * @return int - the same value
+ */
+int WINAPI ec_SetValidBars(EXECUTION_CONTEXT* ec, int count) {
+   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (count < -1)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (can't be smaller than -1)", count));
+
+   ec->validBars = count;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
+      if (ec==chain[1] && chain[0])
+         chain[0]->validBars = count;
+   }
+   return(count);
+}
+
+
+/**
  * Set an EXECUTION_CONTEXT's changedBars value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1560,30 +1584,6 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int count) {
       ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->changedBars = count;
-   }
-   return(count);
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's unchangedBars value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  int                count
- *
- * @return int - the same value
- */
-int WINAPI ec_SetUnchangedBars(EXECUTION_CONTEXT* ec, int count) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (count < -1)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (can't be smaller than -1)", count));
-
-   ec->unchangedBars = count;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlInstances.size() > pid) {
-      ContextChain &chain = *g_mqlInstances[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->unchangedBars = count;
    }
    return(count);
 }
@@ -2302,12 +2302,12 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", newTimeframe="         <<   PeriodDescriptionA(ec->newTimeframe)
          << ", rates="                <<                     (ec->rates ? StrFormat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
+         << ", validBars="            <<                      ec->validBars
          << ", changedBars="          <<                      ec->changedBars
-         << ", unchangedBars="        <<                      ec->unchangedBars
          << ", ticks="                <<                      ec->ticks
          << ", cycleTicks="           <<                      ec->cycleTicks
-         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormatA(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
          << ", currTickTime="         <<                     (ec->currTickTime ? GmtTimeFormatA(ec->currTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormatA(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
          << ", bid=" << std::setprecision(ec->bid ? ec->digits : 0) << ec->bid
          << ", ask=" << std::setprecision(ec->ask ? ec->digits : 0) << ec->ask
 
