@@ -690,26 +690,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\lib\mql-stubs.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\src\lib\string.cpp"
 					>
 					<FileConfiguration
@@ -771,6 +751,10 @@
 				</File>
 				<File
 					RelativePath=".\src\lib\timer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\lib\virtual.cpp"
 					>
 				</File>
 			</Filter>

@@ -5,7 +5,7 @@
 #include "lib/string.h"
 
 
-extern MqlInstanceList g_mqlInstances;                   // all MQL program instances: vector<ContextChain> with index = instance id aka pid
+extern MqlInstanceList g_mqlInstances;                   // all MQL program instances
 
 
 /**

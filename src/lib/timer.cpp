@@ -35,12 +35,12 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
       }
       if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
 
-      if      (ttd->flags & TICK_CHART_REFRESH) PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);
+      if      (ttd->flags & TICK_CHART_REFRESH) PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);   // triggers indicators but not experts
       else if (ttd->flags & TICK_TESTER)        PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-      else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // standard tick
+      else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // triggers indicators and experts in online/offline charts
    }
    else {
-      // expected if a MQL program crashes and fails to release its resources
+      // expected case if an MQL program crashes and fails to release its resources
       debug("releasing unreleased tick timer with id=%d (references non-existing window hWnd=%p, did the MQL program crash?)", ttd->timerId, ttd->hWnd);
       ReleaseTickTimer(ttd->timerId);
    }
@@ -68,7 +68,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    if (!threadId)                                         return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd=%p (not a window)", hWnd));
    if (processId != GetCurrentProcessId())                return(error(ERR_INVALID_PARAMETER, "window hWnd=%p is not owned by the current process", hWnd));
    if ((int)millis <= 0)                                  return(error(ERR_INVALID_PARAMETER, "invalid parameter millis: %d", (int)millis));
-   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter flags: combination of TICK_CHART_REFRESH & TICK_TESTER"));
+   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER"));
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // generate a new timer id and timer metadata
