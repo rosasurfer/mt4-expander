@@ -182,7 +182,7 @@
 #define F_PARTIAL_ID                   0x00200000        // 2097152  parser support for incomplete identifiers
 
 
-// virtual key code flags, @see HandleCommands()
+// virtual key code flags, see HandleCommands()
 #define F_VK_CAPITAL                            1        // VK_CAPITAL (capslock)
 #define F_VK_SHIFT                              2        // VK_SHIFT
 #define F_VK_LWIN                               4        // VK_LWIN (left Windows key)
@@ -346,6 +346,14 @@
 #define OCT                               OCTOBER
 #define NOV                              NOVEMBER
 #define DEC                              DECEMBER
+
+
+// identifiers for timezone related functionality
+#define TIME_SERVER                             1        // the current trade server timezone
+#define TIME_LOCAL                              2        // the timezone of the local system
+#define TIME_FXT                                3        // FXT (Forex Standard Time, aka America/New_York+0700)
+#define TIME_GMT                                4        // GMT (Greenwich Mean Time, aka UTC)
+#define TIME_UTC                         TIME_GMT        // alias
 
 
 // init() flags
