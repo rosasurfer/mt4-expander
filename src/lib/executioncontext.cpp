@@ -12,9 +12,9 @@
 #include "struct/rsf/Order.h"
 #include "struct/rsf/Test.h"
 
+#include <cmath>
+#include <ctime>
 #include <fstream>
-#include <math.h>
-#include <time.h>
 #include <vector>
 
 

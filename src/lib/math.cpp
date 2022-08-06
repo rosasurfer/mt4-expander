@@ -1,7 +1,7 @@
 #include "expander.h"
 #include "lib/math.h"
 
-#include <math.h>
+#include <cmath>
 
 
 /**

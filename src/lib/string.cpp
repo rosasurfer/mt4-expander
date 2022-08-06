@@ -2,7 +2,7 @@
 #include "lib/string.h"
 #include "struct/mt4/MqlString.h"
 
-#include <ctype.h>
+#include <cctype>
 
 
 /**

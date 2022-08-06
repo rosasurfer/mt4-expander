@@ -1,6 +1,6 @@
 #include "expander.h"
 
-#include <time.h>
+#include <ctime>
 
 
 /**

@@ -6,7 +6,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
-#include <MMSystem.h>
+#include <mmsystem.h>
 #include <shellapi.h>
 #include <shlobj.h>
 

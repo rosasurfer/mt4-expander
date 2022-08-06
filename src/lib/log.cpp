@@ -5,8 +5,8 @@
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 
+#include <ctime>
 #include <fstream>
-#include <time.h>
 
 extern MqlInstanceList g_mqlInstances;             // all MQL program instances : vector<ContextChain*> with index = instance id aka pid
 

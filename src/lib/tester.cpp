@@ -8,8 +8,8 @@
 #include "lib/terminal.h"
 #include "lib/tester.h"
 
+#include <ctime>
 #include <fstream>
-#include <time.h>
 #include <windowsx.h>
 
 

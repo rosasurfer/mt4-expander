@@ -338,7 +338,7 @@
 #define FEB                              FEBRUARY
 #define MAR                                 MARCH
 #define APR                                 APRIL
-//      MAY                                   MAY        // short form equals long form
+//      MAY                                   MAY        // short equals long form
 #define JUN                                  JUNE
 #define JUL                                  JULY
 #define AUG                                AUGUST
@@ -348,19 +348,19 @@
 #define DEC                              DECEMBER
 
 
-// identifiers for timezone related functionality
-#define TIME_SERVER                             1        // the current trade server timezone
-#define TIME_LOCAL                              2        // the timezone of the local system
-#define TIME_FXT                                3        // FXT (Forex Standard Time, aka America/New_York+0700)
-#define TIME_GMT                                4        // GMT (Greenwich Mean Time, aka UTC)
-#define TIME_UTC                         TIME_GMT        // alias
+// timezone identifiers
+#define TZ_SERVER                               1        // the current trade server's timezone
+#define TZ_LOCAL                                2        // the timezone of the local system
+#define TZ_FXT                                  3        // FXT (Forex Standard Time, aka America/New_York+0700)
+#define TZ_GMT                                  4        // GMT (Greenwich Mean Time, aka UTC)
+#define TZ_UTC                             TZ_GMT        // alias
 
 
 // init() flags
 #define INIT_TIMEZONE                           1        // initialize/check the timezone configuration
 #define INIT_PIPVALUE                           2        // check availability of the current pip value (requires tick size and value)
 #define INIT_BARS_ON_HIST_UPDATE                4        //
-#define INIT_NO_BARS_REQUIRED                   8        // executable without chart history (scripts only)
+#define INIT_NO_BARS_REQUIRED                   8        // executable without price history (scripts only)
 #define INIT_BUFFERED_LOG                      16        // setup a logfile buffer for logging
 #define INIT_NO_EXTERNAL_REPORTING             32        // disable external test reporting (experts only)
 

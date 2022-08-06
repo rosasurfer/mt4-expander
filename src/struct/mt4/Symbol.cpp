@@ -6,7 +6,7 @@
 #include "expander.h"
 #include "struct/mt4/Symbol.h"
 
-#include <math.h>
+#include <cmath>
 
 
 /**
