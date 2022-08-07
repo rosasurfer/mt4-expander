@@ -1,28 +1,30 @@
 #include "expander.h"
+#include "lib/datetime.h"
 
 #include <ctime>
 
 
 /**
- * Return the system's current GMT time (also in tester).
+ * Return the current system time as a Unix timestamp.
  *
- * @return datetime - Unix timestamp as seconds since 01.01.1970 00:00:00 GMT
+ * @return datetime - timestamp (seconds since 01.01.1970 00:00:00 GMT)
  */
-datetime WINAPI GetGmtTime() {
+datetime WINAPI GetSystemTimeAsUnixTime() {
    return(time(NULL));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Return the system's current local time (also in tester).
+ * Return the system's local time as a Unix timestamp.
  *
- * @return datetime - local timestamp as seconds since 01.01.1970 00:00:00 local time
+ * @return datetime - timestamp (seconds since 01.01.1970 00:00:00 local time)
  */
-datetime WINAPI GetLocalTime() {
-   datetime gmtTime = time(NULL);
-   localtime(&gmtTime);
-   return(gmtTime - timezone);
+datetime WINAPI GetLocalTimeAsUnixTime() {
+   SYSTEMTIME st;
+   GetLocalTime(&st);
+   FILETIME ft = win32SystemTimeToFileTime(st);
+   return(win32FileTimeToUnixTime(ft));
    #pragma EXPANDER_EXPORT
 }
 
@@ -211,4 +213,42 @@ wchar* WINAPI LocalTimeFormatW(datetime64 timestamp, const wchar* format) {
    }
    return(wcsdup(buffer));                                           // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Convert a FILETIME structure to a Unix timestamp.
+ *
+ * @param  FILETIME &ft
+ *
+ * @return datetime
+ */
+datetime WINAPI win32FileTimeToUnixTime(const FILETIME &ft) {
+   // @see  https://stackoverflow.com/questions/20370920/convert-current-time-from-windows-to-unix-timestamp-in-c-or-c
+
+   // Copy low and high FILETIME parts into a LARGE_INTEGER so we can access
+   // the full 64-bits as an int64 without causing an alignment fault.
+   LARGE_INTEGER li;
+   li.LowPart  = ft.dwLowDateTime;
+   li.HighPart = ft.dwHighDateTime;
+
+   const int64 UNIX_TIME_START  = 0x019DB1DED53E8000;          // 01.01.1970 (start of Unix epoch) in "ticks"
+   const int64 TICKS_PER_SECOND = 10000000;                    // a tick is 100ns
+
+   int64 seconds = (li.QuadPart-UNIX_TIME_START) / TICKS_PER_SECOND;
+   return((datetime)seconds);
+}
+
+
+/**
+ * Convert a SYSTEMTIME to a FILETIME structure.
+ *
+ * @param  SYSTEMTIME &st
+ *
+ * @return FILETIME
+ */
+FILETIME WINAPI win32SystemTimeToFileTime(const SYSTEMTIME &st) {
+   FILETIME ft;
+   SystemTimeToFileTime(&st, &ft);
+   return(ft);
 }
