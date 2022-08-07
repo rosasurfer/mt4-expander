@@ -2,8 +2,8 @@
 #include "expander.h"
 
 
-datetime WINAPI GetLocalTimeAsUnixTime();
-datetime WINAPI GetSystemTimeAsUnixTime();
+datetime WINAPI GetGmtTime();
+datetime WINAPI GetLocalTime();
 size_t   WINAPI gmtimeFormat(char* buffer, size_t bufSize, datetime timestamp, const char* format);
 char*    WINAPI GmtTimeFormatA(datetime timestamp, const char* format);
 wchar*   WINAPI GmtTimeFormatW(datetime64 timestamp, const wchar* format);
@@ -14,3 +14,4 @@ wchar*   WINAPI LocalTimeFormatW(datetime64 timestamp, const wchar* format);
 
 datetime WINAPI win32FileTimeToUnixTime(const FILETIME &ft);
 FILETIME WINAPI win32SystemTimeToFileTime(const SYSTEMTIME &st);
+datetime WINAPI win32SystemTimeToUnixTime(const SYSTEMTIME &st);

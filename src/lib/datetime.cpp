@@ -5,26 +5,27 @@
 
 
 /**
- * Return the current system time as a Unix timestamp.
+ * Return the current system time as a Unix timestamp (seconds since 01.01.1970 00:00 GMT). In tester this time is not
+ * modelled. Use the MQL framework function TimeGmt() to get the modelled GMT time in tester.
  *
- * @return datetime - timestamp (seconds since 01.01.1970 00:00:00 GMT)
+ * @return datetime
  */
-datetime WINAPI GetSystemTimeAsUnixTime() {
+datetime WINAPI GetGmtTime() {
    return(time(NULL));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Return the system's local time as a Unix timestamp.
+ * Return the system's local time as a Unix timestamp (seconds since 01.01.1970 00:00 local time). In tester this time is not
+ * modelled. Use the MQL framework function TimeLocal() to get the modelled local time in tester.
  *
- * @return datetime - timestamp (seconds since 01.01.1970 00:00:00 local time)
+ * @return datetime
  */
-datetime WINAPI GetLocalTimeAsUnixTime() {
+datetime WINAPI GetLocalTime() {
    SYSTEMTIME st;
    GetLocalTime(&st);
-   FILETIME ft = win32SystemTimeToFileTime(st);
-   return(win32FileTimeToUnixTime(ft));
+   return(win32SystemTimeToUnixTime(st));
    #pragma EXPANDER_EXPORT
 }
 
@@ -226,8 +227,6 @@ wchar* WINAPI LocalTimeFormatW(datetime64 timestamp, const wchar* format) {
 datetime WINAPI win32FileTimeToUnixTime(const FILETIME &ft) {
    // @see  https://stackoverflow.com/questions/20370920/convert-current-time-from-windows-to-unix-timestamp-in-c-or-c
 
-   // Copy low and high FILETIME parts into a LARGE_INTEGER so we can access
-   // the full 64-bits as an int64 without causing an alignment fault.
    LARGE_INTEGER li;
    li.LowPart  = ft.dwLowDateTime;
    li.HighPart = ft.dwHighDateTime;
@@ -251,4 +250,16 @@ FILETIME WINAPI win32SystemTimeToFileTime(const SYSTEMTIME &st) {
    FILETIME ft;
    SystemTimeToFileTime(&st, &ft);
    return(ft);
+}
+
+
+/**
+ * Convert a SYSTEMTIME structure to a Unix timestamp.
+ *
+ * @param  SYSTEMTIME &st
+ *
+ * @return datetime
+ */
+datetime WINAPI win32SystemTimeToUnixTime(const SYSTEMTIME &st) {
+   return(win32FileTimeToUnixTime(win32SystemTimeToFileTime(st)));
 }

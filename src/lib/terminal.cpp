@@ -373,7 +373,7 @@ const char* WINAPI GetTerminalDataPathA() {
       }
       else {
          // check for locked terminal logs
-         char* logFilename = LocalTimeFormatA(GetSystemTimeAsUnixTime(), "\\logs\\%Y%m%d.log");
+         char* logFilename = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
          BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(logFilename));
          BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(logFilename));
          free(logFilename);
@@ -410,7 +410,7 @@ const wchar* WINAPI GetTerminalDataPathW() {
       }
       else {
          // check for locked terminal logs
-         char* logFilename = LocalTimeFormatA(GetSystemTimeAsUnixTime(), "\\logs\\%Y%m%d.log");
+         char* logFilename = LocalTimeFormatA(GetGmtTime(), "\\logs\\%Y%m%d.log");
          BOOL terminalPathIsLocked = IsLockedFile(unicodeToAnsi(wstring(terminalPath)).append(logFilename));
          BOOL roamingPathIsLocked  = IsLockedFile(unicodeToAnsi(wstring(roamingDataPath)).append(logFilename));
          free(logFilename);
