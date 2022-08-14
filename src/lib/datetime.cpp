@@ -39,14 +39,11 @@ datetime WINAPI GetLocalTime() {
  * @return BOOL - success status; FALSE if no timezone with the specified name was found
  */
 BOOL WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-
    // open the registry key
    string key = string("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\").append(name);
    HKEY hKey;
    if (int error = RegOpenKey(HKEY_LOCAL_MACHINE, key.c_str(), &hKey)) {
-      error(error, "failed to open key: HKEY_LOCAL_MACHINE\\%s", key.c_str());
-      return(FALSE);
+      return(error(ERR_WIN32_ERROR+error, "failed to open key: \"HKEY_LOCAL_MACHINE\\%s\"", key.c_str()));
    }
 
    // timezone info format in the registry
@@ -58,21 +55,21 @@ BOOL WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char
       SYSTEMTIME DaylightDate;
    };
 
-   // a local function: C++98 substitute for an anonymous function
+   // a local function as C++98 substitute for a lambda function
    struct local {
-      static BOOL RegGetValue(HKEY hKey, string &key, wchar* value, DWORD type, void* buffer, DWORD size) {
+      static BOOL ReadRegistryValue(HKEY hKey, string &key, wchar* value, DWORD type, void* buffer, DWORD size) {
          int error = RegGetValueW(hKey, NULL, value, type, NULL, buffer, &size);
-         if (error) error(error, "failed to read value: HKEY_LOCAL_MACHINE\\%s\\%S", key.c_str(), value);
+         if (error) error(ERR_WIN32_ERROR+error, "failed to read value: \"HKEY_LOCAL_MACHINE\\%s\\%S\"", key.c_str(), value);
          return(!error);
       }
    };
    REG_TIME_ZONE_INFORMATION regtzi = {};
 
-   // read timezone settings from registry
+   // read timezone settings from the registry
    BOOL success = 1;
-   success &= local::RegGetValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regtzi,            sizeof(regtzi));
-   success &= local::RegGetValue(hKey, key, L"Std", RRF_RT_REG_SZ,     &tzi->StandardName, sizeof(tzi->StandardName));
-   success &= local::RegGetValue(hKey, key, L"Dlt", RRF_RT_REG_SZ,     &tzi->DaylightName, sizeof(tzi->DaylightName));
+   success = success && local::ReadRegistryValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regtzi,            sizeof(regtzi));
+   success = success && local::ReadRegistryValue(hKey, key, L"Std", RRF_RT_REG_SZ,     &tzi->StandardName, sizeof(tzi->StandardName));
+   success = success && local::ReadRegistryValue(hKey, key, L"Dlt", RRF_RT_REG_SZ,     &tzi->DaylightName, sizeof(tzi->DaylightName));
    if (success) {
       tzi->Bias         = regtzi.Bias;
       tzi->DaylightBias = regtzi.DaylightBias;
@@ -328,6 +325,8 @@ datetime WINAPI SystemTimeToUnixTime(const SYSTEMTIME &st) {
  * @return int
  */
 int WINAPI Time_test(const char* name) {
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+
    TIME_ZONE_INFORMATION tzi = {};
    BOOL result = GetTimeZoneInformationByNameA(&tzi, name);
 
