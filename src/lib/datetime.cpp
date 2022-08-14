@@ -23,10 +23,66 @@ datetime WINAPI GetGmtTime() {
  * @return datetime
  */
 datetime WINAPI GetLocalTime() {
-   SYSTEMTIME st;
+   SYSTEMTIME st = {};
    GetLocalTime(&st);
-   return(win32SystemTimeToUnixTime(st));
+   return(SystemTimeToUnixTime(st));
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get timezone settings for a specific timezone.
+ *
+ * @param  _Out_ TIME_ZONE_INFORMATION* tzi  - struct receiving the timezone settings
+ * @param  _In_  char*                  name - timezone name
+ *
+ * @return BOOL - success status; FALSE if no timezone with the specified name was found
+ */
+BOOL WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char* name) {
+   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+
+   // open the registry key
+   string key = string("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\").append(name);
+   HKEY hKey;
+   if (int error = RegOpenKey(HKEY_LOCAL_MACHINE, key.c_str(), &hKey)) {
+      error(error, "failed to open key: HKEY_LOCAL_MACHINE\\%s", key.c_str());
+      return(FALSE);
+   }
+
+   // timezone info format in the registry
+   struct REG_TIME_ZONE_INFORMATION {
+      long       Bias;
+      long       StandardBias;
+      long       DaylightBias;
+      SYSTEMTIME StandardDate;
+      SYSTEMTIME DaylightDate;
+   };
+
+   // a local function: C++98 substitute for an anonymous function
+   struct local {
+      static BOOL RegGetValue(HKEY hKey, string &key, wchar* value, DWORD type, void* buffer, DWORD size) {
+         int error = RegGetValueW(hKey, NULL, value, type, NULL, buffer, &size);
+         if (error) error(error, "failed to read value: HKEY_LOCAL_MACHINE\\%s\\%S", key.c_str(), value);
+         return(!error);
+      }
+   };
+   REG_TIME_ZONE_INFORMATION regtzi = {};
+
+   // read timezone settings from registry
+   BOOL success = 1;
+   success &= local::RegGetValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regtzi,            sizeof(regtzi));
+   success &= local::RegGetValue(hKey, key, L"Std", RRF_RT_REG_SZ,     &tzi->StandardName, sizeof(tzi->StandardName));
+   success &= local::RegGetValue(hKey, key, L"Dlt", RRF_RT_REG_SZ,     &tzi->DaylightName, sizeof(tzi->DaylightName));
+   if (success) {
+      tzi->Bias         = regtzi.Bias;
+      tzi->DaylightBias = regtzi.DaylightBias;
+      tzi->DaylightDate = regtzi.DaylightDate;
+      tzi->StandardBias = regtzi.StandardBias;
+      tzi->StandardDate = regtzi.StandardDate;
+   }
+
+   RegCloseKey(hKey);
+   return(success);
 }
 
 
@@ -224,15 +280,15 @@ wchar* WINAPI LocalTimeFormatW(datetime64 timestamp, const wchar* format) {
  *
  * @return datetime
  */
-datetime WINAPI win32FileTimeToUnixTime(const FILETIME &ft) {
+datetime WINAPI FileTimeToUnixTime(const FILETIME &ft) {
    // @see  https://stackoverflow.com/questions/20370920/convert-current-time-from-windows-to-unix-timestamp-in-c-or-c
 
-   LARGE_INTEGER li;
+   LARGE_INTEGER li = {};
    li.LowPart  = ft.dwLowDateTime;
    li.HighPart = ft.dwHighDateTime;
 
-   const int64 UNIX_TIME_START  = 0x019DB1DED53E8000;          // 01.01.1970 (start of Unix epoch) in "ticks"
-   const int64 TICKS_PER_SECOND = 10000000;                    // a tick is 100ns
+   const int64 UNIX_TIME_START  = 0x019DB1DED53E8000;                // 01.01.1970 (start of Unix epoch) in "ticks"
+   const int64 TICKS_PER_SECOND = 10000000;                          // a tick is 100ns
 
    int64 seconds = (li.QuadPart-UNIX_TIME_START) / TICKS_PER_SECOND;
    return((datetime)seconds);
@@ -246,8 +302,8 @@ datetime WINAPI win32FileTimeToUnixTime(const FILETIME &ft) {
  *
  * @return FILETIME
  */
-FILETIME WINAPI win32SystemTimeToFileTime(const SYSTEMTIME &st) {
-   FILETIME ft;
+FILETIME WINAPI SystemTimeToFileTime(const SYSTEMTIME &st) {
+   FILETIME ft = {};
    SystemTimeToFileTime(&st, &ft);
    return(ft);
 }
@@ -260,6 +316,22 @@ FILETIME WINAPI win32SystemTimeToFileTime(const SYSTEMTIME &st) {
  *
  * @return datetime
  */
-datetime WINAPI win32SystemTimeToUnixTime(const SYSTEMTIME &st) {
-   return(win32FileTimeToUnixTime(win32SystemTimeToFileTime(st)));
+datetime WINAPI SystemTimeToUnixTime(const SYSTEMTIME &st) {
+   return(FileTimeToUnixTime(SystemTimeToFileTime(st)));
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------------
+
+
+/**
+ * @return int
+ */
+int WINAPI Time_test(const char* name) {
+   TIME_ZONE_INFORMATION tzi = {};
+   BOOL result = GetTimeZoneInformationByNameA(&tzi, name);
+
+   debug("retrieving timezone \"%s\": %s", name, result ? "success":"error");
+   return(NULL);
+   #pragma EXPANDER_EXPORT
 }
