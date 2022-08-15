@@ -387,10 +387,6 @@
 					Name="win32"
 					>
 					<File
-						RelativePath=".\header\struct\win32\FileTime.h"
-						>
-					</File>
-					<File
 						RelativePath=".\header\struct\win32\ProcessInformation.h"
 						>
 					</File>
@@ -764,26 +760,6 @@
 				<Filter
 					Name="win32"
 					>
-					<File
-						RelativePath=".\src\struct\win32\FileTime.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-					</File>
 					<File
 						RelativePath=".\src\struct\win32\ProcessInformation.cpp"
 						>
