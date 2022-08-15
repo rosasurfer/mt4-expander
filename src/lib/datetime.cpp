@@ -1,7 +1,9 @@
 #include "expander.h"
 #include "lib/datetime.h"
+#include "lib/memory.h"
 
 #include <ctime>
+#include <sstream>
 
 
 /**
@@ -200,15 +202,15 @@ size_t WINAPI localtimeFormat(char* buffer, size_t bufSize, datetime timestamp, 
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 size_t WINAPI localtimeFormat(char* buffer, size_t bufSize, SYSTEMTIME st, const char* format) {
-   tm tt = {};
-   tt.tm_year  = st.wYear - 1900;                     // years since 1900
-   tt.tm_mon   = st.wMonth - 1;                       // months since January:   0..11
-   tt.tm_mday  = st.wDay;                             // day of the month:       1..31
-   tt.tm_hour  = st.wHour;                            // hours since midnight:   0..23
-   tt.tm_min   = st.wMinute;                          // minutes of the hour:    0..59
-   tt.tm_sec   = st.wSecond;                          // seconds of the minute:  0..59
-   tt.tm_isdst = -1;                                  // let the CRT compute whether DST is in effect
-   return(strftime(buffer, bufSize, format, &tt));
+   TM time = {};
+   time.tm_year  = st.wYear - 1900;                   // years since 1900
+   time.tm_mon   = st.wMonth - 1;                     // months since January:   0..11
+   time.tm_mday  = st.wDay;                           // day of the month:       1..31
+   time.tm_hour  = st.wHour;                          // hours since midnight:   0..23
+   time.tm_min   = st.wMinute;                        // minutes of the hour:    0..59
+   time.tm_sec   = st.wSecond;                        // seconds of the minute:  0..59
+   time.tm_isdst = -1;                                // let the CRT compute whether DST is in effect
+   return(strftime(buffer, bufSize, format, &time));
 }
 
 
@@ -271,6 +273,20 @@ wchar* WINAPI LocalTimeFormatW(datetime64 timestamp, const wchar* format) {
 
 
 /**
+ * Convert a FILETIME to a SYSTEMTIME structure.
+ *
+ * @param  FILETIME &ft
+ *
+ * @return SYSTEMTIME
+ */
+SYSTEMTIME WINAPI FileTimeToSystemTime(const FILETIME &ft) {
+   SYSTEMTIME st = {};
+   FileTimeToSystemTime(&ft, &st);
+   return(st);
+}
+
+
+/**
  * Convert a FILETIME structure to a Unix timestamp.
  *
  * @param  FILETIME &ft
@@ -318,6 +334,35 @@ datetime WINAPI SystemTimeToUnixTime(const SYSTEMTIME &st) {
 }
 
 
+/**
+ * Return a readable representation of a SYSTEMTIME structure.
+ *
+ * @param  SYSTEMTIME &st
+ *
+ * @return string
+ */
+string WINAPI SystemTimeToStr(const SYSTEMTIME &st) {
+   std::ostringstream ss;
+   SYSTEMTIME empty = {};
+
+   if (MemCompare(&st, &empty, sizeof(SYSTEMTIME))) {
+      ss << "{}";
+   }
+   else {
+      ss <<  "{wYear="         << st.wYear
+         << ", wMonth="        << st.wMonth
+         << ", wDayOfWeek="    << st.wDayOfWeek
+         << ", wDay="          << st.wDay
+         << ", wHour="         << st.wHour
+         << ", wMinute="       << st.wMinute
+         << ", wSecond="       << st.wSecond
+         << ", wMilliseconds=" << st.wMilliseconds
+         << "}";
+   }
+   return(ss.str());
+}
+
+
 // ---------------------------------------------------------------------------------------------------------------------------
 
 
@@ -329,8 +374,13 @@ int WINAPI Time_test(const char* name) {
 
    TIME_ZONE_INFORMATION tzi = {};
    BOOL result = GetTimeZoneInformationByNameA(&tzi, name);
+   //debug("retrieving timezone \"%s\": %d", name, result);
 
-   debug("retrieving timezone \"%s\": %s", name, result ? "success":"error");
+   SYSTEMTIME st = {};
+   GetLocalTime(&st);
+   string s = SystemTimeToStr(st);
+   //debug("local SYSTEMTIME = %s", s.c_str());
+
    return(NULL);
    #pragma EXPANDER_EXPORT
 }

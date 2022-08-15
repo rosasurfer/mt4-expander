@@ -122,17 +122,16 @@ datetime WINAPI Tester_GetStartDate() {
    wndTitle = GetInternalWindowTextA(hWndNext);
    if (!wndTitle || strlen(wndTitle) < 10)                                 return(error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Startdate\" control: \"%s\"", wndTitle));
 
-   char* date = wndTitle;
-   date[4] = date[7] = '\0';                                // format: 2018.01.01
-   tm tmdate = {};
-   tmdate.tm_year  = atoi(&date[0]) - 1900;
-   tmdate.tm_mon   = atoi(&date[5]) - 1;
-   tmdate.tm_mday  = atoi(&date[8]);
-   tmdate.tm_isdst = -1;
+   char* sDate = wndTitle;
+   sDate[4] = sDate[7] = '\0';                              // string format: 2018.01.01
+   TM date = {};
+   date.tm_year  = atoi(&sDate[0]) - 1900;
+   date.tm_mon   = atoi(&sDate[5]) - 1;
+   date.tm_mday  = atoi(&sDate[8]);
+   date.tm_isdst = -1;
    free(wndTitle);
 
-   //debug("startdate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
-   return(_mkgmtime(&tmdate));
+   return(_mkgmtime(&date));
    #pragma EXPANDER_EXPORT
 }
 
@@ -172,17 +171,16 @@ datetime WINAPI Tester_GetEndDate() {
    wndTitle = GetInternalWindowTextA(hWndNext);
    if (!wndTitle || strlen(wndTitle) < 10)                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Enddate\" control: \"%s\"", wndTitle));
 
-   char* date = wndTitle;
-   date[4] = date[7] = '\0';                                // format: 2018.01.01
-   tm tmdate = {};
-   tmdate.tm_year  = atoi(&date[0]) - 1900;
-   tmdate.tm_mon   = atoi(&date[5]) - 1;
-   tmdate.tm_mday  = atoi(&date[8]);
-   tmdate.tm_isdst = -1;
+   char* sDate = wndTitle;
+   sDate[4] = sDate[7] = '\0';                              // string format: 2018.01.01
+   TM date = {};
+   date.tm_year  = atoi(&sDate[0]) - 1900;
+   date.tm_mon   = atoi(&sDate[5]) - 1;
+   date.tm_mday  = atoi(&sDate[8]);
+   date.tm_isdst = -1;
    free(wndTitle);
 
-   //debug("enddate=%s.%s.%s  gmt=%s", &date[0], &date[5], &date[8], GmtTimeFormat(_mkgmtime(&tmdate), "%Y.%m.%d %H:%M:%S"));
-   return(_mkgmtime(&tmdate));
+   return(_mkgmtime(&date));
    #pragma EXPANDER_EXPORT
 }
 

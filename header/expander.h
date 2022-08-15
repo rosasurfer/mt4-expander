@@ -25,7 +25,7 @@ typedef unsigned __int64     uint64;
 typedef            DWORD     color;                         // MQL4 color
 typedef          __time32_t  datetime;                      // MQL4 32-bit timestamp (signed long)
 typedef          __time64_t  datetime64;                    // MQL5 64-bit timestamp (int64)
-
+typedef            tm        TM;                            // time structure
 
 namespace rsf {}                                            // define and always prefer the project's main namespace
 using namespace rsf;
