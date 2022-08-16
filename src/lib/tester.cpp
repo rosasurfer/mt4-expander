@@ -124,14 +124,14 @@ datetime WINAPI Tester_GetStartDate() {
 
    char* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                              // string format: 2018.01.01
-   TM date = {};
-   date.tm_year  = atoi(&sDate[0]) - 1900;
-   date.tm_mon   = atoi(&sDate[5]) - 1;
-   date.tm_mday  = atoi(&sDate[8]);
-   date.tm_isdst = -1;
+   TM time = {};
+   time.tm_year  = atoi(&sDate[0]) - 1900;
+   time.tm_mon   = atoi(&sDate[5]) - 1;
+   time.tm_mday  = atoi(&sDate[8]);
+   time.tm_isdst = 0;
    free(wndTitle);
 
-   return(_mkgmtime(&date));
+   return(TmToUnixTime(time, TRUE));
    #pragma EXPANDER_EXPORT
 }
 
@@ -173,14 +173,14 @@ datetime WINAPI Tester_GetEndDate() {
 
    char* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                              // string format: 2018.01.01
-   TM date = {};
-   date.tm_year  = atoi(&sDate[0]) - 1900;
-   date.tm_mon   = atoi(&sDate[5]) - 1;
-   date.tm_mday  = atoi(&sDate[8]);
-   date.tm_isdst = -1;
+   TM time = {};
+   time.tm_year  = atoi(&sDate[0]) - 1900;
+   time.tm_mon   = atoi(&sDate[5]) - 1;
+   time.tm_mday  = atoi(&sDate[8]);
+   time.tm_isdst = 0;
    free(wndTitle);
 
-   return(_mkgmtime(&date));
+   return(TmToUnixTime(time, TRUE));
    #pragma EXPANDER_EXPORT
 }
 
