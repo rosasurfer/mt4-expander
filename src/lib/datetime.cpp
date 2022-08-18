@@ -498,8 +498,8 @@ TM WINAPI UnixTimeToTm(datetime gmtTime, BOOL toLocalTime/*=FALSE*/) {
 /**
  * Convert a 64-bit Unix timestamp to a C time.
  *
- * @param  datetime64 gmtTime              - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  BOOL     toLocalTime [optional] - whether the resulting C struct holds local or GMT time (default: GMT)
+ * @param  datetime64 gmtTime                - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  BOOL       toLocalTime [optional] - whether the resulting C struct holds local or GMT time (default: GMT)
  *
  * @return TM
  */
@@ -565,15 +565,6 @@ int WINAPI test_Time(const char* name) {
    TIME_ZONE_INFORMATION tzi = {};
    BOOL result = GetTimeZoneInformationByNameA(&tzi, name);
    debug("timezone \"%s\": %d", name, result);
-
-   /*
-   datetime now = GetGmtTime();
-   debug("now = %d", now);
-
-   TM gmtTime = *gmtime(&now);
-   debug("TM gmtTime   = %s", TmToStr(gmtTime).c_str());
-   debug("timestamp    = %d", TmToUnixTime(gmtTime));
-   */
 
    return(NULL);
    #pragma EXPANDER_EXPORT

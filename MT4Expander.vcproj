@@ -403,10 +403,6 @@
 						>
 					</File>
 					<File
-						RelativePath=".\header\struct\win32\TimeZoneInformation.h"
-						>
-					</File>
-					<File
 						RelativePath=".\header\struct\win32\Win32FindData.h"
 						>
 					</File>
@@ -822,26 +818,6 @@
 					</File>
 					<File
 						RelativePath=".\src\struct\win32\SystemTime.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath=".\src\struct\win32\TimeZoneInformation.cpp"
 						>
 						<FileConfiguration
 							Name="Debug|Win32"
