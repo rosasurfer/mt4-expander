@@ -1,9 +1,17 @@
+/**
+ * Comparison and ranges of time types supported by Windows:
+ *
+ * @link  https://www.codeproject.com/Articles/144159/Time-Format-Conversion-Made-Easy
+ */
 #include "expander.h"
 #include "lib/datetime.h"
 #include "lib/memory.h"
 
 #include <ctime>
 #include <sstream>
+
+#define UNIX_TIME_START    116444736000000000LL                // 01.01.1970 (start of Unix epoch) in Windows "ticks"
+#define TICKS_PER_SECOND   10000000LL                          // a tick is 100ns
 
 
 /**
@@ -25,13 +33,13 @@ datetime WINAPI GetGmtTime() {
  * @return datetime
  */
 datetime WINAPI GetLocalTime() {
-   return(SystemTimeToUnixTime(getLocalTime()));
+   return(FileTimeToUnixTime(getLocalTimeAsFileTime()));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Return the current local time as a SYSTEMTIME struct.
+ * Return the current local time as a SYSTEMTIME.
  *
  * @return SYSTEMTIME
  */
@@ -43,7 +51,19 @@ SYSTEMTIME WINAPI getLocalTime() {
 
 
 /**
- * Return the current system time as a SYSTEMTIME struct.
+ * Return the current local time as a FILETIME.
+ *
+ * @return FILETIME
+ */
+FILETIME WINAPI getLocalTimeAsFileTime() {
+   FILETIME st=getSystemTimeAsFileTime(), lt={};
+   FileTimeToLocalFileTime(&st, &lt);
+   return(lt);
+}
+
+
+/**
+ * Return the current system time as a SYSTEMTIME.
  *
  * @return SYSTEMTIME
  */
@@ -51,6 +71,18 @@ SYSTEMTIME WINAPI getSystemTime() {
    SYSTEMTIME st = {};
    GetSystemTime(&st);
    return(st);
+}
+
+
+/**
+ * Return the current system time as a FILETIME.
+ *
+ * @return FILETIME
+ */
+FILETIME WINAPI getSystemTimeAsFileTime() {
+   FILETIME ft = {};
+   GetSystemTimeAsFileTime(&ft);
+   return(ft);
 }
 
 
@@ -264,21 +296,7 @@ wchar* WINAPI LocalTimeFormatW(datetime64 gmtTime, const wchar* format) {
 
 
 /**
- * Convert a SYSTEMTIME struct from local to GMT time.
- *
- * @param  SYSTEMTIME &localTime
- *
- * @return SYSTEMTIME - GMT time
- */
-SYSTEMTIME WINAPI LocalTimeToSystemTime(const SYSTEMTIME &localTime) {
-   SYSTEMTIME st = {};
-   TzSpecificLocalTimeToSystemTime(NULL, &localTime, &st);
-   return(st);
-}
-
-
-/**
- * Convert a FILETIME struct to a SYSTEMTIME struct.
+ * Convert a FILETIME to a SYSTEMTIME.
  *
  * @param  FILETIME &ft
  *
@@ -292,7 +310,7 @@ SYSTEMTIME WINAPI FileTimeToSystemTime(const FILETIME &ft) {
 
 
 /**
- * Convert a FILETIME struct to a Unix timestamp.
+ * Convert a FILETIME to a Unix timestamp.
  *
  * @param  FILETIME &ft
  *
@@ -305,16 +323,13 @@ datetime WINAPI FileTimeToUnixTime(const FILETIME &ft) {
    li.LowPart  = ft.dwLowDateTime;
    li.HighPart = ft.dwHighDateTime;
 
-   const int64 UNIX_TIME_START  = 0x019DB1DED53E8000;                // 01.01.1970 (start of Unix epoch) in "ticks"
-   const int64 TICKS_PER_SECOND = 10000000;                          // a tick is 100ns
-
    int64 seconds = (li.QuadPart-UNIX_TIME_START) / TICKS_PER_SECOND;
    return((datetime)seconds);
 }
 
 
 /**
- * Convert a SYSTEMTIME struct to a FILETIME struct.
+ * Convert a SYSTEMTIME to a FILETIME.
  *
  * @param  SYSTEMTIME &st
  *
@@ -328,7 +343,7 @@ FILETIME WINAPI SystemTimeToFileTime(const SYSTEMTIME &st) {
 
 
 /**
- * Return a readable representation of a SYSTEMTIME struct.
+ * Return a readable representation of a SYSTEMTIME.
  *
  * @param  SYSTEMTIME &st
  *
@@ -357,11 +372,11 @@ string WINAPI SystemTimeToStr(const SYSTEMTIME &st) {
 
 
 /**
- * Convert a SYSTEMTIME struct to a C time struct.
+ * Convert a SYSTEMTIME to a C time.
  *
  * @param  SYSTEMTIME &st
  *
- * @return TM - C time struct (field TM.tm_yday will be incomplete)
+ * @return TM - C time (field TM.tm_yday will be incomplete)
  */
 TM WINAPI SystemTimeToTm(const SYSTEMTIME &st) {
    TM time = {};
@@ -378,7 +393,7 @@ TM WINAPI SystemTimeToTm(const SYSTEMTIME &st) {
 
 
 /**
- * Convert a SYSTEMTIME struct to a Unix timestamp.
+ * Convert a SYSTEMTIME to a Unix timestamp.
  *
  * @param  SYSTEMTIME &st
  *
@@ -390,7 +405,7 @@ datetime WINAPI SystemTimeToUnixTime(const SYSTEMTIME &st) {
 
 
 /**
- * Return a readable representation of a C time struct.
+ * Return a readable representation of a C time.
  *
  * @param  TM &time
  *
@@ -420,25 +435,57 @@ string WINAPI TmToStr(const TM &time) {
 
 
 /**
- * Convert a C time struct to a Unix timestamp.
+ * Convert a C time to a Unix timestamp.
  *
  * @param  TM   &time
- * @param  BOOL isUTC - whether the C time struct is UTC or local time
+ * @param  BOOL isLocalTime [optional] - whether the C time holds local or GMT time (default: GMT)
  *
  * @return datetime
  */
-datetime WINAPI TmToUnixTime(const TM &time, BOOL isUTC) {
+datetime WINAPI TmToUnixTime(const TM &time, BOOL isLocalTime/*=FALSE*/) {
    TM tm = time;
-   if (isUTC) return(mkgmtime(&tm));                  // convert a UTC time to a UTC timestamp
-   else       return(mktime(&tm));                    // convert a local time to a UTC timestamp
+   if (isLocalTime) return(mktime(&tm));              // convert a local time to a UTC timestamp
+   else             return(mkgmtime(&tm));            // convert a UTC time to a UTC timestamp
 }
 
 
 /**
- * Convert a 32-bit Unix timestamp to a C time struct.
+ * Convert a Unix timestamp to a FILETIME.
+ *
+ * @param  datetime time - Unix timestamp (seconds since 01.01.1970 00:00)
+ *
+ * @return FILETIME
+ */
+FILETIME WINAPI UnixTimeToFileTime(datetime time) {
+   // @see  https://docs.microsoft.com/en-us/windows/win32/sysinfo/converting-a-time-t-value-to-a-file-time
+
+   ULARGE_INTEGER li = {};
+   li.QuadPart = (time * TICKS_PER_SECOND) + UNIX_TIME_START;
+
+   FILETIME ft = {};
+   ft.dwLowDateTime  = li.LowPart;
+   ft.dwHighDateTime = li.HighPart;
+   return(ft);
+}
+
+
+/**
+ * Convert a Unix timestamp to a SYSTEMTIME.
+ *
+ * @param  datetime time - Unix timestamp (seconds since 01.01.1970 00:00)
+ *
+ * @return SYSTEMTIME
+ */
+SYSTEMTIME WINAPI UnixTimeToSystemTime(datetime time) {
+   return(FileTimeToSystemTime(UnixTimeToFileTime(time)));
+}
+
+
+/**
+ * Convert a 32-bit Unix timestamp to a C time.
  *
  * @param  datetime gmtTime                - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  BOOL     toLocalTime [optional] - whether the resulting C time struct holds local or GMT time (default: GMT)
+ * @param  BOOL     toLocalTime [optional] - whether the resulting C time holds local or GMT time (default: GMT)
  *
  * @return TM
  */
@@ -449,10 +496,10 @@ TM WINAPI UnixTimeToTm(datetime gmtTime, BOOL toLocalTime/*=FALSE*/) {
 
 
 /**
- * Convert a 64-bit Unix timestamp to a C time struct.
+ * Convert a 64-bit Unix timestamp to a C time.
  *
  * @param  datetime64 gmtTime              - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  BOOL     toLocalTime [optional] - whether the resulting C time struct holds local or GMT time (default: GMT)
+ * @param  BOOL     toLocalTime [optional] - whether the resulting C struct holds local or GMT time (default: GMT)
  *
  * @return TM
  */
@@ -466,42 +513,66 @@ TM WINAPI UnixTimeToTm(datetime64 gmtTime, BOOL toLocalTime/*=FALSE*/) {
 // ---------------------------------------------------------------------------------------------------------------------------
 
 
+
+/**
+ * Convert a GMT time to local time.
+ *
+ * @param  datetime gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ *
+ * @return datetime - Unix timestamp (seconds since 01.01.1970 00:00 local time) or NaT (Not-a-Time) in case of errors
+ */
+datetime WINAPI GmtToLocalTime(datetime gmtTime) {
+   if (gmtTime == NaT) return(_NaT(error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time")));
+   if (gmtTime < 0)    return(_NaT(error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime)));
+
+   SYSTEMTIME st=UnixTimeToSystemTime(gmtTime), lt={};
+
+   if (!SystemTimeToTzSpecificLocalTime(NULL, &st, &lt))
+      return(_NaT(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToTzSpecificLocalTime()")));
+
+   return(SystemTimeToUnixTime(lt));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Convert a local time to GMT.
+ *
+ * @param  datetime localTime - Unix timestamp (seconds since 01.01.1970 00:00 local time)
+ *
+ * @return datetime - Unix timestamp (seconds since 01.01.1970 00:00 GMT) or NaT (Not-a-Time) in case of errors
+ */
+datetime WINAPI LocalToGmtTime(datetime localTime) {
+   if (localTime == NaT) return(_NaT(error(ERR_INVALID_PARAMETER, "invalid parameter localTime: Not-a-Time")));
+   if (localTime < 0)    return(_NaT(error(ERR_INVALID_PARAMETER, "invalid parameter localTime: %d (must be non-negative)", localTime)));
+
+   SYSTEMTIME lt=UnixTimeToSystemTime(localTime), st={};
+
+   if (!TzSpecificLocalTimeToSystemTime(NULL, &lt, &st))
+      return(_NaT(error(ERR_WIN32_ERROR+GetLastError(), "TzSpecificLocalTimeToSystemTime()")));
+
+   return(SystemTimeToUnixTime(st));
+   #pragma EXPANDER_EXPORT
+}
+
+
 /**
  * @return int
  */
-int WINAPI Time_test(const char* name) {
+int WINAPI test_Time(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    TIME_ZONE_INFORMATION tzi = {};
    BOOL result = GetTimeZoneInformationByNameA(&tzi, name);
-   //debug("timezone \"%s\": %d", name, result);
-
-   SYSTEMTIME st = getLocalTime();
-   //debug("SYSTEMTIME localTime = %s", SystemTimeToStr(st).c_str());
+   debug("timezone \"%s\": %d", name, result);
 
    /*
-   datetime now = time(NULL);
+   datetime now = GetGmtTime();
    debug("now = %d", now);
 
    TM gmtTime = *gmtime(&now);
    debug("TM gmtTime   = %s", TmToStr(gmtTime).c_str());
-   debug("timestamp    = %d", TmToUnixTime(gmtTime, TRUE));
-
-   gmtTime.tm_isdst = 1;
-   debug("TM gmtTime   = %s", TmToStr(gmtTime).c_str());
-   debug("timestamp    = %d", TmToUnixTime(gmtTime, TRUE));
-
-   TM localTime = *localtime(&now);
-   debug("TM localTime = %s", TmToStr(localTime).c_str());
-   debug("timestamp    = %d", TmToUnixTime(localTime, FALSE));
-
-   localTime.tm_isdst = -1;
-   debug("TM localTime = %s", TmToStr(localTime).c_str());
-   debug("timestamp    = %d", TmToUnixTime(localTime, FALSE));
-
-   localTime.tm_isdst = 0;
-   debug("TM localTime = %s", TmToStr(localTime).c_str());
-   debug("timestamp    = %d", TmToUnixTime(localTime, FALSE));
+   debug("timestamp    = %d", TmToUnixTime(gmtTime));
    */
 
    return(NULL);
