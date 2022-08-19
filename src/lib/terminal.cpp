@@ -6,7 +6,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
-#include <MMSystem.h>
+#include <mmsystem.h>
 #include <shellapi.h>
 #include <shlobj.h>
 
@@ -871,39 +871,4 @@ BOOL WINAPI TerminalIsPortableMode() {
    }
    return(isPortable);
    #pragma EXPANDER_EXPORT
-}
-
-
-#pragma pack(push, 1)
-struct TYPES {
-   char       a_char;
-   short      a_short;
-   long       a_long;
-   int        a_int;
-   int64      a_int64;
-   datetime   a_datetime;
-   datetime64 a_datetime64;
-   long long  a_longlong;
-};
-#pragma pack(pop)
-
-
-/**
- * @return int
- */
-int WINAPI Test() {
-
-   debug("sizes: char=%d  short=%d  long=%d  int=%d  int64=%d  datetime=%d  datetime64=%d  longlong=%d",
-          sizeofMember(TYPES, a_char),
-          sizeofMember(TYPES, a_short),
-          sizeofMember(TYPES, a_long),
-          sizeofMember(TYPES, a_int),
-          sizeofMember(TYPES, a_int64),
-          sizeofMember(TYPES, a_datetime),
-          sizeofMember(TYPES, a_datetime64),
-          sizeofMember(TYPES, a_longlong)
-   );
-
-   return(NULL);
-   //#pragma EXPANDER_EXPORT
 }

@@ -141,7 +141,7 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsStdTimeframe(int timeframe) {
+BOOL WINAPI IsStandardTimeframe(int timeframe) {
    switch (timeframe) {
       case PERIOD_M1 : return(TRUE);
       case PERIOD_M5 : return(TRUE);
@@ -168,7 +168,7 @@ BOOL WINAPI IsStdTimeframe(int timeframe) {
 BOOL WINAPI IsCustomTimeframe(int timeframe) {
    if (timeframe <= 0)
       return(FALSE);
-   return(!IsStdTimeframe(timeframe));
+   return(!IsStandardTimeframe(timeframe));
    #pragma EXPANDER_EXPORT
 }
 

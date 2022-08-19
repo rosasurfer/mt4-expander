@@ -192,20 +192,9 @@ BOOL WINAPI InitializeDoubleArray(double array[], int size, double initValue, in
  *               -2 in case of errors
  */
 int WINAPI SearchIntArray(const int array[], int size, int value, BOOL reverseIndexed = FALSE) {
-
    return(EMPTY);
-   #pragma EXPANDER_EXPORT
+   //#pragma EXPANDER_EXPORT
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -387,10 +387,6 @@
 					Name="win32"
 					>
 					<File
-						RelativePath=".\header\struct\win32\FileTime.h"
-						>
-					</File>
-					<File
 						RelativePath=".\header\struct\win32\ProcessInformation.h"
 						>
 					</File>
@@ -404,10 +400,6 @@
 					</File>
 					<File
 						RelativePath=".\header\struct\win32\SystemTime.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\struct\win32\TimeZoneInformation.h"
 						>
 					</File>
 					<File
@@ -690,26 +682,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\lib\mql-stubs.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\src\lib\string.cpp"
 					>
 					<FileConfiguration
@@ -773,6 +745,10 @@
 					RelativePath=".\src\lib\timer.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\src\lib\virtual.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="struct"
@@ -780,26 +756,6 @@
 				<Filter
 					Name="win32"
 					>
-					<File
-						RelativePath=".\src\struct\win32\FileTime.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-					</File>
 					<File
 						RelativePath=".\src\struct\win32\ProcessInformation.cpp"
 						>
@@ -862,26 +818,6 @@
 					</File>
 					<File
 						RelativePath=".\src\struct\win32\SystemTime.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-					</File>
-					<File
-						RelativePath=".\src\struct\win32\TimeZoneInformation.cpp"
 						>
 						<FileConfiguration
 							Name="Debug|Win32"

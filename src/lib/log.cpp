@@ -5,8 +5,8 @@
 #include "lib/string.h"
 #include "struct/rsf/ExecutionContext.h"
 
+#include <ctime>
 #include <fstream>
-#include <time.h>
 
 extern MqlInstanceList g_mqlInstances;             // all MQL program instances : vector<ContextChain*> with index = instance id aka pid
 
@@ -14,15 +14,15 @@ extern MqlInstanceList g_mqlInstances;             // all MQL program instances 
 /**
  * Append a log message to a program's logfile. The caller is responsible for filtering messages by loglevel.
  *
- * @param  EXECUTION_CONTEXT* ec      - execution context of the program
- * @param  datetime           time    - current time (used only in tester)
- * @param  char*              message - log message
- * @param  int                error   - error linked to the message (if any)
- * @param  int                level   - log level of the message
+ * @param  EXECUTION_CONTEXT* ec         - execution context of the program
+ * @param  datetime           serverTime - server time as a Unix timestamp (used in tests only, then modelled)
+ * @param  char*              message    - log message
+ * @param  int                error      - error linked to the message (if any)
+ * @param  int                level      - log level of the message
  *
  * @return BOOL - success status
  */
-BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* message, int error, int level) {
+BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime serverTime, const char* message, int error, int level) {
    if ((uint)ec < MIN_VALID_POINTER)      return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (g_mqlInstances.size() <= ec->pid)  return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
@@ -71,26 +71,20 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime time, const char* 
    string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", "\n"), "\n", " ");   // replace linebreaks with spaces
    string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // error description
 
-   if (ec->testing) {                                                                     // generate the appropriate time string
-      size_t bufSize = 20;
-      char* buffer = (char*)alloca(bufSize);
-      gmtimeFormat(buffer, bufSize, time, "%Y-%m-%d %H:%M:%S");                           // tester: the passed tester time with seconds only
-      ss << "T " << buffer;                                                               // prefixed by "T"
+   if (ec->testing) {                                                                     // tester:
+      ss << "T " << gmtTimeFormat(serverTime, "%Y-%m-%d %H:%M:%S");                       // prefix "T" followed by the passed tester time (seconds only)
    }
    else {
-      SYSTEMTIME st; GetLocalTime(&st);
-      size_t bufSize = 20;
-      char* buffer = (char*)alloca(bufSize);
-      localtimeFormat(buffer, bufSize, st, "%Y-%m-%d %H:%M:%S");
-      ss << buffer << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;       // online: current time with milliseconds
+      SYSTEMTIME st = getSystemTime();                                                    // online: current time with milliseconds
+      datetime gmtTime = SystemTimeToUnixTime(st);
+      ss << localTimeFormat(gmtTime, "%Y-%m-%d %H:%M:%S") << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;
    }
    ss << "  " << std::setfill(' ') << std::setw(6) << std::left << sLoglevel << "  " << ec->symbol << "," << std::setw(3) << std::left << PeriodDescriptionA(ec->timeframe) << "  " << sExecPath << sMessage << sError;
 
    // write the log entry to logfile or logbuffer
    if (useLogger) *master->logger << ss.str() << std::endl;
-   else           master->logBuffer->push_back(new string(ss.str()));
+   else            master->logBuffer->push_back(&ss.str());
 
-   // @see  https://www.codeguru.com/cpp/cpp/date_time/routines/article.php/c1615/Extended-Time-Format-Functions-with-Milliseconds.htm
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }

@@ -23,9 +23,9 @@ typedef unsigned   int       uint;
 typedef          __int64     int64;
 typedef unsigned __int64     uint64;
 typedef            DWORD     color;                         // MQL4 color
-typedef            time_t    datetime;                      // MQL4 32-bit timestamp (signed long)
+typedef          __time32_t  datetime32, datetime;          // MQL4 32-bit timestamp (signed long)
 typedef          __time64_t  datetime64;                    // MQL5 64-bit timestamp (int64)
-
+typedef            tm        TM;                            // C time structure
 
 namespace rsf {}                                            // define and always prefer the project's main namespace
 using namespace rsf;
@@ -50,9 +50,13 @@ using std::wstring;
 #define MAX_FNAME                      _MAX_FNAME           // max. length of file name component
 #define MAX_EXT                        _MAX_EXT             // max. length of extension component
 
-#define strdup  _strdup                                     // duplicate a C string
-#define mbsdup  _mbsdup                                     // duplicate a UTF-8 string
-#define wcsdup  _wcsdup                                     // duplicate a wide Unicode (UTF-16) string
+#define strdup       _strdup                                // duplicate a C string
+#define mbsdup       _mbsdup                                // duplicate a UTF-8 string
+#define wcsdup       _wcsdup                                // duplicate a UTF-16 string
+
+#define gmtime64     _gmtime64                              // convert a 64-bit Unix timestamp to a C time structure holding GMT time
+#define localtime64  _localtime64                           // convert a 64-bit Unix timestamp to a C time structure holding local time
+#define mkgmtime     _mkgmtime                              // convert a UTC time structure to a Unix timestamp
 
 
 // MQL program types (flags)

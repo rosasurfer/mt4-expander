@@ -5,7 +5,7 @@
 #include "lib/string.h"
 
 
-extern MqlInstanceList g_mqlInstances;                   // all MQL program instances: vector<ContextChain> with index = instance id aka pid
+extern MqlInstanceList g_mqlInstances;                   // all MQL program instances
 
 
 /**
@@ -34,7 +34,7 @@ int WINAPI _dump(const char* fileName, const char* funcName, int line, const voi
          ss << std::hex << std::uppercase;
          for (uint i=0; i < size; i++) {
             ss << std::setw(2) << std::setfill('0') << (int)bytes[i] << " ";
-            if      (i%16 == 15) ss << NL;      // a linebreak after 16 byte
+            if      (i%16 == 15) ss << NL;      // a linebreak every 16 byte
             else if (i% 4 ==  3) ss << " ";     // a space separator every 4 byte
          }
          break;

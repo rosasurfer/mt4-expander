@@ -12,9 +12,9 @@
 #include "struct/rsf/Order.h"
 #include "struct/rsf/Test.h"
 
+#include <cmath>
+#include <ctime>
 #include <fstream>
-#include <math.h>
-#include <time.h>
 #include <vector>
 
 
@@ -450,8 +450,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetRecordMode          (ec, recordMode);
 
    master->test = ec->test = Expert_InitTest(ec, isTesting);
-   ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting     ));
-   ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode  ));
+   ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting));
+   ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
    ec_SetExternalReporting   (ec, isExternalReporting);
 

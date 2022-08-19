@@ -1,12 +1,11 @@
 /**
- * Empty stubs for optional MQL event handlers or functions. Overwritten by custom MQL implementations.
+ * Virtual no-ops. Automatically over-written by MQL implementations of the same name.
  */
 #include "expander.h"
 #include "lib/executioncontext.h"
 #include "struct/mt4/MqlString.h"
 
-
-extern MqlInstanceList g_mqlInstances;          // all MQL program instances: vector<ContextChain> with index = instance id aka pid
+extern MqlInstanceList g_mqlInstances;          // all MQL program instances
 
 
 /**
@@ -87,12 +86,6 @@ int WINAPI onTick() {
 }
 
 
-int WINAPI onAccountChange(int oldAccount, int newAccount) {
-   return(NO_ERROR);
-   #pragma EXPANDER_EXPORT
-}
-
-
 /**
  * Deinitialization functions
  */
@@ -140,10 +133,6 @@ int WINAPI onDeinitClose() {
 
 // builds > 509
 int WINAPI onDeinitFailed() {
-   if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = (*g_mqlInstances[pid])[0];
-      //warn(ERR_ILLEGAL_STATE, "unexpected uninitialize reason UR_INITFAILED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -177,10 +166,7 @@ int WINAPI onDeinitTemplate() {
 int WINAPI onDeinitUndefined() {
    if (uint pid = GetLastThreadProgram()) {
       EXECUTION_CONTEXT* ec = (*g_mqlInstances[pid])[0];
-      if (ec->programType==PT_EXPERT && !ec->testing) {
-         warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-      }
-      if (ec->programType == PT_INDICATOR) {
+      if (ec->programType==PT_INDICATOR || (ec->programType==PT_EXPERT && !ec->testing)) {
          warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_UNDEFINED:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
    }
@@ -194,15 +180,26 @@ int WINAPI afterDeinit() {
 }
 
 
-// other
-void WINAPI DummyCalls() {
-   return;
+/**
+ * Event handlers
+ */
+int WINAPI onAccountChange(int oldAccount, int newAccount) {
+   return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
-BOOL WINAPI Recorder_GetSymbolDefinitionA(int i, BOOL enabled, const char* symbol, const char* symbolDescr, const char* symbolGroup, int symbolDigits, double hstBase, int hstMultiplier, const char* hstDirectory, int hstFormat) {
-   return(FALSE);
+BOOL WINAPI onBarOpen() {
+   return(error(ERR_NOT_IMPLEMENTED, ""));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Other
+ */
+void WINAPI DummyCalls() {
+   return;
    #pragma EXPANDER_EXPORT
 }
 
@@ -213,16 +210,19 @@ const char* WINAPI InputsToStr() {
 }
 
 
-int WINAPI ShowStatus(int error) {
-   return(error);
+BOOL WINAPI Recorder_GetSymbolDefinitionA(int i, BOOL enabled, const char* symbol, const char* symbolDescr, const char* symbolGroup, int symbolDigits, double hstBase, int hstMultiplier, const char* hstDirectory, int hstFormat) {
+   return(FALSE);
    #pragma EXPANDER_EXPORT
 }
 
 
-/**
- * Error handlers for missing MQL implementations (if such functionality is used).
- */
-BOOL WINAPI onBarOpen() {
-   return(error(ERR_NOT_IMPLEMENTED, ""));
+BOOL WINAPI RemoveLegend() {
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+int WINAPI ShowStatus(int error) {
+   return(error);
    #pragma EXPANDER_EXPORT
 }
