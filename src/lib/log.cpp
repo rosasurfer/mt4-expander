@@ -15,14 +15,14 @@ extern MqlInstanceList g_mqlInstances;             // all MQL program instances 
  * Append a log message to a program's logfile. The caller is responsible for filtering messages by loglevel.
  *
  * @param  EXECUTION_CONTEXT* ec         - execution context of the program
- * @param  datetime           serverTime - server time as a Unix timestamp (used in tests only, then modelled)
+ * @param  time32             serverTime - server time as a Unix timestamp (used in tests only, modelled)
  * @param  char*              message    - log message
  * @param  int                error      - error linked to the message (if any)
  * @param  int                level      - log level of the message
  *
  * @return BOOL - success status
  */
-BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime serverTime, const char* message, int error, int level) {
+BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const char* message, int error, int level) {
    if ((uint)ec < MIN_VALID_POINTER)      return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (g_mqlInstances.size() <= ec->pid)  return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
@@ -76,7 +76,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime serverTime, const 
    }
    else {
       SYSTEMTIME st = getSystemTime();                                                    // online: current time with milliseconds
-      datetime gmtTime = SystemTimeToUnixTime(st);
+      time32 gmtTime = SystemTimeToUnixTime(st);
       ss << localTimeFormat(gmtTime, "%Y-%m-%d %H:%M:%S") << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;
    }
    ss << "  " << std::setfill(' ') << std::setw(6) << std::left << sLoglevel << "  " << ec->symbol << "," << std::setw(3) << std::left << PeriodDescriptionA(ec->timeframe) << "  " << sExecPath << sMessage << sError;

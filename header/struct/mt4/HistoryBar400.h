@@ -11,12 +11,12 @@
  * @see  https://docs.mql4.com/mql4changes
  */
 struct HISTORY_BAR_400 {                           // -- offset --- size --- description --------
-   datetime time;                                  //         0        4     opentime
-   double   open;                                  //         4        8
-   double   low;                                   //        12        8
-   double   high;                                  //        20        8
-   double   close;                                 //        28        8
-   double   ticks;                                 //        36        8     always an integer
+   time32 time;                                    //         0        4     opentime
+   double open;                                    //         4        8
+   double low;                                     //        12        8
+   double high;                                    //        20        8
+   double close;                                   //        28        8
+   double ticks;                                   //        36        8     always an integer
 };                                                 // -------------------------------------------
 #pragma pack(pop)                                  //               = 44
 

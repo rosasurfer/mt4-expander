@@ -504,21 +504,21 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  * @param  int                bars        - current amount of price bars (chart history)
  * @param  int                changedBars - current amount of changed indicator values
  * @param  uint               ticks       - number of calls of the MQL start() function
- * @param  datetime           time        - server time of the currently processed tick
+ * @param  time32             time        - server time of the currently processed tick
  * @param  double             bid         - bid price of the currently processed tick
  * @param  double             ask         - ask price of the currently processed tick
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime tickTime, double bid, double ask) {
+int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, time32 tickTime, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (!ec->pid)                     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d  %s  ec=%s", GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec))));
    SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
-   int      validBars    = (changedBars==-1) ? -1 : bars-changedBars;
-   uint     cycleTicks   = ec->cycleTicks + 1;
-   datetime prevTickTime = ec->currTickTime;
-   DWORD    threadId     = GetCurrentThreadId();
+   int    validBars    = (changedBars==-1) ? -1 : bars-changedBars;
+   uint   cycleTicks   = ec->cycleTicks + 1;
+   time32 prevTickTime = ec->currTickTime;
+   DWORD  threadId     = GetCurrentThreadId();
 
    if (validBars && tickTime < prevTickTime) {                       // don't trigger a ticktime error if all bars have changed
       return(_int(ERR_ILLEGAL_STATE, error(ERR_ILLEGAL_STATE, "ticktime is running backwards:  tick=%d  tickTime=%s  prevTickTime=%s  ec=%s", ticks, GmtTimeFormatA(tickTime, "%Y.%m.%d %H:%M:%S"), GmtTimeFormatA(prevTickTime, "%Y.%m.%d %H:%M:%S"), EXECUTION_CONTEXT_toStr(ec))));
@@ -573,7 +573,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
       if (positions->size()) {
          switch (test->barModel) {
             case MODE_BAROPEN: {
-               datetime barTime = iTime(rates, bars, 0);
+               time32 barTime = iTime(rates, bars, 0);
                uint bar = (tickTime == barTime);                     // use the closed [1] or the current bar [0] for stats
                high = iHigh(rates, bars, bar);                       // (the last tick of a BarOpen test can be a BarClose tick)
                low  = iLow (rates, bars, bar);

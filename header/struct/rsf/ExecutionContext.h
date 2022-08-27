@@ -26,7 +26,7 @@ typedef std::vector<string*> LogBuffer;
 struct EXECUTION_CONTEXT {                            // -- offset --- size --- description --------------------------------------------------------------------------------------
    uint               pid;                            //         0        4     MQL program id starting from 1                            (const)  index in g_mqlPrograms[]
    uint               previousPid;                    //         4        4     previous pid of the program or NULL                       (const)
-   datetime           started;                        //         8        4     GMT time the MQL program was started                      (const)
+   time32             started;                        //         8        4     GMT time the MQL program was started                      (const)
                                                       //
    ProgramType        programType;                    //        12        4     MQL program type                                          (const)  type of MQL program
    char               programName[MAX_FNAME];         //        16      256     MQL program name                                          (const)  MQL program name
@@ -53,8 +53,8 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    int                changedBars;                    //       612        4     number of changed bars                                    (var)
    uint               ticks;                          //       616        4     number of times start() was called for the instance       (var)
    uint               cycleTicks;                     //       620        4     number of times start() was called since init()           (var)    used for debugging purposes in the DLL only
-   datetime           currTickTime;                   //       624        4     server time of the currently processed tick               (var)
-   datetime           prevTickTime;                   //       628        4     server time of the previously processed tick              (var)    used by MQL::IsBarOpen()
+   time32             currTickTime;                   //       624        4     server time of the currently processed tick               (var)
+   time32             prevTickTime;                   //       628        4     server time of the previously processed tick              (var)    used by MQL::IsBarOpen()
    double             bid;                            //       632        8     current bid price                                         (var)    MQL::Bid
    double             ask;                            //       640        8     current ask price                                         (var)    MQL::Ask
                                                       //
@@ -103,7 +103,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
 // getters expecting a struct (exported)
 uint               WINAPI ec_Pid                 (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PreviousPid         (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_Started             (const EXECUTION_CONTEXT* ec);
+time32             WINAPI ec_Started             (const EXECUTION_CONTEXT* ec);
 
 ProgramType        WINAPI ec_ProgramType         (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_ProgramName         (const EXECUTION_CONTEXT* ec);
@@ -130,8 +130,8 @@ int                WINAPI ec_ValidBars           (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_ChangedBars         (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_Ticks               (const EXECUTION_CONTEXT* ec);
 //                        ec.cycleTicks
-datetime           WINAPI ec_CurrTickTime        (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_PrevTickTime        (const EXECUTION_CONTEXT* ec);
+time32             WINAPI ec_CurrTickTime        (const EXECUTION_CONTEXT* ec);
+time32             WINAPI ec_PrevTickTime        (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Bid                 (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Ask                 (const EXECUTION_CONTEXT* ec);
 
@@ -152,9 +152,9 @@ int                WINAPI ec_RecordMode          (const EXECUTION_CONTEXT* ec);
 
 //                        ec.test
 int                WINAPI ec_TestId              (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_TestCreated         (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_TestStartTime       (const EXECUTION_CONTEXT* ec);
-datetime           WINAPI ec_TestEndTime         (const EXECUTION_CONTEXT* ec);
+time32             WINAPI ec_TestCreated         (const EXECUTION_CONTEXT* ec);
+time32             WINAPI ec_TestStartTime       (const EXECUTION_CONTEXT* ec);
+time32             WINAPI ec_TestEndTime         (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestBarModel        (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestBars            (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestTicks           (const EXECUTION_CONTEXT* ec);

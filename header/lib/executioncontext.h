@@ -4,7 +4,7 @@
 
 
 int                WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, int recordMode, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, BOOL isExternalReporting, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY);
-int                WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, datetime tickTime, double bid, double ask);
+int                WINAPI SyncMainContext_start (EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, time32 tickTime, double bid, double ask);
 int                WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason reason);
 
 int                WINAPI SyncLibContext_init   (EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* name, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization);

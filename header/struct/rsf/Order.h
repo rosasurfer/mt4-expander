@@ -20,11 +20,11 @@ struct ORDER {                                     // -- offset --- size --- des
    int      type;                                  //        12        4
    double   lots;                                  //        16        8
    char     symbol[MAX_SYMBOL_LENGTH+1];           //        24       12
-   datetime openTime;                              //        36        4
+   time32   openTime;                              //        36        4
    double   openPrice;                             //        40        8
    double   stopLoss;                              //        48        8
    double   takeProfit;                            //        56        8
-   datetime closeTime;                             //        64        4
+   time32   closeTime;                             //        64        4
    BYTE     _alignment[4];                         //        68        4     (alignment to the next double)
    double   closePrice;                            //        72        8
    double   commission;                            //        80        8     values in money terms

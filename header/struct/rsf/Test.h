@@ -15,10 +15,10 @@ struct EXECUTION_CONTEXT;
  */
 struct TEST {
    int                id;                                // unique id greater 0 (zero)
-   datetime           created;                           // creation time of the test
+   time32             created;                           // creation time of the test
    EXECUTION_CONTEXT* ec;                                // master context of the tested expert
-   datetime           startTime;                         // time of the first tick of testing
-   datetime           endTime;                           // time of the last tick of testing
+   time32             startTime;                         // time of the first tick of testing
+   time32             endTime;                           // time of the last tick of testing
    uint               barModel;                          // used bar model: 0=EveryTick | 1=ControlPoints | 2=BarOpen
    uint               bars;                              // number of tested bars
    uint               ticks;                             // number of tested ticks
@@ -54,13 +54,13 @@ struct TEST {
 
 
 // validating setters
-int         WINAPI test_SetId             (TEST* test, int         id       );
-datetime    WINAPI test_SetStartTime      (TEST* test, datetime    time     );
-datetime    WINAPI test_SetEndTime        (TEST* test, datetime    time     );
-uint        WINAPI test_SetBars           (TEST* test, uint        bars     );
-uint        WINAPI test_SetTicks          (TEST* test, uint        ticks    );
-double      WINAPI test_SetSpread         (TEST* test, double      spread   );
-//DWORD     WINAPI test_SetTradeDirections(TEST* test, uint        types    );   // TODO
+int         WINAPI test_SetId             (TEST* test, int    id    );
+time32      WINAPI test_SetStartTime      (TEST* test, time32 time  );
+time32      WINAPI test_SetEndTime        (TEST* test, time32 time  );
+uint        WINAPI test_SetBars           (TEST* test, uint   bars  );
+uint        WINAPI test_SetTicks          (TEST* test, uint   ticks );
+double      WINAPI test_SetSpread         (TEST* test, double spread);
+//DWORD     WINAPI test_SetTradeDirections(TEST* test, uint   types );   // TODO
 
 
 // helpers

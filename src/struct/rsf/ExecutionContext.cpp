@@ -45,9 +45,9 @@ uint WINAPI ec_PreviousPid(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return datetime - system time
+ * @return time32 - system time
  */
-datetime WINAPI ec_Started(const EXECUTION_CONTEXT* ec) {
+time32 WINAPI ec_Started(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->started);
    #pragma EXPANDER_EXPORT
@@ -325,9 +325,9 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return datetime - server time
+ * @return time32 - server time
  */
-datetime WINAPI ec_CurrTickTime(const EXECUTION_CONTEXT* ec) {
+time32 WINAPI ec_CurrTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->currTickTime);
    #pragma EXPANDER_EXPORT
@@ -339,9 +339,9 @@ datetime WINAPI ec_CurrTickTime(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return datetime - server time
+ * @return time32 - server time
  */
-datetime WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
+time32 WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->prevTickTime);
    #pragma EXPANDER_EXPORT
@@ -743,9 +743,9 @@ int WINAPI ec_TestId(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return datetime - test creation time
+ * @return time32 - test creation time
  */
-datetime WINAPI ec_TestCreated(const EXECUTION_CONTEXT* ec) {
+time32 WINAPI ec_TestCreated(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
       return(ec->test->created);
@@ -759,9 +759,9 @@ datetime WINAPI ec_TestCreated(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return datetime - test start time
+ * @return time32 - test start time
  */
-datetime WINAPI ec_TestStartTime(const EXECUTION_CONTEXT* ec) {
+time32 WINAPI ec_TestStartTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
       return(ec->test->startTime);
@@ -775,9 +775,9 @@ datetime WINAPI ec_TestStartTime(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return datetime - test end time
+ * @return time32 - test end time
  */
-datetime WINAPI ec_TestEndTime(const EXECUTION_CONTEXT* ec) {
+time32 WINAPI ec_TestEndTime(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
       return(ec->test->endTime);
