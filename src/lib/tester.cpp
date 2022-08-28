@@ -131,7 +131,7 @@ time32 WINAPI Tester_GetStartDate() {
    time.tm_isdst = 0;
    free(wndTitle);
 
-   return(TmToUnixTime(time));
+   return(TmToUnixTime32(time));
    #pragma EXPANDER_EXPORT
 }
 
@@ -180,7 +180,7 @@ time32 WINAPI Tester_GetEndDate() {
    time.tm_isdst = 0;
    free(wndTitle);
 
-   return(TmToUnixTime(time));
+   return(TmToUnixTime32(time));
    #pragma EXPANDER_EXPORT
 }
 

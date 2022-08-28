@@ -76,7 +76,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
    }
    else {
       SYSTEMTIME st = getSystemTime();                                                    // online: current time with milliseconds
-      time32 gmtTime = SystemTimeToUnixTime(st);
+      time32 gmtTime = SystemTimeToUnixTime32(st);
       ss << localTimeFormat(gmtTime, "%Y-%m-%d %H:%M:%S") << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;
    }
    ss << "  " << std::setfill(' ') << std::setw(6) << std::left << sLoglevel << "  " << ec->symbol << "," << std::setw(3) << std::left << PeriodDescriptionA(ec->timeframe) << "  " << sExecPath << sMessage << sError;

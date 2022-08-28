@@ -2,8 +2,10 @@
 #include "expander.h"
 
 
-time32     WINAPI GetGmtTime();
-time32     WINAPI GetLocalTime();
+time32     WINAPI GetGmtTime32();
+time64     WINAPI GetGmtTime64();
+time32     WINAPI GetLocalTime32();
+time64     WINAPI GetLocalTime64();
 SYSTEMTIME WINAPI getLocalTime();
 FILETIME   WINAPI getLocalTimeAsFileTime();
 SYSTEMTIME WINAPI getSystemTime();
@@ -28,15 +30,18 @@ wchar*     WINAPI LocalTimeFormatW(time64 gmtTime, const wchar* format);
 
 // type conversions and helpers
 SYSTEMTIME WINAPI FileTimeToSystemTime(const FILETIME &ft);
-time32     WINAPI FileTimeToUnixTime  (const FILETIME &ft);
+time32     WINAPI FileTimeToUnixTime32(const FILETIME &ft);
+time64     WINAPI FileTimeToUnixTime64(const FILETIME &ft);
 
-FILETIME   WINAPI SystemTimeToFileTime(const SYSTEMTIME &st);
-string     WINAPI SystemTimeToStr     (const SYSTEMTIME &st);
-TM         WINAPI SystemTimeToTm      (const SYSTEMTIME &st);
-time32     WINAPI SystemTimeToUnixTime(const SYSTEMTIME &st);
+FILETIME   WINAPI SystemTimeToFileTime  (const SYSTEMTIME &st);
+string     WINAPI SystemTimeToStr       (const SYSTEMTIME &st);
+TM         WINAPI SystemTimeToTm        (const SYSTEMTIME &st);
+time32     WINAPI SystemTimeToUnixTime32(const SYSTEMTIME &st);
+time64     WINAPI SystemTimeToUnixTime64(const SYSTEMTIME &st);
 
-string     WINAPI TmToStr     (const TM &time);
-time32     WINAPI TmToUnixTime(const TM &time, BOOL isLocalTime = FALSE);
+string     WINAPI TmToStr       (const TM &time);
+time32     WINAPI TmToUnixTime32(const TM &time, BOOL isLocalTime = FALSE);
+time64     WINAPI TmToUnixTime64(const TM &time, BOOL isLocalTime = FALSE);
 
 FILETIME   WINAPI UnixTimeToFileTime  (time32 time);
 SYSTEMTIME WINAPI UnixTimeToSystemTime(time32 time);

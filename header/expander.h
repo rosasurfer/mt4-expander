@@ -54,10 +54,6 @@ using std::wstring;
 #define mbsdup       _mbsdup                                // duplicate a UTF-8 string
 #define wcsdup       _wcsdup                                // duplicate a UTF-16 string
 
-#define gmtime64     _gmtime64                              // convert a 64-bit Unix timestamp to a C time structure holding GMT time
-#define localtime64  _localtime64                           // convert a 64-bit Unix timestamp to a C time structure holding local time
-#define mkgmtime     _mkgmtime                              // convert a UTC time structure to a Unix timestamp
-
 
 // MQL program types (flags)
 enum ProgramType {
