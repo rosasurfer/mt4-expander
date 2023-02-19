@@ -579,12 +579,12 @@ TM WINAPI UnixTimeToTm(time64 gmtTime, BOOL toLocalTime/*=FALSE*/) {
 }
 
 
-
 // ---------------------------------------------------------------------------------------------------------------------------
 
 
-
 /**
+ * @todo: finish unit tests
+ *
  * Convert a GMT time to local time.
  *
  * @param  time32 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
@@ -606,6 +606,8 @@ time32 WINAPI GmtToLocalTime(time32 gmtTime) {
 
 
 /**
+ * @todo: finish unit tests
+ *
  * Convert a local time to GMT.
  *
  * @param  time32 localTime - Unix timestamp (seconds since 01.01.1970 00:00 local time)
