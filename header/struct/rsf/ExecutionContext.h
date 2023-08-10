@@ -2,7 +2,7 @@
 #include "struct/rsf/Test.h"
 #include <vector>
 
-typedef std::vector<string*> LogBuffer;
+typedef std::vector<string> LogBuffer;
 
 
 #pragma pack(push, 1)

@@ -50,9 +50,8 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
       if (master->logBuffer && master->logBuffer->size()) {
          uint size = master->logBuffer->size();
          for (uint i=0; i < size; ++i) {
-            string* entry = (*master->logBuffer)[i];
-            *master->logger << *entry << NL;                                              // flush existing logbuffer entries
-            delete entry;
+            string entry = (*master->logBuffer)[i];
+            *master->logger << entry << NL;                                               // append existing logbuffer entries
          }
          master->logger->flush();
          master->logBuffer->clear();
@@ -83,7 +82,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
 
    // write the log entry to logfile or logbuffer
    if (useLogger) *master->logger << ss.str() << std::endl;
-   else            master->logBuffer->push_back(&ss.str());
+   else            master->logBuffer->push_back(ss.str());
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -124,19 +123,19 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
             if (!IsFileA(filename, MODE_SYSTEM)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                                       // extract the directory part of logFilename
+               char drive[MAX_DRIVE], dir[MAX_DIR];                                        // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
                if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT)) // make sure the directory exists
                   return(FALSE);
             }
             log->open(filename, std::ios::binary|std::ios::app);                           // open the logfile
             if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
+
             if (master->logBuffer && master->logBuffer->size()) {
                uint size = master->logBuffer->size();
                for (uint i=0; i < size; ++i) {
-                  string* entry = (*master->logBuffer)[i];
-                  *master->logger << *entry << NL;                                         // flush existing logbuffer entries
-                  delete entry;
+                  string entry = (*master->logBuffer)[i];
+                  *master->logger << entry << NL;                                          // append existing logbuffer entries
                }
                master->logger->flush();
                master->logBuffer->clear();
