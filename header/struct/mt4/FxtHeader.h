@@ -22,8 +22,8 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint     period;                                //       208         4     Timeframe in Minuten
    uint     modelType;                             //       212         4     0=EveryTick|1=ControlPoints|2=BarOpen
    uint     modeledBars;                           //       216         4     Anzahl der modellierten Bars (ohne Prolog)
-   datetime firstBarTime;                          //       220         4     OpenTime der Bar des ersten Ticks (ohne Prolog)
-   datetime lastBarTime;                           //       224         4     OpenTime der Bar des letzten Ticks (ohne Prolog)
+   time32   firstBarTime;                          //       220         4     OpenTime der Bar des ersten Ticks (ohne Prolog)
+   time32   lastBarTime;                           //       224         4     OpenTime der Bar des letzten Ticks (ohne Prolog)
    BYTE     _alignment1[4];                        //       228         4     (alignment to the next double)
    double   modelQuality;                          //       232         8     max. 99.9
 
@@ -76,8 +76,8 @@ struct FXT_HEADER {                                // -- offset ---- size --- de
    uint     firstBar;                              //       440         4     bar number/index??? of first bar (ohne Prolog) or 0 for first bar
    uint     lastBar;                               //       444         4     bar number/index??? of last bar (ohne Prolog) or 0 for last bar
    uint     startPeriod[6];                        //       448        24     [0] = firstBar (bar where the smaller period modeling started)
-   datetime testerSettingFrom;                     //       472         4     begin date from tester settings
-   datetime testerSettingTo;                       //       476         4     end date from tester settings
+   time32   testerSettingFrom;                     //       472         4     begin date from tester settings
+   time32   testerSettingTo;                       //       476         4     end date from tester settings
    uint     freezeDistance;                        //       480         4     freeze level in points                     = MarketInfo(MODE_FREEZELEVEL)
    uint     modelErrors;                           //       484         4     number of errors during model generation
    BYTE     reserved[240];                         //       488       240     unused

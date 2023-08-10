@@ -23,8 +23,8 @@ typedef unsigned   int       uint;
 typedef          __int64     int64;
 typedef unsigned __int64     uint64;
 typedef            DWORD     color;                         // MQL4 color
-typedef          __time32_t  datetime32, datetime;          // MQL4 32-bit timestamp (signed long)
-typedef          __time64_t  datetime64;                    // MQL5 64-bit timestamp (int64)
+typedef          __time32_t  time32;                        // MQL4 32-bit timestamp
+typedef          __time64_t  time64;                        // MQL5 64-bit timestamp
 typedef            tm        TM;                            // C time structure
 
 namespace rsf {}                                            // define and always prefer the project's main namespace
@@ -53,10 +53,6 @@ using std::wstring;
 #define strdup       _strdup                                // duplicate a C string
 #define mbsdup       _mbsdup                                // duplicate a UTF-8 string
 #define wcsdup       _wcsdup                                // duplicate a UTF-16 string
-
-#define gmtime64     _gmtime64                              // convert a 64-bit Unix timestamp to a C time structure holding GMT time
-#define localtime64  _localtime64                           // convert a 64-bit Unix timestamp to a C time structure holding local time
-#define mkgmtime     _mkgmtime                              // convert a UTC time structure to a Unix timestamp
 
 
 // MQL program types (flags)
@@ -147,7 +143,8 @@ inline bool        WINAPI _false        (...) { return(false       ); }
 inline BOOL        WINAPI _FALSE        (...) { return(FALSE       ); }
 inline color       WINAPI _CLR_NONE     (...) { return(CLR_NONE    ); }
 inline color       WINAPI _NaC          (...) { return(NaC         ); }
-inline datetime    WINAPI _NaT          (...) { return(NaT         ); }
+inline time32      WINAPI _NaT32        (...) { return(NaT         ); }
+inline time64      WINAPI _NaT64        (...) { return(NaT         ); }
 
 
 // Helper functions returning variable values. All parameters except the first one are ignored.

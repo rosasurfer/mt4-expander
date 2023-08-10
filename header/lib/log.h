@@ -3,5 +3,5 @@
 #include "struct/rsf/ExecutionContext.h"
 
 
-BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, datetime serverTime, const char* message, int error, int level);
+BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const char* message, int error, int level);
 BOOL WINAPI SetLogfileA      (EXECUTION_CONTEXT* ec, const char* filename);

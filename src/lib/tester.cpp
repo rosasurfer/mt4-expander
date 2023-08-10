@@ -88,12 +88,12 @@ int WINAPI Tester_GetBarModel() {
 
 
 /**
- * Get the start date currently selected in the tester. If the tester window wasn't yet opened by the user the function
+ * Get the start date selected in the tester. If the tester window wasn't yet opened by the user the function
  * returns NULL (0).
  *
- * @return datetime - start date as a Unix timestamp or NULL (0) in case of errors
+ * @return time32 - start date as a Unix timestamp or NULL (0) in case of errors
  */
-datetime WINAPI Tester_GetStartDate() {
+time32 WINAPI Tester_GetStartDate() {
    // TODO: because of i18n we can't rely on the control's text
 
    HWND hWndTester = FindTesterWindow();
@@ -131,18 +131,18 @@ datetime WINAPI Tester_GetStartDate() {
    time.tm_isdst = 0;
    free(wndTitle);
 
-   return(TmToUnixTime(time));
+   return(TmToUnixTime32(time));
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Get the end date currently selected in the tester. If the tester window wasn't yet opened by the user the function
+ * Get the end date selected in the tester. If the tester window wasn't yet opened by the user the function
  * returns NULL (0).
  *
- * @return datetime - end date as a Unix timestamp or NULL (0) in case of errors
+ * @return time32 - end date as a Unix timestamp or NULL (0) in case of errors
  */
-datetime WINAPI Tester_GetEndDate() {
+time32 WINAPI Tester_GetEndDate() {
    // TODO: because of i18n we can't rely on the control's text
 
    HWND hWndTester = FindTesterWindow();
@@ -180,7 +180,7 @@ datetime WINAPI Tester_GetEndDate() {
    time.tm_isdst = 0;
    free(wndTitle);
 
-   return(TmToUnixTime(time));
+   return(TmToUnixTime32(time));
    #pragma EXPANDER_EXPORT
 }
 
@@ -248,7 +248,7 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*
 /**
  * TODO: validation
  */
-BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, datetime openTime, double openPrice, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
+BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, time32 openTime, double openPrice, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
    if ((uint)ec        < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->test)    return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
    if ((uint)symbol    < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
@@ -289,15 +289,15 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
 /**
  * TODO: validation
  *
- * @param  int      ticket
- * @param  double   closePrice
- * @param  datetime closeTime
- * @param  double   swap
- * @param  double   profit
+ * @param  int    ticket
+ * @param  double closePrice
+ * @param  time32 closeTime
+ * @param  double swap
+ * @param  double profit
  *
  * @return BOOL - success status
  */
-BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, datetime closeTime, double closePrice, double swap, double profit) {
+BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32 closeTime, double closePrice, double swap, double profit) {
    if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
    if (!ec->test->openPositions)                return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: NULL"));
@@ -424,7 +424,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
 /**
  * TODO: documentation
  */
-BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, datetime startTime, uint bars) {
+BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, time32 startTime, uint bars) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
@@ -447,7 +447,7 @@ BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, datetime startTime, 
 /**
  * TODO: documentation
  */
-BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, datetime endTime, uint bars) {
+BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, time32 endTime, uint bars) {
    if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));

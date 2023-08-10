@@ -24,7 +24,7 @@ struct SYMBOL_SELECTED {                           // -- offset ---- size --- de
    WORD     unknown_4;                             //        52         2     always 0x0100
    WORD     unknown_5;                             //        54         2     many times NULL
 
-   datetime time;                                  //        56         4     time
+   time32   time;                                  //        56         4     time
    DWORD    unknown_6;                             //        60         4
    double   bid;                                   //        64         8     bid
    double   ask;                                   //        72         8     ask

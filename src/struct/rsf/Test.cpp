@@ -28,12 +28,12 @@ int WINAPI test_SetId(TEST* test, int id) {
 /**
  * Set the time of a TEST's first tick.
  *
- * @param  TEST*    test
- * @param  datetime time - Unix timestamp (server time)
+ * @param  TEST*  test
+ * @param  time32 time - Unix timestamp (server time)
  *
- * @return datetime - the same time
+ * @return time32 - the same time
  */
-datetime WINAPI test_SetStartTime(TEST* test, datetime time) {
+time32 WINAPI test_SetStartTime(TEST* test, time32 time) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (time <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
 
@@ -45,12 +45,12 @@ datetime WINAPI test_SetStartTime(TEST* test, datetime time) {
 /**
  * Set the time of a TEST's last tick.
  *
- * @param  TEST*    test
- * @param  datetime time - Unix timestamp (server time)
+ * @param  TEST*  test
+ * @param  time32 time - Unix timestamp (server time)
  *
- * @return datetime - the same time
+ * @return time32 - the same time
  */
-datetime WINAPI test_SetEndTime(TEST* test, datetime time) {
+time32 WINAPI test_SetEndTime(TEST* test, time32 time) {
    if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
    if (time <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
 

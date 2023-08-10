@@ -117,13 +117,13 @@ inline uint WINAPI iVolume(const void* rates, uint bars, uint bar) {
  * @param  uint  bars  - number of bars in the series
  * @param  uint  bar   - bar offset to return
  *
- * @return datetime
+ * @return time32
  */
-inline datetime WINAPI iTime(const void* rates, int bars, int bar) {
+inline time32 WINAPI iTime(const void* rates, int bars, int bar) {
    static uint build = GetTerminalBuild();
    if (!build || bar < 0 || bar >= bars) return(NULL);
 
-   datetime time;
+   time32 time;
    uint shift = bars-1-bar;
    if (build <= 509) time = ((HistoryBar400*) rates)[shift].time;
    else              time = ((HistoryBar401*) rates)[shift].time;

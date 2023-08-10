@@ -91,9 +91,9 @@ uint WINAPI hh_Digits(const HISTORY_HEADER* hh) {
  *
  * @param  HISTORY_HEADER* hh
  *
- * @return datetime - SyncMarker
+ * @return time32 - SyncMarker
  */
-datetime WINAPI hh_SyncMarker(const HISTORY_HEADER* hh) {
+time32 WINAPI hh_SyncMarker(const HISTORY_HEADER* hh) {
    if ((uint)hh < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hh: 0x%p (not a valid pointer)", hh));
    return(hh->syncMarker);
    #pragma EXPANDER_EXPORT
@@ -105,9 +105,9 @@ datetime WINAPI hh_SyncMarker(const HISTORY_HEADER* hh) {
  *
  * @param  HISTORY_HEADER* hh
  *
- * @return datetime - LastSyncTime
+ * @return time32 - LastSyncTime
  */
-datetime WINAPI hh_LastSyncTime(const HISTORY_HEADER* hh) {
+time32 WINAPI hh_LastSyncTime(const HISTORY_HEADER* hh) {
    if ((uint)hh < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hh: 0x%p (not a valid pointer)", hh));
    return(hh->lastSyncTime);
    #pragma EXPANDER_EXPORT
@@ -209,9 +209,9 @@ uint WINAPI hhs_Digits(const HISTORY_HEADER hhs[], int index) {
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
  *
- * @return datetime - SyncMarker
+ * @return time32 - SyncMarker
  */
-datetime WINAPI hhs_SyncMarker(const HISTORY_HEADER hhs[], int index) {
+time32 WINAPI hhs_SyncMarker(const HISTORY_HEADER hhs[], int index) {
    if ((uint)hhs < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hhs: 0x%p (not a valid pointer)", hhs));
    if (index     < 0)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter index: %d (not a valid index)", index));
    return(hhs[index].syncMarker);
@@ -225,9 +225,9 @@ datetime WINAPI hhs_SyncMarker(const HISTORY_HEADER hhs[], int index) {
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
  *
- * @return datetime - LastSyncTime
+ * @return time32 - LastSyncTime
  */
-datetime WINAPI hhs_LastSyncTime(const HISTORY_HEADER hhs[], int index) {
+time32 WINAPI hhs_LastSyncTime(const HISTORY_HEADER hhs[], int index) {
    if ((uint)hhs < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter hhs: 0x%p (not a valid pointer)", hhs));
    if (index     < 0)                 return(error(ERR_INVALID_PARAMETER, "invalid parameter index: %d (not a valid index)", index));
    return(hhs[index].lastSyncTime);
