@@ -30,7 +30,6 @@ BOOL         WINAPI SortMqlStringsW(MqlStringW strings[], int size);
 
 BOOL         WINAPI StrCompare(const char* s1, const char* s2);
 BOOL         WINAPI StrCompare(const wchar* s1, const wchar* s2);
-char*        WINAPI StrFormat(const char* format, ...);
 BOOL         WINAPI StrIsNull(const char* value);
 BOOL         WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL         WINAPI StrStartsWith(const wchar* str, const wchar* prefix);

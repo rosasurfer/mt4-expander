@@ -1001,7 +1001,7 @@ const char* WINAPI ErrorToStrA(int error) {
       error -= ERR_WIN32_ERROR;
       format = "win32:%d";
    }
-   return(StrFormat(format, error));
+   return(strformat(format, error));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1029,7 +1029,7 @@ const wchar* WINAPI ErrorToStrW(int error) {
  * @return char* - 8 character string
  */
 char* WINAPI IntToHexStr(int value) {
-   return(StrFormat("%p", value));
+   return(strformat("%p", value));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1370,7 +1370,7 @@ const char* WINAPI PeriodDescriptionA(int period) {
       case PERIOD_MN1: return("MN1");     // 1 month
       case PERIOD_Q1 : return("Q1");      // 1 quarter  (custom timeframe)
    }
-   return(StrFormat("%d", period));
+   return(strformat("%d", period));
 }
 
 

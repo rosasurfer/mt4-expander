@@ -15,8 +15,8 @@
 char* WINAPI DoubleQuoteStr(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    if (!value)
-      return(StrFormat("(null)", value));
-   return(StrFormat("\"%s\"", value));
+      return(strformat("(null)", value));
+   return(strformat("\"%s\"", value));
    #pragma EXPANDER_EXPORT
 }
 
@@ -672,13 +672,13 @@ namespace rsf {
 
 
 /**
- * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
- * for the string itself.
+ * Write formatted data to a string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
+ * memory for the string itself.
  *
  * @param  char* format - string with format codes
- * @param        ...    - variable number of additional arguments
+ * @param        ...    - variable number of arguments
  *
- * @return char*
+ * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
@@ -696,13 +696,13 @@ char* strformat(const char* format, ...) {
 
 
 /**
- * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
- * for the string itself.
+* Write formatted data to a string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
+* memory for the string itself.
  *
  * @param  char*   format - string with format codes
- * @param  va_list &args  - variable list of additional arguments
+ * @param  va_list &args  - variable list of arguments
  *
- * @return char*
+ * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
