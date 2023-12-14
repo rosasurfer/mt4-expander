@@ -2300,7 +2300,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
          << ", newSymbol="            <<       DoubleQuoteStr(ec->newSymbol)
          << ", newTimeframe="         <<   PeriodDescriptionA(ec->newTimeframe)
-         << ", rates="                <<                     (ec->rates ? strformat("0x%p", ec->rates) : "NULL")
+         << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
          << ", validBars="            <<                      ec->validBars
          << ", changedBars="          <<                      ec->changedBars
@@ -2319,14 +2319,14 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", priceFormat="          <<       DoubleQuoteStr(ec->priceFormat)
          << ", pipPriceFormat="       <<       DoubleQuoteStr(ec->pipPriceFormat)
 
-         << ", superContext="         <<                     (ec->superContext ? strformat("0x%p", ec->superContext) : "NULL")
+         << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "NULL")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
-         << ", hChart="               <<                     (ec->hChart       ? strformat("0x%p", ec->hChart       ) : "NULL")
-         << ", hChartWindow="         <<                     (ec->hChartWindow ? strformat("0x%p", ec->hChartWindow ) : "NULL")
+         << ", hChart="               <<                     (ec->hChart       ? asformat("0x%p", ec->hChart       ) : "NULL")
+         << ", hChartWindow="         <<                     (ec->hChartWindow ? asformat("0x%p", ec->hChartWindow ) : "NULL")
 
          << ", recordMode="           <<                      ec->recordMode
 
-         << ", test="                 <<                     (ec->test ? strformat("0x%p", ec->test) : "NULL")
+         << ", test="                 <<                     (ec->test ? asformat("0x%p", ec->test) : "NULL")
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
@@ -2343,12 +2343,12 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", loglevelFile="         << LoglevelDescriptionA(ec->loglevelFile)
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
          << ", loglevelSMS="          << LoglevelDescriptionA(ec->loglevelSMS)
-         << ", logger="               <<                     (ec->logger    ? strformat("0x%p", ec->logger) : "NULL")
+         << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "NULL")
          << ", logBuffer="            <<              "(" << (ec->logBuffer ? ec->logBuffer->size() : 0) << ")"
          << ", logFilename="          <<       DoubleQuoteStr(ec->logFilename)
          << "}";
    }
-   ss << strformat(" (0x%p)", ec);
+   ss << asformat(" (0x%p)", ec);
    char* result = strdup(ss.str().c_str());                             // TODO: add to GC (close memory leak)
 
    return(result);

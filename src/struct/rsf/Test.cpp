@@ -142,9 +142,9 @@ char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
          << ", ticks="           <<                         test->ticks
          << ", spread="          << std::setprecision(1) << test->spread
          << ", tradeDirections=" << "?"                  // test->tradeDirections      // TODO: Long|Short|Both
-         << ", trades="          <<                        (test->closedPositions      ? strformat("%d", test->closedPositions     ->size()) : "NULL")
-         << " ("                 <<                        (test->closedLongPositions  ? strformat("%d", test->closedLongPositions ->size()) : "NULL")
-         << "/"                  <<                        (test->closedShortPositions ? strformat("%d", test->closedShortPositions->size()) : "NULL") << ")"
+         << ", trades="          <<                        (test->closedPositions      ? asformat("%d", test->closedPositions     ->size()) : "NULL")
+         << " ("                 <<                        (test->closedLongPositions  ? asformat("%d", test->closedLongPositions ->size()) : "NULL")
+         << "/"                  <<                        (test->closedShortPositions ? asformat("%d", test->closedShortPositions->size()) : "NULL") << ")"
          << ", avgRunup="        << std::setprecision(1) << test->stat_avgRunup
          << " ("                 <<                         test->stat_avgLongRunup    << "/" << test->stat_avgShortRunup    << ")"
          << ", avgDrawdown="     <<                         test->stat_avgDrawdown

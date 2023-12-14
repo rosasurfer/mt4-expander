@@ -439,8 +439,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetPoint               (ec, point);
    ec_SetPipPoints           (ec, (uint)round(pow(10., (int)(digits & 1))));
 
-   master->pipPriceFormat = ec->pipPriceFormat = strformat(".%d", ec->pipDigits);
-   master->priceFormat    = ec->priceFormat    = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : strformat("%s'", ec->pipPriceFormat);
+   master->pipPriceFormat = ec->pipPriceFormat = asformat(".%d", ec->pipDigits);
+   master->priceFormat    = ec->priceFormat    = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : asformat("%s'", ec->pipPriceFormat);
 
    ec_SetSuperContext        (ec, sec);
    ec_SetThreadId            (ec, GetCurrentThreadId());
@@ -762,8 +762,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                master->point          = point;
                master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
 
-               master->pipPriceFormat = strformat(".%d", master->pipDigits);
-               master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : strformat("%s'", master->pipPriceFormat);
+               master->pipPriceFormat = asformat(".%d", master->pipDigits);
+               master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : asformat("%s'", master->pipPriceFormat);
 
                master->superContext   = FALSE;
                master->threadId       = g_threads[threadIndex];
@@ -833,8 +833,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       master->point          = point;
       master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
 
-      master->pipPriceFormat = strformat(".%d", master->pipDigits);
-      master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : strformat("%s'", master->pipPriceFormat);
+      master->pipPriceFormat = asformat(".%d", master->pipDigits);
+      master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : asformat("%s'", master->pipPriceFormat);
 
       master->superContext   = NULL;                                 // no super context at all or already released
       master->threadId       = GetCurrentThreadId();
@@ -909,8 +909,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->point          = point;
          master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
 
-         master->pipPriceFormat = strformat(".%d", master->pipDigits);
-         master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : strformat("%s'", master->pipPriceFormat);
+         master->pipPriceFormat = asformat(".%d", master->pipDigits);
+         master->priceFormat    = (master->digits==master->pipDigits) ? master->pipPriceFormat : asformat("%s'", master->pipPriceFormat);
 
          master->threadId       = g_threads[threadIndex];
          master->testing        = TRUE;

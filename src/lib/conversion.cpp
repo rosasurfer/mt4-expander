@@ -479,12 +479,12 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_SHARING_VIOLATION                                      : return("win32:ERROR_SHARING_VIOLATION"                                      );    // 100000 +   32
       case ERR_WIN32_ERROR + ERROR_LOCK_VIOLATION                                         : return("win32:ERROR_LOCK_VIOLATION"                                         );    // 100000 +   33
       case ERR_WIN32_ERROR + ERROR_WRONG_DISK                                             : return("win32:ERROR_WRONG_DISK"                                             );    // 100000 +   34
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_SHARING_BUFFER_EXCEEDED                                : return("win32:ERROR_SHARING_BUFFER_EXCEEDED"                                );    // 100000 +   36
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_HANDLE_EOF                                             : return("win32:ERROR_HANDLE_EOF"                                             );    // 100000 +   38
       case ERR_WIN32_ERROR + ERROR_HANDLE_DISK_FULL                                       : return("win32:ERROR_HANDLE_DISK_FULL"                                       );    // 100000 +   39
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_NOT_SUPPORTED                                          : return("win32:ERROR_NOT_SUPPORTED"                                          );    // 100000 +   50
       case ERR_WIN32_ERROR + ERROR_REM_NOT_LIST                                           : return("win32:ERROR_REM_NOT_LIST"                                           );    // 100000 +   51
       case ERR_WIN32_ERROR + ERROR_DUP_NAME                                               : return("win32:ERROR_DUP_NAME"                                               );    // 100000 +   52
@@ -508,9 +508,9 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_SHARING_PAUSED                                         : return("win32:ERROR_SHARING_PAUSED"                                         );    // 100000 +   70
       case ERR_WIN32_ERROR + ERROR_REQ_NOT_ACCEP                                          : return("win32:ERROR_REQ_NOT_ACCEP"                                          );    // 100000 +   71
       case ERR_WIN32_ERROR + ERROR_REDIR_PAUSED                                           : return("win32:ERROR_REDIR_PAUSED"                                           );    // 100000 +   72
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_FILE_EXISTS                                            : return("win32:ERROR_FILE_EXISTS"                                            );    // 100000 +   80
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_CANNOT_MAKE                                            : return("win32:ERROR_CANNOT_MAKE"                                            );    // 100000 +   82
       case ERR_WIN32_ERROR + ERROR_FAIL_I24                                               : return("win32:ERROR_FAIL_I24"                                               );    // 100000 +   83
       case ERR_WIN32_ERROR + ERROR_OUT_OF_STRUCTURES                                      : return("win32:ERROR_OUT_OF_STRUCTURES"                                      );    // 100000 +   84
@@ -519,7 +519,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_INVALID_PARAMETER                                      : return("win32:ERROR_INVALID_PARAMETER"                                      );    // 100000 +   87
       case ERR_WIN32_ERROR + ERROR_NET_WRITE_FAULT                                        : return("win32:ERROR_NET_WRITE_FAULT"                                        );    // 100000 +   88
       case ERR_WIN32_ERROR + ERROR_NO_PROC_SLOTS                                          : return("win32:ERROR_NO_PROC_SLOTS"                                          );    // 100000 +   89
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_TOO_MANY_SEMAPHORES                                    : return("win32:ERROR_TOO_MANY_SEMAPHORES"                                    );    // 100000 +  100
       case ERR_WIN32_ERROR + ERROR_EXCL_SEM_ALREADY_OWNED                                 : return("win32:ERROR_EXCL_SEM_ALREADY_OWNED"                                 );    // 100000 +  101
       case ERR_WIN32_ERROR + ERROR_SEM_IS_SET                                             : return("win32:ERROR_SEM_IS_SET"                                             );    // 100000 +  102
@@ -535,7 +535,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_DISK_FULL                                              : return("win32:ERROR_DISK_FULL"                                              );    // 100000 +  112
       case ERR_WIN32_ERROR + ERROR_NO_MORE_SEARCH_HANDLES                                 : return("win32:ERROR_NO_MORE_SEARCH_HANDLES"                                 );    // 100000 +  113
       case ERR_WIN32_ERROR + ERROR_INVALID_TARGET_HANDLE                                  : return("win32:ERROR_INVALID_TARGET_HANDLE"                                  );    // 100000 +  114
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_INVALID_CATEGORY                                       : return("win32:ERROR_INVALID_CATEGORY"                                       );    // 100000 +  117
       case ERR_WIN32_ERROR + ERROR_INVALID_VERIFY_SWITCH                                  : return("win32:ERROR_INVALID_VERIFY_SWITCH"                                  );    // 100000 +  118
       case ERR_WIN32_ERROR + ERROR_BAD_DRIVER_LEVEL                                       : return("win32:ERROR_BAD_DRIVER_LEVEL"                                       );    // 100000 +  119
@@ -582,22 +582,22 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_BAD_ARGUMENTS                                          : return("win32:ERROR_BAD_ARGUMENTS"                                          );    // 100000 +  160
       case ERR_WIN32_ERROR + ERROR_BAD_PATHNAME                                           : return("win32:ERROR_BAD_PATHNAME"                                           );    // 100000 +  161
       case ERR_WIN32_ERROR + ERROR_SIGNAL_PENDING                                         : return("win32:ERROR_SIGNAL_PENDING"                                         );    // 100000 +  162
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_MAX_THRDS_REACHED                                      : return("win32:ERROR_MAX_THRDS_REACHED"                                      );    // 100000 +  164
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_LOCK_FAILED                                            : return("win32:ERROR_LOCK_FAILED"                                            );    // 100000 +  167
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_BUSY                                                   : return("win32:ERROR_BUSY"                                                   );    // 100000 +  170
       case ERR_WIN32_ERROR + ERROR_DEVICE_SUPPORT_IN_PROGRESS                             : return("win32:ERROR_DEVICE_SUPPORT_IN_PROGRESS"                             );    // 100000 +  171
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_CANCEL_VIOLATION                                       : return("win32:ERROR_CANCEL_VIOLATION"                                       );    // 100000 +  173
       case ERR_WIN32_ERROR + ERROR_ATOMIC_LOCKS_NOT_SUPPORTED                             : return("win32:ERROR_ATOMIC_LOCKS_NOT_SUPPORTED"                             );    // 100000 +  174
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_INVALID_SEGMENT_NUMBER                                 : return("win32:ERROR_INVALID_SEGMENT_NUMBER"                                 );    // 100000 +  180
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_INVALID_ORDINAL                                        : return("win32:ERROR_INVALID_ORDINAL"                                        );    // 100000 +  182
       case ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS                                         : return("win32:ERROR_ALREADY_EXISTS"                                         );    // 100000 +  183
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_INVALID_FLAG_NUMBER                                    : return("win32:ERROR_INVALID_FLAG_NUMBER"                                    );    // 100000 +  186
       case ERR_WIN32_ERROR + ERROR_SEM_NOT_FOUND                                          : return("win32:ERROR_SEM_NOT_FOUND"                                          );    // 100000 +  187
       case ERR_WIN32_ERROR + ERROR_INVALID_STARTING_CODESEG                               : return("win32:ERROR_INVALID_STARTING_CODESEG"                               );    // 100000 +  188
@@ -616,22 +616,22 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_RELOC_CHAIN_XEEDS_SEGLIM                               : return("win32:ERROR_RELOC_CHAIN_XEEDS_SEGLIM"                               );    // 100000 +  201
       case ERR_WIN32_ERROR + ERROR_INFLOOP_IN_RELOC_CHAIN                                 : return("win32:ERROR_INFLOOP_IN_RELOC_CHAIN"                                 );    // 100000 +  202
       case ERR_WIN32_ERROR + ERROR_ENVVAR_NOT_FOUND                                       : return("win32:ERROR_ENVVAR_NOT_FOUND"                                       );    // 100000 +  203
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_NO_SIGNAL_SENT                                         : return("win32:ERROR_NO_SIGNAL_SENT"                                         );    // 100000 +  205
       case ERR_WIN32_ERROR + ERROR_FILENAME_EXCED_RANGE                                   : return("win32:ERROR_FILENAME_EXCED_RANGE"                                   );    // 100000 +  206
       case ERR_WIN32_ERROR + ERROR_RING2_STACK_IN_USE                                     : return("win32:ERROR_RING2_STACK_IN_USE"                                     );    // 100000 +  207
       case ERR_WIN32_ERROR + ERROR_META_EXPANSION_TOO_LONG                                : return("win32:ERROR_META_EXPANSION_TOO_LONG"                                );    // 100000 +  208
       case ERR_WIN32_ERROR + ERROR_INVALID_SIGNAL_NUMBER                                  : return("win32:ERROR_INVALID_SIGNAL_NUMBER"                                  );    // 100000 +  209
       case ERR_WIN32_ERROR + ERROR_THREAD_1_INACTIVE                                      : return("win32:ERROR_THREAD_1_INACTIVE"                                      );    // 100000 +  210
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_LOCKED                                                 : return("win32:ERROR_LOCKED"                                                 );    // 100000 +  212
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_TOO_MANY_MODULES                                       : return("win32:ERROR_TOO_MANY_MODULES"                                       );    // 100000 +  214
       case ERR_WIN32_ERROR + ERROR_NESTING_NOT_ALLOWED                                    : return("win32:ERROR_NESTING_NOT_ALLOWED"                                    );    // 100000 +  215
       case ERR_WIN32_ERROR + ERROR_EXE_MACHINE_TYPE_MISMATCH                              : return("win32:ERROR_EXE_MACHINE_TYPE_MISMATCH"                              );    // 100000 +  216
       case ERR_WIN32_ERROR + ERROR_EXE_CANNOT_MODIFY_SIGNED_BINARY                        : return("win32:ERROR_EXE_CANNOT_MODIFY_SIGNED_BINARY"                        );    // 100000 +  217
       case ERR_WIN32_ERROR + ERROR_EXE_CANNOT_MODIFY_STRONG_SIGNED_BINARY                 : return("win32:ERROR_EXE_CANNOT_MODIFY_STRONG_SIGNED_BINARY"                 );    // 100000 +  218
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_FILE_CHECKED_OUT                                       : return("win32:ERROR_FILE_CHECKED_OUT"                                       );    // 100000 +  220
       case ERR_WIN32_ERROR + ERROR_CHECKOUT_REQUIRED                                      : return("win32:ERROR_CHECKOUT_REQUIRED"                                      );    // 100000 +  221
       case ERR_WIN32_ERROR + ERROR_BAD_FILE_TYPE                                          : return("win32:ERROR_BAD_FILE_TYPE"                                          );    // 100000 +  222
@@ -639,34 +639,34 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_FORMS_AUTH_REQUIRED                                    : return("win32:ERROR_FORMS_AUTH_REQUIRED"                                    );    // 100000 +  224
       case ERR_WIN32_ERROR + ERROR_VIRUS_INFECTED                                         : return("win32:ERROR_VIRUS_INFECTED"                                         );    // 100000 +  225
       case ERR_WIN32_ERROR + ERROR_VIRUS_DELETED                                          : return("win32:ERROR_VIRUS_DELETED"                                          );    // 100000 +  226
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_PIPE_LOCAL                                             : return("win32:ERROR_PIPE_LOCAL"                                             );    // 100000 +  229
       case ERR_WIN32_ERROR + ERROR_BAD_PIPE                                               : return("win32:ERROR_BAD_PIPE"                                               );    // 100000 +  230
       case ERR_WIN32_ERROR + ERROR_PIPE_BUSY                                              : return("win32:ERROR_PIPE_BUSY"                                              );    // 100000 +  231
       case ERR_WIN32_ERROR + ERROR_NO_DATA                                                : return("win32:ERROR_NO_DATA"                                                );    // 100000 +  232
       case ERR_WIN32_ERROR + ERROR_PIPE_NOT_CONNECTED                                     : return("win32:ERROR_PIPE_NOT_CONNECTED"                                     );    // 100000 +  233
       case ERR_WIN32_ERROR + ERROR_MORE_DATA                                              : return("win32:ERROR_MORE_DATA"                                              );    // 100000 +  234
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_VC_DISCONNECTED                                        : return("win32:ERROR_VC_DISCONNECTED"                                        );    // 100000 +  240
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_INVALID_EA_NAME                                        : return("win32:ERROR_INVALID_EA_NAME"                                        );    // 100000 +  254
       case ERR_WIN32_ERROR + ERROR_EA_LIST_INCONSISTENT                                   : return("win32:ERROR_EA_LIST_INCONSISTENT"                                   );    // 100000 +  255
-      // ...
+
       case ERR_WIN32_ERROR + WAIT_TIMEOUT                                                 : return("win32:WAIT_TIMEOUT"                                                 );    // 100000 +  258
       case ERR_WIN32_ERROR + ERROR_NO_MORE_ITEMS                                          : return("win32:ERROR_NO_MORE_ITEMS"                                          );    // 100000 +  259
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_CANNOT_COPY                                            : return("win32:ERROR_CANNOT_COPY"                                            );    // 100000 +  266
       case ERR_WIN32_ERROR + ERROR_DIRECTORY                                              : return("win32:ERROR_DIRECTORY"                                              );    // 100000 +  267
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_EAS_DIDNT_FIT                                          : return("win32:ERROR_EAS_DIDNT_FIT"                                          );    // 100000 +  275
       case ERR_WIN32_ERROR + ERROR_EA_FILE_CORRUPT                                        : return("win32:ERROR_EA_FILE_CORRUPT"                                        );    // 100000 +  276
       case ERR_WIN32_ERROR + ERROR_EA_TABLE_FULL                                          : return("win32:ERROR_EA_TABLE_FULL"                                          );    // 100000 +  277
       case ERR_WIN32_ERROR + ERROR_INVALID_EA_HANDLE                                      : return("win32:ERROR_INVALID_EA_HANDLE"                                      );    // 100000 +  278
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_EAS_NOT_SUPPORTED                                      : return("win32:ERROR_EAS_NOT_SUPPORTED"                                      );    // 100000 +  282
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_NOT_OWNER                                              : return("win32:ERROR_NOT_OWNER"                                              );    // 100000 +  288
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_TOO_MANY_POSTS                                         : return("win32:ERROR_TOO_MANY_POSTS"                                         );    // 100000 +  298
       case ERR_WIN32_ERROR + ERROR_PARTIAL_COPY                                           : return("win32:ERROR_PARTIAL_COPY"                                           );    // 100000 +  299
       case ERR_WIN32_ERROR + ERROR_OPLOCK_NOT_GRANTED                                     : return("win32:ERROR_OPLOCK_NOT_GRANTED"                                     );    // 100000 +  300
@@ -694,7 +694,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_DEVICE_NO_RESOURCES                                    : return("win32:ERROR_DEVICE_NO_RESOURCES"                                    );    // 100000 +  322
       case ERR_WIN32_ERROR + ERROR_DATA_CHECKSUM_ERROR                                    : return("win32:ERROR_DATA_CHECKSUM_ERROR"                                    );    // 100000 +  323
       case ERR_WIN32_ERROR + ERROR_INTERMIXED_KERNEL_EA_OPERATION                         : return("win32:ERROR_INTERMIXED_KERNEL_EA_OPERATION"                         );    // 100000 +  324
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED                          : return("win32:ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED"                          );    // 100000 +  326
       case ERR_WIN32_ERROR + ERROR_OFFSET_ALIGNMENT_VIOLATION                             : return("win32:ERROR_OFFSET_ALIGNMENT_VIOLATION"                             );    // 100000 +  327
       case ERR_WIN32_ERROR + ERROR_INVALID_FIELD_IN_PARAMETER_LIST                        : return("win32:ERROR_INVALID_FIELD_IN_PARAMETER_LIST"                        );    // 100000 +  328
@@ -707,19 +707,19 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_COMPRESSED_FILE_NOT_SUPPORTED                          : return("win32:ERROR_COMPRESSED_FILE_NOT_SUPPORTED"                          );    // 100000 +  335
       case ERR_WIN32_ERROR + ERROR_DIRECTORY_NOT_SUPPORTED                                : return("win32:ERROR_DIRECTORY_NOT_SUPPORTED"                                );    // 100000 +  336
       case ERR_WIN32_ERROR + ERROR_NOT_READ_FROM_COPY                                     : return("win32:ERROR_NOT_READ_FROM_COPY"                                     );    // 100000 +  337
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_FAIL_NOACTION_REBOOT                                   : return("win32:ERROR_FAIL_NOACTION_REBOOT"                                   );    // 100000 +  350
       case ERR_WIN32_ERROR + ERROR_FAIL_SHUTDOWN                                          : return("win32:ERROR_FAIL_SHUTDOWN"                                          );    // 100000 +  351
       case ERR_WIN32_ERROR + ERROR_FAIL_RESTART                                           : return("win32:ERROR_FAIL_RESTART"                                           );    // 100000 +  352
       case ERR_WIN32_ERROR + ERROR_MAX_SESSIONS_REACHED                                   : return("win32:ERROR_MAX_SESSIONS_REACHED"                                   );    // 100000 +  353
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_THREAD_MODE_ALREADY_BACKGROUND                         : return("win32:ERROR_THREAD_MODE_ALREADY_BACKGROUND"                         );    // 100000 +  400
       case ERR_WIN32_ERROR + ERROR_THREAD_MODE_NOT_BACKGROUND                             : return("win32:ERROR_THREAD_MODE_NOT_BACKGROUND"                             );    // 100000 +  401
       case ERR_WIN32_ERROR + ERROR_PROCESS_MODE_ALREADY_BACKGROUND                        : return("win32:ERROR_PROCESS_MODE_ALREADY_BACKGROUND"                        );    // 100000 +  402
       case ERR_WIN32_ERROR + ERROR_PROCESS_MODE_NOT_BACKGROUND                            : return("win32:ERROR_PROCESS_MODE_NOT_BACKGROUND"                            );    // 100000 +  403
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_INVALID_ADDRESS                                        : return("win32:ERROR_INVALID_ADDRESS"                                        );    // 100000 +  487
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_USER_PROFILE_LOAD                                      : return("win32:ERROR_USER_PROFILE_LOAD"                                      );    // 100000 +  500
       case ERR_WIN32_ERROR + ERROR_ARITHMETIC_OVERFLOW                                    : return("win32:ERROR_ARITHMETIC_OVERFLOW"                                    );    // 100000 +  534
       case ERR_WIN32_ERROR + ERROR_PIPE_CONNECTED                                         : return("win32:ERROR_PIPE_CONNECTED"                                         );    // 100000 +  535
@@ -990,9 +990,9 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_IO_PENDING                                             : return("win32:ERROR_IO_PENDING"                                             );    // 100000 +  997
       case ERR_WIN32_ERROR + ERROR_NOACCESS                                               : return("win32:ERROR_NOACCESS"                                               );    // 100000 +  998
       case ERR_WIN32_ERROR + ERROR_SWAPERROR                                              : return("win32:ERROR_SWAPERROR"                                              );    // 100000 +  999
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_CONTROL_ID_NOT_FOUND                                   : return("win32:ERROR_CONTROL_ID_NOT_FOUND"                                   );    // 100000 + 1421
-      // ...
+
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT                                    : return("win32:ERROR_NOT_A_REPARSE_POINT"                                    );    // 100000 + 4390
    }
 
@@ -1001,7 +1001,7 @@ const char* WINAPI ErrorToStrA(int error) {
       error -= ERR_WIN32_ERROR;
       format = "win32:%d";
    }
-   return(strformat(format, error));
+   return(asformat(format, error));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1029,7 +1029,7 @@ const wchar* WINAPI ErrorToStrW(int error) {
  * @return char* - 8 character string
  */
 char* WINAPI IntToHexStr(int value) {
-   return(strformat("%p", value));
+   return(asformat("%p", value));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1370,7 +1370,7 @@ const char* WINAPI PeriodDescriptionA(int period) {
       case PERIOD_MN1: return("MN1");     // 1 month
       case PERIOD_Q1 : return("Q1");      // 1 quarter  (custom timeframe)
    }
-   return(strformat("%d", period));
+   return(asformat("%d", period));
 }
 
 
