@@ -58,6 +58,6 @@ wstring       utf8ToUnicode(const string &str);
 
 
 namespace rsf {
-   char* asformat(const char* format, ...);
-   char* asformat(const char* format, const va_list &args);
+   char*  asformat(const char* format, ...);
+   char* _asformat(const char* format, const va_list &args);
 }

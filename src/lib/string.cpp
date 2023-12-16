@@ -668,7 +668,7 @@ char* asformat(const char* format, ...) {
 
    va_list args;
    va_start(args, format);
-   char* result = asformat(format, args);
+   char* result = _asformat(format, args);
    va_end(args);
 
    return(result);
@@ -685,10 +685,8 @@ char* asformat(const char* format, ...) {
  * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
- *
- * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-char* asformat(const char* format, const va_list &args) {
+char* _asformat(const char* format, const va_list &args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 

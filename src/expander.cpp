@@ -77,7 +77,7 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
    if (strlen(msgFormat)) {
       va_list args;
       va_start(args, msgFormat);
-      msg = asformat(msgFormat, args);
+      msg = _asformat(msgFormat, args);
       va_end(args);
    }
 
@@ -112,7 +112,7 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
    // format the variable parameters
    va_list args;
    va_start(args, msgFormat);
-   char* msg = asformat(msgFormat, args);
+   char* msg = _asformat(msgFormat, args);
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
@@ -169,7 +169,7 @@ int WINAPI _error(const char* fileName, const char* funcName, int line, int erro
    // format the variable parameters
    va_list args;
    va_start(args, msgFormat);
-   char* msg = asformat(msgFormat, args);
+   char* msg = _asformat(msgFormat, args);
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
