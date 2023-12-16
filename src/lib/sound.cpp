@@ -140,14 +140,15 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
    string cmd = string("open \"").append(filepath).append("\"");
    MCIERROR error = mciSendStringA(cmd.c_str(), NULL, 0, NULL);
    if (error) {
-      if ((WORD)error == MCIERR_INVALID_DEVICE_NAME) return(error(ERR_RUNTIME_ERROR, "unsupported file type or codec not available (MCIERR_INVALID_DEVICE_NAME)"));
-      else                                           return(error(ERR_RUNTIME_ERROR, "mciSendString(%s) => %s", cmd.c_str(), mciErrorToStr(error)));
+      if      ((WORD)error == MCIERR_DEVICE_OPEN) {}      // if played again in the same thread: continue and re-use the device
+      else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME) return(error(ERR_RUNTIME_ERROR, "unsupported file type or codec not available (MCIERR_INVALID_DEVICE_NAME)"));
+      else                                                return(error(ERR_RUNTIME_ERROR, "mciSendString(%s) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
 
    // play sound
-   cmd.replace(0, 4, "play");
+   cmd.replace(0, 4, "play").append(" from 0");           // reset play position to start (in case sound is to be played again)
    error = mciSendStringA(cmd.c_str(), NULL, 0, NULL);
-   if (error) {                                 // midi files can't be mixed with the MCI extension
+   if (error) {                                           // midi files can't be mixed with the MCI extension
       if ((WORD)error == MCIERR_SEQ_PORT_INUSE) return(error(ERR_RUNTIME_ERROR, "MIDI sequencer already in use (MCIERR_SEQ_PORT_INUSE)"));
       else                                      return(error(ERR_RUNTIME_ERROR, "mciSendString(%s) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
