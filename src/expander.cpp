@@ -77,7 +77,7 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
    if (strlen(msgFormat)) {
       va_list args;
       va_start(args, msgFormat);
-      msg = strformat(msgFormat, args);
+      msg = _asformat(msgFormat, args);
       va_end(args);
    }
 
@@ -85,7 +85,7 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, msg);
+   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, msg);
 
    OutputDebugStringA(fullMsg);           // @see  limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
    free(fullMsg);
@@ -112,20 +112,20 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
    // format the variable parameters
    va_list args;
    va_start(args, msgFormat);
-   char* msg = strformat(msgFormat, args);
+   char* msg = _asformat(msgFormat, args);
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* newMsg = strformat("MT4Expander::%s%s::%s(%d)  WARN: %s", baseName, ext, funcName, line, msg);
+   char* newMsg = asformat("MT4Expander::%s%s::%s(%d)  WARN: %s", baseName, ext, funcName, line, msg);
    free(msg);
    msg = newMsg;
 
    // add the error code at the end (if any)
    if (error_code) {
-      newMsg = strformat("%s  [%s]", msg, ErrorToStrA(error_code));
+      newMsg = asformat("%s  [%s]", msg, ErrorToStrA(error_code));
       free(msg);
       msg = newMsg;
    }
@@ -169,14 +169,14 @@ int WINAPI _error(const char* fileName, const char* funcName, int line, int erro
    // format the variable parameters
    va_list args;
    va_start(args, msgFormat);
-   char* msg = strformat(msgFormat, args);
+   char* msg = _asformat(msgFormat, args);
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = strformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, msg, ErrorToStrA(error_code));
+   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, msg, ErrorToStrA(error_code));
 
    OutputDebugStringA(fullMsg);
    free(msg);

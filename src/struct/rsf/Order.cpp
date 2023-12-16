@@ -49,7 +49,7 @@ char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
          << ", runup="       << std::setprecision(1) << order->runup
          << ", drawdown="    << std::setprecision(1) << order->drawdown
          << ", realized="    << std::setprecision(1) << order->realized
-         << ", test="        <<                        (order->test ? StrFormat("0x%p", order->test) : "NULL")
+         << ", test="        <<                        (order->test ? asformat("0x%p", order->test) : "NULL")
          << "}";
    }
    char* result = strdup(ss.str().c_str());                          // TODO: add to GC (close memory leak)

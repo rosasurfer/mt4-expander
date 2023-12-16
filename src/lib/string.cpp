@@ -15,8 +15,8 @@
 char* WINAPI DoubleQuoteStr(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    if (!value)
-      return(StrFormat("(null)", value));
-   return(StrFormat("\"%s\"", value));
+      return(strdup("(null)"));
+   return(asformat("\"%s\"", value));
    #pragma EXPANDER_EXPORT
 }
 
@@ -191,28 +191,6 @@ BOOL WINAPI SortMqlStringsW(MqlStringW strings[], int size) {
    qsort(strings, size, sizeof(MqlStringW), CompareMqlStringsW);
    return(TRUE);
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Write formatted data to a string similar to sprintf() and return the resulting string. This function is identical to
- * strformat() but registers the allocated memory for the returned string at the internal memory manager. The memory manager
- * will release the memory at a time of its choice but the earliest at the next tick of the currently executed MQL program.
- *
- * @param  char* format - string with format codes
- * @param        ...    - variable number of additional arguments
- *
- * @return char*
- */
-char* WINAPI StrFormat(const char* format, ...) {
-   if (format && (uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
-
-   va_list args;
-   va_start(args, format);
-   char* result = strformat(format, args);
-   va_end(args);
-
-   return(result);                                          // TODO: add to GC (close memory leak)
 }
 
 
@@ -672,23 +650,25 @@ namespace rsf {
 
 
 /**
- * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
- * for the string itself.
+ * Write formatted data to a string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
+ * memory for the string itself.
  *
  * @param  char* format - string with format codes
- * @param        ...    - variable number of additional arguments
+ * @param        ...    - variable number of arguments
  *
- * @return char*
+ * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
+ *
+ * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-char* strformat(const char* format, ...) {
+char* asformat(const char* format, ...) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    va_list args;
    va_start(args, format);
-   char* result = strformat(format, args);
+   char* result = _asformat(format, args);
    va_end(args);
 
    return(result);
@@ -696,24 +676,25 @@ char* strformat(const char* format, ...) {
 
 
 /**
- * Write formatted data to a string similar to sprintf() and return the resulting string. This function allocates the memory
- * for the string itself.
+ * Write formatted data to a string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
+ * memory for the string itself.
  *
  * @param  char*   format - string with format codes
- * @param  va_list &args  - variable list of additional arguments
+ * @param  va_list &args  - variable list of arguments
  *
- * @return char*
+ * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
-char* strformat(const char* format, const va_list &args) {
+char* _asformat(const char* format, const va_list &args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
    char* buffer = (char*)malloc(size);
-   vsprintf_s(buffer, size, format, args);
-
+   if (buffer) {
+      vsprintf_s(buffer, size, format, args);
+   }
    return(buffer);
 }
 }

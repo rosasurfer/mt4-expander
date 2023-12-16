@@ -216,7 +216,7 @@ BOOL WINAPI Recorder_GetSymbolDefinitionA(int i, BOOL enabled, const char* symbo
 }
 
 
-BOOL WINAPI RemoveLegend() {
+BOOL WINAPI RemoveChartLegend() {
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }

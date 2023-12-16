@@ -642,7 +642,7 @@ const char* WINAPI GetTerminalVersion() {
       uint build  = (fileInfo->dwFileVersionLS      ) & 0xffff;
 
       // compose version string
-      version = strformat("%d.%d.%d.%d", major, minor, hotfix, build);
+      version = asformat("%d.%d.%d.%d", major, minor, hotfix, build);
    }
    return(version);
    #pragma EXPANDER_EXPORT

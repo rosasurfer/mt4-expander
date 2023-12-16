@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="MT4Expander"
 	ProjectGUID="{2E0F4332-3519-400E-9AC1-4B83EA652CCD}"
 	RootNamespace="Expander"
@@ -252,10 +252,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\header\lib\history.h"
-					>
-				</File>
-				<File
 					RelativePath=".\header\lib\log.h"
 					>
 				</File>
@@ -265,6 +261,10 @@
 				</File>
 				<File
 					RelativePath=".\header\lib\memory.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\lib\sound.h"
 					>
 				</File>
 				<File
@@ -614,10 +614,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\lib\history.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\lib\lock.cpp"
 					>
 					<FileConfiguration
@@ -680,6 +676,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\sound.cpp"
+					>
 				</File>
 				<File
 					RelativePath=".\src\lib\string.cpp"
