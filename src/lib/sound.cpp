@@ -110,9 +110,6 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
  * @param  char* soundfile - either an absolute filename or
  *                           a filename relative to "sounds" of either the terminal or the data directory
  * @return BOOL - success status
- *
- * @see  https://learn.microsoft.com/en-us/windows/win32/Multimedia/windows-multimedia-start-page
- * @see  https://learn.microsoft.com/en-us/windows/win32/multimedia/opening-a-device
  */
 BOOL WINAPI PlaySoundA(const char* soundfile) {
    if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
@@ -133,10 +130,13 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
    }
 
    // For installed devices and supported file types see:
-   // HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MCI32
-   // HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MCI Extensions
+   //  HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MCI32
+   //  HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MCI Extensions
+   //
+   // @see  https://learn.microsoft.com/en-us/windows/win32/Multimedia/windows-multimedia-start-page
+   // @see  https://learn.microsoft.com/en-us/windows/win32/multimedia/opening-a-device
 
-   // open sound without defining an alias (prevent conflicting aliases during mixing)
+   // open sound without defining an alias (complicates managing uniqueness and device re-usage)
    string cmd = string("open \"").append(filepath).append("\"");
    MCIERROR error = mciSendStringA(cmd.c_str(), NULL, 0, NULL);
    if (error) {
@@ -146,7 +146,7 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
    }
 
    // play sound
-   cmd.replace(0, 4, "play").append(" from 0");           // reset play position to start (in case sound is to be played again)
+   cmd.replace(0, 4, "play").append(" from 0");           // reset play position to start (in case sound is played again)
    error = mciSendStringA(cmd.c_str(), NULL, 0, NULL);
    if (error) {                                           // midi files can't be mixed with the MCI extension
       if ((WORD)error == MCIERR_SEQ_PORT_INUSE) return(error(ERR_RUNTIME_ERROR, "MIDI sequencer already in use (MCIERR_SEQ_PORT_INUSE)"));
