@@ -60,17 +60,16 @@ char*        WINAPI StrTrim(char* const str);
 char*        WINAPI StrTrimLeft(char* const str);
 char*        WINAPI StrTrimRight(char* const str);
 
+wstring      WINAPI ansiToUnicode(const  string &str);
+string       WINAPI ansiToUtf8   (const  string &str);
+string       WINAPI unicodeToAnsi(const wstring &str);
+string       WINAPI unicodeToUtf8(const wstring &str);
+string       WINAPI utf8ToAnsi   (const  string &str);
+wstring      WINAPI utf8ToUnicode(const  string &str);
+
+ char*      __cdecl asformat(const  char* format, ...);                       // only __cdecl supports variadics
+wchar*      __cdecl asformat(const wchar* format, ...);
+ char*       WINAPI _asformat(const  char* format, const va_list &args);
+wchar*       WINAPI _asformat(const wchar* format, const va_list &args);
+
 std::istream& getline(std::istream &is, string &line);
-
-
-wstring ansiToUnicode(const  string &str);
-string  ansiToUtf8   (const  string &str);
-string  unicodeToAnsi(const wstring &str);
-string  unicodeToUtf8(const wstring &str);
-string  utf8ToAnsi   (const  string &str);
-wstring utf8ToUnicode(const  string &str);
-
- char*  asformat(const  char* format, ...);
-wchar*  asformat(const wchar* format, ...);
- char* _asformat(const  char* format, const va_list &args);
-wchar* _asformat(const wchar* format, const va_list &args);

@@ -529,7 +529,7 @@ char* WINAPI StrTrimRight(char* const str) {
  *
  * @return wstring - converted string or an empty string in case of errors
  */
-wstring ansiToUnicode(const string &str) {
+wstring WINAPI ansiToUnicode(const string &str) {
    int length = str.length();
    if (!length) return(wstring(L""));
 
@@ -554,7 +554,7 @@ wstring ansiToUnicode(const string &str) {
  *
  * @return string - converted string or an empty string in case of errors
  */
-string ansiToUtf8(const string &str) {
+string WINAPI ansiToUtf8(const string &str) {
    return(unicodeToUtf8(ansiToUnicode(str)));
 }
 
@@ -566,7 +566,7 @@ string ansiToUtf8(const string &str) {
  *
  * @return string - converted string or an empty string in case of errors
  */
-string unicodeToAnsi(const wstring &wstr) {
+string WINAPI unicodeToAnsi(const wstring &wstr) {
    int length = wstr.length();
    if (!length) return(string(""));
 
@@ -591,7 +591,7 @@ string unicodeToAnsi(const wstring &wstr) {
  *
  * @return string - converted string or an empty string in case of errors
  */
-string unicodeToUtf8(const wstring &wstr) {
+string WINAPI unicodeToUtf8(const wstring &wstr) {
    int length = wstr.length();
    if (!length) return(string(""));
 
@@ -616,7 +616,7 @@ string unicodeToUtf8(const wstring &wstr) {
  *
  * @return string - converted string or an empty string in case of errors
  */
-string utf8ToAnsi(const string &str) {
+string WINAPI utf8ToAnsi(const string &str) {
    return(unicodeToAnsi(utf8ToUnicode(str)));
 }
 
@@ -628,7 +628,7 @@ string utf8ToAnsi(const string &str) {
  *
  * @return wstring - converted string or an empty string in case of errors
  */
-wstring utf8ToUnicode(const string &str) {
+wstring WINAPI utf8ToUnicode(const string &str) {
    int length = str.length();
    if (!length) return(wstring(L""));
 
@@ -660,7 +660,7 @@ wstring utf8ToUnicode(const string &str) {
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-char* asformat(const char* format, ...) {
+char* __cdecl asformat(const char* format, ...) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
@@ -687,7 +687,7 @@ char* asformat(const char* format, ...) {
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-wchar* asformat(const wchar* format, ...) {
+wchar* __cdecl asformat(const wchar* format, ...) {
    if (!format)  return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
@@ -714,7 +714,7 @@ wchar* asformat(const wchar* format, ...) {
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-char* _asformat(const char* format, const va_list &args) {
+char* WINAPI _asformat(const char* format, const va_list &args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
@@ -741,7 +741,7 @@ char* _asformat(const char* format, const va_list &args) {
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-wchar* _asformat(const wchar* format, const va_list &args) {
+wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
    if (!format)  return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 

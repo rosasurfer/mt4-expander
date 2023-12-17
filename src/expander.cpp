@@ -21,7 +21,7 @@ extern MqlInstanceList g_mqlInstances;                   // all MQL program inst
  *                                 DUMPMODE_CHAR: output a readable character representation
  * @return int - 0 (NULL)
  */
-int WINAPI _dump(const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode/*=DUMPMODE_HEX*/) {
+int __cdecl _dump(const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode/*=DUMPMODE_HEX*/) {
    if ((uint)data < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter data: 0x%p (not a valid pointer)", data));
    if (size < 1)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
 
@@ -69,7 +69,7 @@ int WINAPI _dump(const char* fileName, const char* funcName, int line, const voi
  *
  * @return int - 0 (NULL)
  */
-int WINAPI _debug(const char* fileName, const char* funcName, int line, const char* message, ...) {
+int __cdecl _debug(const char* fileName, const char* funcName, int line, const char* message, ...) {
    if (!message) message = "(null)";
 
    // format the variable parameters
@@ -106,7 +106,7 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
  *
  * @return int - 0 (NULL)
  */
-int WINAPI _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...) {
+int __cdecl _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...) {
    if (!message) message = L"(null)";
 
    // format the variable parameters
@@ -143,7 +143,7 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const wc
  * @param  char* msgFormat  - message with format codes for additional parameters
  * @param        ...        - variable number of additional parameters
  */
-int WINAPI _warn(const char* fileName, const char* funcName, int line, int error_code, const char* msgFormat, ...) {
+int __cdecl _warn(const char* fileName, const char* funcName, int line, int error_code, const char* msgFormat, ...) {
    if (!msgFormat)  msgFormat = "(null)";
    if (!*msgFormat) msgFormat = "(empty)";
 
@@ -199,7 +199,7 @@ int WINAPI _warn(const char* fileName, const char* funcName, int line, int error
  *
  * @return int - 0 (NULL)
  */
-int WINAPI _error(const char* fileName, const char* funcName, int line, int error_code, const char* msgFormat, ...) {
+int __cdecl _error(const char* fileName, const char* funcName, int line, int error_code, const char* msgFormat, ...) {
    if (!error_code) return(NULL);
    if (!msgFormat)  msgFormat = "(null)";
    if (!*msgFormat) msgFormat = "(empty)";

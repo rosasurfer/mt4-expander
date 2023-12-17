@@ -121,37 +121,37 @@ enum UninitializeReason {
 #define warn(...)   _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)  _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int WINAPI _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
-int WINAPI _debug(const char* fileName, const char* funcName, int line, const  char* message, ...);
-int WINAPI _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...);
-int WINAPI _warn (const char* fileName, const char* funcName, int line, int code, const char* format, ...);
-int WINAPI _error(const char* fileName, const char* funcName, int line, int code, const char* format, ...);
+int __cdecl _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode=DUMPMODE_HEX);
+int __cdecl _debug(const char* fileName, const char* funcName, int line, const  char* message, ...);
+int __cdecl _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...);
+int __cdecl _warn (const char* fileName, const char* funcName, int line, int code, const char* format, ...);
+int __cdecl _error(const char* fileName, const char* funcName, int line, int code, const char* format, ...);
 
 
 // Helper functions returning constant values. All parameters are ignored.
-inline int         WINAPI _EMPTY        (...) { return(EMPTY       ); }
-inline int         WINAPI _EMPTY_VALUE  (...) { return(EMPTY_VALUE ); }
-inline const char* WINAPI _EMPTY_STR    (...) { return(""          ); }
-inline       char* WINAPI _EMPTY_NEW_STR(...) { char* s = new char[1]; s[0] = 0; return(s); }
-inline HWND        WINAPI _INVALID_HWND (...) { return(INVALID_HWND); }
-inline int         WINAPI _NULL         (...) { return(NULL        ); }
-inline bool        WINAPI _true         (...) { return(true        ); }
-inline BOOL        WINAPI _TRUE         (...) { return(TRUE        ); }
-inline bool        WINAPI _false        (...) { return(false       ); }
-inline BOOL        WINAPI _FALSE        (...) { return(FALSE       ); }
-inline color       WINAPI _CLR_NONE     (...) { return(CLR_NONE    ); }
-inline color       WINAPI _NaC          (...) { return(NaC         ); }
-inline time32      WINAPI _NaT32        (...) { return(NaT         ); }
-inline time64      WINAPI _NaT64        (...) { return(NaT         ); }
+inline int         __cdecl _EMPTY        (...) { return(EMPTY       ); }                // only __cdecl supports variadics
+inline int         __cdecl _EMPTY_VALUE  (...) { return(EMPTY_VALUE ); }
+inline const char* __cdecl _EMPTY_STR    (...) { return(""          ); }
+inline       char* __cdecl _EMPTY_NEW_STR(...) { char* s = new char[1]; s[0] = 0; return(s); }
+inline HWND        __cdecl _INVALID_HWND (...) { return(INVALID_HWND); }
+inline int         __cdecl _NULL         (...) { return(NULL        ); }
+inline bool        __cdecl _true         (...) { return(true        ); }
+inline BOOL        __cdecl _TRUE         (...) { return(TRUE        ); }
+inline bool        __cdecl _false        (...) { return(false       ); }
+inline BOOL        __cdecl _FALSE        (...) { return(FALSE       ); }
+inline color       __cdecl _CLR_NONE     (...) { return(CLR_NONE    ); }
+inline color       __cdecl _NaC          (...) { return(NaC         ); }
+inline time32      __cdecl _NaT32        (...) { return(NaT         ); }
+inline time64      __cdecl _NaT64        (...) { return(NaT         ); }
 
 
 // Helper functions returning variable values. All parameters except the first one are ignored.
-inline bool        WINAPI _bool  (bool   value, ...) { return(value); }
-inline BOOL        WINAPI _BOOL  (BOOL   value, ...) { return(value); }
-inline char        WINAPI _char  (char   value, ...) { return(value); }
-inline int         WINAPI _int   (int    value, ...) { return(value); }
-inline float       WINAPI _float (float  value, ...) { return(value); }
-inline double      WINAPI _double(double value, ...) { return(value); }
+inline bool        __cdecl _bool  (bool   value, ...) { return(value); }
+inline BOOL        __cdecl _BOOL  (BOOL   value, ...) { return(value); }
+inline char        __cdecl _char  (char   value, ...) { return(value); }
+inline int         __cdecl _int   (int    value, ...) { return(value); }
+inline float       __cdecl _float (float  value, ...) { return(value); }
+inline double      __cdecl _double(double value, ...) { return(value); }
 
 
 /**
