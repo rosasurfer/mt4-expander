@@ -96,44 +96,6 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, const c
 
 
 /**
- * Print a wide Unicode (UTF-16) string to the debugger output console.
- *
- * @param  char*  fileName - name of the file where the debug operation occurred
- * @param  char*  funcName - name of the function where the debug operation occurred
- * @param  int    line     - line number in the file where the debug operation occurred
- * @param  wchar* message  - string with format codes for additional parameters
- * @param         ...      - variable number of additional parameters
- *
- * @return int - 0 (NULL)
- */
-int __cdecl _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...) {
-   if (!message) message = L"(null)";
-
-   // format the variable parameters
-   string formattedMsg;
-   if (wstrlen(message)) {
-      va_list args;
-      va_start(args, message);
-      wchar* msg = _asformat(message, args);
-      formattedMsg = unicodeToAnsi(wstring(msg));  // convert to ANSI as OutputDebugStringW() would do it anyway
-      free(msg);
-      va_end(args);
-   }
-
-   // insert the call location at the beginning: {basename.ext(line)}
-   char baseName[MAX_FNAME], ext[MAX_EXT];
-   if (!fileName) baseName[0] = ext[0] = '\0';
-   else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg.c_str());
-
-   OutputDebugStringA(fullMsg);                    // see limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
-   free(fullMsg);
-
-   return(NULL);
-}
-
-
-/**
  * Process a warning message.
  *
  * @param  char* fileName   - file name of the call
@@ -142,6 +104,8 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, const w
  * @param  int   error_code - error code of the warning
  * @param  char* msgFormat  - message with format codes for additional parameters
  * @param        ...        - variable number of additional parameters
+ *
+ * @return int - the passed 'error_code'
  */
 int __cdecl _warn(const char* fileName, const char* funcName, int line, int error_code, const char* msgFormat, ...) {
    if (!msgFormat)  msgFormat = "(null)";
@@ -183,7 +147,7 @@ int __cdecl _warn(const char* fileName, const char* funcName, int line, int erro
          //ec_SetDllWarningMsg(ec, msg);
       }
    }
-   return(NULL);
+   return(error_code);
 }
 
 

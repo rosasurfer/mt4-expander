@@ -126,7 +126,7 @@ BOOL WINAPI ReleaseTickTimer(uint timerId) {
          return(TRUE);
       }
    }
-   return(warn(ERR_ILLEGAL_STATE, "tick timer not found: id=%d", timerId));
+   return(!warn(ERR_ILLEGAL_STATE, "tick timer not found: id=%d", timerId));
    #pragma EXPANDER_EXPORT
 }
 

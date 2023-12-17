@@ -208,7 +208,7 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
    ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return(warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
+   if (!file) return(!warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
    file.read((char*)fxtHeader, sizeof(FXT_HEADER));
    file.close(); if (file.fail()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));

@@ -123,7 +123,6 @@ enum UninitializeReason {
 
 int __cdecl _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode=DUMPMODE_HEX);
 int __cdecl _debug(const char* fileName, const char* funcName, int line, const  char* message, ...);
-int __cdecl _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...);
 int __cdecl _warn (const char* fileName, const char* funcName, int line, int code, const char* format, ...);
 int __cdecl _error(const char* fileName, const char* funcName, int line, int code, const char* format, ...);
 
