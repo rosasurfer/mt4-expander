@@ -59,25 +59,25 @@ int WINAPI _dump(const char* fileName, const char* funcName, int line, const voi
 
 
 /**
- * Print a string to the debugger output console.
+ * Print a C string to the debugger output console.
  *
- * @param  char* fileName  - name of the file where the debug operation occurred
- * @param  char* funcName  - name of the function where the debug operation occurred
- * @param  int   line      - line number in the file where the debug operation occurred
- * @param  char* msgFormat - message string with format codes for additional parameters
- * @param        ...       - variable number of additional parameters
+ * @param  char* fileName - name of the file where the debug operation occurred
+ * @param  char* funcName - name of the function where the debug operation occurred
+ * @param  int   line     - line number in the file where the debug operation occurred
+ * @param  char* message  - string with format codes for additional parameters
+ * @param        ...      - variable number of additional parameters
  *
  * @return int - 0 (NULL)
  */
-int WINAPI _debug(const char* fileName, const char* funcName, int line, const char* msgFormat, ...) {
-   if (!msgFormat) msgFormat = "(NULL)";
+int WINAPI _debug(const char* fileName, const char* funcName, int line, const char* message, ...) {
+   if (!message) message = "(null)";
 
    // format the variable parameters
-   char* msg = "";
-   if (strlen(msgFormat)) {
+   char* formattedMsg = "";
+   if (strlen(message)) {
       va_list args;
-      va_start(args, msgFormat);
-      msg = _asformat(msgFormat, args);
+      va_start(args, message);
+      formattedMsg = _asformat(message, args);
       va_end(args);
    }
 
@@ -85,12 +85,50 @@ int WINAPI _debug(const char* fileName, const char* funcName, int line, const ch
    char baseName[MAX_FNAME], ext[MAX_EXT];
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, msg);
+   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
 
-   OutputDebugStringA(fullMsg);           // @see  limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
+   OutputDebugStringA(fullMsg);                    // see limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
    free(fullMsg);
 
-   if (strlen(msgFormat)) free(msg);
+   if (strlen(message)) free(formattedMsg);
+   return(NULL);
+}
+
+
+/**
+ * Print a wide Unicode (UTF-16) string to the debugger output console.
+ *
+ * @param  char*  fileName - name of the file where the debug operation occurred
+ * @param  char*  funcName - name of the function where the debug operation occurred
+ * @param  int    line     - line number in the file where the debug operation occurred
+ * @param  wchar* message  - string with format codes for additional parameters
+ * @param         ...      - variable number of additional parameters
+ *
+ * @return int - 0 (NULL)
+ */
+int WINAPI _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...) {
+   if (!message) message = L"(null)";
+
+   // format the variable parameters
+   string formattedMsg;
+   if (wstrlen(message)) {
+      va_list args;
+      va_start(args, message);
+      wchar* msg = _asformat(message, args);
+      formattedMsg = unicodeToAnsi(wstring(msg));  // convert to ANSI as OutputDebugStringW() would do it anyway
+      free(msg);
+      va_end(args);
+   }
+
+   // insert the call location at the beginning: {basename.ext(line)}
+   char baseName[MAX_FNAME], ext[MAX_EXT];
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
+   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg.c_str());
+
+   OutputDebugStringA(fullMsg);                    // see limitations at http://www.unixwiz.net/techtips/outputdebugstring.html
+   free(fullMsg);
+
    return(NULL);
 }
 

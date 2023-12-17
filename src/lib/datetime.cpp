@@ -6,6 +6,7 @@
 #include "expander.h"
 #include "lib/datetime.h"
 #include "lib/memory.h"
+#include "lib/string.h"
 
 #include <ctime>
 #include <sstream>

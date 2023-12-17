@@ -251,7 +251,7 @@ DWORD WINAPI GetUIThreadId() {
 BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    integerProperties[key] = value;
@@ -273,7 +273,7 @@ BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
 BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    doubleProperties[key] = value;
@@ -295,7 +295,7 @@ BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
 BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
    if (!IsWindow(hWnd))                 return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER)  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                   return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
    if ((uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
 
    string key = to_string(hWnd).append("|").append(name);
@@ -317,7 +317,7 @@ BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
 int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    IntegerMap::iterator result = integerProperties.find(key);
@@ -340,7 +340,7 @@ int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
 double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    DoubleMap::iterator result = doubleProperties.find(key);
@@ -363,7 +363,7 @@ double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
 const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    StringMap::iterator result = stringProperties.find(key);
@@ -386,7 +386,7 @@ const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
 int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    IntegerMap::iterator result = integerProperties.find(key);
@@ -412,7 +412,7 @@ int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
 double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    DoubleMap::iterator result = doubleProperties.find(key);
@@ -438,7 +438,7 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
 const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    if (!IsWindow(hWnd))                return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
    if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!strlen(name))                  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!*name)                         return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
    StringMap::iterator result = stringProperties.find(key);

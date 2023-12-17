@@ -534,7 +534,7 @@ int WINAPI Test_synchronize() {
  */
 int WINAPI Tester_Test(const char* filename) {
    if ((uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-   if (!strlen(filename))                  return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
+   if (!*filename)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
 
    std::ofstream file = std::ofstream();
 

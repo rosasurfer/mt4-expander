@@ -51,13 +51,6 @@ using std::wstring;
 #define MAX_FNAME                      _MAX_FNAME           // max. length of file name component
 #define MAX_EXT                        _MAX_EXT             // max. length of extension component
 
-#define strdup    _strdup                                   // duplicate a C string
-#define mbsdup    _mbsdup                                   // duplicate a UTF-8 string
-#define wsdup     _wcsdup                                   // duplicate a UTF-16 string
-
-#define vscprintf _vscprintf                                // count C chars of resulting string using a var-list of arguments
-#define snprintf  _snprintf                                 // write formatted data to a sized (numbered) C string buffer
-
 
 // MQL program types (flags)
 enum ProgramType {
@@ -129,7 +122,8 @@ enum UninitializeReason {
 #define error(...)  _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 int WINAPI _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
-int WINAPI _debug(const char* fileName, const char* funcName, int line, const char* format, ...);
+int WINAPI _debug(const char* fileName, const char* funcName, int line, const  char* message, ...);
+int WINAPI _debug(const char* fileName, const char* funcName, int line, const wchar* message, ...);
 int WINAPI _warn (const char* fileName, const char* funcName, int line, int code, const char* format, ...);
 int WINAPI _error(const char* fileName, const char* funcName, int line, int code, const char* format, ...);
 

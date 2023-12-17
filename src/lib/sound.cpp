@@ -171,6 +171,11 @@ BOOL WINAPI PlaySoundW(const wchar* soundfile) {
  *
  */
 BOOL WINAPI TestSound(const char* soundfile) {
+
+   debug("c format %%s, c param: %s", "arg");
+   debug("c format %%S, unicode param: %S", L"arg");
+   debug(L"unicode format %%s, unicode param: %s", L"arg");
+
    return(TRUE);
-   //#pragma EXPANDER_EXPORT
+   #pragma EXPANDER_EXPORT
 }

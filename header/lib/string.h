@@ -3,6 +3,19 @@
 #include "struct/mt4/MqlString.h"
 #include <sstream>
 
+#define mbslen       _mbslen           // length of a UTF-8 string (doesn't check for invalid UTF-8 chars)
+#define mbstrlen     _mbstrlen         // length of a UTF-8 string (checks for invalid UTF-8 chars)
+#define wstrlen      wcslen            // length of a UTF-16 string
+
+#define strdup       _strdup           // duplicate a C string
+#define mbsdup       _mbsdup           // duplicate a UTF-8 string
+#define wsdup        _wcsdup           // duplicate a UTF-16 string
+
+#define vscprintf    _vscprintf        // count C chars of resulting string using a var-list of arguments
+#define vwscprintf   _vscwprintf       // count wide Unicode (UTF-16) chars of resulting string using a var-list of arguments
+#define snprintf     _snprintf         // write formatted data to a sized (numbered) C string buffer
+#define vwsprintf_s  vswprintf_s       // write formatted data to a wide Unicode (UTF-16) string buffer using a var-list of arguments
+
 
 /**
  * C++11 to_string() replacement for VS 2008.
@@ -49,15 +62,15 @@ char*        WINAPI StrTrimRight(char* const str);
 
 std::istream& getline(std::istream &is, string &line);
 
-wstring       ansiToUnicode(const string &str);
-string        ansiToUtf8   (const string &str);
-string        unicodeToAnsi(const wstring &wstr);
-string        unicodeToUtf8(const wstring &wstr);
-string        utf8ToAnsi   (const string &str);
-wstring       utf8ToUnicode(const string &str);
 
+wstring ansiToUnicode(const  string &str);
+string  ansiToUtf8   (const  string &str);
+string  unicodeToAnsi(const wstring &str);
+string  unicodeToUtf8(const wstring &str);
+string  utf8ToAnsi   (const  string &str);
+wstring utf8ToUnicode(const  string &str);
 
-namespace rsf {
-   char*  asformat(const char* format, ...);
-   char* _asformat(const char* format, const va_list &args);
-}
+ char*  asformat(const  char* format, ...);
+wchar*  asformat(const wchar* format, ...);
+ char* _asformat(const  char* format, const va_list &args);
+wchar* _asformat(const wchar* format, const va_list &args);
