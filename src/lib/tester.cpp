@@ -31,7 +31,7 @@ HWND WINAPI FindTesterWindow() {
       if (!hWndMain) return(NULL);
 
       HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKABLES_CONTAINER);        // top-level container for docked terminal windows
-      if (!hWnd) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  cannot find top-level container for docked terminal windows"));
+      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  cannot find top-level container for docked terminal windows"));
 
       hWndTester = GetDlgItem(hWnd, IDC_TESTER);
       if (hWndTester) return(hWndTester);
@@ -40,7 +40,7 @@ HWND WINAPI FindTesterWindow() {
       SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
       DWORD processId, self = GetCurrentProcessId();
       HWND hWndNext = GetTopWindow(NULL);
-      if (!hWndNext) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetTopWindow(NULL)"));
+      if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetTopWindow(NULL)"));
       int error = NULL;
 
       while (hWndNext) {                                                // iterate over all top-level windows owned by the current process
@@ -100,27 +100,27 @@ time32 WINAPI Tester_GetStartDate() {
    if (!hWndTester) return(NULL);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found"));
+   if (!hWndSettings) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found"));
 
    HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
-   if (!hWndUseDate) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  checkbox \"Use date\" in \"Settings\" tab not found"));
+   if (!hWndUseDate) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  checkbox \"Use date\" in \"Settings\" tab not found"));
 
    uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
    char* className = (char*) alloca(bufSize);               // on the stack
 
-   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)     return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab not found"));
+   HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)     return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab not found"));
 
    char* wndTitle = GetInternalWindowTextA(hWndNext);       // FIX-ME
-   if (!GetClassNameA(hWndNext, className, bufSize))                       return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
-   if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static")) return(error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   if (!GetClassNameA(hWndNext, className, bufSize))                       return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
+   if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static")) return(!error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    free(wndTitle);
 
-   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)             return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"From:\" label in \"Settings\" tab of tester window not found"));
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)             return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"From:\" label in \"Settings\" tab of tester window not found"));
 
-   if (!GetClassNameA(hWndNext, className, bufSize))                       return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
-   if (!StrCompare(className, "SysDateTimePick32"))                        return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"From:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   if (!GetClassNameA(hWndNext, className, bufSize))                       return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                        return(!error(ERR_RUNTIME_ERROR, "unexpected sibling of \"From:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    wndTitle = GetInternalWindowTextA(hWndNext);
-   if (!wndTitle || strlen(wndTitle) < 10)                                 return(error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Startdate\" control: \"%s\"", wndTitle));
+   if (!wndTitle || strlen(wndTitle) < 10)                                 return(!error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Startdate\" control: \"%s\"", wndTitle));
 
    char* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                              // string format: 2018.01.01
@@ -149,27 +149,27 @@ time32 WINAPI Tester_GetEndDate() {
    if (!hWndTester) return(NULL);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found in tester window"));
+   if (!hWndSettings) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found in tester window"));
 
    HWND hWndOptimize = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_OPTIMIZATION);
-   if (!hWndOptimize) return(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
+   if (!hWndOptimize) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
 
    uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
    char* className = (char*)alloca(bufSize);                // on the stack
 
-   HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)  return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
+   HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)  return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
 
    char* wndTitle = GetInternalWindowTextA(hWndNext);       // FIX-ME
-   if (!GetClassName(hWndNext, className, bufSize))                      return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-   if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static")) return(error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   if (!GetClassName(hWndNext, className, bufSize))                      return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static")) return(!error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    free(wndTitle);
 
-   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)           return(error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"To:\" label in \"Settings\" tab of tester window not found"));
+   hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)           return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"To:\" label in \"Settings\" tab of tester window not found"));
 
-   if (!GetClassName(hWndNext, className, bufSize))                      return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-   if (!StrCompare(className, "SysDateTimePick32"))                      return(error(ERR_RUNTIME_ERROR, "unexpected sibling of \"To:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
+   if (!GetClassName(hWndNext, className, bufSize))                      return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+   if (!StrCompare(className, "SysDateTimePick32"))                      return(!error(ERR_RUNTIME_ERROR, "unexpected sibling of \"To:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    wndTitle = GetInternalWindowTextA(hWndNext);
-   if (!wndTitle || strlen(wndTitle) < 10)                               return(error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Enddate\" control: \"%s\"", wndTitle));
+   if (!wndTitle || strlen(wndTitle) < 10)                               return(!error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Enddate\" control: \"%s\"", wndTitle));
 
    char* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                              // string format: 2018.01.01
@@ -193,11 +193,11 @@ time32 WINAPI Tester_GetEndDate() {
  * @param  _In_  uint        barModel  - test bar model: MODE_EVERYTICK | MODE_CONTROLPOINTS | MODE_BAROPEN
  * @param  _Out_ FXT_HEADER* fxtHeader - pointer to a FXT_HEADER structure receiving the data
  *
- * @return BOOL - success status (e.g. FALSE on i/o errors or if the file does not exist)
+ * @return BOOL - success status (e.g. FALSE on I/O errors or if the file does not exist)
  */
 BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER* fxtHeader) {
-   if ((uint)symbol < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if ((int)timeframe <= 0)              return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
+   if ((uint)symbol < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if ((int)timeframe <= 0)              return(!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    using namespace std;
 
    // e.g. string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
@@ -211,7 +211,7 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
    if (!file) return(!warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
    file.read((char*)fxtHeader, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
 
    return(TRUE);
 }
@@ -249,16 +249,16 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*
  * TODO: validation
  */
 BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, time32 openTime, double openPrice, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
-   if ((uint)ec        < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->test)    return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
-   if ((uint)symbol    < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if (strlen(symbol)  > MAX_SYMBOL_LENGTH)        return(error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
-   if ((uint)comment   < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter comment: 0x%p (not a valid pointer)", comment));
-   if (strlen(comment) > MAX_ORDER_COMMENT_LENGTH) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter comment: \"%s\" (max %d characters)", comment, MAX_ORDER_COMMENT_LENGTH));
+   if ((uint)ec        < MIN_VALID_POINTER)        return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test)    return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if ((uint)symbol    < MIN_VALID_POINTER)        return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
+   if (strlen(symbol)  > MAX_SYMBOL_LENGTH)        return(!error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
+   if ((uint)comment   < MIN_VALID_POINTER)        return(!error(ERR_INVALID_PARAMETER, "invalid parameter comment: 0x%p (not a valid pointer)", comment));
+   if (strlen(comment) > MAX_ORDER_COMMENT_LENGTH) return(!error(ERR_INVALID_PARAMETER, "illegal length of parameter comment: \"%s\" (max %d characters)", comment, MAX_ORDER_COMMENT_LENGTH));
 
-   OrderList* positions      = ec->test->openPositions;      if (!positions)      return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: 0x%p", ec->test->openPositions));
-   OrderList* longPositions  = ec->test->openLongPositions;  if (!longPositions)  return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openLongPositions: 0x%p", ec->test->openLongPositions));
-   OrderList* shortPositions = ec->test->openShortPositions; if (!shortPositions) return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openShortPositions: 0x%p", ec->test->openShortPositions));
+   OrderList* positions      = ec->test->openPositions;      if (!positions)      return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: 0x%p", ec->test->openPositions));
+   OrderList* longPositions  = ec->test->openLongPositions;  if (!longPositions)  return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openLongPositions: 0x%p", ec->test->openLongPositions));
+   OrderList* shortPositions = ec->test->openShortPositions; if (!shortPositions) return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openShortPositions: 0x%p", ec->test->openShortPositions));
 
    ORDER* order = new ORDER();
       order->test          = ec->test;
@@ -298,9 +298,9 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
  * @return BOOL - success status
  */
 BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32 closeTime, double closePrice, double swap, double profit) {
-   if ((uint)ec < MIN_VALID_POINTER)            return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->test) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
-   if (!ec->test->openPositions)                return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: NULL"));
+   if ((uint)ec < MIN_VALID_POINTER)            return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->test) return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
+   if (!ec->test->openPositions)                return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: NULL"));
 
    OrderList &openPositions = *ec->test->openPositions;
    uint size = openPositions.size();
@@ -344,7 +344,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32
                   break;
                }
             }
-            if (i >= size) return(error(ERR_RUNTIME_ERROR, "open long position #%d not found (%d long positions)", ticket, size));
+            if (i >= size) return(!error(ERR_RUNTIME_ERROR, "open long position #%d not found (%d long positions)", ticket, size));
             ec->test->closedLongPositions->push_back(order);                        // add it to closed long positions
          }
          else {
@@ -356,7 +356,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32
                   break;
                }
             }
-            if (i >= size) return(error(ERR_RUNTIME_ERROR, "open short position #%d not found (%d short positions)", ticket, size));
+            if (i >= size) return(!error(ERR_RUNTIME_ERROR, "open short position #%d not found (%d short positions)", ticket, size));
             ec->test->closedShortPositions->push_back(order);                       // add it to closed short positions
          }
 
@@ -365,7 +365,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32
       }
    }
 
-   if (!positionFound) return(error(ERR_RUNTIME_ERROR, "open position #%d not found (%d open positions)", ticket, size));
+   if (!positionFound) return(!error(ERR_RUNTIME_ERROR, "open position #%d not found (%d open positions)", ticket, size));
    return(TRUE);
    #pragma EXPANDER_EXPORT
 }
@@ -379,7 +379,7 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32
  * @return BOOL - success status
  */
 BOOL WINAPI Test_SaveReport(const TEST* test) {
-   if (!test->closedPositions) return(error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.closedPositions: NULL"));
+   if (!test->closedPositions) return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.closedPositions: NULL"));
 
    // define report directory and filename
    string path     = string(GetTerminalPathA()).append("/tester/files/testresults/");
@@ -387,11 +387,11 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
 
    // make sure the directory exists
    int error = CreateDirectoryA(path, MODE_SYSTEM|MODE_MKPARENT);
-   if (error) return(error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", path.c_str()));
+   if (error) return(!error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", path.c_str()));
 
    // create the report file
    std::ofstream file(filename.c_str(), std::ios::binary);
-   if (!file.is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", filename.c_str(), strerror(errno)));
+   if (!file.is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", filename.c_str(), strerror(errno)));
 
    char* sTest = TEST_toStr(test);
    file << "test=" << sTest << NL;
@@ -416,7 +416,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    string source = string(GetTerminalPathA()) +"/tester/"+ test->ec->programName +".ini";
    string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName + LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.ini");
    if (!CopyFile(source.c_str(), target.c_str(), TRUE))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "CopyFile()"));
+      return(!error(ERR_WIN32_ERROR+GetLastError(), "CopyFile()"));
    return(TRUE);
 }
 
@@ -425,12 +425,12 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
  * TODO: documentation
  */
 BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, time32 startTime, uint bars) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)ec < MIN_VALID_POINTER)               return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                                   return(!error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    TEST* test = ec->test;
-   if (!test) return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!test) return(!error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    double spread = round((ec->ask - ec->bid)/ec->point/10, 1);
 
@@ -448,14 +448,14 @@ BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, time32 startTime, ui
  * TODO: documentation
  */
 BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, time32 endTime, uint bars) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)ec < MIN_VALID_POINTER)               return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                                   return(!error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    TEST* test = ec->test;
-   if (!test)            return(error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (!test)            return(!error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (!test->startTime) return(debug("skipping (reporting not yet started)"));
-   if (test->endTime)    return(error(ERR_ILLEGAL_STATE, "reporting already stopped:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (test->endTime)    return(!error(ERR_ILLEGAL_STATE, "reporting already stopped:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
 
    test_SetBars   (test, bars - test->bars + 1);
    test_SetTicks  (test, ec->ticks            );
@@ -533,8 +533,8 @@ int WINAPI Test_synchronize() {
  * @return int
  */
 int WINAPI Tester_Test(const char* filename) {
-   if ((uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-   if (!*filename)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
+   if ((uint)filename < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+   if (!*filename)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
 
    std::ofstream file = std::ofstream();
 

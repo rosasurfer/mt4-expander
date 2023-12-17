@@ -112,7 +112,7 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
  * @return BOOL - success status
  */
 BOOL WINAPI PlaySoundA(const char* soundfile) {
-   if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
+   if ((uint)soundfile < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
 
    string filepath(soundfile);
 
@@ -124,7 +124,7 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
          // test terminal dir path
          filepath = string(GetTerminalPathA()).append("\\sounds\\").append(soundfile);
          if (!IsFileA(filepath, MODE_SYSTEM)) {
-            return(error(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%s\" (file not found)", soundfile));
+            return(!error(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%s\" (file not found)", soundfile));
          }
       }
    }
@@ -141,16 +141,16 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
    MCIERROR error = mciSendStringA(cmd.c_str(), NULL, 0, NULL);
    if (error) {
       if      ((WORD)error == MCIERR_DEVICE_OPEN) {}      // if played again in the same thread: continue and re-use the device
-      else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME) return(error(ERR_RUNTIME_ERROR, "unsupported file type or codec not available (MCIERR_INVALID_DEVICE_NAME)"));
-      else                                                return(error(ERR_RUNTIME_ERROR, "mciSendString(%s) => %s", cmd.c_str(), mciErrorToStr(error)));
+      else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME) return(!error(ERR_RUNTIME_ERROR, "unsupported file type or codec not available (MCIERR_INVALID_DEVICE_NAME)"));
+      else                                                return(!error(ERR_RUNTIME_ERROR, "mciSendString(%s) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
 
    // play sound
    cmd.replace(0, 4, "play").append(" from 0");           // reset play position to start (in case sound is played again)
    error = mciSendStringA(cmd.c_str(), NULL, 0, NULL);
    if (error) {                                           // midi files can't be mixed with the MCI extension
-      if ((WORD)error == MCIERR_SEQ_PORT_INUSE) return(error(ERR_RUNTIME_ERROR, "MIDI sequencer already in use (MCIERR_SEQ_PORT_INUSE)"));
-      else                                      return(error(ERR_RUNTIME_ERROR, "mciSendString(%s) => %s", cmd.c_str(), mciErrorToStr(error)));
+      if ((WORD)error == MCIERR_SEQ_PORT_INUSE) return(!error(ERR_RUNTIME_ERROR, "MIDI sequencer already in use (MCIERR_SEQ_PORT_INUSE)"));
+      else                                      return(!error(ERR_RUNTIME_ERROR, "mciSendString(%s) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
 
    // intentionally leave sound open for faster re-use
@@ -163,7 +163,7 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
  *
  */
 BOOL WINAPI PlaySoundW(const wchar* soundfile) {
-   return(error(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%s\"", unicodeToAnsi(soundfile)));
+   return(!error(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%s\"", unicodeToAnsi(soundfile)));
 }
 
 

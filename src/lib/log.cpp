@@ -23,10 +23,10 @@ extern MqlInstanceList g_mqlInstances;             // all MQL program instances 
  * @return BOOL - success status
  */
 BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const char* message, int error, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)      return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlInstances.size() <= ec->pid)  return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
-   if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
+   if ((uint)ec < MIN_VALID_POINTER)      return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                          return(!error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlInstances.size() <= ec->pid)  return(!error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)message < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
    if (level == LOG_OFF)                  return(FALSE);
 
    EXECUTION_CONTEXT* master = (*g_mqlInstances[ec->pid])[0];
@@ -46,7 +46,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
             return(FALSE);
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
-      if (!master->logger->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
+      if (!master->logger->is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
       if (master->logBuffer && master->logBuffer->size()) {
          uint size = master->logBuffer->size();
          for (uint i=0; i < size; ++i) {
@@ -98,11 +98,11 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
  * @return BOOL - success status
  */
 BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
-   if ((uint)ec < MIN_VALID_POINTER)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (filename && (uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-   if (strlen(filename) > MAX_PATH)                    return(error(ERR_INVALID_PARAMETER, "too long parameter filename: \"%s\" (max. %d chars)", filename, MAX_PATH));
-   if (!ec->pid)                                       return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlInstances.size() <= ec->pid)               return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)ec < MIN_VALID_POINTER)                   return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (filename && (uint)filename < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+   if (strlen(filename) > MAX_PATH)                    return(!error(ERR_INVALID_PARAMETER, "too long parameter filename: \"%s\" (max. %d chars)", filename, MAX_PATH));
+   if (!ec->pid)                                       return(!error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlInstances.size() <= ec->pid)               return(!error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
@@ -129,7 +129,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
                   return(FALSE);
             }
             log->open(filename, std::ios::binary|std::ios::app);                           // open the logfile
-            if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
+            if (!log->is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
 
             if (master->logBuffer && master->logBuffer->size()) {
                uint size = master->logBuffer->size();

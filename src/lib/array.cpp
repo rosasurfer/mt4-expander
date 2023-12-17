@@ -15,18 +15,18 @@
  */
 template <typename T>
 BOOL WINAPI InitializeArray(T array[], int size, T initValue, int from, int count/*=INT_MAX*/) {
-   if ((uint)array < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter array: 0x%p (not a valid pointer)", array));
-   if (size < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
-   if (from < 0 || from >= size)        return(error(ERR_INVALID_PARAMETER, "invalid parameter from: %d (out of range)", from));
-   if (count < 0)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
+   if ((uint)array < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter array: 0x%p (not a valid pointer)", array));
+   if (size < 0)                        return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
+   if (from < 0 || from >= size)        return(!error(ERR_INVALID_PARAMETER, "invalid parameter from: %d (out of range)", from));
+   if (count < 0)                       return(!error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
 
    if (count == INT_MAX) {
       count = size - from;
    }
    else {
       // @see  https://stackoverflow.com/questions/3944505/detecting-signed-overflow-in-c-c#3947943
-      if (count > INT_MAX-from) return(error(ERR_INVALID_PARAMETER, "integer overflow detected (from: %d, count: %d)", from, count));
-      if (from+count > size)    return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds range)", count));
+      if (count > INT_MAX-from) return(!error(ERR_INVALID_PARAMETER, "integer overflow detected (from: %d, count: %d)", from, count));
+      if (from+count > size)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds range)", count));
    }
 
    std::fill_n(&array[from], count, initValue);
@@ -214,10 +214,10 @@ int WINAPI SearchIntArray(const int array[], int size, int value, BOOL reverseIn
  */
 template <typename T>
 BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) {
-   if ((uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
-   if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
-   if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
-   if (count > size)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter count=%d for size=%d (out of range)", count, size));
+   if ((uint)buffer < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
+   if (size < 0)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
+   if (count < 0)                        return(!error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
+   if (count > size)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter count=%d for size=%d (out of range)", count, size));
    if (!size || !count) return(TRUE);
 
    if (count < size) {

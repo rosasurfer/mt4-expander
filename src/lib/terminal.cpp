@@ -104,7 +104,7 @@ const char* WINAPI GetExpanderFileNameA() {
          buffer = (char*) alloca(size);                                 // on the stack
          length = GetModuleFileNameA(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
       }
-      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameA()"));
+      if (!length) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameA()"));
 
       filename = strdup(buffer);                                        // on the heap
    }
@@ -129,7 +129,7 @@ const wchar* WINAPI GetExpanderFileNameW() {
          buffer = (wchar*) alloca(size);                                // on the stack
          length = GetModuleFileNameW(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
       }
-      if (!length) return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
+      if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
 
       filename = wsdup(buffer);                                         // on the heap
    }
@@ -281,7 +281,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
    if (!result) {
       char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
+         return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
 
       string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
       result = strdup(dir.c_str());                                                    // on the heap
@@ -305,7 +305,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
    if (!result) {
       wchar appDataPath[MAX_PATH];                                                     // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()"));
+         return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()"));
 
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");    // create the resulting path
       result = wsdup(dir.c_str());                                                     // on the heap
@@ -380,7 +380,7 @@ const char* WINAPI GetTerminalDataPathA() {
 
          if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap
          else if (terminalPathIsLocked) dataPath = strdup(terminalPath);
-         else return((char*)error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
+         else return((char*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
       }
    }
    return(dataPath);
@@ -417,7 +417,7 @@ const wchar* WINAPI GetTerminalDataPathW() {
 
          if      (roamingPathIsLocked)  dataPath = wsdup(roamingDataPath);                // on the heap
          else if (terminalPathIsLocked) dataPath = wsdup(terminalPath);
-         else return((wchar*)error(ERR_RUNTIME_ERROR, "no open terminal logfile found")); // both directories are write-protected
+         else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found")); // both directories are write-protected
       }
    }
    return(dataPath);
@@ -443,13 +443,13 @@ HWND WINAPI GetTerminalMainWindow() {
       while (hWndNext) {                                             // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {
-            if (!GetClassName(hWndNext, className, size)) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
+            if (!GetClassName(hWndNext, className, size)) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
             if (StrCompare(className, "MetaQuotes::MetaTrader::4.00"))
                break;
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
-      if (!hWndNext) return((HWND)error(ERR_WIN32_ERROR+GetLastError(), "cannot find terminal main window"));
+      if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "cannot find terminal main window"));
 
       hWndMain = hWndNext;
    }
@@ -474,7 +474,7 @@ const char* WINAPI GetTerminalFileNameA() {
          buffer = (char*) alloca(size);                              // on the stack
          length = GetModuleFileNameA(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
-      if (!length) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
+      if (!length) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
 
       filename = strdup(buffer);                                     // on the heap
    }
@@ -500,7 +500,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
          buffer = (wchar*) alloca(size * sizeof(wchar));             // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
-      if (!length) return((wchar*)error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
+      if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
       filename = wsdup(buffer);                                      // on the heap
    }
    return(filename);
@@ -583,7 +583,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    if (!result) {
       char appDataPath[MAX_PATH];                                                               // resolve CSIDL_APPDATA
       if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
+         return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
 
       wstring terminalPath = getTerminalPathW();                                               // get terminal installation path
       StrToUpper(terminalPath);
@@ -660,15 +660,15 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
    if (!fileInfo) {
       const char* fileName = GetTerminalFileNameA();
       DWORD fileInfoSize = GetFileVersionInfoSize(fileName, &fileInfoSize);
-      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize()"));
+      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize()"));
 
       char* infos = (char*) alloca(fileInfoSize);                       // on the stack
       BOOL result = GetFileVersionInfo(fileName, NULL, fileInfoSize, infos);
-      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfo()"));
+      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfo()"));
 
       uint len;
       result = VerQueryValue(infos, "\\", (void**)&fileInfo, &len);
-      if (!result) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValue()"));
+      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValue()"));
    }
    return(fileInfo);
 }
@@ -684,10 +684,10 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
 
    if (!fileInfo) {
       HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-      if (!hRes) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "FindResource()"));
+      if (!hRes) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "FindResource()"));
 
       void* infos = LoadResource(NULL, hRes);
-      if (!infos) return((VS_FIXEDFILEINFO*)error(ERR_WIN32_ERROR+GetLastError(), "LoadResource()"));
+      if (!infos) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "LoadResource()"));
 
       int offset = 6;
       if (!wcscmp((wchar*)((char*)infos + offset), L"VS_VERSION_INFO")) {
@@ -714,10 +714,10 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
-   if (!IsWindow(hChart))                     return(error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
-   if (!IsProgramType(programType))           return(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
-   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
-   if (!*programName)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
+   if (!IsWindow(hChart))                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
+   if (!IsProgramType(programType))           return(!error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
+   if ((uint)programName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
+   if (!*programName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
 
    string file(GetMqlDirectoryA());
    char* sType = NULL;
@@ -743,11 +743,11 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
          cmd = MT4_LOAD_SCRIPT;
          break;
    }
-   if (!IsFileA(file, MODE_SYSTEM)) return(error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
+   if (!IsFileA(file, MODE_SYSTEM)) return(!error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
 
    // trigger the launch of the program
    if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of 'name' from the heap
-      return(error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessageA()"));
+      return(!error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessageA()"));
    debug("queued launch of %s \"%s\"", sType, programName);
 
    // prevent the DLL from getting unloaded before the message is processed
@@ -769,7 +769,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
-   if ((uint)programName < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
+   if ((uint)programName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
 
    string name = unicodeToAnsi(wstring(programName));
    return(LoadMqlProgramA(hChart, programType, name.c_str()));
@@ -803,8 +803,8 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound/*=TRUE*/) {
       GetWindowThreadProcessId(hWndNext, &processId);
       if (processId == self) {                              // the window belongs to us
          wndTitle = GetInternalWindowTextW(hWndNext);
-         if (!wndTitle && (error=GetLastError()))          return(error(ERR_WIN32_ERROR+error, "GetInternalWindowTextW()"));
-         if (!GetClassNameA(hWndNext, className, bufSize)) return(error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
+         if (!wndTitle && (error=GetLastError()))          return(!error(ERR_WIN32_ERROR+error, "GetInternalWindowTextW()"));
+         if (!GetClassNameA(hWndNext, className, bufSize)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
 
          if (StrCompare(wndTitle, L"Alert") && StrCompare(className, "#32770")) {
             hWndAlert = hWndNext;

@@ -17,7 +17,7 @@ const char* WINAPI BarModelDescription(int id) {
       case MODE_CONTROLPOINTS: return("ControlPoints");
       case MODE_BAROPEN:       return("OpenPrices");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
 }
 
@@ -35,7 +35,7 @@ const char* WINAPI BarModelToStr(int id) {
       case MODE_CONTROLPOINTS: return("MODE_CONTROLPOINTS");
       case MODE_BAROPEN:       return("MODE_BAROPEN");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
 }
 
@@ -67,7 +67,7 @@ const char* WINAPI CoreFunctionDescription(CoreFunction func) {
       case CF_START : return("start");
       case CF_DEINIT: return("deinit");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
    #pragma EXPANDER_EXPORT
 }
 
@@ -86,7 +86,7 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
       case CF_START : return("CF_START");
       case CF_DEINIT: return("CF_DEINIT");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1102,7 +1102,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_RECOMPILE        : return("IR_RECOMPILE"        );
       case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1140,7 +1140,7 @@ const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
          case LOG_OFF:    return("off"   );        // not a regular loglevel
       }
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1163,7 +1163,7 @@ const char* WINAPI LoglevelToStr(int level) {
       case LOG_FATAL:  return("LOG_FATAL" );
       case LOG_OFF:    return("LOG_OFF"   );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1183,7 +1183,7 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
       case MT_INDICATOR: return("Indicator");
       case MT_LIBRARY  : return("Library"  );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1203,7 +1203,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
       case MT_INDICATOR: return("MT_INDICATOR");
       case MT_LIBRARY  : return("MT_LIBRARY"  );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1243,7 +1243,7 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
       case PT_SCRIPT   : return("Script");
       case PT_INDICATOR: return("Indicator");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1262,7 +1262,7 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
       case PT_SCRIPT   : return("PT_SCRIPT");
       case PT_INDICATOR: return("PT_INDICATOR");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1286,7 +1286,7 @@ const char* WINAPI OperationTypeDescription(int type) {
       case OP_CREDIT   : return("Credit"    );
       case OP_UNDEFINED: return("undefined" );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1310,7 +1310,7 @@ const char* WINAPI OperationTypeToStr(int type) {
       case OP_CREDIT   : return("OP_CREDIT"   );
       case OP_UNDEFINED: return("OP_UNDEFINED");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1343,7 +1343,7 @@ const char* WINAPI OrderTypeToStr(int type) {
  * Note: This implementation should match the one in MQL's stdfunctions.mqh.
  */
 const char* WINAPI PeriodDescriptionA(int period) {
-   if (period < 0) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
+   if (period < 0) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
       case NULL      : return("NULL");
@@ -1396,7 +1396,7 @@ const wchar* WINAPI PeriodDescriptionW(int period) {
  * @return char* - string or NULL if the parameter is invalid
  */
 const char* WINAPI PeriodToStr(int period) {
-   if (period < 0) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
+   if (period < 0) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
       case NULL      : return("NULL"      );
@@ -1423,7 +1423,7 @@ const char* WINAPI PeriodToStr(int period) {
       case PERIOD_MN1: return("PERIOD_MN1");     // 1 month
       case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter  (custom timeframe)
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "unknown parameter period: %d", period));
+   return((char*)!error(ERR_INVALID_PARAMETER, "unknown parameter period: %d", period));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1450,7 +1450,7 @@ const char* WINAPI ShowWindowCmdToStr(int cmd) {
       case SW_SHOWDEFAULT    : return("SW_SHOWDEFAULT"    );
       case SW_FORCEMINIMIZE  : return("SW_FORCEMINIMIZE"  );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter cmd: %d", cmd));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter cmd: %d", cmd));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1502,7 +1502,7 @@ const char* WINAPI TradeDirectionDescription(int direction) {
       case TRADE_DIRECTION_SHORT: return("Short");
       case TRADE_DIRECTION_BOTH:  return("Both");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1520,7 +1520,7 @@ const char* WINAPI TradeDirectionToStr(int direction) {
       case TRADE_DIRECTION_SHORT: return("TRADE_DIRECTION_SHORT");
       case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1555,6 +1555,6 @@ const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
       case UR_INITFAILED : return("UR_INITFAILED" );
       case UR_CLOSE      : return("UR_CLOSE"      );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
    #pragma EXPANDER_EXPORT
 }

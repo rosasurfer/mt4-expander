@@ -25,9 +25,9 @@
  * @return int - error status
  */
 int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
-   if ((uint)path < MIN_VALID_POINTER)     return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path)));
-   if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter flag: only one of MODE_MQL or MODE_SYSTEM can be specified")));
-   if (!( flags & (MODE_MQL|MODE_SYSTEM))) return(_int(ERR_INVALID_PARAMETER, error(ERR_INVALID_PARAMETER, "invalid parameter flag: one of MODE_MQL or MODE_SYSTEM must be specified")));
+   if ((uint)path < MIN_VALID_POINTER)     return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+   if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter flag: only one of MODE_MQL or MODE_SYSTEM can be specified"));
+   if (!( flags & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter flag: one of MODE_MQL or MODE_SYSTEM must be specified"));
 
    if (flags & MODE_MQL) {
       return(_int(ERR_NOT_IMPLEMENTED, error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented")));
@@ -35,10 +35,10 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
    else /*flags & MODE_SYSTEM*/ {
       // check whether such a file or directory already exists
       if (IsFileOrDirectoryA(path)) {
-         if (!IsDirectoryA(path, MODE_SYSTEM)) return(_int(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path)));
+         if (!IsDirectoryA(path, MODE_SYSTEM)) return(error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path));
          if (flags & MODE_MKPARENT)
             return(NO_ERROR);
-         return(_int(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path)));
+         return(error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path));
       }
 
       // make sure a parent directory exists
@@ -59,7 +59,7 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
       int error = GetLastError();
       if (error==ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT))
          return(NO_ERROR);
-      return(_int(ERR_WIN32_ERROR+error, error(ERR_WIN32_ERROR+error, "creation of \"%s\" failed", path)));
+      return(error(ERR_WIN32_ERROR+error, "creation of \"%s\" failed", path));
    }
    #pragma EXPANDER_EXPORT
 }
@@ -90,12 +90,12 @@ int WINAPI CreateDirectoryA(const string &path, DWORD flags) {
  */
 BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
    if (path) {
-      if ((uint)path < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
-      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
-      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
+      if ((uint)path < MIN_VALID_POINTER)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
+      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
 
       if (mode & MODE_MQL) {
-         return(error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
+         return(!error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
       }
       else /*mode & MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesA(path);
@@ -117,12 +117,12 @@ BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
  */
 BOOL WINAPI IsFileA(const char* path, DWORD mode) {
    if (path) {
-      if ((uint)path < MIN_VALID_POINTER)    return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
-      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
-      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
+      if ((uint)path < MIN_VALID_POINTER)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
+      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
 
       if (mode & MODE_MQL) {
-         return(error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
+         return(!error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
       }
       else /*MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesA(path);
@@ -156,7 +156,7 @@ BOOL WINAPI IsFileA(const string &path, DWORD mode) {
  */
 BOOL WINAPI IsFileOrDirectoryA(const char* name) {
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attributes = GetFileAttributes(name);
       return(attributes != INVALID_FILE_ATTRIBUTES);
@@ -191,7 +191,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attributes = GetFileAttributes(name);
       if ((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
@@ -228,7 +228,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
       DWORD attributes = GetFileAttributes(name);
 
@@ -265,7 +265,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
  * @return char* - resolved name in "\\?\" or UNC format or a NULL pointer in case of errors
  */
 const char* WINAPI GetFinalPathNameA(const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    HANDLE hFile = CreateFile(name,                                                     // file name
                              GENERIC_READ, FILE_SHARE_READ,                            // open for shared reading
@@ -273,7 +273,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
                              OPEN_EXISTING,                                            // open existing file only
                              FILE_ATTRIBUTE_NORMAL,                                    // normal file
                              NULL);                                                    // no attribute template
-   if (hFile == INVALID_HANDLE_VALUE) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
+   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
 
    uint size = MAX_PATH;
    char* path;
@@ -291,7 +291,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
    if (!len) {
       delete[] path;
-      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle()"));
+      return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle()"));
    }
    return(path);                                                                       // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
@@ -311,7 +311,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
 const char* WINAPI GetReparsePointTargetA(const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    // open the reparse point
    HANDLE hFile = CreateFile(name,                                                     // file name
@@ -321,7 +321,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
                              OPEN_EXISTING,                                            // open existing file only
                              FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,  // open reparse point itself
                              NULL);                                                    // no attribute template
-   if (hFile == INVALID_HANDLE_VALUE) return((char*)error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
+   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
 
    // create a reparse data structure
    DWORD bufferSize = MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
@@ -333,7 +333,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    CloseHandle(hFile);
    if (!success) {
       free(rdata);
-      return((char*)error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name));
+      return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name));
    }
 
    char* result = NULL;
