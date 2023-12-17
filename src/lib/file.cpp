@@ -148,6 +148,46 @@ BOOL WINAPI IsFileA(const string &path, DWORD mode) {
 
 
 /**
+ * Whether the specified file exists and is not a directory. Symbolic links are supported.
+ *
+ * @param  wchar* path - file path (supports forward and backward slashes)
+ * @param  DWORD mode  - MODE_MQL:    restrict the function to operate only in the MQL sandbox
+ *                       MODE_SYSTEM: allow the function to operate anywhere in the system
+ * @return BOOL
+ */
+BOOL WINAPI IsFileW(const wchar* path, DWORD mode) {
+   if (path) {
+      if ((uint)path < MIN_VALID_POINTER)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
+      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
+      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
+
+      if (mode & MODE_MQL) {
+         return(!error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
+      }
+      else /*MODE_SYSTEM*/ {
+         DWORD attributes = GetFileAttributesW(path);
+         return((attributes!=INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
+      }
+   }
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether the specified file exists and is not a directory. Symbolic links are supported.
+ *
+ * @param  wstring &path - file path with support for forward and backward slashes
+ * @param  DWORD   mode  - MODE_MQL:    restrict the function to operate only in the MQL sandbox
+ *                         MODE_SYSTEM: allow the function to operate anywhere in the system
+ * @return BOOL
+ */
+BOOL WINAPI IsFileW(const wstring &path, DWORD mode) {
+   return(IsFileW(path.c_str(), mode));
+}
+
+
+/**
  * Whether the specified file or directory exists. Symbolic links and junctions are supported.
  *
  * @param  char* name - full name with support for forward, backward and trailing slashes
