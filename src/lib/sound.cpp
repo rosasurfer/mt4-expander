@@ -107,8 +107,8 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
  * system. Allows mixing of sounds (except midi files). Also plays sounds if the terminal doesn't support it in the current
  * context (e.g. in tester).
  *
- * @param  char* soundfile - either an absolute filename or
- *                           a filename relative to "sounds" of either the terminal or the data directory
+ * @param  char* soundfile - either an absolute filename or a filename relative to "sounds" (terminal or data directory)
+ *
  * @return BOOL - success status
  */
 BOOL WINAPI PlaySoundA(const char* soundfile) {
@@ -156,4 +156,21 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
    // intentionally leave sound open for faster re-use
    return(TRUE);
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI PlaySoundW(const wchar* soundfile) {
+   return(error(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%s\"", unicodeToAnsi(soundfile)));
+}
+
+
+/**
+ *
+ */
+BOOL WINAPI TestSound(const char* soundfile) {
+   return(TRUE);
+   //#pragma EXPANDER_EXPORT
 }

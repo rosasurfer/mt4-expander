@@ -110,9 +110,9 @@ BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
 /**
  * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
- * @param  char* path - file path with support for forward and backward slashes
- * @param  DWORD mode - MODE_MQL:    restrict the function's operation to the MQL sandbox
- *                      MODE_SYSTEM: allow the function to operate outside of the MQL sandbox
+ * @param  char* path - file path (supports forward and backward slashes)
+ * @param  DWORD mode - MODE_MQL:    restrict the function to operate only in the MQL sandbox
+ *                      MODE_SYSTEM: allow the function to operate anywhere in the system
  * @return BOOL
  */
 BOOL WINAPI IsFileA(const char* path, DWORD mode) {
@@ -124,7 +124,7 @@ BOOL WINAPI IsFileA(const char* path, DWORD mode) {
       if (mode & MODE_MQL) {
          return(error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
       }
-      else /*mode & MODE_SYSTEM*/ {
+      else /*MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesA(path);
          return((attributes!=INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
       }
@@ -138,8 +138,8 @@ BOOL WINAPI IsFileA(const char* path, DWORD mode) {
  * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
  * @param  string &path - file path with support for forward and backward slashes
- * @param  DWORD  mode  - MODE_MQL:    restrict the function's operation to the MQL sandbox
- *                        MODE_SYSTEM: allow the function to operate outside of the MQL sandbox
+ * @param  DWORD  mode  - MODE_MQL:    restrict the function to operate only in the MQL sandbox
+ *                        MODE_SYSTEM: allow the function to operate anywhere in the system
  * @return BOOL
  */
 BOOL WINAPI IsFileA(const string &path, DWORD mode) {

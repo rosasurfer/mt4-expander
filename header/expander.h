@@ -14,6 +14,7 @@
 
 #include <iomanip>
 #include <string>
+#include <mbstring.h>
 
 
 // type aliases
@@ -50,9 +51,12 @@ using std::wstring;
 #define MAX_FNAME                      _MAX_FNAME           // max. length of file name component
 #define MAX_EXT                        _MAX_EXT             // max. length of extension component
 
-#define strdup       _strdup                                // duplicate a C string
-#define mbsdup       _mbsdup                                // duplicate a UTF-8 string
-#define wcsdup       _wcsdup                                // duplicate a UTF-16 string
+#define strdup    _strdup                                   // duplicate a C string
+#define mbsdup    _mbsdup                                   // duplicate a UTF-8 string
+#define wsdup     _wcsdup                                   // duplicate a UTF-16 string
+
+#define vscprintf _vscprintf                                // count C chars of resulting string using a var-list of arguments
+#define snprintf  _snprintf                                 // write formatted data to a sized (numbered) C string buffer
 
 
 // MQL program types (flags)

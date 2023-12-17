@@ -464,16 +464,17 @@ void WINAPI ReleaseWindowProperties() {
 
 
 /**
- * Copy the symbol-timeframe description as in the title bar of a chart window to the specified buffer. If the buffer is too
- * small the string in the buffer is truncated. The string is always terminated with a null character.
+ * Compose a <symbol>,<timeframe> description of the specified parameters (format as in chart title bar, e.g. "EURUSD,Daily")
+ * and copy it to the passed buffer. If the buffer is too small the string in the buffer is truncated. The string is always
+ * terminated with a null character.
  *
  * @param  char* symbol
  * @param  uint  timeframe
  * @param  char* buffer
  * @param  uint  bufferSize
  *
- * @return uint - Amount of copied characters not counting the terminating null character or {bufferSize} if the buffer is
- *                too small and the string in the buffer was truncated. NULL in case of errors.
+ * @return uint - Amount of copied characters not counting the terminating null character or the passed parameter 'bufferSize'
+ *                if the buffer is too small and the string in the buffer was truncated. NULL in case of errors.
  */
 uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
    uint symbolLength = strlen(symbol);
@@ -496,7 +497,7 @@ uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer
       default:
          return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe));
    }
-   uint chars = _snprintf(buffer, bufferSize, "%s,%s", symbol, sTimeframe);
+   uint chars = snprintf(buffer, bufferSize, "%s,%s", symbol, sTimeframe);
 
    if (chars < 0 || chars==bufferSize) {
       buffer[chars-1] = 0;

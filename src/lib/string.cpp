@@ -690,7 +690,7 @@ char* _asformat(const char* format, const va_list &args) {
    if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
    if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
-   uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
+   uint size = vscprintf(format, args) + 1;                 // +1 for the terminating '\0'
    char* buffer = (char*)malloc(size);
    if (buffer) {
       vsprintf_s(buffer, size, format, args);

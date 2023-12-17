@@ -1015,7 +1015,7 @@ const char* WINAPI ErrorToStrA(int error) {
  */
 const wchar* WINAPI ErrorToStrW(int error) {
    wstring s = ansiToUnicode(string(ErrorToStrA(error)));
-   return(wcsdup(s.c_str()));
+   return(wsdup(s.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1218,7 +1218,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
  *
  * @return char* - formatted string or a NULL pointer in case of errors
  *
- *       Format codes:
+ * Format codes:
  * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
@@ -1384,7 +1384,7 @@ const char* WINAPI PeriodDescriptionA(int period) {
 const wchar* WINAPI PeriodDescriptionW(int period) {
    const char* s = PeriodDescriptionA(period);
    if (!s) return(NULL);
-   return(wcsdup(ansiToUnicode(string(s)).c_str()));
+   return(wsdup(ansiToUnicode(string(s)).c_str()));
 }
 
 
