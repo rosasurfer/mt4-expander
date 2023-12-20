@@ -184,4 +184,8 @@ BOOL WINAPI TestSound(const char* soundfile) {
    debug("format %%S, unicode param: %S", L"arg");
    return(TRUE);
    //#pragma EXPANDER_EXPORT
+
+   // @see  API description of winmm::PlaySound()
+   //  http://www.jasinskionline.com/windowsapi/ref/p/playsound.html
+   //  https://learn.microsoft.com/en-us/previous-versions/dd743680(v=vs.85)#  (update flag description)
 }
