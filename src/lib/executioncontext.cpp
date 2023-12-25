@@ -396,14 +396,14 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    else {
       // ec.pid is set: an expert in init cycle or any other program after a repeated init() call
       master = (*g_mqlInstances[currentPid])[0];
-      (*g_mqlInstances[currentPid])[1] = ec;                                // store main context at old (possibly empty) position
+      (*g_mqlInstances[currentPid])[1] = ec;                               // store main context at old (possibly empty) position
    }
 
 
    // (2) update main and master context
    ec_SetProgramType         (ec, programType );
    ec_SetProgramName         (ec, programName );
-   ec_SetProgramCoreFunction (ec, CF_INIT     );                           // TODO: wrong for init() calls from start()
+   if (ec->programCoreFunction != CF_START) ec_SetProgramCoreFunction (ec, CF_INIT);
    ec_SetProgramInitReason   (ec, initReason  );
    ec_SetProgramUninitReason (ec, uninitReason);
    ec_SetProgramInitFlags    (ec, initFlags   );
@@ -418,10 +418,10 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    ec_SetSymbol              (ec, symbol   );
    ec_SetTimeframe           (ec, timeframe);
-   master->rates = ec->rates = NULL;                                       // re-initialized on the next tick        // TODO: may be wrong for multiple
-   ec_SetBars                (ec,  0);                                     // ...                                    //       init() calls from start()
-   ec_SetValidBars           (ec, -1);                                     // ...                                    //       reset only on UR_CHARTCHANGE
-   ec_SetChangedBars         (ec, -1);                                     // ...                                    //
+   master->rates = ec->rates = NULL;                                       // re-initialized on the next tick
+   ec_SetBars                (ec,  0);                                     // ...
+   ec_SetValidBars           (ec, -1);                                     // ...
+   ec_SetChangedBars         (ec, -1);                                     // ...
 
    if (initReason == IR_SYMBOLCHANGE) {
       master->ticks        = ec->ticks        = 0;
