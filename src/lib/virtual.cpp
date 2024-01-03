@@ -209,8 +209,8 @@ const char* WINAPI InputsToStr() {
 }
 
 
-BOOL WINAPI Recorder_GetSymbolDefinition(int i, BOOL enabled, const char* symbol, const char* symbolDescr, const char* symbolGroup, int symbolDigits, double hstBase, int hstMultiplier) {
-   return(FALSE);
+int WINAPI Recorder_GetSymbolDefinition(int id, BOOL* enabled, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
+   return(ERR_NOT_IMPLEMENTED);
    #pragma EXPANDER_EXPORT
 }
 
