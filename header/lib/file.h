@@ -41,6 +41,5 @@ BOOL        WINAPI IsFileA(const string &path, DWORD mode);
 BOOL        WINAPI IsFileW(const wchar* path, DWORD mode);
 BOOL        WINAPI IsFileW(const wstring &path, DWORD mode);
 BOOL        WINAPI IsFileOrDirectoryA(const char* name);
-BOOL        WINAPI IsFileOrDirectoryA(const string &name);
 BOOL        WINAPI IsJunctionA(const char* name);
 BOOL        WINAPI IsSymlinkA(const char* name);

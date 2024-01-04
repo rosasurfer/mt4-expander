@@ -192,18 +192,6 @@ BOOL WINAPI IsFileOrDirectoryA(const char* name) {
 
 
 /**
- * Whether the specified file or directory exists. Symbolic links and junctions are supported.
- *
- * @param  string &name - full name with support for forward, backward and trailing slashes
- *
- * @return BOOL
- */
-BOOL WINAPI IsFileOrDirectoryA(const string &name) {
-   return(IsFileOrDirectoryA(name.c_str()));
-}
-
-
-/**
  * Whether the specified directory exists and is a junction.
  *
  * @param  char* name - full directory name with support for forward and backward slashes
