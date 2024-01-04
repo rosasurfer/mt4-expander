@@ -11,6 +11,8 @@ const char*             WINAPI GetHistoryRootPathA();
 const wchar*            WINAPI GetHistoryRootPathW();
 const char*             WINAPI GetMqlDirectoryA();
 const wchar*            WINAPI GetMqlDirectoryW();
+const char*             WINAPI GetMqlSandboxPathA(BOOL inTester);
+const wchar*            WINAPI GetMqlSandboxPathW(BOOL inTester);
 uint                    WINAPI GetTerminalBuild();
 const char*             WINAPI GetTerminalCommonDataPathA();
 const wchar*            WINAPI GetTerminalCommonDataPathW();

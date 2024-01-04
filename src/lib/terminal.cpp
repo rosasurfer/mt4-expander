@@ -205,7 +205,7 @@ const wchar* WINAPI GetHistoryRootPathW() {
 
 
 /**
- * Return the full path of the currently used MQL directory.
+ * Return the full path of the MQL directory.
  *
  * @return char* - directory name or a NULL pointer in case of errors
  */
@@ -227,7 +227,7 @@ const char* WINAPI GetMqlDirectoryA() {
 
 
 /**
- * Return the full path of the currently used MQL directory.
+ * Return the full path of the MQL directory.
  *
  * @return wchar* - directory name or a NULL pointer in case of errors
  */
@@ -245,6 +245,60 @@ const wchar* WINAPI GetMqlDirectoryW() {
       }
    }
    return(mqlDirectory);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the MQL sandbox directory. This is the only directory accessible to built-in MQL file functions.
+ *
+ * @param  BOOL inTester - whether to return the online path or the one in the tester
+ *
+ * @return char* - directory path or a NULL pointer in case of errors
+ */
+const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
+   if (inTester) {
+      const char* dataDirectory = GetTerminalDataPathA();
+      if (dataDirectory) {
+         string path = string(dataDirectory).append("\\tester\\files");
+         return(strdup(path.c_str()));
+      }
+   }
+   else {
+      const char* mqlDirectory = GetMqlDirectoryA();
+      if (mqlDirectory) {
+         string path = string(mqlDirectory).append("\\files");
+         return(strdup(path.c_str()));
+      }
+   }
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the MQL sandbox directory. This is the only directory accessible to built-in MQL file functions.
+ *
+ * @param  BOOL inTester - whether to return the online path or the one in the tester
+ *
+ * @return wchar* - directory path or a NULL pointer in case of errors
+ */
+const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
+   if (inTester) {
+      const wchar* dataDirectory = GetTerminalDataPathW();
+      if (dataDirectory) {
+         wstring path = wstring(dataDirectory).append(L"\\tester\\files");
+         return(wsdup(path.c_str()));
+      }
+   }
+   else {
+      const wchar* mqlDirectory = GetMqlDirectoryW();
+      if (mqlDirectory) {
+         wstring path = wstring(mqlDirectory).append(L"\\files");
+         return(wsdup(path.c_str()));
+      }
+   }
+   return(NULL);
    #pragma EXPANDER_EXPORT
 }
 
