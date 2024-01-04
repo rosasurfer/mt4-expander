@@ -122,19 +122,6 @@ BOOL WINAPI IsFileA(const char* path, DWORD mode) {
 /**
  * Whether the specified file exists and is not a directory. Symbolic links are supported.
  *
- * @param  string &path - file path with support for forward and backward slashes
- * @param  DWORD  mode  - MODE_MQL:    restrict the function to operate only in the MQL sandbox
- *                        MODE_SYSTEM: allow the function to operate anywhere in the system
- * @return BOOL
- */
-BOOL WINAPI IsFileA(const string &path, DWORD mode) {
-   return(IsFileA(path.c_str(), mode));
-}
-
-
-/**
- * Whether the specified file exists and is not a directory. Symbolic links are supported.
- *
  * @param  wchar* path - file path (supports forward and backward slashes)
  * @param  DWORD mode  - MODE_MQL:    restrict the function to operate only in the MQL sandbox
  *                       MODE_SYSTEM: allow the function to operate anywhere in the system

@@ -743,7 +743,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
          cmd = MT4_LOAD_SCRIPT;
          break;
    }
-   if (!IsFileA(file, MODE_SYSTEM)) return(!error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
+   if (!IsFileA(file.c_str(), MODE_SYSTEM)) return(!error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
 
    // trigger the launch of the program
    if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of 'name' from the heap
@@ -824,9 +824,14 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
       string soundfile("sounds/alert.wav");
 
       // look-up the .wav file in the terminal's installation and the user's data directory
-      string filepath = string(GetTerminalPathA()).append("/").append(soundfile);
-      if (IsFileA(filepath, MODE_SYSTEM) || IsFileA(filepath=string(GetTerminalDataPathA()).append("/").append(soundfile), MODE_SYSTEM)) {
-         PlaySoundA(filepath.c_str(), NULL, SND_FILENAME|SND_ASYNC);
+      string filepath1 = string(GetTerminalPathA()).append("/").append(soundfile);
+      string filepath2 = string(GetTerminalDataPathA()).append("/").append(soundfile);
+
+      if (IsFileA(filepath1.c_str(), MODE_SYSTEM)) {
+         PlaySoundA(filepath1.c_str(), NULL, SND_FILENAME|SND_ASYNC);
+      }
+      else if (IsFileA(filepath2.c_str(), MODE_SYSTEM)) {
+         PlaySoundA(filepath2.c_str(), NULL, SND_FILENAME|SND_ASYNC);
       }
       else debug("sound file not found: \"%s\"", soundfile.c_str());
    }
