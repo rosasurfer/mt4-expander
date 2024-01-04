@@ -42,7 +42,8 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
       if (!IsFileA(master->logFilename, MODE_SYSTEM)) {
          char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
-         if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT))      // make sure the directory exists
+         string path = string(drive).append(dir);
+         if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT))                   // make sure the directory exists
             return(FALSE);
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
@@ -106,7 +107,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
-   if (master->superContext) return(TRUE);                                                // ignore the call if in iCustom()
+   if (master->superContext) return(TRUE);                                       // ignore the call if in iCustom()
 
    if (filename && *filename) {
       // enable the file logger
@@ -123,19 +124,20 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
             if (!IsFileA(filename, MODE_SYSTEM)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                                        // extract the directory part of logFilename
+               char drive[MAX_DRIVE], dir[MAX_DIR];                              // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
-               if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT)) // make sure the directory exists
+               string path = string(drive).append(dir);
+               if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT))    // make sure the directory exists
                   return(FALSE);
             }
-            log->open(filename, std::ios::binary|std::ios::app);                           // open the logfile
+            log->open(filename, std::ios::binary|std::ios::app);                 // open the logfile
             if (!log->is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
 
             if (master->logBuffer && master->logBuffer->size()) {
                uint size = master->logBuffer->size();
                for (uint i=0; i < size; ++i) {
                   string entry = (*master->logBuffer)[i];
-                  *master->logger << entry << NL;                                          // append existing logbuffer entries
+                  *master->logger << entry << NL;                                // append existing logbuffer entries
                }
                master->logger->flush();
                master->logBuffer->clear();

@@ -66,21 +66,6 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
 
 
 /**
- * Create a directory.
- *
- * @param  string &path - directory path
- * @param  DWORD  flags - MODE_MQL:      restrict the function's operation to the MQL sandbox
- *                        MODE_SYSTEM:   allow the function to operate outside of the MQL sandbox
- *                        MODE_MKPARENT: create parent directories as needed and report no error on an existing directory;
- *                                       otherwise create only the final directory and report an error if it exists
- * @return int - error status
- */
-int WINAPI CreateDirectoryA(const string &path, DWORD flags) {
-   return(CreateDirectoryA(path.c_str(), flags));
-}
-
-
-/**
  * Whether the specified directory exists and is not a regular file. Symbolic links and junctions are supported.
  *
  * @param  char* path - directory path with support for forward, backward and trailing slashes

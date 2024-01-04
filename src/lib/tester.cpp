@@ -386,7 +386,7 @@ BOOL WINAPI Test_SaveReport(const TEST* test) {
    string filename = string(path).append(test->ec->programName).append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
 
    // make sure the directory exists
-   int error = CreateDirectoryA(path, MODE_SYSTEM|MODE_MKPARENT);
+   int error = CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT);
    if (error) return(!error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", path.c_str()));
 
    // create the report file
