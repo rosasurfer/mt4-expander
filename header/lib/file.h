@@ -38,7 +38,6 @@ const char* WINAPI GetReparsePointTargetA(const char* name);
 BOOL        WINAPI IsDirectoryA(const char* path, DWORD mode);
 BOOL        WINAPI IsFileA(const char* path, DWORD mode);
 BOOL        WINAPI IsFileW(const wchar* path, DWORD mode);
-BOOL        WINAPI IsFileW(const wstring &path, DWORD mode);
 BOOL        WINAPI IsFileOrDirectoryA(const char* name);
 BOOL        WINAPI IsJunctionA(const char* name);
 BOOL        WINAPI IsSymlinkA(const char* name);

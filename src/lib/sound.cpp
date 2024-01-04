@@ -135,13 +135,13 @@ BOOL WINAPI PlaySoundW(const wchar* soundfile) {
    wstring filepath(soundfile);
 
    // test absolute path
-   if (!IsFileW(filepath, MODE_SYSTEM)) {
+   if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
       // test data dir path
       filepath = wstring(GetTerminalDataPathW()).append(L"\\sounds\\").append(soundfile);
-      if (!IsFileW(filepath, MODE_SYSTEM)) {
+      if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
          // test terminal dir path
          filepath = wstring(GetTerminalPathW()).append(L"\\sounds\\").append(soundfile);
-         if (!IsFileW(filepath, MODE_SYSTEM)) {
+         if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
             return(!error(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%S\" (file not found)", soundfile));
          }
       }
