@@ -258,20 +258,24 @@ const wchar* WINAPI GetMqlDirectoryW() {
  */
 const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
    if (inTester) {
-      const char* dataDirectory = GetTerminalDataPathA();
-      if (dataDirectory) {
+      static char* testerPath;
+      if (!testerPath) {
+         const char* dataDirectory = GetTerminalDataPathA();
+         if (dataDirectory) return(NULL);
          string path = string(dataDirectory).append("\\tester\\files");
-         return(strdup(path.c_str()));
+         testerPath = strdup(path.c_str());
       }
+      return(testerPath);
    }
-   else {
+
+   static char* onlinePath;
+   if (!onlinePath) {
       const char* mqlDirectory = GetMqlDirectoryA();
-      if (mqlDirectory) {
-         string path = string(mqlDirectory).append("\\files");
-         return(strdup(path.c_str()));
-      }
+      if (!mqlDirectory) return(NULL);
+      string path = string(mqlDirectory).append("\\files");
+      onlinePath = strdup(path.c_str());
    }
-   return(NULL);
+   return(onlinePath);
    #pragma EXPANDER_EXPORT
 }
 
@@ -285,20 +289,24 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
  */
 const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
    if (inTester) {
-      const wchar* dataDirectory = GetTerminalDataPathW();
-      if (dataDirectory) {
+      static wchar* testerPath;
+      if (!testerPath) {
+         const wchar* dataDirectory = GetTerminalDataPathW();
+         if (dataDirectory) return(NULL);
          wstring path = wstring(dataDirectory).append(L"\\tester\\files");
-         return(wsdup(path.c_str()));
+         testerPath = wsdup(path.c_str());
       }
+      return(testerPath);
    }
-   else {
+
+   static wchar* onlinePath;
+   if (!onlinePath) {
       const wchar* mqlDirectory = GetMqlDirectoryW();
-      if (mqlDirectory) {
-         wstring path = wstring(mqlDirectory).append(L"\\files");
-         return(wsdup(path.c_str()));
-      }
+      if (!mqlDirectory) return(NULL);
+      wstring path = wstring(mqlDirectory).append(L"\\files");
+      onlinePath = wsdup(path.c_str());
    }
-   return(NULL);
+   return(onlinePath);
    #pragma EXPANDER_EXPORT
 }
 
