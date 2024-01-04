@@ -261,7 +261,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
       static char* testerPath;
       if (!testerPath) {
          const char* dataDirectory = GetTerminalDataPathA();
-         if (dataDirectory) return(NULL);
+         if (!dataDirectory) return(NULL);
          string path = string(dataDirectory).append("\\tester\\files");
          testerPath = strdup(path.c_str());
       }
@@ -292,7 +292,7 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
       static wchar* testerPath;
       if (!testerPath) {
          const wchar* dataDirectory = GetTerminalDataPathW();
-         if (dataDirectory) return(NULL);
+         if (!dataDirectory) return(NULL);
          wstring path = wstring(dataDirectory).append(L"\\tester\\files");
          testerPath = wsdup(path.c_str());
       }
