@@ -167,7 +167,7 @@ HMODULE WINAPI GetExpanderModuleXP() {
 /**
  * Return the full path of the history root directory. The function doesn't check whether the directory exists.
  *
- * @return char* - directory name or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetHistoryRootPathA() {
    static char* hstDirectory;
@@ -187,7 +187,7 @@ const char* WINAPI GetHistoryRootPathA() {
 /**
 * Return the full path of the history root directory. The function doesn't check whether the directory exists.
  *
- * @return wchar* - directory name or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetHistoryRootPathW() {
    static wchar* hstDirectory;
@@ -207,7 +207,7 @@ const wchar* WINAPI GetHistoryRootPathW() {
 /**
  * Return the full path of the MQL directory.
  *
- * @return char* - directory name or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
@@ -229,7 +229,7 @@ const char* WINAPI GetMqlDirectoryA() {
 /**
  * Return the full path of the MQL directory.
  *
- * @return wchar* - directory name or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetMqlDirectoryW() {
    static wchar* mqlDirectory;
@@ -254,7 +254,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
  *
  * @param  BOOL inTester - whether to return the online path or the one in the tester
  *
- * @return char* - directory path or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
    if (inTester) {
@@ -285,7 +285,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
  *
  * @param  BOOL inTester - whether to return the online path or the one in the tester
  *
- * @return wchar* - directory path or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
    if (inTester) {
@@ -334,7 +334,7 @@ uint WINAPI GetTerminalBuild() {
  * introduced in MQL5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
- * @return char* - directory name or a NULL pointer in case of errors,
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
@@ -358,7 +358,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * introduced in MQL5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
- * @return wchar* - directory name or a NULL pointer in case of errors,
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
  *                  e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const wchar* WINAPI GetTerminalCommonDataPathW() {
@@ -381,7 +381,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
  * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
  * introduced in MQL5). The function does not check whether the returned directory exists.
  *
- * @return char* - directory name or a NULL pointer in case of errors,
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
  *                 e.g. "%ProgramFiles%\MetaTrader4"
  */
 const char* WINAPI GetTerminalDataPathA() {
@@ -454,7 +454,7 @@ const char* WINAPI GetTerminalDataPathA() {
  * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
  * introduced in MQL5). The function does not check whether the returned directory exists.
  *
- * @return wchar* - directory name or a NULL pointer in case of errors,
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
  *                  e.g. "%ProgramFiles%\MetaTrader4"
  */
 const wchar* WINAPI GetTerminalDataPathW() {
@@ -616,7 +616,7 @@ const wchar* WINAPI GetTerminalPathW() {
 * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
 * introduced in MQL5).
  *
- * @return wstring& - directory name or an empty string in case of errors
+ * @return wstring& - directory name without trailing path separator or an empty string in case of errors
  */
 const wstring& WINAPI getTerminalPathW() {
    static wstring path;
@@ -636,7 +636,7 @@ const wstring& WINAPI getTerminalPathW() {
  * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
  * data directory may differ. The function does not check whether the returned path exists.
  *
- * @return char* - directory name or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
@@ -666,7 +666,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
  * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
  * data directory may differ. The function does not check whether the returned path exists.
  *
- * @return char* - directory name or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
  */
 const wchar* WINAPI GetTerminalRoamingDataPathW() {
