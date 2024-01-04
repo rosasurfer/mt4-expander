@@ -298,7 +298,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
 
 
 /**
- * Get a path's final name. This function resolves all reparse points in the path (symlinks, junctions, mount points, subst).
+ * Get a path's final name. Resolves all reparse points in the path (symlinks, junctions, mount points, subst).
  *
  * @param  char* name - path
  *
@@ -307,13 +307,13 @@ BOOL WINAPI IsSymlinkA(const char* name) {
 const char* WINAPI GetFinalPathNameA(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
-   HANDLE hFile = CreateFile(name,                                                     // file name
-                             GENERIC_READ, FILE_SHARE_READ,                            // open for shared reading
-                             NULL,                                                     // default security
-                             OPEN_EXISTING,                                            // open existing file only
-                             FILE_ATTRIBUTE_NORMAL,                                    // normal file
-                             NULL);                                                    // no attribute template
-   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
+   HANDLE hFile = CreateFileA(name,                                                    // file name
+                              GENERIC_READ, FILE_SHARE_READ,                           // open for shared reading
+                              NULL,                                                    // default security
+                              OPEN_EXISTING,                                           // open existing file only
+                              FILE_ATTRIBUTE_NORMAL,                                   // normal file
+                              NULL);                                                   // no attribute template
+   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFileA() cannot open \"%s\"", name));
 
    uint size = MAX_PATH;
    char* path;
@@ -321,7 +321,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
    while (true) {
       path = new char[size];                                                           // on the heap
-      len  = GetFinalPathNameByHandle(hFile, path, size, VOLUME_NAME_DOS|FILE_NAME_OPENED);
+      len  = GetFinalPathNameByHandleA(hFile, path, size, VOLUME_NAME_DOS|FILE_NAME_OPENED);
       if (len < size)
          break;
       size <<= 1;                                                                      // increase buffer size
@@ -331,7 +331,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
 
    if (!len) {
       delete[] path;
-      return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandle()"));
+      return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandleA()"));
    }
    return(path);                                                                       // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
@@ -354,14 +354,14 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    // open the reparse point
-   HANDLE hFile = CreateFile(name,                                                     // file name
-                             FILE_READ_EA,                                             // request reading of extended attributes
-                             FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,       // open for shared access
-                             NULL,                                                     // default security
-                             OPEN_EXISTING,                                            // open existing file only
-                             FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,  // open reparse point itself
-                             NULL);                                                    // no attribute template
-   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFile() cannot open \"%s\"", name));
+   HANDLE hFile = CreateFileA(name,                                                    // file name
+                              FILE_READ_EA,                                            // request reading of extended attributes
+                              FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,      // open for shared access
+                              NULL,                                                    // default security
+                              OPEN_EXISTING,                                           // open existing file only
+                              FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS, // open reparse point itself
+                              NULL);                                                   // no attribute template
+   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFileA() cannot open \"%s\"", name));
 
    // create a reparse data structure
    DWORD bufferSize = MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
@@ -384,7 +384,6 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
          uint   offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
          uint   len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
          string target = unicodeToAnsi(wstring(&rdata->MountPointReparseBuffer.PathBuffer[offset], len));
-         //debug("mount point to \"%s\"", target.c_str());
          result = strdup(target.c_str() + strlen("\\??\\"));
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
@@ -393,8 +392,6 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
          string target = unicodeToAnsi(wstring(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len));
 
          BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
-         //debug("%s symlink to \"%s\"", isRelative ? "relative":"absolute", target.c_str());
-
          if (isRelative) {
             char drive[MAX_DRIVE], dir[MAX_DIR];
             _splitpath(name, drive, dir, NULL, NULL);
