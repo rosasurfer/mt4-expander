@@ -209,7 +209,7 @@ const char* WINAPI InputsToStr() {
 }
 
 
-int WINAPI Recorder_GetSymbolDefinition(int id, BOOL* enabled, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
+int WINAPI Recorder_GetSymbolDefinition(int id, BOOL* ready, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
    return(ERR_NOT_IMPLEMENTED);
    #pragma EXPANDER_EXPORT
 }

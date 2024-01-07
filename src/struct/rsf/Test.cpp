@@ -97,7 +97,7 @@ uint WINAPI test_SetTicks(TEST* test, uint ticks) {
  * Set the spread used in a TEST.
  *
  * @param  TEST*  test
- * @param  double spread - spread in pips
+ * @param  double spread - spread in pip
  *
  * @return double - the same spread
  */
