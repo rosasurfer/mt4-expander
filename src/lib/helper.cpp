@@ -44,7 +44,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
    if (!unicodeText) return(NULL);
 
    char* ansiText = strdup(unicodeToAnsi(wstring(unicodeText)).c_str());   // on the heap
-   delete[] unicodeText;
+   free(unicodeText);
 
    return(ansiText);
    #pragma EXPANDER_EXPORT
@@ -57,24 +57,30 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  *
  * @param  HWND  hWnd - window handle
  *
- * @return wchar* - text or a NULL pointer if the window doesn't have a text or in case of errors
+ * @return wchar* - text (may be an empty string) or a NULL pointer in case of errors
  *
- * Note: The caller is responsible for releasing the string's memory after usage with "delete[]".
+ * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
    if (!IsWindow(hWnd)) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
 
+   SetLastError(NO_ERROR);
    wchar* buffer = NULL;
    uint size=32, length=size;
 
-   while (length >= size-1) {                               // if (length == size-1) the string *may* have been truncated
-      delete[] buffer;
+   while (length >= size-1) {                               // if (length == size-1) the string may have been truncated
+      free(buffer);
       size <<= 1;                                           // double the size
-      buffer = new wchar[size];                             // on the heap
+      buffer = (wchar*)malloc(size*2);                      // on the heap
       length = InternalGetWindowText(hWnd, buffer, size);
    }
-   if (!length) return(NULL);
 
+   if (!length) {
+      if (DWORD error = GetLastError()) {
+         free(buffer);
+         return((wchar*)!error(ERR_WIN32_ERROR+error, "->InternalGetWindowText()"));
+      }
+   }
    return(buffer);
    #pragma EXPANDER_EXPORT
 }

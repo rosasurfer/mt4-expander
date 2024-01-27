@@ -1792,7 +1792,7 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
 
          wchar* title = GetInternalWindowTextW(hWnd);
          BOOL result = StrEndsWith(title, L"(visual)");
-         delete[] title;
+         free(title);
          return(result);                                             // all remaining cases according to "(visual)" in title
       }
 
@@ -1804,7 +1804,7 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
          if (hWnd) {
             wchar* title = GetInternalWindowTextW(hWnd);
             BOOL result = StrEndsWith(title, L"(visual)");
-            delete[] title;
+            free(title);
             return(result);
          }
          return(!error(ERR_ILLEGAL_STATE, "script without a chart:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));

@@ -94,8 +94,6 @@ int WINAPI Tester_GetBarModel() {
  * @return time32 - start date as a Unix timestamp or NULL (0) in case of errors
  */
 time32 WINAPI Tester_GetStartDate() {
-   // TODO: because of i18n we can't rely on the control's text
-
    HWND hWndTester = FindTesterWindow();
    if (!hWndTester) return(NULL);
 
@@ -107,19 +105,18 @@ time32 WINAPI Tester_GetStartDate() {
 
    uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
    char* className = (char*) alloca(bufSize);               // on the stack
-
    HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)     return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab not found"));
 
-   char* wndTitle = GetInternalWindowTextA(hWndNext);       // FIX-ME
+   // TODO: because of i18n we can't rely on the control's text
+   char* wndTitle = GetInternalWindowTextA(hWndNext);
    if (!GetClassNameA(hWndNext, className, bufSize))                       return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
    if (!StrCompare(wndTitle, "From:") || !StrCompare(className, "Static")) return(!error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Use date\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    free(wndTitle);
-
    hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)             return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"From:\" label in \"Settings\" tab of tester window not found"));
 
    if (!GetClassNameA(hWndNext, className, bufSize))                       return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
    if (!StrCompare(className, "SysDateTimePick32"))                        return(!error(ERR_RUNTIME_ERROR, "unexpected sibling of \"From:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
-   wndTitle = GetInternalWindowTextA(hWndNext);
+   wndTitle = GetInternalWindowTextA(hWndNext);             // TODO: ERROR: GetInternalWindowTextA() unexpected text of "Startdate" control: "(null)"
    if (!wndTitle || strlen(wndTitle) < 10)                                 return(!error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Startdate\" control: \"%s\"", wndTitle));
 
    char* sDate = wndTitle;
@@ -143,8 +140,6 @@ time32 WINAPI Tester_GetStartDate() {
  * @return time32 - end date as a Unix timestamp or NULL (0) in case of errors
  */
 time32 WINAPI Tester_GetEndDate() {
-   // TODO: because of i18n we can't rely on the control's text
-
    HWND hWndTester = FindTesterWindow();
    if (!hWndTester) return(NULL);
 
@@ -156,19 +151,18 @@ time32 WINAPI Tester_GetEndDate() {
 
    uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
    char* className = (char*)alloca(bufSize);                // on the stack
-
    HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT); if (!hWndNext)  return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Optimization\" checkbox in \"Settings\" tab of tester window not found"));
 
-   char* wndTitle = GetInternalWindowTextA(hWndNext);       // FIX-ME
+   // TODO: because of i18n we can't rely on the control's text
+   char* wndTitle = GetInternalWindowTextA(hWndNext);
    if (!GetClassName(hWndNext, className, bufSize))                      return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
    if (!StrCompare(wndTitle, "To:") || !StrCompare(className, "Static")) return(!error(ERR_RUNTIME_ERROR+GetLastError(), "unexpected sibling of \"Optimization\" checkbox:  title=\"%s\"  class=\"%s\"", wndTitle, className));
    free(wndTitle);
-
    hWndNext = GetWindow(hWndNext, GW_HWNDNEXT); if (!hWndNext)           return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"To:\" label in \"Settings\" tab of tester window not found"));
 
    if (!GetClassName(hWndNext, className, bufSize))                      return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
    if (!StrCompare(className, "SysDateTimePick32"))                      return(!error(ERR_RUNTIME_ERROR, "unexpected sibling of \"To:\" label:  title=\"%s\"  class=\"%s\"", wndTitle, className));
-   wndTitle = GetInternalWindowTextA(hWndNext);
+   wndTitle = GetInternalWindowTextA(hWndNext);             // TODO: ERROR: GetInternalWindowTextA() unexpected text of "Enddate" control: "(null)"
    if (!wndTitle || strlen(wndTitle) < 10)                               return(!error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextA() unexpected text of \"Enddate\" control: \"%s\"", wndTitle));
 
    char* sDate = wndTitle;
@@ -240,6 +234,8 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*
       test->fxtHeader = fxtHeader;
    }
 
+   if (lots == 1)                                     // prevent modification of original value by math
+      return(test->fxtHeader->commissionValue);
    return(test->fxtHeader->commissionValue * lots);
    #pragma EXPANDER_EXPORT
 }

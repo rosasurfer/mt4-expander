@@ -856,7 +856,6 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    uint bufSize = 8;                                        // big enough to hold class name "#32770"
    char* className = (char*)alloca(bufSize);                // on the stack
    wchar* wndTitle = NULL;
-   int error = NULL;
 
    // TODO: because of i18n we can't rely on the control's text
 
@@ -864,10 +863,10 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
       if (processId == self) {                              // the window belongs to us
+         free(wndTitle);
          wndTitle = GetInternalWindowTextW(hWndNext);
-         if (!wndTitle && (error=GetLastError()))          return(!error(ERR_WIN32_ERROR+error, "GetInternalWindowTextW()"));
+         if (!wndTitle)                                    return(FALSE);
          if (!GetClassNameA(hWndNext, className, bufSize)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
-
          if (StrCompare(wndTitle, L"Alert") && StrCompare(className, "#32770")) {
             hWndAlert = hWndNext;
             break;
@@ -875,7 +874,7 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
       }
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    }
-   delete[] wndTitle;
+   free(wndTitle);
    if (!hWndAlert) return(debug("\"Alert\" dialog window not found"));
 
    // show the found window
