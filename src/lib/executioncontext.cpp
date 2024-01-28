@@ -1279,8 +1279,8 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
 
       uint size = MAX_CHARTDESCRIPTION_LENGTH + 1;
       char* chartDescription = (char*)alloca(size);                  // on the stack
-      uint chars = GetChartDescription(symbol, timeframe, chartDescription, size);
-      if (!chars) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "GetChartDescription()")));
+      uint chars = ComposeChartDescription(symbol, timeframe, chartDescription, size);
+      if (!chars) return(INVALID_HWND);
 
       char* title = NULL;
       int id = INT_MAX;

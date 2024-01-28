@@ -485,7 +485,7 @@ void WINAPI ReleaseWindowProperties() {
  * @return uint - Amount of copied characters not counting the terminating null character or the passed parameter 'bufferSize'
  *                if the buffer is too small and the string in the buffer was truncated. NULL in case of errors.
  */
-uint WINAPI GetChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
+uint WINAPI ComposeChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
    uint symbolLength = strlen(symbol);
    if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: %s", DoubleQuoteStr(symbol)));
    if (!buffer)                                           return(!error(ERR_INVALID_PARAMETER, "invalid parameter buffer: %p", buffer));
