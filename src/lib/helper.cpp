@@ -125,7 +125,7 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
    wchar* buffer = NULL;
    uint size=32, length=size;
 
-   while (length >= size-1) {                               // if (length == size-1) the string *may* have been truncated
+   while (length >= size-1) {                               // if (length == size-1) the string may have been truncated
       free(buffer);
       size <<= 1;                                           // double the size
       buffer = (wchar*)malloc(size*2);                      // on the heap

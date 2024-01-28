@@ -257,22 +257,20 @@ DWORD WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSiz
  * @param  char* key                     - case-insensitive configuration key
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
- * @return char* - Configuration value, the default value or an empty string in case of errors. Enclosing white space and
- *                 trailing comments are removed.
+ * @return char* - Config value or the default value if the config value does not exist (enclosing white space and inline
+ *                 comments are removed. A NULL pointer in case of errors.
  *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "delete".
+ * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
 char* WINAPI GetIniStringA(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
    char* value = GetIniStringRawA(fileName, section, key, defaultValue);
-   if (!value || !*value)
-      return(value);
+   if (!value || !*value) return(value);
 
    size_t pos = string(value).find_first_of(";");  // drop trailing comments
-   if (pos == string::npos)
-      return(value);
-   value[pos] = '\0';
+   if (pos == string::npos) return(value);
 
-   return(StrTrimRight(value));                    // trim white space
+   value[pos] = '\0';
+   return(StrTrimRight(value));
    #pragma EXPANDER_EXPORT
 }
 
@@ -285,10 +283,10 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
  * @param  char* key                     - case-insensitive configuration key
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
- * @return char* - Config value if it exists or the default value if the config value does not exist (enclosing white space is
- *                 removed.) A NULL pointer in case of errors.
+ * @return char* - Config value or the default value if the config value does not exist (enclosing white space is removed).
+ *                 A NULL pointer in case of errors.
  *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "delete".
+ * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
 char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
    if ((uint)fileName     < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName)));
@@ -304,9 +302,9 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
    uint chars = bufferSize-1;
 
    while (chars == bufferSize-1) {                       // handle a too small buffer
-      delete[] buffer;
+      free(buffer);
       bufferSize <<= 1;
-      buffer = new char[bufferSize];                     // on the heap
+      buffer = (char*)malloc(bufferSize);                // on the heap
       chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
    }
    return(buffer);
