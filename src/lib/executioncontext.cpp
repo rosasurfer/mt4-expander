@@ -1286,8 +1286,10 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
       int id = INT_MAX;
 
       while (hWndChild) {                                            // iterate over all child windows
+         free(title);
          title = GetWindowTextA(hWndChild);                          // Here we can't use GetInternalWindowText() as the window
-                                                                     // creation needs to finish before we get a valid response.
+         if (!title) return(INVALID_HWND);                           // creation needs to finish before we get a valid response.
+
          if (StrEndsWith(title, " (offline)"))
             title[strlen(title)-10] = '\0';
          if (StrCompare(title, chartDescription)) {                  // find all matching windows
@@ -1296,7 +1298,7 @@ HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleTy
          }
          hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);              // next child in Z order
       }
-      delete[] title;
+      free(title);
       if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no matching MDIClient child window found for \"%s\"", chartDescription)));
 
       hChartWindow = GetDlgItem(hWndMdi, id);                        // keep chart window (holding the chart AfxFrameOrView)

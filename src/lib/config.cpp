@@ -285,8 +285,8 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
  * @param  char* key                     - case-insensitive configuration key
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
- * @return char* - Configuration value, the default value or an empty string in case of errors. Enclosing white space is
- *                 removed.
+ * @return char* - Config value if it exists or the default value if the config value does not exist (enclosing white space is
+ *                 removed.) A NULL pointer in case of errors.
  *
  * Note: The caller is responsible for releasing the returned string's memory after usage with "delete".
  */
@@ -306,7 +306,7 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
    while (chars == bufferSize-1) {                       // handle a too small buffer
       delete[] buffer;
       bufferSize <<= 1;
-      buffer = new char[bufferSize];                     // on the heap as the value may be long
+      buffer = new char[bufferSize];                     // on the heap
       chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
    }
    return(buffer);
