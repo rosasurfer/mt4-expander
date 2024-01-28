@@ -267,10 +267,11 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
    if (!value || !*value) return(value);
 
    size_t pos = string(value).find_first_of(";");  // drop trailing comments
-   if (pos == string::npos) return(value);
-
-   value[pos] = '\0';
-   return(StrTrimRight(value));
+   if (pos != string::npos) {
+      value[pos] = '\0';
+      StrTrimRight(value);
+   }
+   return(value);
    #pragma EXPANDER_EXPORT
 }
 
@@ -289,13 +290,13 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
 char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
-   if ((uint)fileName     < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName)));
-   if (!*fileName)                             return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)")));
-   if ((uint)section      < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section)));
-   if (!*section)                              return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)")));
-   if ((uint)key          < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key)));
-   if (!*key)                                  return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)")));
-   if ((uint)defaultValue < MIN_VALID_POINTER) return(_EMPTY_NEW_STR(error(ERR_INVALID_PARAMETER, "invalid parameter defaultValue: 0x%p (not a valid pointer)", defaultValue)));
+   if ((uint)fileName     < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
+   if (!*fileName)                             return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
+   if ((uint)section      < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
+   if (!*section)                              return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)key          < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
+   if (!*key)                                  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
+   if ((uint)defaultValue < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter defaultValue: 0x%p (not a valid pointer)", defaultValue));
 
    char* buffer = NULL;
    uint bufferSize = 128;
