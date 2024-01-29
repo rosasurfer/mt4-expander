@@ -473,9 +473,8 @@ void WINAPI ReleaseWindowProperties() {
 
 
 /**
- * Compose a <symbol>,<timeframe> description of the specified parameters (format as in chart title bar, e.g. "EURUSD,Daily")
- * and copy it to the passed buffer. If the buffer is too small the string in the buffer is truncated. The string is always
- * terminated with a null character.
+ * Compose a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily") and copy it to the passed buffer.
+ * If the buffer is too small the string in the buffer is truncated. The string is always terminated with a null character.
  *
  * @param  char* symbol
  * @param  uint  timeframe
@@ -485,7 +484,7 @@ void WINAPI ReleaseWindowProperties() {
  * @return uint - Amount of copied characters not counting the terminating null character or the passed parameter 'bufferSize'
  *                if the buffer is too small and the string in the buffer was truncated. NULL in case of errors.
  */
-uint WINAPI ComposeChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
+uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
    uint symbolLength = strlen(symbol);
    if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: %s", DoubleQuoteStr(symbol)));
    if (!buffer)                                           return(!error(ERR_INVALID_PARAMETER, "invalid parameter buffer: %p", buffer));

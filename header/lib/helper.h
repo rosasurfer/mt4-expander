@@ -2,7 +2,7 @@
 #include "expander.h"
 
 
-uint        WINAPI ComposeChartDescription(const char* symbol, uint timeframe, char* buffer, uint bufferSize);
+uint        WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, uint bufferSize);
 char*       WINAPI GetInternalWindowTextA(HWND hWnd);
 wchar*      WINAPI GetInternalWindowTextW(HWND hWnd);
 char*       WINAPI GetWindowTextA(HWND hWnd);
