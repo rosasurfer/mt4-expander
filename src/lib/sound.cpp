@@ -104,7 +104,7 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
 
 
 /**
- * Play a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types currently supported on the
+ * Play a soundfile asynchronously and immediately return (non-blocking). Plays all sound types currently supported on the
  * system. Allows mixing of sounds (except midi files). Also plays sounds if the terminal doesn't support it in the current
  * context (e.g. in tester).
  *
@@ -121,7 +121,7 @@ BOOL WINAPI PlaySoundA(const char* soundfile) {
 
 
 /**
- * Play a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types currently supported on the
+ * Play a soundfile asynchronously and immediately return (non-blocking). Plays all sound types currently supported on the
  * system. Allows mixing of sounds (except midi files). Also plays sounds if the terminal doesn't support it in the current
  * context (e.g. in tester).
  *

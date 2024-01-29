@@ -3,6 +3,7 @@
 #include "lib/datetime.h"
 #include "lib/file.h"
 #include "lib/helper.h"
+#include "lib/sound.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 
@@ -842,32 +843,29 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 /**
  * Reopen the terminal's "Alert" dialog box after it was closed by the user.
  *
- * @param  BOOL sound - Whether to confirm the re-opening with the standard "Alert" sound.
- *                      No sound is played if the dialog window is already visible.
+ * @param  BOOL sound - Whether to confirm the re-opening with the standard "Alert" sound. No sound is played if the dialog
+ *                      is already visible.
  *
  * @return BOOL - success status, especially:
- *                TRUE if the "Alert" dialog was successfully opened or already visible
- *                FALSE if the "Alert" dialog was not opened before (window not found)
+ *                TRUE if the dialog was successfully opened or already visible
+ *                FALSE if the dialog was not yet opened before (dialog window not found)
  */
 BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    HWND hWndAlert=NULL, hWndNext=GetTopWindow(NULL);
-   DWORD processId, self = GetCurrentProcessId();
+   DWORD processId, self=GetCurrentProcessId();
 
    uint bufSize = 8;                                        // big enough to hold class name "#32770"
-   char* className = (char*)alloca(bufSize);                // on the stack
+   wchar* className = (wchar*)alloca(bufSize*2);            // on the stack
    wchar* wndTitle = NULL;
-
-   // TODO: because of i18n we can't rely on the control's text
 
    // enumerate top-level windows
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
       if (processId == self) {                              // the window belongs to us
          free(wndTitle);
-         wndTitle = GetInternalWindowTextW(hWndNext);
-         if (!wndTitle)                                    return(FALSE);
-         if (!GetClassNameA(hWndNext, className, bufSize)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
-         if (StrCompare(wndTitle, L"Alert") && StrCompare(className, "#32770")) {
+         wndTitle = GetInternalWindowTextW(hWndNext); if (!wndTitle) return(FALSE);
+         GetClassNameW(hWndNext, className, bufSize);       // TODO: because of i18n we can't rely on the window's text
+         if (StrCompare(wndTitle, L"Alert") && StrCompare(className, L"#32770")) {
             hWndAlert = hWndNext;
             break;
          }
@@ -877,24 +875,12 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    free(wndTitle);
    if (!hWndAlert) return(debug("\"Alert\" dialog window not found"));
 
-   // show the found window
+   // show the "Alert" window
    bool wasHidden = !ShowWindow(hWndAlert, SW_SHOW);
 
    // play the standard "Alert" sound
    if (wasHidden && sound) {
-      string soundfile("sounds/alert.wav");
-
-      // look-up the .wav file in the terminal's installation and the user's data directory
-      string filepath1 = string(GetTerminalPathA()).append("/").append(soundfile);
-      string filepath2 = string(GetTerminalDataPathA()).append("/").append(soundfile);
-
-      if (IsFileA(filepath1.c_str(), MODE_SYSTEM)) {
-         PlaySoundA(filepath1.c_str(), NULL, SND_FILENAME|SND_ASYNC);
-      }
-      else if (IsFileA(filepath2.c_str(), MODE_SYSTEM)) {
-         PlaySoundA(filepath2.c_str(), NULL, SND_FILENAME|SND_ASYNC);
-      }
-      else debug("sound file not found: \"%s\"", soundfile.c_str());
+      PlaySoundW(L"alert.wav");
    }
    return(TRUE);
    #pragma EXPANDER_EXPORT
