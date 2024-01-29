@@ -23,40 +23,38 @@ HWND WINAPI FindTesterWindow() {
    static HWND hWndTester;
 
    if (!hWndTester) {
-      // The window may be docked at the terminal main window or may float in an independent top-level window.
+      // The window may be docked at the terminal main window or float in an independent top-level window.
       // In both cases the handle is the same.
 
-      // check for a tester window docked at the terminal main window
+      // check for a docked tester window
       HWND hWndMain = GetTerminalMainWindow();
       if (!hWndMain) return(NULL);
 
-      HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKABLES_CONTAINER);        // top-level container for docked terminal windows
-      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  cannot find top-level container for docked terminal windows"));
+      HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKED_CONTAINER);           // container for docked terminal windows
+      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no TerminalMainWindow->IDC_DOCKED_CONTAINER found"));
 
       hWndTester = GetDlgItem(hWnd, IDC_TESTER);
       if (hWndTester) return(hWndTester);
+      SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
 
       // check for a floating tester window
-      SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
-      DWORD processId, self = GetCurrentProcessId();
       HWND hWndNext = GetTopWindow(NULL);
-      if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetTopWindow(NULL)"));
-      int error = NULL;
+      if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no top-level windows found"));
 
+      DWORD processId, self=GetCurrentProcessId();
       while (hWndNext) {                                                // iterate over all top-level windows owned by the current process
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {                                       // the window belongs to us
-            hWnd = GetDlgItem(hWndNext, IDC_UNDOCKED_CONTAINER);        // we can't rely on the window title as it's subject to i18n
+            hWnd = GetDlgItem(hWndNext, IDC_FLOATING_CONTAINER);        // due to i18n we can't interprete the window titles
             if (hWnd) {
                hWndTester = GetDlgItem(hWnd, IDC_TESTER);
                if (hWndTester) break;
-               error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  no tester window found in container for floating tester window");
             }
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
 
-      if (!hWndTester) debug("floating tester window not found");       // the window doesn't yet exist
+      if (!hWndTester) debug("tester window doesn't yet exist");
    }
    return(hWndTester);
    #pragma EXPANDER_EXPORT
@@ -103,7 +101,7 @@ time32 WINAPI Tester_GetStartDate() {
    HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
    if (!hWndUseDate) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  checkbox \"Use date\" in \"Settings\" tab not found"));
 
-   uint bufSize = 24;                                       // big enough to hold the class name "SysDateTimePick32"
+   uint bufSize = 24;                                       // big enough to hold class name "SysDateTimePick32"
    char* className = (char*) alloca(bufSize);               // on the stack
    HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT); if (!hWndNext)      return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindow()  sibling of \"Use date\" checkbox in \"Settings\" tab not found"));
 
@@ -116,7 +114,7 @@ time32 WINAPI Tester_GetStartDate() {
 
    if (!GetClassNameA(hWndNext, className, bufSize))                        return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
    if (!StrCompare(className, "SysDateTimePick32"))                         return(!error(ERR_ILLEGAL_STATE, "unexpected sibling of \"From:\" label:  title=\"%S\"  class=\"%s\"", wndTitle, className));
-   wndTitle = GetInternalWindowTextW(hWndNext);             // TODO: ERROR: GetInternalWindowTextW() unexpected text of "Startdate" control: "(null)"
+   wndTitle = GetInternalWindowTextW(hWndNext);             // TODO: ERROR: unexpected text of "Startdate" control: "(null)"
    if (!wndTitle || wstrlen(wndTitle) < 10)                                 return(!error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextW() unexpected text of \"Startdate\" control: \"%S\"", wndTitle));
 
    wchar* sDate = wndTitle;
@@ -162,7 +160,7 @@ time32 WINAPI Tester_GetEndDate() {
 
    if (!GetClassName(hWndNext, className, bufSize))                       return(!error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
    if (!StrCompare(className, "SysDateTimePick32"))                       return(!error(ERR_ILLEGAL_STATE, "unexpected sibling of \"To:\" label:  title=\"%S\"  class=\"%s\"", wndTitle, className));
-   wndTitle = GetInternalWindowTextW(hWndNext);             // TODO: ERROR: GetInternalWindowTextW() unexpected text of "Enddate" control: "(null)"
+   wndTitle = GetInternalWindowTextW(hWndNext);             // TODO: ERROR: unexpected text of "Enddate" control: "(null)"
    if (!wndTitle || wstrlen(wndTitle) < 10)                               return(!error(ERR_WIN32_ERROR+GetLastError(), "GetInternalWindowTextW() unexpected text of \"Enddate\" control: \"%S\"", wndTitle));
 
    wchar* sDate = wndTitle;
@@ -528,21 +526,18 @@ int WINAPI Test_synchronize() {
 /**
  * @return int
  */
-int WINAPI Tester_Test(const char* filename) {
-   if ((uint)filename < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-   if (!*filename)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
-
-   std::ofstream file = std::ofstream();
-
-   file.open(filename, std::ios::app);
-
-   if (!file.is_open()) {
-      error(ERR_WIN32_ERROR+GetLastError(), "opening \"%s\" failed", filename);
-      return(CreateDirectoryA(filename, MODE_SYSTEM));
-   }
-   else {
-      file.close();
-   }
+int WINAPI Tester_Test() {
+   HWND hWndTester = FindTesterWindow();
+   debug("hWndTester=0x%p", hWndTester);
    return(NULL);
-   //#pragma EXPANDER_EXPORT
+
+   time32 startdate = Tester_GetStartDate();
+   return(startdate);
+   #pragma EXPANDER_EXPORT
+
+   /*
+   dllmain.cpp::onProcessAttach(75)  loading "E:\Trading\MetaTrader\S7\MQL4\Libraries\rsfMT4Expander.Release.dll"
+   tester.cpp::FindTesterWindow(53)  ERROR: GetDlgItem()  no tester window found in container for floating tester window  [win32:ERROR_CONTROL_ID_NOT_FOUND]
+   tester.cpp::Tester_Test(533)  hWndTester=0x0033097A
+   */
 }
