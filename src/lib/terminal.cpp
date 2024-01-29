@@ -131,7 +131,7 @@ const wchar* WINAPI GetExpanderFileNameW() {
       }
       if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
 
-      filename = wsdup(buffer);                                         // on the heap
+      filename = wstrdup(buffer);                                       // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -196,7 +196,7 @@ const wchar* WINAPI GetHistoryRootPathW() {
 
       if (dataPath) {
          wstring path = wstring(dataPath).append(L"\\history");
-         hstDirectory = wsdup(path.c_str());
+         hstDirectory = wstrdup(path.c_str());
       }
    }
    return(hstDirectory);
@@ -241,7 +241,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
          wstring path(dataPath);
          if (GetTerminalBuild() <= 509) path.append(L"\\experts");
          else                           path.append(L"\\mql4");
-         mqlDirectory = wsdup(path.c_str());
+         mqlDirectory = wstrdup(path.c_str());
       }
    }
    return(mqlDirectory);
@@ -294,7 +294,7 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
          const wchar* dataDirectory = GetTerminalDataPathW();
          if (!dataDirectory) return(NULL);
          wstring path = wstring(dataDirectory).append(L"\\tester\\files");
-         testerPath = wsdup(path.c_str());
+         testerPath = wstrdup(path.c_str());
       }
       return(testerPath);
    }
@@ -304,7 +304,7 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
       const wchar* mqlDirectory = GetMqlDirectoryW();
       if (!mqlDirectory) return(NULL);
       wstring path = wstring(mqlDirectory).append(L"\\files");
-      onlinePath = wsdup(path.c_str());
+      onlinePath = wstrdup(path.c_str());
    }
    return(onlinePath);
    #pragma EXPANDER_EXPORT
@@ -370,7 +370,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
          return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()"));
 
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");    // create the resulting path
-      result = wsdup(dir.c_str());                                                     // on the heap
+      result = wstrdup(dir.c_str());                                                   // on the heap
    }
    return(result);
    #pragma EXPANDER_EXPORT
@@ -468,7 +468,7 @@ const wchar* WINAPI GetTerminalDataPathW() {
       // check portable mode
       if (GetTerminalBuild() <= 509 || TerminalIsPortableMode()) {
          // data path is always the installation directory, independant of write permissions
-         dataPath = wsdup(terminalPath);                                                  // on the heap
+         dataPath = wstrdup(terminalPath);                                                // on the heap
       }
       else {
          // check for locked terminal logs
@@ -477,8 +477,8 @@ const wchar* WINAPI GetTerminalDataPathW() {
          BOOL roamingPathIsLocked  = IsLockedFile(unicodeToAnsi(wstring(roamingDataPath)).append(logFilename));
          free(logFilename);
 
-         if      (roamingPathIsLocked)  dataPath = wsdup(roamingDataPath);                // on the heap
-         else if (terminalPathIsLocked) dataPath = wsdup(terminalPath);
+         if      (roamingPathIsLocked)  dataPath = wstrdup(roamingDataPath);              // on the heap
+         else if (terminalPathIsLocked) dataPath = wstrdup(terminalPath);
          else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found")); // both directories are write-protected
       }
    }
@@ -563,7 +563,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
          length = GetModuleFileNameW(NULL, buffer, size);            // may return a path longer than MAX_PATH
       }
       if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
-      filename = wsdup(buffer);                                      // on the heap
+      filename = wstrdup(buffer);                                    // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -603,7 +603,7 @@ const wchar* WINAPI GetTerminalPathW() {
    if (!path) {
       const wchar* filename = GetTerminalFileNameW();
       if (filename) {
-         path = wsdup(filename);                         // on the heap
+         path = wstrdup(filename);                       // on the heap
          path[wstring(path).find_last_of(L"\\")] = '\0';
       }
    }
@@ -673,10 +673,10 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
    static wchar* result;
 
    if (!result) {
-      const char* apath = GetTerminalRoamingDataPathA();
-      if (apath) {
-         wstring wpath = ansiToUnicode(string(apath));
-         result = wsdup(wpath.c_str());
+      const char* spath = GetTerminalRoamingDataPathA();
+      if (spath) {
+         wstring wpath = ansiToUnicode(string(spath));
+         result = wstrdup(wpath.c_str());
       }
    }
    return(result);

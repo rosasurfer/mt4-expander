@@ -237,7 +237,7 @@ wchar* WINAPI GmtTimeFormatW(time64 gmtTime, const wchar* format) {
       if (wcsftime(buffer, bufSize, format, &time)) break;
    }
 
-   return(wsdup(buffer));                                   // TODO: add to GC (close memory leak)
+   return(wstrdup(buffer));                                 // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -315,7 +315,7 @@ wchar* WINAPI LocalTimeFormatW(time64 gmtTime, const wchar* format) {
       if (wcsftime(buffer, bufSize, format, &time)) break;
    }
 
-   return(wsdup(buffer));                                            // TODO: add to GC (close memory leak)
+   return(wstrdup(buffer));                                          // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 

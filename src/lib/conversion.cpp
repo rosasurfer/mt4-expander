@@ -1016,7 +1016,7 @@ const char* WINAPI ErrorToStrA(int error) {
  */
 const wchar* WINAPI ErrorToStrW(int error) {
    wstring s = ansiToUnicode(string(ErrorToStrA(error)));
-   return(wsdup(s.c_str()));
+   return(wstrdup(s.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1385,7 +1385,7 @@ const char* WINAPI PeriodDescriptionA(int period) {
 const wchar* WINAPI PeriodDescriptionW(int period) {
    const char* s = PeriodDescriptionA(period);
    if (!s) return(NULL);
-   return(wsdup(ansiToUnicode(string(s)).c_str()));
+   return(wstrdup(ansiToUnicode(string(s)).c_str()));
 }
 
 

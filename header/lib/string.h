@@ -8,13 +8,16 @@
 #define wstrlen      wcslen            // length of a UTF-16 string
 
 #define strdup       _strdup           // duplicate a C string
-#define mbsdup       _mbsdup           // duplicate a UTF-8 string
-#define wsdup        _wcsdup           // duplicate a UTF-16 string
+#define mbstrdup     _mbsdup           // duplicate a UTF-8 string
+#define wstrdup      _wcsdup           // duplicate a UTF-16 string
 
-#define vscprintf    _vscprintf        // count C chars of resulting string using a var-list of arguments
-#define vwscprintf   _vscwprintf       // count wide Unicode (UTF-16) chars of resulting string using a var-list of arguments
-#define snprintf     _snprintf         // write formatted data to a sized (numbered) C string buffer
-#define vwsprintf_s  vswprintf_s       // write formatted data to a wide Unicode (UTF-16) string buffer using a var-list of arguments
+#define vscprintf    _vscprintf        // count C chars of the resulting string using a var-list of arguments
+#define vwscprintf   _vscwprintf       // count UTF-16 chars of the resulting string using a var-list of arguments
+#define snprintf     _snprintf         // write formatted data to a sized C string buffer
+#define vwsprintf_s  vswprintf_s       // write formatted data to a UTF-16 string buffer using a var-list of arguments
+
+#define strtoint     atoi              // convert a C string to an integer
+#define wstrtoint    _wtoi             // convert a UTF-16 string to an integer
 
 
 /**

@@ -32,7 +32,7 @@ char* WINAPI DoubleQuoteStr(const char* value) {
 wchar* WINAPI DoubleQuoteStrW(const wchar* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    if (!value) {
-      return(wsdup(L"(null)"));
+      return(wstrdup(L"(null)"));
    }
    return(asformat(L"\"%s\"", value));
    #pragma EXPANDER_EXPORT
