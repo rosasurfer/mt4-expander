@@ -155,7 +155,7 @@ int                WINAPI ec_TestId              (const EXECUTION_CONTEXT* ec);
 time32             WINAPI ec_TestCreated         (const EXECUTION_CONTEXT* ec);
 time32             WINAPI ec_TestStartTime       (const EXECUTION_CONTEXT* ec);
 time32             WINAPI ec_TestEndTime         (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_TestBarModel        (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_TestBarModel        (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestBars            (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_TestTicks           (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_TestSpread          (const EXECUTION_CONTEXT* ec);

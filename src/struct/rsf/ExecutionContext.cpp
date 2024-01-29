@@ -791,13 +791,13 @@ time32 WINAPI ec_TestEndTime(const EXECUTION_CONTEXT* ec) {
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - test bar model
+ * @return int - test bar model
  */
-uint WINAPI ec_TestBarModel(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_TestBarModel(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (ec->test)
       return(ec->test->barModel);
-   return(NULL);
+   return(-1);
    #pragma EXPANDER_EXPORT
 }
 
