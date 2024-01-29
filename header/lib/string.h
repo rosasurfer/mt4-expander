@@ -35,6 +35,7 @@ string to_string(T value) {
 
 
 char*        WINAPI DoubleQuoteStr(const char* value);
+wchar*       WINAPI DoubleQuoteStrW(const wchar* value);
 const char*  WINAPI GetStringA(const char* value);
 const wchar* WINAPI GetStringW(const wchar* value);
 
