@@ -107,10 +107,10 @@ time32 WINAPI Tester_GetStartDate() {
    uint bufSize = 32;                                 // big enough to hold class name "SysDateTimePick32"
    wchar* className = (wchar*)alloca(bufSize*2);      // on the stack
    GetClassNameW(hWndNext, className, bufSize);
-   if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStrW(GetInternalWindowTextW(hWndNext)), DoubleQuoteStrW(className)));
+   if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)));
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStrW(wndTitle)));
+   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle)));
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01
@@ -148,10 +148,10 @@ time32 WINAPI Tester_GetEndDate() {
    uint bufSize = 32;                                 // big enough to hold class name "SysDateTimePick32"
    wchar* className = (wchar*)alloca(bufSize*2);      // on the stack
    GetClassNameW(hWndNext, className, bufSize);
-   if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStrW(GetInternalWindowTextW(hWndNext)), DoubleQuoteStrW(className)));
+   if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)));
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: unexpected text of \"To date\" control: %S", DoubleQuoteStrW(wndTitle)));
+   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: unexpected text of \"To date\" control: %S", DoubleQuoteStr(wndTitle)));
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01

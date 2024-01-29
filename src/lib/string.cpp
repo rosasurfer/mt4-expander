@@ -13,12 +13,9 @@
  * @return char* - wrapped string or the string "(null)" if a NULL pointer was passed
  */
 char* WINAPI DoubleQuoteStr(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   if (!value) {
+   if (!value)
       return(strdup("(null)"));
-   }
    return(asformat("\"%s\"", value));
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -29,13 +26,10 @@ char* WINAPI DoubleQuoteStr(const char* value) {
  *
  * @return wchar* - wrapped string or the string "(null)" if a NULL pointer was passed
  */
-wchar* WINAPI DoubleQuoteStrW(const wchar* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   if (!value) {
+wchar* WINAPI DoubleQuoteStr(const wchar* value) {
+   if (!value)
       return(wstrdup(L"(null)"));
-   }
    return(asformat(L"\"%s\"", value));
-   #pragma EXPANDER_EXPORT
 }
 
 
