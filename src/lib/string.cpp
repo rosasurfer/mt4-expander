@@ -10,14 +10,26 @@
  *
  * @param  char* value
  *
- * @return char* - wrapped string or the string "(null)" if a NULL pointer was specified
+ * @return char* - wrapped string or the string "(null)" if a NULL pointer was passed
  */
 char* WINAPI DoubleQuoteStr(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    if (!value)
       return(strdup("(null)"));
    return(asformat("\"%s\"", value));
-   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Wrap a wide Unicode (UTF-16) string in double quote characters.
+ *
+ * @param  wchar* value
+ *
+ * @return wchar* - wrapped string or the string "(null)" if a NULL pointer was passed
+ */
+wchar* WINAPI DoubleQuoteStr(const wchar* value) {
+   if (!value)
+      return(wstrdup(L"(null)"));
+   return(asformat(L"\"%s\"", value));
 }
 
 
@@ -93,7 +105,7 @@ std::istream& getline(std::istream &is, std::string &line) {
  * @return char* - the same string or NULL in case of errors
  */
 const char* WINAPI GetStringA(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    return(value);
    #pragma EXPANDER_EXPORT
 }
@@ -108,7 +120,7 @@ const char* WINAPI GetStringA(const char* value) {
  * @return wchar* - the same string or NULL in case of errors
  */
 const wchar* WINAPI GetStringW(const wchar* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    return(value);
    #pragma EXPANDER_EXPORT
 }
@@ -165,8 +177,8 @@ int __cdecl CompareMqlStringsW(const void* first, const void* second) {
  * @return BOOL - success status
  */
 BOOL WINAPI SortMqlStringsA(MqlStringA strings[], int size) {
-   if ((uint)strings < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
-   if (size <= 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+   if ((uint)strings < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
+   if (size <= 0)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
    if (size == 1) return(TRUE);           // nothing to do
 
    qsort(strings, size, sizeof(MqlStringA), CompareMqlStringsA);
@@ -184,8 +196,8 @@ BOOL WINAPI SortMqlStringsA(MqlStringA strings[], int size) {
  * @return BOOL - success status
  */
 BOOL WINAPI SortMqlStringsW(MqlStringW strings[], int size) {
-   if ((uint)strings < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
-   if (size <= 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
+   if ((uint)strings < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
+   if (size <= 0)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
    if (size == 1) return(TRUE);           // nothing to do
 
    qsort(strings, size, sizeof(MqlStringW), CompareMqlStringsW);
@@ -211,7 +223,7 @@ BOOL WINAPI StrCompare(const char* s1, const char* s2) {
 
 
 /**
- * Whether two wide Unicode strings (UTF-16) are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
+ * Whether two wide Unicode (UTF-16) strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
  *
  * @param  wchar* s1
  * @param  wchar* s2
@@ -248,12 +260,12 @@ BOOL WINAPI StrIsNull(const char* value) {
  */
 BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
    if (!str)          return(FALSE);
-   if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
+   if (!prefix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
 
    uint strLen    = strlen(str);
    uint prefixLen = strlen(prefix);
-   if (!prefixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
+   if (!prefixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
 
    if (strLen >= prefixLen)
       return(strncmp(str, prefix, prefixLen) == 0);
@@ -263,7 +275,7 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
 
 
 /**
- * Whether a wide Unicode string (UTF-16) starts with the specified substring.
+ * Whether a wide Unicode (UTF-16) string starts with the specified substring.
  *
  * @param  wchar* str
  * @param  wchar* prefix
@@ -272,12 +284,12 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
  */
 BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
    if (!str)          return(FALSE);
-   if (!prefix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
+   if (!prefix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
    if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
 
-   uint strLen    = wcslen(str);
-   uint prefixLen = wcslen(prefix);
-   if (!prefixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
+   uint strLen    = wstrlen(str);
+   uint prefixLen = wstrlen(prefix);
+   if (!prefixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
 
    if (strLen >= prefixLen)
       return(wcsncmp(str, prefix, prefixLen) == 0);
@@ -295,12 +307,12 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
  */
 BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
    if (!str)          return(FALSE);
-   if (!suffix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
+   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
    if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
 
    uint strLen    = strlen(str);
    uint suffixLen = strlen(suffix);
-   if (!suffixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
 
    if (strLen >= suffixLen)
       return(strcmp(str + strLen - suffixLen, suffix) == 0);
@@ -310,7 +322,7 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
 
 
 /**
- * Whether a wide Unicode string (UTF-16) ends with the specified substring.
+ * Whether a wide Unicode (UTF-16) string ends with the specified substring.
  *
  * @param  wchar* str
  * @param  wchar* suffix
@@ -319,12 +331,12 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
  */
 BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
    if (!str)          return(FALSE);
-   if (!suffix)       return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
+   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
    if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
 
-   uint strLen    = wcslen(str);
-   uint suffixLen = wcslen(suffix);
-   if (!suffixLen) return(error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   uint strLen    = wstrlen(str);
+   uint suffixLen = wstrlen(suffix);
+   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
 
    if (strLen >= suffixLen)
       return(wcscmp(str + strLen - suffixLen, suffix) == 0);
@@ -523,13 +535,13 @@ char* WINAPI StrTrimRight(char* const str) {
 
 
 /**
- * Convert an ANSI string to a wide Unicode string (UTF-16).
+ * Convert an ANSI string to a wide Unicode (UTF-16) string.
  *
  * @param  string &str - ANSI string
  *
  * @return wstring - converted string or an empty string in case of errors
  */
-wstring ansiToUnicode(const string &str) {
+wstring WINAPI ansiToUnicode(const string &str) {
    int length = str.length();
    if (!length) return(wstring(L""));
 
@@ -554,19 +566,19 @@ wstring ansiToUnicode(const string &str) {
  *
  * @return string - converted string or an empty string in case of errors
  */
-string ansiToUtf8(const string &str) {
+string WINAPI ansiToUtf8(const string &str) {
    return(unicodeToUtf8(ansiToUnicode(str)));
 }
 
 
 /**
- * Convert a wide Unicode string (UTF-16) to an ANSI string.
+ * Convert a wide Unicode (UTF-16) string to an ANSI string.
  *
  * @param  wstring &wstr - wide Unicode string
  *
  * @return string - converted string or an empty string in case of errors
  */
-string unicodeToAnsi(const wstring &wstr) {
+string WINAPI unicodeToAnsi(const wstring &wstr) {
    int length = wstr.length();
    if (!length) return(string(""));
 
@@ -585,13 +597,13 @@ string unicodeToAnsi(const wstring &wstr) {
 
 
 /**
- * Convert a wide Unicode string (UTF-16) to a UTF-8 string.
+ * Convert a wide Unicode (UTF-16) string to a UTF-8 string.
  *
  * @param  wstring &wstr - wide Unicode string
  *
  * @return string - converted string or an empty string in case of errors
  */
-string unicodeToUtf8(const wstring &wstr) {
+string WINAPI unicodeToUtf8(const wstring &wstr) {
    int length = wstr.length();
    if (!length) return(string(""));
 
@@ -616,19 +628,19 @@ string unicodeToUtf8(const wstring &wstr) {
  *
  * @return string - converted string or an empty string in case of errors
  */
-string utf8ToAnsi(const string &str) {
+string WINAPI utf8ToAnsi(const string &str) {
    return(unicodeToAnsi(utf8ToUnicode(str)));
 }
 
 
 /**
- * Convert a UTF-8 string to a wide Unicode string (UTF-16).
+ * Convert a UTF-8 string to a wide Unicode (UTF-16) string.
  *
  * @param  string &str - UTF-8 string
  *
  * @return wstring - converted string or an empty string in case of errors
  */
-wstring utf8ToUnicode(const string &str) {
+wstring WINAPI utf8ToUnicode(const string &str) {
    int length = str.length();
    if (!length) return(wstring(L""));
 
@@ -646,25 +658,23 @@ wstring utf8ToUnicode(const string &str) {
 }
 
 
-namespace rsf {
-
-
 /**
- * Write formatted data to a string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
+ * Write formatted data to a C string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
  * memory for the string itself.
  *
- * @param  char* format - string with format codes
- * @param        ...    - variable number of arguments
+ * @param  char* format - string with format codes (see Microsoft extension for ANSI/Unicode specific codes)
+ * @param        ...    - variable number of arguments (may contain wide Unicode/UTF-16 strings)
  *
  * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  *
+ * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-char* asformat(const char* format, ...) {
-   if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
-   if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+char* __cdecl asformat(const char* format, ...) {
+   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    va_list args;
    va_start(args, format);
@@ -676,46 +686,81 @@ char* asformat(const char* format, ...) {
 
 
 /**
- * Write formatted data to a string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
+ * Write formatted data to a wide Unicode (UTF-16) string and return the resulting string. Similar to GNU-C asprintf() this
+ * function allocates the memory for the string itself.
+ *
+ * @param  wchar* format - string with format codes (see Microsoft extension for ANSI/Unicode specific codes)
+ * @param         ...    - variable number of arguments (may contain ANSI strings)
+ *
+ * @return wchar* - formatted string or a NULL pointer in case of errors
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "free()".
+ *
+ * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
+ * @see  https://www.tutorialspoint.com/format-specifiers-in-c
+ */
+wchar* __cdecl asformat(const wchar* format, ...) {
+   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+
+   va_list args;
+   va_start(args, format);
+   wchar* result = _asformat(format, args);
+   va_end(args);
+
+   return(result);
+}
+
+
+/**
+ * Write formatted data to a C string and return the resulting string. Similar to GNU-C asprintf() this function allocates the
  * memory for the string itself.
  *
- * @param  char*   format - string with format codes
- * @param  va_list &args  - variable list of arguments
+ * @param  char*   format - string with format codes (see Microsoft extension for ANSI/Unicode specific codes)
+ * @param  va_list &args  - variable list of arguments (may contain wide Unicode/UTF-16 strings)
  *
  * @return char* - formatted string or a NULL pointer in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
+ *
+ * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
+ * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-char* _asformat(const char* format, const va_list &args) {
-   if (!format)  return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
-   if (!*format) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+char* WINAPI _asformat(const char* format, const va_list &args) {
+   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
-   uint size = _vscprintf(format, args) + 1;                // +1 for the terminating '\0'
+   uint size = vscprintf(format, args) + 1;        // +1 for the terminating null char
    char* buffer = (char*)malloc(size);
    if (buffer) {
       vsprintf_s(buffer, size, format, args);
    }
    return(buffer);
 }
-}
 
 
 /**
- * @return int
+ * Write formatted data to a wide Unicode (UTF-16) string and return the resulting string. Similar to GNU-C asprintf() this
+ * function allocates the memory for the string itself.
+ *
+ * @param  wchar*  format - string with format codes (see Microsoft extension for ANSI/Unicode specific codes)
+ * @param  va_list &args  - variable list of arguments (may contain ANSI strings)
+ *
+ * @return wchar* - formatted string or a NULL pointer in case of errors
+ *
+ * Note: The caller is responsible for releasing the string's memory after usage with "free()".
+ *
+ * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
+ * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
-int WINAPI StringTest(const char* str) {
+wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
+   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
-   string  s     = string(str);
-   wstring utf16 = ansiToUnicode(s);
-
-   debug("char*=\"%s\"  string=\"%s\"  wstring=\"%s\"", str, s.c_str(), unicodeToAnsi(utf16).c_str());
-
-   wstring s4 = wstring(utf16.c_str(), 4);
-   debug("s4=\"%s\"", unicodeToAnsi(s4).c_str());
-
-   string utf8 = unicodeToUtf8(utf16);
-   debug("utf8=\"%s\"", utf8.c_str());
-
-   return(NULL);
-   //#pragma EXPANDER_EXPORT
+   uint size = vwscprintf(format, args) + 1;       // +1 for the terminating null wchar
+   wchar* buffer = (wchar*)malloc(size*2);
+   if (buffer) {
+      vwsprintf_s(buffer, size, format, args);
+   }
+   return(buffer);
 }

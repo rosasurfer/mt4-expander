@@ -15,18 +15,19 @@
  */
 template <typename T>
 BOOL WINAPI InitializeArray(T array[], int size, T initValue, int from, int count/*=INT_MAX*/) {
-   if ((uint)array < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter array: 0x%p (not a valid pointer)", array));
-   if (size < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
-   if (from < 0 || from >= size)        return(error(ERR_INVALID_PARAMETER, "invalid parameter from: %d (out of range)", from));
-   if (count < 0)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
+   if ((uint)array < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter array: 0x%p (not a valid pointer)", array));
+   if (size < 0)                        return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must be >= 0)", size));
+   if (from < 0)                        return(!error(ERR_INVALID_PARAMETER, "invalid parameter from: %d (must be >= 0)", from));
+   if (from >= size)                    return(!error(ERR_INVALID_PARAMETER, "invalid parameter from: %d (out of range)", from));
+   if (count < 0)                       return(!error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be >= 0)", count));
 
    if (count == INT_MAX) {
       count = size - from;
    }
    else {
       // @see  https://stackoverflow.com/questions/3944505/detecting-signed-overflow-in-c-c#3947943
-      if (count > INT_MAX-from) return(error(ERR_INVALID_PARAMETER, "integer overflow detected (from: %d, count: %d)", from, count));
-      if (from+count > size)    return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (exceeds range)", count));
+      if (count > INT_MAX-from) return(!error(ERR_INVALID_PARAMETER, "integer overflow detected (from: %d, count: %d)", from, count));
+      if (from+count > size)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (out of range)", count));
    }
 
    std::fill_n(&array[from], count, initValue);
@@ -197,10 +198,6 @@ int WINAPI SearchIntArray(const int array[], int size, int value, BOOL reverseIn
 }
 
 
-
-
-
-
 /**
  * Shift the content of an MQL timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
@@ -214,10 +211,10 @@ int WINAPI SearchIntArray(const int array[], int size, int value, BOOL reverseIn
  */
 template <typename T>
 BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) {
-   if ((uint)buffer < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
-   if (size < 0)                         return(error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must not be negative)", size));
-   if (count < 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must not be negative)", count));
-   if (count > size)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter count=%d for size=%d (out of range)", count, size));
+   if ((uint)buffer < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
+   if (size < 0)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d (must be >= 0)", size));
+   if (count < 0)                        return(!error(ERR_INVALID_PARAMETER, "invalid parameter count: %d (must be >= 0)", count));
+   if (count > size)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter count=%d for size=%d (out of range)", count, size));
    if (!size || !count) return(TRUE);
 
    if (count < size) {
@@ -229,12 +226,12 @@ BOOL WINAPI ShiftIndicatorBuffer(T buffer[], int size, int count, T emptyValue) 
 
 
 // explicit template instantiation to make definitions accessible to the linker
-template BOOL ShiftIndicatorBuffer<bool>  (bool  [], int, int, bool);
-template BOOL ShiftIndicatorBuffer<char>  (char  [], int, int, char);
-template BOOL ShiftIndicatorBuffer<short> (short [], int, int, short);
-template BOOL ShiftIndicatorBuffer<int>   (int   [], int, int, int);
-template BOOL ShiftIndicatorBuffer<int64> (int64 [], int, int, int64);
-template BOOL ShiftIndicatorBuffer<float> (float [], int, int, float);
+template BOOL ShiftIndicatorBuffer<bool>  (bool  [], int, int, bool  );
+template BOOL ShiftIndicatorBuffer<char>  (char  [], int, int, char  );
+template BOOL ShiftIndicatorBuffer<short> (short [], int, int, short );
+template BOOL ShiftIndicatorBuffer<int>   (int   [], int, int, int   );
+template BOOL ShiftIndicatorBuffer<int64> (int64 [], int, int, int64 );
+template BOOL ShiftIndicatorBuffer<float> (float [], int, int, float );
 template BOOL ShiftIndicatorBuffer<double>(double[], int, int, double);
 
 

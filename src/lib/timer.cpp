@@ -59,16 +59,16 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
  *                        TICK_IF_WINDOW_VISIBLE: send ticks only if the receiving window is visible (saving of resources)
  *                        TICK_PAUSE_ON_WEEKEND:  skip sending ticks during sessionbreaks (saving of resources, not yet implemented)
  *
- * @return uint - identifier of the registered timer or 0 (zero) in case of errors
+ * @return uint - identifier of the registered timer or 0 (NULL) in case of errors
  */
 uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    // validate parameters
    DWORD processId = NULL;
    DWORD threadId = GetWindowThreadProcessId(hWnd, &processId);
-   if (!threadId)                                         return(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd=%p (not a window)", hWnd));
-   if (processId != GetCurrentProcessId())                return(error(ERR_INVALID_PARAMETER, "window hWnd=%p is not owned by the current process", hWnd));
-   if ((int)millis <= 0)                                  return(error(ERR_INVALID_PARAMETER, "invalid parameter millis: %d", (int)millis));
-   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(error(ERR_INVALID_PARAMETER, "invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER"));
+   if (!threadId)                                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd=%p (not a window)", hWnd));
+   if (processId != GetCurrentProcessId())                return(!error(ERR_INVALID_PARAMETER, "window hWnd=%p is not owned by the current process", hWnd));
+   if ((int)millis <= 0)                                  return(!error(ERR_INVALID_PARAMETER, "invalid parameter millis: %d", (int)millis));
+   if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return(!error(ERR_INVALID_PARAMETER, "invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER"));
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // generate a new timer id and timer metadata
@@ -90,7 +90,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
 
    // create the timer
    if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK)onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD))
-      return(error(ERR_WIN32_ERROR+GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis));
+      return(!error(ERR_WIN32_ERROR+GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis));
 
    return(ttd->timerId);
    #pragma EXPANDER_EXPORT
@@ -105,7 +105,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
  * @return BOOL - success status
  */
 BOOL WINAPI ReleaseTickTimer(uint timerId) {
-   if ((int)timerId <= 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter timerId: %d", timerId));
+   if ((int)timerId <= 0) return(!error(ERR_INVALID_PARAMETER, "invalid parameter timerId: %d", timerId));
 
    // The timer is released and marked as invalid. The vector holding all timer entries is not modified.
    uint size = g_tickTimers.size();
@@ -126,7 +126,7 @@ BOOL WINAPI ReleaseTickTimer(uint timerId) {
          return(TRUE);
       }
    }
-   return(warn(ERR_ILLEGAL_STATE, "tick timer not found: id=%d", timerId));
+   return(!warn(ERR_ILLEGAL_STATE, "tick timer not found: id=%d", timerId));
    #pragma EXPANDER_EXPORT
 }
 

@@ -23,10 +23,10 @@ extern MqlInstanceList g_mqlInstances;             // all MQL program instances 
  * @return BOOL - success status
  */
 BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const char* message, int error, int level) {
-   if ((uint)ec < MIN_VALID_POINTER)      return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                          return(error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlInstances.size() <= ec->pid)  return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
-   if ((uint)message < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
+   if ((uint)ec < MIN_VALID_POINTER)      return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (!ec->pid)                          return(!error(ERR_INVALID_PARAMETER, "invalid execution context: ec.pid=0  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlInstances.size() <= ec->pid)  return(!error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)message < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
    if (level == LOG_OFF)                  return(FALSE);
 
    EXECUTION_CONTEXT* master = (*g_mqlInstances[ec->pid])[0];
@@ -42,11 +42,12 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
       if (!IsFileA(master->logFilename, MODE_SYSTEM)) {
          char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
-         if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT))      // make sure the directory exists
+         string path = string(drive).append(dir);
+         if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT))                   // make sure the directory exists
             return(FALSE);
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
-      if (!master->logger->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
+      if (!master->logger->is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
       if (master->logBuffer && master->logBuffer->size()) {
          uint size = master->logBuffer->size();
          for (uint i=0; i < size; ++i) {
@@ -98,15 +99,15 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
  * @return BOOL - success status
  */
 BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
-   if ((uint)ec < MIN_VALID_POINTER)                   return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (filename && (uint)filename < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-   if (strlen(filename) > MAX_PATH)                    return(error(ERR_INVALID_PARAMETER, "too long parameter filename: \"%s\" (max. %d chars)", filename, MAX_PATH));
-   if (!ec->pid)                                       return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (g_mqlInstances.size() <= ec->pid)               return(error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)ec < MIN_VALID_POINTER)                   return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (filename && (uint)filename < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+   if (strlen(filename) > MAX_PATH)                    return(!error(ERR_INVALID_PARAMETER, "too long parameter filename: \"%s\" (max. %d chars)", filename, MAX_PATH));
+   if (!ec->pid)                                       return(!error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
+   if (g_mqlInstances.size() <= ec->pid)               return(!error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
-   if (master->superContext) return(TRUE);                                                // ignore the call if in iCustom()
+   if (master->superContext) return(TRUE);                                       // ignore the call if in iCustom()
 
    if (filename && *filename) {
       // enable the file logger
@@ -123,19 +124,20 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
             if (!IsFileA(filename, MODE_SYSTEM)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                                        // extract the directory part of logFilename
+               char drive[MAX_DRIVE], dir[MAX_DIR];                              // extract the directory part of logFilename
                _splitpath(filename, drive, dir, NULL, NULL);
-               if (CreateDirectoryA(string(drive).append(dir), MODE_SYSTEM|MODE_MKPARENT)) // make sure the directory exists
+               string path = string(drive).append(dir);
+               if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT))    // make sure the directory exists
                   return(FALSE);
             }
-            log->open(filename, std::ios::binary|std::ios::app);                           // open the logfile
-            if (!log->is_open()) return(error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
+            log->open(filename, std::ios::binary|std::ios::app);                 // open the logfile
+            if (!log->is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));
 
             if (master->logBuffer && master->logBuffer->size()) {
                uint size = master->logBuffer->size();
                for (uint i=0; i < size; ++i) {
                   string entry = (*master->logBuffer)[i];
-                  *master->logger << entry << NL;                                          // append existing logbuffer entries
+                  *master->logger << entry << NL;                                // append existing logbuffer entries
                }
                master->logger->flush();
                master->logBuffer->clear();

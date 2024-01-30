@@ -3,6 +3,22 @@
 #include "struct/mt4/MqlString.h"
 #include <sstream>
 
+#define mbslen       _mbslen           // length of a UTF-8 string (doesn't check for invalid UTF-8 chars)
+#define mbstrlen     _mbstrlen         // length of a UTF-8 string (checks for invalid UTF-8 chars)
+#define wstrlen      wcslen            // length of a UTF-16 string
+
+#define strdup       _strdup           // duplicate a C string
+#define mbstrdup     _mbsdup           // duplicate a UTF-8 string
+#define wstrdup      _wcsdup           // duplicate a UTF-16 string
+
+#define vscprintf    _vscprintf        // count C chars of the resulting string using a var-list of arguments
+#define vwscprintf   _vscwprintf       // count UTF-16 chars of the resulting string using a var-list of arguments
+#define snprintf     _snprintf         // write formatted data to a sized C string buffer
+#define vwsprintf_s  vswprintf_s       // write formatted data to a UTF-16 string buffer using a var-list of arguments
+
+#define strtoint     atoi              // convert a C string to an integer
+#define wstrtoint    _wtoi             // convert a UTF-16 string to an integer
+
 
 /**
  * C++11 to_string() replacement for VS 2008.
@@ -22,6 +38,7 @@ string to_string(T value) {
 
 
 char*        WINAPI DoubleQuoteStr(const char* value);
+wchar*       WINAPI DoubleQuoteStr(const wchar* value);
 const char*  WINAPI GetStringA(const char* value);
 const wchar* WINAPI GetStringW(const wchar* value);
 
@@ -47,17 +64,16 @@ char*        WINAPI StrTrim(char* const str);
 char*        WINAPI StrTrimLeft(char* const str);
 char*        WINAPI StrTrimRight(char* const str);
 
+wstring      WINAPI ansiToUnicode(const  string &str);
+string       WINAPI ansiToUtf8   (const  string &str);
+string       WINAPI unicodeToAnsi(const wstring &str);
+string       WINAPI unicodeToUtf8(const wstring &str);
+string       WINAPI utf8ToAnsi   (const  string &str);
+wstring      WINAPI utf8ToUnicode(const  string &str);
+
+ char*      __cdecl asformat(const char* format, ...);                        // only __cdecl supports variadics
+wchar*      __cdecl asformat(const wchar* format, ...);
+ char*       WINAPI _asformat(const char* format, const va_list &args);
+wchar*       WINAPI _asformat(const wchar* format, const va_list &args);
+
 std::istream& getline(std::istream &is, string &line);
-
-wstring       ansiToUnicode(const string &str);
-string        ansiToUtf8   (const string &str);
-string        unicodeToAnsi(const wstring &wstr);
-string        unicodeToUtf8(const wstring &wstr);
-string        utf8ToAnsi   (const string &str);
-wstring       utf8ToUnicode(const string &str);
-
-
-namespace rsf {
-   char*  asformat(const char* format, ...);
-   char* _asformat(const char* format, const va_list &args);
-}

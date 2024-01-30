@@ -17,7 +17,7 @@
  * @return char*
  */
 char* WINAPI ORDER_toStr(const ORDER* order, BOOL outputDebug/*=FALSE*/) {
-   if ((uint)order < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter order: 0x%p (not a valid pointer)", order));
+   if ((uint)order < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter order: 0x%p (not a valid pointer)", order));
 
    std::ostringstream ss;
    ORDER empty = {};

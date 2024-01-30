@@ -17,7 +17,7 @@ const char* WINAPI BarModelDescription(int id) {
       case MODE_CONTROLPOINTS: return("ControlPoints");
       case MODE_BAROPEN:       return("OpenPrices");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
 }
 
@@ -35,7 +35,7 @@ const char* WINAPI BarModelToStr(int id) {
       case MODE_CONTROLPOINTS: return("MODE_CONTROLPOINTS");
       case MODE_BAROPEN:       return("MODE_BAROPEN");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a bar model)", id));
    #pragma EXPANDER_EXPORT
 }
 
@@ -67,7 +67,7 @@ const char* WINAPI CoreFunctionDescription(CoreFunction func) {
       case CF_START : return("start");
       case CF_DEINIT: return("deinit");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
    #pragma EXPANDER_EXPORT
 }
 
@@ -86,7 +86,7 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
       case CF_START : return("CF_START");
       case CF_DEINIT: return("CF_DEINIT");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter func: %d (not a CoreFunction)", func));
    #pragma EXPANDER_EXPORT
 }
 
@@ -335,7 +335,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_INTEGER_PARAMETER_EXPECTED                                                 : return("ERR_INTEGER_PARAMETER_EXPECTED"                                     );    //   4063
       case ERR_DOUBLE_PARAMETER_EXPECTED                                                  : return("ERR_DOUBLE_PARAMETER_EXPECTED"                                      );    //   4064
       case ERR_ARRAY_AS_PARAMETER_EXPECTED                                                : return("ERR_ARRAY_AS_PARAMETER_EXPECTED"                                    );    //   4065
-      case ERS_HISTORY_UPDATE                                                             : return("ERS_HISTORY_UPDATE"                                                 );    //   4066   non-terminating status
+      case ERS_HISTORY_UPDATE                                                             : return("ERS_HISTORY_UPDATE"                                                 );    //   4066   non-terminating error
       case ERR_TRADE_ERROR                                                                : return("ERR_TRADE_ERROR"                                                    );    //   4067
       case ERR_RESOURCE_NOT_FOUND                                                         : return("ERR_RESOURCE_NOT_FOUND"                                             );    //   4068
       case ERR_RESOURCE_NOT_SUPPORTED                                                     : return("ERR_RESOURCE_NOT_SUPPORTED"                                         );    //   4069
@@ -421,27 +421,28 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_USER_ERROR_FIRST                                                           : return("ERR_USER_ERROR_FIRST"                                               );    //  65536
       case ERR_CANCELLED_BY_USER                                                          : return("ERR_CANCELLED_BY_USER"                                              );    //  65537
       case ERR_CONCURRENT_MODIFICATION                                                    : return("ERR_CONCURRENT_MODIFICATION"                                        );    //  65538
-      case ERS_EXECUTION_STOPPING                                                         : return("ERS_EXECUTION_STOPPING"                                             );    //  65539   non-terminating status
+      case ERS_EXECUTION_STOPPING                                                         : return("ERS_EXECUTION_STOPPING"                                             );    //  65539   non-terminating error
       case ERR_FUNC_NOT_ALLOWED                                                           : return("ERR_FUNC_NOT_ALLOWED"                                               );    //  65540
       case ERR_HISTORY_INSUFFICIENT                                                       : return("ERR_HISTORY_INSUFFICIENT"                                           );    //  65541
       case ERR_ILLEGAL_STATE                                                              : return("ERR_ILLEGAL_STATE"                                                  );    //  65542
       case ERR_ACCESS_DENIED                                                              : return("ERR_ACCESS_DENIED"                                                  );    //  65543
-      case ERR_INVALID_COMMAND                                                            : return("ERR_INVALID_COMMAND"                                                );    //  65544
-      case ERR_INVALID_CONFIG_VALUE                                                       : return("ERR_INVALID_CONFIG_VALUE"                                           );    //  65545
-      case ERR_INVALID_FILE_FORMAT                                                        : return("ERR_INVALID_FILE_FORMAT"                                            );    //  65546
-      case ERR_INVALID_INPUT_PARAMETER                                                    : return("ERR_INVALID_INPUT_PARAMETER"                                        );    //  65547
-      case ERR_INVALID_MARKET_DATA                                                        : return("ERR_INVALID_MARKET_DATA"                                            );    //  65548
-      case ERR_INVALID_TIMEZONE_CONFIG                                                    : return("ERR_INVALID_TIMEZONE_CONFIG"                                        );    //  65549
-      case ERR_MIXED_SYMBOLS                                                              : return("ERR_MIXED_SYMBOLS"                                                  );    //  65550
-      case ERR_NOT_IMPLEMENTED                                                            : return("ERR_NOT_IMPLEMENTED"                                                );    //  65551
-      case ERR_ORDER_CHANGED                                                              : return("ERR_ORDER_CHANGED"                                                  );    //  65552
-      case ERR_RUNTIME_ERROR                                                              : return("ERR_RUNTIME_ERROR"                                                  );    //  65553
-      case ERR_TERMINAL_INIT_FAILURE                                                      : return("ERR_TERMINAL_INIT_FAILURE"                                          );    //  65554
-      case ERS_TERMINAL_NOT_YET_READY                                                     : return("ERS_TERMINAL_NOT_YET_READY"                                         );    //  65555   non-terminating status
-      case ERR_TOTAL_POSITION_NOT_FLAT                                                    : return("ERR_TOTAL_POSITION_NOT_FLAT"                                        );    //  65556
-      case ERR_UNDEFINED_STATE                                                            : return("ERR_UNDEFINED_STATE"                                                );    //  65557
-      case ERR_STOP_DISTANCE_VIOLATED                                                     : return("ERR_STOP_DISTANCE_VIOLATED"                                         );    //  65558
-      case ERR_MARGIN_STOPOUT                                                             : return("ERR_MARGIN_STOPOUT"                                                 );    //  65559
+      case ERR_INVALID_VALUE                                                              : return("ERR_INVALID_VALUE"                                                  );    //  65544
+      case ERR_INVALID_COMMAND                                                            : return("ERR_INVALID_COMMAND"                                                );    //  65545
+      case ERR_INVALID_CONFIG_VALUE                                                       : return("ERR_INVALID_CONFIG_VALUE"                                           );    //  65546
+      case ERR_INVALID_FILE_FORMAT                                                        : return("ERR_INVALID_FILE_FORMAT"                                            );    //  65547
+      case ERR_INVALID_INPUT_PARAMETER                                                    : return("ERR_INVALID_INPUT_PARAMETER"                                        );    //  65548
+      case ERR_INVALID_MARKET_DATA                                                        : return("ERR_INVALID_MARKET_DATA"                                            );    //  65549
+      case ERR_INVALID_TIMEZONE_CONFIG                                                    : return("ERR_INVALID_TIMEZONE_CONFIG"                                        );    //  65550
+      case ERR_MIXED_SYMBOLS                                                              : return("ERR_MIXED_SYMBOLS"                                                  );    //  65551
+      case ERR_NOT_IMPLEMENTED                                                            : return("ERR_NOT_IMPLEMENTED"                                                );    //  65552
+      case ERR_ORDER_CHANGED                                                              : return("ERR_ORDER_CHANGED"                                                  );    //  65553
+      case ERR_RUNTIME_ERROR                                                              : return("ERR_RUNTIME_ERROR"                                                  );    //  65554
+      case ERR_TERMINAL_INIT_FAILURE                                                      : return("ERR_TERMINAL_INIT_FAILURE"                                          );    //  65555
+      case ERS_TERMINAL_NOT_YET_READY                                                     : return("ERS_TERMINAL_NOT_YET_READY"                                         );    //  65556   non-terminating error
+      case ERR_TOTAL_POSITION_NOT_FLAT                                                    : return("ERR_TOTAL_POSITION_NOT_FLAT"                                        );    //  65557
+      case ERR_UNDEFINED_STATE                                                            : return("ERR_UNDEFINED_STATE"                                                );    //  65558
+      case ERR_STOP_DISTANCE_VIOLATED                                                     : return("ERR_STOP_DISTANCE_VIOLATED"                                         );    //  65559
+      case ERR_MARGIN_STOPOUT                                                             : return("ERR_MARGIN_STOPOUT"                                                 );    //  65560
 
       // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                                                : return("win32:NO_ERROR"                                                     );    // 100000 +    0
@@ -1015,7 +1016,7 @@ const char* WINAPI ErrorToStrA(int error) {
  */
 const wchar* WINAPI ErrorToStrW(int error) {
    wstring s = ansiToUnicode(string(ErrorToStrA(error)));
-   return(wcsdup(s.c_str()));
+   return(wstrdup(s.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1102,7 +1103,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_RECOMPILE        : return("IR_RECOMPILE"        );
       case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1140,7 +1141,7 @@ const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
          case LOG_OFF:    return("off"   );        // not a regular loglevel
       }
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1163,7 +1164,7 @@ const char* WINAPI LoglevelToStr(int level) {
       case LOG_FATAL:  return("LOG_FATAL" );
       case LOG_OFF:    return("LOG_OFF"   );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1183,7 +1184,7 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
       case MT_INDICATOR: return("Indicator");
       case MT_LIBRARY  : return("Library"  );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1203,7 +1204,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
       case MT_INDICATOR: return("MT_INDICATOR");
       case MT_LIBRARY  : return("MT_LIBRARY"  );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1218,7 +1219,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
  *
  * @return char* - formatted string or a NULL pointer in case of errors
  *
- *       Format codes:
+ * Format codes:
  * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
  * @see  http://www.cplusplus.com/reference/cstdio/printf/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/664b1717-2760-4c61-bd9c-22eee618d825.htm
@@ -1243,7 +1244,7 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
       case PT_SCRIPT   : return("Script");
       case PT_INDICATOR: return("Indicator");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1262,7 +1263,7 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
       case PT_SCRIPT   : return("PT_SCRIPT");
       case PT_INDICATOR: return("PT_INDICATOR");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1286,7 +1287,7 @@ const char* WINAPI OperationTypeDescription(int type) {
       case OP_CREDIT   : return("Credit"    );
       case OP_UNDEFINED: return("undefined" );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1310,7 +1311,7 @@ const char* WINAPI OperationTypeToStr(int type) {
       case OP_CREDIT   : return("OP_CREDIT"   );
       case OP_UNDEFINED: return("OP_UNDEFINED");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1343,7 +1344,7 @@ const char* WINAPI OrderTypeToStr(int type) {
  * Note: This implementation should match the one in MQL's stdfunctions.mqh.
  */
 const char* WINAPI PeriodDescriptionA(int period) {
-   if (period < 0) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
+   if (period < 0) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
       case NULL      : return("NULL");
@@ -1384,7 +1385,7 @@ const char* WINAPI PeriodDescriptionA(int period) {
 const wchar* WINAPI PeriodDescriptionW(int period) {
    const char* s = PeriodDescriptionA(period);
    if (!s) return(NULL);
-   return(wcsdup(ansiToUnicode(string(s)).c_str()));
+   return(wstrdup(ansiToUnicode(string(s)).c_str()));
 }
 
 
@@ -1396,7 +1397,7 @@ const wchar* WINAPI PeriodDescriptionW(int period) {
  * @return char* - string or NULL if the parameter is invalid
  */
 const char* WINAPI PeriodToStr(int period) {
-   if (period < 0) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
+   if (period < 0) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
       case NULL      : return("NULL"      );
@@ -1423,7 +1424,7 @@ const char* WINAPI PeriodToStr(int period) {
       case PERIOD_MN1: return("PERIOD_MN1");     // 1 month
       case PERIOD_Q1 : return("PERIOD_Q1" );     // 1 quarter  (custom timeframe)
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "unknown parameter period: %d", period));
+   return((char*)!error(ERR_INVALID_PARAMETER, "unknown parameter period: %d", period));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1450,7 +1451,7 @@ const char* WINAPI ShowWindowCmdToStr(int cmd) {
       case SW_SHOWDEFAULT    : return("SW_SHOWDEFAULT"    );
       case SW_FORCEMINIMIZE  : return("SW_FORCEMINIMIZE"  );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter cmd: %d", cmd));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter cmd: %d", cmd));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1502,7 +1503,7 @@ const char* WINAPI TradeDirectionDescription(int direction) {
       case TRADE_DIRECTION_SHORT: return("Short");
       case TRADE_DIRECTION_BOTH:  return("Both");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1520,7 +1521,7 @@ const char* WINAPI TradeDirectionToStr(int direction) {
       case TRADE_DIRECTION_SHORT: return("TRADE_DIRECTION_SHORT");
       case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH");
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1555,6 +1556,6 @@ const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
       case UR_INITFAILED : return("UR_INITFAILED" );
       case UR_CLOSE      : return("UR_CLOSE"      );
    }
-   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
    #pragma EXPANDER_EXPORT
 }

@@ -17,8 +17,8 @@
  * @return int - the same id
  */
 int WINAPI test_SetId(TEST* test, int id) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (id <= 0)                        return(error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
+   if ((uint)test < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (id <= 0)                        return(!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not positive)", id));
 
    test->id = id;
    return(id);
@@ -34,8 +34,8 @@ int WINAPI test_SetId(TEST* test, int id) {
  * @return time32 - the same time
  */
 time32 WINAPI test_SetStartTime(TEST* test, time32 time) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (time <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
+   if ((uint)test < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (time <= 0)                      return(!error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
 
    test->startTime = time;
    return(time);
@@ -51,8 +51,8 @@ time32 WINAPI test_SetStartTime(TEST* test, time32 time) {
  * @return time32 - the same time
  */
 time32 WINAPI test_SetEndTime(TEST* test, time32 time) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (time <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
+   if ((uint)test < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (time <= 0)                      return(!error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (not positive)", time));
 
    test->endTime = time;
    return(time);
@@ -68,8 +68,8 @@ time32 WINAPI test_SetEndTime(TEST* test, time32 time) {
  * @return uint - the same amount
  */
 uint WINAPI test_SetBars(TEST* test, uint bars) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (bars <= 0)                      return(error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d (not positive)", bars));
+   if ((uint)test < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (bars <= 0)                      return(!error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d (not positive)", bars));
 
    test->bars = bars;
    return(bars);
@@ -85,8 +85,8 @@ uint WINAPI test_SetBars(TEST* test, uint bars) {
  * @return uint - the same amount
  */
 uint WINAPI test_SetTicks(TEST* test, uint ticks) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (ticks <= 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter ticks: %d (not positive)", ticks));
+   if ((uint)test < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (ticks <= 0)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter ticks: %d (not positive)", ticks));
 
    test->ticks = ticks;
    return(ticks);
@@ -97,13 +97,13 @@ uint WINAPI test_SetTicks(TEST* test, uint ticks) {
  * Set the spread used in a TEST.
  *
  * @param  TEST*  test
- * @param  double spread - spread in pips
+ * @param  double spread - spread in pip
  *
  * @return double - the same spread
  */
 double WINAPI test_SetSpread(TEST* test, double spread) {
-   if ((uint)test < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
-   if (spread < 0)                     return(error(ERR_INVALID_PARAMETER, "invalid parameter spread: %f (must be non-negative)", spread));
+   if ((uint)test < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if (spread < 0)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter spread: %f (must be non-negative)", spread));
 
    test->spread = spread;
    return(test->spread);
@@ -119,7 +119,7 @@ double WINAPI test_SetSpread(TEST* test, double spread) {
  * @return char*
  */
 char* WINAPI TEST_toStr(const TEST* test, BOOL outputDebug/*=FALSE*/) {
-   if ((uint)test < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
+   if ((uint)test < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter test: 0x%p (not a valid pointer)", test));
 
    std::ostringstream ss;
    TEST empty = {};

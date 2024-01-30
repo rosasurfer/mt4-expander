@@ -6,6 +6,7 @@
 #include "expander.h"
 #include "lib/datetime.h"
 #include "lib/memory.h"
+#include "lib/string.h"
 
 #include <ctime>
 #include <sstream>
@@ -123,7 +124,7 @@ BOOL WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char
    string key = string("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\").append(name);
    HKEY hKey;
    if (int error = RegOpenKey(HKEY_LOCAL_MACHINE, key.c_str(), &hKey)) {
-      return(error(ERR_WIN32_ERROR+error, "failed to open key: \"HKEY_LOCAL_MACHINE\\%s\"", key.c_str()));
+      return(!error(ERR_WIN32_ERROR+error, "failed to open key: \"HKEY_LOCAL_MACHINE\\%s\"", key.c_str()));
    }
 
    // timezone info format in the registry
@@ -200,9 +201,9 @@ string WINAPI gmtTimeFormat(time32 gmtTime, const char* format) {
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 char* WINAPI GmtTimeFormatA(time32 gmtTime, const char* format) {
-   if (gmtTime == NaT)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
-   if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+   if (gmtTime == NaT)                   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
+   if (gmtTime < 0)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+   if ((uint)format < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    string s = gmtTimeFormat(gmtTime, format);
    return(strdup(s.c_str()));                               // TODO: add to GC (close memory leak)
@@ -222,9 +223,9 @@ char* WINAPI GmtTimeFormatA(time32 gmtTime, const char* format) {
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 wchar* WINAPI GmtTimeFormatW(time64 gmtTime, const wchar* format) {
-   if (gmtTime == NaT)                   return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
-   if ((uint)format < MIN_VALID_POINTER) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+   if (gmtTime == NaT)                   return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
+   if (gmtTime < 0)                      return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+   if ((uint)format < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    TM time = UnixTimeToTm(gmtTime);
    wchar* buffer = NULL;
@@ -236,7 +237,7 @@ wchar* WINAPI GmtTimeFormatW(time64 gmtTime, const wchar* format) {
       if (wcsftime(buffer, bufSize, format, &time)) break;
    }
 
-   return(wcsdup(buffer));                                  // TODO: add to GC (close memory leak)
+   return(wstrdup(buffer));                                 // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -278,9 +279,9 @@ string WINAPI localTimeFormat(time32 gmtTime, const char* format) {
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 char* WINAPI LocalTimeFormatA(time32 gmtTime, const char* format) {
-   if (gmtTime == NaT)                   return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
-   if ((uint)format < MIN_VALID_POINTER) return((char*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+   if (gmtTime == NaT)                   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
+   if (gmtTime < 0)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+   if ((uint)format < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    string s = localTimeFormat(gmtTime, format);
    return(strdup(s.c_str()));                               // TODO: add to GC (close memory leak)
@@ -300,9 +301,9 @@ char* WINAPI LocalTimeFormatA(time32 gmtTime, const char* format) {
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
 wchar* WINAPI LocalTimeFormatW(time64 gmtTime, const wchar* format) {
-   if (gmtTime == NaT)                   return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
-   if ((uint)format < MIN_VALID_POINTER) return((wchar*)error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
+   if (gmtTime == NaT)                   return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
+   if (gmtTime < 0)                      return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+   if ((uint)format < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    TM time = UnixTimeToTm(gmtTime, TRUE);
    wchar* buffer = NULL;
@@ -314,7 +315,7 @@ wchar* WINAPI LocalTimeFormatW(time64 gmtTime, const wchar* format) {
       if (wcsftime(buffer, bufSize, format, &time)) break;
    }
 
-   return(wcsdup(buffer));                                           // TODO: add to GC (close memory leak)
+   return(wstrdup(buffer));                                          // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -659,7 +660,7 @@ SYSTEMTIME WINAPI D(const char* datetime) {
  * @return int
  */
 int WINAPI test_Time(const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+   if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    TIME_ZONE_INFORMATION tzi = {};
    BOOL result = GetTimeZoneInformationByNameA(&tzi, name);

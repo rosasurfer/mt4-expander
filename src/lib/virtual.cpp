@@ -100,8 +100,7 @@ int WINAPI onDeinitAccountChange() {
       EXECUTION_CONTEXT* ec = (*g_mqlInstances[pid])[0];
 
       if (ec->programType == PT_EXPERT) {
-         error(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-         return(ERR_UNDEFINED_STATE);
+         return(error(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
       }
       if (ec->programType == PT_INDICATOR) {
          warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
@@ -190,7 +189,7 @@ int WINAPI onAccountChange(int oldAccount, int newAccount) {
 
 
 BOOL WINAPI onBarOpen() {
-   return(error(ERR_NOT_IMPLEMENTED, ""));
+   return(!error(ERR_NOT_IMPLEMENTED, ""));
    #pragma EXPANDER_EXPORT
 }
 
@@ -210,8 +209,8 @@ const char* WINAPI InputsToStr() {
 }
 
 
-BOOL WINAPI Recorder_GetSymbolDefinitionA(int i, BOOL enabled, const char* symbol, const char* symbolDescr, const char* symbolGroup, int symbolDigits, double hstBase, int hstMultiplier, const char* hstDirectory, int hstFormat) {
-   return(FALSE);
+int WINAPI Recorder_GetSymbolDefinition(int id, BOOL* ready, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
+   return(ERR_NOT_IMPLEMENTED);
    #pragma EXPANDER_EXPORT
 }
 

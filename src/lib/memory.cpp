@@ -10,7 +10,7 @@
  * @return uint - memory location or NULL in case of errors
  */
 uint WINAPI GetBoolsAddress(const BOOL values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
@@ -24,7 +24,7 @@ uint WINAPI GetBoolsAddress(const BOOL values[]) {
  * @return uint - memory location or NULL in case of errors
  */
 uint WINAPI GetDoublesAddress(const double values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
@@ -38,7 +38,7 @@ uint WINAPI GetDoublesAddress(const double values[]) {
  * @return uint - memory location or NULL in case of errors
  */
 uint WINAPI GetIntsAddress(const int values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
@@ -57,7 +57,7 @@ uint WINAPI GetIntsAddress(const int values[]) {
  *       resolved address becomes invalid.
  */
 uint WINAPI GetStringAddress(const TCHAR* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
    return((uint) value);
    #pragma EXPANDER_EXPORT
 }
@@ -71,7 +71,7 @@ uint WINAPI GetStringAddress(const TCHAR* value) {
  * @return uint - memory location or NULL in case of errors
  */
 uint WINAPI GetStringsAddress(const MqlStringA values[]) {
-   if (values && (uint)values < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
+   if (values && (uint)values < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter values: 0x%p (not a valid pointer)", values));
    return((uint) values);
    #pragma EXPANDER_EXPORT
 }
