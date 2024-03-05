@@ -215,6 +215,12 @@ int WINAPI GetMT4SymbolDefinition(int id, BOOL* ready, const char* symbol, const
 }
 
 
+BOOL WINAPI ReadCustomTestConfiguration() {
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
 BOOL WINAPI RemoveChartLegend() {
    return(TRUE);
    #pragma EXPANDER_EXPORT
