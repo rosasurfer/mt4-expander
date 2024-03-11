@@ -210,7 +210,7 @@ const char* WINAPI InputsToStr() {
 
 
 int WINAPI GetMT4SymbolDefinition(int id, BOOL* ready, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
-   return(ERR_NOT_IMPLEMENTED);
+   return(ERR_INVALID_INPUT_PARAMETER);
    #pragma EXPANDER_EXPORT
 }
 
