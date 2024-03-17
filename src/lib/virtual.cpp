@@ -195,6 +195,39 @@ BOOL WINAPI onBarOpen() {
 
 
 /**
+ * EA recorder related no-ops.
+ */
+BOOL Recorder_start() {
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+BOOL Recorder_deinit() {
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+const char* Recorder_GetNextMetricSymbol() {
+   return("A.000");
+   #pragma EXPANDER_EXPORT
+}
+
+
+int RecordMetrics() {
+   return(ERR_NOT_IMPLEMENTED);
+   #pragma EXPANDER_EXPORT
+}
+
+
+int WINAPI GetMT4SymbolDefinition(int metricId, BOOL* ready, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
+   return(ERR_INVALID_INPUT_PARAMETER);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Other
  */
 void WINAPI DummyCalls() {
@@ -205,12 +238,6 @@ void WINAPI DummyCalls() {
 
 const char* WINAPI InputsToStr() {
    return("");
-   #pragma EXPANDER_EXPORT
-}
-
-
-int WINAPI GetMT4SymbolDefinition(int id, BOOL* ready, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
-   return(ERR_INVALID_INPUT_PARAMETER);
    #pragma EXPANDER_EXPORT
 }
 
