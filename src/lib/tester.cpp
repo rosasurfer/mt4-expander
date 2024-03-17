@@ -266,7 +266,6 @@ BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int typ
 
    debug("position opened:  %s", ORDER_toStr(order));
    return(TRUE);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -351,7 +350,6 @@ BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32
 
    if (!positionFound) return(!error(ERR_RUNTIME_ERROR, "open position #%d not found (%d open positions)", ticket, size));
    return(TRUE);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -422,9 +420,7 @@ BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, time32 startTime, ui
    test_SetBars        (test, bars        );
    test_SetSpread      (test, spread      );
  //test_SetTradeDirections...                                  // TODO: read from "{expert-name}.ini"
-
    return(TRUE);
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -487,7 +483,6 @@ BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, time32 endTime, uint
    test->stat_avgShortRealized = shortTrades ? round(shortRealized/shortTrades, 1) : 0;
 
    return(Test_SaveReport(test));
-   #pragma EXPANDER_EXPORT
 }
 
 

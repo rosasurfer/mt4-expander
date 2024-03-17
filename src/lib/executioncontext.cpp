@@ -296,30 +296,29 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * Initialize and synchronize an MQL program's execution context with the master context stored in this DLL. Called by the
  * init() functions of the MQL main modules. For a general overview see type EXECUTION_CONTEXT.
  *
- * @param  EXECUTION_CONTEXT* ec                  - an MQL program's main module execution context
- * @param  ProgramType        programType         - program type
- * @param  char*              programName         - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason        - value of UninitializeReason() as returned by the terminal
- * @param  DWORD              initFlags           - program init configuration
- * @param  DWORD              deinitFlags         - program deinit configuration
- * @param  char*              symbol              - current chart symbol
- * @param  uint               timeframe           - current chart timeframe
- * @param  uint               digits              - the current symbol's "Digits" value (possibly incorrect)
- * @param  double             point               - the current symbol's "Point" value (possibly incorrect)
- * @param  int                recordMode          - an expert's "EA.Recorder" mode
- * @param  BOOL               isTesting           - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode        - value of IsVisualMode() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isOptimization      - value of IsOptimzation() as returned by the terminal
- * @param  BOOL               isExternalReporting - an expert's input parameter "Test.ExternalReporting"
- * @param  EXECUTION_CONTEXT* sec                 - super context as managed by the terminal (memory possibly already released)
- * @param  HWND               hChart              - value of WindowHandle() as returned by the terminal (possibly not yet set)
- * @param  int                droppedOnChart      - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosX       - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosY       - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context
+ * @param  ProgramType        programType    - program type
+ * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
+ * @param  DWORD              initFlags      - program init configuration
+ * @param  DWORD              deinitFlags    - program deinit configuration
+ * @param  char*              symbol         - current chart symbol
+ * @param  uint               timeframe      - current chart timeframe
+ * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
+ * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
+ * @param  int                recordMode     - an expert's "EA.Recorder" mode
+ * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
+ * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
+ * @param  HWND               hChart         - value of WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, int recordMode, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, BOOL isExternalReporting, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, int recordMode, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (strlen(programName) >= sizeof(ec->programName)) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1));
@@ -453,7 +452,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting));
    ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
-   ec_SetExternalReporting   (ec, isExternalReporting);
+   ec_SetExternalReporting   (ec, FALSE);
 
    EXECUTION_CONTEXT* ecRef = (master->superContext ? master->superContext : master);
    ec->logger =                   ecRef->logger;                           // logger instance first to catch further messages (TODO: move more up)
