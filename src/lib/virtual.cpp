@@ -197,6 +197,18 @@ BOOL WINAPI onBarOpen() {
 /**
  * EA recorder related no-ops.
  */
+const char* Recorder_GetInput() {
+   return("");
+   #pragma EXPANDER_EXPORT
+}
+
+
+const char* Recorder_GetNextMetricSymbol() {
+   return("A.000");
+   #pragma EXPANDER_EXPORT
+}
+
+
 BOOL Recorder_start() {
    return(FALSE);
    #pragma EXPANDER_EXPORT
@@ -205,12 +217,6 @@ BOOL Recorder_start() {
 
 BOOL Recorder_deinit() {
    return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-const char* Recorder_GetNextMetricSymbol() {
-   return("A.000");
    #pragma EXPANDER_EXPORT
 }
 
