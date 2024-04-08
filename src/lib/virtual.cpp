@@ -180,7 +180,7 @@ int WINAPI afterDeinit() {
 
 
 /**
- * Event handlers
+ * Event handler no-ops.
  */
 int WINAPI onAccountChange(int oldAccount, int newAccount) {
    return(NO_ERROR);
@@ -228,10 +228,16 @@ int RecordMetrics() {
 
 
 /**
- * Other
+ * Other no-ops.
  */
 void WINAPI DummyCalls() {
    return;
+   #pragma EXPANDER_EXPORT
+}
+
+
+const char* WINAPI GetStatusFilenameData() {
+   return("");
    #pragma EXPANDER_EXPORT
 }
 
