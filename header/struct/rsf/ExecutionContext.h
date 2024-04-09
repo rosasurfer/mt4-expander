@@ -71,33 +71,32 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    HWND               hChart;                         //       692        4     chart handle = MQL::WindowHandle()                        (const)  handle of the chart frame
    HWND               hChartWindow;                   //       696        4     chart handle with title bar "Symbol,Period"               (const)  handle of the chart window
                                                       //
-   int                recordMode;                     //       700        4     an expert's "EA.Recorder" mode                            (var)
+   int                recorderMode;                   //       700        4     an expert's "EA.Recorder" mode                            (var)
                                                       //
    TEST*              test;                           //       704        4     test configuration, data and results                      (const)
    BOOL               testing;                        //       708        4     IsTesting() status                                        (const)
    BOOL               visualMode;                     //       712        4     expert IsVisualMode() status                              (const)
    BOOL               optimization;                   //       716        4     expert IsOptimization() status                            (const)
-   BOOL               externalReporting;              //       720        4     an expert's input parameter "Test.ExternalReporting"      (var)
                                                       //
-   int                mqlError;                       //       724        4     last MQL error (from all program modules)                 (var)
-   int                dllError;                       //       728        4     last DLL error                                            (var)
-   char*              dllErrorMsg;                    //       732        4     DLL error message                                         (var)
-   int                dllWarning;                     //       736        4     last DLL warning                                          (var)
-   char*              dllWarningMsg;                  //       740        4     DLL warning message                                       (var)
+   int                mqlError;                       //       720        4     last MQL error (from all program modules)                 (var)
+   int                dllError;                       //       724        4     last DLL error                                            (var)
+   char*              dllErrorMsg;                    //       728        4     DLL error message                                         (var)
+   int                dllWarning;                     //       732        4     last DLL warning                                          (var)
+   char*              dllWarningMsg;                  //       736        4     DLL warning message                                       (var)
                                                       //
-   int                loglevel;                       //       744        4     program main loglevel                                     (var)
-   int                loglevelTerminal;               //       748        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       752        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelDebugger;               //       756        4     loglevel of the debug output appender                     (var)
-   int                loglevelFile;                   //       760        4     loglevel of the logfile appender                          (var)
-   int                loglevelMail;                   //       764        4     loglevel of the mail appender                             (var)
-   int                loglevelSMS;                    //       768        4     loglevel of the SMS appender                              (var)
+   int                loglevel;                       //       740        4     program main loglevel                                     (var)
+   int                loglevelTerminal;               //       744        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       748        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelDebugger;               //       752        4     loglevel of the debug output appender                     (var)
+   int                loglevelFile;                   //       756        4     loglevel of the logfile appender                          (var)
+   int                loglevelMail;                   //       760        4     loglevel of the mail appender                             (var)
+   int                loglevelSMS;                    //       764        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logger;                         //       772        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       776        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       780      260     logger filename                                           (var)
+   std::ofstream*     logger;                         //       768        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       772        4     log buffer                                                (var)
+   char               logFilename[MAX_PATH];          //       776      260     logger filename                                           (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1040
+#pragma pack(pop)                                     //             = 1036
 
 
 // getters expecting a struct (exported)
@@ -148,7 +147,7 @@ uint               WINAPI ec_ThreadId            (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart              (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChartWindow        (const EXECUTION_CONTEXT* ec);
 
-int                WINAPI ec_RecordMode          (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_RecorderMode        (const EXECUTION_CONTEXT* ec);
 
 //                        ec.test
 int                WINAPI ec_TestId              (const EXECUTION_CONTEXT* ec);
@@ -163,7 +162,6 @@ DWORD              WINAPI ec_TestTradeDirections (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Testing             (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization        (const EXECUTION_CONTEXT* ec);
-BOOL               WINAPI ec_ExternalReporting   (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_MqlError            (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError            (const EXECUTION_CONTEXT* ec);
@@ -233,13 +231,12 @@ uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint
 HWND               WINAPI ec_SetHChart              (EXECUTION_CONTEXT* ec, HWND               hWnd    );
 HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND               hWnd    );
 
-int                WINAPI ec_SetRecordMode          (EXECUTION_CONTEXT* ec, int                mode    );
+int                WINAPI ec_SetRecorderMode        (EXECUTION_CONTEXT* ec, int                mode    );
 
 //                        ec.test
 BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetExternalReporting   (EXECUTION_CONTEXT* ec, BOOL               status  );
 
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
 int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );

@@ -306,7 +306,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * @param  uint               timeframe      - current chart timeframe
  * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
  * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
- * @param  int                recordMode     - an expert's "EA.Recorder" mode
+ * @param  int                recorderMode   - an expert's "EA.Recorder" mode
  * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
@@ -318,7 +318,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, int recordMode, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, int recorderMode, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (strlen(programName) >= sizeof(ec->programName)) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1));
@@ -446,13 +446,12 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetHChart              (ec, hChart);                                 // chart handles must be set before test values
    ec_SetHChartWindow        (ec, hChart ? GetParent(hChart) : NULL);
 
-   ec_SetRecordMode          (ec, recordMode);
+   ec_SetRecorderMode        (ec, recorderMode);
 
    master->test = ec->test = Expert_InitTest(ec, isTesting);
    ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting));
    ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
-   ec_SetExternalReporting   (ec, FALSE);
 
    EXECUTION_CONTEXT* ecRef = (master->superContext ? master->superContext : master);
    ec->logger =                   ecRef->logger;                           // logger instance first to catch further messages (TODO: move more up)

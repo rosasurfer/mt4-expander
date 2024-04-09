@@ -715,9 +715,9 @@ HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
  *
  * @return int
  */
-int WINAPI ec_RecordMode(const EXECUTION_CONTEXT* ec) {
+int WINAPI ec_RecorderMode(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->recordMode);
+   return(ec->recorderMode);
    #pragma EXPANDER_EXPORT
 }
 
@@ -904,20 +904,6 @@ BOOL WINAPI ec_VisualMode(const EXECUTION_CONTEXT* ec) {
 BOOL WINAPI ec_Optimization(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->optimization);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether an MQL program's input parameter "Test.ExternalReporting" is activated (experts only).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return BOOL
- */
-BOOL WINAPI ec_ExternalReporting(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->externalReporting);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1804,23 +1790,23 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's recordMode value.
+ * Set an EXECUTION_CONTEXT's recorderMode value.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                mode
  *
  * @return int - the same mode
  */
-int WINAPI ec_SetRecordMode(EXECUTION_CONTEXT* ec, int mode) {
+int WINAPI ec_SetRecorderMode(EXECUTION_CONTEXT* ec, int mode) {
    if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
-   ec->recordMode = mode;
+   ec->recorderMode = mode;
 
    uint pid = ec->pid;                                               // synchronize main and master context
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
-         chain[0]->recordMode = mode;
+         chain[0]->recorderMode = mode;
    }
    return(mode);
    #pragma EXPANDER_EXPORT
@@ -1891,29 +1877,6 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
       ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->optimization = status;
-   }
-   return(status);
-}
-
-
-/**
- * Set an EXECUTION_CONTEXT's externalReporting value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               status
- *
- * @return BOOL - the same status
- */
-BOOL WINAPI ec_SetExternalReporting(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->externalReporting = status;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlInstances.size() > pid) {
-      ContextChain &chain = *g_mqlInstances[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->externalReporting = status;
    }
    return(status);
 }
@@ -2324,13 +2287,12 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", hChart="               <<                     (ec->hChart       ? asformat("0x%p", ec->hChart       ) : "NULL")
          << ", hChartWindow="         <<                     (ec->hChartWindow ? asformat("0x%p", ec->hChartWindow ) : "NULL")
 
-         << ", recordMode="           <<                      ec->recordMode
+         << ", recorderMode="         <<                      ec->recorderMode
 
          << ", test="                 <<                     (ec->test ? asformat("0x%p", ec->test) : "NULL")
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
-         << ", externalReporting="    <<            BoolToStr(ec->externalReporting)
 
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
          << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
