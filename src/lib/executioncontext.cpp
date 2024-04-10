@@ -296,7 +296,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * Initialize and synchronize an MQL program's execution context with the master context stored in this DLL. Called by the
  * init() functions of the MQL main modules. For a general overview see type EXECUTION_CONTEXT.
  *
- * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module execution context
+ * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module context
  * @param  ProgramType        programType    - program type
  * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
  * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
@@ -335,8 +335,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    uint previousPid = NULL;                                                // pid of a previous program instance (if any)
    EXECUTION_CONTEXT* master;
 
-   // fix an unset chart handle (older terminals)
-   if (!hChart) hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, timeframe, isTesting, isVisualMode);
+   // fix an unset chart handle (indicators in older terminals; since build ??? the terminal delays indicator start until the handle is set)
+   if (!hChart) hChart = FindWindowHandle(hChart, programName, (ModuleType)programType, sec, symbol, timeframe, isTesting, isVisualMode, isOptimization);
    if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
 
    // resolve the real InitReason
@@ -1197,124 +1197,124 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
 
 
 /**
- * Find the chart of the current program and return its window handle. Replacement for the broken MQL function WindowHandle().
- * Also returns the correct window handle when the MQL function fails.
+ * Called from SyncMainContext_init() to fix an unset chart handle caused by the flawed terminal MQL function WindowHandle().
+ * Applies to indicators in older terminals only. Since build ??? the terminal delays indicator start until the handle is set.
  *
- * Must be called only in SyncMainContext_init(), after that use the window handle stored in the program's EXECUTION_CONTEXT.
+ * Find the chart of the current program and return its window handle (also in cases when the built-in function fails).
  *
- * @param  HWND               hChart       - value of WindowHandle() as returned by the terminal (possibly not yet set)
- * @param  EXECUTION_CONTEXT* sec          - super context as managed by the terminal (memory possibly already released)
- * @param  ModuleType         moduleType   - module type
- * @param  char*              symbol       - current symbol
- * @param  uint               timeframe    - current timeframe
- * @param  BOOL               isTesting    - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  HWND               hChart         - value of WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  char*              programName    - program name (with or w/o path depending on the terminal version)
+ * @param  ModuleType         moduleType     - module type
+ * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
+ * @param  char*              symbol         - current symbol
+ * @param  uint               timeframe      - current timeframe
+ * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
  *
- * @return HWND - Window handle or NULL if the program runs in the tester with VisualMode=Off;
- *                INVALID_HWND (-1) in case of errors.
+ * @return HWND - Window handle or NULL if the program runs in the tester with VisualMode=off;
+ *                INVALID_HWND (-1) in case of errors
  */
-HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode) {
-   if (hChart) return(hChart);                                       // if already defined return WindowHandle() as passed
-   if (sec) return(sec->hChart);                                     // if a super context exists return the inherited chart handle
-                                                                     // (if hChart is not set the super context is always valid)
-   // Wir sind im Hauptmodul
-   // - kein SuperContext
-   // - WindowHandle() ist NULL
+HWND WINAPI FindWindowHandle(HWND hChart, const char* programName, ModuleType moduleType, const EXECUTION_CONTEXT* sec, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization) {
+   if (hChart) return(hChart);                                 // if set return handle as passed; if not set the supercontext is always valid and can be accessed
+   if (sec) return(sec->hChart);                               // if a super context exists return the inherited chart handle
 
-   if (isTesting && !isVisualMode)                                   // Im Tester bei VisualMode=Off gibt es keinen Chart: Rückgabewert NULL
+   // starting situation:
+   //  we are in the main module
+   //  there's no super context
+   //  MQL's WindowHandle() returned NULL
+
+   //debug("%s: WindowHandle()=NULL  isTesting=%d  isVisualMode=%d  isOptimization=%d  (%s thread)", programName, isTesting, isVisualMode, isOptimization, IsUIThread() ? "ui":"non-ui");
+
+   if ((isTesting && !isVisualMode) || isOptimization) {       // in these situations there's no chart
       return(NULL);
+   }
 
-   // Wir sind entweder: im Tester bei VisualMode=On              aber: kein Hauptmodul hat VisualMode=On und WindowHandle=NULL
-   // oder               außerhalb des Testers
+   // current situation:
+   //  No program type has WindowHandle=NULL in tester with VisualMode=on.
+   //  We are either not in tester (indicator or script in online chart).
+   //  Or we are a standalone indicator in a tester template (on VisualMode=off and on Optimization=1 the indicator's init cycle is still executed).
 
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return(INVALID_HWND);
 
    HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDI_CLIENT);
-   if (!hWndMdi) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window not found (hWndMain=%p)", hWndMain)));
+   if (!hWndMdi) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window not found (hWndMain=%p)", programName, hWndMain)));
 
-   HWND hChartWindow = NULL;                                         // chart system window holding the chart AfxFrameOrView
+   HWND hChartWindow = NULL;                                   // chart system window holding the chart AfxFrameOrView
 
-
-   // (1) Indikator
+   // indicator
    if (moduleType == MT_INDICATOR) {
-      //
-      // Wir sind entweder: normaler Template-Indikator bei Terminalstart oder LoadProfile und WindowHandle() ist noch NULL
-      // oder:              Tester-Template-Indikator im Tester bei VisualMode=Off => es gibt keinen Chart
-      // Wir sind immer:    im UIThread in init()
-      //
-      // Wir sind nicht:    in iCustom()
-      // und auch nicht:    manuell geladener Indikator im Tester-Chart => WindowHandle() wäre gesetzt
-      // und auch nicht:    getesteter Indikator eines neueren Builds   => dito
+      // current situation:
+      //  We are either a regular indicator in an online chart in the UI thread (terminal-start or reload-profile).
+      //  Or we are a standalone indicator in a tester template:
+      //   UI thread:     VisualMode=on|off (on VisualMode=off only indicator::init() is executed)
+      //   non-UI thread: IsOptimization=on (only indicator::init() is executed)
+      if (!IsUIThread()) return(NULL);                         // no chart for standalone indicator in tester template during optimization
 
       // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
       // solange das Terminal/der Chart nicht endgültig initialisiert sind. Hat das letzte Chartfenster in Z order noch keinen
       // Titel (es wird gerade erzeugt), ist dies das aktuelle Chartfenster. Existiert kein solches Fenster, wird der Indikator
       // über das Tester-Template in einem Test mit VisualMode=Off geladen und wird keinen Chart haben. Die start()-Funktion
       // wird in diesem Fall nie ausgeführt.
-      if (!IsUIThread()) return(_INVALID_HWND(error(ERR_ILLEGAL_STATE, "unknown state, non-ui thread=%d  hChart=%d  sec=%d", GetCurrentThreadId(), hChart, sec)));
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
+      if (!hWndChild)                                          // MDIClient has no children
+         return(NULL);                                         // there is no no chart: Tester with VisualMode=Off
 
-      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
-      if (!hWndChild)                                                // MDIClient has no children
-         return(NULL);                                               // there is no no chart: Tester with VisualMode=Off
+      HWND hWndLast = GetWindow(hWndChild, GW_HWNDLAST);       // last child window in Z order (lowest chart window)
+      if (GetWindowTextLength(hWndLast))                       // last child window already has a title
+         return(NULL);                                         // there is no chart: Tester with VisualMode=Off
 
-      HWND hWndLast = GetWindow(hWndChild, GW_HWNDLAST);             // last child window in Z order (lowest chart window)
-      if (GetWindowTextLength(hWndLast))                             // last child window already has a title
-         return(NULL);                                               // there is no chart: Tester with VisualMode=Off
-
-      hChartWindow = hWndLast;                                       // keep chart window (holding the chart AfxFrameOrView)
+      hChartWindow = hWndLast;                                 // keep chart window (holding the chart AfxFrameOrView)
    }
 
-
-   // (2) Script
+   // script
    else if (moduleType == MT_SCRIPT) {
       // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
       // solange das Terminal/der Chart nicht endgültig initialisiert sind. Ein laufendes Script wurde in diesem Fall über
       // die Konfiguration in "terminal-start.ini" gestartet und läuft im ersten passenden Chart in absoluter Reihenfolge
       // (CtrlID, nicht Z order).
-      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
-      if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain)));
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
+      if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window has no children in Script::init()  hWndMain=%p", programName, hWndMain)));
 
       uint size = MAX_CHARTDESCRIPTION_LENGTH + 1;
-      char* chartDescription = (char*)alloca(size);                  // on the stack
+      char* chartDescription = (char*)alloca(size);            // on the stack
       uint chars = ComposeChartTitle(symbol, timeframe, chartDescription, size);
       if (!chars) return(INVALID_HWND);
 
       char* title = NULL;
       int id = INT_MAX;
 
-      while (hWndChild) {                                            // iterate over all child windows
+      while (hWndChild) {                                      // iterate over all child windows
          free(title);
-         title = GetWindowTextA(hWndChild);                          // Here we can't use GetInternalWindowText() as the window
-         if (!title) return(INVALID_HWND);                           // creation needs to finish before we get a valid response.
+         title = GetWindowTextA(hWndChild);                    // Here we can't use GetInternalWindowText() as the window
+         if (!title) return(INVALID_HWND);                     // creation needs to finish before we get a valid response.
 
          if (StrEndsWith(title, " (offline)"))
             title[strlen(title)-10] = '\0';
-         if (StrCompare(title, chartDescription)) {                  // find all matching windows
-            id = std::min(id, GetDlgCtrlID(hWndChild));              // track the smallest in absolute order
-            if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
+         if (StrCompare(title, chartDescription)) {            // find all matching windows
+            id = std::min(id, GetDlgCtrlID(hWndChild));        // track the smallest in absolute order
+            if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient child window %p has no control id", programName, hWndChild)));
          }
-         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);              // next child in Z order
+         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);        // next child in Z order
       }
       free(title);
-      if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no matching MDIClient child window found for \"%s\"", chartDescription)));
+      if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: no matching MDIClient child window found for \"%s\"", programName, chartDescription)));
 
-      hChartWindow = GetDlgItem(hWndMdi, id);                        // keep chart window (holding the chart AfxFrameOrView)
+      hChartWindow = GetDlgItem(hWndMdi, id);                  // keep chart window (holding the chart AfxFrameOrView)
    }
 
-
-   // (3) Expert
+   // expert
    else if (moduleType == MT_EXPERT) {
-      return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MQL::WindowHandle() => 0 in Expert::init()")));
+      return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MQL::WindowHandle() => 0 in expert::init()", programName)));
    }
    else {
-      return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter moduleType: %d", moduleType)));
+      return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "%s: invalid parameter moduleType: %d", programName, moduleType)));
    }
 
-
-   // (4) Das gefundene Chartfenster hat genau ein Child (AfxFrameOrView), welches das gesuchte MetaTrader-Handle ist.
+   // The found chart window holds a single child window (AfxFrameOrView), which matches the handle of MQL::WindowHandle().
    hChart = GetWindow(hChartWindow, GW_CHILD);
-   if (!hChart) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no MetaTrader chart window inside of last MDIClient child window %p found", hChartWindow)));
+   if (!hChart) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: no MetaTrader chart window inside of last MDIClient child window %p found", programName, hChartWindow)));
 
    return(hChart);
 }
