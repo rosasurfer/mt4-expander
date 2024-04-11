@@ -304,17 +304,17 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * @param  DWORD              deinitFlags    - program deinit configuration
  * @param  char*              symbol         - current chart symbol
  * @param  uint               timeframe      - current chart timeframe
- * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect)
- * @param  double             point          - the current symbol's "Point" value (possibly incorrect)
+ * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
+ * @param  double             point          - the current symbol's "Point" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
  * @param  int                recorderMode   - an expert's "EA.Recorder" mode
- * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
+ * @param  BOOL               isTesting      - result of IsTesting() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - result of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
  * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
- * @param  HWND               hChart         - value of WindowHandle() as returned by the terminal (possibly not yet set)
- * @param  int                droppedOnChart - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosX  - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosY  - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  HWND               hChart         - result of WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  int                droppedOnChart - result of WindowOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - result of WindowXOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - result of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  *
  * @return int - error status
  */
@@ -335,7 +335,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    uint previousPid = NULL;                                                // pid of a previous program instance (if any)
    EXECUTION_CONTEXT* master;
 
-   // fix an unset chart handle (indicators in older terminals; since build ??? the terminal delays indicator start until the handle is set)
+   // fix an unset chart handle: see FindWindowHandle()
    if (!hChart) hChart = FindWindowHandle(hChart, programName, (ModuleType)programType, sec, symbol, timeframe, isTesting, isVisualMode, isOptimization);
    if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
 
@@ -650,8 +650,8 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
 
 
 /**
- * Synchronize a library's EXECUTION_CONTEXT with the context of the program's main module. Called only from the core
- * function Library::init(). Initializes the library context and adds it to the program's context chain.
+ * Initializes a library's EXECUTION_CONTEXT and synchronizes it with the program's main module. On success the library context
+ * is added to the program's context chain. Called from library::init() only.
  *
  * @param  EXECUTION_CONTEXT* ec             - the libray's execution context
  * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal (possibly incorrect)
@@ -660,10 +660,10 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @param  char*              moduleName     - the library's name (may contain a path depending on the terminal version)
  * @param  char*              symbol         - current chart symbol
  * @param  uint               timeframe      - current chart timeframe
- * @param  uint               digits         - the symbol's "Digits" value (possibly incorrect)
- * @param  double             point          - the symbol's "Point" value (possibly incorrect)
- * @param  BOOL               isTesting      - MQL::IsTesting()
- * @param  BOOL               isOptimization - MQL::IsOptimization()
+ * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
+ * @param  double             point          - the current symbol's "Point" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
+ * @param  BOOL               isTesting      - result of IsTesting() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
  *
  * @return int - error status
  */
@@ -874,7 +874,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       else {                                                         // get the last executed program: it's myself or something else
          ContextChain &chain = *g_mqlInstances[currentPid];          // if partial chain found, it's myself with one more re-used library
          isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
-         if (!isPartialChain) debug("unseen library init cycle in tester (the former program doesn't seem to be the former test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         if (!isPartialChain) debug("unseen library init cycle in tester (the previous program doesn't seem to be the previous test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
 
       if (!isPartialChain) {
@@ -1197,8 +1197,9 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
 
 
 /**
- * Called from SyncMainContext_init() to fix an unset chart handle caused by the flawed terminal MQL function WindowHandle().
- * Applies to indicators in older terminals only. Since build ??? the terminal delays indicator start until the handle is set.
+ * Called from SyncMainContext_init() to resolve/fix an unset chart handle in terminal builds <= 509, i.e. WindowHandle()
+ * returns NULL. Since build 600 the terminal delays execution of init() start until the handle is set. This change in newer
+ * builds siginificantly terminal start and chart initialization. The fix applied by the Expander doesn't delay execution at all.
  *
  * Find the chart of the current program and return its window handle (also in cases when the built-in function fails).
  *
@@ -1208,9 +1209,9 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
  * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
  * @param  char*              symbol         - current symbol
  * @param  uint               timeframe      - current timeframe
- * @param  BOOL               isTesting      - value of IsTesting() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
- * @param  BOOL               isVisualMode   - value of IsVisualMode() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
- * @param  BOOL               isOptimization - value of IsOptimzation() as returned by the terminal
+ * @param  BOOL               isTesting      - result of IsTesting() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isVisualMode   - result of IsVisualMode() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
  *
  * @return HWND - Window handle or NULL if the program runs in the tester with VisualMode=off;
  *                INVALID_HWND (-1) in case of errors
@@ -1219,18 +1220,16 @@ HWND WINAPI FindWindowHandle(HWND hChart, const char* programName, ModuleType mo
    if (hChart) return(hChart);                                 // if set return handle as passed; if not set the supercontext is always valid and can be accessed
    if (sec) return(sec->hChart);                               // if a super context exists return the inherited chart handle
 
-   // starting situation:
+   // situation:
    //  we are in the main module
    //  there's no super context
    //  MQL's WindowHandle() returned NULL
 
-   //debug("%s: WindowHandle()=NULL  isTesting=%d  isVisualMode=%d  isOptimization=%d  (%s thread)", programName, isTesting, isVisualMode, isOptimization, IsUIThread() ? "ui":"non-ui");
-
-   if ((isTesting && !isVisualMode) || isOptimization) {       // in these situations there's no chart
+   if ((isTesting && !isVisualMode) || isOptimization) {       // in these standard situations there's no chart
       return(NULL);
    }
 
-   // current situation:
+   // situation:
    //  No program type has WindowHandle=NULL in tester with VisualMode=on.
    //  We are either not in tester (indicator or script in online chart).
    //  Or we are a standalone indicator in a tester template (on VisualMode=off and on Optimization=1 the indicator's init cycle is still executed).
@@ -1245,18 +1244,21 @@ HWND WINAPI FindWindowHandle(HWND hChart, const char* programName, ModuleType mo
 
    // indicator
    if (moduleType == MT_INDICATOR) {
-      // current situation:
+      // situation:
       //  We are either a regular indicator in an online chart in the UI thread (terminal-start or reload-profile).
       //  Or we are a standalone indicator in a tester template:
       //   UI thread:     VisualMode=on|off (on VisualMode=off only indicator::init() is executed)
       //   non-UI thread: IsOptimization=on (only indicator::init() is executed)
       if (!IsUIThread()) return(NULL);                         // no chart for standalone indicator in tester template during optimization
 
-      // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
-      // solange das Terminal/der Chart nicht endgültig initialisiert sind. Hat das letzte Chartfenster in Z order noch keinen
-      // Titel (es wird gerade erzeugt), ist dies das aktuelle Chartfenster. Existiert kein solches Fenster, wird der Indikator
-      // über das Tester-Template in einem Test mit VisualMode=Off geladen und wird keinen Chart haben. Die start()-Funktion
-      // wird in diesem Fall nie ausgeführt.
+      // WindowHandle() uses the title string to find a chart window. On execution of indicator::init() the window title may
+      // not yet be set which results in the function returning NULL (can't find current window). However the window exists.
+      // There's always only one window "in creation" without a title text, and it's always the last created window (the last
+      // child window in Z order). So even without a title text the own window can be detected.
+      //
+      // If there's no last window in Z order without a title text, then the indicator was loaded by a tester template with
+      // VisualMode=off (no chart window). In this case init() is executed but start() will never.
+      //
       HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
       if (!hWndChild)                                          // MDIClient has no children
          return(NULL);                                         // there is no no chart: Tester with VisualMode=Off
