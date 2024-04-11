@@ -9,13 +9,9 @@
 #include "lib/tester.h"
 #include "lib/timeseries.h"
 #include "struct/rsf/ExecutionContext.h"
-#include "struct/rsf/Order.h"
-#include "struct/rsf/Test.h"
 
-#include <cmath>
 #include <ctime>
 #include <fstream>
-#include <vector>
 
 
 MqlInstanceList    g_mqlInstances(1);              // all MQL program instances: index 0 is not a valid pid and is always empty
@@ -448,7 +444,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
    ec_SetRecorderMode        (ec, recorderMode);
 
-   master->test = ec->test = Expert_InitTest(ec, isTesting);
    ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting));
    ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
@@ -557,38 +552,6 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          }
       }
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
-   }
-
-   if (ec->test) {
-      // update statistics for maxRunup/maxDrawdown calculations
-      if ((uint)rates < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter rates: 0x%p (not a valid pointer)", rates));
-      if (bars <= 0)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d", bars));
-
-      TEST* test = ec->test;
-      OrderList* positions = test->openPositions;
-      double high=INT_MIN, low=INT_MAX;
-
-      if (positions->size()) {
-         switch (test->barModel) {
-            case MODE_BAROPEN: {
-               time32 barTime = iTime(rates, bars, 0);
-               uint bar = (tickTime == barTime);                     // use the closed [1] or the current bar [0] for stats
-               high = iHigh(rates, bars, bar);                       // (the last tick of a BarOpen test can be a BarClose tick)
-               low  = iLow (rates, bars, bar);
-               break;
-            }
-            case MODE_CONTROLPOINTS:
-            case MODE_EVERYTICK:
-               high = bid;                                           // inner prices to prevent stats distortion by spread widening
-               low  = ask;
-               break;
-         }
-         for (OrderList::iterator it=positions->begin(), end=positions->end(); it!=end; ++it) {
-            ORDER* order = *it;
-            if (high > order->highPrice) order->highPrice = high;    // explicite check for max. performance
-            if (low  < order->lowPrice)  order->lowPrice  = low;
-         }
-      }
    }
 
    return(NO_ERROR);
@@ -1060,45 +1023,6 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
 
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Create and initialize a new TEST instance if the passed program is an expert in tester. If the context already holds
- * a pointer to a test, the existing test is returned.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
- *
- * @return TEST* - test instance or NULL if the program is not an expert under test or in case of errors
- */
-TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
-   if (ec->test)                                return(ec->test);
-   if (ec->moduleType!=MT_EXPERT || !isTesting) return(NULL);
-
-   int barModel = Tester_GetBarModel(); if (barModel == EMPTY) return(NULL);
-
-   FXT_HEADER* fxtHeader = new FXT_HEADER();
-   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, barModel, fxtHeader)) {
-      delete fxtHeader;
-      return(NULL);
-   }
-
-   TEST* test = new TEST();
-   test->ec        = ec;
-   test->created   = time(NULL);
-   test->barModel  = barModel;
-   test->fxtHeader = fxtHeader;
-
-   test->openPositions        = new OrderList(); test->openPositions     ->reserve(32);
-   test->openLongPositions    = new OrderList(); test->openLongPositions ->reserve(32);
-   test->openShortPositions   = new OrderList(); test->openShortPositions->reserve(32);
-
-   test->closedPositions      = new OrderList(); test->closedPositions     ->reserve(1024);
-   test->closedLongPositions  = new OrderList(); test->closedLongPositions ->reserve(1024);
-   test->closedShortPositions = new OrderList(); test->closedShortPositions->reserve(1024);
-
-   return(test);
 }
 
 

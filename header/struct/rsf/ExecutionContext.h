@@ -1,5 +1,4 @@
 #pragma once
-#include "struct/rsf/Test.h"
 #include <vector>
 
 typedef std::vector<string> LogBuffer;
@@ -73,30 +72,29 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
                                                       //
    int                recorderMode;                   //       700        4     an expert's "EA.Recorder" mode                            (var)
                                                       //
-   TEST*              test;                           //       704        4     test configuration, data and results                      (const)
-   BOOL               testing;                        //       708        4     IsTesting() status                                        (const)
-   BOOL               visualMode;                     //       712        4     expert IsVisualMode() status                              (const)
-   BOOL               optimization;                   //       716        4     expert IsOptimization() status                            (const)
+   BOOL               testing;                        //       704        4     IsTesting() status                                        (const)
+   BOOL               visualMode;                     //       708        4     expert IsVisualMode() status                              (const)
+   BOOL               optimization;                   //       712        4     expert IsOptimization() status                            (const)
                                                       //
-   int                mqlError;                       //       720        4     last MQL error (from all program modules)                 (var)
-   int                dllError;                       //       724        4     last DLL error                                            (var)
-   char*              dllErrorMsg;                    //       728        4     DLL error message                                         (var)
-   int                dllWarning;                     //       732        4     last DLL warning                                          (var)
-   char*              dllWarningMsg;                  //       736        4     DLL warning message                                       (var)
+   int                mqlError;                       //       716        4     last MQL error (from all program modules)                 (var)
+   int                dllError;                       //       720        4     last DLL error                                            (var)
+   char*              dllErrorMsg;                    //       724        4     DLL error message                                         (var)
+   int                dllWarning;                     //       728        4     last DLL warning                                          (var)
+   char*              dllWarningMsg;                  //       732        4     DLL warning message                                       (var)
                                                       //
-   int                loglevel;                       //       740        4     program main loglevel                                     (var)
-   int                loglevelTerminal;               //       744        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       748        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelDebug;                  //       752        4     loglevel of the debug output appender                     (var)
-   int                loglevelFile;                   //       756        4     loglevel of the logfile appender                          (var)
-   int                loglevelMail;                   //       760        4     loglevel of the mail appender                             (var)
-   int                loglevelSMS;                    //       764        4     loglevel of the SMS appender                              (var)
+   int                loglevel;                       //       736        4     program main loglevel                                     (var)
+   int                loglevelTerminal;               //       740        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       744        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelDebug;                  //       748        4     loglevel of the debug output appender                     (var)
+   int                loglevelFile;                   //       752        4     loglevel of the logfile appender                          (var)
+   int                loglevelMail;                   //       756        4     loglevel of the mail appender                             (var)
+   int                loglevelSMS;                    //       760        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logger;                         //       768        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       772        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       776      260     logger filename                                           (var)
+   std::ofstream*     logger;                         //       764        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       768        4     log buffer                                                (var)
+   char               logFilename[MAX_PATH];          //       772      260     logger filename                                           (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1036
+#pragma pack(pop)                                     //             = 1032
 
 
 // getters expecting a struct (exported)
@@ -149,16 +147,6 @@ HWND               WINAPI ec_hChartWindow        (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_RecorderMode        (const EXECUTION_CONTEXT* ec);
 
-//                        ec.test
-int                WINAPI ec_TestId              (const EXECUTION_CONTEXT* ec);
-time32             WINAPI ec_TestCreated         (const EXECUTION_CONTEXT* ec);
-time32             WINAPI ec_TestStartTime       (const EXECUTION_CONTEXT* ec);
-time32             WINAPI ec_TestEndTime         (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_TestBarModel        (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_TestBars            (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_TestTicks           (const EXECUTION_CONTEXT* ec);
-double             WINAPI ec_TestSpread          (const EXECUTION_CONTEXT* ec);
-DWORD              WINAPI ec_TestTradeDirections (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Testing             (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization        (const EXECUTION_CONTEXT* ec);
@@ -233,7 +221,6 @@ HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND
 
 int                WINAPI ec_SetRecorderMode        (EXECUTION_CONTEXT* ec, int                mode    );
 
-//                        ec.test
 BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
