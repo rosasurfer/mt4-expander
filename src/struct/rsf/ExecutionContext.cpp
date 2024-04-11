@@ -505,7 +505,7 @@ BOOL WINAPI ec_SuperContext(const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* cons
  *
  * @return char* - program name
  */
-const char* WINAPI ep_SuperProgramName(uint pid) {
+const char* WINAPI ec_SuperProgramName(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
@@ -526,7 +526,7 @@ const char* WINAPI ep_SuperProgramName(uint pid) {
  *
  * @return int - loglevel
  */
-int WINAPI ep_SuperLoglevel(uint pid) {
+int WINAPI ec_SuperLoglevel(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
@@ -547,7 +547,7 @@ int WINAPI ep_SuperLoglevel(uint pid) {
  *
  * @return int - loglevel
  */
-int WINAPI ep_SuperLoglevelTerminal(uint pid) {
+int WINAPI ec_SuperLoglevelTerminal(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
@@ -568,7 +568,7 @@ int WINAPI ep_SuperLoglevelTerminal(uint pid) {
  *
  * @return int - loglevel
  */
-int WINAPI ep_SuperLoglevelAlert(uint pid) {
+int WINAPI ec_SuperLoglevelAlert(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
@@ -589,7 +589,7 @@ int WINAPI ep_SuperLoglevelAlert(uint pid) {
  *
  * @return int - loglevel
  */
-int WINAPI ep_SuperLoglevelDebug(uint pid) {
+int WINAPI ec_SuperLoglevelDebug(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
@@ -610,7 +610,7 @@ int WINAPI ep_SuperLoglevelDebug(uint pid) {
  *
  * @return int - loglevel
  */
-int WINAPI ep_SuperLoglevelFile(uint pid) {
+int WINAPI ec_SuperLoglevelFile(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
@@ -631,7 +631,7 @@ int WINAPI ep_SuperLoglevelFile(uint pid) {
  *
  * @return int - loglevel
  */
-int WINAPI ep_SuperLoglevelMail(uint pid) {
+int WINAPI ec_SuperLoglevelMail(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];
@@ -652,7 +652,7 @@ int WINAPI ep_SuperLoglevelMail(uint pid) {
  *
  * @return int - loglevel
  */
-int WINAPI ep_SuperLoglevelSMS(uint pid) {
+int WINAPI ec_SuperLoglevelSMS(uint pid) {
    if (pid && g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
       EXECUTION_CONTEXT* master = chain[0];

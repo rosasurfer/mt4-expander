@@ -182,15 +182,15 @@ const char*        WINAPI ec_LogFilename         (const EXECUTION_CONTEXT* ec);
 
 
 // getters expecting a pid (exported)
-const char*        WINAPI ep_SuperProgramName     (uint pid);
+const char*        WINAPI ec_SuperProgramName     (uint pid);
 
-int                WINAPI ep_SuperLoglevel        (uint pid);
-int                WINAPI ep_SuperLoglevelTerminal(uint pid);
-int                WINAPI ep_SuperLoglevelAlert   (uint pid);
-int                WINAPI ep_SuperLoglevelDebug   (uint pid);
-int                WINAPI ep_SuperLoglevelFile    (uint pid);
-int                WINAPI ep_SuperLoglevelMail    (uint pid);
-int                WINAPI ep_SuperLoglevelSMS     (uint pid);
+int                WINAPI ec_SuperLoglevel        (uint pid);
+int                WINAPI ec_SuperLoglevelTerminal(uint pid);
+int                WINAPI ec_SuperLoglevelAlert   (uint pid);
+int                WINAPI ec_SuperLoglevelDebug   (uint pid);
+int                WINAPI ec_SuperLoglevelFile    (uint pid);
+int                WINAPI ec_SuperLoglevelMail    (uint pid);
+int                WINAPI ec_SuperLoglevelSMS     (uint pid);
 
 
 // validating setters
