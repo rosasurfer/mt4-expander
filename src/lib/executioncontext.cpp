@@ -458,7 +458,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetLoglevel            (ec, ecRef->loglevel        );
    ec_SetLoglevelTerminal    (ec, ecRef->loglevelTerminal);
    ec_SetLoglevelAlert       (ec, ecRef->loglevelAlert   );
-   ec_SetLoglevelDebugger    (ec, ecRef->loglevelDebugger);
+   ec_SetLoglevelDebug       (ec, ecRef->loglevelDebug   );
    ec_SetLoglevelFile        (ec, ecRef->loglevelFile    );
    ec_SetLoglevelMail        (ec, ecRef->loglevelMail    );
    ec_SetLoglevelSMS         (ec, ecRef->loglevelSMS     );
@@ -545,7 +545,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->loglevel            = ec->loglevel;                    // configurable at runtime
          ctx->loglevelTerminal    = ec->loglevelTerminal;
          ctx->loglevelAlert       = ec->loglevelAlert;
-         ctx->loglevelDebugger    = ec->loglevelDebugger;
+         ctx->loglevelDebug       = ec->loglevelDebug;
          ctx->loglevelFile        = ec->loglevelFile;
          ctx->loglevelMail        = ec->loglevelMail;
          ctx->loglevelSMS         = ec->loglevelSMS;
@@ -628,7 +628,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
          ctx->loglevel            = ec->loglevel;                    // configurable at runtime
          ctx->loglevelTerminal    = ec->loglevelTerminal;
          ctx->loglevelAlert       = ec->loglevelAlert;
-         ctx->loglevelDebugger    = ec->loglevelDebugger;
+         ctx->loglevelDebug       = ec->loglevelDebug;
          ctx->loglevelFile        = ec->loglevelFile;
          ctx->loglevelMail        = ec->loglevelMail;
          ctx->loglevelSMS         = ec->loglevelSMS;
@@ -676,6 +676,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    if ((int)timeframe <= 0)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    if ((int)digits < 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits));
    if (point <= 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point));
+
    //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // fix the UninitializeReason
@@ -874,7 +875,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       else {                                                         // get the last executed program: it's myself or something else
          ContextChain &chain = *g_mqlInstances[currentPid];          // if partial chain found, it's myself with one more re-used library
          isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
-         if (!isPartialChain) debug("unseen library init cycle in tester (the previous program doesn't seem to be the previous test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         if (!isPartialChain) debug("unseen library init cycle in tester (the previously executed program doesn't seem to be the previous test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
 
       if (!isPartialChain) {
@@ -948,7 +949,9 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
+
    //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+
    SetLastThreadProgram(ec->pid);                        // set the thread's currently executed program asap (error handling)
 
    // try to fix the UninitializeReason

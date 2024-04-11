@@ -55,7 +55,7 @@ BOOL WINAPI IsNaN(double value) {
 /**
  * Return a double value representing "positive infinity".
  *
- * Exported version of const INF, as in terminals (build > 509 && build < 603) MathLog(0) fails to produce it.
+ * Exported version of const INF, as in terminals (build > 509 && build < 603) MathLog() fails to produce NaN/-INF.
  *
  * @return double
  */

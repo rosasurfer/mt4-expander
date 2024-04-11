@@ -24,8 +24,8 @@ typedef std::vector<string> LogBuffer;
  *  • Data exchange between different MQL programs (e.g. experts and indicators).
  */
 struct EXECUTION_CONTEXT {                            // -- offset --- size --- description --------------------------------------------------------------------------------------
-   uint               pid;                            //         0        4     MQL program id starting from 1                            (const)  index in g_mqlPrograms[]
-   uint               previousPid;                    //         4        4     previous pid of the program or NULL                       (const)
+   uint               pid;                            //         0        4     MQL program id, starting from 1                           (const)  index in g_mqlPrograms[]
+   uint               previousPid;                    //         4        4     previous id of the program or NULL                        (const)
    time32             started;                        //         8        4     GMT time the MQL program was started                      (const)
                                                       //
    ProgramType        programType;                    //        12        4     MQL program type                                          (const)  type of MQL program
@@ -87,7 +87,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    int                loglevel;                       //       740        4     program main loglevel                                     (var)
    int                loglevelTerminal;               //       744        4     loglevel of the terminal log appender                     (var)
    int                loglevelAlert;                  //       748        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelDebugger;               //       752        4     loglevel of the debug output appender                     (var)
+   int                loglevelDebug;                  //       752        4     loglevel of the debug output appender                     (var)
    int                loglevelFile;                   //       756        4     loglevel of the logfile appender                          (var)
    int                loglevelMail;                   //       760        4     loglevel of the mail appender                             (var)
    int                loglevelSMS;                    //       764        4     loglevel of the SMS appender                              (var)
@@ -172,7 +172,7 @@ int                WINAPI ec_DllWarning          (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_Loglevel            (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelTerminal    (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelAlert       (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_LoglevelDebugger    (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_LoglevelDebug       (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelFile        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelMail        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_LoglevelSMS         (const EXECUTION_CONTEXT* ec);
@@ -187,7 +187,7 @@ const char*        WINAPI ep_SuperProgramName     (uint pid);
 int                WINAPI ep_SuperLoglevel        (uint pid);
 int                WINAPI ep_SuperLoglevelTerminal(uint pid);
 int                WINAPI ep_SuperLoglevelAlert   (uint pid);
-int                WINAPI ep_SuperLoglevelDebugger(uint pid);
+int                WINAPI ep_SuperLoglevelDebug   (uint pid);
 int                WINAPI ep_SuperLoglevelFile    (uint pid);
 int                WINAPI ep_SuperLoglevelMail    (uint pid);
 int                WINAPI ep_SuperLoglevelSMS     (uint pid);
@@ -247,7 +247,7 @@ int                WINAPI ec_SetDllWarning          (EXECUTION_CONTEXT* ec, int 
 int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelAlert       (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelDebugger    (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevelDebug       (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int                level   );
 int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int                level   );
