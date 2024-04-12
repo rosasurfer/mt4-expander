@@ -8,8 +8,8 @@
 
 #include <shellapi.h>
 
-LPWSTR* g_argv;               // Unicode array of command line arguments. The 1st element contains the program name, each subsequent element one argument.
-int     g_argc;               // size of g_argv
+BOOL g_optionPortableMode;                                  // whether cmd line option /portable is set
+BOOL g_debugCoreFunctions;                                  // whether cmd line option /rsf:debug-cf is set
 
 extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
 extern Locks                         g_locks;               // a map holding pointers to fine-granular locks
@@ -73,9 +73,22 @@ BOOL WINAPI onProcessAttach() {
 
    InitializeCriticalSection(&g_terminalMutex);
 
-   // get and store the command line arguments
-   g_argv = CommandLineToArgvW(GetCommandLineW(), &g_argc);
-   if (!g_argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
+   // parse command line arguments
+   int argc;
+   LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+   if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
+
+   for (int i=1; i < argc; i++) {
+      if (StrCompare(argv[i], L"/rsf:debug-cf")) {
+         g_debugCoreFunctions = TRUE;
+      }
+      else if (StrStartsWith(argv[i], L"/portable")) {
+         // The terminal also enables portable mode if a command line parameter just *starts* with prefix "/portable".
+         // For example passing parameter "/portablepoo" enables portable mode, too. The test mirrors that behavior.
+         g_optionPortableMode = TRUE;
+      }
+   }
+   LocalFree(argv);
 
    // the production version of the DLL is locked in memory
    const char* dllName = GetExpanderFileNameA();

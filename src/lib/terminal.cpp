@@ -9,8 +9,7 @@
 
 #include <shlobj.h>
 
-extern LPWSTR* g_argv;              // Unicode array of command line arguments. The 1st element contains the program name, each subsequent element one argument.
-extern int     g_argc;              // size of g_argv
+extern BOOL g_optionPortableMode;                        // whether cmd line option /portable is set
 
 extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
@@ -893,30 +892,13 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
  * UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
  *
  * @return BOOL
- *
- * Note: The terminal also enables portable mode if a command line parameter *starts* with the prefix "/portable". For example
- *       passing the parameter "/portablepoo" enables portable mode, too. This function mirrors that behavior.
  */
 BOOL WINAPI TerminalIsPortableMode() {
-   static int isPortable = -1;
+   static int portableMode = -1;
 
-   if (isPortable < 0) {
-      static uint terminalBuild = GetTerminalBuild();
-      if (!terminalBuild) return(FALSE);
-
-      if (terminalBuild <= 509) {
-         isPortable = TRUE;                                    // always TRUE
-      }
-      else {
-         for (int i=1; i < g_argc; i++) {
-            if (StrStartsWith(g_argv[i], L"/portable")) {      // starts-with instead of compare
-               isPortable = TRUE;
-               break;
-            }
-         }
-         if (isPortable < 0) isPortable = FALSE;
-      }
+   if (portableMode < 0) {
+      portableMode = (GetTerminalBuild() <= 509 || g_optionPortableMode);
    }
-   return(isPortable);
+   return(portableMode);
    #pragma EXPANDER_EXPORT
 }
