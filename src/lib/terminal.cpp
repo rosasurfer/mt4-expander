@@ -7,10 +7,10 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
-#include <mmsystem.h>
-#include <shellapi.h>
 #include <shlobj.h>
 
+extern LPWSTR* g_argv;              // Unicode array of command line arguments. The 1st element contains the program name, each subsequent element one argument.
+extern int     g_argc;              // size of g_argv
 
 extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
@@ -908,17 +908,13 @@ BOOL WINAPI TerminalIsPortableMode() {
          isPortable = TRUE;                                    // always TRUE
       }
       else {
-         int argc;
-         LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-
-         for (int i=1; i < argc; ++i) {
-            if (StrStartsWith(argv[i], L"/portable")) {        // starts-with instead of compare
+         for (int i=1; i < g_argc; i++) {
+            if (StrStartsWith(g_argv[i], L"/portable")) {      // starts-with instead of compare
                isPortable = TRUE;
                break;
             }
          }
-         if (isPortable < 0)
-            isPortable= FALSE;
+         if (isPortable < 0) isPortable = FALSE;
       }
    }
    return(isPortable);

@@ -6,6 +6,11 @@
 #include "lib/lock/Lock.h"
 #include "struct/rsf/ExecutionContext.h"
 
+#include <shellapi.h>
+
+LPWSTR* g_argv;               // Unicode array of command line arguments. The 1st element contains the program name, each subsequent element one argument.
+int     g_argc;               // size of g_argv
+
 extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
 extern Locks                         g_locks;               // a map holding pointers to fine-granular locks
 
@@ -31,8 +36,8 @@ extern std::vector<TICK_TIMER_DATA*> g_tickTimers;          // all registered ti
 
 
 // forward declarations
-void WINAPI onProcessAttach();
-void WINAPI onProcessDetach(BOOL isTerminating);
+BOOL WINAPI onProcessAttach();
+BOOL WINAPI onProcessDetach(BOOL isTerminating);
 
 
 /**
@@ -57,8 +62,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
 
 /**
  * Handler for DLL_PROCESS_ATTACH events.
+ *
+ * @return BOOL
  */
-void WINAPI onProcessAttach() {
+BOOL WINAPI onProcessAttach() {
    g_mqlInstances   .reserve(128);
    g_threads        .reserve(512);
    g_threadsPrograms.reserve(512);
@@ -66,12 +73,17 @@ void WINAPI onProcessAttach() {
 
    InitializeCriticalSection(&g_terminalMutex);
 
+   // get and store the command line arguments
+   g_argv = CommandLineToArgvW(GetCommandLineW(), &g_argc);
+   if (!g_argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
+
    // the production version of the DLL is locked in memory
    const char* dllName = GetExpanderFileNameA();
    if (StrEndsWith(dllName, "rsfMT4Expander.dll")) {
       HMODULE hModule = NULL;
       GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
    }
+   return(TRUE);
 }
 
 
@@ -79,10 +91,11 @@ void WINAPI onProcessAttach() {
  * Handler for DLL_PROCESS_DETACH events.
  *
  * @param  BOOL isTerminating - whether the DLL is detached because the process is terminating
+ *
+ * @return BOOL
  */
-void WINAPI onProcessDetach(BOOL isTerminating) {
-   if (isTerminating)
-      return;
+BOOL WINAPI onProcessDetach(BOOL isTerminating) {
+   if (isTerminating) return(TRUE);
 
    DeleteCriticalSection(&g_terminalMutex);
    ReleaseTickTimers();
@@ -92,4 +105,5 @@ void WINAPI onProcessDetach(BOOL isTerminating) {
       delete it->second;
    }
    g_locks.clear();
+   return(TRUE);
 }
