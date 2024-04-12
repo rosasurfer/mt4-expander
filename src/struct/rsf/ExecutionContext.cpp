@@ -41,20 +41,6 @@ uint WINAPI ec_PreviousPid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's start time.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return time32 - system time
- */
-time32 WINAPI ec_Started(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->started);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return a program's type.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -2098,7 +2084,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
       ss << std::fixed
          <<  "{pid="                  <<                      ec->pid
          << ", previousPid="          <<                      ec->previousPid
-         << ", started="              <<                     (ec->started ? LocalTimeFormatA(ec->started, "\"%Y.%m.%d %H:%M:%S\"") : "0")
 
          << ", programType="          <<     ProgramTypeToStr(ec->programType)
          << ", programName="          <<       DoubleQuoteStr(ec->programName)

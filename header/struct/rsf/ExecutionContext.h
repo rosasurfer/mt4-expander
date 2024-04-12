@@ -25,41 +25,41 @@ typedef std::vector<string> LogBuffer;
 struct EXECUTION_CONTEXT {                            // -- offset --- size --- description --------------------------------------------------------------------------------------
    uint               pid;                            //         0        4     MQL program id, starting from 1                           (const)  index in g_mqlPrograms[]
    uint               previousPid;                    //         4        4     previous id of the program or NULL                        (const)
-   time32             started;                        //         8        4     GMT time the MQL program was started                      (const)
                                                       //
-   ProgramType        programType;                    //        12        4     MQL program type                                          (const)  type of MQL program
-   char               programName[MAX_FNAME];         //        16      256     MQL program name                                          (const)  MQL program name
-   CoreFunction       programCoreFunction;            //       272        4     the program's current core function                       (var)    where is it
-   InitializeReason   programInitReason;              //       276        4     last initialize reason                                    (var)
-   UninitializeReason programUninitReason;            //       280        4     last MQL::UninitializeReason()                            (var)
-   DWORD              programInitFlags;               //       284        4     program init configuration                                (const)  how should it be initialized
-   DWORD              programDeinitFlags;             //       288        4     program deinit configuration                              (const)  how should it be deinitialized
+   ProgramType        programType;                    //         8        4     MQL program type                                          (const)  type of MQL program
+   char               programName[MAX_FNAME];         //        12      256     MQL program name                                          (const)  MQL program name
+   CoreFunction       programCoreFunction;            //       268        4     the program's current core function                       (var)    where is it
+   InitializeReason   programInitReason;              //       272        4     last initialize reason                                    (var)
+   UninitializeReason programUninitReason;            //       276        4     last MQL::UninitializeReason()                            (var)
+   DWORD              programInitFlags;               //       280        4     program init configuration                                (const)  how should it be initialized
+   DWORD              programDeinitFlags;             //       284        4     program deinit configuration                              (const)  how should it be deinitialized
                                                       //
-   ModuleType         moduleType;                     //       292        4     MQL module type                                           (const)  type of MQL module
-   char               moduleName[MAX_FNAME];          //       296      256     MQL module name = MQL::WindowExpertName()                 (const)  MQL module name
-   CoreFunction       moduleCoreFunction;             //       552        4     the module's current core function                        (var)    where is it
-   UninitializeReason moduleUninitReason;             //       556        4     last MQL::UninitializeReason()                            (var)
-   DWORD              moduleInitFlags;                //       560        4     module init configuration                                 (const)  how should it be initialized
-   DWORD              moduleDeinitFlags;              //       564        4     module deinit configuration                               (const)  how should it be deinitialized
+   ModuleType         moduleType;                     //       288        4     MQL module type                                           (const)  type of MQL module
+   char               moduleName[MAX_FNAME];          //       292      256     MQL module name = MQL::WindowExpertName()                 (const)  MQL module name
+   CoreFunction       moduleCoreFunction;             //       548        4     the module's current core function                        (var)    where is it
+   UninitializeReason moduleUninitReason;             //       552        4     last MQL::UninitializeReason()                            (var)
+   DWORD              moduleInitFlags;                //       556        4     module init configuration                                 (const)  how should it be initialized
+   DWORD              moduleDeinitFlags;              //       560        4     module deinit configuration                               (const)  how should it be deinitialized
                                                       //
-   char               symbol[MAX_SYMBOL_LENGTH+1];    //       568       12     current chart symbol                                      (var)    MQL::Symbol()
-   uint               timeframe;                      //       580        4     current chart timeframe                                   (var)    MQL::Period()
-   char               newSymbol[MAX_SYMBOL_LENGTH+1]; //       584       12     new symbol set by Library::init() after IR_CHARTCHANGE    (var)
-   uint               newTimeframe;                   //       596        4     new timeframe set by Library::init() after IR_CHARTCHANGE (var)
-   const void*        rates;                          //       600        4     current price series from MQL::ArrayCopyRates()           (var)    HistoryBar400[]|HistoryBar401[]
-   int                bars;                           //       604        4     current number of bars                                    (var)    MQL::Bars
-   int                validBars;                      //       608        4     number of validBars bars                                  (var)    MQL::IndicatorCounted()
-   int                changedBars;                    //       612        4     number of changed bars                                    (var)
-   uint               ticks;                          //       616        4     number of times start() was called for the instance       (var)
-   uint               cycleTicks;                     //       620        4     number of times start() was called since init()           (var)    used for debugging purposes in the DLL only
-   time32             currTickTime;                   //       624        4     server time of the currently processed tick               (var)
-   time32             prevTickTime;                   //       628        4     server time of the previously processed tick              (var)    used by MQL::IsBarOpen()
+   char               symbol[MAX_SYMBOL_LENGTH+1];    //       564       12     current chart symbol                                      (var)    MQL::Symbol()
+   uint               timeframe;                      //       576        4     current chart timeframe                                   (var)    MQL::Period()
+   char               newSymbol[MAX_SYMBOL_LENGTH+1]; //       580       12     new symbol set by Library::init() after IR_CHARTCHANGE    (var)
+   uint               newTimeframe;                   //       592        4     new timeframe set by Library::init() after IR_CHARTCHANGE (var)
+   const void*        rates;                          //       596        4     current price series from MQL::ArrayCopyRates()           (var)    HistoryBar400[]|HistoryBar401[]
+   int                bars;                           //       600        4     current number of bars                                    (var)    MQL::Bars
+   int                validBars;                      //       604        4     number of validBars bars                                  (var)    MQL::IndicatorCounted()
+   int                changedBars;                    //       608        4     number of changed bars                                    (var)
+   uint               ticks;                          //       612        4     number of times start() was called for the instance       (var)
+   uint               cycleTicks;                     //       616        4     number of times start() was called since init()           (var)    used for debugging purposes in the DLL only
+   time32             currTickTime;                   //       620        4     server time of the currently processed tick               (var)
+   time32             prevTickTime;                   //       624        4     server time of the previously processed tick              (var)    used by MQL::IsBarOpen()
+   BYTE               _alignment1[4];                 //       628        4     (alignment to the next double)
    double             bid;                            //       632        8     current bid price                                         (var)    MQL::Bid
    double             ask;                            //       640        8     current ask price                                         (var)    MQL::Ask
                                                       //
    uint               digits;                         //       648        4     digits of the symbol                                      (var)    MQL::Digits
    uint               pipDigits;                      //       652        4     digits of a pip                                           (var)
-   double             pip;                            //       658        8     size of a pip                                             (var)
+   double             pip;                            //       656        8     size of a pip                                             (var)
    double             point;                          //       664        8     size of a point                                           (var)    MQL::Point
    uint               pipPoints;                      //       672        4     number of points of a pip: 1 or 10                        (var)
    const char*        priceFormat;                    //       676        4     standard price format                                     (var)
@@ -99,7 +99,6 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
 // getters expecting a struct (exported)
 uint               WINAPI ec_Pid                 (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PreviousPid         (const EXECUTION_CONTEXT* ec);
-time32             WINAPI ec_Started             (const EXECUTION_CONTEXT* ec);
 
 ProgramType        WINAPI ec_ProgramType         (const EXECUTION_CONTEXT* ec);
 const char*        WINAPI ec_ProgramName         (const EXECUTION_CONTEXT* ec);
