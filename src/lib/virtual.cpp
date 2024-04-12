@@ -1,5 +1,5 @@
 /**
- * Virtual no-ops. Automatically over-written by MQL implementations of the same name.
+ * Virtual no-ops. Over-written by MQL implementations of the same name.
  */
 #include "expander.h"
 #include "lib/executioncontext.h"
@@ -180,7 +180,7 @@ int WINAPI afterDeinit() {
 
 
 /**
- * Event handler no-ops.
+ * Event handlers
  */
 int WINAPI onAccountChange(int oldAccount, int newAccount) {
    return(NO_ERROR);
@@ -195,7 +195,7 @@ BOOL WINAPI onBarOpen() {
 
 
 /**
- * EA recorder related no-ops.
+ * EA recorder related functions
  */
 const char* Recorder_GetInput() {
    return("");
@@ -228,8 +228,14 @@ int RecordMetrics() {
 
 
 /**
- * Other no-ops.
+ * Other
  */
+int WINAPI DeleteRegisteredObjects() {
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
 void WINAPI DummyCalls() {
    return;
    #pragma EXPANDER_EXPORT
