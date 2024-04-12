@@ -70,11 +70,10 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    HWND               hChart;                         //       692        4     chart handle = MQL::WindowHandle()                        (const)  handle of the chart frame
    HWND               hChartWindow;                   //       696        4     chart handle with title bar "Symbol,Period"               (const)  handle of the chart window
                                                       //
-   int                recorderMode;                   //       700        4     an expert's "EA.Recorder" mode                            (var)
-                                                      //
-   BOOL               testing;                        //       704        4     IsTesting() status                                        (const)
-   BOOL               visualMode;                     //       708        4     expert IsVisualMode() status                              (const)
-   BOOL               optimization;                   //       712        4     expert IsOptimization() status                            (const)
+   BOOL               testing;                        //       700        4     IsTesting() status                                        (const)
+   BOOL               visualMode;                     //       704        4     expert IsVisualMode() status                              (const)
+   BOOL               optimization;                   //       708        4     expert IsOptimization() status                            (const)
+   int                recorderMode;                   //       712        4     expert recorder mode                                      (var)
                                                       //
    int                mqlError;                       //       716        4     last MQL error (from all program modules)                 (var)
    int                dllError;                       //       720        4     last DLL error                                            (var)
@@ -145,11 +144,10 @@ uint               WINAPI ec_ThreadId            (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChart              (const EXECUTION_CONTEXT* ec);
 HWND               WINAPI ec_hChartWindow        (const EXECUTION_CONTEXT* ec);
 
-int                WINAPI ec_RecorderMode        (const EXECUTION_CONTEXT* ec);
-
 BOOL               WINAPI ec_Testing             (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization        (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_RecorderMode        (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_MqlError            (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError            (const EXECUTION_CONTEXT* ec);
@@ -219,11 +217,10 @@ uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint
 HWND               WINAPI ec_SetHChart              (EXECUTION_CONTEXT* ec, HWND               hWnd    );
 HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND               hWnd    );
 
-int                WINAPI ec_SetRecorderMode        (EXECUTION_CONTEXT* ec, int                mode    );
-
 BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
+int                WINAPI ec_SetRecorderMode        (EXECUTION_CONTEXT* ec, int                mode    );
 
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
 int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );

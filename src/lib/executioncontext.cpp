@@ -302,10 +302,10 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * @param  uint               timeframe      - current chart timeframe
  * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
  * @param  double             point          - the current symbol's "Point" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
- * @param  int                recorderMode   - an expert's "EA.Recorder" mode
  * @param  BOOL               isTesting      - result of IsTesting() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isVisualMode   - result of IsVisualMode() as returned by the terminal (possibly incorrect)
  * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
+ * @param  int                recorderMode   - an expert's "EA.Recorder" mode
  * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
  * @param  HWND               hChart         - result of WindowHandle() as returned by the terminal (possibly not yet set)
  * @param  int                droppedOnChart - result of WindowOnDropped() as returned by the terminal (possibly incorrect)
@@ -314,7 +314,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, int recorderMode, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, int recorderMode, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (strlen(programName) >= sizeof(ec->programName)) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1));
@@ -442,11 +442,10 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetHChart              (ec, hChart);                                 // chart handles must be set before test values
    ec_SetHChartWindow        (ec, hChart ? GetParent(hChart) : NULL);
 
-   ec_SetRecorderMode        (ec, recorderMode);
-
    ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting));
    ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
+   ec_SetRecorderMode        (ec, recorderMode);
 
    EXECUTION_CONTEXT* ecRef = (master->superContext ? master->superContext : master);
    ec->logger =                   ecRef->logger;                           // logger instance first to catch further messages (TODO: move more up)
@@ -745,7 +744,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             strcpy(ec->symbol,       symbol);
             ec->timeframe          = timeframe;
 
-            g_mqlInstances[currentPid]->push_back(ec);                // add library to the expert's context chain
+            g_mqlInstances[currentPid]->push_back(ec);               // add library to the expert's context chain
          }
       }
       else {
@@ -754,7 +753,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          uint pid = GetLastThreadProgram();                          // the program is currently executed
          if (!pid) return(error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
-         *ec = *(*g_mqlInstances[pid])[0];                            // initialize library context with master context
+         *ec = *(*g_mqlInstances[pid])[0];                           // initialize library context with master context
          ec->moduleType         = MT_LIBRARY;                        // update library specific values
          strcpy(ec->moduleName,   moduleName);
          ec->moduleCoreFunction = CF_INIT;
@@ -767,7 +766,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          ec->dllErrorMsg        = NULL;
          ec->dllWarningMsg      = NULL;
 
-         g_mqlInstances[pid]->push_back(ec);                          // add context to the program's context chain
+         g_mqlInstances[pid]->push_back(ec);                         // add context to the program's context chain
       }
    }
 
@@ -819,7 +818,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       strcpy(ec->symbol,       symbol);
       ec->timeframe          = timeframe;
 
-      g_mqlInstances[ec->pid]->push_back(ec);                         // add library context to the previous indicator's chain
+      g_mqlInstances[ec->pid]->push_back(ec);                        // add library context to the previous indicator's chain
    }
 
    else {
@@ -891,7 +890,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       strcpy(ec->symbol,       symbol);
       ec->timeframe          = timeframe;
 
-      g_mqlInstances[currentPid]->push_back(ec);                      // add library to the new test's context chain
+      g_mqlInstances[currentPid]->push_back(ec);                     // add library to the new test's context chain
    }
 
    //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
