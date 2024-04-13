@@ -9,7 +9,7 @@
 #include <shellapi.h>
 
 BOOL g_optionPortableMode;                                  // whether cmd line option /portable is set
-BOOL g_debugCoreFunctions;                                  // whether cmd line option /rsf:debug-cf is set
+BOOL g_debugExecutionContext;                               // whether cmd line option /rsf:debug-ec is set
 
 extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
 extern Locks                         g_locks;               // a map holding pointers to fine-granular locks
@@ -79,8 +79,8 @@ BOOL WINAPI onProcessAttach() {
    if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
 
    for (int i=1; i < argc; i++) {
-      if (StrCompare(argv[i], L"/rsf:debug-cf")) {
-         g_debugCoreFunctions = TRUE;
+      if (StrCompare(argv[i], L"/rsf:debug-ec")) {
+         g_debugExecutionContext = TRUE;
       }
       else if (StrStartsWith(argv[i], L"/portable")) {
          // The terminal also enables portable mode if a command line parameter just *starts* with prefix "/portable".
