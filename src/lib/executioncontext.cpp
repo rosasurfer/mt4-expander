@@ -670,7 +670,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                SetLastThreadProgram(pid);
                g_recompiledModule = RECOMPILED_MODULE();             // reset recompilation tracker
 
-               *ec = *(*g_mqlInstances[pid])[0];                      // initialize library context with master context
+               *ec = *(*g_mqlInstances[pid])[0];                     // initialize library context with master context
                ec->moduleType         = MT_LIBRARY;                  // update library specific values
                strcpy(ec->moduleName,   moduleName);
                ec->moduleCoreFunction = CF_INIT;
@@ -683,7 +683,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                ec->dllErrorMsg        = NULL;
                ec->dllWarningMsg      = NULL;
 
-               g_mqlInstances[pid]->push_back(ec);                    // add context to the program's context chain
+               g_mqlInstances[pid]->push_back(ec);                   // add context to the program's context chain
             }
          }
          else {
@@ -697,7 +697,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                isPartialChain = FALSE;
             }
             else {                                                   // get the last executed program: it's myself or something else
-               ContextChain &chain = *g_mqlInstances[currentPid];     // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
+               ContextChain &chain = *g_mqlInstances[currentPid];    // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
                isPartialChain = (chain.size()>2 && (master=chain[0]) && chain[0]->programCoreFunction==CF_INIT && !chain[1]);
                if (!isPartialChain) warn(ERR_UNDEFINED_STATE, "unexpected library with UR_RECOMPILE in tester: a former library (pid=%d) seems to not have created a partial context chain");
             }
@@ -752,7 +752,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       else {
          // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
          // Initialize the library with the current program's master context.
-         uint pid = GetLastThreadProgram();                          // the program is currently executed
+         uint pid = GetLastThreadProgram();                             // the program is currently executed
          if (!pid) return(error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
          *ec = *(*g_mqlInstances[pid])[0];                           // initialize library context with master context
@@ -828,18 +828,34 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       // ec.pid points to the previously finished test
       if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
-      EXECUTION_CONTEXT* master=NULL, *oldMaster=NULL;               // master of current and old test
-      uint currentPid = GetLastThreadProgram();                      // pid of the new test
+      EXECUTION_CONTEXT* master = NULL;
+      uint currentPid, lastPid = GetLastThreadProgram();             // pid of the last executed program
       BOOL isPartialChain;
 
-      // check if a partially initialized context chain exists (master->programCoreFunction=NULL, main=NULL, lib1!=NULL)
-      if (!currentPid || currentPid==ec->pid) {                      // first library in init cyle: the thread never executed a program
+      // check if a partially initialized context chain exists: master->programCoreFunction=NULL, main=NULL, lib1!=NULL
+      if (!lastPid || lastPid==ec->pid) {                            // first library in init cyle: the thread never executed a program
          isPartialChain = FALSE;                                     // or the program is the finished test (probably in an optimization)
       }
       else {                                                         // get the last executed program: it's myself or something else
-         ContextChain &chain = *g_mqlInstances[currentPid];          // if partial chain found, it's myself with one more re-used library
-         isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
-         if (!isPartialChain) debug("unseen library init cycle in tester (the previously executed program doesn't seem to be the previous test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         ContextChain &chain = *g_mqlInstances[lastPid];             // if partial chain found, it's myself with one more re-used library
+         size_t chainSize = chain.size();
+         EXECUTION_CONTEXT* lastMaster = chainSize ? chain[0] : NULL;
+                                                                     // if chainSize > 2 there is at least one library context
+         isPartialChain = (lastMaster && !lastMaster->programCoreFunction && chainSize > 2 && !chain[1]);
+
+         if (!isPartialChain) {
+            if (ec->optimization && lastMaster && lastMaster->programType==PT_INDICATOR && lastMaster->programInitReason==IR_TEMPLATE) {
+               // a reloaded indicator in tester template during optimization, now excuted by the EA thread
+               debug("WARN: For max optimization speed template \"Tester.tpl\" must not contain any indicators!");
+            }
+            else {
+               debug("unseen library init cycle in tester (the last program (pid=%d) executed by this thread doesn't seem to be the previous test):  ec=%s", lastPid, EXECUTION_CONTEXT_toStr(ec));
+            }
+         }
+         else {
+            currentPid = lastPid;                                    // use last executed program (partial chain of myself)
+            master = lastMaster;
+         }
       }
 
       if (!isPartialChain) {
@@ -850,7 +866,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          chain->reserve(8);
          chain->push_back(master);                                   // add master to a new chain
          chain->push_back(NULL);                                     // add empty entry for the yet to come main context
-         currentPid = PushProgram(chain);                            // store the chain
+         currentPid = PushProgram(chain);                            // store the chain and get a new pid
          uint threadIndex = SetLastThreadProgram(currentPid);
 
          master->pid               = currentPid;                     // update master context with the known values
@@ -1310,8 +1326,7 @@ uint WINAPI GetCurrentThreadIndex() {
    // look-up the current thread
    uint size = g_threads.size();
    for (uint i=0; i < size; i++) {
-      if (g_threads[i] == currentThread)                          // thread found
-         return(i);
+      if (g_threads[i] == currentThread) return(i);               // thread found
    }
 
    // thread not found
@@ -1355,9 +1370,9 @@ int WINAPI SetLastThreadProgram(uint pid) {
    uint index = GetCurrentThreadIndex();
    g_threadsPrograms[index] = pid;                       // update the thread's last executed program
 
-   if (IsUIThread())
+   if (IsUIThread()) {
       g_lastUIThreadProgram = pid;                       // update lastUIThreadProgram if the thread is the UI thread
-
+   }
    return(index);
 }
 
