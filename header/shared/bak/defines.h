@@ -14,9 +14,14 @@
 #define MAX_SYMBOL_GROUP_LENGTH                15
 #define MAX_SYMBOL_LENGTH                      11
 
-#define NL                                   "\n"        // Linux line separator:   0x0A (in text mode MQL/Win32 file functions auto-convert 0x0A to 0x0D0A)
-#define CRLF                               "\r\n"        // Windows line separator: 0x0D0A
-#define TAB                                  "\t"        // tab: 0x09
+#define EOL_MAC                              "\r"        // old MacOS line separator: 0x0D
+#define EOL_NETSCAPE                     "\r\r\n"        // Netscape line separator:  0x0D0D0A
+#define EOL_UNIX                             "\n"        // Unix line separator:      0x0A (MQL/Win32 file functions in text mode auto-convert EOL_UNIX to EOL_WINDOWS)
+#define EOL_WINDOWS                        "\r\n"        // Windows line separator:   0x0D0A
+
+#define NL                                   "\n"        // MQL4 bug: string constants cannot reference each other
+#define CRLF                               "\r\n"
+#define TAB                                  "\t"        // tabulator: 0x09
 
 
 // log levels
@@ -183,9 +188,14 @@
 
 
 // virtual key code flags, see HandleCommands()
-#define F_VK_CAPITAL                            1        // VK_CAPITAL (capslock)
-#define F_VK_SHIFT                              2        // VK_SHIFT
-#define F_VK_LWIN                               4        // VK_LWIN (left Windows key)
+#define F_VK_ESCAPE                             1
+#define F_VK_TAB                                2
+#define F_VK_CAPITAL                            4        // CAPSLOCK key
+#define F_VK_SHIFT                              8
+#define F_VK_CONTROL                           16
+#define F_VK_MENU                              32        // ALT key
+#define F_VK_LWIN                              64        // left Windows key
+#define F_VK_RWIN                             128        // right Windows key
 
 
 // order and operation types
@@ -363,7 +373,6 @@
 #define INIT_BARS_ON_HIST_UPDATE                4        //
 #define INIT_NO_BARS_REQUIRED                   8        // executable without price history (scripts only)
 #define INIT_BUFFERED_LOG                      16        // setup a logfile buffer for logging
-#define INIT_NO_EXTERNAL_REPORTING             32        // disable external test reporting (experts only)
 
 
 // MT4 internal messages

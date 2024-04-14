@@ -9,14 +9,11 @@
 #include "lib/tester.h"
 #include "lib/timeseries.h"
 #include "struct/rsf/ExecutionContext.h"
-#include "struct/rsf/Order.h"
-#include "struct/rsf/Test.h"
 
-#include <cmath>
 #include <ctime>
 #include <fstream>
-#include <vector>
 
+extern BOOL        g_debugExecutionContext;        // whether cmd line option /rsf:debug-ec is set
 
 MqlInstanceList    g_mqlInstances(1);              // all MQL program instances: index 0 is not a valid pid and is always empty
 std::vector<DWORD> g_threads;                      // all known threads executing MQL programs
@@ -296,30 +293,29 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * Initialize and synchronize an MQL program's execution context with the master context stored in this DLL. Called by the
  * init() functions of the MQL main modules. For a general overview see type EXECUTION_CONTEXT.
  *
- * @param  EXECUTION_CONTEXT* ec                  - an MQL program's main module execution context
- * @param  ProgramType        programType         - program type
- * @param  char*              programName         - program name (with or without filepath depending on the terminal version)
- * @param  UninitializeReason uninitReason        - value of UninitializeReason() as returned by the terminal
- * @param  DWORD              initFlags           - program init configuration
- * @param  DWORD              deinitFlags         - program deinit configuration
- * @param  char*              symbol              - current chart symbol
- * @param  uint               timeframe           - current chart timeframe
- * @param  uint               digits              - the current symbol's "Digits" value (possibly incorrect)
- * @param  double             point               - the current symbol's "Point" value (possibly incorrect)
- * @param  int                recordMode          - an expert's "EA.Recorder" mode
- * @param  BOOL               isTesting           - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode        - value of IsVisualMode() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isOptimization      - value of IsOptimzation() as returned by the terminal
- * @param  BOOL               isExternalReporting - an expert's input parameter "Test.ExternalReporting"
- * @param  EXECUTION_CONTEXT* sec                 - super context as managed by the terminal (memory possibly already released)
- * @param  HWND               hChart              - value of WindowHandle() as returned by the terminal (possibly not yet set)
- * @param  int                droppedOnChart      - value of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosX       - value of WindowXOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosY       - value of WindowYOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  EXECUTION_CONTEXT* ec             - an MQL program's main module context
+ * @param  ProgramType        programType    - program type
+ * @param  char*              programName    - program name (with or without filepath depending on the terminal version)
+ * @param  UninitializeReason uninitReason   - value of UninitializeReason() as returned by the terminal
+ * @param  DWORD              initFlags      - program init configuration
+ * @param  DWORD              deinitFlags    - program deinit configuration
+ * @param  char*              symbol         - current chart symbol
+ * @param  uint               timeframe      - current chart timeframe
+ * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
+ * @param  double             point          - the current symbol's "Point" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
+ * @param  BOOL               isTesting      - result of IsTesting() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isVisualMode   - result of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
+ * @param  int                recorder       - an expert's recorder mode
+ * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
+ * @param  HWND               hChart         - result of WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  int                droppedOnChart - result of WindowOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - result of WindowXOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - result of WindowYOnDropped() as returned by the terminal (possibly incorrect)
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, int recordMode, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, BOOL isExternalReporting, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, int recorder, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (strlen(programName) >= sizeof(ec->programName)) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1));
@@ -328,16 +324,17 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((int)timeframe <= 0)                            return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    if ((int)digits    <  0)                            return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits));
    if (sec && (uint)sec  < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec));
-   //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    if (ec->pid) SetLastThreadProgram(ec->pid);                             // set the thread's currently executed program asap (error handling)
+
+   if (g_debugExecutionContext) debug("  i:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid  = ec->pid;
    BOOL isPid       = (currentPid);
    uint previousPid = NULL;                                                // pid of a previous program instance (if any)
    EXECUTION_CONTEXT* master;
 
-   // fix an unset chart handle (older terminals)
-   if (!hChart) hChart = FindWindowHandle(hChart, sec, (ModuleType)programType, symbol, timeframe, isTesting, isVisualMode);
+   // fix an unset chart handle: see FindWindowHandle()
+   if (!hChart) hChart = FindWindowHandle(hChart, programName, (ModuleType)programType, sec, symbol, timeframe, isTesting, isVisualMode, isOptimization);
    if (hChart == INVALID_HWND) return(ERR_RUNTIME_ERROR);
 
    // resolve the real InitReason
@@ -386,9 +383,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
             chain->push_back(master);                                      // store master and main context in a new context chain
             chain->push_back(ec);
 
-            currentPid      = PushProgram(chain);                          // store the chain and update master and main context
-            master->pid     = ec->pid     = currentPid;
-            master->started = ec->started = time(NULL);
+            currentPid  = PushProgram(chain);                              // store the chain and update master and main context
+            master->pid = ec->pid = currentPid;
             SetLastThreadProgram(currentPid);
          }
       }
@@ -447,20 +443,17 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetHChart              (ec, hChart);                                 // chart handles must be set before test values
    ec_SetHChartWindow        (ec, hChart ? GetParent(hChart) : NULL);
 
-   ec_SetRecordMode          (ec, recordMode);
-
-   master->test = ec->test = Expert_InitTest(ec, isTesting);
    ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting));
    ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
    ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
-   ec_SetExternalReporting   (ec, isExternalReporting);
+   ec_SetRecorder            (ec, recorder);
 
    EXECUTION_CONTEXT* ecRef = (master->superContext ? master->superContext : master);
    ec->logger =                   ecRef->logger;                           // logger instance first to catch further messages (TODO: move more up)
    ec_SetLoglevel            (ec, ecRef->loglevel        );
    ec_SetLoglevelTerminal    (ec, ecRef->loglevelTerminal);
    ec_SetLoglevelAlert       (ec, ecRef->loglevelAlert   );
-   ec_SetLoglevelDebugger    (ec, ecRef->loglevelDebugger);
+   ec_SetLoglevelDebug       (ec, ecRef->loglevelDebug   );
    ec_SetLoglevelFile        (ec, ecRef->loglevelFile    );
    ec_SetLoglevelMail        (ec, ecRef->loglevelMail    );
    ec_SetLoglevelSMS         (ec, ecRef->loglevelSMS     );
@@ -492,7 +485,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   //debug("  %p  %-13s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (g_debugExecutionContext) debug("  o:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -547,7 +540,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->loglevel            = ec->loglevel;                    // configurable at runtime
          ctx->loglevelTerminal    = ec->loglevelTerminal;
          ctx->loglevelAlert       = ec->loglevelAlert;
-         ctx->loglevelDebugger    = ec->loglevelDebugger;
+         ctx->loglevelDebug       = ec->loglevelDebug;
          ctx->loglevelFile        = ec->loglevelFile;
          ctx->loglevelMail        = ec->loglevelMail;
          ctx->loglevelSMS         = ec->loglevelSMS;
@@ -559,38 +552,6 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          }
       }
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
-   }
-
-   if (ec->test) {
-      // update statistics for maxRunup/maxDrawdown calculations
-      if ((uint)rates < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter rates: 0x%p (not a valid pointer)", rates));
-      if (bars <= 0)                       return(error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d", bars));
-
-      TEST* test = ec->test;
-      OrderList* positions = test->openPositions;
-      double high=INT_MIN, low=INT_MAX;
-
-      if (positions->size()) {
-         switch (test->barModel) {
-            case MODE_BAROPEN: {
-               time32 barTime = iTime(rates, bars, 0);
-               uint bar = (tickTime == barTime);                     // use the closed [1] or the current bar [0] for stats
-               high = iHigh(rates, bars, bar);                       // (the last tick of a BarOpen test can be a BarClose tick)
-               low  = iLow (rates, bars, bar);
-               break;
-            }
-            case MODE_CONTROLPOINTS:
-            case MODE_EVERYTICK:
-               high = bid;                                           // inner prices to prevent stats distortion by spread widening
-               low  = ask;
-               break;
-         }
-         for (OrderList::iterator it=positions->begin(), end=positions->end(); it!=end; ++it) {
-            ORDER* order = *it;
-            if (high > order->highPrice) order->highPrice = high;    // explicite check for max. performance
-            if (low  < order->lowPrice)  order->lowPrice  = low;
-         }
-      }
    }
 
    return(NO_ERROR);
@@ -612,8 +573,9 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
 int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec)));
-   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
+
+   if (g_debugExecutionContext) debug("i:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
    uint chainSize = chain.size();
@@ -630,7 +592,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
          ctx->loglevel            = ec->loglevel;                    // configurable at runtime
          ctx->loglevelTerminal    = ec->loglevelTerminal;
          ctx->loglevelAlert       = ec->loglevelAlert;
-         ctx->loglevelDebugger    = ec->loglevelDebugger;
+         ctx->loglevelDebug       = ec->loglevelDebug;
          ctx->loglevelFile        = ec->loglevelFile;
          ctx->loglevelMail        = ec->loglevelMail;
          ctx->loglevelSMS         = ec->loglevelSMS;
@@ -645,15 +607,15 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
    }
 
-   //debug("%p  %-13s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (g_debugExecutionContext) debug("o:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Synchronize a library's EXECUTION_CONTEXT with the context of the program's main module. Called only from the core
- * function Library::init(). Initializes the library context and adds it to the program's context chain.
+ * Initializes a library's EXECUTION_CONTEXT and synchronizes it with the program's main module. On success the library context
+ * is added to the program's context chain. Called from library::init() only.
  *
  * @param  EXECUTION_CONTEXT* ec             - the libray's execution context
  * @param  UninitializeReason uninitReason   - UninitializeReason as passed by the terminal (possibly incorrect)
@@ -662,10 +624,10 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
  * @param  char*              moduleName     - the library's name (may contain a path depending on the terminal version)
  * @param  char*              symbol         - current chart symbol
  * @param  uint               timeframe      - current chart timeframe
- * @param  uint               digits         - the symbol's "Digits" value (possibly incorrect)
- * @param  double             point          - the symbol's "Point" value (possibly incorrect)
- * @param  BOOL               isTesting      - MQL::IsTesting()
- * @param  BOOL               isOptimization - MQL::IsOptimization()
+ * @param  uint               digits         - the current symbol's "Digits" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
+ * @param  double             point          - the current symbol's "Point" value (possibly incorrect, e.g. on File->New Chart or on MarketWatch->Chart Window)
+ * @param  BOOL               isTesting      - result of IsTesting() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
  *
  * @return int - error status
  */
@@ -678,7 +640,8 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    if ((int)timeframe <= 0)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    if ((int)digits < 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits));
    if (point <= 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point));
-   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+
+   if (g_debugExecutionContext) debug("   i:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_INIT, uninitReason);
@@ -707,7 +670,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                SetLastThreadProgram(pid);
                g_recompiledModule = RECOMPILED_MODULE();             // reset recompilation tracker
 
-               *ec = *(*g_mqlInstances[pid])[0];                      // initialize library context with master context
+               *ec = *(*g_mqlInstances[pid])[0];                     // initialize library context with master context
                ec->moduleType         = MT_LIBRARY;                  // update library specific values
                strcpy(ec->moduleName,   moduleName);
                ec->moduleCoreFunction = CF_INIT;
@@ -720,7 +683,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                ec->dllErrorMsg        = NULL;
                ec->dllWarningMsg      = NULL;
 
-               g_mqlInstances[pid]->push_back(ec);                    // add context to the program's context chain
+               g_mqlInstances[pid]->push_back(ec);                   // add context to the program's context chain
             }
          }
          else {
@@ -734,7 +697,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                isPartialChain = FALSE;
             }
             else {                                                   // get the last executed program: it's myself or something else
-               ContextChain &chain = *g_mqlInstances[currentPid];     // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
+               ContextChain &chain = *g_mqlInstances[currentPid];    // if partial chain found it's myself and another library with UR_RECOMPILE (which never gets reset)
                isPartialChain = (chain.size()>2 && (master=chain[0]) && chain[0]->programCoreFunction==CF_INIT && !chain[1]);
                if (!isPartialChain) warn(ERR_UNDEFINED_STATE, "unexpected library with UR_RECOMPILE in tester: a former library (pid=%d) seems to not have created a partial context chain");
             }
@@ -783,16 +746,16 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
             strcpy(ec->symbol,       symbol);
             ec->timeframe          = timeframe;
 
-            g_mqlInstances[currentPid]->push_back(ec);                // add library to the expert's context chain
+            g_mqlInstances[currentPid]->push_back(ec);               // add library to the expert's context chain
          }
       }
       else {
          // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
          // Initialize the library with the current program's master context.
-         uint pid = GetLastThreadProgram();                          // the program is currently executed
+         uint pid = GetLastThreadProgram();                             // the program is currently executed
          if (!pid) return(error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
-         *ec = *(*g_mqlInstances[pid])[0];                            // initialize library context with master context
+         *ec = *(*g_mqlInstances[pid])[0];                           // initialize library context with master context
          ec->moduleType         = MT_LIBRARY;                        // update library specific values
          strcpy(ec->moduleName,   moduleName);
          ec->moduleCoreFunction = CF_INIT;
@@ -805,7 +768,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          ec->dllErrorMsg        = NULL;
          ec->dllWarningMsg      = NULL;
 
-         g_mqlInstances[pid]->push_back(ec);                          // add context to the program's context chain
+         g_mqlInstances[pid]->push_back(ec);                         // add context to the program's context chain
       }
    }
 
@@ -857,7 +820,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       strcpy(ec->symbol,       symbol);
       ec->timeframe          = timeframe;
 
-      g_mqlInstances[ec->pid]->push_back(ec);                         // add library context to the previous indicator's chain
+      g_mqlInstances[ec->pid]->push_back(ec);                        // add library context to the previous indicator's chain
    }
 
    else {
@@ -865,18 +828,34 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       // ec.pid points to the previously finished test
       if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
-      EXECUTION_CONTEXT* master=NULL, *oldMaster=NULL;               // master of current and old test
-      uint currentPid = GetLastThreadProgram();                      // pid of the new test
+      EXECUTION_CONTEXT* master = NULL;
+      uint currentPid, lastPid = GetLastThreadProgram();             // pid of the last executed program
       BOOL isPartialChain;
 
-      // check if a partially initialized context chain exists (master->programCoreFunction=NULL, main=NULL, lib1!=NULL)
-      if (!currentPid || currentPid==ec->pid) {                      // first library in init cyle: the thread never executed a program
+      // check if a partially initialized context chain exists: master->programCoreFunction=NULL, main=NULL, lib1!=NULL
+      if (!lastPid || lastPid==ec->pid) {                            // first library in init cyle: the thread never executed a program
          isPartialChain = FALSE;                                     // or the program is the finished test (probably in an optimization)
       }
       else {                                                         // get the last executed program: it's myself or something else
-         ContextChain &chain = *g_mqlInstances[currentPid];          // if partial chain found, it's myself with one more re-used library
-         isPartialChain = (chain.size()>2 && (master=chain[0]) && !master->programCoreFunction && !chain[1]);
-         if (!isPartialChain) debug("unseen library init cycle in tester (the former program doesn't seem to be the former test):  ec=%s", EXECUTION_CONTEXT_toStr(ec));
+         ContextChain &chain = *g_mqlInstances[lastPid];             // if partial chain found, it's myself with one more re-used library
+         size_t chainSize = chain.size();
+         EXECUTION_CONTEXT* lastMaster = chainSize ? chain[0] : NULL;
+                                                                     // if chainSize > 2 there is at least one library context
+         isPartialChain = (lastMaster && !lastMaster->programCoreFunction && chainSize > 2 && !chain[1]);
+
+         if (!isPartialChain) {
+            if (ec->optimization && lastMaster && lastMaster->programType==PT_INDICATOR && lastMaster->programInitReason==IR_TEMPLATE) {
+               // a reloaded indicator in tester template during optimization, now excuted by the EA thread
+               debug("WARN: For max optimization speed template \"Tester.tpl\" must not contain any indicators!");
+            }
+            else {
+               debug("unseen library init cycle in tester (the last program (pid=%d) executed by this thread doesn't seem to be the previous test):  ec=%s", lastPid, EXECUTION_CONTEXT_toStr(ec));
+            }
+         }
+         else {
+            currentPid = lastPid;                                    // use last executed program (partial chain of myself)
+            master = lastMaster;
+         }
       }
 
       if (!isPartialChain) {
@@ -887,7 +866,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          chain->reserve(8);
          chain->push_back(master);                                   // add master to a new chain
          chain->push_back(NULL);                                     // add empty entry for the yet to come main context
-         currentPid = PushProgram(chain);                            // store the chain
+         currentPid = PushProgram(chain);                            // store the chain and get a new pid
          uint threadIndex = SetLastThreadProgram(currentPid);
 
          master->pid               = currentPid;                     // update master context with the known values
@@ -929,10 +908,10 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       strcpy(ec->symbol,       symbol);
       ec->timeframe          = timeframe;
 
-      g_mqlInstances[currentPid]->push_back(ec);                      // add library to the new test's context chain
+      g_mqlInstances[currentPid]->push_back(ec);                     // add library to the new test's context chain
    }
 
-   //debug("   %p  %-13s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (g_debugExecutionContext) debug("   o:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -950,8 +929,9 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
-   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    SetLastThreadProgram(ec->pid);                        // set the thread's currently executed program asap (error handling)
+
+   if (g_debugExecutionContext) debug(" i:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // try to fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_DEINIT, uninitReason);
@@ -970,7 +950,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
       }
    }
 
-   //debug(" %p  %-13s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (g_debugExecutionContext) debug(" o:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -1054,57 +1034,18 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    }
 
    // close an open logfile
-   if (ec->logger && ec->logger->is_open())
+   if (ec->logger && ec->logger->is_open()) {
       ec->logger->close();                                                 // re-opened automatically on next use
-
+   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Create and initialize a new TEST instance if the passed program is an expert in tester. If the context already holds
- * a pointer to a test, the existing test is returned.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  BOOL               isTesting - IsTesting() flag as passed by the terminal
- *
- * @return TEST* - test instance or NULL if the program is not an expert under test or in case of errors
- */
-TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
-   if (ec->test)                                return(ec->test);
-   if (ec->moduleType!=MT_EXPERT || !isTesting) return(NULL);
-
-   int barModel = Tester_GetBarModel(); if (barModel == EMPTY) return(NULL);
-
-   FXT_HEADER* fxtHeader = new FXT_HEADER();
-   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, barModel, fxtHeader)) {
-      delete fxtHeader;
-      return(NULL);
-   }
-
-   TEST* test = new TEST();
-   test->ec        = ec;
-   test->created   = time(NULL);
-   test->barModel  = barModel;
-   test->fxtHeader = fxtHeader;
-
-   test->openPositions        = new OrderList(); test->openPositions     ->reserve(32);
-   test->openLongPositions    = new OrderList(); test->openLongPositions ->reserve(32);
-   test->openShortPositions   = new OrderList(); test->openShortPositions->reserve(32);
-
-   test->closedPositions      = new OrderList(); test->closedPositions     ->reserve(1024);
-   test->closedLongPositions  = new OrderList(); test->closedLongPositions ->reserve(1024);
-   test->closedShortPositions = new OrderList(); test->closedShortPositions->reserve(1024);
-
-   return(test);
-}
-
-
-/**
  * Find the first unloaded module suitable for reloading matching the specified arguments.
  *
- * @param  ModuleType         type
+ * @param  ModuleType         moduleType
  * @param  const char*        name
  * @param  UninitializeReason uninitReason
  * @param  BOOL               testing
@@ -1112,8 +1053,8 @@ TEST* WINAPI Expert_InitTest(EXECUTION_CONTEXT* ec, BOOL isTesting) {
  *
  * @return uint - the found module's program id (pid) or NULL if no such module was found
  */
-uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart) {
-   switch (type) {
+uint WINAPI FindModuleInLimbo(ModuleType moduleType, const char* name, UninitializeReason uninitReason, BOOL testing, HWND hChart) {
+   switch (moduleType) {
       case MT_INDICATOR: {
          // If the indicator was not used in a test (testing=FALSE) master.threadId must be the UI thread.
          // If the indicator was used in a test (testing=TRUE) master.threadId depends on whether one of the indicator's
@@ -1190,7 +1131,7 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
          break;
 
       default:
-         return(!error(ERR_INVALID_PARAMETER, "invalid parameter module type: %s (not supported)", ModuleTypeToStr(type)));
+         return(!error(ERR_INVALID_PARAMETER, "invalid parameter module type: %s (not supported)", ModuleTypeToStr(moduleType)));
    }
 
    //debug("no matching %s indicator found:  %s  testing=%s  hChart=%d", name, UninitializeReasonToStr(reason), BoolToStr(testing), hChart);
@@ -1199,124 +1140,126 @@ uint WINAPI FindModuleInLimbo(ModuleType type, const char* name, UninitializeRea
 
 
 /**
- * Find the chart of the current program and return its window handle. Replacement for the broken MQL function WindowHandle().
- * Also returns the correct window handle when the MQL function fails.
+ * Called from SyncMainContext_init() to resolve/fix an unset chart handle in terminal builds <= 509, i.e. WindowHandle()
+ * returns NULL. Since build 600 the terminal delays execution of init() start until the handle is set. This change in newer
+ * builds siginificantly terminal start and chart initialization. The fix applied by the Expander doesn't delay execution at all.
  *
- * Must be called only in SyncMainContext_init(), after that use the window handle stored in the program's EXECUTION_CONTEXT.
+ * Find the chart of the current program and return its window handle (also in cases when the built-in function fails).
  *
- * @param  HWND               hChart       - value of WindowHandle() as returned by the terminal (possibly not yet set)
- * @param  EXECUTION_CONTEXT* sec          - super context as managed by the terminal (memory possibly already released)
- * @param  ModuleType         moduleType   - module type
- * @param  char*              symbol       - current symbol
- * @param  uint               timeframe    - current timeframe
- * @param  BOOL               isTesting    - value of IsTesting() as returned by the terminal (possibly incorrect)
- * @param  BOOL               isVisualMode - value of IsVisualMode() as returned by the terminal (possibly incorrect)
+ * @param  HWND               hChart         - value of WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  char*              programName    - program name (with or w/o path depending on the terminal version)
+ * @param  ModuleType         moduleType     - module type
+ * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
+ * @param  char*              symbol         - current symbol
+ * @param  uint               timeframe      - current timeframe
+ * @param  BOOL               isTesting      - result of IsTesting() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isVisualMode   - result of IsVisualMode() as returned by the terminal (possibly incorrect, e.g. for scripts or standalone indicators in tester)
+ * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
  *
- * @return HWND - Window handle or NULL if the program runs in the tester with VisualMode=Off;
- *                INVALID_HWND (-1) in case of errors.
+ * @return HWND - Window handle or NULL if the program runs in the tester with VisualMode=off;
+ *                INVALID_HWND (-1) in case of errors
  */
-HWND WINAPI FindWindowHandle(HWND hChart, const EXECUTION_CONTEXT* sec, ModuleType moduleType, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode) {
-   if (hChart) return(hChart);                                       // if already defined return WindowHandle() as passed
-   if (sec) return(sec->hChart);                                     // if a super context exists return the inherited chart handle
-                                                                     // (if hChart is not set the super context is always valid)
-   // Wir sind im Hauptmodul
-   // - kein SuperContext
-   // - WindowHandle() ist NULL
+HWND WINAPI FindWindowHandle(HWND hChart, const char* programName, ModuleType moduleType, const EXECUTION_CONTEXT* sec, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization) {
+   if (hChart) return(hChart);                                 // if set return handle as passed; if not set the supercontext is always valid and can be accessed
+   if (sec) return(sec->hChart);                               // if a super context exists return the inherited chart handle
 
-   if (isTesting && !isVisualMode)                                   // Im Tester bei VisualMode=Off gibt es keinen Chart: Rückgabewert NULL
+   // situation:
+   //  we are in the main module
+   //  there's no super context
+   //  MQL's WindowHandle() returned NULL
+
+   if ((isTesting && !isVisualMode) || isOptimization) {       // in these standard situations there's no chart
       return(NULL);
+   }
 
-   // Wir sind entweder: im Tester bei VisualMode=On              aber: kein Hauptmodul hat VisualMode=On und WindowHandle=NULL
-   // oder               außerhalb des Testers
+   // situation:
+   //  No program type has WindowHandle=NULL in tester with VisualMode=on.
+   //  We are either not in tester (indicator or script in online chart).
+   //  Or we are a standalone indicator in a tester template (on VisualMode=off and on Optimization=1 the indicator's init cycle is still executed).
 
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return(INVALID_HWND);
 
    HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDI_CLIENT);
-   if (!hWndMdi) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window not found (hWndMain=%p)", hWndMain)));
+   if (!hWndMdi) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window not found (hWndMain=%p)", programName, hWndMain)));
 
-   HWND hChartWindow = NULL;                                         // chart system window holding the chart AfxFrameOrView
+   HWND hChartWindow = NULL;                                   // chart system window holding the chart AfxFrameOrView
 
-
-   // (1) Indikator
+   // indicator
    if (moduleType == MT_INDICATOR) {
+      // situation:
+      //  We are either a regular indicator in an online chart in the UI thread (terminal-start or reload-profile).
+      //  Or we are a standalone indicator in a tester template:
+      //   UI thread:     VisualMode=on|off (on VisualMode=off only indicator::init() is executed)
+      //   non-UI thread: IsOptimization=on (only indicator::init() is executed)
+      if (!IsUIThread()) return(NULL);                         // no chart for standalone indicator in tester template during optimization
+
+      // WindowHandle() uses the title string to find a chart window. On execution of indicator::init() the window title may
+      // not yet be set which results in the function returning NULL (can't find current window). However the window exists.
+      // There's always only one window "in creation" without a title text, and it's always the last created window (the last
+      // child window in Z order). So even without a title text the own window can be detected.
       //
-      // Wir sind entweder: normaler Template-Indikator bei Terminalstart oder LoadProfile und WindowHandle() ist noch NULL
-      // oder:              Tester-Template-Indikator im Tester bei VisualMode=Off => es gibt keinen Chart
-      // Wir sind immer:    im UIThread in init()
+      // If there's no last window in Z order without a title text, then the indicator was loaded by a tester template with
+      // VisualMode=off (no chart window). In this case init() is executed but start() will never.
       //
-      // Wir sind nicht:    in iCustom()
-      // und auch nicht:    manuell geladener Indikator im Tester-Chart => WindowHandle() wäre gesetzt
-      // und auch nicht:    getesteter Indikator eines neueren Builds   => dito
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
+      if (!hWndChild)                                          // MDIClient has no children
+         return(NULL);                                         // there is no no chart: Tester with VisualMode=Off
 
-      // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
-      // solange das Terminal/der Chart nicht endgültig initialisiert sind. Hat das letzte Chartfenster in Z order noch keinen
-      // Titel (es wird gerade erzeugt), ist dies das aktuelle Chartfenster. Existiert kein solches Fenster, wird der Indikator
-      // über das Tester-Template in einem Test mit VisualMode=Off geladen und wird keinen Chart haben. Die start()-Funktion
-      // wird in diesem Fall nie ausgeführt.
-      if (!IsUIThread()) return(_INVALID_HWND(error(ERR_ILLEGAL_STATE, "unknown state, non-ui thread=%d  hChart=%d  sec=%d", GetCurrentThreadId(), hChart, sec)));
+      HWND hWndLast = GetWindow(hWndChild, GW_HWNDLAST);       // last child window in Z order (lowest chart window)
+      if (GetWindowTextLength(hWndLast))                       // last child window already has a title
+         return(NULL);                                         // there is no chart: Tester with VisualMode=Off
 
-      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
-      if (!hWndChild)                                                // MDIClient has no children
-         return(NULL);                                               // there is no no chart: Tester with VisualMode=Off
-
-      HWND hWndLast = GetWindow(hWndChild, GW_HWNDLAST);             // last child window in Z order (lowest chart window)
-      if (GetWindowTextLength(hWndLast))                             // last child window already has a title
-         return(NULL);                                               // there is no chart: Tester with VisualMode=Off
-
-      hChartWindow = hWndLast;                                       // keep chart window (holding the chart AfxFrameOrView)
+      hChartWindow = hWndLast;                                 // keep chart window (holding the chart AfxFrameOrView)
    }
 
-
-   // (2) Script
+   // script
    else if (moduleType == MT_SCRIPT) {
       // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
       // solange das Terminal/der Chart nicht endgültig initialisiert sind. Ein laufendes Script wurde in diesem Fall über
       // die Konfiguration in "terminal-start.ini" gestartet und läuft im ersten passenden Chart in absoluter Reihenfolge
       // (CtrlID, nicht Z order).
-      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);                 // first child window in Z order (top most chart window)
-      if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain)));
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
+      if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window has no children in Script::init()  hWndMain=%p", programName, hWndMain)));
 
       uint size = MAX_CHARTDESCRIPTION_LENGTH + 1;
-      char* chartDescription = (char*)alloca(size);                  // on the stack
+      char* chartDescription = (char*)alloca(size);            // on the stack
       uint chars = ComposeChartTitle(symbol, timeframe, chartDescription, size);
       if (!chars) return(INVALID_HWND);
 
       char* title = NULL;
       int id = INT_MAX;
 
-      while (hWndChild) {                                            // iterate over all child windows
+      while (hWndChild) {                                      // iterate over all child windows
          free(title);
-         title = GetWindowTextA(hWndChild);                          // Here we can't use GetInternalWindowText() as the window
-         if (!title) return(INVALID_HWND);                           // creation needs to finish before we get a valid response.
+         title = GetWindowTextA(hWndChild);                    // Here we can't use GetInternalWindowText() as the window
+         if (!title) return(INVALID_HWND);                     // creation needs to finish before we get a valid response.
 
          if (StrEndsWith(title, " (offline)"))
             title[strlen(title)-10] = '\0';
-         if (StrCompare(title, chartDescription)) {                  // find all matching windows
-            id = std::min(id, GetDlgCtrlID(hWndChild));              // track the smallest in absolute order
-            if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild)));
+         if (StrCompare(title, chartDescription)) {            // find all matching windows
+            id = std::min(id, GetDlgCtrlID(hWndChild));        // track the smallest in absolute order
+            if (!id) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient child window %p has no control id", programName, hWndChild)));
          }
-         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);              // next child in Z order
+         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);        // next child in Z order
       }
       free(title);
-      if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no matching MDIClient child window found for \"%s\"", chartDescription)));
+      if (id == INT_MAX) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: no matching MDIClient child window found for \"%s\"", programName, chartDescription)));
 
-      hChartWindow = GetDlgItem(hWndMdi, id);                        // keep chart window (holding the chart AfxFrameOrView)
+      hChartWindow = GetDlgItem(hWndMdi, id);                  // keep chart window (holding the chart AfxFrameOrView)
    }
 
-
-   // (3) Expert
+   // expert
    else if (moduleType == MT_EXPERT) {
-      return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "MQL::WindowHandle() => 0 in Expert::init()")));
+      return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MQL::WindowHandle() => 0 in expert::init()", programName)));
    }
    else {
-      return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter moduleType: %d", moduleType)));
+      return(_INVALID_HWND(error(ERR_INVALID_PARAMETER, "%s: invalid parameter moduleType: %d", programName, moduleType)));
    }
 
-
-   // (4) Das gefundene Chartfenster hat genau ein Child (AfxFrameOrView), welches das gesuchte MetaTrader-Handle ist.
+   // The found chart window holds a single child window (AfxFrameOrView), which matches the handle of MQL::WindowHandle().
    hChart = GetWindow(hChartWindow, GW_CHILD);
-   if (!hChart) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "no MetaTrader chart window inside of last MDIClient child window %p found", hChartWindow)));
+   if (!hChart) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: no MetaTrader chart window inside of last MDIClient child window %p found", programName, hChartWindow)));
 
    return(hChart);
 }
@@ -1383,8 +1326,7 @@ uint WINAPI GetCurrentThreadIndex() {
    // look-up the current thread
    uint size = g_threads.size();
    for (uint i=0; i < size; i++) {
-      if (g_threads[i] == currentThread)                          // thread found
-         return(i);
+      if (g_threads[i] == currentThread) return(i);               // thread found
    }
 
    // thread not found
@@ -1428,9 +1370,9 @@ int WINAPI SetLastThreadProgram(uint pid) {
    uint index = GetCurrentThreadIndex();
    g_threadsPrograms[index] = pid;                       // update the thread's last executed program
 
-   if (IsUIThread())
+   if (IsUIThread()) {
       g_lastUIThreadProgram = pid;                       // update lastUIThreadProgram if the thread is the UI thread
-
+   }
    return(index);
 }
 

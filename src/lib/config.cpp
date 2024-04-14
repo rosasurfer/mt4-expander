@@ -95,7 +95,7 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
    if ((uint)section  < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
    if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
 
-   char values[2] = {};                   // a NUL-terminated string followed by a second NUL terminator
+   char values[2] = {};                   // an empty string (NULL) followed by a second NULL terminator
 
    if (!WritePrivateProfileSectionA(section, values, fileName)) {
       int error = GetLastError();

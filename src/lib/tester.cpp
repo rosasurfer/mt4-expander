@@ -8,7 +8,6 @@
 #include "lib/terminal.h"
 #include "lib/tester.h"
 
-#include <ctime>
 #include <fstream>
 #include <windowsx.h>
 
@@ -194,299 +193,27 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
 
    file.read((char*)fxtHeader, sizeof(FXT_HEADER));
    file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
-
    return(TRUE);
 }
 
 
 /**
- * Get the commission value for the specified lotsize.
+ * Get the commission value for a test.
  *
- * @param  EXECUTION_CONTEXT* ec              - execution context of the expert under test
- * @param  double             lots [optional] - lotsize to calculate commission for (default: 1 lot)
+ * @param  EXECUTION_CONTEXT* ec - execution context of the expert under test
  *
  * @return double - commission value or EMPTY (-1) in case of errors
  */
-double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec, double lots/*=1.0*/) {
-   if ((uint)ec < MIN_VALID_POINTER)            return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (ec->programType!=PT_EXPERT || !ec->test) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
+double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER)               return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
 
-   TEST* test = ec->test;
-
-   if (!test->fxtHeader) {
-      FXT_HEADER* fxtHeader = new FXT_HEADER();
-      if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, test->barModel, fxtHeader)) {
-         delete fxtHeader;
-         return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header")));
-      }
-      test->fxtHeader = fxtHeader;
+   FXT_HEADER* fxtHeader = new FXT_HEADER();
+   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, Tester_GetBarModel(), fxtHeader)) {
+      delete fxtHeader;
+      return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header")));
    }
-
-   if (lots == 1)                                     // prevent modification of original value by math
-      return(test->fxtHeader->commissionValue);
-   return(test->fxtHeader->commissionValue * lots);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * TODO: validation
- */
-BOOL WINAPI Test_onPositionOpen(const EXECUTION_CONTEXT* ec, int ticket, int type, double lots, const char* symbol, time32 openTime, double openPrice, double stopLoss, double takeProfit, double commission, int magicNumber, const char* comment) {
-   if ((uint)ec        < MIN_VALID_POINTER)        return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->test)    return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
-   if ((uint)symbol    < MIN_VALID_POINTER)        return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if (strlen(symbol)  > MAX_SYMBOL_LENGTH)        return(!error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
-   if ((uint)comment   < MIN_VALID_POINTER)        return(!error(ERR_INVALID_PARAMETER, "invalid parameter comment: 0x%p (not a valid pointer)", comment));
-   if (strlen(comment) > MAX_ORDER_COMMENT_LENGTH) return(!error(ERR_INVALID_PARAMETER, "illegal length of parameter comment: \"%s\" (max %d characters)", comment, MAX_ORDER_COMMENT_LENGTH));
-
-   OrderList* positions      = ec->test->openPositions;      if (!positions)      return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: 0x%p", ec->test->openPositions));
-   OrderList* longPositions  = ec->test->openLongPositions;  if (!longPositions)  return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openLongPositions: 0x%p", ec->test->openLongPositions));
-   OrderList* shortPositions = ec->test->openShortPositions; if (!shortPositions) return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openShortPositions: 0x%p", ec->test->openShortPositions));
-
-   ORDER* order = new ORDER();
-      order->test          = ec->test;
-      order->ticket        = ticket;
-      order->type          = type;
-      order->lots          = lots;
-      strcpy(order->symbol,  symbol);
-      order->openTime      = openTime;
-      order->openPrice     = openPrice;
-      order->stopLoss      = stopLoss;
-      order->takeProfit    = takeProfit;
-      order->commission    = commission;
-      order->magicNumber   = magicNumber;
-      strcpy(order->comment, comment);
-      order->highPrice     = ec->bid;              // inner prices to prevent stats distortion by spread widening
-      order->lowPrice      = ec->ask;
-   positions->push_back(order);
-
-   if (order->type == OP_LONG)  longPositions->push_back(order);
-   if (order->type == OP_SHORT) shortPositions->push_back(order);
-
-   debug("position opened:  %s", ORDER_toStr(order));
-   return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * TODO: validation
- *
- * @param  int    ticket
- * @param  double closePrice
- * @param  time32 closeTime
- * @param  double swap
- * @param  double profit
- *
- * @return BOOL - success status
- */
-BOOL WINAPI Test_onPositionClose(const EXECUTION_CONTEXT* ec, int ticket, time32 closeTime, double closePrice, double swap, double profit) {
-   if ((uint)ec < MIN_VALID_POINTER)            return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (ec->programType!=PT_EXPERT || !ec->test) return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
-   if (!ec->test->openPositions)                return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.openPositions: NULL"));
-
-   OrderList &openPositions = *ec->test->openPositions;
-   uint size = openPositions.size();
-   ORDER* order = NULL;
-   BOOL positionFound = FALSE;
-
-   for (uint i=0; i < size; ++i) {
-      order = openPositions[i];
-      if (order->ticket == ticket) {
-         // update order data
-         order->closeTime  = closeTime;
-         order->closePrice = closePrice;
-         order->swap       = swap;
-         order->profit     = profit;
-
-         // update/calculate metrics
-         if (order->type == OP_LONG) {
-            order->runup    = round((order->highPrice  - order->openPrice)/ec->pip, 1);
-            order->drawdown = round((order->lowPrice   - order->openPrice)/ec->pip, 1);
-            order->realized = round((order->closePrice - order->openPrice)/ec->pip, 1);
-         }
-         else {
-            order->runup    = round((order->openPrice - order->lowPrice  )/ec->pip, 1);
-            order->drawdown = round((order->openPrice - order->highPrice )/ec->pip, 1);
-            order->realized = round((order->openPrice - order->closePrice)/ec->pip, 1);
-         }
-         if (order->realized > order->runup)    order->runup    = order->realized;  // fix for applyment of closing spread
-         if (order->realized < order->drawdown) order->drawdown = order->realized;
-
-         // move the order to closed positions
-         openPositions.erase(openPositions.begin() + i);                            // drop open position
-         ec->test->closedPositions->push_back(order);                               // add it to closed positions
-         positionFound = TRUE;
-
-         if (order->type == OP_LONG) {
-            OrderList &openLongs = *ec->test->openLongPositions;
-            size = openLongs.size();
-            for (i=0; i < size; ++i) {
-               if (openLongs[i]->ticket == ticket) {
-                  openLongs.erase(openLongs.begin() + i);                           // drop open long position
-                  break;
-               }
-            }
-            if (i >= size) return(!error(ERR_RUNTIME_ERROR, "open long position #%d not found (%d long positions)", ticket, size));
-            ec->test->closedLongPositions->push_back(order);                        // add it to closed long positions
-         }
-         else {
-            OrderList &openShorts = *ec->test->openShortPositions;
-            size = openShorts.size();
-            for (i=0; i < size; ++i) {
-               if (openShorts[i]->ticket == ticket) {
-                  openShorts.erase(openShorts.begin() + i);                         // drop open short position
-                  break;
-               }
-            }
-            if (i >= size) return(!error(ERR_RUNTIME_ERROR, "open short position #%d not found (%d short positions)", ticket, size));
-            ec->test->closedShortPositions->push_back(order);                       // add it to closed short positions
-         }
-
-         debug("position closed:  %s", ORDER_toStr(order));
-         break;
-      }
-   }
-
-   if (!positionFound) return(!error(ERR_RUNTIME_ERROR, "open position #%d not found (%d open positions)", ticket, size));
-   return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Save the results of a test to a logfile.
- *
- * @param  TEST* test
- *
- * @return BOOL - success status
- */
-BOOL WINAPI Test_SaveReport(const TEST* test) {
-   if (!test->closedPositions) return(!error(ERR_RUNTIME_ERROR, "invalid OrderList initialization, test.closedPositions: NULL"));
-
-   // define report directory and filename
-   string path     = string(GetTerminalPathA()).append("/tester/files/testresults/");
-   string filename = string(path).append(test->ec->programName).append(LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.log"));
-
-   // make sure the directory exists
-   int error = CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT);
-   if (error) return(!error(ERR_WIN32_ERROR+error, "cannot create directory \"%s\"", path.c_str()));
-
-   // create the report file
-   std::ofstream file(filename.c_str(), std::ios::binary);
-   if (!file.is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\" (%s)", filename.c_str(), strerror(errno)));
-
-   char* sTest = TEST_toStr(test);
-   file << "test=" << sTest << NL;
-
-   debug("test=%s", sTest);
-   free(sTest);
-
-   // process closed positions (skip open positions closed automatically by the tester at test end)
-   OrderList &trades = *test->closedPositions;
-   uint size = trades.size();
-
-   for (uint i=0; i < size; ++i) {
-      ORDER* order = trades[i];
-      char* sOrder = ORDER_toStr(order);
-      file << "order." << i << "=" << sOrder << NL;
-      free(sOrder);
-   }
-   file.close();
-
-   // backup input parameters
-   // TODO: MetaTrader creates/updates the expert.ini file when the dialog "Expert properties" is confirmed.
-   string source = string(GetTerminalPathA()) +"/tester/"+ test->ec->programName +".ini";
-   string target = string(GetTerminalPathA()) +"/tester/files/testresults/"+ test->ec->programName + LocalTimeFormatA(test->created, "  %d.%m.%Y %H.%M.%S.ini");
-   if (!CopyFile(source.c_str(), target.c_str(), TRUE))
-      return(!error(ERR_WIN32_ERROR+GetLastError(), "CopyFile()"));
-   return(TRUE);
-}
-
-
-/**
- * TODO: documentation
- */
-BOOL WINAPI Test_InitReporting(const EXECUTION_CONTEXT* ec, time32 startTime, uint bars) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(!error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   TEST* test = ec->test;
-   if (!test) return(!error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   double spread = round((ec->ask - ec->bid)/ec->point/10, 1);
-
-   test_SetStartTime   (test, startTime   );
-   test_SetBars        (test, bars        );
-   test_SetSpread      (test, spread      );
- //test_SetTradeDirections...                                  // TODO: read from "{expert-name}.ini"
-
-   return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * TODO: documentation
- */
-BOOL WINAPI Test_StopReporting(const EXECUTION_CONTEXT* ec, time32 endTime, uint bars) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                                   return(!error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(!error(ERR_FUNC_NOT_ALLOWED, "function allowed only for experts in tester:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   TEST* test = ec->test;
-   if (!test)            return(!error(ERR_ILLEGAL_STATE, "invalid execution context, ec.test=NULL:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-   if (!test->startTime) return(debug("skipping (reporting not yet started)"));
-   if (test->endTime)    return(!error(ERR_ILLEGAL_STATE, "reporting already stopped:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-
-   test_SetBars   (test, bars - test->bars + 1);
-   test_SetTicks  (test, ec->ticks            );
-   test_SetEndTime(test, endTime              );
-
-   // update test statistics
-   OrderList &trades = *test->closedPositions;
-   uint allTrades   = trades.size();
-   uint longTrades  = test->closedLongPositions->size();
-   uint shortTrades = test->closedShortPositions->size();
-
-   double runup    = 0, longRunup    = 0, shortRunup    = 0;
-   double drawdown = 0, longDrawdown = 0, shortDrawdown = 0;
-   double realized = 0, longRealized = 0, shortRealized = 0;
-
-   for (uint i=0; i < allTrades; ++i) {
-      ORDER* order = trades[i];
-
-      runup    += order->runup;
-      drawdown += order->drawdown;
-      realized += order->realized;
-
-      if (order->type == OP_LONG) {
-         longRunup    += order->runup;
-         longDrawdown += order->drawdown;
-         longRealized += order->realized;
-      }
-      else {
-         shortRunup    += order->runup;
-         shortDrawdown += order->drawdown;
-         shortRealized += order->realized;
-      }
-   }
-
-   test->stat_avgRunup         = allTrades ? round(runup   /allTrades, 1) : 0;
-   test->stat_avgDrawdown      = allTrades ? round(drawdown/allTrades, 1) : 0;
-   test->stat_avgRealized      = allTrades ? round(realized/allTrades, 1) : 0;
-
-   test->stat_avgLongRunup     = longTrades ? round(longRunup   /longTrades, 1) : 0;
-   test->stat_avgLongDrawdown  = longTrades ? round(longDrawdown/longTrades, 1) : 0;
-   test->stat_avgLongRealized  = longTrades ? round(longRealized/longTrades, 1) : 0;
-
-   test->stat_avgShortRunup    = shortTrades ? round(shortRunup   /shortTrades, 1) : 0;
-   test->stat_avgShortDrawdown = shortTrades ? round(shortDrawdown/shortTrades, 1) : 0;
-   test->stat_avgShortRealized = shortTrades ? round(shortRealized/shortTrades, 1) : 0;
-
-   return(Test_SaveReport(test));
+   return(fxtHeader->commissionValue);
    #pragma EXPANDER_EXPORT
 }
 

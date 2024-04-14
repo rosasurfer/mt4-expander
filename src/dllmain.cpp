@@ -6,6 +6,11 @@
 #include "lib/lock/Lock.h"
 #include "struct/rsf/ExecutionContext.h"
 
+#include <shellapi.h>
+
+BOOL g_optionPortableMode;                                  // whether cmd line option /portable is set
+BOOL g_debugExecutionContext;                               // whether cmd line option /rsf:debug-ec is set
+
 extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
 extern Locks                         g_locks;               // a map holding pointers to fine-granular locks
 
@@ -31,8 +36,8 @@ extern std::vector<TICK_TIMER_DATA*> g_tickTimers;          // all registered ti
 
 
 // forward declarations
-void WINAPI onProcessAttach();
-void WINAPI onProcessDetach(BOOL isTerminating);
+BOOL WINAPI onProcessAttach();
+BOOL WINAPI onProcessDetach(BOOL isTerminating);
 
 
 /**
@@ -57,8 +62,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
 
 /**
  * Handler for DLL_PROCESS_ATTACH events.
+ *
+ * @return BOOL
  */
-void WINAPI onProcessAttach() {
+BOOL WINAPI onProcessAttach() {
    g_mqlInstances   .reserve(128);
    g_threads        .reserve(512);
    g_threadsPrograms.reserve(512);
@@ -66,12 +73,30 @@ void WINAPI onProcessAttach() {
 
    InitializeCriticalSection(&g_terminalMutex);
 
+   // parse command line arguments
+   int argc;
+   LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+   if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
+
+   for (int i=1; i < argc; i++) {
+      if (StrCompare(argv[i], L"/rsf:debug-ec")) {
+         g_debugExecutionContext = TRUE;
+      }
+      else if (StrStartsWith(argv[i], L"/portable")) {
+         // The terminal also enables portable mode if a command line parameter just *starts* with prefix "/portable".
+         // For example passing parameter "/portablepoo" enables portable mode, too. The test mirrors that behavior.
+         g_optionPortableMode = TRUE;
+      }
+   }
+   LocalFree(argv);
+
    // the production version of the DLL is locked in memory
    const char* dllName = GetExpanderFileNameA();
    if (StrEndsWith(dllName, "rsfMT4Expander.dll")) {
       HMODULE hModule = NULL;
       GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
    }
+   return(TRUE);
 }
 
 
@@ -79,10 +104,11 @@ void WINAPI onProcessAttach() {
  * Handler for DLL_PROCESS_DETACH events.
  *
  * @param  BOOL isTerminating - whether the DLL is detached because the process is terminating
+ *
+ * @return BOOL
  */
-void WINAPI onProcessDetach(BOOL isTerminating) {
-   if (isTerminating)
-      return;
+BOOL WINAPI onProcessDetach(BOOL isTerminating) {
+   if (isTerminating) return(TRUE);
 
    DeleteCriticalSection(&g_terminalMutex);
    ReleaseTickTimers();
@@ -92,4 +118,5 @@ void WINAPI onProcessDetach(BOOL isTerminating) {
       delete it->second;
    }
    g_locks.clear();
+   return(TRUE);
 }

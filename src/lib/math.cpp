@@ -23,6 +23,62 @@ int WINAPI DoubleExp(double value) {
 
 
 /**
+ * Whether a double holds an infinite value.
+ *
+ * Exported version of function isInfinite(), for API completeness.
+ *
+ * @param  double value
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsInfinite(double value) {
+   return(value && value+value == value);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a double holds the value "not-a-number".
+ *
+ * Exported version of function isNaN(), as in terminals (build < 416) the comparison NaN==NaN returns TRUE/is broken.
+ *
+ * @param  double value
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsNaN(double value) {
+   return(value != value);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a double value representing "positive infinity".
+ *
+ * Exported version of const INF, as in terminals (build > 509 && build < 603) MathLog() fails to produce NaN/-INF.
+ *
+ * @return double
+ */
+double WINAPI Math_INF() {
+   return(INF);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a double value representing "not-a-number".
+ *
+ * Exported version of const NaN, for API completeness.
+ *
+ * @return double
+ */
+double WINAPI Math_NaN() {
+   return(NaN);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the base-10 logarithm of a double value.
  *
  * @param  double value

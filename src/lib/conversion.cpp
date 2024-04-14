@@ -13,6 +13,7 @@
  */
 const char* WINAPI BarModelDescription(int id) {
    switch (id) {
+      case -1:                 return("Live");
       case MODE_EVERYTICK:     return("EveryTick");
       case MODE_CONTROLPOINTS: return("ControlPoints");
       case MODE_BAROPEN:       return("OpenPrices");

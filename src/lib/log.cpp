@@ -68,7 +68,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
    string sLoglevel(level==LOG_DEBUG ? "": LoglevelDescriptionA(level));                  // loglevel (LOG_DEBUG is blanked out)
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
-   string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", "\n"), "\n", " ");   // replace linebreaks with spaces
+   string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", " "), "\n", " ");    // replace linebreaks with spaces
    string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // error description
 
    if (ec->testing) {                                                                     // tester:
@@ -107,7 +107,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
-   if (master->superContext) return(TRUE);                                       // ignore the call if in iCustom()
+   if (master->superContext) return(TRUE);                                         // ignore the call if in iCustom()
 
    if (filename && *filename) {
       // enable the file logger
@@ -124,11 +124,10 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
             if (!IsFileA(filename, MODE_SYSTEM)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                              // extract the directory part of logFilename
+               char drive[MAX_DRIVE], dir[MAX_DIR];                              // extract the directory part of filename
                _splitpath(filename, drive, dir, NULL, NULL);
-               string path = string(drive).append(dir);
-               if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT))    // make sure the directory exists
-                  return(FALSE);
+               string path = string(drive).append(dir);                          // make sure the directory exists
+               if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT)) return(FALSE);
             }
             log->open(filename, std::ios::binary|std::ios::app);                 // open the logfile
             if (!log->is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno)));

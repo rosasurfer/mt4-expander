@@ -1,5 +1,5 @@
 /**
- * Virtual no-ops. Automatically over-written by MQL implementations of the same name.
+ * Virtual no-ops. Over-written by MQL implementations of the same name.
  */
 #include "expander.h"
 #include "lib/executioncontext.h"
@@ -195,22 +195,61 @@ BOOL WINAPI onBarOpen() {
 
 
 /**
+ * EA recorder related functions
+ */
+const char* Recorder_GetInput() {
+   return("");
+   #pragma EXPANDER_EXPORT
+}
+
+
+const char* Recorder_GetNextMetricSymbol() {
+   return("A.000");
+   #pragma EXPANDER_EXPORT
+}
+
+
+BOOL Recorder_start() {
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+BOOL Recorder_deinit() {
+   return(TRUE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+int RecordMetrics() {
+   return(ERR_NOT_IMPLEMENTED);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Other
  */
+int WINAPI DeleteRegisteredObjects() {
+   return(NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
 void WINAPI DummyCalls() {
    return;
    #pragma EXPANDER_EXPORT
 }
 
 
-const char* WINAPI InputsToStr() {
+const char* WINAPI GetStatusFilenameData() {
    return("");
    #pragma EXPANDER_EXPORT
 }
 
 
-int WINAPI Recorder_GetSymbolDefinition(int id, BOOL* ready, const char* symbol, const char* description, const char* group, int* digits, double* baseValue, int* multiplier) {
-   return(ERR_NOT_IMPLEMENTED);
+const char* WINAPI InputsToStr() {
+   return("");
    #pragma EXPANDER_EXPORT
 }
 
