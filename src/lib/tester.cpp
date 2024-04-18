@@ -241,9 +241,13 @@ int WINAPI Test_synchronize() {
 
 
 /**
+ * @param  void* array
+ *
  * @return int
  */
-int WINAPI Tester_Test() {
+int WINAPI Tester_Test(const void* array) {
+   return(NULL);
+
 
    time32 startdate = Tester_GetStartDate();
    string sStartdate = gmtTimeFormat(startdate, "%a, %Y.%m.%d %H:%M:%S");
