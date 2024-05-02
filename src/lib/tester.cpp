@@ -241,11 +241,15 @@ int WINAPI Test_synchronize() {
 
 
 /**
- * @param  void* array
+ * @param  HWND  hWnd - window handle
  *
  * @return int
  */
-int WINAPI Tester_Test(const void* array) {
+int WINAPI Tester_Test(HWND hWnd) {
+   RECT rect;
+   if (!GetWindowRect(hWnd, &rect)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindowRect(hWnd=%p) failed", hWnd));
+
+   debug("left=%d  top=%d  right=%d  bottom=%d", rect.left, rect.top, rect.right, rect.bottom);
    return(NULL);
 
 

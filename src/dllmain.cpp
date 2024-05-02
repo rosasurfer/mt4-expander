@@ -94,7 +94,7 @@ BOOL WINAPI onProcessAttach() {
    const char* dllName = GetExpanderFileNameA();
    if (StrEndsWith(dllName, "rsfMT4Expander.dll")) {
       HMODULE hModule = NULL;
-      GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
+      GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
    }
    return(TRUE);
 }
