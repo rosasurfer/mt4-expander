@@ -249,6 +249,31 @@ DWORD WINAPI GetUIThreadId() {
 
 
 /**
+ * Whether any part of the specified window's client area is currently visible. The visible area is defined by the current
+ * clipping region or clip path, as well as any overlapping windows.
+ *
+ * @param  HWND  hWnd - window handle
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsWindowAreaVisible(HWND hWnd) {
+   if (!hWnd) return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+
+   HDC hDC = GetDC(hWnd);
+   if (!hDC) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetDC(hWnd=%p)", hWnd));
+
+   RECT rect;
+   int region = GetClipBox(hDC, &rect);
+   ReleaseDC(hWnd, hDC);
+
+   if (region == RGN_ERROR)  return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetClipBox(hDC=%p) => RGN_ERROR", hDC));
+
+   return(region != NULLREGION);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Store a named integer value and link it to the specified window.
  *
  * @param  HWND  hWnd  - window handle

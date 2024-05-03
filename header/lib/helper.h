@@ -14,6 +14,7 @@ BOOL        WINAPI IsStandardTimeframe(int timeframe);
 BOOL        WINAPI IsProgramType(int type);
 BOOL        WINAPI IsUIThread(DWORD threadId = NULL);
 BOOL        WINAPI IsVirtualKeyDown(int vKey);
+BOOL        WINAPI IsWindowAreaVisible(HWND hWnd);
 const char* WINAPI MD5Hash(const void* input, uint length);
 const char* WINAPI MD5HashA(const char* input);
 uint        WINAPI MT4InternalMsg();
