@@ -33,7 +33,7 @@ int WINAPI GetLastWin32Error() {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return char* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -55,7 +55,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -90,7 +90,7 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function gets the text as a response to a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return char* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -112,7 +112,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function gets the text as a response to a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -252,7 +252,7 @@ DWORD WINAPI GetUIThreadId() {
  * Whether any part of the specified window's client area is currently visible. The visible area is defined by the current
  * clipping region or clip path, as well as any overlapping windows.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return BOOL
  */

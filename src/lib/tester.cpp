@@ -241,7 +241,7 @@ int WINAPI Test_synchronize() {
 
 
 /**
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return int
  */
