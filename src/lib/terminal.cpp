@@ -505,9 +505,10 @@ HWND WINAPI GetTerminalMainWindow() {
       while (hWndNext) {                                             // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {
-            if (!GetClassName(hWndNext, className, size)) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetClassName()"));
-            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00"))
+            if (!GetClassNameA(hWndNext, className, size)) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
+            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00")) {
                break;
+            }
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
