@@ -1143,7 +1143,6 @@ const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
       }
    }
    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1154,7 +1153,7 @@ const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
  *
  * @return char* - readable version or NULL if the parameter is invalid
  */
-const char* WINAPI LoglevelToStr(int level) {
+const char* WINAPI LoglevelToStrA(int level) {
    switch (level) {
       case NULL:       return("NULL"      );
       case LOG_DEBUG:  return("LOG_DEBUG" );
@@ -1166,6 +1165,23 @@ const char* WINAPI LoglevelToStr(int level) {
       case LOG_OFF:    return("LOG_OFF"   );
    }
    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a readable version of a loglevel constant.
+ *
+ * @param  int level - loglevel
+ *
+ * @return wchar* - readable version or NULL if the parameter is invalid
+ */
+const wchar* WINAPI LoglevelToStrW(int level) {
+   const char* s = LoglevelToStrA(level);
+   if (!s) return(NULL);
+
+   wstring ws = ansiToUnicode(string(s));
+   return(wstrdup(ws.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
