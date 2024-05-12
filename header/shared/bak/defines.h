@@ -52,7 +52,7 @@
 // MQL program launch types
 #define LAUNCHTYPE_TEMPLATE                     1        // loaded by applying a template
 #define LAUNCHTYPE_PROGRAM                      2        // loaded by iCustom()
-#define LAUNCHTYPE_MANUAL                       3        // loaded manually
+#define LAUNCHTYPE_USER                         3        // loaded by the user
 
 
 // MQL core function ids
