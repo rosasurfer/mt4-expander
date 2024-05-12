@@ -17,6 +17,8 @@ const char*  WINAPI InitReasonToStr(InitializeReason reason);
 const char*  WINAPI LoglevelDescriptionA(int level, BOOL upperCase = TRUE);
 const char*  WINAPI LoglevelToStrA(int level);
 const wchar* WINAPI LoglevelToStrW(int level);
+const char*  WINAPI MessageBoxButtonToStrA(int id);
+const wchar* WINAPI MessageBoxButtonToStrW(int id);
 const char*  WINAPI ModuleTypeDescription(ModuleType type);
 const char*  WINAPI ModuleTypeToStr(ModuleType type);
       char*  WINAPI NumberToStr(double value, const char* format);

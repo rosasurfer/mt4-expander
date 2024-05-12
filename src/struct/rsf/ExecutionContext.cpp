@@ -2104,7 +2104,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
          << ", newSymbol="            <<       DoubleQuoteStr(ec->newSymbol)
          << ", newTimeframe="         <<   PeriodDescriptionA(ec->newTimeframe)
-         << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "NULL")
+         << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "(null)")
          << ", bars="                 <<                      ec->bars
          << ", validBars="            <<                      ec->validBars
          << ", changedBars="          <<                      ec->changedBars
@@ -2123,10 +2123,10 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", priceFormat="          <<       DoubleQuoteStr(ec->priceFormat)
          << ", pipPriceFormat="       <<       DoubleQuoteStr(ec->pipPriceFormat)
 
-         << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "NULL")
+         << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "(null)")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
-         << ", hChart="               <<                     (ec->hChart       ? asformat("0x%p", ec->hChart       ) : "NULL")
-         << ", hChartWindow="         <<                     (ec->hChartWindow ? asformat("0x%p", ec->hChartWindow ) : "NULL")
+         << ", hChart="               <<                     (ec->hChart       ? asformat("0x%p", ec->hChart       ) : "(null)")
+         << ", hChartWindow="         <<                     (ec->hChartWindow ? asformat("0x%p", ec->hChartWindow ) : "(null)")
 
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
@@ -2144,7 +2144,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", loglevelFile="         << LoglevelDescriptionA(ec->loglevelFile)
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
          << ", loglevelSMS="          << LoglevelDescriptionA(ec->loglevelSMS)
-         << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "NULL")
+         << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "(null)")
          << ", logBuffer="            <<              "(" << (ec->logBuffer ? ec->logBuffer->size() : 0) << ")"
          << ", logFilename="          <<       DoubleQuoteStr(ec->logFilename)
          << "}";
