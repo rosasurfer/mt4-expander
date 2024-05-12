@@ -7,7 +7,7 @@ char*       WINAPI GetInternalWindowTextA(HWND hWnd);
 wchar*      WINAPI GetInternalWindowTextW(HWND hWnd);
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
-int         WINAPI GetLastWin32Error();
+DWORD       WINAPI GetLastWin32Error();
 DWORD       WINAPI GetUIThreadId();
 BOOL        WINAPI IsCustomTimeframe(int timeframe);
 BOOL        WINAPI IsStandardTimeframe(int timeframe);

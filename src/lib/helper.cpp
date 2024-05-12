@@ -19,11 +19,11 @@ StringMap  stringProperties;                       // a map with strings stored 
 
 
 /**
- * Return the last Windows error of the current thread and make it accessible to MQL.
+ * Return the last Windows error of the current thread. Makes it accessible to MQL.
  *
- * @return int - error code
+ * @return DWORD - error code
  */
-int WINAPI GetLastWin32Error() {
+DWORD WINAPI GetLastWin32Error() {
    return(GetLastError());
    #pragma EXPANDER_EXPORT
 }
