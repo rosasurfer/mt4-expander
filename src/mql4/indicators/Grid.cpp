@@ -18,7 +18,7 @@ int WINAPI Grid_GetChartHeight(HWND hChart, int lastHeight) {
       return(NULL);
    }
    if (lastHeight) {
-      if (IsIconic(hChartWnd) || IsWindowAreaVisible(hChartWnd)) {
+      if (IsIconic(hChartWnd) || !IsWindowAreaVisible(hChartWnd)) {
          return(NULL);                                // quick return only if the chart was already initialized (performance)
       }
    }
