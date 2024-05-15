@@ -1,16 +1,16 @@
 /**
- * MQL error codes
+ * MQL error codes shared with the MT4Expander (C++).
  *
  * @link  https://docs.mql4.com/constants/errorswarnings/errorcodes
  */
 #define ERR_NO_ERROR                                                  0
-//define NO_ERROR                                          ERR_NO_ERROR    // separately defined in <mqldefines.mqh>
+//efine NO_ERROR                                           ERR_NO_ERROR    // in C++ already defined (Win32)
 
 // Trading errors
 #define ERR_NO_RESULT                                                 1
 //      No status returned, unknown result. OrderModify() attempted to replace values already set. May also happen if the trade server changes during OrderModify().
-#define ERR_TRADESERVER_GONE                                          2    // framework alias of ERR_COMMON_ERROR
-#define ERR_COMMON_ERROR                           ERR_TRADESERVER_GONE    // trade request failed (trade server error)
+#define ERR_COMMON_ERROR                                              2    // trade request failed (trade server error)
+#define ERR_TRADESERVER_GONE                           ERR_COMMON_ERROR    // framework alias of ERR_COMMON_ERROR
 #define ERR_INVALID_TRADE_PARAMETERS                                  3    // invalid parameters passed, e.g. wrong symbol, unknown trade operation, negative slippage, non-existing ticket
 #define ERR_SERVER_BUSY                                               4    // trade server is busy
 #define ERR_OLD_VERSION                                               5    // too old version of the client terminal

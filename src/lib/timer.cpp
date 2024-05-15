@@ -19,19 +19,8 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
    if (!ttd->hTimer) return;                             // skip queued events of an already released timer
 
    if (IsWindow(ttd->hWnd)) {
-      if (ttd->flags & TICK_IF_WINDOW_VISIBLE) {         // check if the chart is visible
-         RECT rect;
-         HDC hDC = GetDC(ttd->hWnd);
-         int rgn = GetClipBox(hDC, &rect);
-         ReleaseDC(ttd->hWnd, hDC);
-
-         if (rgn == NULLREGION) {                        // skip timer event if the chart is completely invisible
-            return;
-         }
-         if (rgn == RGN_ERROR) {
-            warn(ERR_WIN32_ERROR+GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
-            return;
-         }
+      if (ttd->flags & TICK_IF_WINDOW_VISIBLE) {         // skip if the chart is not visible
+         if (!IsWindowAreaVisible(ttd->hWnd)) return;
       }
       if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
 
@@ -41,7 +30,7 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
    }
    else {
       // expected case if an MQL program crashes and fails to release its resources
-      debug("releasing unreleased tick timer with id=%d (references non-existing window hWnd=%p, did the MQL program crash?)", ttd->timerId, ttd->hWnd);
+      debug("releasing tick timer id=%d (receiver window gone)", ttd->timerId);
       ReleaseTickTimer(ttd->timerId);
    }
 }

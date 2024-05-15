@@ -63,7 +63,7 @@ const char* WINAPI BoolToStr(BOOL value) {
  */
 const char* WINAPI CoreFunctionDescription(CoreFunction func) {
    switch (func) {
-      case NULL     : return("NULL");
+      case NULL     : return("(null)");
       case CF_INIT  : return("init");
       case CF_START : return("start");
       case CF_DEINIT: return("deinit");
@@ -82,7 +82,7 @@ const char* WINAPI CoreFunctionDescription(CoreFunction func) {
  */
 const char* WINAPI CoreFunctionToStr(CoreFunction func) {
    switch (func) {
-      case NULL     : return("NULL");
+      case NULL     : return("(null)");
       case CF_INIT  : return("CF_INIT");
       case CF_START : return("CF_START");
       case CF_DEINIT: return("CF_DEINIT");
@@ -1093,7 +1093,7 @@ const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
  */
 const char* WINAPI InitReasonToStr(InitializeReason reason) {
    switch (reason) {
-      case NULL                : return("NULL"                );
+      case NULL                : return("(null)"              );
       case IR_USER             : return("IR_USER"             );
       case IR_TEMPLATE         : return("IR_TEMPLATE"         );
       case IR_PROGRAM          : return("IR_PROGRAM"          );
@@ -1120,7 +1120,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
 const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
    if (upperCase) {
       switch (level) {
-         case NULL:       return("NULL"  );
+         case NULL:       return("(null)");
          case LOG_DEBUG:  return("DEBUG" );
          case LOG_INFO:   return("INFO"  );
          case LOG_NOTICE: return("NOTICE");
@@ -1132,7 +1132,7 @@ const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
    }
    else {
       switch (level) {
-         case NULL:       return("null"  );
+         case NULL:       return("(null)");
          case LOG_DEBUG:  return("debug" );
          case LOG_INFO:   return("info"  );
          case LOG_NOTICE: return("notice");
@@ -1143,7 +1143,6 @@ const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
       }
    }
    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level));
-   #pragma EXPANDER_EXPORT
 }
 
 
@@ -1152,11 +1151,11 @@ const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
  *
  * @param  int level - loglevel
  *
- * @return char* - readable version or NULL if the parameter is invalid
+ * @return char* - readable version or NULL if the passed value is unknown
  */
-const char* WINAPI LoglevelToStr(int level) {
+const char* WINAPI LoglevelToStrA(int level) {
    switch (level) {
-      case NULL:       return("NULL"      );
+      case NULL:       return("(null)"    );
       case LOG_DEBUG:  return("LOG_DEBUG" );
       case LOG_INFO:   return("LOG_INFO"  );
       case LOG_NOTICE: return("LOG_NOTICE");
@@ -1171,6 +1170,67 @@ const char* WINAPI LoglevelToStr(int level) {
 
 
 /**
+ * Return a readable version of a loglevel constant.
+ *
+ * @param  int level - loglevel
+ *
+ * @return wchar* - readable version or NULL if the passed value is unknown
+ */
+const wchar* WINAPI LoglevelToStrW(int level) {
+   const char* s = LoglevelToStrA(level);
+   if (!s) return(NULL);
+
+   wstring ws = ansiToUnicode(string(s));
+   return(wstrdup(ws.c_str()));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a readable version of a MessageBox button id.
+ *
+ * @param  int id - button id
+ *
+ * @return char* - readable version or NULL if the passed id is unknown
+ */
+const char* WINAPI MessageBoxButtonToStrA(int id) {
+   switch (id) {
+      case NULL      : return("(null)"    );
+      case IDABORT   : return("IDABORT"   );
+      case IDCANCEL  : return("IDCANCEL"  );
+      case IDCONTINUE: return("IDCONTINUE");
+      case IDIGNORE  : return("IDIGNORE"  );
+      case IDNO      : return("IDNO"      );
+      case IDOK      : return("IDOK"      );
+      case IDRETRY   : return("IDRETRY"   );
+      case IDTRYAGAIN: return("IDTRYAGAIN");
+      case IDYES     : return("IDYES"     );
+      case IDCLOSE   : return("IDCLOSE"   );
+      case IDHELP    : return("IDHELP"    );
+   }
+   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a button id)", id));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+* Return a readable version of a MessageBox button id.
+*
+* @param  int id - button id
+*
+* @return wchar* - readable version or NULL if the passed id is unknown
+ */
+const wchar* WINAPI MessageBoxButtonToStrW(int id) {
+   const char* s = MessageBoxButtonToStrA(id);
+   if (!s) return(NULL);
+
+   wstring ws = ansiToUnicode(string(s));
+   return(wstrdup(ws.c_str()));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return a description of a ModuleType.
  *
  * @param  ModuleType type
@@ -1179,7 +1239,7 @@ const char* WINAPI LoglevelToStr(int level) {
  */
 const char* WINAPI ModuleTypeDescription(ModuleType type) {
    switch (type) {
-      case NULL        : return("NULL"     );
+      case NULL        : return("(null)"   );
       case MT_EXPERT   : return("Expert"   );
       case MT_SCRIPT   : return("Script"   );
       case MT_INDICATOR: return("Indicator");
@@ -1199,7 +1259,7 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
  */
 const char* WINAPI ModuleTypeToStr(ModuleType type) {
    switch (type) {
-      case NULL        : return("NULL"        );
+      case NULL        : return("(null)"      );
       case MT_EXPERT   : return("MT_EXPERT"   );
       case MT_SCRIPT   : return("MT_SCRIPT"   );
       case MT_INDICATOR: return("MT_INDICATOR");
@@ -1240,7 +1300,7 @@ char* WINAPI NumberToStr(double value, const char* format) {
  */
 const char* WINAPI ProgramTypeDescription(ProgramType type) {
    switch (type) {
-      case NULL        : return("NULL");
+      case NULL        : return("(null)");
       case PT_EXPERT   : return("Expert");
       case PT_SCRIPT   : return("Script");
       case PT_INDICATOR: return("Indicator");
@@ -1259,7 +1319,7 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
  */
 const char* WINAPI ProgramTypeToStr(ProgramType type) {
    switch (type) {
-      case NULL        : return("NULL");
+      case NULL        : return("(null)");
       case PT_EXPERT   : return("PT_EXPERT");
       case PT_SCRIPT   : return("PT_SCRIPT");
       case PT_INDICATOR: return("PT_INDICATOR");
@@ -1348,7 +1408,7 @@ const char* WINAPI PeriodDescriptionA(int period) {
    if (period < 0) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
-      case NULL      : return("NULL");
+      case NULL      : return("(null)");
       case PERIOD_M1 : return("M1");      // 1 minute
       case PERIOD_M2 : return("M2");      // 2 minutes  (custom timeframe)
       case PERIOD_M3 : return("M3");      // 3 minutes  (custom timeframe)
@@ -1401,7 +1461,7 @@ const char* WINAPI PeriodToStr(int period) {
    if (period < 0) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period));
 
    switch (period) {
-      case NULL      : return("NULL"      );
+      case NULL      : return("(null)"    );
       case PERIOD_M1 : return("PERIOD_M1" );     // 1 minute
       case PERIOD_M2 : return("PERIOD_M2" );     // 2 minutes  (custom timeframe)
       case PERIOD_M3 : return("PERIOD_M3" );     // 3 minutes  (custom timeframe)

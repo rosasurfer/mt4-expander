@@ -19,11 +19,11 @@ StringMap  stringProperties;                       // a map with strings stored 
 
 
 /**
- * Return the last Windows error of the current thread and make it accessible to MQL.
+ * Return the last Windows error of the current thread. Makes it accessible to MQL.
  *
- * @return int - error code
+ * @return DWORD - error code
  */
-int WINAPI GetLastWin32Error() {
+DWORD WINAPI GetLastWin32Error() {
    return(GetLastError());
    #pragma EXPANDER_EXPORT
 }
@@ -33,7 +33,7 @@ int WINAPI GetLastWin32Error() {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return char* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -55,7 +55,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -90,7 +90,7 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function gets the text as a response to a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return char* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -112,7 +112,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
  * This function gets the text as a response to a WM_GETTEXT message.
  *
- * @param  HWND  hWnd - window handle
+ * @param  HWND hWnd - window handle
  *
  * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  *
@@ -244,6 +244,31 @@ DWORD WINAPI GetUIThreadId() {
          uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
    }
    return(uiThreadId);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether any part of the specified window's client area is currently visible. The visible area is defined by the current
+ * clipping region or clip path, as well as any overlapping windows.
+ *
+ * @param  HWND hWnd - window handle
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsWindowAreaVisible(HWND hWnd) {
+   if (!hWnd) return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+
+   HDC hDC = GetDC(hWnd);
+   if (!hDC) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetDC(hWnd=%p)", hWnd));
+
+   RECT rect;
+   int region = GetClipBox(hDC, &rect);
+   ReleaseDC(hWnd, hDC);
+
+   if (region == RGN_ERROR)  return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetClipBox(hDC=%p) => RGN_ERROR", hDC));
+
+   return(region != NULLREGION);
    #pragma EXPANDER_EXPORT
 }
 

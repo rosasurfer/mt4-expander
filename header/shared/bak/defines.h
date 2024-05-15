@@ -1,5 +1,5 @@
 /**
- * Constants shared by MQL and the MT4Expander DLL.
+ * MQL constants shared with the MT4Expander (C++).
  */
 
 // special constants
@@ -14,6 +14,7 @@
 #define MAX_SYMBOL_GROUP_LENGTH                15
 #define MAX_SYMBOL_LENGTH                      11
 
+// string constants in the MT4Expander are defined as ANSI only
 #define EOL_MAC                              "\r"        // old MacOS line separator: 0x0D
 #define EOL_NETSCAPE                     "\r\r\n"        // Netscape line separator:  0x0D0D0A
 #define EOL_UNIX                             "\n"        // Unix line separator:      0x0A (MQL/Win32 file functions in text mode auto-convert EOL_UNIX to EOL_WINDOWS)
@@ -51,7 +52,7 @@
 // MQL program launch types
 #define LAUNCHTYPE_TEMPLATE                     1        // loaded by applying a template
 #define LAUNCHTYPE_PROGRAM                      2        // loaded by iCustom()
-#define LAUNCHTYPE_MANUAL                       3        // loaded manually
+#define LAUNCHTYPE_USER                         3        // loaded by the user
 
 
 // MQL core function ids
@@ -231,9 +232,6 @@
 #define PRICE_MEDIAN                            4        // (H+L)/2
 #define PRICE_TYPICAL                           5        // (H+L+C)/3
 #define PRICE_WEIGHTED                          6        // (H+L+C+C)/4
-#define PRICE_AVERAGE                           7        // (O+H+L+C)/4
-#define PRICE_BID                               8        // Bid
-#define PRICE_ASK                               9        // Ask
 
 
 // commission types, see struct FXT_HEADER
@@ -754,7 +752,6 @@
 #define clrWhiteSmoke                    WhiteSmoke
 #define clrYellow                        Yellow
 #define clrYellowGreen                   YellowGreen
-
 #define clrNONE                          CLR_NONE
 
 

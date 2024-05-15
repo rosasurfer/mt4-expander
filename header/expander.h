@@ -73,7 +73,7 @@ enum ModuleType {
 enum LaunchType {
    LT_TEMPLATE = LAUNCHTYPE_TEMPLATE,                       // launched via template
    LT_PROGRAM  = LAUNCHTYPE_PROGRAM,                        // launched via call of iCustom()
-   LT_MANUAL   = LAUNCHTYPE_MANUAL                          // launched manually (by hand)
+   LT_USER     = LAUNCHTYPE_USER                            // launched by user
 };
 
 

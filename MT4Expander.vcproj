@@ -938,6 +938,18 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="mql4"
+				>
+				<Filter
+					Name="indicators"
+					>
+					<File
+						RelativePath=".\src\mql4\indicators\Grid.cpp"
+						>
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
