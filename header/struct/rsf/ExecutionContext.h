@@ -75,25 +75,28 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    BOOL               optimization;                   //       708        4     expert IsOptimization() status                            (const)
    int                recorder;                       //       712        4     expert recorder mode                                      (var)
                                                       //
-   int                mqlError;                       //       716        4     last MQL error (from all program modules)                 (var)
-   int                dllError;                       //       720        4     last DLL error                                            (var)
-   char*              dllErrorMsg;                    //       724        4     DLL error message                                         (var)
-   int                dllWarning;                     //       728        4     last DLL warning                                          (var)
-   char*              dllWarningMsg;                  //       732        4     DLL warning message                                       (var)
+   const char*        accountServer;                  //       716        4     account company = MQL::AccountServer()                    (var)
+   int                accountNumber;                  //       720        4     account number = MQL::AccountNumber()                     (var)
                                                       //
-   int                loglevel;                       //       736        4     program main loglevel                                     (var)
-   int                loglevelTerminal;               //       740        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       744        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelDebug;                  //       748        4     loglevel of the debug output appender                     (var)
-   int                loglevelFile;                   //       752        4     loglevel of the logfile appender                          (var)
-   int                loglevelMail;                   //       756        4     loglevel of the mail appender                             (var)
-   int                loglevelSMS;                    //       760        4     loglevel of the SMS appender                              (var)
+   int                mqlError;                       //       724        4     last MQL error (from all program modules)                 (var)
+   int                dllError;                       //       728        4     last DLL error                                            (var)
+   char*              dllErrorMsg;                    //       732        4     DLL error message                                         (var)
+   int                dllWarning;                     //       736        4     last DLL warning                                          (var)
+   char*              dllWarningMsg;                  //       740        4     DLL warning message                                       (var)
+                                                      //
+   int                loglevel;                       //       744        4     program main loglevel                                     (var)
+   int                loglevelTerminal;               //       748        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       752        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelDebug;                  //       756        4     loglevel of the debug output appender                     (var)
+   int                loglevelFile;                   //       760        4     loglevel of the logfile appender                          (var)
+   int                loglevelMail;                   //       764        4     loglevel of the mail appender                             (var)
+   int                loglevelSMS;                    //       768        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logger;                         //       764        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       768        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       772      260     logger filename                                           (var)
+   std::ofstream*     logger;                         //       772        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       776        4     log buffer                                                (var)
+   char               logFilename[MAX_PATH];          //       780      260     logger filename                                           (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1032
+#pragma pack(pop)                                     //             = 1040
 
 
 // getters expecting a struct (exported)
@@ -147,6 +150,9 @@ BOOL               WINAPI ec_Testing             (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_Recorder            (const EXECUTION_CONTEXT* ec);
+
+const char*        WINAPI ec_AccountServer       (const EXECUTION_CONTEXT* ec);
+int                WINAPI ec_AccountNumber       (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_MqlError            (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError            (const EXECUTION_CONTEXT* ec);
@@ -220,6 +226,9 @@ BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL
 BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status  );
 BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
 int                WINAPI ec_SetRecorder            (EXECUTION_CONTEXT* ec, int                mode    );
+
+//                        ec.accountServer
+//                        ec.accountNumber
 
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
 int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );

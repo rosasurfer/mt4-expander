@@ -751,6 +751,34 @@ int WINAPI ec_Recorder(const EXECUTION_CONTEXT* ec) {
 
 
 /**
+ * Return a program's current account server name.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return char* - server name
+ */
+const char* WINAPI ec_AccountServer(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->accountServer);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's current account number.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return int - account number
+ */
+int WINAPI ec_AccountNumber(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->accountNumber);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return a program's current MQL error code.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -2132,6 +2160,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
          << ", optimization="         <<            BoolToStr(ec->optimization)
          << ", recorder="             <<                      ec->recorder
+
+         << ", accountServer="        <<       DoubleQuoteStr(ec->accountServer)
+         << ", accountNumber="        <<                      ec->accountNumber
 
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
          << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))

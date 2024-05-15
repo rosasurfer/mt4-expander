@@ -359,7 +359,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          if (initReason == IR_PROGRAM_AFTERTEST)
             master->superContext = sec = NULL;                             // reset the super context (the tested expert has already been released)
          *ec = *master;                                                    // restore main from master context (also restores the pid)
-         (*g_mqlInstances[currentPid])[1] = ec;                             // store main context at original position (an empty slot)
+         (*g_mqlInstances[currentPid])[1] = ec;                            // store main context at original position (an empty slot)
       }
       else {
          // new indicator, new expert or new script
@@ -372,7 +372,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
 
             master = (*g_mqlInstances[currentPid])[0];
             *ec = *master;                                                 // copy master to main context
-            (*g_mqlInstances[currentPid])[1] = ec;                          // store main context at old (empty) position
+            (*g_mqlInstances[currentPid])[1] = ec;                         // store main context at old (empty) position
          }
          else {
             // create a new context chain                                  // TODO: on IR_PROGRAM_AFTERTEST somewhere exists a used context
@@ -434,6 +434,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetPip                 (ec, round(1./pow(10., (int)ec->pipDigits), ec->pipDigits));
    ec_SetPoint               (ec, point);
    ec_SetPipPoints           (ec, (uint)round(pow(10., (int)(digits & 1))));
+
+   // TODO: shouldn't we check/free existing strings?
 
    master->pipPriceFormat = ec->pipPriceFormat = asformat(".%d", ec->pipDigits);
    master->priceFormat    = ec->priceFormat    = (ec->digits==ec->pipDigits) ? ec->pipPriceFormat : asformat("%s'", ec->pipPriceFormat);
