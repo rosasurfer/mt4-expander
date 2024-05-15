@@ -30,7 +30,7 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
    }
    else {
       // expected case if an MQL program crashes and fails to release its resources
-      debug("releasing unreleased tick timer with id=%d (references non-existing window hWnd=%p, did the MQL program crash?)", ttd->timerId, ttd->hWnd);
+      debug("releasing tick timer id=%d (receiver window gone)", ttd->timerId);
       ReleaseTickTimer(ttd->timerId);
    }
 }
