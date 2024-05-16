@@ -13,6 +13,7 @@
 #include <ctime>
 #include <fstream>
 
+extern BOOL        g_debugAccount;                 // whether cmd line option /rsf:debug-account is set
 extern BOOL        g_debugExecutionContext;        // whether cmd line option /rsf:debug-ec is set
 
 MqlInstanceList    g_mqlInstances(1);              // all MQL program instances: index 0 is not a valid pid and is always empty
@@ -308,14 +309,16 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * @param  BOOL               isOptimization - result of IsOptimzation() as returned by the terminal
  * @param  int                recorder       - an expert's recorder mode
  * @param  EXECUTION_CONTEXT* sec            - super context as managed by the terminal (memory possibly already released)
- * @param  HWND               hChart         - result of WindowHandle() as returned by the terminal (possibly not yet set)
- * @param  int                droppedOnChart - result of WindowOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosX  - result of WindowXOnDropped() as returned by the terminal (possibly incorrect)
- * @param  int                droppedOnPosY  - result of WindowYOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  HWND               hChart         - MQL::WindowHandle() as returned by the terminal (possibly not yet set)
+ * @param  int                droppedOnChart - MQL::WindowOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosX  - MQL::WindowXOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  int                droppedOnPosY  - MQL::WindowYOnDropped() as returned by the terminal (possibly incorrect)
+ * @param  char*              accountServer  - MQL::AccountServer() as returned by the terminal (possibly not yet set)
+ * @param  int                accountNumber  - MQL::AccountNumber() as returned by the terminal (possibly not yet set)
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, int recorder, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY) {
+int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, const char* programName, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, int recorder, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, const char* accountServer, int accountNumber) {
    if ((uint)ec          < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if ((uint)programName < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
    if (strlen(programName) >= sizeof(ec->programName)) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter programName: \"%s\" (max %d characters)", programName, sizeof(ec->programName)-1));
@@ -342,13 +345,13 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
    if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_INIT_FAILURE, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
 
-   // (1) if ec.pid is not set: check if an indicator to be reused or something else
-   //     - indicator in init cycle           (UI thread) => reuse the previous program and keep instance data
-   //     - indicator in IR_PROGRAM_AFTERTEST (UI thread) => reuse the previous program and keep instance data
-   //     - indicator after recompilation     (UI thread) => reuse the previous program and keep instance data
-   //     - something else: new indicator|expert|script
-   // (2) update main and master context
-   // (3) synchronize already loaded libraries
+   // • if ec.pid is not set: check if an indicator to be reused or something else
+   //    - indicator in init cycle           (UI thread) => reuse the previous program and keep instance data
+   //    - indicator in IR_PROGRAM_AFTERTEST (UI thread) => reuse the previous program and keep instance data
+   //    - indicator after recompilation     (UI thread) => reuse the previous program and keep instance data
+   //    - something else: new indicator|expert|script
+   // • update main and master context
+   // • synchronize any loaded libraries
 
    if (!isPid) {
       if (programType==PT_INDICATOR && previousPid) {                      // reuse the previous program chain and keep instance data
@@ -356,8 +359,9 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          SetLastThreadProgram(currentPid);                                 // set the thread's currently executed program asap (error handling)
 
          master = (*g_mqlInstances[currentPid])[0];
-         if (initReason == IR_PROGRAM_AFTERTEST)
-            master->superContext = sec = NULL;                             // reset the super context (the tested expert has already been released)
+         if (initReason == IR_PROGRAM_AFTERTEST) {
+            master->superContext = sec = NULL;                             // reset the super context (the tested expert has already been removed/released)
+         }
          *ec = *master;                                                    // restore main from master context (also restores the pid)
          (*g_mqlInstances[currentPid])[1] = ec;                            // store main context at original position (an empty slot)
       }
@@ -395,8 +399,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       (*g_mqlInstances[currentPid])[1] = ec;                               // store main context at old (possibly empty) position
    }
 
-
-   // (2) update main and master context
+   // update main and master context
    ec_SetProgramType         (ec, programType );
    ec_SetProgramName         (ec, programName );
    if (ec->programCoreFunction != CF_START) ec_SetProgramCoreFunction (ec, CF_INIT);
@@ -462,7 +465,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    //ec->dllErrorMsg   = NULL;
    //ec->dllWarningMsg = NULL;
 
-   // (3) synchronize already loaded libraries
+   // synchronize any loaded libraries
    ContextChain &chain = *g_mqlInstances[currentPid];
    uint chainSize = chain.size();
    EXECUTION_CONTEXT bak, *lib;
@@ -478,7 +481,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          lib->moduleInitFlags    = bak.moduleInitFlags;
          lib->moduleDeinitFlags  = bak.moduleDeinitFlags;
       }
-      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
    if (g_debugExecutionContext) debug("  o:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));

@@ -9,6 +9,7 @@
 #include <shellapi.h>
 
 BOOL g_optionPortableMode;                                  // whether cmd line option /portable is set
+BOOL g_debugAccount;                                        // whether cmd line option /rsf:debug-account is set
 BOOL g_debugExecutionContext;                               // whether cmd line option /rsf:debug-ec is set
 
 extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
@@ -79,10 +80,15 @@ BOOL WINAPI onProcessAttach() {
    if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
 
    for (int i=1; i < argc; i++) {
+      if (StrCompare(argv[i], L"/rsf:debug-account")) {
+         g_debugAccount = TRUE;
+         continue;
+      }
       if (StrCompare(argv[i], L"/rsf:debug-ec")) {
          g_debugExecutionContext = TRUE;
+         continue;
       }
-      else if (StrStartsWith(argv[i], L"/portable")) {
+      if (StrStartsWith(argv[i], L"/portable")) {
          // The terminal also enables portable mode if a command line parameter just *starts* with prefix "/portable".
          // For example passing parameter "/portablepoo" enables portable mode, too. The test mirrors that behavior.
          g_optionPortableMode = TRUE;
@@ -90,7 +96,7 @@ BOOL WINAPI onProcessAttach() {
    }
    LocalFree(argv);
 
-   // the production version of the DLL is locked in memory
+   // lock the production version of the DLL in memory
    const char* dllName = GetExpanderFileNameA();
    if (StrEndsWith(dllName, "rsfMT4Expander.dll")) {
       HMODULE hModule = NULL;

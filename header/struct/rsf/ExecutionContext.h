@@ -91,7 +91,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
 
    std::ofstream*     logger;                         //       760        4     logger instance                                           (var)
    LogBuffer*         logBuffer;                      //       764        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       768      260     logger filename                                           (var)
+   char               logFilename[MAX_PATH];          //       768      260     log filename                                              (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
 #pragma pack(pop)                                     //             = 1028
 
@@ -144,9 +144,6 @@ BOOL               WINAPI ec_Testing             (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_VisualMode          (const EXECUTION_CONTEXT* ec);
 BOOL               WINAPI ec_Optimization        (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_Recorder            (const EXECUTION_CONTEXT* ec);
-
-const char*        WINAPI ec_AccountServer       (const EXECUTION_CONTEXT* ec);
-int                WINAPI ec_AccountNumber       (const EXECUTION_CONTEXT* ec);
 
 int                WINAPI ec_MqlError            (const EXECUTION_CONTEXT* ec);
 int                WINAPI ec_DllError            (const EXECUTION_CONTEXT* ec);
