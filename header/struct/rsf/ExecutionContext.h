@@ -61,40 +61,39 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    uint               pipDigits;                      //       652        4     digits of a pip                                           (var)
    double             pip;                            //       656        8     size of a pip                                             (var)
    double             point;                          //       664        8     size of a point                                           (var)    MQL::Point
-   uint               pipPoints;                      //       672        4     number of points of a pip: 1 or 10                        (var)
                                                       //
-   EXECUTION_CONTEXT* superContext;                   //       676        4     indicator host program                                    (const)  if loaded by iCustom()
-   uint               threadId;                       //       680        4     current executing thread                                  (var)
-   HWND               hChartWindow;                   //       684        4     handle of chart window (title bar "Symbol,Period")        (const)
-   HWND               hChart;                         //       688        4     chart handle = MQL::WindowHandle()                        (const)  handle of the embedded chart frame
+   EXECUTION_CONTEXT* superContext;                   //       672        4     indicator host program                                    (const)  if loaded by iCustom()
+   uint               threadId;                       //       676        4     current executing thread                                  (var)
+   HWND               hChartWindow;                   //       680        4     handle of chart window (title bar "Symbol,Period")        (const)
+   HWND               hChart;                         //       684        4     chart handle = MQL::WindowHandle()                        (const)  handle of the embedded chart frame
                                                       //
-   BOOL               testing;                        //       692        4     IsTesting() status                                        (const)
-   BOOL               visualMode;                     //       696        4     expert IsVisualMode() status                              (const)
-   BOOL               optimization;                   //       700        4     expert IsOptimization() status                            (const)
-   int                recorder;                       //       704        4     expert recorder mode                                      (var)
+   BOOL               testing;                        //       688        4     IsTesting() status                                        (const)
+   BOOL               visualMode;                     //       692        4     expert IsVisualMode() status                              (const)
+   BOOL               optimization;                   //       696        4     expert IsOptimization() status                            (const)
+   int                recorder;                       //       700        4     expert recorder mode                                      (var)
                                                       //
-   const char*        accountServer;                  //       708        4     MQL::AccountServer()                                      (var)
-   int                accountNumber;                  //       712        4     MQL::AccountNumber()                                      (var)
+   const char*        accountServer;                  //       704        4     MQL::AccountServer()                                      (var)
+   int                accountNumber;                  //       708        4     MQL::AccountNumber()                                      (var)
                                                       //
-   int                mqlError;                       //       716        4     last MQL error (from all program modules)                 (var)
-   int                dllError;                       //       720        4     last DLL error                                            (var)
-   char*              dllErrorMsg;                    //       724        4     DLL error message                                         (var)
-   int                dllWarning;                     //       728        4     last DLL warning                                          (var)
-   char*              dllWarningMsg;                  //       732        4     DLL warning message                                       (var)
+   int                mqlError;                       //       712        4     last MQL error (from all program modules)                 (var)
+   int                dllError;                       //       716        4     last DLL error                                            (var)
+   char*              dllErrorMsg;                    //       720        4     DLL error message                                         (var)
+   int                dllWarning;                     //       724        4     last DLL warning                                          (var)
+   char*              dllWarningMsg;                  //       728        4     DLL warning message                                       (var)
                                                       //
-   int                loglevel;                       //       736        4     program main loglevel                                     (var)
-   int                loglevelTerminal;               //       740        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       744        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelDebug;                  //       748        4     loglevel of the debug output appender                     (var)
-   int                loglevelFile;                   //       752        4     loglevel of the logfile appender                          (var)
-   int                loglevelMail;                   //       756        4     loglevel of the mail appender                             (var)
-   int                loglevelSMS;                    //       760        4     loglevel of the SMS appender                              (var)
+   int                loglevel;                       //       732        4     program main loglevel                                     (var)
+   int                loglevelTerminal;               //       736        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       740        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelDebug;                  //       744        4     loglevel of the debug output appender                     (var)
+   int                loglevelFile;                   //       748        4     loglevel of the logfile appender                          (var)
+   int                loglevelMail;                   //       752        4     loglevel of the mail appender                             (var)
+   int                loglevelSMS;                    //       756        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logger;                         //       764        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       768        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       772      260     logger filename                                           (var)
+   std::ofstream*     logger;                         //       760        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       764        4     log buffer                                                (var)
+   char               logFilename[MAX_PATH];          //       768      260     logger filename                                           (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1032
+#pragma pack(pop)                                     //             = 1028
 
 
 // getters expecting a struct (exported)
@@ -135,8 +134,6 @@ uint               WINAPI ec_Digits              (const EXECUTION_CONTEXT* ec);
 uint               WINAPI ec_PipDigits           (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Pip                 (const EXECUTION_CONTEXT* ec);
 double             WINAPI ec_Point               (const EXECUTION_CONTEXT* ec);
-uint               WINAPI ec_PipPoints           (const EXECUTION_CONTEXT* ec);
-const char*        WINAPI ec_PriceFormat         (const EXECUTION_CONTEXT* ec);
 
 BOOL               WINAPI ec_SuperContext        (const EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* const target);
 uint               WINAPI ec_ThreadId            (const EXECUTION_CONTEXT* ec);
@@ -210,8 +207,6 @@ uint               WINAPI ec_SetDigits              (EXECUTION_CONTEXT* ec, uint
 uint               WINAPI ec_SetPipDigits           (EXECUTION_CONTEXT* ec, uint               digits   );
 double             WINAPI ec_SetPip                 (EXECUTION_CONTEXT* ec, double             size     );
 double             WINAPI ec_SetPoint               (EXECUTION_CONTEXT* ec, double             size     );
-uint               WINAPI ec_SetPipPoints           (EXECUTION_CONTEXT* ec, uint               points   );
-//                        ec.priceFormat
 
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext        (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec     );
 uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint               id      );

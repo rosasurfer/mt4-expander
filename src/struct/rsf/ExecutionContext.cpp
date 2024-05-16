@@ -419,20 +419,6 @@ double WINAPI ec_Point(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current "PipPoints" value.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return uint - number of points of a pip
- */
-uint WINAPI ec_PipPoints(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->pipPoints);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
@@ -1514,30 +1500,6 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's pipPoints value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  uint               points - number of points per pip
- *
- * @return uint - the same value
- */
-uint WINAPI ec_SetPipPoints(EXECUTION_CONTEXT* ec, uint points) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (points!=1 && points!=10)      return(!error(ERR_INVALID_PARAMETER, "invalid parameter points: %d (must be 1 or 10)", points));
-
-   ec->pipPoints = points;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlInstances.size() > pid) {
-      ContextChain &chain = *g_mqlInstances[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->pipPoints = points;
-   }
-   return(points);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT's superContext value.
  *
  * @param  EXECUTION_CONTEXT* ec  - a program's execution context
@@ -2119,7 +2081,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", pipDigits="            <<                      ec->pipDigits
          << ", pip="   << std::setprecision(ec->pipDigits) << ec->pip
          << ", point=" << std::setprecision(ec->digits)    << ec->point
-         << ", pipPoints="            <<                      ec->pipPoints
 
          << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "(null)")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")

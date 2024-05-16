@@ -433,7 +433,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetPipDigits   (ec, digits & (~1));
    ec_SetPip         (ec, round(1./pow(10., (int)ec->pipDigits), ec->pipDigits));
    ec_SetPoint       (ec, point);
-   ec_SetPipPoints   (ec, (uint)round(pow(10., (int)(digits & 1))));
 
    ec_SetSuperContext(ec, sec);
    ec_SetThreadId    (ec, GetCurrentThreadId());
@@ -720,7 +719,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                master->pipDigits    = digits & (~1);
                master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
                master->point        = point;
-               master->pipPoints    = (uint)round(pow((double)10., (int)(digits & 1)));
 
                master->superContext = FALSE;
                master->threadId     = g_threads[threadIndex];
@@ -788,7 +786,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       master->pipDigits     = digits & (~1);
       master->pip           = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
       master->point         = point;
-      master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
 
       master->superContext  = NULL;                                  // no super context at all or already released
       master->threadId      = GetCurrentThreadId();
@@ -877,7 +874,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->pipDigits    = digits & (~1);
          master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
          master->point        = point;
-         master->pipPoints    = (uint)round(pow((double)10., (int)(digits & 1)));
 
          master->threadId     = g_threads[threadIndex];
          master->testing      = TRUE;
