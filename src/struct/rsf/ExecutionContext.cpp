@@ -447,20 +447,6 @@ const char* WINAPI ec_PriceFormat(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current pip price format (doesn't contain subpips).
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - format string
- */
-const char* WINAPI ec_PipPriceFormat(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->pipPriceFormat);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
@@ -2149,7 +2135,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", point=" << std::setprecision(ec->digits)    << ec->point
          << ", pipPoints="            <<                      ec->pipPoints
          << ", priceFormat="          <<       DoubleQuoteStr(ec->priceFormat)
-         << ", pipPriceFormat="       <<       DoubleQuoteStr(ec->pipPriceFormat)
 
          << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "(null)")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
