@@ -433,20 +433,6 @@ uint WINAPI ec_PipPoints(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current standard price format.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return char* - format string
- */
-const char* WINAPI ec_PriceFormat(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->priceFormat);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Copy an EXECUTION_CONTEXT's super context into the specified target variable.
  *
  * @param  EXECUTION_CONTEXT* ec     - source context
@@ -653,20 +639,6 @@ uint WINAPI ec_ThreadId(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's chart frame handle.
- *
- * @param  EXECUTION_CONTEXT* ec
- *
- * @return HWND - handle, same as returned by MQL::WindowHandle()
- */
-HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->hChart);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return a program's chart window handle.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -676,6 +648,20 @@ HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
 HWND WINAPI ec_hChartWindow(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    return(ec->hChartWindow);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return a program's chart frame handle.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return HWND - handle, same as returned by MQL::WindowHandle()
+ */
+HWND WINAPI ec_hChart(const EXECUTION_CONTEXT* ec) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   return(ec->hChart);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1600,29 +1586,6 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
 
 
 /**
- * Set an EXECUTION_CONTEXT's hChart value.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  HWND               hWnd - return value of MQL::WindowHandle()
- *
- * @return HWND - the same handle
- */
-HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   ec->hChart = hWnd;
-
-   uint pid = ec->pid;                                               // synchronize main and master context
-   if (pid && g_mqlInstances.size() > pid) {
-      ContextChain &chain = *g_mqlInstances[pid];
-      if (ec==chain[1] && chain[0])
-         chain[0]->hChart = hWnd;
-   }
-   return(hWnd);
-}
-
-
-/**
  * Set an EXECUTION_CONTEXT's hChartWindow value.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1640,6 +1603,29 @@ HWND WINAPI ec_SetHChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
       ContextChain &chain = *g_mqlInstances[pid];
       if (ec==chain[1] && chain[0])
          chain[0]->hChartWindow = hWnd;
+   }
+   return(hWnd);
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's hChart value.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  HWND               hWnd - return value of MQL::WindowHandle()
+ *
+ * @return HWND - the same handle
+ */
+HWND WINAPI ec_SetHChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
+   if ((uint)ec < MIN_VALID_POINTER) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->hChart = hWnd;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
+      if (ec==chain[1] && chain[0])
+         chain[0]->hChart = hWnd;
    }
    return(hWnd);
 }
@@ -2134,12 +2120,11 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", pip="   << std::setprecision(ec->pipDigits) << ec->pip
          << ", point=" << std::setprecision(ec->digits)    << ec->point
          << ", pipPoints="            <<                      ec->pipPoints
-         << ", priceFormat="          <<       DoubleQuoteStr(ec->priceFormat)
 
          << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "(null)")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
-         << ", hChart="               <<                     (ec->hChart       ? asformat("0x%p", ec->hChart       ) : "(null)")
          << ", hChartWindow="         <<                     (ec->hChartWindow ? asformat("0x%p", ec->hChartWindow ) : "(null)")
+         << ", hChart="               <<                     (ec->hChart       ? asformat("0x%p", ec->hChart       ) : "(null)")
 
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)

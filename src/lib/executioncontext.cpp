@@ -429,36 +429,32 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    else {}                                                                 // all values NULL or kept from the previous tick
    master->cycleTicks = ec->cycleTicks = 0;
 
-   ec_SetDigits              (ec, digits);                                 // TODO: fix terminal bug
-   ec_SetPipDigits           (ec, digits & (~1));
-   ec_SetPip                 (ec, round(1./pow(10., (int)ec->pipDigits), ec->pipDigits));
-   ec_SetPoint               (ec, point);
-   ec_SetPipPoints           (ec, (uint)round(pow(10., (int)(digits & 1))));
+   ec_SetDigits      (ec, digits);                                         // TODO: fix terminal bug
+   ec_SetPipDigits   (ec, digits & (~1));
+   ec_SetPip         (ec, round(1./pow(10., (int)ec->pipDigits), ec->pipDigits));
+   ec_SetPoint       (ec, point);
+   ec_SetPipPoints   (ec, (uint)round(pow(10., (int)(digits & 1))));
 
-   // TODO: shouldn't we check/free existing strings?
+   ec_SetSuperContext(ec, sec);
+   ec_SetThreadId    (ec, GetCurrentThreadId());
+   ec_SetHChart      (ec, hChart);                                         // chart handles must be set before test values
+   ec_SetHChartWindow(ec, hChart ? GetParent(hChart) : NULL);
 
-   master->priceFormat = ec->priceFormat = (ec->digits==ec->pipDigits) ? asformat(".%d", ec->pipDigits) : asformat(".%d'", ec->pipDigits);
-
-   ec_SetSuperContext        (ec, sec);
-   ec_SetThreadId            (ec, GetCurrentThreadId());
-   ec_SetHChart              (ec, hChart);                                 // chart handles must be set before test values
-   ec_SetHChartWindow        (ec, hChart ? GetParent(hChart) : NULL);
-
-   ec_SetTesting             (ec, isTesting     =Program_IsTesting     (ec, isTesting));
-   ec_SetVisualMode          (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
-   ec_SetOptimization        (ec, isOptimization=Program_IsOptimization(ec, isOptimization));
-   ec_SetRecorder            (ec, recorder);
+   ec_SetTesting     (ec, isTesting     =Program_IsTesting     (ec, isTesting));
+   ec_SetVisualMode  (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
+   ec_SetOptimization(ec, isOptimization=Program_IsOptimization(ec, isOptimization));
+   ec_SetRecorder    (ec, recorder);
 
    EXECUTION_CONTEXT* ecRef = (master->superContext ? master->superContext : master);
-   ec->logger =                   ecRef->logger;                           // logger instance first to catch further messages (TODO: move more up)
-   ec_SetLoglevel            (ec, ecRef->loglevel        );
-   ec_SetLoglevelTerminal    (ec, ecRef->loglevelTerminal);
-   ec_SetLoglevelAlert       (ec, ecRef->loglevelAlert   );
-   ec_SetLoglevelDebug       (ec, ecRef->loglevelDebug   );
-   ec_SetLoglevelFile        (ec, ecRef->loglevelFile    );
-   ec_SetLoglevelMail        (ec, ecRef->loglevelMail    );
-   ec_SetLoglevelSMS         (ec, ecRef->loglevelSMS     );
-   ec_SetLogFilename         (ec, ecRef->logFilename     );
+   ec->logger =               ecRef->logger;                               // logger instance first to catch further messages (TODO: move more up)
+   ec_SetLoglevel        (ec, ecRef->loglevel        );
+   ec_SetLoglevelTerminal(ec, ecRef->loglevelTerminal);
+   ec_SetLoglevelAlert   (ec, ecRef->loglevelAlert   );
+   ec_SetLoglevelDebug   (ec, ecRef->loglevelDebug   );
+   ec_SetLoglevelFile    (ec, ecRef->loglevelFile    );
+   ec_SetLoglevelMail    (ec, ecRef->loglevelMail    );
+   ec_SetLoglevelSMS     (ec, ecRef->loglevelSMS     );
+   ec_SetLogFilename     (ec, ecRef->logFilename     );
 
    // TODO: reset errors if not in an init() call from start()
    //ec->mqlError      = NULL;
@@ -713,25 +709,24 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                currentPid = PushProgram(chain);                      // store the chain
                uint threadIndex = SetLastThreadProgram(currentPid);
 
-               master->pid            = currentPid;                  // update master context with the known values
-               master->programType    = PT_EXPERT;
-               master->moduleType     = MT_EXPERT;
+               master->pid         = currentPid;                     // update master context with the known values
+               master->programType = PT_EXPERT;
+               master->moduleType  = MT_EXPERT;
 
-               strcpy(master->newSymbol, symbol);                    // first moment a new symbol/timeframe show up
-               master->newTimeframe   = timeframe;
+               strcpy(master->newSymbol, symbol);                    // first moment a new symbol/timeframe shows up
+               master->newTimeframe = timeframe;
 
-               master->digits         = digits;                      // TODO: fix terminal bug
-               master->pipDigits      = digits & (~1);
-               master->pip            = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
-               master->point          = point;
-               master->pipPoints      = (uint)round(pow((double)10., (int)(digits & 1)));
-               master->priceFormat    = (master->digits==master->pipDigits) ? asformat(".%d", master->pipDigits) : asformat(".%d'", master->pipDigits);
+               master->digits       = digits;                        // TODO: fix terminal bug
+               master->pipDigits    = digits & (~1);
+               master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
+               master->point        = point;
+               master->pipPoints    = (uint)round(pow((double)10., (int)(digits & 1)));
 
-               master->superContext   = FALSE;
-               master->threadId       = g_threads[threadIndex];
+               master->superContext = FALSE;
+               master->threadId     = g_threads[threadIndex];
 
-               master->testing        = TRUE;                        // TODO: so wrong, we can be online and not in tester
-               master->optimization   = isOptimization;
+               master->testing      = TRUE;                          // TODO: so wrong, we can be online and not in tester
+               master->optimization = isOptimization;
             }
 
             // re-initialize the empty library context with the partial master context
@@ -751,7 +746,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       else {
          // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
          // Initialize the library with the current program's master context.
-         uint pid = GetLastThreadProgram();                             // the program is currently executed
+         uint pid = GetLastThreadProgram();                          // the program is currently executed
          if (!pid) return(error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
          *ec = *(*g_mqlInstances[pid])[0];                           // initialize library context with master context
@@ -794,7 +789,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       master->pip           = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
       master->point         = point;
       master->pipPoints     = (uint)round(pow((double)10., (int)(digits & 1)));
-      master->priceFormat   = (master->digits==master->pipDigits) ? asformat(".%d", master->pipDigits) : asformat(".%d'", master->pipDigits);
 
       master->superContext  = NULL;                                  // no super context at all or already released
       master->threadId      = GetCurrentThreadId();
@@ -884,7 +878,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
          master->point        = point;
          master->pipPoints    = (uint)round(pow((double)10., (int)(digits & 1)));
-         master->priceFormat  = (master->digits==master->pipDigits) ? asformat(".%d", master->pipDigits) : asformat(".%d'", master->pipDigits);
 
          master->threadId     = g_threads[threadIndex];
          master->testing      = TRUE;
