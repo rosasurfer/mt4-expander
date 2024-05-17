@@ -13,14 +13,12 @@
 #include <ctime>
 #include <fstream>
 
+
 MqlInstanceList    g_mqlInstances(1);              // all MQL program instances: index 0 is not a valid pid and is always empty
 std::vector<DWORD> g_threads;                      // all known threads executing MQL programs
 std::vector<uint>  g_threadsPrograms;              // pid of the last MQL program executed by a thread
 uint               g_lastUIThreadProgram;          // pid of the last MQL program executed by the UI thread
 CRITICAL_SECTION   g_terminalMutex;                // mutex for application-wide locking
-
-extern BOOL        g_debugAccount;                 // whether cmd line option /rsf:debug-account is set
-extern BOOL        g_debugExecutionContext;        // whether cmd line option /rsf:debug-ec is set
 
 
 struct RECOMPILED_MODULE {                         // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
@@ -330,7 +328,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((uint)accountServer < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter accountServer: 0x%p (not a valid pointer)", accountServer));
    if (ec->pid) SetLastThreadProgram(ec->pid);                             // set the thread's currently executed program asap (error handling)
 
-   if (g_debugExecutionContext) debug("  i:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugEC()) debug("  i:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid  = ec->pid;
    BOOL isPid       = (currentPid);
@@ -489,8 +487,8 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   if (g_debugExecutionContext) debug("  o:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
-   if (g_debugAccount) {
+   if (IsDebugEC()) debug("  o:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugAccount()) {
       if (!accountServer || !accountNumber) debug("accountServer=%s  accountNumber=%d  ec=%s", DoubleQuoteStr(accountServer), accountNumber, EXECUTION_CONTEXT_toStr(ec));
    }
    return(NO_ERROR);
@@ -558,7 +556,7 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
             ctx->moduleCoreFunction = ctx->programCoreFunction;      // in master and main context only
          }
       }
-      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
    return(NO_ERROR);
@@ -582,7 +580,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec)));
    SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
-   if (g_debugExecutionContext) debug("i:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugEC()) debug("i:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
    uint chainSize = chain.size();
@@ -614,7 +612,7 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: %p  main=%s", i, chain[i], EXECUTION_CONTEXT_toStr(ec));
    }
 
-   if (g_debugExecutionContext) debug("o:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugEC()) debug("o:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -648,7 +646,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
    if ((int)digits < 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits));
    if (point <= 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point));
 
-   if (g_debugExecutionContext) debug("   i:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugEC()) debug("   i:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_INIT, uninitReason);
@@ -906,7 +904,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       g_mqlInstances[currentPid]->push_back(ec);                     // add library to the new test's context chain
    }
 
-   if (g_debugExecutionContext) debug("   o:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugEC()) debug("   o:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
@@ -926,7 +924,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitializeReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
    SetLastThreadProgram(ec->pid);                        // set the thread's currently executed program asap (error handling)
 
-   if (g_debugExecutionContext) debug(" i:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugEC()) debug(" i:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // try to fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_DEINIT, uninitReason);
@@ -945,7 +943,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
       }
    }
 
-   if (g_debugExecutionContext) debug(" o:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (IsDebugEC()) debug(" o:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }

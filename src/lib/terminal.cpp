@@ -16,6 +16,24 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module ha
 
 
 /**
+ * Whether the terminal operates in portable mode, i.e. it was launched with the command line parameter "/portable". In portable
+ * mode the terminal behaves like in Windows XP or ealier. It uses the installation directory for program data and ignores a
+ * UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsTerminalPortableMode() {
+   static int portableMode = -1;
+
+   if (portableMode < 0) {
+      portableMode = (GetTerminalBuild() <= 509 || g_optionPortableMode);
+   }
+   return(portableMode);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Find and return the name of the history directory containing the specified file.
  *
  * @param  char* filename   - simple filename
@@ -467,7 +485,7 @@ const char* WINAPI GetTerminalDataPathA() {
       const char* roamingDataPath = GetTerminalRoamingDataPathA();
 
       // check portable mode
-      if (GetTerminalBuild() <= 509 || TerminalIsPortableMode()) {
+      if (GetTerminalBuild() <= 509 || IsTerminalPortableMode()) {
          // data path is always the installation directory, independant of write permissions
          dataPath = strdup(terminalPath);                                                 // on the heap
       }
@@ -504,7 +522,7 @@ const wchar* WINAPI GetTerminalDataPathW() {
       const wchar* roamingDataPath = GetTerminalRoamingDataPathW();
 
       // check portable mode
-      if (GetTerminalBuild() <= 509 || TerminalIsPortableMode()) {
+      if (GetTerminalBuild() <= 509 || IsTerminalPortableMode()) {
          // data path is always the installation directory, independant of write permissions
          dataPath = wstrdup(terminalPath);                                                // on the heap
       }
@@ -920,23 +938,5 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
       PlaySoundW(L"alert.wav");
    }
    return(TRUE);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether the terminal operates in portable mode, i.e. it was launched with the command line parameter "/portable". In portable
- * mode the terminal behaves like in Windows XP or ealier. It uses the installation directory for program data and ignores a
- * UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
- *
- * @return BOOL
- */
-BOOL WINAPI TerminalIsPortableMode() {
-   static int portableMode = -1;
-
-   if (portableMode < 0) {
-      portableMode = (GetTerminalBuild() <= 509 || g_optionPortableMode);
-   }
-   return(portableMode);
    #pragma EXPANDER_EXPORT
 }

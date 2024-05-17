@@ -28,8 +28,8 @@ typedef          __time32_t  time32;                        // MQL4 32-bit times
 typedef          __time64_t  time64;                        // MQL5 64-bit timestamp
 typedef            tm        TM;                            // C time structure
 
-namespace rsf {}                                            // define and always prefer the project's main namespace
-using namespace rsf;
+namespace rsf {}                                            // define namespace 'rsf'
+using namespace rsf;                                        // always prefer namespace 'rsf'
 
 using std::size_t;
 using std::string;
@@ -115,7 +115,7 @@ enum UninitializeReason {
 };
 
 
-// Debugging and error handling.
+// Debugging and error handling
 #define dump(...)   _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define debug(...)  _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define warn(...)   _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -125,6 +125,9 @@ int __cdecl _dump (const char* fileName, const char* funcName, int line, const v
 int __cdecl _debug(const char* fileName, const char* funcName, int line, const char* message, ...);
 int __cdecl _warn (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 int __cdecl _error(const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+
+BOOL WINAPI IsDebugAccount();
+BOOL WINAPI IsDebugEC();
 
 
 // Helper functions returning constant values. All parameters are ignored.

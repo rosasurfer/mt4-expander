@@ -10,7 +10,6 @@
 #include <fstream>
 
 extern MqlInstanceList g_mqlInstances;             // all MQL program instances
-extern BOOL            g_debugAccount;             // whether cmd line option /rsf:debug-account is set
 
 
 /**

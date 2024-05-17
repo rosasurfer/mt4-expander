@@ -7,6 +7,31 @@
 
 extern MqlInstanceList g_mqlInstances;                   // all MQL program instances
 
+extern BOOL            g_debugAccount;                   // whether cmd line option /rsf:debug-account is set
+extern BOOL            g_debugExecutionContext;          // whether cmd line option /rsf:debug-ec is set
+
+
+/**
+ * Whether cmd line option "/rsf:debug-account" is set.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsDebugAccount() {
+   return(g_debugAccount);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether cmd line option "/rsf:debug-ec" is set.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsDebugEC() {
+   return(g_debugExecutionContext);
+   #pragma EXPANDER_EXPORT
+}
+
 
 /**
  * Dump data from a buffer to the debugger output.
