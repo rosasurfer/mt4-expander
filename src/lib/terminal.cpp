@@ -16,6 +16,47 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module ha
 
 
 /**
+ * Find and return the name of the history directory containing the specified file.
+ *
+ * @param  char* filename   - simple filename
+ * @param  BOOL  removeFile - whether to remove a found file
+ *
+ * @return char* - directory name (last segment of the full path) or a NULL pointer in case of errors
+ */
+const char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
+   if ((uint)filename < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+   if (!*filename)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
+
+   char* hstDirectory = NULL;
+   string pattern = string(GetHistoryRootPathA()).append("\\*");
+   WIN32_FIND_DATA wfd = {};
+
+   HANDLE hFind = FindFirstFileA(pattern.c_str(), &wfd);
+   if (hFind == INVALID_HANDLE_VALUE) return((char*)!error(ERR_FILE_NOT_FOUND, "directory \"%s\" not found", pattern.c_str()));
+
+   BOOL next = TRUE;
+   while (next) {
+      if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+         char* dirName = wfd.cFileName;
+         if (!StrCompare(dirName, ".") && !StrCompare(dirName, "..")) {
+            string fullFilename = string(GetHistoryRootPathA()).append("\\").append(dirName).append("\\").append(filename);
+            if (IsFileA(fullFilename.c_str(), MODE_SYSTEM)) {
+               hstDirectory = dirName;
+               if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR+GetLastError(), "cannot delete file %s", DoubleQuoteStr(fullFilename.c_str()));
+               break;
+            }
+         }
+      }
+      next = FindNextFileA(hFind, &wfd);
+   }
+   FindClose(hFind);
+
+   return(strdup(hstDirectory));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Find the window handle of the open configuration dialog of the specified MQL program.
  *
  * @param  ProgramType programType - one of PT_INDICATOR | PT_EXPERT | PT_SCRIPT
@@ -60,31 +101,28 @@ HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
 
 
 /**
- * Whether the specified file exists and is locked with the sharing modes of a terminal logfile. The function cannot see which
- * process is holding a lock.
+ * Whether the specified file exists and is locked with the sharing modes of a terminal logfile.
+ * The function cannot see which process is holding a lock.
  *
  * @param  string &filename - full filename
  *
  * @return BOOL
  */
 BOOL WINAPI IsLockedFile(const string &filename) {
-   if (IsFileA(filename.c_str(), MODE_SYSTEM)) {
-      // OF_READWRITE|OF_SHARE_COMPAT must succeed
-      HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
-      if (hFile == HFILE_ERROR)
-         return(FALSE);
-      _lclose(hFile);                                                // success
+   if (!IsFileA(filename.c_str(), MODE_SYSTEM)) return(FALSE);
 
-      // OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
-      hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
-      if (hFile == HFILE_ERROR)
-         return(GetLastError() == ERROR_SHARING_VIOLATION);
-      _lclose(hFile);                                                // success is an error
+   // for logfile: OF_READWRITE|OF_SHARE_COMPAT must succeed
+   HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
+   if (hFile == HFILE_ERROR) return(FALSE);                       // not succeeded
+   _lclose(hFile);
+
+   // for logfile: OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
+   hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
+   if (hFile == HFILE_ERROR) {
+      return(GetLastError() == ERROR_SHARING_VIOLATION);
    }
-   else {
-      //debug("file not found: %s", filename.c_str());
-   }
-   return(FALSE);
+   _lclose(hFile);
+   return(FALSE);                                                 // not failed
 }
 
 
@@ -809,8 +847,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
    if (!IsFileA(file.c_str(), MODE_SYSTEM)) return(!error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
 
    // trigger the launch of the program
-   if (!PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName)))  // pass a copy of 'name' from the heap
-      return(!error(ERR_WIN32_ERROR+GetLastError(), "=>PostMessageA()"));
+   PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName));    // pass a copy of the name (the passed parameter may be immediately destroyed)
    debug("queued launch of %s \"%s\"", sType, programName);
 
    // prevent the DLL from getting unloaded before the message is processed

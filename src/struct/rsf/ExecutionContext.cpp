@@ -10,10 +10,11 @@
 #include <fstream>
 
 extern MqlInstanceList g_mqlInstances;             // all MQL program instances
+extern BOOL            g_debugAccount;             // whether cmd line option /rsf:debug-account is set
 
 
 /**
- * Return a program's instance id.
+ * Return an EXECUTION_CONTEXT's instance id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -27,7 +28,7 @@ uint WINAPI ec_Pid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's previous instance id.
+ * Return an EXECUTION_CONTEXT's previous instance id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -41,7 +42,7 @@ uint WINAPI ec_PreviousPid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's type.
+ * Return an EXECUTION_CONTEXT's program type.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -55,7 +56,7 @@ ProgramType WINAPI ec_ProgramType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's name.
+ * Return an EXECUTION_CONTEXT's program name.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -69,7 +70,7 @@ const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's core function id.
+ * Return an EXECUTION_CONTEXT's program core function id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -83,7 +84,7 @@ CoreFunction WINAPI ec_ProgramCoreFunction(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's initialization reason.
+ * Return an EXECUTION_CONTEXT's program initialization reason.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -97,7 +98,7 @@ InitializeReason WINAPI ec_ProgramInitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's uninitialization reason.
+ * Return an EXECUTION_CONTEXT's program uninitialization reason.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -111,7 +112,7 @@ UninitializeReason WINAPI ec_ProgramUninitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's init flags.
+ * Return an EXECUTION_CONTEXT's program init flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -125,7 +126,7 @@ DWORD WINAPI ec_ProgramInitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's deinit flags.
+ * Return an EXECUTION_CONTEXT's program deinit flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -139,7 +140,7 @@ DWORD WINAPI ec_ProgramDeinitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's module type.
+ * Return an EXECUTION_CONTEXT's module type.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -153,7 +154,7 @@ ModuleType WINAPI ec_ModuleType(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's module name.
+ * Return an EXECUTION_CONTEXT's module name.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -167,7 +168,7 @@ const char* WINAPI ec_ModuleName(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a module's core function id.
+ * Return an EXECUTION_CONTEXT's module core function id.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -181,7 +182,7 @@ CoreFunction WINAPI ec_ModuleCoreFunction(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a module's uninitialization reason.
+ * Return an EXECUTION_CONTEXT's module uninitialization reason.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -195,7 +196,7 @@ UninitializeReason WINAPI ec_ModuleUninitReason(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a module's init flags.
+ * Return an EXECUTION_CONTEXT's module init flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -209,7 +210,7 @@ DWORD WINAPI ec_ModuleInitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a module's deinit flags.
+ * Return an EXECUTION_CONTEXT's module deinit flags.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -223,7 +224,7 @@ DWORD WINAPI ec_ModuleDeinitFlags(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current symbol.
+ * Return an EXECUTION_CONTEXT's symbol.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -237,7 +238,7 @@ const char* WINAPI ec_Symbol(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current timeframe.
+ * Return an EXECUTION_CONTEXT's timeframe.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -251,7 +252,7 @@ uint WINAPI ec_Timeframe(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current amount of all chart bars.
+ * Return an EXECUTION_CONTEXT's amount of chart bars.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -265,7 +266,7 @@ int WINAPI ec_Bars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current amount of valid chart bars.
+ * Return an EXECUTION_CONTEXT's amount of valid chart bars.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -279,7 +280,7 @@ int WINAPI ec_ValidBars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current amount of changed chart bars.
+ * Return an EXECUTION_CONTEXT's amount of changed chart bars.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -293,7 +294,7 @@ int WINAPI ec_ChangedBars(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return the number of times the start() function was called during a rogram's lifetime.
+ * Return the number of times the start() function was called during a program's lifetime.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -307,7 +308,7 @@ uint WINAPI ec_Ticks(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current tick time.
+ * Return an EXECUTION_CONTEXT's current tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -321,7 +322,7 @@ time32 WINAPI ec_CurrTickTime(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's previous tick time.
+ * Return an EXECUTION_CONTEXT's previous tick time.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -335,7 +336,7 @@ time32 WINAPI ec_PrevTickTime(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current bid price.
+ * Return an EXECUTION_CONTEXT's bid price.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -349,7 +350,7 @@ double WINAPI ec_Bid(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current ask price.
+ * Return an EXECUTION_CONTEXT's ask price.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -363,7 +364,7 @@ double WINAPI ec_Ask(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current "Digits" value.
+ * Return an EXECUTION_CONTEXT's "Digits" value.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -377,7 +378,7 @@ uint WINAPI ec_Digits(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current "PipDigits" value.
+ * Return an EXECUTION_CONTEXT's "PipDigits" value.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -391,7 +392,7 @@ uint WINAPI ec_PipDigits(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current "Pip" value.
+ * Return an EXECUTION_CONTEXT's "Pip" value.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -405,7 +406,7 @@ double WINAPI ec_Pip(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Return a program's current "Point" value.
+ * Return an EXECUTION_CONTEXT's "Point" value.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1679,6 +1680,69 @@ int WINAPI ec_SetRecorder(EXECUTION_CONTEXT* ec, int mode) {
    }
    return(mode);
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's account server.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  char*              server - server name (an empty string is converted to a NULL pointer)
+ *
+ * @return char* - the same server name
+ */
+const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server) {
+   const char* _server = (!server || !strlen(server)) ? NULL : server;
+   const char* freed = NULL;
+
+   if (!StrCompare(ec->accountServer, _server)) {
+      if (ec->accountServer) {
+         free((void*) ec->accountServer);
+         freed = ec->accountServer;
+      }
+      ec->accountServer = _server ? strdup(_server) : NULL;
+   }
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
+      EXECUTION_CONTEXT* master = chain[0];
+      if (master && ec==chain[1]) {
+         if (master->accountServer != ec->accountServer) {
+            if (master->accountServer && master->accountServer != freed) {
+               free((void*) master->accountServer);
+            }
+            master->accountServer = ec->accountServer;
+         }
+      }
+   }
+   return(server);
+   // not exported
+}
+
+
+/**
+ * Set an EXECUTION_CONTEXT's account number.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ * @param  int                number
+ *
+ * @return int - the same account number
+ */
+int WINAPI ec_SetAccountNumber(EXECUTION_CONTEXT* ec, int number) {
+   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+
+   ec->accountNumber = number;
+
+   uint pid = ec->pid;                                               // synchronize main and master context
+   if (pid && g_mqlInstances.size() > pid) {
+      ContextChain &chain = *g_mqlInstances[pid];
+      if (chain[0] && ec==chain[1]) {
+         chain[0]->accountNumber = number;
+      }
+   }
+   return(number);
+   // not exported
 }
 
 

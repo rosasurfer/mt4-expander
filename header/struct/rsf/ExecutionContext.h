@@ -196,41 +196,41 @@ uint               WINAPI ec_SetTimeframe           (EXECUTION_CONTEXT* ec, uint
 //                        ec.newSymbol
 //                        ec.newTimeframe
 //                        ec.rates
-int                WINAPI ec_SetBars                (EXECUTION_CONTEXT* ec, int                count    );
-int                WINAPI ec_SetValidBars           (EXECUTION_CONTEXT* ec, int                count    );
-int                WINAPI ec_SetChangedBars         (EXECUTION_CONTEXT* ec, int                count    );
+int                WINAPI ec_SetBars                (EXECUTION_CONTEXT* ec, int                count );
+int                WINAPI ec_SetValidBars           (EXECUTION_CONTEXT* ec, int                count );
+int                WINAPI ec_SetChangedBars         (EXECUTION_CONTEXT* ec, int                count );
 
-uint               WINAPI ec_SetDigits              (EXECUTION_CONTEXT* ec, uint               digits   );
-uint               WINAPI ec_SetPipDigits           (EXECUTION_CONTEXT* ec, uint               digits   );
-double             WINAPI ec_SetPip                 (EXECUTION_CONTEXT* ec, double             size     );
-double             WINAPI ec_SetPoint               (EXECUTION_CONTEXT* ec, double             size     );
+uint               WINAPI ec_SetDigits              (EXECUTION_CONTEXT* ec, uint               digits);
+uint               WINAPI ec_SetPipDigits           (EXECUTION_CONTEXT* ec, uint               digits);
+double             WINAPI ec_SetPip                 (EXECUTION_CONTEXT* ec, double             size  );
+double             WINAPI ec_SetPoint               (EXECUTION_CONTEXT* ec, double             size  );
 
-EXECUTION_CONTEXT* WINAPI ec_SetSuperContext        (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec     );
-uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint               id      );
-HWND               WINAPI ec_SetHChart              (EXECUTION_CONTEXT* ec, HWND               hWnd    );
-HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND               hWnd    );
+EXECUTION_CONTEXT* WINAPI ec_SetSuperContext        (EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec );
+uint               WINAPI ec_SetThreadId            (EXECUTION_CONTEXT* ec, uint               id  );
+HWND               WINAPI ec_SetHChart              (EXECUTION_CONTEXT* ec, HWND               hWnd);
+HWND               WINAPI ec_SetHChartWindow        (EXECUTION_CONTEXT* ec, HWND               hWnd);
 
-BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status  );
-BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status  );
-int                WINAPI ec_SetRecorder            (EXECUTION_CONTEXT* ec, int                mode    );
+BOOL               WINAPI ec_SetTesting             (EXECUTION_CONTEXT* ec, BOOL               status);
+BOOL               WINAPI ec_SetVisualMode          (EXECUTION_CONTEXT* ec, BOOL               status);
+BOOL               WINAPI ec_SetOptimization        (EXECUTION_CONTEXT* ec, BOOL               status);
+int                WINAPI ec_SetRecorder            (EXECUTION_CONTEXT* ec, int                mode  );
 
-//                        ec.accountServer
-//                        ec.accountNumber
+const char*        WINAPI ec_SetAccountServer       (EXECUTION_CONTEXT* ec, const char*        name  );
+int                WINAPI ec_SetAccountNumber       (EXECUTION_CONTEXT* ec, int                number);
 
-int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error   );
-int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error   );
+int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int                error);
+int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int                error);
 //                        ec.dllErrorMsg
-int                WINAPI ec_SetDllWarning          (EXECUTION_CONTEXT* ec, int                error   );
+int                WINAPI ec_SetDllWarning          (EXECUTION_CONTEXT* ec, int                error);
 //                        ec.dllWarningMsg
 
-int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelAlert       (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelDebug       (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int                level   );
-int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int                level   );
+int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int                level);
+int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int                level);
+int                WINAPI ec_SetLoglevelAlert       (EXECUTION_CONTEXT* ec, int                level);
+int                WINAPI ec_SetLoglevelDebug       (EXECUTION_CONTEXT* ec, int                level);
+int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int                level);
+int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int                level);
+int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int                level);
 //                        ec.logger
 //                        ec.logBuffer
 const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, const char*        filename);

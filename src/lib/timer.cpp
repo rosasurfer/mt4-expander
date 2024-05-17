@@ -24,9 +24,9 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
       }
       if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
 
-      if      (ttd->flags & TICK_CHART_REFRESH) PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);   // triggers indicators but not experts
-      else if (ttd->flags & TICK_TESTER)        PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-      else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // triggers indicators and experts in online/offline charts
+      if      (ttd->flags & TICK_CHART_REFRESH) PostMessageA(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);  // triggers indicators but not experts
+      else if (ttd->flags & TICK_TESTER)        PostMessageA(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
+      else                                      PostMessageA(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);  // triggers indicators and experts in online/offline charts
    }
    else {
       // expected case if an MQL program crashes and fails to release its resources

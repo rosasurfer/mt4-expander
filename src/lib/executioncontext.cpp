@@ -13,14 +13,14 @@
 #include <ctime>
 #include <fstream>
 
-extern BOOL        g_debugAccount;                 // whether cmd line option /rsf:debug-account is set
-extern BOOL        g_debugExecutionContext;        // whether cmd line option /rsf:debug-ec is set
-
 MqlInstanceList    g_mqlInstances(1);              // all MQL program instances: index 0 is not a valid pid and is always empty
 std::vector<DWORD> g_threads;                      // all known threads executing MQL programs
 std::vector<uint>  g_threadsPrograms;              // pid of the last MQL program executed by a thread
 uint               g_lastUIThreadProgram;          // pid of the last MQL program executed by the UI thread
 CRITICAL_SECTION   g_terminalMutex;                // mutex for application-wide locking
+
+extern BOOL        g_debugAccount;                 // whether cmd line option /rsf:debug-account is set
+extern BOOL        g_debugExecutionContext;        // whether cmd line option /rsf:debug-ec is set
 
 
 struct RECOMPILED_MODULE {                         // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
@@ -327,6 +327,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if ((int)timeframe <= 0)                            return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    if ((int)digits    <  0)                            return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits));
    if (sec && (uint)sec  < MIN_VALID_POINTER)          return(error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec));
+   if ((uint)accountServer < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter accountServer: 0x%p (not a valid pointer)", accountServer));
    if (ec->pid) SetLastThreadProgram(ec->pid);                             // set the thread's currently executed program asap (error handling)
 
    if (g_debugExecutionContext) debug("  i:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
@@ -343,7 +344,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    // resolve the real InitReason
    InitializeReason initReason = GetInitReason(ec, sec, programType, programName, uninitReason, symbol, isTesting, isVisualMode, hChart, droppedOnChart, droppedOnPosX, droppedOnPosY, previousPid);
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
-   if (initReason == IR_TERMINAL_FAILURE) return(_int(ERR_TERMINAL_INIT_FAILURE, debug("%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName)));
+   if (initReason == IR_TERMINAL_FAILURE) return(warn(ERR_TERMINAL_INIT_FAILURE, "%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName));
 
    // • if ec.pid is not set: check if an indicator to be reused or something else
    //    - indicator in init cycle           (UI thread) => reuse the previous program and keep instance data
@@ -362,7 +363,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
          if (initReason == IR_PROGRAM_AFTERTEST) {
             master->superContext = sec = NULL;                             // reset the super context (the tested expert has already been removed/released)
          }
-         *ec = *master;                                                    // restore main from master context (also restores the pid)
+         *ec = *master;                                                    // restore current main from previous master context (also restores the pid)
          (*g_mqlInstances[currentPid])[1] = ec;                            // store main context at original position (an empty slot)
       }
       else {
@@ -447,6 +448,10 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetOptimization(ec, isOptimization=Program_IsOptimization(ec, isOptimization));
    ec_SetRecorder    (ec, recorder);
 
+   if (!strlen(accountServer)) accountServer = NULL;
+   if (accountServer) ec_SetAccountServer(ec, accountServer);              // skip empty values to keep existing data
+   if (accountNumber) ec_SetAccountNumber(ec, accountNumber);              // ...
+
    EXECUTION_CONTEXT* ecRef = (master->superContext ? master->superContext : master);
    ec->logger =               ecRef->logger;                               // logger instance first to catch further messages (TODO: move more up)
    ec_SetLoglevel        (ec, ecRef->loglevel        );
@@ -485,6 +490,9 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    }
 
    if (g_debugExecutionContext) debug("  o:%p  %-17s  %-14s  ec=%s", ec, programName, UninitializeReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
+   if (g_debugAccount) {
+      if (!accountServer || !accountNumber) debug("accountServer=%s  accountNumber=%d  ec=%s", DoubleQuoteStr(accountServer), accountNumber, EXECUTION_CONTEXT_toStr(ec));
+   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
