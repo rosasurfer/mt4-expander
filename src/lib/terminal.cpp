@@ -932,6 +932,7 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
 
    // show the "Alert" window
    bool wasHidden = !ShowWindow(hWndAlert, SW_SHOW);
+   SetForegroundWindow(hWndAlert);
 
    // play the standard "Alert" sound
    if (wasHidden && sound) {
