@@ -957,6 +957,7 @@ int WINAPI SyncLibContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unini
  *
  * Notes: (1) If the module is an MQL main module (indicator, expert or script) the slot of the main context in the program's
  *            context chain (index 1) is set to NULL (the chain size doesn't change).
+ *            Note: At the moment we remove an expert context for safety reasons, too. That shouldn't be needed but it's not yet thoroughly tested.
  *
  *        (2) If the module is an MQL library module the context is removed from the context chain and the chain size decreased.
  *
