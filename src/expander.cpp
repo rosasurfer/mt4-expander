@@ -5,19 +5,31 @@
 #include "lib/string.h"
 
 
-extern MqlInstanceList g_mqlInstances;                   // all MQL program instances
+extern MqlInstanceList g_mqlInstances;       // all MQL program instances
 
-extern BOOL            g_debugAccount;                   // whether cmd line option /rsf:debug-account is set
-extern BOOL            g_debugExecutionContext;          // whether cmd line option /rsf:debug-ec is set
+extern BOOL g_debugAccountServer;            // whether cmd line option /rsf:debug-accountserver is set
+extern BOOL g_debugAccountNumber;            // whether cmd line option /rsf:debug-accountnumber is set
+extern BOOL g_debugExecutionContext;         // whether cmd line option /rsf:debug-ec is set
 
 
 /**
- * Whether cmd line option "/rsf:debug-account" is set.
+ * Whether cmd line option "/rsf:debug-accountserver" is set.
  *
  * @return BOOL
  */
-BOOL WINAPI IsDebugAccount() {
-   return(g_debugAccount);
+BOOL WINAPI IsDebugAccountServer() {
+   return(g_debugAccountServer);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether cmd line option "/rsf:debug-accountnumber" is set.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsDebugAccountNumber() {
+   return(g_debugAccountNumber);
    #pragma EXPANDER_EXPORT
 }
 

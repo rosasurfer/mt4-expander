@@ -126,7 +126,8 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, const c
 int __cdecl _warn (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 int __cdecl _error(const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 
-BOOL WINAPI IsDebugAccount();
+BOOL WINAPI IsDebugAccountServer();
+BOOL WINAPI IsDebugAccountNumber();
 BOOL WINAPI IsDebugEC();
 
 

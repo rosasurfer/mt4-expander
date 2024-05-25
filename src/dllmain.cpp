@@ -9,7 +9,8 @@
 #include <shellapi.h>
 
 BOOL g_optionPortableMode;                                  // whether cmd line option /portable is set
-BOOL g_debugAccount;                                        // whether cmd line option /rsf:debug-account is set
+BOOL g_debugAccountServer;                                  // whether cmd line option /rsf:debug-accountserver is set
+BOOL g_debugAccountNumber;                                  // whether cmd line option /rsf:debug-accountnumber is set
 BOOL g_debugExecutionContext;                               // whether cmd line option /rsf:debug-ec is set
 
 extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
@@ -80,8 +81,12 @@ BOOL WINAPI onProcessAttach() {
    if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
 
    for (int i=1; i < argc; i++) {
-      if (StrCompare(argv[i], L"/rsf:debug-account")) {
-         g_debugAccount = TRUE;
+      if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
+         g_debugAccountServer = TRUE;
+         continue;
+      }
+      if (StrCompare(argv[i], L"/rsf:debug-accountnumber")) {
+         g_debugAccountNumber = TRUE;
          continue;
       }
       if (StrCompare(argv[i], L"/rsf:debug-ec")) {
