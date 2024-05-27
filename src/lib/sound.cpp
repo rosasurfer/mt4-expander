@@ -161,17 +161,17 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    MCIERROR error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
    if (error) {
       if      ((WORD)error == MCIERR_DEVICE_OPEN) {}         // if played again in the same thread: continue and re-use the device
-      else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME)    return( warn(ERR_MCI_ERROR+(WORD)error, "unsupported file type or codec not available (MCIERR_INVALID_DEVICE_NAME)"));
-      else if ((WORD)error == MCIERR_WAVE_OUTPUTSUNSUITABLE) return( warn(ERR_MCI_ERROR+(WORD)error, "WAV sound device not available (MCIERR_WAVE_OUTPUTSUNSUITABLE)"));   // e.g. in VM
-      else                                                   return(error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
+      else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME)    return(notice(ERR_MCI_ERROR+(WORD)error, "unsupported file type or codec not available"));
+      else if ((WORD)error == MCIERR_WAVE_OUTPUTSUNSUITABLE) return(notice(ERR_MCI_ERROR+(WORD)error, "WAV sound device not available"));                // e.g. in VM
+      else                                                   return(error (ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
 
    // play sound
    cmd.replace(0, 4, L"play").append(L" from 0");            // reset play position to start (in case sound is played again)
    error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
    if (error) {                                              // MIDI files can't be mixed with the MCI extension
-      if ((WORD)error == MCIERR_SEQ_PORT_INUSE) return( warn(ERR_MCI_ERROR+(WORD)error, "MIDI sequencer already in use (MCIERR_SEQ_PORT_INUSE)"));
-      else                                      return(error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
+      if ((WORD)error == MCIERR_SEQ_PORT_INUSE) return(notice(ERR_MCI_ERROR+(WORD)error, "MIDI sequencer already in use"));
+      else                                      return(error (ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
 
    // intentionally leave sound open for faster re-use

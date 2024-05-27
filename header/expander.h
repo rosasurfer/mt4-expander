@@ -116,15 +116,17 @@ enum UninitializeReason {
 
 
 // Debugging and error handling
-#define dump(...)   _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define debug(...)  _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define warn(...)   _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define error(...)  _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define dump(...)   _dump  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define debug(...)  _debug (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define notice(...) _notice(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define warn(...)   _warn  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define error(...)  _error (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int __cdecl _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode=DUMPMODE_HEX);
-int __cdecl _debug(const char* fileName, const char* funcName, int line, const char* message, ...);
-int __cdecl _warn (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
-int __cdecl _error(const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+int __cdecl _dump  (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode=DUMPMODE_HEX);
+int __cdecl _debug (const char* fileName, const char* funcName, int line, const char* message, ...);
+int __cdecl _notice(const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+int __cdecl _warn  (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+int __cdecl _error (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 
 BOOL WINAPI IsDebugAccountServer();
 BOOL WINAPI IsDebugAccountNumber();
