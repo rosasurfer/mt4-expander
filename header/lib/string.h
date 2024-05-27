@@ -52,6 +52,8 @@ BOOL         WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL         WINAPI StrStartsWith(const wchar* str, const wchar* prefix);
 BOOL         WINAPI StrEndsWith(const char* str, const char* suffix);
 BOOL         WINAPI StrEndsWith(const wchar* str, const wchar* suffix);
+BOOL         WINAPI StrEndsWithI(const char* str, const char* suffix);
+BOOL         WINAPI StrEndsWithI(const wchar* str, const wchar* suffix);
 string&      WINAPI StrReplace(string &subject, const string &search, const string &replace, size_t count=INT_MAX);
 char*        WINAPI StrToLower(char* const str);
 string&      WINAPI StrToLower(string &str);

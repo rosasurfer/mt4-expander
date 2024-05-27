@@ -246,6 +246,10 @@ int WINAPI Test_synchronize() {
  * @return int
  */
 int WINAPI Tester_Test(HWND hWnd) {
+
+   return((1, 2));
+
+
    RECT rect;
    if (!GetWindowRect(hWnd, &rect)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindowRect(hWnd=%p) failed", hWnd));
 

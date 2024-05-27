@@ -129,14 +129,16 @@ DWORD WINAPI PlaySoundA(const char* soundfile) {
  * @param  wchar* soundfile - an absolute filename or a filename relative to directory "sounds" of the terminal directory or
  *                            the data directory (both are searched)
  *
- * @return DWORD - error status (MCI errors are mapped to base ERR_MCI_ERROR)
+ * @return DWORD - error status (MCI errors are mapped to ERR_MCI_ERROR + error)
  */
 DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
 
-   wstring filepath(soundfile);
+   static BOOL wavDisabled = FALSE;
+   if (StrEndsWithI(soundfile, L".wav") && wavDisabled) return(NO_ERROR);
 
    // test absolute path
+   wstring filepath(soundfile);
    if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
       // test data dir path
       filepath = wstring(GetTerminalDataPathW()).append(L"\\sounds\\").append(soundfile);
@@ -156,14 +158,14 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    // @see  https://learn.microsoft.com/en-us/windows/win32/Multimedia/windows-multimedia-start-page
    // @see  https://learn.microsoft.com/en-us/windows/win32/multimedia/opening-a-device
 
-   // open sound (without alias, it complicates managing uniqueness and device re-usage)
+   // open sound (without alias as it complicates managing uniqueness and re-usage)
    wstring cmd = wstring(L"open \"").append(filepath).append(L"\"");
    MCIERROR error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
    if (error) {
       if      ((WORD)error == MCIERR_DEVICE_OPEN) {}         // if played again in the same thread: continue and re-use the device
       else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME)    return(notice(ERR_MCI_ERROR+(WORD)error, "unsupported file type or codec not available"));
-      else if ((WORD)error == MCIERR_WAVE_OUTPUTSUNSUITABLE) return(notice(ERR_MCI_ERROR+(WORD)error, "WAV sound device not available"));                // e.g. in VM
-      else                                                   return(error (ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
+      else if ((WORD)error == MCIERR_WAVE_OUTPUTSUNSUITABLE) return(wavDisabled=TRUE, notice(ERR_MCI_ERROR+(WORD)error, "WAV sound device not available"));    // e.g. in VM
+      else                                                   return(error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
 
    // play sound
