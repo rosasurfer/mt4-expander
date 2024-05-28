@@ -134,7 +134,7 @@ DWORD WINAPI PlaySoundA(const char* soundfile) {
 DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
 
-   static BOOL wavDisabled = FALSE;
+   static bool wavDisabled = false;
    if (StrEndsWithI(soundfile, L".wav") && wavDisabled) return(NO_ERROR);
 
    // test absolute path
@@ -164,7 +164,7 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    if (error) {
       if      ((WORD)error == MCIERR_DEVICE_OPEN) {}         // if played again in the same thread: continue and re-use the device
       else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME)    return(notice(ERR_MCI_ERROR+(WORD)error, "unsupported file type or codec not available"));
-      else if ((WORD)error == MCIERR_WAVE_OUTPUTSUNSUITABLE) return(wavDisabled=TRUE, notice(ERR_MCI_ERROR+(WORD)error, "WAV sound device not available"));    // e.g. in VM
+      else if ((WORD)error == MCIERR_WAVE_OUTPUTSUNSUITABLE) return(wavDisabled=true, notice(ERR_MCI_ERROR+(WORD)error, "WAV sound device not available"));    // e.g. in VM
       else                                                   return(error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
    }
 

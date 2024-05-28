@@ -368,17 +368,18 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
 
 
 /**
- * Return the terminal's build number (same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL5).
+ * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL5.
  *
  * @return uint - build number or 0 in case of errors
  */
 uint WINAPI GetTerminalBuild() {
-   static uint build;                                                      // global cache (g_terminalBuild) for DLL,
-   if (!build) {                                                           // local cache for external calls (MQL)
+   static uint build;
+   if (!build) {
       const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
       if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
-      if (fileInfo)
+      if (fileInfo) {
          build = fileInfo->dwFileVersionLS & 0xffff;
+      }
    }
    return(build);
    #pragma EXPANDER_EXPORT
@@ -779,15 +780,15 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
    if (!fileInfo) {
       const char* fileName = GetTerminalFileNameA();
       DWORD fileInfoSize = GetFileVersionInfoSize(fileName, &fileInfoSize);
-      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSize()"));
+      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfoSize()"));
 
       char* infos = (char*) alloca(fileInfoSize);                       // on the stack
       BOOL result = GetFileVersionInfo(fileName, NULL, fileInfoSize, infos);
-      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfo()"));
+      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfo()"));
 
       uint len;
       result = VerQueryValue(infos, "\\", (void**)&fileInfo, &len);
-      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValue()"));
+      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->VerQueryValue()"));
    }
    return(fileInfo);
 }
@@ -803,10 +804,10 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
 
    if (!fileInfo) {
       HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-      if (!hRes) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "FindResource()"));
+      if (!hRes) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->FindResource()"));
 
       void* infos = LoadResource(NULL, hRes);
-      if (!infos) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "LoadResource()"));
+      if (!infos) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->LoadResource()"));
 
       int offset = 6;
       if (!wcscmp((wchar*)((char*)infos + offset), L"VS_VERSION_INFO")) {
