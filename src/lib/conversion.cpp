@@ -95,7 +95,7 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
 
 
 /**
- * Return a readable version of an error code. Covers MQL errors and mapped Win32 and MCI errors.
+ * Return a readable version of an error code. Covers MQL errors, mapped Win32 errors and mapped MCI errors.
  *
  * @param  int error
  *
@@ -447,7 +447,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_STOP_DISTANCE_VIOLATED                                                     : return("ERR_STOP_DISTANCE_VIOLATED"                                         );    //  65559
       case ERR_MARGIN_STOPOUT                                                             : return("ERR_MARGIN_STOPOUT"                                                 );    //  65560
 
-      // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
+      // mapped Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                                                : return("win32:NO_ERROR"                                                     );    // 100000 +    0
       case ERR_WIN32_ERROR + ERROR_INVALID_FUNCTION                                       : return("win32:ERROR_INVALID_FUNCTION"                                       );    // 100000 +    1
       case ERR_WIN32_ERROR + ERROR_FILE_NOT_FOUND                                         : return("win32:ERROR_FILE_NOT_FOUND"                                         );    // 100000 +    2
@@ -999,7 +999,7 @@ const char* WINAPI ErrorToStrA(int error) {
 
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT                                    : return("win32:ERROR_NOT_A_REPARSE_POINT"                                    );    // 100000 + 4390
 
-      // MCI error codes
+      // mapped MCI error codes
       case ERR_MCI_ERROR                                                                  : return("mci:NO_ERROR"                                                       );    // 100000 +                 0
       case ERR_MCI_ERROR + MCIERR_INVALID_DEVICE_ID                                       : return("mci:MCIERR_INVALID_DEVICE_ID"                                       );    // 200000 + (MCIERR_BASE +  1)
       case ERR_MCI_ERROR + MCIERR_UNRECOGNIZED_KEYWORD                                    : return("mci:MCIERR_UNRECOGNIZED_KEYWORD"                                    );    // 200000 + (MCIERR_BASE +  3)
@@ -1092,7 +1092,7 @@ const char* WINAPI ErrorToStrA(int error) {
 
 
 /**
- * Return a readable version of an MQL error code.
+ * Return a readable version of an error code. Covers MQL errors, mapped Win32 errors and mapped MCI errors.
  *
  * @param  int error
  *
