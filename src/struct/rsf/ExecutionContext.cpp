@@ -1797,9 +1797,9 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
 
          << ", loglevel="             << LoglevelDescriptionA(ec->loglevel)
+         << ", loglevelDebug="        << LoglevelDescriptionA(ec->loglevelDebug)
          << ", loglevelTerminal="     << LoglevelDescriptionA(ec->loglevelTerminal)
          << ", loglevelAlert="        << LoglevelDescriptionA(ec->loglevelAlert)
-         << ", loglevelDebug="        << LoglevelDescriptionA(ec->loglevelDebug)
          << ", loglevelFile="         << LoglevelDescriptionA(ec->loglevelFile)
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
          << ", loglevelSMS="          << LoglevelDescriptionA(ec->loglevelSMS)

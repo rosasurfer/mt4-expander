@@ -1438,7 +1438,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    - Build 577:     onInitTimeframeChange()  - Broken: Bricht mit Logmessage "WARN: expert stopped" ab.
    -----------------------------------------------------------------------------------------------------------------------------------
    */
-   static uint terminalBuild = GetTerminalBuild();
+   uint terminalBuild = GetTerminalBuild();
    if (!terminalBuild) return((InitializeReason)NULL);
 
    BOOL isUIThread = IsUIThread();
@@ -1576,7 +1576,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
 InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* programName, UninitializeReason uninitReason, const char* symbol, BOOL isTesting, int droppedOnPosX, int droppedOnPosY) {
    //debug("uninitReason=%s  testing=%d  droppedX=%d  droppedY=%d  build=%d", UninitReasonToStr(uninitReason), isTesting, droppedOnPosX, droppedOnPosY, build);
 
-   static uint terminalBuild = GetTerminalBuild();
+   uint terminalBuild = GetTerminalBuild();
    if (!terminalBuild) return((InitializeReason)NULL);
 
    // UR_PARAMETERS                                      // input parameters changed

@@ -344,44 +344,31 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
  * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
+   static wchar* testerPath, *onlinePath;
+
    if (inTester) {
-      static wchar* testerPath;
       if (!testerPath) {
          const wchar* dataDirectory = GetTerminalDataPathW();
          if (!dataDirectory) return(NULL);
          wstring path = wstring(dataDirectory).append(L"\\tester\\files");
-         testerPath = wstrdup(path.c_str());
+
+         wchar* tmp = wstrdup(path.c_str());
+         if (!testerPath) testerPath = tmp;
+         else free(tmp);                        // another thread may have been faster
       }
       return(testerPath);
    }
 
-   static wchar* onlinePath;
    if (!onlinePath) {
       const wchar* mqlDirectory = GetMqlDirectoryW();
       if (!mqlDirectory) return(NULL);
       wstring path = wstring(mqlDirectory).append(L"\\files");
-      onlinePath = wstrdup(path.c_str());
+
+      wchar* tmp = wstrdup(path.c_str());
+      if (!onlinePath) onlinePath = tmp;
+      else free(tmp);                           // another thread may have been faster
    }
    return(onlinePath);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL5.
- *
- * @return uint - build number or 0 in case of errors
- */
-uint WINAPI GetTerminalBuild() {
-   static uint build;
-   if (!build) {
-      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
-      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
-      if (fileInfo) {
-         build = fileInfo->dwFileVersionLS & 0xffff;
-      }
-   }
-   return(build);
    #pragma EXPANDER_EXPORT
 }
 
@@ -395,17 +382,17 @@ uint WINAPI GetTerminalBuild() {
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
-   static char* result;
+   static char* path;
 
-   if (!result) {
-      char appDataPath[MAX_PATH];                                                      // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
-
-      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\Common");       // create the resulting path
-      result = strdup(dir.c_str());                                                    // on the heap
+   if (!path) {
+      const wchar* wpath = GetTerminalCommonDataPathW();
+      if (wpath) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         if (!path) path = tmp;
+         else free(tmp);                  // another thread may have been faster
+      }
    }
-   return(result);
+   return(path);
    #pragma EXPANDER_EXPORT
 }
 
@@ -419,17 +406,20 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  *                  e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const wchar* WINAPI GetTerminalCommonDataPathW() {
-   static wchar* result;
+   static wchar* path;
 
-   if (!result) {
-      wchar appDataPath[MAX_PATH];                                                     // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()"));
+   if (!path) {
+      wchar appDataPath[MAX_PATH];
+      if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
+         return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->SHGetFolderPath()"));
+      }
+      wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");
 
-      wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");    // create the resulting path
-      result = wstrdup(dir.c_str());                                                   // on the heap
+      wchar* tmp = wstrdup(dir.c_str());
+      if (!path) path = tmp;
+      else free(tmp);                     // another thread may have been faster
    }
-   return(result);
+   return(path);
    #pragma EXPANDER_EXPORT
 }
 
@@ -482,13 +472,14 @@ const char* WINAPI GetTerminalDataPathA() {
    static char* dataPath;
 
    if (!dataPath) {
-      const char* terminalPath    = GetTerminalPathA();
+      const char* terminalPath = GetTerminalPathA();
       const char* roamingDataPath = GetTerminalRoamingDataPathA();
+      char* tmp = NULL;
 
       // check portable mode
       if (GetTerminalBuild() <= 509 || IsTerminalPortableMode()) {
          // data path is always the installation directory, independant of write permissions
-         dataPath = strdup(terminalPath);                                                 // on the heap
+         tmp = strdup(terminalPath);
       }
       else {
          // check for locked terminal logs
@@ -497,10 +488,13 @@ const char* WINAPI GetTerminalDataPathA() {
          BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(logFilename));
          free(logFilename);
 
-         if      (roamingPathIsLocked)  dataPath = strdup(roamingDataPath);               // on the heap
-         else if (terminalPathIsLocked) dataPath = strdup(terminalPath);
+         if      (roamingPathIsLocked)  tmp = strdup(roamingDataPath);
+         else if (terminalPathIsLocked) tmp = strdup(terminalPath);
          else return((char*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
       }
+
+      if (!dataPath) dataPath = tmp;
+      else free(tmp);                     // another thread may have been faster
    }
    return(dataPath);
    #pragma EXPANDER_EXPORT
@@ -515,17 +509,18 @@ const char* WINAPI GetTerminalDataPathA() {
  *                  e.g. "%ProgramFiles%\MetaTrader4"
  */
 const wchar* WINAPI GetTerminalDataPathW() {
-   // @see  process flow at GetTerminalDataPathA()
+   // @see  GetTerminalDataPathA()
    static wchar* dataPath;
 
    if (!dataPath) {
-      const wchar* terminalPath    = GetTerminalPathW();
+      const wchar* terminalPath = GetTerminalPathW();
       const wchar* roamingDataPath = GetTerminalRoamingDataPathW();
+      wchar* tmp = NULL;
 
       // check portable mode
       if (GetTerminalBuild() <= 509 || IsTerminalPortableMode()) {
          // data path is always the installation directory, independant of write permissions
-         dataPath = wstrdup(terminalPath);                                                // on the heap
+         tmp = wstrdup(terminalPath);
       }
       else {
          // check for locked terminal logs
@@ -534,10 +529,13 @@ const wchar* WINAPI GetTerminalDataPathW() {
          BOOL roamingPathIsLocked  = IsLockedFile(unicodeToAnsi(wstring(roamingDataPath)).append(logFilename));
          free(logFilename);
 
-         if      (roamingPathIsLocked)  dataPath = wstrdup(roamingDataPath);              // on the heap
-         else if (terminalPathIsLocked) dataPath = wstrdup(terminalPath);
-         else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found")); // both directories are write-protected
+         if      (roamingPathIsLocked)  tmp = wstrdup(roamingDataPath);
+         else if (terminalPathIsLocked) tmp = wstrdup(terminalPath);
+         else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));   // both directories are write-protected
       }
+
+      if (!dataPath) dataPath = tmp;
+      else free(tmp);                     // another thread may have been faster
    }
    return(dataPath);
    #pragma EXPANDER_EXPORT
@@ -587,16 +585,12 @@ const char* WINAPI GetTerminalFileNameA() {
    static char* filename;
 
    if (!filename) {
-      char* buffer;
-      uint size=MAX_PATH >> 1, length=size;
-      while (length >= size) {
-         size <<= 1;
-         buffer = (char*) alloca(size);                              // on the stack
-         length = GetModuleFileNameA(NULL, buffer, size);            // may return a path longer than MAX_PATH
+      const wchar* wfilename = GetTerminalFileNameW();
+      if (wfilename) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wfilename)).c_str());
+         if (!filename) filename = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
-      if (!length) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
-
-      filename = strdup(buffer);                                     // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -617,11 +611,14 @@ const wchar* WINAPI GetTerminalFileNameW() {
 
       while (length >= size) {
          size <<= 1;
-         buffer = (wchar*) alloca(size * sizeof(wchar));             // on the stack
-         length = GetModuleFileNameW(NULL, buffer, size);            // may return a path longer than MAX_PATH
+         buffer = (wchar*) alloca(size * sizeof(wchar));    // on the stack
+         length = GetModuleFileNameW(NULL, buffer, size);   // may return a path longer than MAX_PATH
       }
-      if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileName()"));
-      filename = wstrdup(buffer);                                    // on the heap
+      if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetModuleFileName()"));
+
+      wchar* tmp = wstrdup(buffer);
+      if (!filename) filename = tmp;
+      else free(tmp);                                       // another thread may have been faster
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -638,10 +635,11 @@ const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
-      const char* filename = GetTerminalFileNameA();
-      if (filename) {
-         path = strdup(filename);                        // on the heap
-         path[string(path).find_last_of("\\")] = '\0';
+      const wchar* wpath = GetTerminalPathW();
+      if (wpath) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         if (!path) path = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
    }
    return(path);
@@ -661,32 +659,15 @@ const wchar* WINAPI GetTerminalPathW() {
    if (!path) {
       const wchar* filename = GetTerminalFileNameW();
       if (filename) {
-         path = wstrdup(filename);                       // on the heap
-         path[wstring(path).find_last_of(L"\\")] = '\0';
+         wchar* tmp = wstrdup(filename);
+         tmp[wstring(tmp).find_last_of(L"\\")] = '\0';
+
+         if (!path) path = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
    }
    return(path);
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
-* Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
-* introduced in MQL5).
- *
- * @return wstring& - directory name without trailing path separator or an empty string in case of errors
- */
-const wstring& WINAPI getTerminalPathW() {
-   static wstring path;
-
-   if (path.empty()) {
-      const wchar* filename = GetTerminalFileNameW();
-      if (filename) {
-         wstring str(filename);
-         path = str.substr(0, str.find_last_of(L"\\"));
-      }
-   }
-   return(path);
 }
 
 
@@ -698,24 +679,17 @@ const wstring& WINAPI getTerminalPathW() {
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
-   static char* result;
+   static char* path;
 
-   if (!result) {
-      char appDataPath[MAX_PATH];                                                               // resolve CSIDL_APPDATA
-      if (FAILED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath)))
-         return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathA()"));
-
-      wstring terminalPath = getTerminalPathW();                                               // get terminal installation path
-      StrToUpper(terminalPath);
-
-      string md5(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));           // calculate MD5
-      StrToUpper(md5);
-
-      string dir = string(appDataPath).append("\\MetaQuotes\\Terminal\\")                       // create the resulting path
-                                      .append(md5);
-      result = strdup(dir.c_str());                                                             // cache the result
+   if (!path) {
+      const wchar* wpath = GetTerminalRoamingDataPathW();
+      if (wpath) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         if (!path) path = tmp;
+         else free(tmp);                  // another thread may have been faster
+      }
    }
-   return(result);
+   return(path);
    #pragma EXPANDER_EXPORT
 }
 
@@ -731,13 +705,42 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
    static wchar* result;
 
    if (!result) {
-      const char* spath = GetTerminalRoamingDataPathA();
-      if (spath) {
-         wstring wpath = ansiToUnicode(string(spath));
-         result = wstrdup(wpath.c_str());
+      wchar appDataPath[MAX_PATH];
+      if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
+         return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->SHGetFolderPath()"));
       }
+      wstring terminalPath(GetTerminalPathW());
+      StrToUpper(terminalPath);
+
+      string md5Hash(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));
+      StrToUpper(md5Hash);
+
+      wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\").append(ansiToUnicode(md5Hash));
+
+      wchar* tmp = wstrdup(dir.c_str());
+      if (!result) result = tmp;
+      else free(tmp);                     // another thread may have been faster
    }
    return(result);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL5.
+ *
+ * @return uint - build number or 0 in case of errors
+ */
+uint WINAPI GetTerminalBuild() {
+   static uint build;
+   if (!build) {
+      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
+      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
+      if (fileInfo) {
+         build = fileInfo->dwFileVersionLS & 0xffff;
+      }
+   }
+   return(build);
    #pragma EXPANDER_EXPORT
 }
 
@@ -751,7 +754,6 @@ const char* WINAPI GetTerminalVersion() {
    static char* version;
 
    if (!version) {
-      // get the version numbers
       const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
       if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
       if (!fileInfo) return(NULL);
@@ -761,8 +763,9 @@ const char* WINAPI GetTerminalVersion() {
       uint hotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
       uint build  = (fileInfo->dwFileVersionLS      ) & 0xffff;
 
-      // compose version string
-      version = asformat("%d.%d.%d.%d", major, minor, hotfix, build);
+      char* tmp = asformat("%d.%d.%d.%d", major, minor, hotfix, build);
+      if (!version) version = tmp;
+      else          free(tmp);         // another thread may have been faster
    }
    return(version);
    #pragma EXPANDER_EXPORT
@@ -779,16 +782,22 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
 
    if (!fileInfo) {
       const char* fileName = GetTerminalFileNameA();
-      DWORD fileInfoSize = GetFileVersionInfoSize(fileName, &fileInfoSize);
-      if (!fileInfoSize) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfoSize()"));
+      DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
+      if (!infoSize) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfoSize()"));
 
-      char* infos = (char*) alloca(fileInfoSize);                       // on the stack
-      BOOL result = GetFileVersionInfo(fileName, NULL, fileInfoSize, infos);
-      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfo()"));
+      char* infos = (char*) alloca(infoSize);   // on the stack
+      BOOL success = GetFileVersionInfoA(fileName, NULL, infoSize, infos);
+      if (!success) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfo()"));
 
+      VS_FIXEDFILEINFO* result;                 // the memory is part of 'infos' and freed at end of function
       uint len;
-      result = VerQueryValue(infos, "\\", (void**)&fileInfo, &len);
-      if (!result) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->VerQueryValue()"));
+      success = VerQueryValueA(infos, "\\", (void**)&result, &len);
+      if (!success) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->VerQueryValue()"));
+
+      VS_FIXEDFILEINFO* tmp = new VS_FIXEDFILEINFO();
+      *tmp = *result;
+      if (!fileInfo) fileInfo = tmp;
+      else delete tmp;                          // another thread may have been faster
    }
    return(fileInfo);
 }
@@ -800,22 +809,25 @@ const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
  * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
  */
 const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
-   static VS_FIXEDFILEINFO* fileInfo;
+   static VS_FIXEDFILEINFO* fileInfo;           // the resource stays in memory until the process terminates
 
    if (!fileInfo) {
       HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
       if (!hRes) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->FindResource()"));
 
-      void* infos = LoadResource(NULL, hRes);
-      if (!infos) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->LoadResource()"));
+      HGLOBAL hVersionInfo = LoadResource(NULL, hRes);
+      if (!hVersionInfo) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->LoadResource()"));
+
+      void* infos = LockResource(hVersionInfo);
+      if (!infos) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->LockResource()"));
 
       int offset = 6;
-      if (!wcscmp((wchar*)((char*)infos + offset), L"VS_VERSION_INFO")) {
+      if (!wcscmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
          offset += sizeof(L"VS_VERSION_INFO");
-         offset += offset % 4;                        // align to 32 bit
-         fileInfo = (VS_FIXEDFILEINFO*)((char*)infos + offset);
+         offset += offset % 4;                  // align to next 32 bit
+         fileInfo = (VS_FIXEDFILEINFO*)((BYTE*)infos + offset);
          if (fileInfo->dwSignature != 0xfeef04bd) {
-            debug("unknown VS_FIXEDFILEINFO signature: 0x%p", fileInfo->dwSignature);
+            warn(ERR_ILLEGAL_STATE, "unknown VS_FIXEDFILEINFO signature: 0x%p", fileInfo->dwSignature);
             fileInfo = NULL;
          }
       }

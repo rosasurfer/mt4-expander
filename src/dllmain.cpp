@@ -81,7 +81,7 @@ BOOL WINAPI onProcessAttach() {
    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
    if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
 
-   for (size_t i=1; i < argc; i++) {
+   for (int i=1; i < argc; i++) {
       if (StrStartsWith(argv[i], L"/portable")) {
          // The terminal also enables portable mode if a command line parameter just *starts* with prefix "/portable".
          // For example passing parameter "/portablepoo" enables portable mode, too. This test mirrors that behavior.
