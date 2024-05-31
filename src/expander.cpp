@@ -7,20 +7,10 @@
 
 extern MqlInstanceList g_mqlInstances;       // all MQL program instances
 
-extern BOOL g_debugAccountServer;            // whether cmd line option /rsf:debug-accountserver is set
 extern BOOL g_debugAccountNumber;            // whether cmd line option /rsf:debug-accountnumber is set
+extern BOOL g_debugAccountServer;            // whether cmd line option /rsf:debug-accountserver is set
 extern BOOL g_debugExecutionContext;         // whether cmd line option /rsf:debug-ec is set
-
-
-/**
- * Whether cmd line option "/rsf:debug-accountserver" is set.
- *
- * @return BOOL
- */
-BOOL WINAPI IsDebugAccountServer() {
-   return(g_debugAccountServer);
-   #pragma EXPANDER_EXPORT
-}
+extern BOOL g_debugObjectCreate;             // whether cmd line option /rsf:debug-objectcreate is set
 
 
 /**
@@ -35,12 +25,34 @@ BOOL WINAPI IsDebugAccountNumber() {
 
 
 /**
+ * Whether cmd line option "/rsf:debug-accountserver" is set.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsDebugAccountServer() {
+   return(g_debugAccountServer);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether cmd line option "/rsf:debug-ec" is set.
  *
  * @return BOOL
  */
 BOOL WINAPI IsDebugEC() {
    return(g_debugExecutionContext);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether cmd line option "/rsf:debug-objectcreate" is set.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsDebugObjectCreate() {
+   return(g_debugObjectCreate);
    #pragma EXPANDER_EXPORT
 }
 

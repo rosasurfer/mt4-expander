@@ -128,9 +128,10 @@ int __cdecl _notice(const char* fileName, const char* funcName, int line, int co
 int __cdecl _warn  (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 int __cdecl _error (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 
-BOOL WINAPI IsDebugAccountServer();
 BOOL WINAPI IsDebugAccountNumber();
+BOOL WINAPI IsDebugAccountServer();
 BOOL WINAPI IsDebugEC();
+BOOL WINAPI IsDebugObjectCreate();
 
 
 // Helper functions returning constant values. All parameters are ignored.

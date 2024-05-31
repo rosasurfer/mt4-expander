@@ -12,6 +12,7 @@ BOOL g_optionPortableMode;                                  // whether cmd line 
 BOOL g_debugAccountServer;                                  // whether cmd line option /rsf:debug-accountserver is set
 BOOL g_debugAccountNumber;                                  // whether cmd line option /rsf:debug-accountnumber is set
 BOOL g_debugExecutionContext;                               // whether cmd line option /rsf:debug-ec is set
+BOOL g_debugObjectCreate;                                   // whether cmd line option /rsf:debug-objectcreate is set
 
 extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
 extern Locks                         g_locks;               // a map holding pointers to fine-granular locks
@@ -80,7 +81,13 @@ BOOL WINAPI onProcessAttach() {
    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
    if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
 
-   for (int i=1; i < argc; i++) {
+   for (size_t i=1; i < argc; i++) {
+      if (StrStartsWith(argv[i], L"/portable")) {
+         // The terminal also enables portable mode if a command line parameter just *starts* with prefix "/portable".
+         // For example passing parameter "/portablepoo" enables portable mode, too. This test mirrors that behavior.
+         g_optionPortableMode = TRUE;
+         continue;
+      }
       if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
          g_debugAccountServer = TRUE;
          continue;
@@ -93,10 +100,9 @@ BOOL WINAPI onProcessAttach() {
          g_debugExecutionContext = TRUE;
          continue;
       }
-      if (StrStartsWith(argv[i], L"/portable")) {
-         // The terminal also enables portable mode if a command line parameter just *starts* with prefix "/portable".
-         // For example passing parameter "/portablepoo" enables portable mode, too. The test mirrors that behavior.
-         g_optionPortableMode = TRUE;
+      if (StrCompare(argv[i], L"/rsf:debug-objectcreate")) {
+         g_debugObjectCreate = TRUE;
+         continue;
       }
    }
    LocalFree(argv);
