@@ -446,11 +446,11 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetOptimization(ec, isOptimization=Program_IsOptimization(ec, isOptimization));
    ec_SetRecorder    (ec, recorder);
 
-   if (!strlen(accountServer)) accountServer = NULL;
-   if (hChart) {                                                           // populate empty account values from existing window properties
-      if (!accountServer) accountServer = (char*) GetPropA(hChart, PROP_STRING_ACCOUNT_SERVER);
-      if (!accountNumber) accountNumber = (int) GetPropA(hChart, PROP_INT_ACCOUNT_NUMBER);
-   }
+   HWND hMainWnd = GetTerminalMainWindow();
+   if (!strlen(accountServer)) accountServer = NULL;                       // populate empty account values from existing window properties
+   if (!accountServer) accountServer = (char*) GetPropA(hMainWnd, PROP_STRING_ACCOUNT_SERVER);
+   if (!accountNumber) accountNumber = (int) GetPropA(hMainWnd, PROP_INT_ACCOUNT_NUMBER);
+
    if (accountServer) ec_SetAccountServer(ec, accountServer);              // skip empty values to keep existing data
    if (accountNumber) ec_SetAccountNumber(ec, accountNumber);              // ...
 
