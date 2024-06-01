@@ -734,11 +734,12 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
 uint WINAPI GetTerminalBuild() {
    static uint build;
    if (!build) {
-      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
-      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
-      if (fileInfo) {
-         build = fileInfo->dwFileVersionLS & 0xffff;
-      }
+      VS_FIXEDFILEINFO fileInfo;
+      if      (GetTerminalVersionFromImage(&fileInfo)) {}
+      else if (GetTerminalVersionFromFile(&fileInfo)) {}
+      else return(NULL);
+
+      build = fileInfo.dwFileVersionLS & 0xffff;
    }
    return(build);
    #pragma EXPANDER_EXPORT
@@ -754,14 +755,15 @@ const char* WINAPI GetTerminalVersion() {
    static char* version;
 
    if (!version) {
-      const VS_FIXEDFILEINFO* fileInfo = GetTerminalVersionFromImage();
-      if (!fileInfo)          fileInfo = GetTerminalVersionFromFile();
-      if (!fileInfo) return(NULL);
+      VS_FIXEDFILEINFO fileInfo;
+      if      (GetTerminalVersionFromImage(&fileInfo)) {}
+      else if (GetTerminalVersionFromFile(&fileInfo)) {}
+      else return(NULL);
 
-      uint major  = (fileInfo->dwFileVersionMS >> 16) & 0xffff;
-      uint minor  = (fileInfo->dwFileVersionMS      ) & 0xffff;
-      uint hotfix = (fileInfo->dwFileVersionLS >> 16) & 0xffff;
-      uint build  = (fileInfo->dwFileVersionLS      ) & 0xffff;
+      uint major  = (fileInfo.dwFileVersionMS >> 16) & 0xffff;
+      uint minor  = (fileInfo.dwFileVersionMS      ) & 0xffff;
+      uint hotfix = (fileInfo.dwFileVersionLS >> 16) & 0xffff;
+      uint build  = (fileInfo.dwFileVersionLS      ) & 0xffff;
 
       char* tmp = asformat("%d.%d.%d.%d", major, minor, hotfix, build);
       if (!version) version = tmp;
@@ -773,66 +775,63 @@ const char* WINAPI GetTerminalVersion() {
 
 
 /**
- * Read the terminal's version infos from file.
+ * Read the terminal's version infos from the executable file.
  *
- * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
+ * @param  VS_FIXEDFILEINFO* fileInfo - struct the version infos are written to
+ *
+ * @return BOOL - success status
  */
-const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromFile() {
-   static VS_FIXEDFILEINFO* fileInfo;
+BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO* fileInfo) {
+   const char* fileName = GetTerminalFileNameA();
+   DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
+   if (!infoSize) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfoSize()"));
 
-   if (!fileInfo) {
-      const char* fileName = GetTerminalFileNameA();
-      DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
-      if (!infoSize) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfoSize()"));
+   char* infos = (char*)alloca(infoSize);       // on the stack
+   BOOL success = GetFileVersionInfoA(fileName, NULL, infoSize, infos);
+   if (!success) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfo()"));
 
-      char* infos = (char*) alloca(infoSize);   // on the stack
-      BOOL success = GetFileVersionInfoA(fileName, NULL, infoSize, infos);
-      if (!success) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfo()"));
+   VS_FIXEDFILEINFO* result;                    // points to an offset in 'infos' (on the stack)
+   uint len;
+   success = VerQueryValueA(infos, "\\", (void**)&result, &len);
+   if (!success) return(!error(ERR_WIN32_ERROR+GetLastError(), "->VerQueryValue()"));
 
-      VS_FIXEDFILEINFO* result;                 // the memory is part of 'infos' and freed at end of function
-      uint len;
-      success = VerQueryValueA(infos, "\\", (void**)&result, &len);
-      if (!success) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->VerQueryValue()"));
-
-      VS_FIXEDFILEINFO* tmp = new VS_FIXEDFILEINFO();
-      *tmp = *result;
-      if (!fileInfo) fileInfo = tmp;
-      else delete tmp;                          // another thread may have been faster
-   }
-   return(fileInfo);
+   *fileInfo = *result;                         // copy content of result to fileInfo
+   return(TRUE);
 }
 
 
 /**
  * Read the terminal's version infos from the PE image in memory.
  *
- * @return VS_FIXEDFILEINFO* - pointer to a VS_FIXEDFILEINFO structure or NULL in case of errors
+ * @param  VS_FIXEDFILEINFO* fileInfo - struct the version infos are written to
+ *
+ * @return BOOL - success status
  */
-const VS_FIXEDFILEINFO* WINAPI GetTerminalVersionFromImage() {
-   static VS_FIXEDFILEINFO* fileInfo;           // the resource stays in memory until the process terminates
+BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO* fileInfo) {
+   static VS_FIXEDFILEINFO* result;             // the resource stays in memory until the process terminates
 
-   if (!fileInfo) {
+   if (!result) {
       HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-      if (!hRes) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->FindResource()"));
+      if (!hRes) return(!error(ERR_WIN32_ERROR+GetLastError(), "->FindResource()"));
 
       HGLOBAL hVersionInfo = LoadResource(NULL, hRes);
-      if (!hVersionInfo) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->LoadResource()"));
+      if (!hVersionInfo) return(!error(ERR_WIN32_ERROR+GetLastError(), "->LoadResource()"));
 
       void* infos = LockResource(hVersionInfo);
-      if (!infos) return((VS_FIXEDFILEINFO*)!error(ERR_WIN32_ERROR+GetLastError(), "->LockResource()"));
+      if (!infos) return(!error(ERR_WIN32_ERROR+GetLastError(), "->LockResource()"));
 
       int offset = 6;
       if (!wcscmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
          offset += sizeof(L"VS_VERSION_INFO");
          offset += offset % 4;                  // align to next 32 bit
-         fileInfo = (VS_FIXEDFILEINFO*)((BYTE*)infos + offset);
-         if (fileInfo->dwSignature != 0xfeef04bd) {
-            warn(ERR_ILLEGAL_STATE, "unknown VS_FIXEDFILEINFO signature: 0x%p", fileInfo->dwSignature);
-            fileInfo = NULL;
-         }
+         VS_FIXEDFILEINFO* tmp = (VS_FIXEDFILEINFO*)((BYTE*)infos + offset);
+         if (tmp->dwSignature != 0xfeef04bd) return(!warn(ERR_ILLEGAL_STATE, "unknown VS_FIXEDFILEINFO signature: 0x%p", tmp->dwSignature));
+         result = tmp;
       }
    }
-   return(fileInfo);
+
+   *fileInfo = *result;                         // copy content of result to fileInfo
+   return(TRUE);
 }
 
 
