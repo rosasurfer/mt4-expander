@@ -41,6 +41,12 @@ int WINAPI onInitTimeframeChange() {
 }
 
 
+int WINAPI onInitAccountChange() {
+   return(NO_ERROR);
+   #pragma EXPANDER_EXPORT
+}
+
+
 int WINAPI onInitProgram() {
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
@@ -98,13 +104,7 @@ int WINAPI onDeinit() {
 int WINAPI onDeinitAccountChange() {
    if (uint pid = GetLastThreadProgram()) {
       EXECUTION_CONTEXT* ec = (*g_mqlInstances[pid])[0];
-
-      if (ec->programType == PT_EXPERT) {
-         return(error(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
-      }
-      if (ec->programType == PT_INDICATOR) {
-         warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-      }
+      warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
    }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
@@ -175,21 +175,6 @@ int WINAPI onDeinitUndefined() {
 
 int WINAPI afterDeinit() {
    return(NO_ERROR);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Event handlers
- */
-int WINAPI onAccountChange(int oldAccount, int newAccount) {
-   return(NO_ERROR);
-   #pragma EXPANDER_EXPORT
-}
-
-
-BOOL WINAPI onBarOpen() {
-   return(!error(ERR_NOT_IMPLEMENTED, ""));
    #pragma EXPANDER_EXPORT
 }
 

@@ -94,6 +94,7 @@ enum InitializeReason {                                     // +-- init reason -
    IR_PARAMETERS        = INITREASON_PARAMETERS,            // | input parameters changed                      |    input dialog |   I, E      |
    IR_TIMEFRAMECHANGE   = INITREASON_TIMEFRAMECHANGE,       // | chart period changed                          | no input dialog |   I, E      |
    IR_SYMBOLCHANGE      = INITREASON_SYMBOLCHANGE,          // | chart symbol changed                          | no input dialog |   I, E      |
+   IR_ACCOUNTCHANGE     = INITREASON_ACCOUNTCHANGE,         // | account changed                               | no input dialog |   I         |
    IR_RECOMPILE         = INITREASON_RECOMPILE,             // | reloaded after recompilation                  | no input dialog |   I, E      |
    IR_TERMINAL_FAILURE  = INITREASON_TERMINAL_FAILURE       // | terminal failure                              |    input dialog |      E      |   @see https://github.com/rosasurfer/mt4-mql/issues/1
 };                                                          // +-----------------------------------------------+-----------------+-------------+

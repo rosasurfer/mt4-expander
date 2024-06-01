@@ -1159,15 +1159,6 @@ char* WINAPI DeinitFlagsToStr(DWORD flags) {
 
 
 /**
- * Alias of InitReasonToStr()
- */
-const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
-   return(InitReasonToStr(reason));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return a readable version of an InitializeReason.
  *
  * @param  InitializeReason reason
@@ -1184,6 +1175,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_PARAMETERS       : return("IR_PARAMETERS"       );
       case IR_TIMEFRAMECHANGE  : return("IR_TIMEFRAMECHANGE"  );
       case IR_SYMBOLCHANGE     : return("IR_SYMBOLCHANGE"     );
+      case IR_ACCOUNTCHANGE    : return("IR_ACCOUNTCHANGE"    );
       case IR_RECOMPILE        : return("IR_RECOMPILE"        );
       case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
@@ -1666,15 +1658,6 @@ const char* WINAPI TradeDirectionToStr(int direction) {
       case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH");
    }
    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of UninitReasonToStr()
- */
-const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
-   return(UninitReasonToStr(reason));
    #pragma EXPANDER_EXPORT
 }
 

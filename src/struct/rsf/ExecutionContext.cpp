@@ -283,7 +283,10 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
       case IR_PARAMETERS:
       case IR_TIMEFRAMECHANGE:
       case IR_SYMBOLCHANGE:
-      case IR_RECOMPILE: break;
+      case IR_ACCOUNTCHANGE:
+      case IR_RECOMPILE:
+      case IR_TERMINAL_FAILURE:
+         break;
       default: return((InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
    }
    uint pid = ec->pid;
