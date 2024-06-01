@@ -3,7 +3,6 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/timer.h"
-#include "lib/lock/Lock.h"
 #include "struct/rsf/ExecutionContext.h"
 
 #include <shellapi.h>
@@ -14,13 +13,11 @@ BOOL g_debugAccountNumber;                                  // whether cmd line 
 BOOL g_debugExecutionContext;                               // whether cmd line option /rsf:debug-ec is set
 BOOL g_debugObjectCreate;                                   // whether cmd line option /rsf:debug-objectcreate is set
 
-extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
-extern Locks                         g_locks;               // a map holding pointers to fine-granular locks
-
 extern MqlInstanceList               g_mqlInstances;        // all MQL program instances
 extern std::vector<DWORD>            g_threads;             // all known threads executing MQL programs
 extern std::vector<uint>             g_threadsPrograms;     // the last MQL program executed by a thread
 extern std::vector<TICK_TIMER_DATA*> g_tickTimers;          // all registered ticktimers
+extern CRITICAL_SECTION              g_terminalMutex;       // mutex for application-wide locking
 
 
 //
@@ -131,9 +128,5 @@ BOOL WINAPI onProcessDetach(BOOL isTerminating) {
    ReleaseTickTimers();
    ReleaseWindowProperties();
 
-   for (Locks::iterator it=g_locks.begin(), end=g_locks.end(); it != end; ++it) {
-      delete it->second;
-   }
-   g_locks.clear();
    return(TRUE);
 }

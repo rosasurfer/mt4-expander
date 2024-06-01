@@ -287,22 +287,6 @@
 					RelativePath=".\header\lib\timeseries.h"
 					>
 				</File>
-				<Filter
-					Name="lock"
-					>
-					<File
-						RelativePath=".\header\lib\lock\CriticalSection.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\lib\lock\Lock.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\lib\lock\Locker.h"
-						>
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="shared"
@@ -587,26 +571,6 @@
 				</File>
 				<File
 					RelativePath=".\src\lib\helper.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath=".\src\lib\lock.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
