@@ -25,10 +25,8 @@ extern CRITICAL_SECTION              g_terminalMutex;       // mutex for applica
 // Win32 CRITICAL_SECTION = process-wide mutex
 // https://docs.microsoft.com/en-us/windows/desktop/Sync/critical-section-objects
 //
-//
 // Speed benchmark and especially: ...if the spin count expires, the mutex for the critical section will be allocated.
 // https://stackoverflow.com/questions/800383/what-is-the-difference-between-mutex-and-critical-section
-//
 //
 // Exception safety:
 // http://progblogs.blogspot.com/2012/02/critical-section-vs-mutex.html
