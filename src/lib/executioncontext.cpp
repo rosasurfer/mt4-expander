@@ -465,7 +465,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetLoglevelMail    (ec, ecRef->loglevelMail    );
    ec_SetLoglevelSMS     (ec, ecRef->loglevelSMS     );
    ec_SetLogFilename     (ec, ecRef->logFilename     );
-
    ec_SetDebugOptions(ec, g_cliDebugOptions);
 
    // TODO: reset errors if not in an init() call from start()
@@ -530,10 +529,10 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    uint chainSize = chain.size();
    EXECUTION_CONTEXT* ctx;
 
-   // update variable values in all loaded modules
-   for (uint i=0; i < chainSize; ++i) {
+   // update tick-varying values in all loaded modules
+   for (uint i=0; i < chainSize; ++i) {                              // in all contexts
       if (ctx = chain[i]) {
-         ctx->programCoreFunction = CF_START;                        // in all contexts
+         ctx->programCoreFunction = CF_START;                        // don't use ec_Set*() for max performance
          ctx->rates               = rates;
          ctx->bars                = bars;
          ctx->validBars           = validBars;
@@ -545,16 +544,6 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->bid                 = bid;
          ctx->ask                 = ask;
          ctx->threadId            = threadId;
-
-         ctx->loglevel            = ec->loglevel;                    // configurable at runtime
-         ctx->loglevelTerminal    = ec->loglevelTerminal;
-         ctx->loglevelAlert       = ec->loglevelAlert;
-         ctx->loglevelDebug       = ec->loglevelDebug;
-         ctx->loglevelFile        = ec->loglevelFile;
-         ctx->loglevelMail        = ec->loglevelMail;
-         ctx->loglevelSMS         = ec->loglevelSMS;
-         ctx->logger              = ec->logger;
-         strcpy(ctx->logFilename, ec->logFilename);
 
          if (i < 2) {
             ctx->moduleCoreFunction = ctx->programCoreFunction;      // in master and main context only
@@ -597,16 +586,6 @@ int WINAPI SyncMainContext_deinit(EXECUTION_CONTEXT* ec, UninitializeReason unin
          ctx->programCoreFunction = CF_DEINIT;                       // in all contexts
          ctx->programUninitReason = uninitReason;
          ctx->threadId            = threadId;
-
-         ctx->loglevel            = ec->loglevel;                    // configurable at runtime
-         ctx->loglevelTerminal    = ec->loglevelTerminal;
-         ctx->loglevelAlert       = ec->loglevelAlert;
-         ctx->loglevelDebug       = ec->loglevelDebug;
-         ctx->loglevelFile        = ec->loglevelFile;
-         ctx->loglevelMail        = ec->loglevelMail;
-         ctx->loglevelSMS         = ec->loglevelSMS;
-         ctx->logger              = ec->logger;
-         strcpy(ctx->logFilename, ec->logFilename);
 
          if (i < 2) {                                                // in master and main context only
             ctx->moduleCoreFunction = ctx->programCoreFunction;
@@ -1034,8 +1013,9 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
    }
 
    // close an open logfile
-   if (ec->logger && ec->logger->is_open()) {
-      ec->logger->close();                                                 // re-opened automatically on next use
+   EXECUTION_CONTEXT* master = chain[0];
+   if (master && master->logger && master->logger->is_open()) {
+      master->logger->close();                                             // re-opened automatically on next use
    }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
@@ -1691,13 +1671,13 @@ BOOL WINAPI Program_IsPartialTest(uint pid, const char* name) {
    if (g_mqlInstances.size() > pid) {
       ContextChain &chain = *g_mqlInstances[pid];
 
-      if (chain.size() > 2) {                                  // needs to have at least one registered library
+      if (chain.size() > 2) {                                  // the program needs to have at least one registered library
          EXECUTION_CONTEXT* master = chain[0];
          EXECUTION_CONTEXT* main   = chain[1];
 
-         if (master->programType==PT_EXPERT && master->testing) {
-            if (main)                  return(FALSE);
-            if (!*master->programName) return(TRUE);
+         if (master && master->programType==PT_EXPERT && master->testing) {
+            if (main) return(FALSE);                           // not partially initialized
+            if (master->programName && !*master->programName) return(TRUE);
             return(StrCompare(master->programName, name));     // name comparison last
          }
       }

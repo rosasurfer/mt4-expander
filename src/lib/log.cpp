@@ -29,11 +29,12 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
    if ((uint)message < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter message: 0x%p (not a valid pointer)", message));
    if (level == LOG_OFF)                  return(FALSE);
 
+   // for safety reasons we access only the logger/logBuffer in master (all other contexts can be manipulated in MQL)
    EXECUTION_CONTEXT* master = (*g_mqlInstances[ec->pid])[0];
    if (master->superContext) master = (*g_mqlInstances[master->superContext->pid])[0];    // use a super context (if any)
 
    // check whether to use an existing logger or a logbuffer
-   BOOL useLogger    = (master->logger && strlen(master->logFilename));
+   BOOL useLogger    = (master->logger && master->logFilename && strlen(master->logFilename));
    BOOL useLogBuffer = (!useLogger && master->programInitFlags & INIT_BUFFERED_LOG);
    if (!useLogger && !useLogBuffer) return(FALSE);                                        // logger and buffered log are inactive
 
@@ -65,12 +66,12 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
    // compose the log entry
    std::ostringstream ss;
    string sLoglevel(level==LOG_DEBUG ? "": LoglevelDescriptionA(level));                  // loglevel (LOG_DEBUG is blanked out)
-   string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
+   string sExecPath(master->programName); sExecPath.append("::");                         // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
    string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", " "), "\n", " ");    // replace linebreaks with spaces
    string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // append error description
 
-   if (ec->testing) {                                                                     // tester:
+   if (master->testing) {                                                                 // tester:
       ss << "T " << gmtTimeFormat(serverTime, "%Y-%m-%d %H:%M:%S");                       // prepend prefix "T" followed by the passed tester time (seconds only)
    }
    else {
@@ -100,7 +101,6 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
 BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    if ((uint)ec < MIN_VALID_POINTER)                   return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (filename && (uint)filename < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-   if (strlen(filename) > MAX_PATH)                    return(!error(ERR_INVALID_PARAMETER, "too long parameter filename: \"%s\" (max. %d chars)", filename, MAX_PATH));
    if (!ec->pid)                                       return(!error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  ec=%s", EXECUTION_CONTEXT_toStr(ec)));
    if (g_mqlInstances.size() <= ec->pid)               return(!error(ERR_ILLEGAL_STATE,     "invalid execution context: ec.pid=%d (no such instance)  ec=%s", ec->pid, EXECUTION_CONTEXT_toStr(ec)));
 
@@ -108,6 +108,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    EXECUTION_CONTEXT* master = chain[0];
    if (master->superContext) return(TRUE);                                       // ignore the call if in iCustom()
 
+   // for safety reasons we access only the logger/logBuffer in master (all other contexts can be manipulated in MQL)
    if (filename && *filename) {
       // enable the file logger
       std::ofstream* log = master->logger;
@@ -145,8 +146,9 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
    }
    else {
       // close the logfile but keep an existing instance (we may be in an init cycle)
-      if (master->logger && master->logger->is_open())
+      if (master->logger && master->logger->is_open()) {
          master->logger->close();
+      }
       ec_SetLogFilename(ec, filename);
    }
 

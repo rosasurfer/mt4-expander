@@ -72,7 +72,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    BOOL               optimization;                   //       696        4     expert IsOptimization() status                            (const)
    int                recorder;                       //       700        4     expert recorder mode                                      (var)
                                                       //
-   const char*        accountServer;                  //       704        4     MQL::AccountServer()                                      (var)
+   char*              accountServer;                  //       704        4     MQL::AccountServer()                                      (var)
    int                accountNumber;                  //       708        4     MQL::AccountNumber()                                      (var)
                                                       //
    int                dllWarning;                     //       712        4     last DLL warning                                          (var)
@@ -92,9 +92,9 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
 
    std::ofstream*     logger;                         //       764        4     logger instance                                           (var)
    LogBuffer*         logBuffer;                      //       768        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       772      260     log filename                                              (var)
+   char*              logFilename;                    //       772        4     log filename                                              (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1032
+#pragma pack(pop)                                     //              = 776
 
 
 // exported getters

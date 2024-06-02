@@ -1246,18 +1246,18 @@ const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server
    if (!pid)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
    if (g_mqlInstances.size() <= pid) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
 
-   const char* _server = *server ? server : NULL;           // empty string => NULL
+   const char* _server = (server && *server) ? server : NULL;  // empty string => NULL
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
 
    for (size_t i=0; i < chainSize; i++) {
-      if (chain[i] == ec) {                                 // context found
+      if (chain[i] == ec) {                                    // context found
          // update master
          EXECUTION_CONTEXT* master = chain[0];
          if (master && !StrCompare(master->accountServer, _server)) {
-            if (master->accountServer) {                    // free an existing string
-               free((void*) master->accountServer);
+            if (master->accountServer) {                       // free an existing string
+               free(master->accountServer);
             }
             master->accountServer = _server ? strdup(_server) : NULL;
          }
@@ -1726,29 +1726,40 @@ int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
  * Set EXECUTION_CONTEXT.logFilename and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  char*              filename - filename (an empty string and a NULL pointer reset the field)
+ * @param  char*              filename - filename (an empty string or a NULL pointer reset the field)
  *
  * @return char* - the same filename or a NULL pointer in case of errors
  */
 const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
-   if ((uint)ec < MIN_VALID_POINTER)                    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)          return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (filename) {
-      if ((uint)filename < MIN_VALID_POINTER)           return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-      if (strlen(filename) > sizeof(ec->logFilename)-1) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"%s\" (max %d chars)", filename, sizeof(ec->logFilename)-1));
+      if ((uint)filename < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
    }
 
    uint pid = ec->pid;
    if (!pid)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
    if (g_mqlInstances.size() <= pid) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
 
+   const char* _filename = (filename && *filename) ? filename : NULL;   // empty string => NULL
+
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
 
    for (size_t i=0; i < chainSize; i++) {
-      if (chain[i] == ec) {                           // context found
-         for (i=0; i < chainSize; i++) {              // update all program modules
-            if (chain[i]) {                           // store empty string instead of NULL pointer to simplify usage in other places
-               if (!strcpy(chain[i]->logFilename, filename ? filename : "")) return(NULL);
+      if (chain[i] == ec) {                                             // context found
+         // update master
+         EXECUTION_CONTEXT* master = chain[0];
+         if (master && !StrCompare(master->logFilename, _filename)) {
+            if (master->logFilename) {                                  // free an existing string
+               free(master->logFilename);
+            }
+            master->logFilename = _filename ? strdup(_filename) : NULL;
+         }
+
+         // update all other program modules (ignore existing strings; must not be different anyway)
+         for (i=1; i < chainSize; i++) {
+            if (chain[i]) {
+               chain[i]->logFilename = master->logFilename;
             }
          }
          return(filename);

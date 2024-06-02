@@ -725,7 +725,7 @@ wstring WINAPI utf8ToUnicode(const string &str) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 char* __cdecl asformat(const char* format, ...) {
-   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    va_list args;
@@ -752,7 +752,7 @@ char* __cdecl asformat(const char* format, ...) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 wchar* __cdecl asformat(const wchar* format, ...) {
-   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    va_list args;
@@ -779,7 +779,7 @@ wchar* __cdecl asformat(const wchar* format, ...) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 char* WINAPI _asformat(const char* format, const va_list &args) {
-   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    uint size = vscprintf(format, args) + 1;        // +1 for the terminating null char
@@ -806,7 +806,7 @@ char* WINAPI _asformat(const char* format, const va_list &args) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
-   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    uint size = vwscprintf(format, args) + 1;       // +1 for the terminating null wchar
