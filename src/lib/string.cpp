@@ -164,7 +164,7 @@ int __cdecl CompareMqlStringsW(const void* first, const void* second) {
    if (s1 == s2) return( 0);
    if (!s1)      return(-1);
    if (!s2)      return(+1);
-   return(wcscmp(s1->value, s2->value));
+   return(wstrcmp(s1->value, s2->value));
 }
 
 
@@ -233,7 +233,7 @@ BOOL WINAPI StrCompare(const char* s1, const char* s2) {
 BOOL WINAPI StrCompare(const wchar* s1, const wchar* s2) {
    if (s1 == s2)   return(TRUE);          // if pointers are equal values are too
    if (!s1 || !s2) return(FALSE);         // if one is a NULL pointer the other can't
-   return(wcscmp(s1, s2) == 0);           // both are not NULL pointers
+   return(wstrcmp(s1, s2) == 0);          // both are not NULL pointers
 }
 
 
@@ -364,7 +364,7 @@ BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
    if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
 
    if (strLen >= suffixLen)
-      return(wcscmp(str + strLen - suffixLen, suffix) == 0);
+      return(wstrcmp(str + strLen - suffixLen, suffix) == 0);
    return(FALSE);
 }
 
@@ -387,7 +387,7 @@ BOOL WINAPI StrEndsWithI(const wchar* str, const wchar* suffix) {
    if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
 
    if (strLen >= suffixLen)
-      return(wcsicmp(str + strLen - suffixLen, suffix) == 0);
+      return(wstricmp(str + strLen - suffixLen, suffix) == 0);
    return(FALSE);
 }
 

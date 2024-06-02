@@ -62,7 +62,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
 
    // generate a new timer id and timer metadata
    if (!TryEnterCriticalSection(&g_expanderMutex)) {
-      debug("waiting to aquire lock on g_expanderMutex...");
+      debug("waiting for lock on g_expanderMutex...");
       EnterCriticalSection(&g_expanderMutex);
    }
    static uint lastTimerId = 0;                                // a simple counter
@@ -78,9 +78,9 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    LeaveCriticalSection(&g_expanderMutex);
 
    // create the timer
-   if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK)onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD))
-      return(!error(ERR_WIN32_ERROR+GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis));
-
+   if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK)onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD)) {
+      return(!error(ERR_WIN32_ERROR+GetLastError(), "->CreateTimerQueueTimer(interval=%d)", millis));
+   }
    return(ttd->timerId);
    #pragma EXPANDER_EXPORT
 }

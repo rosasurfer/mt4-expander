@@ -30,30 +30,31 @@ HWND WINAPI FindTesterWindow() {
       if (!hWndMain) return(NULL);
 
       HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKED_CONTAINER);           // container for docked terminal windows
-      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no TerminalMainWindow->IDC_DOCKED_CONTAINER found"));
+      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "TerminalMainWindow->IDC_DOCKED_CONTAINER not found"));
 
-      hWndTester = GetDlgItem(hWnd, IDC_TESTER);
-      if (hWndTester) return(hWndTester);
-      SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
+      HWND hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);                  // use non-static var for intermediate results (thread concurrency)
+      if (!hWndSuccess) {
+         SetLastError(NO_ERROR);                                        // reset the last ERROR_CONTROL_ID_NOT_FOUND
 
-      // check for a floating tester window
-      HWND hWndNext = GetTopWindow(NULL);
-      if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no top-level windows found"));
+         // check for a floating tester window
+         HWND hWndNext = GetTopWindow(NULL);
+         if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no top-level windows found"));
 
-      DWORD processId, self=GetCurrentProcessId();
-      while (hWndNext) {                                                // iterate over all top-level windows owned by the current process
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == self) {                                       // the window belongs to us
-            hWnd = GetDlgItem(hWndNext, IDC_FLOATING_CONTAINER);        // due to i18n we can't interprete the window titles
-            if (hWnd) {
-               hWndTester = GetDlgItem(hWnd, IDC_TESTER);
-               if (hWndTester) break;
+         DWORD processId, self=GetCurrentProcessId();
+         while (hWndNext) {                                             // iterate over all top-level windows owned by the current process
+            GetWindowThreadProcessId(hWndNext, &processId);
+            if (processId == self) {                                    // the window belongs to us
+               hWnd = GetDlgItem(hWndNext, IDC_FLOATING_CONTAINER);     // due to i18n we can't interprete the window titles
+               if (hWnd) {
+                  hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);
+                  if (hWndSuccess) break;
+               }
             }
+            hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
          }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+         if (!hWndSuccess) debug("tester window doesn't yet exist");
       }
-
-      if (!hWndTester) debug("tester window doesn't yet exist");
+      if (hWndSuccess) hWndTester = hWndSuccess;
    }
    return(hWndTester);
    #pragma EXPANDER_EXPORT

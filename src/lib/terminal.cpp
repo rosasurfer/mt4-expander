@@ -425,14 +425,37 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
 
 
 /**
- * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
- * introduced in MQL5). The function does not check whether the returned directory exists.
+ * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL5).
+ * The function does not check whether the returned directory exists.
  *
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
  *                 e.g. "%ProgramFiles%\MetaTrader4"
  */
 const char* WINAPI GetTerminalDataPathA() {
-   // VirtualStore: File and Registry Virtualization (since Vista)
+   static char* dataPath;
+
+   if (!dataPath) {
+      const wchar* wpath = GetTerminalDataPathW();
+      if (wpath) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         if (!dataPath) dataPath = tmp;
+         else free(tmp);                  // another thread may have been faster
+      }
+   }
+   return(dataPath);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL5).
+ * The function does not check whether the returned directory exists.
+ *
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
+ *                  e.g. "%ProgramFiles%\MetaTrader4"
+ */
+const wchar* WINAPI GetTerminalDataPathW() {
+   // VirtualStore (since Vista): file and registry virtualization
    // ------------------------------------------------------------
    // - Used on write to a protected directory without a full administrator access token.
    // - Affected programs cannot tell the difference between their native folder and the VirtualStore.
@@ -457,59 +480,21 @@ const char* WINAPI GetTerminalDataPathA() {
    // @see  https://msdn.microsoft.com/en-us/library/bb756960.aspx
    //
    //
-   // 1) Is terminal old or launched in portable mode?
-   //    yes => data path is %InstallDir% (independant of write permissions, redirection to VirtualStore where appropriate)
-   //    no  => new terminal in non-portable mode with UAC-aware behavior => (2)
+   // Logical function flow
+   // ---------------------
+   // (1) Is terminal operating in portable mode?
+   //     yes => data path is %InstallDir% (independant of write permissions, redirection to VirtualStore where appropriate)
+   //     no  => new terminal in non-portable mode with UAC-aware behavior => continue with (2)
    //
-   // 2) Check for locked terminal logfiles in "%InstallDir%" and "%UserProfile%\AppData\Roaming"
-   //    1 file       => data path according to the locked file
-   //    0 or 2 files => logfiles can't be used for data path determination => (3)
+   // (2) Check for locked terminal logfiles, 1st in "%UserProfile%\AppData\Roaming", 2nd in "%InstallDir%"
+   //     data path according to the first found locked file
+   //     no locked files  => missing write permissions in both places (system config error) => continue with (3)
+   //     two locked files => multiple parallel running terminals (ambiguous) => continue with (3)
    //
-   // 3) Check UAC status
-   //    on  => data path is "%UserProfile%\AppData\Roaming"
-   //    off => (3)
+   // (3) Check UAC status
+   //     on  => data path is "%UserProfile%\AppData\Roaming"
+   //     off => data path is "%InstallDir%"
    //
-   static char* dataPath;
-
-   if (!dataPath) {
-      const char* terminalPath = GetTerminalPathA();
-      const char* roamingDataPath = GetTerminalRoamingDataPathA();
-      char* tmp = NULL;
-
-      // check portable mode
-      if (IsPortableMode()) {
-         // data path is the installation directory, independant of write permissions
-         tmp = strdup(terminalPath);
-      }
-      else {
-         // check for locked terminal logs
-         char* logFilename = LocalTimeFormatA(GetGmtTime32(), "\\logs\\%Y%m%d.log");
-         BOOL terminalPathIsLocked = IsLockedFile(string(terminalPath).append(logFilename));
-         BOOL roamingPathIsLocked  = IsLockedFile(string(roamingDataPath).append(logFilename));
-         free(logFilename);
-
-         if      (roamingPathIsLocked)  tmp = strdup(roamingDataPath);
-         else if (terminalPathIsLocked) tmp = strdup(terminalPath);
-         else return((char*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));  // both directories are write-protected
-      }
-
-      if (!dataPath) dataPath = tmp;
-      else free(tmp);                     // another thread may have been faster
-   }
-   return(dataPath);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the full path of the currently used data directory (same value as returned by TerminalInfoString(TERMINAL_DATA_PATH)
- * introduced in MQL5). The function does not check whether the returned directory exists.
- *
- * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
- *                  e.g. "%ProgramFiles%\MetaTrader4"
- */
-const wchar* WINAPI GetTerminalDataPathW() {
-   // @see  GetTerminalDataPathA()
    static wchar* dataPath;
 
    if (!dataPath) {
@@ -531,9 +516,10 @@ const wchar* WINAPI GetTerminalDataPathW() {
 
          if      (roamingPathIsLocked)  tmp = wstrdup(roamingDataPath);
          else if (terminalPathIsLocked) tmp = wstrdup(terminalPath);
-         else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));   // both directories are write-protected
-      }
+         else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));   // no write permissions in both places
 
+         // TODO: implement UAC check
+      }
       if (!dataPath) dataPath = tmp;
       else free(tmp);                     // another thread may have been faster
    }
@@ -821,7 +807,7 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO* fileInfo) {
       if (!infos) return(!error(ERR_WIN32_ERROR+GetLastError(), "->LockResource()"));
 
       int offset = 6;
-      if (!wcscmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
+      if (!wstrcmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
          offset += sizeof(L"VS_VERSION_INFO");
          offset += offset % 4;                  // align to next 32 bit
          VS_FIXEDFILEINFO* tmp = (VS_FIXEDFILEINFO*)((BYTE*)infos + offset);
@@ -840,51 +826,15 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO* fileInfo) {
  *
  * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  char*       programName - MQL program name (ANSI string)
+ * @param  char*       programName - MQL program name (C string)
  *
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
-   if (!IsWindow(hChart))                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter hChart: %p (not an existing window)", hChart));
-   if (!IsProgramType(programType))           return(!error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
    if ((uint)programName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
-   if (!*programName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (must be non-empty)"));
 
-   string file(GetMqlDirectoryA());
-   char* sType = NULL;
-   uint cmd = 0;
-
-   // check the program for existence
-   switch (programType) {
-      case PT_INDICATOR:
-         file.append("\\indicators\\").append(programName).append(".ex4");
-         sType = "indicator";
-         cmd = MT4_LOAD_CUSTOM_INDICATOR;
-         break;
-
-      case PT_EXPERT:
-         file.append(GetTerminalBuild() <= 509 ? "\\":"\\experts\\").append(programName).append(".ex4");
-         sType = "expert";
-         cmd = MT4_LOAD_EXPERT;
-         break;
-
-      case PT_SCRIPT:
-         file.append("\\scripts\\").append(programName).append(".ex4");
-         sType = "script";
-         cmd = MT4_LOAD_SCRIPT;
-         break;
-   }
-   if (!IsFileA(file.c_str(), MODE_SYSTEM)) return(!error(ERR_FILE_NOT_FOUND, "file not found: \"%s\"", file.c_str()));
-
-   // trigger the launch of the program
-   PostMessageA(hChart, WM_MT4(), cmd, (LPARAM)strdup(programName));    // pass a copy of the name (the passed parameter may be immediately destroyed)
-   debug("queued launch of %s \"%s\"", sType, programName);
-
-   // prevent the DLL from getting unloaded before the message is processed
-   HMODULE hModule = NULL;
-   GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)LoadMqlProgramA, &hModule);
-
-   return(TRUE);
+   wstring name = ansiToUnicode(string(programName));
+   return(LoadMqlProgramW(hChart, programType, name.c_str()));
    #pragma EXPANDER_EXPORT
 }
 
@@ -894,15 +844,51 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
  *
  * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  wchar*      programName - MQL program name (Unicode string)
+ * @param  wchar*      programName - MQL program name (wide Unicode aka UTF-16 string)
  *
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
 BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName) {
+   if (!IsWindow(hChart))                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter hChart: 0x%p (not an existing window)", hChart));
+   if (!IsProgramType(programType))           return(!error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
    if ((uint)programName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
+   if (!*programName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)"));
 
-   string name = unicodeToAnsi(wstring(programName));
-   return(LoadMqlProgramA(hChart, programType, name.c_str()));
+   wstring file(GetMqlDirectoryW());
+   char* sProgramType = NULL;
+   uint cmd = 0;
+
+   // check the MQL program for existence
+   switch (programType) {
+      case PT_INDICATOR:
+         file.append(L"\\indicators\\").append(programName).append(L".ex4");
+         sProgramType = "indicator";
+         cmd = MT4_LOAD_CUSTOM_INDICATOR;
+         break;
+
+      case PT_EXPERT:
+         file.append(GetTerminalBuild() <= 509 ? L"\\":L"\\experts\\").append(programName).append(L".ex4");
+         sProgramType = "expert";
+         cmd = MT4_LOAD_EXPERT;
+         break;
+
+      case PT_SCRIPT:
+         file.append(L"\\scripts\\").append(programName).append(L".ex4");
+         sProgramType = "script";
+         cmd = MT4_LOAD_SCRIPT;
+         break;
+   }
+   if (!IsFileW(file.c_str(), MODE_SYSTEM)) return(!error(ERR_FILE_NOT_FOUND, "file not found: \"%S\"", file.c_str()));
+
+   // trigger the launch of the program
+   PostMessageW(hChart, WM_MT4(), cmd, (LPARAM)wstrdup(programName));   // pass a copy of programName (the passed value may get immediately destroyed)
+   debug("queued launch of %s \"%S\"", sProgramType, programName);
+
+   // prevent the DLL from getting unloaded before the message is processed
+   HMODULE hModule = NULL;
+   GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCWSTR)LoadMqlProgramW, &hModule);
+
+   return(TRUE);
    #pragma EXPANDER_EXPORT
 }
 

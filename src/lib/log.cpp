@@ -43,8 +43,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
          char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
          string path = string(drive).append(dir);
-         if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT))                   // make sure the directory exists
-            return(FALSE);
+         if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT)) return(FALSE);    // make sure the directory exists
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
       if (!master->logger->is_open()) return(!error(ERR_WIN32_ERROR+GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno)));
@@ -69,14 +68,14 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
    string sExecPath(ec->programName); sExecPath.append("::");                             // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
    string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", " "), "\n", " ");    // replace linebreaks with spaces
-   string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // error description
+   string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // append error description
 
    if (ec->testing) {                                                                     // tester:
-      ss << "T " << gmtTimeFormat(serverTime, "%Y-%m-%d %H:%M:%S");                       // prefix "T" followed by the passed tester time (seconds only)
+      ss << "T " << gmtTimeFormat(serverTime, "%Y-%m-%d %H:%M:%S");                       // prepend prefix "T" followed by the passed tester time (seconds only)
    }
    else {
-      SYSTEMTIME st = getSystemTime();                                                    // online: current time with milliseconds
-      time32 gmtTime = SystemTimeToUnixTime32(st);
+      SYSTEMTIME st = getSystemTime();                                                    // online:
+      time32 gmtTime = SystemTimeToUnixTime32(st);                                        // prepend current time with milliseconds
       ss << localTimeFormat(gmtTime, "%Y-%m-%d %H:%M:%S") << "." << std::setw(3) << std::setfill('0') << st.wMilliseconds;
    }
    ss << "  " << std::setfill(' ') << std::setw(6) << std::left << sLoglevel << "  " << ec->symbol << "," << std::setw(3) << std::left << PeriodDescriptionA(ec->timeframe) << "  " << sExecPath << sMessage << sError;
@@ -107,7 +106,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
    EXECUTION_CONTEXT* master = chain[0];
-   if (master->superContext) return(TRUE);                                         // ignore the call if in iCustom()
+   if (master->superContext) return(TRUE);                                       // ignore the call if in iCustom()
 
    if (filename && *filename) {
       // enable the file logger

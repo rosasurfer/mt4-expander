@@ -205,8 +205,8 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * Core function call order on loading/unloading of MQL libraries
  * ==============================================================
  *
- * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading. States
- * and core function call order during reloading are as follows:
+ * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading.
+ * States and core function call order during reloading are as follows:
  *
  * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
  *
@@ -1329,7 +1329,7 @@ uint WINAPI GetCurrentThreadIndex() {
 
    // thread not found
    if (!TryEnterCriticalSection(&g_expanderMutex)) {
-      debug("waiting to aquire lock on: g_expanderMutex...");
+      debug("waiting for lock on: g_expanderMutex...");
       EnterCriticalSection(&g_expanderMutex);
    }
    g_threads        .push_back(currentThread);                    // add current thread to the list
@@ -1786,7 +1786,7 @@ BOOL WINAPI Program_IsVisualMode(const EXECUTION_CONTEXT* ec, BOOL isVisualMode)
  */
 uint WINAPI PushProgram(ContextChain* chain) {
    if (!TryEnterCriticalSection(&g_expanderMutex)) {
-      debug("waiting to aquire lock on g_expanderMutex...");
+      debug("waiting for lock on g_expanderMutex...");
       EnterCriticalSection(&g_expanderMutex);
    }
    g_mqlInstances.push_back(chain);
