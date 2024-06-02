@@ -222,9 +222,10 @@ BOOL WINAPI IsVirtualKeyDown(int vKey) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
-   if (!threadId)
+BOOL WINAPI IsUIThread(DWORD threadId/*=NULL*/) {
+   if (!threadId) {
       threadId = GetCurrentThreadId();
+   }
    return(threadId == GetUIThreadId());
    #pragma EXPANDER_EXPORT
 }
@@ -239,9 +240,9 @@ DWORD WINAPI GetUIThreadId() {
    static DWORD uiThreadId;
 
    if (!uiThreadId) {
-      HWND hWnd = GetTerminalMainWindow();
-      if (hWnd)
+      if (HWND hWnd = GetTerminalMainWindow()) {
          uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
+      }
    }
    return(uiThreadId);
    #pragma EXPANDER_EXPORT

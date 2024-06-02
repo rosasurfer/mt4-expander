@@ -153,16 +153,11 @@ const char* WINAPI GetExpanderFileNameA() {
    static char* filename;
 
    if (!filename) {
-      char* buffer;
-      uint size=MAX_PATH >> 1, length=size;
-      while (length >= size) {
-         size <<= 1;
-         buffer = (char*) alloca(size);                                 // on the stack
-         length = GetModuleFileNameA(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
+      if (const wchar* wname = GetExpanderFileNameW()) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wname)).c_str());
+         if (!filename) filename = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
-      if (!length) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameA()"));
-
-      filename = strdup(buffer);                                        // on the heap
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -187,7 +182,9 @@ const wchar* WINAPI GetExpanderFileNameW() {
       }
       if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
 
-      filename = wstrdup(buffer);                                       // on the heap
+      wchar* tmp = wstrdup(buffer);
+      if (!filename) filename = tmp;
+      else free(tmp);                     // another thread may have been faster
    }
    return(filename);
    #pragma EXPANDER_EXPORT
@@ -227,12 +224,12 @@ HMODULE WINAPI GetExpanderModuleXP() {
  */
 const char* WINAPI GetHistoryRootPathA() {
    static char* hstDirectory;
-   if (!hstDirectory) {
-      const char* dataPath = GetTerminalDataPathA();
 
-      if (dataPath) {
-         string path = string(dataPath).append("\\history");
-         hstDirectory = strdup(path.c_str());
+   if (!hstDirectory) {
+      if (const wchar* wpath = GetHistoryRootPathW()) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         if (!hstDirectory) hstDirectory = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
    }
    return(hstDirectory);
@@ -247,12 +244,13 @@ const char* WINAPI GetHistoryRootPathA() {
  */
 const wchar* WINAPI GetHistoryRootPathW() {
    static wchar* hstDirectory;
-   if (!hstDirectory) {
-      const wchar* dataPath = GetTerminalDataPathW();
 
-      if (dataPath) {
+   if (!hstDirectory) {
+      if (const wchar* dataPath = GetTerminalDataPathW()) {
          wstring path = wstring(dataPath).append(L"\\history");
-         hstDirectory = wstrdup(path.c_str());
+         wchar* tmp = wstrdup(path.c_str());
+         if (!hstDirectory) hstDirectory = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
    }
    return(hstDirectory);
@@ -267,14 +265,12 @@ const wchar* WINAPI GetHistoryRootPathW() {
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
-   if (!mqlDirectory) {
-      const char* dataPath = GetTerminalDataPathA();
 
-      if (dataPath) {
-         string path(dataPath);
-         if (GetTerminalBuild() <= 509) path.append("\\experts");
-         else                           path.append("\\mql4");
-         mqlDirectory = strdup(path.c_str());
+   if (!mqlDirectory) {
+      if (const wchar* wdirectory = GetMqlDirectoryW()) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wdirectory)).c_str());
+         if (!mqlDirectory) mqlDirectory = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
    }
    return(mqlDirectory);
@@ -291,13 +287,14 @@ const wchar* WINAPI GetMqlDirectoryW() {
    static wchar* mqlDirectory;
 
    if (!mqlDirectory) {
-      const wchar* dataPath = GetTerminalDataPathW();
-
-      if (dataPath) {
+      if (const wchar* dataPath = GetTerminalDataPathW()) {
          wstring path(dataPath);
          if (GetTerminalBuild() <= 509) path.append(L"\\experts");
          else                           path.append(L"\\mql4");
-         mqlDirectory = wstrdup(path.c_str());
+
+         wchar* tmp = wstrdup(path.c_str());
+         if (!mqlDirectory) mqlDirectory = tmp;
+         else free(tmp);                  // another thread may have been faster
       }
    }
    return(mqlDirectory);
@@ -313,23 +310,25 @@ const wchar* WINAPI GetMqlDirectoryW() {
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
+   static char* testerPath, *onlinePath;
+
    if (inTester) {
-      static char* testerPath;
       if (!testerPath) {
-         const char* dataDirectory = GetTerminalDataPathA();
-         if (!dataDirectory) return(NULL);
-         string path = string(dataDirectory).append("\\tester\\files");
-         testerPath = strdup(path.c_str());
+         if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
+            char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+            if (!testerPath) testerPath = tmp;
+            else free(tmp);               // another thread may have been faster
+         }
       }
       return(testerPath);
    }
 
-   static char* onlinePath;
    if (!onlinePath) {
-      const char* mqlDirectory = GetMqlDirectoryA();
-      if (!mqlDirectory) return(NULL);
-      string path = string(mqlDirectory).append("\\files");
-      onlinePath = strdup(path.c_str());
+      if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
+         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         if (!onlinePath) onlinePath = tmp;
+         else free(tmp);                  // another thread may have been faster
+      }
    }
    return(onlinePath);
    #pragma EXPANDER_EXPORT
@@ -348,25 +347,23 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
 
    if (inTester) {
       if (!testerPath) {
-         const wchar* dataDirectory = GetTerminalDataPathW();
-         if (!dataDirectory) return(NULL);
-         wstring path = wstring(dataDirectory).append(L"\\tester\\files");
-
-         wchar* tmp = wstrdup(path.c_str());
-         if (!testerPath) testerPath = tmp;
-         else free(tmp);                        // another thread may have been faster
+         if (const wchar* dataDirectory = GetTerminalDataPathW()) {
+            wstring path = wstring(dataDirectory).append(L"\\tester\\files");
+            wchar* tmp = wstrdup(path.c_str());
+            if (!testerPath) testerPath = tmp;
+            else free(tmp);               // another thread may have been faster
+         }
       }
       return(testerPath);
    }
 
    if (!onlinePath) {
-      const wchar* mqlDirectory = GetMqlDirectoryW();
-      if (!mqlDirectory) return(NULL);
-      wstring path = wstring(mqlDirectory).append(L"\\files");
-
-      wchar* tmp = wstrdup(path.c_str());
-      if (!onlinePath) onlinePath = tmp;
-      else free(tmp);                           // another thread may have been faster
+      if (const wchar* mqlDirectory = GetMqlDirectoryW()) {
+         wstring path = wstring(mqlDirectory).append(L"\\files");
+         wchar* tmp = wstrdup(path.c_str());
+         if (!onlinePath) onlinePath = tmp;
+         else free(tmp);                  // another thread may have been faster
+      }
    }
    return(onlinePath);
    #pragma EXPANDER_EXPORT
@@ -385,8 +382,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
    static char* path;
 
    if (!path) {
-      const wchar* wpath = GetTerminalCommonDataPathW();
-      if (wpath) {
+      if (const wchar* wpath = GetTerminalCommonDataPathW()) {
          char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
@@ -435,8 +431,7 @@ const char* WINAPI GetTerminalDataPathA() {
    static char* dataPath;
 
    if (!dataPath) {
-      const wchar* wpath = GetTerminalDataPathW();
-      if (wpath) {
+      if (const wchar* wpath = GetTerminalDataPathW()) {
          char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!dataPath) dataPath = tmp;
          else free(tmp);                  // another thread may have been faster
@@ -571,11 +566,10 @@ const char* WINAPI GetTerminalFileNameA() {
    static char* filename;
 
    if (!filename) {
-      const wchar* wfilename = GetTerminalFileNameW();
-      if (wfilename) {
+      if (const wchar* wfilename = GetTerminalFileNameW()) {
          char* tmp = strdup(unicodeToAnsi(wstring(wfilename)).c_str());
          if (!filename) filename = tmp;
-         else free(tmp);                  // another thread may have been faster
+         else free(tmp);                                    // another thread may have been faster
       }
    }
    return(filename);
@@ -621,8 +615,7 @@ const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
-      const wchar* wpath = GetTerminalPathW();
-      if (wpath) {
+      if (const wchar* wpath = GetTerminalPathW()) {
          char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
@@ -643,11 +636,9 @@ const wchar* WINAPI GetTerminalPathW() {
    static wchar* path;
 
    if (!path) {
-      const wchar* filename = GetTerminalFileNameW();
-      if (filename) {
+      if (const wchar* filename = GetTerminalFileNameW()) {
          wchar* tmp = wstrdup(filename);
          tmp[wstring(tmp).find_last_of(L"\\")] = '\0';
-
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -668,8 +659,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    static char* path;
 
    if (!path) {
-      const wchar* wpath = GetTerminalRoamingDataPathW();
-      if (wpath) {
+      if (const wchar* wpath = GetTerminalRoamingDataPathW()) {
          char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
@@ -720,7 +710,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
 uint WINAPI GetTerminalBuild() {
    static uint build;
    if (!build) {
-      VS_FIXEDFILEINFO fileInfo;
+      VS_FIXEDFILEINFO fileInfo = {};
       if      (GetTerminalVersionFromImage(&fileInfo)) {}
       else if (GetTerminalVersionFromFile(&fileInfo)) {}
       else return(NULL);
@@ -741,7 +731,7 @@ const char* WINAPI GetTerminalVersion() {
    static char* version;
 
    if (!version) {
-      VS_FIXEDFILEINFO fileInfo;
+      VS_FIXEDFILEINFO fileInfo = {};
       if      (GetTerminalVersionFromImage(&fileInfo)) {}
       else if (GetTerminalVersionFromFile(&fileInfo)) {}
       else return(NULL);
