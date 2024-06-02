@@ -2,8 +2,6 @@
 #include "expander.h"
 
 
-BOOL         WINAPI IsTerminalPortableMode();
-
 const char*  WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile);
 HWND         WINAPI FindInputDialogA(ProgramType programType, const char* programName);
 const char*  WINAPI GetExpanderFileNameA();
@@ -31,6 +29,7 @@ uint         WINAPI GetTerminalBuild();
 const char*  WINAPI GetTerminalVersion();
 BOOL         WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO* fileInfo);
 BOOL         WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO* fileInfo);
+BOOL         WINAPI IsPortableMode();
 BOOL         WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName);
 BOOL         WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* programName);
 BOOL         WINAPI ReopenAlertDialog(BOOL sound);

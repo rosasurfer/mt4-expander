@@ -81,19 +81,20 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    char*              dllErrorMsg;                    //       724        4     DLL error message                                         (var)
    int                mqlError;                       //       728        4     last MQL error (of all MQL modules)                       (var)
                                                       //
-   int                loglevel;                       //       732        4     program main loglevel                                     (var)
-   int                loglevelDebug;                  //       736        4     loglevel of the debug output appender                     (var)
-   int                loglevelTerminal;               //       740        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       744        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelFile;                   //       748        4     loglevel of the custom logfile appender                   (var)
-   int                loglevelMail;                   //       752        4     loglevel of the mail appender                             (var)
-   int                loglevelSMS;                    //       756        4     loglevel of the SMS appender                              (var)
+   DWORD              debugOptions;                   //       732        4     specified CLI debug options                               (var)
+   int                loglevel;                       //       736        4     program main loglevel                                     (var)
+   int                loglevelDebug;                  //       740        4     loglevel of the debug output appender                     (var)
+   int                loglevelTerminal;               //       744        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       748        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelFile;                   //       752        4     loglevel of the custom logfile appender                   (var)
+   int                loglevelMail;                   //       756        4     loglevel of the mail appender                             (var)
+   int                loglevelSMS;                    //       760        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logger;                         //       760        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       764        4     log buffer                                                (var)
-   char               logFilename[MAX_PATH];          //       768      260     log filename                                              (var)
+   std::ofstream*     logger;                         //       764        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       768        4     log buffer                                                (var)
+   char               logFilename[MAX_PATH];          //       772      260     log filename                                              (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //             = 1028
+#pragma pack(pop)                                     //             = 1032
 
 
 // exported getters
@@ -157,6 +158,7 @@ int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int 
 //                        ec.dllErrorMsg
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int error);
 
+DWORD              WINAPI ec_SetDebugOptions        (EXECUTION_CONTEXT* ec, DWORD options);
 int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelDebug       (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int level);

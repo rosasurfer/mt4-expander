@@ -9,24 +9,24 @@
 
 #include <shlobj.h>
 
-extern BOOL g_optionPortableMode;                        // whether cmd line option /portable is set
+extern BOOL  g_cliOptionPortableMode;                    // whether cmd line option /portable is set
 
 extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
 
 
 /**
- * Whether the terminal operates in portable mode, i.e. it was launched with the command line parameter "/portable". In portable
- * mode the terminal behaves like in Windows XP or ealier. It uses the installation directory for program data and ignores a
- * UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
+ * Whether the terminal operates in portable mode, i.e. it was launched with the command line parameter "/portable".
+ * In portable mode the terminal behaves like under Windows XP or ealier. It uses the installation directory for program data
+ * and ignores a UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
  *
  * @return BOOL
  */
-BOOL WINAPI IsTerminalPortableMode() {
+BOOL WINAPI IsPortableMode() {
    static int portableMode = -1;
 
    if (portableMode < 0) {
-      portableMode = (GetTerminalBuild() <= 509 || g_optionPortableMode);
+      portableMode = (GetTerminalBuild() <= 509 || g_cliOptionPortableMode);
    }
    return(portableMode);
    #pragma EXPANDER_EXPORT
@@ -477,8 +477,8 @@ const char* WINAPI GetTerminalDataPathA() {
       char* tmp = NULL;
 
       // check portable mode
-      if (GetTerminalBuild() <= 509 || IsTerminalPortableMode()) {
-         // data path is always the installation directory, independant of write permissions
+      if (IsPortableMode()) {
+         // data path is the installation directory, independant of write permissions
          tmp = strdup(terminalPath);
       }
       else {
@@ -518,8 +518,8 @@ const wchar* WINAPI GetTerminalDataPathW() {
       wchar* tmp = NULL;
 
       // check portable mode
-      if (GetTerminalBuild() <= 509 || IsTerminalPortableMode()) {
-         // data path is always the installation directory, independant of write permissions
+      if (IsPortableMode()) {
+         // data path is the installation directory, independant of write permissions
          tmp = wstrdup(terminalPath);
       }
       else {
