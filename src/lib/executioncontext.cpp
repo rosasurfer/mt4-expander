@@ -6,11 +6,8 @@
 #include "lib/math.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
-#include "lib/tester.h"
-#include "lib/timeseries.h"
 #include "struct/rsf/ExecutionContext.h"
 
-#include <ctime>
 #include <fstream>
 
 
@@ -32,7 +29,6 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
 /**
  * Core function call order of multiple tests with VisualMode=on
  * =============================================================
- *
  * Indicators loaded by iCustom() are reloaded into the existing tester chart with IR_PROGRAM_AFTERTEST and unloaded when the tester chart closes.
  *
  * --- start of test (chart window opens) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -122,7 +118,6 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
 /**
  * Core function call order of multiple tests with VisualMode=off
  * ==============================================================
- *
  * Between tests indicators loaded by iCustom() are reloaded with IR_PROGRAM_AFTERTEST and immediately unloaded.
  *
  * --- start of test -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -204,8 +199,7 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
 /**
  * Core function call order on loading/unloading of MQL libraries
  * ==============================================================
- *
- * When already loaded libraries are reloaded they may or may not keep state depending on the reason for reloading.
+ * When an already loaded library is reloaded it may or may not keep state depending on the reason for reloading.
  * States and core function call order during reloading are as follows:
  *
  * (1) Libraries loaded by indicators are reloaded during the indicator's regular init cycle (UR_CHARTCHANGE) and keep state.
@@ -250,9 +244,10 @@ struct RECOMPILED_MODULE {                         // A struct holding the last 
  * (2) Libraries loaded by experts are not reloaded during the expert's regular init cycle (UR_CHARTCHANGE).
  *
  *
- * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same strategy and keep state. In newer
- *     terminals (since when exactly?) this happens only if the test was not explicitly stopped by using the "Stop" button.
- *     In older terminals (e.g. build 500) this happens for all such tests.
+ * (3) Libraries loaded by experts in tester are reloaded between multiple tests of the same expert and keep state.
+ *     In older terminals (e.g. build 500) this happens for all tests. In newer terminals (when exactly?) this happens only
+ *     if the test was not stopped by using the "Stop" button. If the "Stop" button was used the next test of the same epert
+ *     will load a new (clean) instance of the library.
  *
  *     Expert in tester with simple library calls:
  *     --- Tester Start -----------------------------------------------------------------------------------------------------
@@ -426,8 +421,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       master->ticks        = ec->ticks        = (uint)(initReason == IR_ACCOUNTCHANGE);
       master->currTickTime = ec->currTickTime = 0;
       master->prevTickTime = ec->prevTickTime = 0;
-      master->bid          = ec->bid          = 0;
-      master->ask          = ec->ask          = 0;
    }
    else {}                                                                 // all values NULL or kept from the previous tick
    master->cycleTicks = ec->cycleTicks = 0;
@@ -541,8 +534,6 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
          ctx->cycleTicks          = cycleTicks;
          ctx->currTickTime        = tickTime;
          ctx->prevTickTime        = prevTickTime;
-         ctx->bid                 = bid;
-         ctx->ask                 = ask;
          ctx->threadId            = threadId;
 
          if (i < 2) {
