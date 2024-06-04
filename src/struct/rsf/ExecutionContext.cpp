@@ -640,7 +640,7 @@ DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
-* Set EXECUTION_CONTEXT.moduleDeinitFlags. If the passed context is the main context also update the master context.
+ * Set EXECUTION_CONTEXT.moduleDeinitFlags. If the passed context is the main context also update the master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -1253,19 +1253,19 @@ const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server
 
    for (size_t i=0; i < chainSize; i++) {
       if (chain[i] == ec) {                                    // context found
-         // update master
-         EXECUTION_CONTEXT* master = chain[0];
-         if (master && !StrCompare(master->accountServer, _server)) {
-            if (master->accountServer) {                       // free an existing string
-               free(master->accountServer);
+         if (EXECUTION_CONTEXT* master = chain[0]) {
+            // update master
+            if (!StrCompare(master->accountServer, _server)) {
+               if (master->accountServer) {                    // free an existing string
+                  free(master->accountServer);
+               }
+               master->accountServer = _server ? strdup(_server) : NULL;
             }
-            master->accountServer = _server ? strdup(_server) : NULL;
-         }
-
-         // update all other program modules (ignore existing strings; must not be different anyway)
-         for (i=1; i < chainSize; i++) {
-            if (chain[i]) {
-               chain[i]->accountServer = master->accountServer;
+            // update all other program modules (ignore existing strings; must not be different anyway)
+            for (i=1; i < chainSize; i++) {
+               if (chain[i]) {
+                  chain[i]->accountServer = master->accountServer;
+               }
             }
          }
          return(server);
@@ -1747,19 +1747,19 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
 
    for (size_t i=0; i < chainSize; i++) {
       if (chain[i] == ec) {                                             // context found
-         // update master
-         EXECUTION_CONTEXT* master = chain[0];
-         if (master && !StrCompare(master->logFilename, _filename)) {
-            if (master->logFilename) {                                  // free an existing string
-               free(master->logFilename);
+         if (EXECUTION_CONTEXT* master = chain[0]) {
+            // update master
+            if (!StrCompare(master->logFilename, _filename)) {
+               if (master->logFilename) {                               // free an existing string
+                  free(master->logFilename);
+               }
+               master->logFilename = _filename ? strdup(_filename) : NULL;
             }
-            master->logFilename = _filename ? strdup(_filename) : NULL;
-         }
-
-         // update all other program modules (ignore existing strings; must not be different anyway)
-         for (i=1; i < chainSize; i++) {
-            if (chain[i]) {
-               chain[i]->logFilename = master->logFilename;
+            // update all other program modules (ignore existing strings; must not be different anyway)
+            for (i=1; i < chainSize; i++) {
+               if (chain[i]) {
+                  chain[i]->logFilename = master->logFilename;
+               }
             }
          }
          return(filename);

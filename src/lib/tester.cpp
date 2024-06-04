@@ -76,10 +76,9 @@ int WINAPI Tester_GetBarModel() {
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
    if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control element \"Model\" not found")));
 
-   int index = ComboBox_GetCurSel(hWndBarModel);
-   if (index == CB_ERR) {                          // CB_ERR = EMPTY = -1
-      error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
-   }
+   int index = ComboBox_GetCurSel(hWndBarModel);      // CB_ERR = EMPTY = -1
+   if (index == CB_ERR) error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
+
    return(index);
    #pragma EXPANDER_EXPORT
 }
@@ -173,11 +172,11 @@ time32 WINAPI Tester_GetEndDate() {
  * @param  _In_  char*       symbol    - tested symbol
  * @param  _In_  uint        timeframe - test timeframe
  * @param  _In_  uint        barModel  - test bar model: MODE_EVERYTICK | MODE_CONTROLPOINTS | MODE_BAROPEN
- * @param  _Out_ FXT_HEADER* fxtHeader - pointer to a FXT_HEADER structure receiving the data
+ * @param  _Out_ FXT_HEADER &fxtHeader - struct FXT_HEADER receiving the data
  *
  * @return BOOL - success status (e.g. FALSE on I/O errors or if the file does not exist)
  */
-BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER* fxtHeader) {
+BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER &fxtHeader) {
    if ((uint)symbol < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
    if ((int)timeframe <= 0)              return(!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    using namespace std;
@@ -192,8 +191,8 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
    ifstream file(fxtFile.c_str(), ios::binary);
    if (!file) return(!warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
-   file.read((char*)fxtHeader, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+   file.read((char*)&fxtHeader, sizeof(fxtHeader));
+   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(fxtHeader), fxtFile.c_str()));
    return(TRUE);
 }
 
@@ -209,12 +208,13 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER)               return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
 
-   FXT_HEADER* fxtHeader = new FXT_HEADER();
-   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, Tester_GetBarModel(), fxtHeader)) {
-      delete fxtHeader;
-      return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header")));
+   int barModel = Tester_GetBarModel();
+   FXT_HEADER fxtHeader = {};
+
+   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, barModel, fxtHeader)) {
+      return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header for %s,%s (bar model: %s)", ec->symbol, PeriodDescriptionA(ec->timeframe), BarModelDescription(barModel))));
    }
-   return(fxtHeader->commissionValue);
+   return(fxtHeader.commissionValue);
    #pragma EXPANDER_EXPORT
 }
 

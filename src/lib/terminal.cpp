@@ -711,8 +711,8 @@ uint WINAPI GetTerminalBuild() {
    static uint build;
    if (!build) {
       VS_FIXEDFILEINFO fileInfo = {};
-      if      (GetTerminalVersionFromImage(&fileInfo)) {}
-      else if (GetTerminalVersionFromFile(&fileInfo)) {}
+      if      (GetTerminalVersionFromImage(fileInfo)) {}
+      else if (GetTerminalVersionFromFile(fileInfo)) {}
       else return(NULL);
 
       build = fileInfo.dwFileVersionLS & 0xffff;
@@ -732,8 +732,8 @@ const char* WINAPI GetTerminalVersion() {
 
    if (!version) {
       VS_FIXEDFILEINFO fileInfo = {};
-      if      (GetTerminalVersionFromImage(&fileInfo)) {}
-      else if (GetTerminalVersionFromFile(&fileInfo)) {}
+      if      (GetTerminalVersionFromImage(fileInfo)) {}
+      else if (GetTerminalVersionFromFile(fileInfo)) {}
       else return(NULL);
 
       uint major  = (fileInfo.dwFileVersionMS >> 16) & 0xffff;
@@ -753,11 +753,11 @@ const char* WINAPI GetTerminalVersion() {
 /**
  * Read the terminal's version infos from the executable file.
  *
- * @param  VS_FIXEDFILEINFO* fileInfo - struct the version infos are written to
+ * @param  VS_FIXEDFILEINFO &fileInfo - struct the version infos are written to
  *
  * @return BOOL - success status
  */
-BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO* fileInfo) {
+BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO &fileInfo) {
    const char* fileName = GetTerminalFileNameA();
    DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
    if (!infoSize) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfoSize()"));
@@ -771,7 +771,7 @@ BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO* fileInfo) {
    success = VerQueryValueA(infos, "\\", (void**)&result, &len);
    if (!success) return(!error(ERR_WIN32_ERROR+GetLastError(), "->VerQueryValue()"));
 
-   *fileInfo = *result;                         // copy content of result to fileInfo
+   fileInfo = *result;                          // copy content of result to fileInfo
    return(TRUE);
 }
 
@@ -779,11 +779,11 @@ BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO* fileInfo) {
 /**
  * Read the terminal's version infos from the PE image in memory.
  *
- * @param  VS_FIXEDFILEINFO* fileInfo - struct the version infos are written to
+ * @param  VS_FIXEDFILEINFO &fileInfo - struct the version infos are written to
  *
  * @return BOOL - success status
  */
-BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO* fileInfo) {
+BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
    static VS_FIXEDFILEINFO* result;             // the resource stays in memory until the process terminates
 
    if (!result) {
@@ -806,7 +806,7 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO* fileInfo) {
       }
    }
 
-   *fileInfo = *result;                         // copy content of result to fileInfo
+   fileInfo = *result;                          // copy content of result to fileInfo
    return(TRUE);
 }
 
