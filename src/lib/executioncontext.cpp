@@ -694,9 +694,6 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
                master->programType = PT_EXPERT;
                master->moduleType  = MT_EXPERT;
 
-               strcpy(master->newSymbol, symbol);                    // first moment a new symbol/timeframe show up
-               master->newTimeframe = timeframe;
-
                master->digits       = digits;                        // TODO: fix terminal bug
                master->pipDigits    = digits & (~1);
                master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
@@ -758,20 +755,18 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       else {}                                                        // indicator in init cycle
 
       // update known master values
-      strcpy(master->newSymbol, symbol);                             // first moment a new symbol/timeframe show up
-      master->newTimeframe  = timeframe;
-      master->rates         = NULL;
-      master->bars          =  0;
-      master->validBars     = -1;
-      master->changedBars   = -1;
+      master->rates       = NULL;
+      master->bars        =  0;
+      master->validBars   = -1;
+      master->changedBars = -1;
 
-      master->digits        = digits;                                // TODO: fix terminal bug
-      master->pipDigits     = digits & (~1);
-      master->pip           = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
-      master->point         = point;
+      master->digits    = digits;                                    // TODO: fix terminal bug
+      master->pipDigits = digits & (~1);
+      master->pip       = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
+      master->point     = point;
 
-      master->superContext  = NULL;                                  // no super context at all or already released
-      master->threadId      = GetCurrentThreadId();
+      master->superContext = NULL;                                   // no super context at all or already released
+      master->threadId     = GetCurrentThreadId();
 
       master->dllWarning    = NO_ERROR;
       master->dllWarningMsg = NULL;                                  // TODO: release memory of existing messages
@@ -846,16 +841,14 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->moduleType       = (ModuleType)master->programType;
          strcpy(master->moduleName, master->programName);
 
-         strcpy(master->newSymbol, symbol);                          // first moment a new symbol/timeframe show up
-         master->newTimeframe = timeframe;
-         master->bars         =  0;
-         master->validBars    = -1;
-         master->changedBars  = -1;
+         master->bars        =  0;
+         master->validBars   = -1;
+         master->changedBars = -1;
 
-         master->digits       = digits;                              // TODO: fix terminal bug
-         master->pipDigits    = digits & (~1);
-         master->pip          = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
-         master->point        = point;
+         master->digits    = digits;                                 // TODO: fix terminal bug
+         master->pipDigits = digits & (~1);
+         master->pip       = round(1./pow((double)10., (int)master->pipDigits), master->pipDigits);
+         master->point     = point;
 
          master->threadId     = g_threads[threadIndex];
          master->testing      = TRUE;
@@ -966,8 +959,6 @@ int WINAPI LeaveContext(EXECUTION_CONTEXT* ec) {
                if (i < 2) {
                   ctx->moduleCoreFunction = (CoreFunction)NULL;
                }
-               *ctx->newSymbol   = '\0';
-               ctx->newTimeframe = NULL;
             }
             else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
          }
