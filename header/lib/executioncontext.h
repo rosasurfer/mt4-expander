@@ -1,6 +1,6 @@
 #pragma once
 #include "expander.h"
-#include "struct/rsf/ExecutionContext.h"
+#include "struct/ExecutionContext.h"
 
 
 int                WINAPI SyncMainContext_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, int recorder, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, const char* accountServer, int accountNumber);
