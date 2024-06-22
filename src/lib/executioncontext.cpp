@@ -514,8 +514,8 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    time32 prevTickTime = ec->currTickTime;
    DWORD  threadId     = GetCurrentThreadId();
 
-   if (validBars && tickTime < prevTickTime) {                       // don't trigger a ticktime error if all bars have changed
-      return(error(ERR_ILLEGAL_STATE, "ticktime is running backwards:  tick=%d  tickTime=%s  prevTickTime=%s  ec=%s", ticks, GmtTimeFormatA(tickTime, "%Y.%m.%d %H:%M:%S"), GmtTimeFormatA(prevTickTime, "%Y.%m.%d %H:%M:%S"), EXECUTION_CONTEXT_toStr(ec)));
+   if (validBars && tickTime < prevTickTime) {                       // don't warn if all bars have changed (used to be interpreted as fatal error, now only as warning)
+      warn(ERR_ILLEGAL_STATE, "ticktime is running backwards:  tick=%d  tickTime=%s  prevTickTime=%s  bars=%d  validBars=%d  changedBars=%d  ec=%s", ticks, GmtTimeFormatA(tickTime, "%Y.%m.%d %H:%M:%S"), GmtTimeFormatA(prevTickTime, "%Y.%m.%d %H:%M:%S"), bars, validBars, changedBars, EXECUTION_CONTEXT_toStr(ec));
    }
 
    ContextChain &chain = *g_mqlInstances[ec->pid];

@@ -1813,8 +1813,8 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", changedBars="          <<                      ec->changedBars
          << ", ticks="                <<                      ec->ticks
          << ", cycleTicks="           <<                      ec->cycleTicks
-         << ", currTickTime="         <<                     (ec->currTickTime ? GmtTimeFormatA(ec->currTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
-         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormatA(ec->prevTickTime, "\"%Y.%m.%d %H:%M:%S\"") : "0")
+         << ", currTickTime="         <<                     (ec->currTickTime ? GmtTimeFormatA(ec->currTickTime, "%Y.%m.%d %H:%M:%S") : "0")
+         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormatA(ec->prevTickTime, "%Y.%m.%d %H:%M:%S") : "0")
 
          << ", digits="               <<                      ec->digits
          << ", pipDigits="            <<                      ec->pipDigits
@@ -1847,7 +1847,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
          << ", loglevelSMS="          << LoglevelDescriptionA(ec->loglevelSMS)
          << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "(null)")
-         << ", logBuffer="            <<              "(" << (ec->logBuffer ? ec->logBuffer->size() : 0) << ")"
+         << ", logBufferSize="        <<                     (ec->logBuffer ? ec->logBuffer->size() : 0)
          << ", logFilename="          <<       DoubleQuoteStr(ec->logFilename)
          << "}";
    }
