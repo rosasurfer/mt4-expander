@@ -603,8 +603,9 @@ wstring WINAPI ansiToUnicode(const string &str) {
    int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
    if (bufSize) {
       wstring wstr(bufSize, 0);
-      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize))
+      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize)) {
          return(wstr);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert ANSI string to wide Unicode");
    return(wstring(L""));
@@ -640,8 +641,9 @@ string WINAPI unicodeToAnsi(const wstring &wstr) {
    int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
    if (bufSize) {
       string str(bufSize, 0);
-      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL))
+      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
          return(str);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert wide Unicode string to ANSI");
    return(string(""));
@@ -665,8 +667,9 @@ string WINAPI unicodeToUtf8(const wstring &wstr) {
    int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
    if (bufSize) {
       string str(bufSize, 0);
-      WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL);
-      return(str);
+      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
+         return(str);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert wide Unicode string to UTF-8");
    return(string(""));
@@ -702,8 +705,9 @@ wstring WINAPI utf8ToUnicode(const string &str) {
    int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
    if (bufSize) {
       wstring wstr(bufSize, 0);
-      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize))
+      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize)) {
          return(wstr);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-8 string to wide Unicode");
    return(wstring(L""));

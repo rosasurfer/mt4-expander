@@ -59,6 +59,7 @@
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
 			<Tool
@@ -140,6 +141,7 @@
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)\header&quot;;&quot;$(SolutionDir)\Plog\include&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;_SECURE_SCL=0;STDLIB_EXPORTS"
 				StringPooling="true"
+				MinimalRebuild="true"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -147,6 +149,7 @@
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
 			<Tool

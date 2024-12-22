@@ -161,8 +161,8 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
       switch ((WORD)error) {
          case MCIERR_DEVICE_OPEN:            break;            // if played again in the same thread: continue and re-use the device
          case MCIERR_WAVE_OUTPUTSUNSUITABLE: return(NULL);     // no sound device installed, quite common in VMs without RDP connection
-         case MCIERR_INVALID_DEVICE_NAME:    return(notice(ERR_MCI_ERROR+(WORD)error, "unsupported file type or codec not available"));
-         default:                            return( error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
+         case MCIERR_INVALID_DEVICE_NAME:    return(notice(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) unsupported file type or codec not available", cmd.c_str()));
+         default:                            return( error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
       }
    }
 
@@ -170,10 +170,13 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    cmd.replace(0, 4, L"play").append(L" from 0");              // reset play position to start (in case sound is played again)
    error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
    if (error) {
+      int loglevel = LOG_NOTICE;
       switch ((WORD)error) {                                   // MIDI files can't be mixed with the MCI extension
-         case MCIERR_SEQ_PORT_INUSE: return(notice(ERR_MCI_ERROR+(WORD)error, "MIDI sequencer already in use"));
-         default:                    return( error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
+         case MCIERR_SEQ_PORT_INUSE:
+         case MCIERR_WAVE_OUTPUTSINUSE:
+            return(notice(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
       }
+      return(error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
    }
 
    // intentionally leave sound open for faster re-use
