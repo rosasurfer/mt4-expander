@@ -59,6 +59,7 @@
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
 			<Tool
@@ -140,6 +141,7 @@
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)\header&quot;;&quot;$(SolutionDir)\Plog\include&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;_SECURE_SCL=0;STDLIB_EXPORTS"
 				StringPooling="true"
+				MinimalRebuild="true"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -147,6 +149,7 @@
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
 			<Tool
@@ -287,22 +290,6 @@
 					RelativePath=".\header\lib\timeseries.h"
 					>
 				</File>
-				<Filter
-					Name="lock"
-					>
-					<File
-						RelativePath=".\header\lib\lock\CriticalSection.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\lib\lock\Lock.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\lib\lock\Locker.h"
-						>
-					</File>
-				</Filter>
 			</Filter>
 			<Filter
 				Name="shared"
@@ -319,6 +306,18 @@
 			<Filter
 				Name="struct"
 				>
+				<File
+					RelativePath=".\header\struct\CustomPosition.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\struct\ExecutionContext.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\struct\LogMessage.h"
+					>
+				</File>
 				<Filter
 					Name="mt4"
 					>
@@ -356,22 +355,6 @@
 					</File>
 					<File
 						RelativePath=".\header\struct\mt4\Tick.h"
-						>
-					</File>
-				</Filter>
-				<Filter
-					Name="rsf"
-					>
-					<File
-						RelativePath=".\header\struct\rsf\CustomPosition.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\struct\rsf\ExecutionContext.h"
-						>
-					</File>
-					<File
-						RelativePath=".\header\struct\rsf\LogMessage.h"
 						>
 					</File>
 				</Filter>
@@ -606,26 +589,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\lib\lock.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\lib\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\src\lib\log.cpp"
 					>
 				</File>
@@ -745,6 +708,10 @@
 			<Filter
 				Name="struct"
 				>
+				<File
+					RelativePath=".\src\struct\ExecutionContext.cpp"
+					>
+				</File>
 				<Filter
 					Name="win32"
 					>
@@ -845,30 +812,6 @@
 							<Tool
 								Name="VCCLCompilerTool"
 								ObjectFile="$(IntDir)\struct\win32\"
-							/>
-						</FileConfiguration>
-					</File>
-				</Filter>
-				<Filter
-					Name="rsf"
-					>
-					<File
-						RelativePath=".\src\struct\rsf\ExecutionContext.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\rsf\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\struct\rsf\"
 							/>
 						</FileConfiguration>
 					</File>

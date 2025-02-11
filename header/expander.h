@@ -28,8 +28,8 @@ typedef          __time32_t  time32;                        // MQL4 32-bit times
 typedef          __time64_t  time64;                        // MQL5 64-bit timestamp
 typedef            tm        TM;                            // C time structure
 
-namespace rsf {}                                            // define and always prefer the project's main namespace
-using namespace rsf;
+namespace rsf {}                                            // define namespace 'rsf'
+using namespace rsf;                                        // always prefer namespace 'rsf'
 
 using std::size_t;
 using std::string;
@@ -94,6 +94,7 @@ enum InitializeReason {                                     // +-- init reason -
    IR_PARAMETERS        = INITREASON_PARAMETERS,            // | input parameters changed                      |    input dialog |   I, E      |
    IR_TIMEFRAMECHANGE   = INITREASON_TIMEFRAMECHANGE,       // | chart period changed                          | no input dialog |   I, E      |
    IR_SYMBOLCHANGE      = INITREASON_SYMBOLCHANGE,          // | chart symbol changed                          | no input dialog |   I, E      |
+   IR_ACCOUNTCHANGE     = INITREASON_ACCOUNTCHANGE,         // | account changed                               | no input dialog |   I         |
    IR_RECOMPILE         = INITREASON_RECOMPILE,             // | reloaded after recompilation                  | no input dialog |   I, E      |
    IR_TERMINAL_FAILURE  = INITREASON_TERMINAL_FAILURE       // | terminal failure                              |    input dialog |      E      |   @see https://github.com/rosasurfer/mt4-mql/issues/1
 };                                                          // +-----------------------------------------------+-----------------+-------------+
@@ -101,30 +102,32 @@ enum InitializeReason {                                     // +-- init reason -
 
 // MQL program uninitialize reasons
 enum UninitializeReason {
-   UR_UNDEFINED         = UNINITREASON_UNDEFINED,
-   UR_REMOVE            = UNINITREASON_REMOVE,
-   UR_RECOMPILE         = UNINITREASON_RECOMPILE,
-   UR_CHARTCHANGE       = UNINITREASON_CHARTCHANGE,
-   UR_CHARTCLOSE        = UNINITREASON_CHARTCLOSE,
-   UR_PARAMETERS        = UNINITREASON_PARAMETERS,
-   UR_ACCOUNT           = UNINITREASON_ACCOUNT,
+   UR_UNDEFINED   = UNINITREASON_UNDEFINED,
+   UR_REMOVE      = UNINITREASON_REMOVE,
+   UR_RECOMPILE   = UNINITREASON_RECOMPILE,
+   UR_CHARTCHANGE = UNINITREASON_CHARTCHANGE,
+   UR_CHARTCLOSE  = UNINITREASON_CHARTCLOSE,
+   UR_PARAMETERS  = UNINITREASON_PARAMETERS,
+   UR_ACCOUNT     = UNINITREASON_ACCOUNT,
    // since terminal build > 509
-   UR_TEMPLATE          = UNINITREASON_TEMPLATE,
-   UR_INITFAILED        = UNINITREASON_INITFAILED,
-   UR_CLOSE             = UNINITREASON_CLOSE
+   UR_TEMPLATE    = UNINITREASON_TEMPLATE,
+   UR_INITFAILED  = UNINITREASON_INITFAILED,
+   UR_CLOSE       = UNINITREASON_CLOSE
 };
 
 
-// Debugging and error handling.
-#define dump(...)   _dump (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define debug(...)  _debug(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define warn(...)   _warn (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define error(...)  _error(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+// Debugging and error handling
+#define dump(...)   _dump  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define debug(...)  _debug (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define notice(...) _notice(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define warn(...)   _warn  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define error(...)  _error (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int __cdecl _dump (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode=DUMPMODE_HEX);
-int __cdecl _debug(const char* fileName, const char* funcName, int line, const char* message, ...);
-int __cdecl _warn (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
-int __cdecl _error(const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+int __cdecl _dump  (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode=DUMPMODE_HEX);
+int __cdecl _debug (const char* fileName, const char* funcName, int line, const char* message, ...);
+int __cdecl _notice(const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+int __cdecl _warn  (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+int __cdecl _error (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 
 
 // Helper functions returning constant values. All parameters are ignored.

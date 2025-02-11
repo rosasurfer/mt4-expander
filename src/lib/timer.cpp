@@ -5,7 +5,7 @@
 #include <vector>
 
 
-extern CRITICAL_SECTION       g_terminalMutex;           // mutex for application-wide locking
+extern CRITICAL_SECTION       g_expanderMutex;           // mutex for Expander-wide locking
 std::vector<TICK_TIMER_DATA*> g_tickTimers;              // all registered ticktimers
 
 
@@ -24,9 +24,9 @@ VOID CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) {
       }
       if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
 
-      if      (ttd->flags & TICK_CHART_REFRESH) PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);   // triggers indicators but not experts
-      else if (ttd->flags & TICK_TESTER)        PostMessage(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-      else                                      PostMessage(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);   // triggers indicators and experts in online/offline charts
+      if      (ttd->flags & TICK_CHART_REFRESH) PostMessageA(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);  // triggers indicators but not experts
+      else if (ttd->flags & TICK_TESTER)        PostMessageA(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
+      else                                      PostMessageA(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);  // triggers indicators and experts in online/offline charts
    }
    else {
       // expected case if an MQL program crashes and fails to release its resources
@@ -61,9 +61,9 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // generate a new timer id and timer metadata
-   if (!TryEnterCriticalSection(&g_terminalMutex)) {
-      debug("waiting to aquire lock on g_terminalMutex...");
-      EnterCriticalSection(&g_terminalMutex);
+   if (!TryEnterCriticalSection(&g_expanderMutex)) {
+      debug("waiting for lock on g_expanderMutex...");
+      EnterCriticalSection(&g_expanderMutex);
    }
    static uint lastTimerId = 0;                                // a simple counter
    uint timerId = ++lastTimerId;
@@ -75,12 +75,12 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    ttd->hWnd     = hWnd;
    ttd->flags    = flags;
    g_tickTimers.push_back(ttd);                                // may re-allocate, thus needs to be synchronized
-   LeaveCriticalSection(&g_terminalMutex);
+   LeaveCriticalSection(&g_expanderMutex);
 
    // create the timer
-   if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK)onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD))
-      return(!error(ERR_WIN32_ERROR+GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis));
-
+   if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK)onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD)) {
+      return(!error(ERR_WIN32_ERROR+GetLastError(), "->CreateTimerQueueTimer(interval=%d)", millis));
+   }
    return(ttd->timerId);
    #pragma EXPANDER_EXPORT
 }

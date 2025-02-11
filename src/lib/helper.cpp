@@ -9,13 +9,13 @@ extern "C" {
 }
 
 
-typedef std::map<string, int>    IntegerMap;       // all data is copied into the container
-typedef std::map<string, double> DoubleMap;
-typedef std::map<string, string> StringMap;
+typedef std::map<string, int>    IntegerMap;       // map = associative array
+typedef std::map<string, double> DoubleMap;        // new elements are always copied into the containers
+typedef std::map<string, string> StringMap;        //
 
-IntegerMap integerProperties;                      // a map with integers stored as window properties
-DoubleMap  doubleProperties;                       // a map with doubles stored as window properties
-StringMap  stringProperties;                       // a map with strings stored as window properties
+IntegerMap g_intWndProperties;                     // a map with integers stored as window properties
+DoubleMap  g_doubleWndProperties;                  // a map with doubles stored as window properties
+StringMap  g_stringWndProperties;                  // a map with strings stored as window properties
 
 
 /**
@@ -222,9 +222,10 @@ BOOL WINAPI IsVirtualKeyDown(int vKey) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
-   if (!threadId)
+BOOL WINAPI IsUIThread(DWORD threadId/*=NULL*/) {
+   if (!threadId) {
       threadId = GetCurrentThreadId();
+   }
    return(threadId == GetUIThreadId());
    #pragma EXPANDER_EXPORT
 }
@@ -239,9 +240,9 @@ DWORD WINAPI GetUIThreadId() {
    static DWORD uiThreadId;
 
    if (!uiThreadId) {
-      HWND hWnd = GetTerminalMainWindow();
-      if (hWnd)
+      if (HWND hWnd = GetTerminalMainWindow()) {
          uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
+      }
    }
    return(uiThreadId);
    #pragma EXPANDER_EXPORT
@@ -288,7 +289,7 @@ BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
    if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   integerProperties[key] = value;
+   g_intWndProperties[key] = value;
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -310,7 +311,7 @@ BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
    if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   doubleProperties[key] = value;
+   g_doubleWndProperties[key] = value;
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -333,7 +334,7 @@ BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
    if ((uint)value < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
 
    string key = to_string(hWnd).append("|").append(name);
-   stringProperties[key] = value;
+   g_stringWndProperties[key] = value;
 
    return(TRUE);
    #pragma EXPANDER_EXPORT
@@ -354,9 +355,9 @@ int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
    if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   IntegerMap::iterator result = integerProperties.find(key);
+   IntegerMap::iterator result = g_intWndProperties.find(key);
 
-   if (result != integerProperties.end())
+   if (result != g_intWndProperties.end())
       return(result->second);
    return(NULL);
    #pragma EXPANDER_EXPORT
@@ -377,9 +378,9 @@ double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
    if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   DoubleMap::iterator result = doubleProperties.find(key);
+   DoubleMap::iterator result = g_doubleWndProperties.find(key);
 
-   if (result != doubleProperties.end())
+   if (result != g_doubleWndProperties.end())
       return(result->second);
    return(NULL);
    #pragma EXPANDER_EXPORT
@@ -400,9 +401,9 @@ const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
    if (!*name)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   StringMap::iterator result = stringProperties.find(key);
+   StringMap::iterator result = g_stringWndProperties.find(key);
 
-   if (result != stringProperties.end())
+   if (result != g_stringWndProperties.end())
       return(result->second.c_str());
    return(NULL);
    #pragma EXPANDER_EXPORT
@@ -410,7 +411,7 @@ const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
 
 
 /**
- * Remove and return a named integer value linked to the specified window.
+ * Remove a named integer value linked to the specified window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - integer name
@@ -423,11 +424,11 @@ int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
    if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   IntegerMap::iterator result = integerProperties.find(key);
+   IntegerMap::iterator result = g_intWndProperties.find(key);
 
-   if (result != integerProperties.end()) {
+   if (result != g_intWndProperties.end()) {
       int value = result->second;
-      integerProperties.erase(result);
+      g_intWndProperties.erase(result);
       return(value);
    }
    return(NULL);
@@ -436,7 +437,7 @@ int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
 
 
 /**
- * Remove and return a named double value linked to the specified window.
+ * Remove a named double value linked to the specified window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
@@ -449,11 +450,11 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
    if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   DoubleMap::iterator result = doubleProperties.find(key);
+   DoubleMap::iterator result = g_doubleWndProperties.find(key);
 
-   if (result != doubleProperties.end()) {
+   if (result != g_doubleWndProperties.end()) {
       double value = result->second;
-      doubleProperties.erase(result);
+      g_doubleWndProperties.erase(result);
       return(value);
    }
    return(NULL);
@@ -462,7 +463,7 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
 
 
 /**
- * Remove and return a named string linked to the specified window.
+ * Remove a named string linked to the specified window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
@@ -475,11 +476,11 @@ const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    if (!*name)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
 
    string key = to_string(hWnd).append("|").append(name);
-   StringMap::iterator result = stringProperties.find(key);
+   StringMap::iterator result = g_stringWndProperties.find(key);
 
-   if (result != stringProperties.end()) {
+   if (result != g_stringWndProperties.end()) {
       string value = result->second;
-      stringProperties.erase(result);           // invalidates result and releases result->second
+      g_stringWndProperties.erase(result);      // invalidates result and releases result->second
       return(strdup(value.c_str()));            // TODO: close memory leak
    }
    return(NULL);
@@ -488,12 +489,12 @@ const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
 
 
 /**
- * Release all stored window values. Called from DLL::onProcessDetach().
+ * Release all stored window properties. Called from DLL::onProcessDetach() only.
  */
 void WINAPI ReleaseWindowProperties() {
-   integerProperties.clear();
-   doubleProperties.clear();
-   stringProperties.clear();
+   g_intWndProperties.clear();
+   g_doubleWndProperties.clear();
+   g_stringWndProperties.clear();
 }
 
 

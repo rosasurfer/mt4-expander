@@ -3,6 +3,8 @@
 #include "lib/format.h"
 #include "lib/string.h"
 
+#include <mmsystem.h>
+
 
 /**
  * Return a description of a test's bar model id.
@@ -93,7 +95,7 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
 
 
 /**
- * Return a readable version of an MQL error code.
+ * Return a readable version of an error code. Covers MQL errors, mapped Win32 errors and mapped MCI errors.
  *
  * @param  int error
  *
@@ -445,7 +447,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_STOP_DISTANCE_VIOLATED                                                     : return("ERR_STOP_DISTANCE_VIOLATED"                                         );    //  65559
       case ERR_MARGIN_STOPOUT                                                             : return("ERR_MARGIN_STOPOUT"                                                 );    //  65560
 
-      // Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
+      // mapped Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
       case ERR_WIN32_ERROR                                                                : return("win32:NO_ERROR"                                                     );    // 100000 +    0
       case ERR_WIN32_ERROR + ERROR_INVALID_FUNCTION                                       : return("win32:ERROR_INVALID_FUNCTION"                                       );    // 100000 +    1
       case ERR_WIN32_ERROR + ERROR_FILE_NOT_FOUND                                         : return("win32:ERROR_FILE_NOT_FOUND"                                         );    // 100000 +    2
@@ -996,6 +998,87 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_CONTROL_ID_NOT_FOUND                                   : return("win32:ERROR_CONTROL_ID_NOT_FOUND"                                   );    // 100000 + 1421
 
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT                                    : return("win32:ERROR_NOT_A_REPARSE_POINT"                                    );    // 100000 + 4390
+
+      // mapped MCI error codes
+      case ERR_MCI_ERROR                                                                  : return("mci:NO_ERROR"                                                       );    // 100000 +                 0
+      case ERR_MCI_ERROR + MCIERR_INVALID_DEVICE_ID                                       : return("mci:MCIERR_INVALID_DEVICE_ID"                                       );    // 200000 + (MCIERR_BASE +  1)
+      case ERR_MCI_ERROR + MCIERR_UNRECOGNIZED_KEYWORD                                    : return("mci:MCIERR_UNRECOGNIZED_KEYWORD"                                    );    // 200000 + (MCIERR_BASE +  3)
+      case ERR_MCI_ERROR + MCIERR_UNRECOGNIZED_COMMAND                                    : return("mci:MCIERR_UNRECOGNIZED_COMMAND"                                    );    // 200000 + (MCIERR_BASE +  5)
+      case ERR_MCI_ERROR + MCIERR_HARDWARE                                                : return("mci:MCIERR_HARDWARE"                                                );    // 200000 + (MCIERR_BASE +  6)
+      case ERR_MCI_ERROR + MCIERR_INVALID_DEVICE_NAME                                     : return("mci:MCIERR_INVALID_DEVICE_NAME"                                     );    // 200000 + (MCIERR_BASE +  7)
+      case ERR_MCI_ERROR + MCIERR_OUT_OF_MEMORY                                           : return("mci:MCIERR_OUT_OF_MEMORY"                                           );    // 200000 + (MCIERR_BASE +  8)
+      case ERR_MCI_ERROR + MCIERR_DEVICE_OPEN                                             : return("mci:MCIERR_DEVICE_OPEN"                                             );    // 200000 + (MCIERR_BASE +  9)
+      case ERR_MCI_ERROR + MCIERR_CANNOT_LOAD_DRIVER                                      : return("mci:MCIERR_CANNOT_LOAD_DRIVER"                                      );    // 200000 + (MCIERR_BASE + 10)
+      case ERR_MCI_ERROR + MCIERR_MISSING_COMMAND_STRING                                  : return("mci:MCIERR_MISSING_COMMAND_STRING"                                  );    // 200000 + (MCIERR_BASE + 11)
+      case ERR_MCI_ERROR + MCIERR_PARAM_OVERFLOW                                          : return("mci:MCIERR_PARAM_OVERFLOW"                                          );    // 200000 + (MCIERR_BASE + 12)
+      case ERR_MCI_ERROR + MCIERR_MISSING_STRING_ARGUMENT                                 : return("mci:MCIERR_MISSING_STRING_ARGUMENT"                                 );    // 200000 + (MCIERR_BASE + 13)
+      case ERR_MCI_ERROR + MCIERR_BAD_INTEGER                                             : return("mci:MCIERR_BAD_INTEGER"                                             );    // 200000 + (MCIERR_BASE + 14)
+      case ERR_MCI_ERROR + MCIERR_PARSER_INTERNAL                                         : return("mci:MCIERR_PARSER_INTERNAL"                                         );    // 200000 + (MCIERR_BASE + 15)
+      case ERR_MCI_ERROR + MCIERR_DRIVER_INTERNAL                                         : return("mci:MCIERR_DRIVER_INTERNAL"                                         );    // 200000 + (MCIERR_BASE + 16)
+      case ERR_MCI_ERROR + MCIERR_MISSING_PARAMETER                                       : return("mci:MCIERR_MISSING_PARAMETER"                                       );    // 200000 + (MCIERR_BASE + 17)
+      case ERR_MCI_ERROR + MCIERR_UNSUPPORTED_FUNCTION                                    : return("mci:MCIERR_UNSUPPORTED_FUNCTION"                                    );    // 200000 + (MCIERR_BASE + 18)
+      case ERR_MCI_ERROR + MCIERR_FILE_NOT_FOUND                                          : return("mci:MCIERR_FILE_NOT_FOUND"                                          );    // 200000 + (MCIERR_BASE + 19)
+      case ERR_MCI_ERROR + MCIERR_DEVICE_NOT_READY                                        : return("mci:MCIERR_DEVICE_NOT_READY"                                        );    // 200000 + (MCIERR_BASE + 20)
+      case ERR_MCI_ERROR + MCIERR_INTERNAL                                                : return("mci:MCIERR_INTERNAL"                                                );    // 200000 + (MCIERR_BASE + 21)
+      case ERR_MCI_ERROR + MCIERR_DRIVER                                                  : return("mci:MCIERR_DRIVER"                                                  );    // 200000 + (MCIERR_BASE + 22)
+      case ERR_MCI_ERROR + MCIERR_CANNOT_USE_ALL                                          : return("mci:MCIERR_CANNOT_USE_ALL"                                          );    // 200000 + (MCIERR_BASE + 23)
+      case ERR_MCI_ERROR + MCIERR_MULTIPLE                                                : return("mci:MCIERR_MULTIPLE"                                                );    // 200000 + (MCIERR_BASE + 24)
+      case ERR_MCI_ERROR + MCIERR_EXTENSION_NOT_FOUND                                     : return("mci:MCIERR_EXTENSION_NOT_FOUND"                                     );    // 200000 + (MCIERR_BASE + 25)
+      case ERR_MCI_ERROR + MCIERR_OUTOFRANGE                                              : return("mci:MCIERR_OUTOFRANGE"                                              );    // 200000 + (MCIERR_BASE + 26)
+      case ERR_MCI_ERROR + MCIERR_FLAGS_NOT_COMPATIBLE                                    : return("mci:MCIERR_FLAGS_NOT_COMPATIBLE"                                    );    // 200000 + (MCIERR_BASE + 28)
+      case ERR_MCI_ERROR + MCIERR_FILE_NOT_SAVED                                          : return("mci:MCIERR_FILE_NOT_SAVED"                                          );    // 200000 + (MCIERR_BASE + 30)
+      case ERR_MCI_ERROR + MCIERR_DEVICE_TYPE_REQUIRED                                    : return("mci:MCIERR_DEVICE_TYPE_REQUIRED"                                    );    // 200000 + (MCIERR_BASE + 31)
+      case ERR_MCI_ERROR + MCIERR_DEVICE_LOCKED                                           : return("mci:MCIERR_DEVICE_LOCKED"                                           );    // 200000 + (MCIERR_BASE + 32)
+      case ERR_MCI_ERROR + MCIERR_DUPLICATE_ALIAS                                         : return("mci:MCIERR_DUPLICATE_ALIAS"                                         );    // 200000 + (MCIERR_BASE + 33)
+      case ERR_MCI_ERROR + MCIERR_BAD_CONSTANT                                            : return("mci:MCIERR_BAD_CONSTANT"                                            );    // 200000 + (MCIERR_BASE + 34)
+      case ERR_MCI_ERROR + MCIERR_MUST_USE_SHAREABLE                                      : return("mci:MCIERR_MUST_USE_SHAREABLE"                                      );    // 200000 + (MCIERR_BASE + 35)
+      case ERR_MCI_ERROR + MCIERR_MISSING_DEVICE_NAME                                     : return("mci:MCIERR_MISSING_DEVICE_NAME"                                     );    // 200000 + (MCIERR_BASE + 36)
+      case ERR_MCI_ERROR + MCIERR_BAD_TIME_FORMAT                                         : return("mci:MCIERR_BAD_TIME_FORMAT"                                         );    // 200000 + (MCIERR_BASE + 37)
+      case ERR_MCI_ERROR + MCIERR_NO_CLOSING_QUOTE                                        : return("mci:MCIERR_NO_CLOSING_QUOTE"                                        );    // 200000 + (MCIERR_BASE + 38)
+      case ERR_MCI_ERROR + MCIERR_DUPLICATE_FLAGS                                         : return("mci:MCIERR_DUPLICATE_FLAGS"                                         );    // 200000 + (MCIERR_BASE + 39)
+      case ERR_MCI_ERROR + MCIERR_INVALID_FILE                                            : return("mci:MCIERR_INVALID_FILE"                                            );    // 200000 + (MCIERR_BASE + 40)
+      case ERR_MCI_ERROR + MCIERR_NULL_PARAMETER_BLOCK                                    : return("mci:MCIERR_NULL_PARAMETER_BLOCK"                                    );    // 200000 + (MCIERR_BASE + 41)
+      case ERR_MCI_ERROR + MCIERR_UNNAMED_RESOURCE                                        : return("mci:MCIERR_UNNAMED_RESOURCE"                                        );    // 200000 + (MCIERR_BASE + 42)
+      case ERR_MCI_ERROR + MCIERR_NEW_REQUIRES_ALIAS                                      : return("mci:MCIERR_NEW_REQUIRES_ALIAS"                                      );    // 200000 + (MCIERR_BASE + 43)
+      case ERR_MCI_ERROR + MCIERR_NOTIFY_ON_AUTO_OPEN                                     : return("mci:MCIERR_NOTIFY_ON_AUTO_OPEN"                                     );    // 200000 + (MCIERR_BASE + 44)
+      case ERR_MCI_ERROR + MCIERR_NO_ELEMENT_ALLOWED                                      : return("mci:MCIERR_NO_ELEMENT_ALLOWED"                                      );    // 200000 + (MCIERR_BASE + 45)
+      case ERR_MCI_ERROR + MCIERR_NONAPPLICABLE_FUNCTION                                  : return("mci:MCIERR_NONAPPLICABLE_FUNCTION"                                  );    // 200000 + (MCIERR_BASE + 46)
+      case ERR_MCI_ERROR + MCIERR_ILLEGAL_FOR_AUTO_OPEN                                   : return("mci:MCIERR_ILLEGAL_FOR_AUTO_OPEN"                                   );    // 200000 + (MCIERR_BASE + 47)
+      case ERR_MCI_ERROR + MCIERR_FILENAME_REQUIRED                                       : return("mci:MCIERR_FILENAME_REQUIRED"                                       );    // 200000 + (MCIERR_BASE + 48)
+      case ERR_MCI_ERROR + MCIERR_EXTRA_CHARACTERS                                        : return("mci:MCIERR_EXTRA_CHARACTERS"                                        );    // 200000 + (MCIERR_BASE + 49)
+      case ERR_MCI_ERROR + MCIERR_DEVICE_NOT_INSTALLED                                    : return("mci:MCIERR_DEVICE_NOT_INSTALLED"                                    );    // 200000 + (MCIERR_BASE + 50)
+      case ERR_MCI_ERROR + MCIERR_GET_CD                                                  : return("mci:MCIERR_GET_CD"                                                  );    // 200000 + (MCIERR_BASE + 51)
+      case ERR_MCI_ERROR + MCIERR_SET_CD                                                  : return("mci:MCIERR_SET_CD"                                                  );    // 200000 + (MCIERR_BASE + 52)
+      case ERR_MCI_ERROR + MCIERR_SET_DRIVE                                               : return("mci:MCIERR_SET_DRIVE"                                               );    // 200000 + (MCIERR_BASE + 53)
+      case ERR_MCI_ERROR + MCIERR_DEVICE_LENGTH                                           : return("mci:MCIERR_DEVICE_LENGTH"                                           );    // 200000 + (MCIERR_BASE + 54)
+      case ERR_MCI_ERROR + MCIERR_DEVICE_ORD_LENGTH                                       : return("mci:MCIERR_DEVICE_ORD_LENGTH"                                       );    // 200000 + (MCIERR_BASE + 55)
+      case ERR_MCI_ERROR + MCIERR_NO_INTEGER                                              : return("mci:MCIERR_NO_INTEGER"                                              );    // 200000 + (MCIERR_BASE + 56)
+
+      case ERR_MCI_ERROR + MCIERR_WAVE_OUTPUTSINUSE                                       : return("mci:MCIERR_WAVE_OUTPUTSINUSE"                                       );    // 200000 + (MCIERR_BASE + 64)
+      case ERR_MCI_ERROR + MCIERR_WAVE_SETOUTPUTINUSE                                     : return("mci:MCIERR_WAVE_SETOUTPUTINUSE"                                     );    // 200000 + (MCIERR_BASE + 65)
+      case ERR_MCI_ERROR + MCIERR_WAVE_INPUTSINUSE                                        : return("mci:MCIERR_WAVE_INPUTSINUSE"                                        );    // 200000 + (MCIERR_BASE + 66)
+      case ERR_MCI_ERROR + MCIERR_WAVE_SETINPUTINUSE                                      : return("mci:MCIERR_WAVE_SETINPUTINUSE"                                      );    // 200000 + (MCIERR_BASE + 67)
+      case ERR_MCI_ERROR + MCIERR_WAVE_OUTPUTUNSPECIFIED                                  : return("mci:MCIERR_WAVE_OUTPUTUNSPECIFIED"                                  );    // 200000 + (MCIERR_BASE + 68)
+      case ERR_MCI_ERROR + MCIERR_WAVE_INPUTUNSPECIFIED                                   : return("mci:MCIERR_WAVE_INPUTUNSPECIFIED"                                   );    // 200000 + (MCIERR_BASE + 69)
+      case ERR_MCI_ERROR + MCIERR_WAVE_OUTPUTSUNSUITABLE                                  : return("mci:MCIERR_WAVE_OUTPUTSUNSUITABLE"                                  );    // 200000 + (MCIERR_BASE + 70)
+      case ERR_MCI_ERROR + MCIERR_WAVE_SETOUTPUTUNSUITABLE                                : return("mci:MCIERR_WAVE_SETOUTPUTUNSUITABLE"                                );    // 200000 + (MCIERR_BASE + 71)
+      case ERR_MCI_ERROR + MCIERR_WAVE_INPUTSUNSUITABLE                                   : return("mci:MCIERR_WAVE_INPUTSUNSUITABLE"                                   );    // 200000 + (MCIERR_BASE + 72)
+      case ERR_MCI_ERROR + MCIERR_WAVE_SETINPUTUNSUITABLE                                 : return("mci:MCIERR_WAVE_SETINPUTUNSUITABLE"                                 );    // 200000 + (MCIERR_BASE + 73)
+
+      case ERR_MCI_ERROR + MCIERR_SEQ_DIV_INCOMPATIBLE                                    : return("mci:MCIERR_SEQ_DIV_INCOMPATIBLE"                                    );    // 200000 + (MCIERR_BASE + 80)
+      case ERR_MCI_ERROR + MCIERR_SEQ_PORT_INUSE                                          : return("mci:MCIERR_SEQ_PORT_INUSE"                                          );    // 200000 + (MCIERR_BASE + 81)
+      case ERR_MCI_ERROR + MCIERR_SEQ_PORT_NONEXISTENT                                    : return("mci:MCIERR_SEQ_PORT_NONEXISTENT"                                    );    // 200000 + (MCIERR_BASE + 82)
+      case ERR_MCI_ERROR + MCIERR_SEQ_PORT_MAPNODEVICE                                    : return("mci:MCIERR_SEQ_PORT_MAPNODEVICE"                                    );    // 200000 + (MCIERR_BASE + 83)
+      case ERR_MCI_ERROR + MCIERR_SEQ_PORT_MISCERROR                                      : return("mci:MCIERR_SEQ_PORT_MISCERROR"                                      );    // 200000 + (MCIERR_BASE + 84)
+      case ERR_MCI_ERROR + MCIERR_SEQ_TIMER                                               : return("mci:MCIERR_SEQ_TIMER"                                               );    // 200000 + (MCIERR_BASE + 85)
+      case ERR_MCI_ERROR + MCIERR_SEQ_PORTUNSPECIFIED                                     : return("mci:MCIERR_SEQ_PORTUNSPECIFIED"                                     );    // 200000 + (MCIERR_BASE + 86)
+      case ERR_MCI_ERROR + MCIERR_SEQ_NOMIDIPRESENT                                       : return("mci:MCIERR_SEQ_NOMIDIPRESENT"                                       );    // 200000 + (MCIERR_BASE + 87)
+
+      case ERR_MCI_ERROR + MCIERR_NO_WINDOW                                               : return("mci:MCIERR_NO_WINDOW"                                               );    // 200000 + (MCIERR_BASE + 90)
+      case ERR_MCI_ERROR + MCIERR_CREATEWINDOW                                            : return("mci:MCIERR_CREATEWINDOW"                                            );    // 200000 + (MCIERR_BASE + 91)
+      case ERR_MCI_ERROR + MCIERR_FILE_READ                                               : return("mci:MCIERR_FILE_READ"                                               );    // 200000 + (MCIERR_BASE + 92)
+      case ERR_MCI_ERROR + MCIERR_FILE_WRITE                                              : return("mci:MCIERR_FILE_WRITE"                                              );    // 200000 + (MCIERR_BASE + 93)
+      case ERR_MCI_ERROR + MCIERR_NO_IDENTITY                                             : return("mci:MCIERR_NO_IDENTITY"                                             );    // 200000 + (MCIERR_BASE + 94)
    }
 
    char* format = "%d";
@@ -1009,7 +1092,7 @@ const char* WINAPI ErrorToStrA(int error) {
 
 
 /**
- * Return a readable version of an MQL error code.
+ * Return a readable version of an error code. Covers MQL errors, mapped Win32 errors and mapped MCI errors.
  *
  * @param  int error
  *
@@ -1076,15 +1159,6 @@ char* WINAPI DeinitFlagsToStr(DWORD flags) {
 
 
 /**
- * Alias of InitReasonToStr()
- */
-const char* WINAPI InitializeReasonToStr(InitializeReason reason) {
-   return(InitReasonToStr(reason));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return a readable version of an InitializeReason.
  *
  * @param  InitializeReason reason
@@ -1101,6 +1175,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_PARAMETERS       : return("IR_PARAMETERS"       );
       case IR_TIMEFRAMECHANGE  : return("IR_TIMEFRAMECHANGE"  );
       case IR_SYMBOLCHANGE     : return("IR_SYMBOLCHANGE"     );
+      case IR_ACCOUNTCHANGE    : return("IR_ACCOUNTCHANGE"    );
       case IR_RECOMPILE        : return("IR_RECOMPILE"        );
       case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
@@ -1583,15 +1658,6 @@ const char* WINAPI TradeDirectionToStr(int direction) {
       case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH");
    }
    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of UninitReasonToStr()
- */
-const char* WINAPI UninitializeReasonToStr(UninitializeReason reason) {
-   return(UninitReasonToStr(reason));
    #pragma EXPANDER_EXPORT
 }
 

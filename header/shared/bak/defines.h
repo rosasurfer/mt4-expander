@@ -1,5 +1,5 @@
 /**
- * MQL constants shared with the MT4Expander (C++).
+ * MQL constants shared with the MT4Expander.
  */
 
 // special constants
@@ -14,7 +14,8 @@
 #define MAX_SYMBOL_GROUP_LENGTH                15
 #define MAX_SYMBOL_LENGTH                      11
 
-// string constants in the MT4Expander are defined as ANSI only
+
+// string constants in the MT4Expander are defined as ANSI
 #define EOL_MAC                              "\r"        // old MacOS line separator: 0x0D
 #define EOL_NETSCAPE                     "\r\r\n"        // Netscape line separator:  0x0D0D0A
 #define EOL_UNIX                             "\n"        // Unix line separator:      0x0A (MQL/Win32 file functions in text mode auto-convert EOL_UNIX to EOL_WINDOWS)
@@ -79,7 +80,7 @@
 #define REASON_CLOSE                            9        // | -                                    | terminal closed                  |
                                                          // +--------------------------------------+----------------------------------+
 
-// framework InitializeReason codes                      // +-- init reason --------------------------------+-- ui -----------+-- applies --+
+// InitializeReason codes                                // +-- init reason --------------------------------+-- ui -----------+-- applies --+
 #define INITREASON_USER                         1        // | loaded by the user (also in tester)           |    input dialog |   I, E, S   |   I = indicators
 #define INITREASON_TEMPLATE                     2        // | loaded by a template (also at terminal start) | no input dialog |   I, E      |   E = experts
 #define INITREASON_PROGRAM                      3        // | loaded by iCustom()                           | no input dialog |   I         |   S = scripts
@@ -87,8 +88,9 @@
 #define INITREASON_PARAMETERS                   5        // | input parameters changed                      |    input dialog |   I, E      |
 #define INITREASON_TIMEFRAMECHANGE              6        // | chart period changed                          | no input dialog |   I, E      |
 #define INITREASON_SYMBOLCHANGE                 7        // | chart symbol changed                          | no input dialog |   I, E      |
-#define INITREASON_RECOMPILE                    8        // | reloaded after recompilation                  | no input dialog |   I, E      |
-#define INITREASON_TERMINAL_FAILURE             9        // | terminal failure                              |    input dialog |      E      |   @see  https://github.com/rosasurfer/mt4-mql/issues/1
+#define INITREASON_ACCOUNTCHANGE                8        // | account changed                               | no input dialog |   I         |
+#define INITREASON_RECOMPILE                    9        // | reloaded after recompilation                  | no input dialog |   I, E      |
+#define INITREASON_TERMINAL_FAILURE            10        // | terminal failure                              |    input dialog |      E      |   @see  https://github.com/rosasurfer/mt4-mql/issues/1
                                                          // +-----------------------------------------------+-----------------+-------------+
 
 // UninitializeReason codes (matching the MetaQuotes REASON_* codes)
@@ -102,6 +104,18 @@
 #define UNINITREASON_TEMPLATE                   7
 #define UNINITREASON_INITFAILED                 8
 #define UNINITREASON_CLOSE                      9
+
+
+// CLI debug options (flags)
+#define DEBUG_EXECUTION_CONTEXT                 1           // whether cmd line option /rsf:debug-ec is set
+#define DEBUG_ACCOUNT_SERVER                    2           // whether cmd line option /rsf:debug-accountserver is set
+#define DEBUG_ACCOUNT_NUMBER                    4           // whether cmd line option /rsf:debug-accountnumber is set
+#define DEBUG_OBJECT_CREATE                     8           // whether cmd line option /rsf:debug-objectcreate is set
+
+
+// window property names
+#define PROP_STRING_ACCOUNT_SERVER              "rsf:string:accountServer"
+#define PROP_INT_ACCOUNT_NUMBER                 "rsf:int:accountNumber"
 
 
 // timeframe identifiers (cannot be combined)
@@ -179,8 +193,9 @@
 
 
 // flags controlling order execution
-#define F_OE_DONT_HEDGE                0x00040000        //  262144  don't hedge multiple positions on close
-#define F_OE_DONT_CHECK_STATUS         0x00080000        //  524288  don't check order status before proceeding
+#define F_OE_DONT_HEDGE                0x00080000        //  262144  don't hedge multiple positions on close
+#define F_OE_HEDGE_NO_CLOSE            0x00100000        //  524288  don't close a position when hedging (open an offsetting position instead)
+#define F_OE_DONT_CHECK_STATUS         0x00200000        //  524288  don't check order status before proceeding
 
 
 // other control flags

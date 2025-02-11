@@ -11,25 +11,25 @@
 struct SYMBOL {                                    // -- offset ---- size --- description -------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     broker symbol (e.g. "AUDCAD.m")
    char   description [64];                        //        12        64     description
-   char   altName     [MAX_SYMBOL_LENGTH+1];       //        76        12     standard symbol (e.g. "AUDCAD"), set only if different from "name"
+   char   altName     [MAX_SYMBOL_LENGTH+1];       //        76        12     standard symbol (e.g. "AUDCAD"), set if "name" is broker-specific
    char   baseCurrency[MAX_SYMBOL_LENGTH+1];       //        88        12     base currency
    uint   group;                                   //       100         4     index of the symbol group in "symgroups.raw" (zero based)
    uint   digits;                                  //       104         4     digits
 
    uint   tradeMode;                               //       108         4     0=NoTrading | 1=CloseOnly | 2=FullTrading
    uint   backgroundColor;                         //       112         4     color in "MarketWatch" window
-   uint   index;                                   //       116         4     unique but variable symbol index >= 0 (for usage simplification recommended to be the array index)
+   uint   index;                                   //       116         4     unique but variable symbol index >= 0 (recommended to be the array index)
    uint   id;                                      //       120         4     unique and constant symbol id >= 0
 
    BYTE   unknown1[32];                            //       124        32
 
-   BYTE   sunday   [208];                          //       156       208     trade sessions
-   BYTE   monday   [208];                          //       364       208     trade sessions
-   BYTE   tuesday  [208];                          //       572       208     trade sessions
-   BYTE   wednesday[208];                          //       780       208     trade sessions
-   BYTE   thursday [208];                          //       988       208     trade sessions
-   BYTE   friday   [208];                          //      1196       208     trade sessions
-   BYTE   saturday [208];                          //      1404       208     trade sessions
+   BYTE   sunday   [208];                          //       156       208     quote/trade session data
+   BYTE   monday   [208];                          //       364       208     quote/trade session data
+   BYTE   tuesday  [208];                          //       572       208     quote/trade session data
+   BYTE   wednesday[208];                          //       780       208     quote/trade session data
+   BYTE   thursday [208];                          //       988       208     quote/trade session data
+   BYTE   friday   [208];                          //      1196       208     quote/trade session data
+   BYTE   saturday [208];                          //      1404       208     quote/trade session data
 
    BYTE   unknown2[16];                            //      1612        16
    DWORD  unknown3;                                //      1628         4     ?
@@ -48,7 +48,7 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    uint   swapTripleRolloverDay;                   //      1696         4     weekday of triple swaps (Sun=0)
 
    DWORD  _alignment2;                             //      1700         4     (alignment to the next double)
-   double contractSize;                            //      1704         8     lot unitsize
+   double contractSize;                            //      1704         8     lot size in units
    BYTE   unknown8[16];                            //      1712        16
 
    uint   stopDistance;                            //      1728         4     stop level
@@ -60,8 +60,8 @@ struct SYMBOL {                                    // -- offset ---- size --- de
    double marginHedged;                            //      1760         8     hedged margin
    double marginDivider;                           //      1768         8     leverage: absolute (symbol specific) or relative to the account
 
-   double pointSize;                               //      1776         8     point size
-   double pointsPerUnit;                           //      1784         8     points per unit
+   double pointSize;                               //      1776         8     MQL point size
+   double pointsPerUnit;                           //      1784         8     MQL points per unit
 
    BYTE   unknown10[24];                           //      1792        24
    char   marginCurrency[MAX_SYMBOL_LENGTH+1];     //      1816        12     margin currency

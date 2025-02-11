@@ -30,30 +30,31 @@ HWND WINAPI FindTesterWindow() {
       if (!hWndMain) return(NULL);
 
       HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKED_CONTAINER);           // container for docked terminal windows
-      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no TerminalMainWindow->IDC_DOCKED_CONTAINER found"));
+      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "TerminalMainWindow->IDC_DOCKED_CONTAINER not found"));
 
-      hWndTester = GetDlgItem(hWnd, IDC_TESTER);
-      if (hWndTester) return(hWndTester);
-      SetLastError(NO_ERROR);                                           // reset ERROR_CONTROL_ID_NOT_FOUND
+      HWND hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);                  // use non-static var for intermediate results (thread concurrency)
+      if (!hWndSuccess) {
+         SetLastError(NO_ERROR);                                        // reset the last ERROR_CONTROL_ID_NOT_FOUND
 
-      // check for a floating tester window
-      HWND hWndNext = GetTopWindow(NULL);
-      if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no top-level windows found"));
+         // check for a floating tester window
+         HWND hWndNext = GetTopWindow(NULL);
+         if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no top-level windows found"));
 
-      DWORD processId, self=GetCurrentProcessId();
-      while (hWndNext) {                                                // iterate over all top-level windows owned by the current process
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == self) {                                       // the window belongs to us
-            hWnd = GetDlgItem(hWndNext, IDC_FLOATING_CONTAINER);        // due to i18n we can't interprete the window titles
-            if (hWnd) {
-               hWndTester = GetDlgItem(hWnd, IDC_TESTER);
-               if (hWndTester) break;
+         DWORD processId, self=GetCurrentProcessId();
+         while (hWndNext) {                                             // iterate over all top-level windows owned by the current process
+            GetWindowThreadProcessId(hWndNext, &processId);
+            if (processId == self) {                                    // the window belongs to us
+               hWnd = GetDlgItem(hWndNext, IDC_FLOATING_CONTAINER);     // due to i18n we can't interprete the window titles
+               if (hWnd) {
+                  hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);
+                  if (hWndSuccess) break;
+               }
             }
+            hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
          }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+         if (!hWndSuccess) debug("tester window doesn't yet exist");
       }
-
-      if (!hWndTester) debug("tester window doesn't yet exist");
+      if (hWndSuccess) hWndTester = hWndSuccess;
    }
    return(hWndTester);
    #pragma EXPANDER_EXPORT
@@ -75,10 +76,9 @@ int WINAPI Tester_GetBarModel() {
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
    if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control element \"Model\" not found")));
 
-   int index = ComboBox_GetCurSel(hWndBarModel);
-   if (index == CB_ERR) {                          // CB_ERR = EMPTY = -1
-      error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
-   }
+   int index = ComboBox_GetCurSel(hWndBarModel);      // CB_ERR = EMPTY = -1
+   if (index == CB_ERR) error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
+
    return(index);
    #pragma EXPANDER_EXPORT
 }
@@ -172,11 +172,11 @@ time32 WINAPI Tester_GetEndDate() {
  * @param  _In_  char*       symbol    - tested symbol
  * @param  _In_  uint        timeframe - test timeframe
  * @param  _In_  uint        barModel  - test bar model: MODE_EVERYTICK | MODE_CONTROLPOINTS | MODE_BAROPEN
- * @param  _Out_ FXT_HEADER* fxtHeader - pointer to a FXT_HEADER structure receiving the data
+ * @param  _Out_ FXT_HEADER &fxtHeader - struct FXT_HEADER receiving the data
  *
  * @return BOOL - success status (e.g. FALSE on I/O errors or if the file does not exist)
  */
-BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER* fxtHeader) {
+BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER &fxtHeader) {
    if ((uint)symbol < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
    if ((int)timeframe <= 0)              return(!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
    using namespace std;
@@ -191,8 +191,8 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
    ifstream file(fxtFile.c_str(), ios::binary);
    if (!file) return(!warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
-   file.read((char*)fxtHeader, sizeof(FXT_HEADER));
-   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(FXT_HEADER), fxtFile.c_str()));
+   file.read((char*)&fxtHeader, sizeof(fxtHeader));
+   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(fxtHeader), fxtFile.c_str()));
    return(TRUE);
 }
 
@@ -208,34 +208,25 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER)               return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
    if (ec->programType!=PT_EXPERT || !ec->testing) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
 
-   FXT_HEADER* fxtHeader = new FXT_HEADER();
-   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, Tester_GetBarModel(), fxtHeader)) {
-      delete fxtHeader;
-      return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header")));
+   int barModel = Tester_GetBarModel();
+   FXT_HEADER fxtHeader = {};
+
+   if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, barModel, fxtHeader)) {
+      return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header for %s,%s (bar model: %s)", ec->symbol, PeriodDescriptionA(ec->timeframe), BarModelDescription(barModel))));
    }
-   return(fxtHeader->commissionValue);
+   return(fxtHeader.commissionValue);
    #pragma EXPANDER_EXPORT
 }
-
-
-#include "lib/lock/Locker.h"
 
 
 /**
  * @return int
  */
 int WINAPI Test_synchronize() {
-   {
-      synchronize();
-      debug("inside synchronized block");
-   }
-   return(0);
-
    char* s1 = "Hello";
    char* s2 = " world";
    char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
    debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);                       // TODO: fix me
-
    return(0);
 }
 
@@ -246,6 +237,10 @@ int WINAPI Test_synchronize() {
  * @return int
  */
 int WINAPI Tester_Test(HWND hWnd) {
+
+   return((1, 2));
+
+
    RECT rect;
    if (!GetWindowRect(hWnd, &rect)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindowRect(hWnd=%p) failed", hWnd));
 

@@ -16,7 +16,6 @@
  */
 const char* WINAPI mciErrorToStr(const DWORD error) {
    WORD lowWord  = (WORD) error;
-   WORD highWord = (WORD)(error >> 16);
 
    switch (lowWord) {
       case MCIERR_INVALID_DEVICE_ID       : return("MCIERR_INVALID_DEVICE_ID"       );
@@ -99,14 +98,14 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
 
       case MCIERR_NO_IDENTITY             : return("MCIERR_NO_IDENTITY"             );
    }
-   return(asformat("%hu:%hu", highWord, lowWord));
+   return(asformat("%hu", lowWord));
 }
 
 
 /**
- * Plays a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types currently supported on the
- * system. Allows mixing of sounds (except MIDI files). Also plays sounds if the terminal doesn't support it in the current
- * context (e.g. in tester).
+ * Plays a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types supported on the system and
+ * supports simultaneous playback of multiple sounds (except MIDI files). Also plays sounds if the terminal doesn't support it
+ * in the current context (e.g. in tester).
  *
  * @param  char* soundfile - an absolute filename or a filename relative to directory "sounds" of the terminal directory or
  *                           the data directory (both are searched)
@@ -122,21 +121,20 @@ DWORD WINAPI PlaySoundA(const char* soundfile) {
 
 
 /**
- * Plays a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types currently supported on the
- * system. Allows mixing of sounds (except MIDI files). Also plays sounds if the terminal doesn't support it in the current
- * context (e.g. in tester).
+ * Plays a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types supported on the system and
+ * supports simultaneous playback of multiple sounds (except MIDI files). Also plays sounds if the terminal doesn't support it
+ * in the current context (e.g. in tester).
  *
  * @param  wchar* soundfile - an absolute filename or a filename relative to directory "sounds" of the terminal directory or
  *                            the data directory (both are searched)
  *
- * @return DWORD - error status
+ * @return DWORD - error status (MCI errors are mapped to ERR_MCI_ERROR + error)
  */
 DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
 
-   wstring filepath(soundfile);
-
    // test absolute path
+   wstring filepath(soundfile);
    if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
       // test data dir path
       filepath = wstring(GetTerminalDataPathW()).append(L"\\sounds\\").append(soundfile);
@@ -144,7 +142,7 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
          // test terminal dir path
          filepath = wstring(GetTerminalPathW()).append(L"\\sounds\\").append(soundfile);
          if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
-            return(error(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%S\" (file not found)", soundfile));
+            return(warn(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%S\" (file not found)", soundfile));
          }
       }
    }
@@ -156,21 +154,29 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    // @see  https://learn.microsoft.com/en-us/windows/win32/Multimedia/windows-multimedia-start-page
    // @see  https://learn.microsoft.com/en-us/windows/win32/multimedia/opening-a-device
 
-   // open sound without defining an alias (complicates managing uniqueness and device re-usage)
+   // open sound (without alias as it complicates managing uniqueness and re-usage)
    wstring cmd = wstring(L"open \"").append(filepath).append(L"\"");
    MCIERROR error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
    if (error) {
-      if      ((WORD)error == MCIERR_DEVICE_OPEN) {}      // if played again in the same thread: continue and re-use the device
-      else if ((WORD)error == MCIERR_INVALID_DEVICE_NAME) return(error(ERR_RUNTIME_ERROR, "unsupported file type or codec not available (MCIERR_INVALID_DEVICE_NAME)"));
-      else                                                return(error(ERR_RUNTIME_ERROR, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
+      switch ((WORD)error) {
+         case MCIERR_DEVICE_OPEN:            break;            // if played again in the same thread: continue and re-use the device
+         case MCIERR_WAVE_OUTPUTSUNSUITABLE: return(NULL);     // no sound device installed, quite common in VMs without RDP connection
+         case MCIERR_INVALID_DEVICE_NAME:    return(notice(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) unsupported file type or codec not available", cmd.c_str()));
+         default:                            return( error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
+      }
    }
 
    // play sound
-   cmd.replace(0, 4, L"play").append(L" from 0");         // reset play position to start (in case sound is played again)
+   cmd.replace(0, 4, L"play").append(L" from 0");              // reset play position to start (in case sound is played again)
    error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
-   if (error) {                                           // midi files can't be mixed with the MCI extension
-      if ((WORD)error == MCIERR_SEQ_PORT_INUSE) return(error(ERR_RUNTIME_ERROR, "MIDI sequencer already in use (MCIERR_SEQ_PORT_INUSE)"));
-      else                                      return(error(ERR_RUNTIME_ERROR, "mciSendString(%S) => %s", cmd.c_str(), mciErrorToStr(error)));
+   if (error) {
+      int loglevel = LOG_NOTICE;
+      switch ((WORD)error) {                                   // MIDI files can't be mixed with the MCI extension
+         case MCIERR_SEQ_PORT_INUSE:
+         case MCIERR_WAVE_OUTPUTSINUSE:
+            return(notice(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
+      }
+      return(error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
    }
 
    // intentionally leave sound open for faster re-use

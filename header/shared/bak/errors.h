@@ -1,12 +1,12 @@
 /**
- * MQL error codes shared with the MT4Expander (C++).
+ * MQL error codes shared with the MT4Expander.
  *
  * @link  https://docs.mql4.com/constants/errorswarnings/errorcodes
  */
 #define ERR_NO_ERROR                                                  0
-//efine NO_ERROR                                           ERR_NO_ERROR    // in C++ already defined (Win32)
+//efine NO_ERROR                                           ERR_NO_ERROR    // in C++ already defined (Win32 API)
 
-// Trading errors
+// Trade errors
 #define ERR_NO_RESULT                                                 1
 //      No status returned, unknown result. OrderModify() attempted to replace values already set. May also happen if the trade server changes during OrderModify().
 #define ERR_COMMON_ERROR                                              2    // trade request failed (trade server error)
@@ -212,5 +212,8 @@
 #define ERR_STOP_DISTANCE_VIOLATED                                65559    // stop or limit price violates the broker's stop distance
 #define ERR_MARGIN_STOPOUT                                        65560    // margin stopout
 
-// user defined errors >=100000 are mapped Win32 errors: win32-error + 100000 = mql-error
-#define ERR_WIN32_ERROR                                          100000    // 100000 => win32:0 => ERROR_SUCCESS
+// mapped win32 errors: error = ERR_WIN32_ERROR + actual win32-error
+#define ERR_WIN32_ERROR                                          100000    // win32:0 => ERROR_SUCCESS
+
+// mapped MCI errors: error = ERR_MCI_ERROR + actual mci-error
+#define ERR_MCI_ERROR                                            200000    // mci:0 => no error

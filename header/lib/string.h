@@ -19,6 +19,9 @@
 #define strtoint     atoi              // convert a C string to an integer
 #define wstrtoint    _wtoi             // convert a UTF-16 string to an integer
 
+#define wstrcmp      wcscmp            // case-sensitive comparison of two UTF-16 strings
+#define wstricmp     wcsicmp           // case-insensitive comparison of two UTF-16 strings
+
 
 /**
  * C++11 to_string() replacement for VS 2008.
@@ -52,6 +55,8 @@ BOOL         WINAPI StrStartsWith(const char* str, const char* prefix);
 BOOL         WINAPI StrStartsWith(const wchar* str, const wchar* prefix);
 BOOL         WINAPI StrEndsWith(const char* str, const char* suffix);
 BOOL         WINAPI StrEndsWith(const wchar* str, const wchar* suffix);
+BOOL         WINAPI StrEndsWithI(const char* str, const char* suffix);
+BOOL         WINAPI StrEndsWithI(const wchar* str, const wchar* suffix);
 string&      WINAPI StrReplace(string &subject, const string &search, const string &replace, size_t count=INT_MAX);
 char*        WINAPI StrToLower(char* const str);
 string&      WINAPI StrToLower(string &str);

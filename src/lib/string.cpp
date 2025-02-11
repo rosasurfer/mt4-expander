@@ -164,7 +164,7 @@ int __cdecl CompareMqlStringsW(const void* first, const void* second) {
    if (s1 == s2) return( 0);
    if (!s1)      return(-1);
    if (!s2)      return(+1);
-   return(wcscmp(s1->value, s2->value));
+   return(wstrcmp(s1->value, s2->value));
 }
 
 
@@ -215,9 +215,9 @@ BOOL WINAPI SortMqlStringsW(MqlStringW strings[], int size) {
  * @return BOOL
  */
 BOOL WINAPI StrCompare(const char* s1, const char* s2) {
-   if (s1 == s2)   return(TRUE);                            // if pointers are equal values are too
-   if (!s1 || !s2) return(FALSE);                           // if one is a NULL pointer the other can't
-   return(strcmp(s1, s2) == 0);                             // both are not NULL pointers
+   if (s1 == s2)   return(TRUE);          // if pointers are equal values are too
+   if (!s1 || !s2) return(FALSE);         // if one is a NULL pointer the other can't
+   return(strcmp(s1, s2) == 0);           // both are not NULL pointers
    #pragma EXPANDER_EXPORT
 }
 
@@ -231,9 +231,9 @@ BOOL WINAPI StrCompare(const char* s1, const char* s2) {
  * @return BOOL
  */
 BOOL WINAPI StrCompare(const wchar* s1, const wchar* s2) {
-   if (s1 == s2)   return(TRUE);                            // if pointers are equal values are too
-   if (!s1 || !s2) return(FALSE);                           // if one is a NULL pointer the other can't
-   return(wcscmp(s1, s2) == 0);                             // both are not NULL pointers
+   if (s1 == s2)   return(TRUE);          // if pointers are equal values are too
+   if (!s1 || !s2) return(FALSE);         // if one is a NULL pointer the other can't
+   return(wstrcmp(s1, s2) == 0);          // both are not NULL pointers
 }
 
 
@@ -261,7 +261,7 @@ BOOL WINAPI StrIsNull(const char* value) {
 BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
    if (!str)          return(FALSE);
    if (!prefix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
-   if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
+   if (str == prefix) return(TRUE);       // if pointers are equal values are too
 
    uint strLen    = strlen(str);
    uint prefixLen = strlen(prefix);
@@ -285,7 +285,7 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
 BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
    if (!str)          return(FALSE);
    if (!prefix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
-   if (str == prefix) return(TRUE);                                  // if pointers are equal values are too
+   if (str == prefix) return(TRUE);       // if pointers are equal values are too
 
    uint strLen    = wstrlen(str);
    uint prefixLen = wstrlen(prefix);
@@ -298,7 +298,7 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
 
 
 /**
- * Whether a C string ends with the specified substring.
+ * Whether a C string ends with the specified substring (case-sensitive).
  *
  * @param  char* str
  * @param  char* suffix
@@ -308,7 +308,7 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
 BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
    if (!str)          return(FALSE);
    if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
-   if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
+   if (str == suffix) return(TRUE);       // if pointers are equal values are too
 
    uint strLen    = strlen(str);
    uint suffixLen = strlen(suffix);
@@ -322,24 +322,72 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
 
 
 /**
- * Whether a wide Unicode (UTF-16) string ends with the specified substring.
+ * Whether a C string ends with the specified substring (case-insensitive).
+ *
+ * @param  char* str
+ * @param  char* suffix
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StrEndsWithI(const char* str, const char* suffix) {
+   if (!str)          return(FALSE);
+   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
+   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+
+   uint strLen    = strlen(str);
+   uint suffixLen = strlen(suffix);
+   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+
+   if (strLen >= suffixLen)
+      return(stricmp(str + strLen - suffixLen, suffix) == 0);
+   return(FALSE);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a wide Unicode (UTF-16) string ends with the specified substring (case-sensitive).
  *
  * @param  wchar* str
  * @param  wchar* suffix
+ * @param  BOOL   ignoreCase [optional] - whether to ignore case (default: no)
  *
  * @return BOOL
  */
 BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
    if (!str)          return(FALSE);
    if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
-   if (str == suffix) return(TRUE);                                  // if pointers are equal values are too
+   if (str == suffix) return(TRUE);       // if pointers are equal values are too
 
    uint strLen    = wstrlen(str);
    uint suffixLen = wstrlen(suffix);
    if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
 
    if (strLen >= suffixLen)
-      return(wcscmp(str + strLen - suffixLen, suffix) == 0);
+      return(wstrcmp(str + strLen - suffixLen, suffix) == 0);
+   return(FALSE);
+}
+
+
+/**
+ * Whether a wide Unicode (UTF-16) string ends with the specified substring (case-insensitive).
+ *
+ * @param  wchar* str
+ * @param  wchar* suffix
+ *
+ * @return BOOL
+ */
+BOOL WINAPI StrEndsWithI(const wchar* str, const wchar* suffix) {
+   if (!str)          return(FALSE);
+   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
+   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+
+   uint strLen    = wstrlen(str);
+   uint suffixLen = wstrlen(suffix);
+   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+
+   if (strLen >= suffixLen)
+      return(wstricmp(str + strLen - suffixLen, suffix) == 0);
    return(FALSE);
 }
 
@@ -355,21 +403,25 @@ BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
  * @return string& - the same string
  */
 string& WINAPI StrReplace(string &subject, const string &search, const string &replace, size_t count/*=INT_MAX*/) {
-   size_t subjectLength = subject.length(); if (!subjectLength) return(subject);
-   size_t searchLength  = search .length(); if (!searchLength)  return(subject);
-   size_t replaceLength = replace.length();
-   if (subjectLength < searchLength || !search.compare(replace)) return(subject);
+   size_t subjectLen = subject.length();
+   if (!subjectLen) return(subject);
+
+   size_t searchLen = search.length();
+   if (!searchLen) return(subject);
+
+   size_t replaceLen = replace.length();
+   if (subjectLen < searchLen || !search.compare(replace)) return(subject);
 
    size_t replacements = 0, pos = 0;
    while (replacements < count && (pos = subject.find(search, pos)) != string::npos) {
-      if (searchLength == replaceLength) {
-         subject.replace(pos, searchLength, replace);          // if both are the same length use replace()...
+      if (searchLen == replaceLen) {
+         subject.replace(pos, searchLen, replace);    // use replace() if both are of same length...
       }
       else {
-         subject.erase(pos, searchLength);                     // ...otherwise use erase() + insert()
+         subject.erase(pos, searchLen);               // ...otherwise use erase() + insert()
          subject.insert(pos, replace);
       }
-      pos += replaceLength;
+      pos += replaceLen;
       ++replacements;
    }
    return(subject);
@@ -551,8 +603,9 @@ wstring WINAPI ansiToUnicode(const string &str) {
    int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
    if (bufSize) {
       wstring wstr(bufSize, 0);
-      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize))
+      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize)) {
          return(wstr);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert ANSI string to wide Unicode");
    return(wstring(L""));
@@ -588,8 +641,9 @@ string WINAPI unicodeToAnsi(const wstring &wstr) {
    int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
    if (bufSize) {
       string str(bufSize, 0);
-      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL))
+      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
          return(str);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert wide Unicode string to ANSI");
    return(string(""));
@@ -613,8 +667,9 @@ string WINAPI unicodeToUtf8(const wstring &wstr) {
    int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
    if (bufSize) {
       string str(bufSize, 0);
-      WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL);
-      return(str);
+      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
+         return(str);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert wide Unicode string to UTF-8");
    return(string(""));
@@ -650,8 +705,9 @@ wstring WINAPI utf8ToUnicode(const string &str) {
    int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
    if (bufSize) {
       wstring wstr(bufSize, 0);
-      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize))
+      if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize)) {
          return(wstr);
+      }
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-8 string to wide Unicode");
    return(wstring(L""));
@@ -673,7 +729,7 @@ wstring WINAPI utf8ToUnicode(const string &str) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 char* __cdecl asformat(const char* format, ...) {
-   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    va_list args;
@@ -700,7 +756,7 @@ char* __cdecl asformat(const char* format, ...) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 wchar* __cdecl asformat(const wchar* format, ...) {
-   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    va_list args;
@@ -727,7 +783,7 @@ wchar* __cdecl asformat(const wchar* format, ...) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 char* WINAPI _asformat(const char* format, const va_list &args) {
-   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    uint size = vscprintf(format, args) + 1;        // +1 for the terminating null char
@@ -754,7 +810,7 @@ char* WINAPI _asformat(const char* format, const va_list &args) {
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
-   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL (null pointer)"));
+   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
    uint size = vwscprintf(format, args) + 1;       // +1 for the terminating null wchar
