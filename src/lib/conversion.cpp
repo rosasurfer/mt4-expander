@@ -1100,7 +1100,7 @@ const char* WINAPI ErrorToStrA(int error) {
  */
 const wchar* WINAPI ErrorToStrW(int error) {
    wstring s = ansiToUnicode(string(ErrorToStrA(error)));
-   return(wstrdup(s.c_str()));
+   return wsdup(s.c_str());
    #pragma EXPANDER_EXPORT
 }
 
@@ -1253,10 +1253,10 @@ const char* WINAPI LoglevelToStrA(int level) {
  */
 const wchar* WINAPI LoglevelToStrW(int level) {
    const char* s = LoglevelToStrA(level);
-   if (!s) return(NULL);
+   if (!s) return NULL;
 
    wstring ws = ansiToUnicode(string(s));
-   return(wstrdup(ws.c_str()));
+   return wsdup(ws.c_str());
    #pragma EXPANDER_EXPORT
 }
 
@@ -1297,10 +1297,10 @@ const char* WINAPI MessageBoxButtonToStrA(int id) {
  */
 const wchar* WINAPI MessageBoxButtonToStrW(int id) {
    const char* s = MessageBoxButtonToStrA(id);
-   if (!s) return(NULL);
+   if (!s) return NULL;
 
    wstring ws = ansiToUnicode(string(s));
-   return(wstrdup(ws.c_str()));
+   return wsdup(ws.c_str());
    #pragma EXPANDER_EXPORT
 }
 
@@ -1520,8 +1520,8 @@ const char* WINAPI PeriodDescriptionA(int period) {
  */
 const wchar* WINAPI PeriodDescriptionW(int period) {
    const char* s = PeriodDescriptionA(period);
-   if (!s) return(NULL);
-   return(wstrdup(ansiToUnicode(string(s)).c_str()));
+   if (!s) return NULL;
+   return wsdup(ansiToUnicode(string(s)).c_str());
 }
 
 

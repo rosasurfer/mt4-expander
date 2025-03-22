@@ -184,7 +184,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
 
       DWORD attributes = GetFileAttributes(name);
       if ((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
-         char* _name = strdup(name);                                          // on the heap
+         char* _name = sdup(name);                                            // on the heap
 
          int pos = strlen(_name);
          while (--pos >=0 && (_name[pos]=='\\' || _name[pos]=='/')) {         // cut-off trailing slashes
@@ -222,7 +222,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
       DWORD attributes = GetFileAttributes(name);
 
       if ((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_REPARSE_POINT)) {
-         char* _name = strdup(name);                                          // on the heap
+         char* _name = sdup(name);                                            // on the heap
 
          if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
             int pos = strlen(_name);
@@ -333,7 +333,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
          uint   offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
          uint   len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
          string target = unicodeToAnsi(wstring(&rdata->MountPointReparseBuffer.PathBuffer[offset], len));
-         result = strdup(target.c_str() + strlen("\\??\\"));
+         result = sdup(target.c_str() + strlen("\\??\\"));
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
          uint   offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
@@ -344,10 +344,10 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
          if (isRelative) {
             char drive[MAX_DRIVE], dir[MAX_DIR];
             _splitpath(name, drive, dir, NULL, NULL);
-            result = strdup(string(drive).append(dir).append(target).c_str());
+            result = sdup(string(drive).append(dir).append(target).c_str());
          }
          else {
-            result = strdup(target.c_str() + strlen("\\??\\"));
+            result = sdup(target.c_str() + strlen("\\??\\"));
          }
       }
       else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);

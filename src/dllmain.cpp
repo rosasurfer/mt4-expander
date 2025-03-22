@@ -51,7 +51,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
       case DLL_THREAD_DETACH :                                  break;
       case DLL_PROCESS_DETACH: onProcessDetach((BOOL)reserved); break;
    }
-   return(TRUE);
+   return TRUE;
 }
 
 
@@ -71,7 +71,7 @@ BOOL WINAPI onProcessAttach() {
    // parse command line arguments
    int argc;
    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-   if (!argv) return(!error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()"));
+   if (!argv) return !error(ERR_WIN32_ERROR+GetLastError(), "CommandLineToArgvW()");
 
    for (int i=1; i < argc; i++) {
       if (StrStartsWith(argv[i], L"/portable")) {
@@ -105,7 +105,7 @@ BOOL WINAPI onProcessAttach() {
       HMODULE hModule = NULL;
       GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
    }
-   return(TRUE);
+   return TRUE;
 }
 
 
@@ -117,11 +117,10 @@ BOOL WINAPI onProcessAttach() {
  * @return BOOL
  */
 BOOL WINAPI onProcessDetach(BOOL isTerminating) {
-   if (isTerminating) return(TRUE);
-
-   DeleteCriticalSection(&g_expanderMutex);
-   ReleaseTickTimers();
-   ReleaseWindowProperties();
-
-   return(TRUE);
+   if (!isTerminating) {
+      DeleteCriticalSection(&g_expanderMutex);
+      ReleaseTickTimers();
+      ReleaseWindowProperties();
+   }
+   return TRUE;
 }

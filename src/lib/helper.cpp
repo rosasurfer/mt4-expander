@@ -19,6 +19,20 @@ StringMap  g_stringWndProperties;                  // a map with strings stored 
 
 
 /**
+ * Whether the build of the DLL is a debug build.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsDebugBuild() {
+   #ifdef _DEBUG
+      return TRUE;
+   #else
+      return FALSE;
+   #endif
+}
+
+
+/**
  * Return the last Windows error of the current thread. Makes it accessible to MQL.
  *
  * @return DWORD - error code
@@ -43,7 +57,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
    wchar* unicodeText = GetInternalWindowTextW(hWnd);
    if (!unicodeText) return(NULL);
 
-   char* ansiText = strdup(unicodeToAnsi(wstring(unicodeText)).c_str());   // on the heap
+   char* ansiText = sdup(unicodeToAnsi(wstring(unicodeText)).c_str());     // on the heap
    free(unicodeText);
 
    return(ansiText);
@@ -100,7 +114,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
    wchar* unicodeText = GetWindowTextW(hWnd);
    if (!unicodeText) return(NULL);
 
-   char* ansiText = strdup(unicodeToAnsi(wstring(unicodeText)).c_str());   // on the heap
+   char* ansiText = sdup(unicodeToAnsi(wstring(unicodeText)).c_str());     // on the heap
    free(unicodeText);
 
    return(ansiText);
@@ -481,7 +495,7 @@ const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    if (result != g_stringWndProperties.end()) {
       string value = result->second;
       g_stringWndProperties.erase(result);      // invalidates result and releases result->second
-      return(strdup(value.c_str()));            // TODO: close memory leak
+      return sdup(value.c_str());               // TODO: close memory leak
    }
    return(NULL);
    #pragma EXPANDER_EXPORT
@@ -564,7 +578,7 @@ const char* WINAPI MD5Hash(const void* input, uint length) {
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
-   return(strdup(ss.str().c_str()));                                 // TODO: close memory leak
+   return sdup(ss.str().c_str());                                    // TODO: close memory leak
    #pragma EXPANDER_EXPORT
 }
 

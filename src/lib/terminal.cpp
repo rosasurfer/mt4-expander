@@ -69,7 +69,7 @@ const char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) 
    }
    FindClose(hFind);
 
-   return(strdup(hstDirectory));
+   return sdup(hstDirectory);
    #pragma EXPANDER_EXPORT
 }
 
@@ -154,7 +154,7 @@ const char* WINAPI GetExpanderFileNameA() {
 
    if (!filename) {
       if (const wchar* wname = GetExpanderFileNameW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wname)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wname)).c_str());
          if (!filename) filename = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -182,7 +182,7 @@ const wchar* WINAPI GetExpanderFileNameW() {
       }
       if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
 
-      wchar* tmp = wstrdup(buffer);
+      wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
       else free(tmp);                     // another thread may have been faster
    }
@@ -227,7 +227,7 @@ const char* WINAPI GetHistoryRootPathA() {
 
    if (!hstDirectory) {
       if (const wchar* wpath = GetHistoryRootPathW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!hstDirectory) hstDirectory = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -248,7 +248,7 @@ const wchar* WINAPI GetHistoryRootPathW() {
    if (!hstDirectory) {
       if (const wchar* dataPath = GetTerminalDataPathW()) {
          wstring path = wstring(dataPath).append(L"\\history");
-         wchar* tmp = wstrdup(path.c_str());
+         wchar* tmp = wsdup(path.c_str());
          if (!hstDirectory) hstDirectory = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -268,7 +268,7 @@ const char* WINAPI GetMqlDirectoryA() {
 
    if (!mqlDirectory) {
       if (const wchar* wdirectory = GetMqlDirectoryW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wdirectory)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wdirectory)).c_str());
          if (!mqlDirectory) mqlDirectory = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -292,7 +292,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
          if (GetTerminalBuild() <= 509) path.append(L"\\experts");
          else                           path.append(L"\\mql4");
 
-         wchar* tmp = wstrdup(path.c_str());
+         wchar* tmp = wsdup(path.c_str());
          if (!mqlDirectory) mqlDirectory = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -315,7 +315,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
    if (inTester) {
       if (!testerPath) {
          if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
-            char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+            char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
             if (!testerPath) testerPath = tmp;
             else free(tmp);               // another thread may have been faster
          }
@@ -325,7 +325,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
 
    if (!onlinePath) {
       if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!onlinePath) onlinePath = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -349,7 +349,7 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
       if (!testerPath) {
          if (const wchar* dataDirectory = GetTerminalDataPathW()) {
             wstring path = wstring(dataDirectory).append(L"\\tester\\files");
-            wchar* tmp = wstrdup(path.c_str());
+            wchar* tmp = wsdup(path.c_str());
             if (!testerPath) testerPath = tmp;
             else free(tmp);               // another thread may have been faster
          }
@@ -360,7 +360,7 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
    if (!onlinePath) {
       if (const wchar* mqlDirectory = GetMqlDirectoryW()) {
          wstring path = wstring(mqlDirectory).append(L"\\files");
-         wchar* tmp = wstrdup(path.c_str());
+         wchar* tmp = wsdup(path.c_str());
          if (!onlinePath) onlinePath = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -383,7 +383,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
    if (!path) {
       if (const wchar* wpath = GetTerminalCommonDataPathW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -411,7 +411,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
       }
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");
 
-      wchar* tmp = wstrdup(dir.c_str());
+      wchar* tmp = wsdup(dir.c_str());
       if (!path) path = tmp;
       else free(tmp);                     // another thread may have been faster
    }
@@ -432,7 +432,7 @@ const char* WINAPI GetTerminalDataPathA() {
 
    if (!dataPath) {
       if (const wchar* wpath = GetTerminalDataPathW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!dataPath) dataPath = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -500,7 +500,7 @@ const wchar* WINAPI GetTerminalDataPathW() {
       // check portable mode
       if (IsPortableMode()) {
          // data path is the installation directory, independant of write permissions
-         tmp = wstrdup(terminalPath);
+         tmp = wsdup(terminalPath);
       }
       else {
          // check for locked terminal logs
@@ -509,8 +509,8 @@ const wchar* WINAPI GetTerminalDataPathW() {
          BOOL roamingPathIsLocked  = IsLockedFile(unicodeToAnsi(wstring(roamingDataPath)).append(logFilename));
          free(logFilename);
 
-         if      (roamingPathIsLocked)  tmp = wstrdup(roamingDataPath);
-         else if (terminalPathIsLocked) tmp = wstrdup(terminalPath);
+         if      (roamingPathIsLocked)  tmp = wsdup(roamingDataPath);
+         else if (terminalPathIsLocked) tmp = wsdup(terminalPath);
          else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));   // no write permissions in both places
 
          // TODO: implement UAC check
@@ -567,7 +567,7 @@ const char* WINAPI GetTerminalFileNameA() {
 
    if (!filename) {
       if (const wchar* wfilename = GetTerminalFileNameW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wfilename)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wfilename)).c_str());
          if (!filename) filename = tmp;
          else free(tmp);                                    // another thread may have been faster
       }
@@ -596,7 +596,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
       }
       if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetModuleFileName()"));
 
-      wchar* tmp = wstrdup(buffer);
+      wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
       else free(tmp);                                       // another thread may have been faster
    }
@@ -616,7 +616,7 @@ const char* WINAPI GetTerminalPathA() {
 
    if (!path) {
       if (const wchar* wpath = GetTerminalPathW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -637,7 +637,7 @@ const wchar* WINAPI GetTerminalPathW() {
 
    if (!path) {
       if (const wchar* filename = GetTerminalFileNameW()) {
-         wchar* tmp = wstrdup(filename);
+         wchar* tmp = wsdup(filename);
          tmp[wstring(tmp).find_last_of(L"\\")] = '\0';
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
@@ -660,7 +660,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
    if (!path) {
       if (const wchar* wpath = GetTerminalRoamingDataPathW()) {
-         char* tmp = strdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
       }
@@ -693,7 +693,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
 
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\").append(ansiToUnicode(md5Hash));
 
-      wchar* tmp = wstrdup(dir.c_str());
+      wchar* tmp = wsdup(dir.c_str());
       if (!result) result = tmp;
       else free(tmp);                     // another thread may have been faster
    }
@@ -871,7 +871,7 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
    if (!IsFileW(file.c_str(), MODE_SYSTEM)) return(!error(ERR_FILE_NOT_FOUND, "file not found: \"%S\"", file.c_str()));
 
    // trigger the launch of the program
-   PostMessageW(hChart, WM_MT4(), cmd, (LPARAM)wstrdup(programName));   // pass a copy of programName (the passed value may get immediately destroyed)
+   PostMessageW(hChart, WM_MT4(), cmd, (LPARAM)wsdup(programName));     // pass a copy of programName (the passed value may get immediately destroyed)
    debug("queued launch of %s \"%S\"", sProgramType, programName);
 
    // prevent the DLL from getting unloaded before the message is processed

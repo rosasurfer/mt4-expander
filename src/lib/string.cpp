@@ -14,8 +14,8 @@
  */
 char* WINAPI DoubleQuoteStr(const char* value) {
    if (!value)
-      return(strdup("(null)"));
-   return(asformat("\"%s\"", value));
+      return sdup("(null)");
+   return asformat("\"%s\"", value);
 }
 
 
@@ -28,8 +28,8 @@ char* WINAPI DoubleQuoteStr(const char* value) {
  */
 wchar* WINAPI DoubleQuoteStr(const wchar* value) {
    if (!value)
-      return(wstrdup(L"(null)"));
-   return(asformat(L"\"%s\"", value));
+      return wsdup(L"(null)");
+   return asformat(L"\"%s\"", value);
 }
 
 

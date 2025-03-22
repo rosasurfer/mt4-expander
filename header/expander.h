@@ -1,9 +1,9 @@
 #pragma once
 
 #pragma warning(push)
-#pragma warning(disable:4060)                               // switch statement contains no 'case' or 'default' labels
-#pragma warning(disable:4065)                               // switch statement contains 'default' but no 'case' labels
-#pragma warning(disable:4101)                               // unreferenced local variable
+//#pragma warning(disable:4060)                             // switch statement contains no 'case' or 'default' labels
+//#pragma warning(disable:4065)                             // switch statement contains 'default' but no 'case' labels
+//#pragma warning(disable:4101)                             // unreferenced local variable
 #pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
 
 #define  EXPANDER_EXPORT  comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
@@ -26,10 +26,10 @@ typedef unsigned __int64     uint64;
 typedef            DWORD     color;                         // MQL4 color
 typedef          __time32_t  time32;                        // MQL4 32-bit timestamp
 typedef          __time64_t  time64;                        // MQL5 64-bit timestamp
-typedef            tm        TM;                            // C time structure
+typedef            tm        TM;                            // C time struct
 
-namespace rsf {}                                            // define namespace 'rsf'
-using namespace rsf;                                        // always prefer namespace 'rsf'
+namespace rsf {}                                            // define our namespace and use it first
+using namespace rsf;
 
 using std::size_t;
 using std::string;

@@ -122,7 +122,7 @@ const char* WINAPI GetGlobalConfigPathA() {
       if (!commonDataPath) return(NULL);
 
       string filename = string(commonDataPath).append("\\global-config.ini");
-      char* tmp = strdup(filename.c_str());
+      char* tmp = sdup(filename.c_str());
       if (!configPath) configPath = tmp;
       else free(tmp);                                                               // another thread may have been faster
 
@@ -162,7 +162,7 @@ const char* WINAPI GetTerminalConfigPathA() {
       if (!dataPath) return(NULL);
 
       string iniFile = string(dataPath).append("\\terminal-config.ini");
-      char* tmp = strdup(iniFile.c_str());                                    // on the heap
+      char* tmp = sdup(iniFile.c_str());                                      // on the heap
       if (!configPath) configPath = tmp;
       else free(tmp);                                                         // another thread may have been faster
 

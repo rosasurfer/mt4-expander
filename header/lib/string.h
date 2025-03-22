@@ -7,9 +7,9 @@
 #define mbstrlen     _mbstrlen         // length of a UTF-8 string (checks for invalid UTF-8 chars)
 #define wstrlen      wcslen            // length of a UTF-16 string
 
-#define strdup       _strdup           // duplicate a C string
-#define mbstrdup     _mbsdup           // duplicate a UTF-8 string
-#define wstrdup      _wcsdup           // duplicate a UTF-16 string
+#define sdup         _strdup           // duplicate a C string
+#define mbsdup       _mbsdup           // duplicate a UTF-8 string
+#define wsdup        _wcsdup           // duplicate a UTF-16 string
 
 #define vscprintf    _vscprintf        // count C chars of the resulting string using a var-list of arguments
 #define vwscprintf   _vscwprintf       // count UTF-16 chars of the resulting string using a var-list of arguments

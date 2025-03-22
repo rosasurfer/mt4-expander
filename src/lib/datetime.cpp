@@ -206,7 +206,7 @@ char* WINAPI GmtTimeFormatA(time32 gmtTime, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    string s = gmtTimeFormat(gmtTime, format);
-   return(strdup(s.c_str()));                               // TODO: add to GC (close memory leak)
+   return sdup(s.c_str());                                  // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -237,7 +237,7 @@ wchar* WINAPI GmtTimeFormatW(time64 gmtTime, const wchar* format) {
       if (wcsftime(buffer, bufSize, format, &time)) break;
    }
 
-   return(wstrdup(buffer));                                 // TODO: add to GC (close memory leak)
+   return wsdup(buffer);                                    // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -263,7 +263,7 @@ string WINAPI localTimeFormat(time32 gmtTime, const char* format) {
       buffer = (char*)alloca(bufSize);                      // on the stack
       if (strftime(buffer, bufSize, format, &time)) break;
    }
-   return(string(buffer));
+   return string(buffer);
 }
 
 
@@ -284,7 +284,7 @@ char* WINAPI LocalTimeFormatA(time32 gmtTime, const char* format) {
    if ((uint)format < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
    string s = localTimeFormat(gmtTime, format);
-   return(strdup(s.c_str()));                               // TODO: add to GC (close memory leak)
+   return sdup(s.c_str());                                  // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -315,7 +315,7 @@ wchar* WINAPI LocalTimeFormatW(time64 gmtTime, const wchar* format) {
       if (wcsftime(buffer, bufSize, format, &time)) break;
    }
 
-   return(wstrdup(buffer));                                          // TODO: add to GC (close memory leak)
+   return wsdup(buffer);                                             // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -640,7 +640,7 @@ SYSTEMTIME WINAPI D(const char* datetime) {
       return(st);
    }
 
-   char* s = strdup(datetime);
+   char* s = sdup(datetime);
    s[4] = s[7] = s[10] = s[13] = s[16] = s[19] = '\0';   // format: 1981.09.30 20:00:00
 
    st.wYear   = atoi(&s[ 0]);
