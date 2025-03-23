@@ -114,8 +114,8 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
  */
 DWORD WINAPI PlaySoundA(const char* soundfile) {
    if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
-   wstring s = ansiToUnicode(string(soundfile));
-   return(PlaySoundW(s.c_str()));
+   wstring s = ansiToUtf16(string(soundfile));
+   return PlaySoundW(s.c_str());
    #pragma EXPANDER_EXPORT
 }
 
@@ -189,7 +189,7 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
  *
  */
 BOOL WINAPI TestSound(const char* soundfile) {
-   debug("format %%S, unicode param: %S", L"arg");
+   debug("format %%S, utf-16 param: %S", L"arg");
    return(TRUE);
    //#pragma EXPANDER_EXPORT
 

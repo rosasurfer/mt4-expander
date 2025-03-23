@@ -69,12 +69,12 @@ char*        WINAPI StrTrim(char* const str);
 char*        WINAPI StrTrimLeft(char* const str);
 char*        WINAPI StrTrimRight(char* const str);
 
-wstring      WINAPI ansiToUnicode(const  string &str);
-string       WINAPI ansiToUtf8   (const  string &str);
-string       WINAPI unicodeToAnsi(const wstring &str);
-string       WINAPI unicodeToUtf8(const wstring &str);
-string       WINAPI utf8ToAnsi   (const  string &str);
-wstring      WINAPI utf8ToUnicode(const  string &str);
+string       WINAPI ansiToUtf8 (const  string &str);
+wstring      WINAPI ansiToUtf16(const  string &str);
+string       WINAPI utf8ToAnsi (const  string &str);
+wstring      WINAPI utf8ToUtf16(const  string &str);
+string       WINAPI utf16ToAnsi(const wstring &str);
+string       WINAPI utf16ToUtf8(const wstring &str);
 
  char*      __cdecl asformat(const char* format, ...);                        // only __cdecl supports variadics
 wchar*      __cdecl asformat(const wchar* format, ...);

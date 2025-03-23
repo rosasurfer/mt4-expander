@@ -130,7 +130,7 @@ const char* WINAPI GetGlobalConfigPathA() {
          // make sure the config directory exists
          int error = CreateDirectoryA(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
-            warn(ERR_WIN32_ERROR+error, "cannot create directory \"%s\" (%s)", commonDataPath, strerror(errno));
+            warn(error, "cannot create directory \"%s\" (%s)", commonDataPath, strerror(errno));
          }
          else {
             // make sure the config file exists

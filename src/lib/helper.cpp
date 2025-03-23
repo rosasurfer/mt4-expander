@@ -54,13 +54,13 @@ DWORD WINAPI GetLastWin32Error() {
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 char* WINAPI GetInternalWindowTextA(HWND hWnd) {
-   wchar* unicodeText = GetInternalWindowTextW(hWnd);
-   if (!unicodeText) return(NULL);
+   wchar* utf16Text = GetInternalWindowTextW(hWnd);
+   if (!utf16Text) return NULL;
 
-   char* ansiText = sdup(unicodeToAnsi(wstring(unicodeText)).c_str());     // on the heap
-   free(unicodeText);
+   char* ansiText = sdup(utf16ToAnsi(wstring(utf16Text)).c_str());     // on the heap
+   free(utf16Text);
 
-   return(ansiText);
+   return ansiText;
    #pragma EXPANDER_EXPORT
 }
 
@@ -111,13 +111,13 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 char* WINAPI GetWindowTextA(HWND hWnd) {
-   wchar* unicodeText = GetWindowTextW(hWnd);
-   if (!unicodeText) return(NULL);
+   wchar* utf16Text = GetWindowTextW(hWnd);
+   if (!utf16Text) return NULL;
 
-   char* ansiText = sdup(unicodeToAnsi(wstring(unicodeText)).c_str());     // on the heap
-   free(unicodeText);
+   char* ansiText = sdup(utf16ToAnsi(wstring(utf16Text)).c_str());     // on the heap
+   free(utf16Text);
 
-   return(ansiText);
+   return ansiText;
    #pragma EXPANDER_EXPORT
 }
 

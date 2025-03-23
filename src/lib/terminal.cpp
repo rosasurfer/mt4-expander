@@ -154,12 +154,12 @@ const char* WINAPI GetExpanderFileNameA() {
 
    if (!filename) {
       if (const wchar* wname = GetExpanderFileNameW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wname)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wname)).c_str());
          if (!filename) filename = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(filename);
+   return filename;
    #pragma EXPANDER_EXPORT
 }
 
@@ -227,12 +227,12 @@ const char* WINAPI GetHistoryRootPathA() {
 
    if (!hstDirectory) {
       if (const wchar* wpath = GetHistoryRootPathW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
          if (!hstDirectory) hstDirectory = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(hstDirectory);
+   return hstDirectory;
    #pragma EXPANDER_EXPORT
 }
 
@@ -268,12 +268,12 @@ const char* WINAPI GetMqlDirectoryA() {
 
    if (!mqlDirectory) {
       if (const wchar* wdirectory = GetMqlDirectoryW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wdirectory)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wdirectory)).c_str());
          if (!mqlDirectory) mqlDirectory = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(mqlDirectory);
+   return mqlDirectory;
    #pragma EXPANDER_EXPORT
 }
 
@@ -297,7 +297,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(mqlDirectory);
+   return mqlDirectory;
    #pragma EXPANDER_EXPORT
 }
 
@@ -315,22 +315,22 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
    if (inTester) {
       if (!testerPath) {
          if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
-            char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
+            char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
             if (!testerPath) testerPath = tmp;
             else free(tmp);               // another thread may have been faster
          }
       }
-      return(testerPath);
+      return testerPath;
    }
 
    if (!onlinePath) {
       if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
          if (!onlinePath) onlinePath = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(onlinePath);
+   return onlinePath;
    #pragma EXPANDER_EXPORT
 }
 
@@ -383,12 +383,12 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
    if (!path) {
       if (const wchar* wpath = GetTerminalCommonDataPathW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(path);
+   return path;
    #pragma EXPANDER_EXPORT
 }
 
@@ -432,12 +432,12 @@ const char* WINAPI GetTerminalDataPathA() {
 
    if (!dataPath) {
       if (const wchar* wpath = GetTerminalDataPathW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
          if (!dataPath) dataPath = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(dataPath);
+   return dataPath;
    #pragma EXPANDER_EXPORT
 }
 
@@ -505,20 +505,20 @@ const wchar* WINAPI GetTerminalDataPathW() {
       else {
          // check for locked terminal logs
          char* logFilename = LocalTimeFormatA(GetGmtTime32(), "\\logs\\%Y%m%d.log");
-         BOOL terminalPathIsLocked = IsLockedFile(unicodeToAnsi(wstring(terminalPath)).append(logFilename));
-         BOOL roamingPathIsLocked  = IsLockedFile(unicodeToAnsi(wstring(roamingDataPath)).append(logFilename));
+         BOOL terminalPathIsLocked = IsLockedFile(utf16ToAnsi(wstring(terminalPath)).append(logFilename));
+         BOOL roamingPathIsLocked  = IsLockedFile(utf16ToAnsi(wstring(roamingDataPath)).append(logFilename));
          free(logFilename);
 
          if      (roamingPathIsLocked)  tmp = wsdup(roamingDataPath);
          else if (terminalPathIsLocked) tmp = wsdup(terminalPath);
-         else return((wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found"));   // no write permissions in both places
+         else return (wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found");   // no write permissions in both places
 
          // TODO: implement UAC check
       }
       if (!dataPath) dataPath = tmp;
       else free(tmp);                     // another thread may have been faster
    }
-   return(dataPath);
+   return dataPath;
    #pragma EXPANDER_EXPORT
 }
 
@@ -567,12 +567,12 @@ const char* WINAPI GetTerminalFileNameA() {
 
    if (!filename) {
       if (const wchar* wfilename = GetTerminalFileNameW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wfilename)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wfilename)).c_str());
          if (!filename) filename = tmp;
          else free(tmp);                                    // another thread may have been faster
       }
    }
-   return(filename);
+   return filename;
    #pragma EXPANDER_EXPORT
 }
 
@@ -616,12 +616,12 @@ const char* WINAPI GetTerminalPathA() {
 
    if (!path) {
       if (const wchar* wpath = GetTerminalPathW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(path);
+   return path;
    #pragma EXPANDER_EXPORT
 }
 
@@ -660,12 +660,12 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
    if (!path) {
       if (const wchar* wpath = GetTerminalRoamingDataPathW()) {
-         char* tmp = sdup(unicodeToAnsi(wstring(wpath)).c_str());
+         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
          if (!path) path = tmp;
          else free(tmp);                  // another thread may have been faster
       }
    }
-   return(path);
+   return path;
    #pragma EXPANDER_EXPORT
 }
 
@@ -691,13 +691,13 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
       string md5Hash(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));
       StrToUpper(md5Hash);
 
-      wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\").append(ansiToUnicode(md5Hash));
+      wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\").append(ansiToUtf16(md5Hash));
 
       wchar* tmp = wsdup(dir.c_str());
       if (!result) result = tmp;
       else free(tmp);                     // another thread may have been faster
    }
-   return(result);
+   return result;
    #pragma EXPANDER_EXPORT
 }
 
@@ -823,8 +823,8 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
 BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* programName) {
    if ((uint)programName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
 
-   wstring name = ansiToUnicode(string(programName));
-   return(LoadMqlProgramW(hChart, programType, name.c_str()));
+   wstring name = ansiToUtf16(string(programName));
+   return LoadMqlProgramW(hChart, programType, name.c_str());
    #pragma EXPANDER_EXPORT
 }
 
@@ -834,7 +834,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
  *
  * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  wchar*      programName - MQL program name (wide Unicode aka UTF-16 string)
+ * @param  wchar*      programName - MQL program name (UTF-16)
  *
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */

@@ -250,6 +250,9 @@ const char* WINAPI ErrorToStrA(int error) {
    #ifndef ERROR_IMAGE_AT_DIFFERENT_BASE
    #define ERROR_IMAGE_AT_DIFFERENT_BASE                                807L
    #endif
+   #ifndef ERROR_APP_HANG
+   #define ERROR_APP_HANG                                              1298L
+   #endif
 
    switch (error) {
       case NO_ERROR                                                                       : return("NO_ERROR"                                                           );    //      0
@@ -995,6 +998,224 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_NOACCESS                                               : return("win32:ERROR_NOACCESS"                                               );    // 100000 +  998
       case ERR_WIN32_ERROR + ERROR_SWAPERROR                                              : return("win32:ERROR_SWAPERROR"                                              );    // 100000 +  999
 
+      case ERR_WIN32_ERROR + ERROR_STACK_OVERFLOW                                         : return("win32:ERROR_STACK_OVERFLOW"                                         );    // 100000 + 1001
+      case ERR_WIN32_ERROR + ERROR_INVALID_MESSAGE                                        : return("win32:ERROR_INVALID_MESSAGE"                                        );    // 100000 + 1002
+      case ERR_WIN32_ERROR + ERROR_CAN_NOT_COMPLETE                                       : return("win32:ERROR_CAN_NOT_COMPLETE"                                       );    // 100000 + 1003
+      case ERR_WIN32_ERROR + ERROR_INVALID_FLAGS                                          : return("win32:ERROR_INVALID_FLAGS"                                          );    // 100000 + 1004
+      case ERR_WIN32_ERROR + ERROR_UNRECOGNIZED_VOLUME                                    : return("win32:ERROR_UNRECOGNIZED_VOLUME"                                    );    // 100000 + 1005
+      case ERR_WIN32_ERROR + ERROR_FILE_INVALID                                           : return("win32:ERROR_FILE_INVALID"                                           );    // 100000 + 1006
+      case ERR_WIN32_ERROR + ERROR_FULLSCREEN_MODE                                        : return("win32:ERROR_FULLSCREEN_MODE"                                        );    // 100000 + 1007
+      case ERR_WIN32_ERROR + ERROR_NO_TOKEN                                               : return("win32:ERROR_NO_TOKEN"                                               );    // 100000 + 1008
+      case ERR_WIN32_ERROR + ERROR_BADDB                                                  : return("win32:ERROR_BADDB"                                                  );    // 100000 + 1009
+      case ERR_WIN32_ERROR + ERROR_BADKEY                                                 : return("win32:ERROR_BADKEY"                                                 );    // 100000 + 1010
+      case ERR_WIN32_ERROR + ERROR_CANTOPEN                                               : return("win32:ERROR_CANTOPEN"                                               );    // 100000 + 1011
+      case ERR_WIN32_ERROR + ERROR_CANTREAD                                               : return("win32:ERROR_CANTREAD"                                               );    // 100000 + 1012
+      case ERR_WIN32_ERROR + ERROR_CANTWRITE                                              : return("win32:ERROR_CANTWRITE"                                              );    // 100000 + 1013
+      case ERR_WIN32_ERROR + ERROR_REGISTRY_RECOVERED                                     : return("win32:ERROR_REGISTRY_RECOVERED"                                     );    // 100000 + 1014
+      case ERR_WIN32_ERROR + ERROR_REGISTRY_CORRUPT                                       : return("win32:ERROR_REGISTRY_CORRUPT"                                       );    // 100000 + 1015
+      case ERR_WIN32_ERROR + ERROR_REGISTRY_IO_FAILED                                     : return("win32:ERROR_REGISTRY_IO_FAILED"                                     );    // 100000 + 1016
+      case ERR_WIN32_ERROR + ERROR_NOT_REGISTRY_FILE                                      : return("win32:ERROR_NOT_REGISTRY_FILE"                                      );    // 100000 + 1017
+      case ERR_WIN32_ERROR + ERROR_KEY_DELETED                                            : return("win32:ERROR_KEY_DELETED"                                            );    // 100000 + 1018
+      case ERR_WIN32_ERROR + ERROR_NO_LOG_SPACE                                           : return("win32:ERROR_NO_LOG_SPACE"                                           );    // 100000 + 1019
+      case ERR_WIN32_ERROR + ERROR_KEY_HAS_CHILDREN                                       : return("win32:ERROR_KEY_HAS_CHILDREN"                                       );    // 100000 + 1020
+      case ERR_WIN32_ERROR + ERROR_CHILD_MUST_BE_VOLATILE                                 : return("win32:ERROR_CHILD_MUST_BE_VOLATILE"                                 );    // 100000 + 1021
+      case ERR_WIN32_ERROR + ERROR_NOTIFY_ENUM_DIR                                        : return("win32:ERROR_NOTIFY_ENUM_DIR"                                        );    // 100000 + 1022
+      case ERR_WIN32_ERROR + ERROR_DEPENDENT_SERVICES_RUNNING                             : return("win32:ERROR_DEPENDENT_SERVICES_RUNNING"                             );    // 100000 + 1051
+      case ERR_WIN32_ERROR + ERROR_INVALID_SERVICE_CONTROL                                : return("win32:ERROR_INVALID_SERVICE_CONTROL"                                );    // 100000 + 1052
+      case ERR_WIN32_ERROR + ERROR_SERVICE_REQUEST_TIMEOUT                                : return("win32:ERROR_SERVICE_REQUEST_TIMEOUT"                                );    // 100000 + 1053
+      case ERR_WIN32_ERROR + ERROR_SERVICE_NO_THREAD                                      : return("win32:ERROR_SERVICE_NO_THREAD"                                      );    // 100000 + 1054
+      case ERR_WIN32_ERROR + ERROR_SERVICE_DATABASE_LOCKED                                : return("win32:ERROR_SERVICE_DATABASE_LOCKED"                                );    // 100000 + 1055
+      case ERR_WIN32_ERROR + ERROR_SERVICE_ALREADY_RUNNING                                : return("win32:ERROR_SERVICE_ALREADY_RUNNING"                                );    // 100000 + 1056
+      case ERR_WIN32_ERROR + ERROR_INVALID_SERVICE_ACCOUNT                                : return("win32:ERROR_INVALID_SERVICE_ACCOUNT"                                );    // 100000 + 1057
+      case ERR_WIN32_ERROR + ERROR_SERVICE_DISABLED                                       : return("win32:ERROR_SERVICE_DISABLED"                                       );    // 100000 + 1058
+      case ERR_WIN32_ERROR + ERROR_CIRCULAR_DEPENDENCY                                    : return("win32:ERROR_CIRCULAR_DEPENDENCY"                                    );    // 100000 + 1059
+      case ERR_WIN32_ERROR + ERROR_SERVICE_DOES_NOT_EXIST                                 : return("win32:ERROR_SERVICE_DOES_NOT_EXIST"                                 );    // 100000 + 1060
+      case ERR_WIN32_ERROR + ERROR_SERVICE_CANNOT_ACCEPT_CTRL                             : return("win32:ERROR_SERVICE_CANNOT_ACCEPT_CTRL"                             );    // 100000 + 1061
+      case ERR_WIN32_ERROR + ERROR_SERVICE_NOT_ACTIVE                                     : return("win32:ERROR_SERVICE_NOT_ACTIVE"                                     );    // 100000 + 1062
+      case ERR_WIN32_ERROR + ERROR_FAILED_SERVICE_CONTROLLER_CONNECT                      : return("win32:ERROR_FAILED_SERVICE_CONTROLLER_CONNECT"                      );    // 100000 + 1063
+      case ERR_WIN32_ERROR + ERROR_EXCEPTION_IN_SERVICE                                   : return("win32:ERROR_EXCEPTION_IN_SERVICE"                                   );    // 100000 + 1064
+      case ERR_WIN32_ERROR + ERROR_DATABASE_DOES_NOT_EXIST                                : return("win32:ERROR_DATABASE_DOES_NOT_EXIST"                                );    // 100000 + 1065
+      case ERR_WIN32_ERROR + ERROR_SERVICE_SPECIFIC_ERROR                                 : return("win32:ERROR_SERVICE_SPECIFIC_ERROR"                                 );    // 100000 + 1066
+      case ERR_WIN32_ERROR + ERROR_PROCESS_ABORTED                                        : return("win32:ERROR_PROCESS_ABORTED"                                        );    // 100000 + 1067
+      case ERR_WIN32_ERROR + ERROR_SERVICE_DEPENDENCY_FAIL                                : return("win32:ERROR_SERVICE_DEPENDENCY_FAIL"                                );    // 100000 + 1068
+      case ERR_WIN32_ERROR + ERROR_SERVICE_LOGON_FAILED                                   : return("win32:ERROR_SERVICE_LOGON_FAILED"                                   );    // 100000 + 1069
+      case ERR_WIN32_ERROR + ERROR_SERVICE_START_HANG                                     : return("win32:ERROR_SERVICE_START_HANG"                                     );    // 100000 + 1070
+      case ERR_WIN32_ERROR + ERROR_INVALID_SERVICE_LOCK                                   : return("win32:ERROR_INVALID_SERVICE_LOCK"                                   );    // 100000 + 1071
+      case ERR_WIN32_ERROR + ERROR_SERVICE_MARKED_FOR_DELETE                              : return("win32:ERROR_SERVICE_MARKED_FOR_DELETE"                              );    // 100000 + 1072
+      case ERR_WIN32_ERROR + ERROR_SERVICE_EXISTS                                         : return("win32:ERROR_SERVICE_EXISTS"                                         );    // 100000 + 1073
+      case ERR_WIN32_ERROR + ERROR_ALREADY_RUNNING_LKG                                    : return("win32:ERROR_ALREADY_RUNNING_LKG"                                    );    // 100000 + 1074
+      case ERR_WIN32_ERROR + ERROR_SERVICE_DEPENDENCY_DELETED                             : return("win32:ERROR_SERVICE_DEPENDENCY_DELETED"                             );    // 100000 + 1075
+      case ERR_WIN32_ERROR + ERROR_BOOT_ALREADY_ACCEPTED                                  : return("win32:ERROR_BOOT_ALREADY_ACCEPTED"                                  );    // 100000 + 1076
+      case ERR_WIN32_ERROR + ERROR_SERVICE_NEVER_STARTED                                  : return("win32:ERROR_SERVICE_NEVER_STARTED"                                  );    // 100000 + 1077
+      case ERR_WIN32_ERROR + ERROR_DUPLICATE_SERVICE_NAME                                 : return("win32:ERROR_DUPLICATE_SERVICE_NAME"                                 );    // 100000 + 1078
+      case ERR_WIN32_ERROR + ERROR_DIFFERENT_SERVICE_ACCOUNT                              : return("win32:ERROR_DIFFERENT_SERVICE_ACCOUNT"                              );    // 100000 + 1079
+      case ERR_WIN32_ERROR + ERROR_CANNOT_DETECT_DRIVER_FAILURE                           : return("win32:ERROR_CANNOT_DETECT_DRIVER_FAILURE"                           );    // 100000 + 1080
+      case ERR_WIN32_ERROR + ERROR_CANNOT_DETECT_PROCESS_ABORT                            : return("win32:ERROR_CANNOT_DETECT_PROCESS_ABORT"                            );    // 100000 + 1081
+      case ERR_WIN32_ERROR + ERROR_NO_RECOVERY_PROGRAM                                    : return("win32:ERROR_NO_RECOVERY_PROGRAM"                                    );    // 100000 + 1082
+      case ERR_WIN32_ERROR + ERROR_SERVICE_NOT_IN_EXE                                     : return("win32:ERROR_SERVICE_NOT_IN_EXE"                                     );    // 100000 + 1083
+      case ERR_WIN32_ERROR + ERROR_NOT_SAFEBOOT_SERVICE                                   : return("win32:ERROR_NOT_SAFEBOOT_SERVICE"                                   );    // 100000 + 1084
+      case ERR_WIN32_ERROR + ERROR_END_OF_MEDIA                                           : return("win32:ERROR_END_OF_MEDIA"                                           );    // 100000 + 1100
+      case ERR_WIN32_ERROR + ERROR_FILEMARK_DETECTED                                      : return("win32:ERROR_FILEMARK_DETECTED"                                      );    // 100000 + 1101
+      case ERR_WIN32_ERROR + ERROR_BEGINNING_OF_MEDIA                                     : return("win32:ERROR_BEGINNING_OF_MEDIA"                                     );    // 100000 + 1102
+      case ERR_WIN32_ERROR + ERROR_SETMARK_DETECTED                                       : return("win32:ERROR_SETMARK_DETECTED"                                       );    // 100000 + 1103
+      case ERR_WIN32_ERROR + ERROR_NO_DATA_DETECTED                                       : return("win32:ERROR_NO_DATA_DETECTED"                                       );    // 100000 + 1104
+      case ERR_WIN32_ERROR + ERROR_PARTITION_FAILURE                                      : return("win32:ERROR_PARTITION_FAILURE"                                      );    // 100000 + 1105
+      case ERR_WIN32_ERROR + ERROR_INVALID_BLOCK_LENGTH                                   : return("win32:ERROR_INVALID_BLOCK_LENGTH"                                   );    // 100000 + 1106
+      case ERR_WIN32_ERROR + ERROR_DEVICE_NOT_PARTITIONED                                 : return("win32:ERROR_DEVICE_NOT_PARTITIONED"                                 );    // 100000 + 1107
+      case ERR_WIN32_ERROR + ERROR_UNABLE_TO_LOCK_MEDIA                                   : return("win32:ERROR_UNABLE_TO_LOCK_MEDIA"                                   );    // 100000 + 1108
+      case ERR_WIN32_ERROR + ERROR_UNABLE_TO_UNLOAD_MEDIA                                 : return("win32:ERROR_UNABLE_TO_UNLOAD_MEDIA"                                 );    // 100000 + 1109
+      case ERR_WIN32_ERROR + ERROR_MEDIA_CHANGED                                          : return("win32:ERROR_MEDIA_CHANGED"                                          );    // 100000 + 1110
+      case ERR_WIN32_ERROR + ERROR_BUS_RESET                                              : return("win32:ERROR_BUS_RESET"                                              );    // 100000 + 1111
+      case ERR_WIN32_ERROR + ERROR_NO_MEDIA_IN_DRIVE                                      : return("win32:ERROR_NO_MEDIA_IN_DRIVE"                                      );    // 100000 + 1112
+      case ERR_WIN32_ERROR + ERROR_NO_UNICODE_TRANSLATION                                 : return("win32:ERROR_NO_UNICODE_TRANSLATION"                                 );    // 100000 + 1113
+      case ERR_WIN32_ERROR + ERROR_DLL_INIT_FAILED                                        : return("win32:ERROR_DLL_INIT_FAILED"                                        );    // 100000 + 1114
+      case ERR_WIN32_ERROR + ERROR_SHUTDOWN_IN_PROGRESS                                   : return("win32:ERROR_SHUTDOWN_IN_PROGRESS"                                   );    // 100000 + 1115
+      case ERR_WIN32_ERROR + ERROR_NO_SHUTDOWN_IN_PROGRESS                                : return("win32:ERROR_NO_SHUTDOWN_IN_PROGRESS"                                );    // 100000 + 1116
+      case ERR_WIN32_ERROR + ERROR_IO_DEVICE                                              : return("win32:ERROR_IO_DEVICE"                                              );    // 100000 + 1117
+      case ERR_WIN32_ERROR + ERROR_SERIAL_NO_DEVICE                                       : return("win32:ERROR_SERIAL_NO_DEVICE"                                       );    // 100000 + 1118
+      case ERR_WIN32_ERROR + ERROR_IRQ_BUSY                                               : return("win32:ERROR_IRQ_BUSY"                                               );    // 100000 + 1119
+      case ERR_WIN32_ERROR + ERROR_MORE_WRITES                                            : return("win32:ERROR_MORE_WRITES"                                            );    // 100000 + 1120
+      case ERR_WIN32_ERROR + ERROR_FLOPPY_WRONG_CYLINDER                                  : return("win32:ERROR_FLOPPY_WRONG_CYLINDER"                                  );    // 100000 + 1123
+      case ERR_WIN32_ERROR + ERROR_FLOPPY_UNKNOWN_ERROR                                   : return("win32:ERROR_FLOPPY_UNKNOWN_ERROR"                                   );    // 100000 + 1124
+      case ERR_WIN32_ERROR + ERROR_FLOPPY_BAD_REGISTERS                                   : return("win32:ERROR_FLOPPY_BAD_REGISTERS"                                   );    // 100000 + 1125
+      case ERR_WIN32_ERROR + ERROR_DISK_RECALIBRATE_FAILED                                : return("win32:ERROR_DISK_RECALIBRATE_FAILED"                                );    // 100000 + 1126
+      case ERR_WIN32_ERROR + ERROR_DISK_OPERATION_FAILED                                  : return("win32:ERROR_DISK_OPERATION_FAILED"                                  );    // 100000 + 1127
+      case ERR_WIN32_ERROR + ERROR_DISK_RESET_FAILED                                      : return("win32:ERROR_DISK_RESET_FAILED"                                      );    // 100000 + 1128
+      case ERR_WIN32_ERROR + ERROR_EOM_OVERFLOW                                           : return("win32:ERROR_EOM_OVERFLOW"                                           );    // 100000 + 1129
+      case ERR_WIN32_ERROR + ERROR_NOT_ENOUGH_SERVER_MEMORY                               : return("win32:ERROR_NOT_ENOUGH_SERVER_MEMORY"                               );    // 100000 + 1130
+      case ERR_WIN32_ERROR + ERROR_POSSIBLE_DEADLOCK                                      : return("win32:ERROR_POSSIBLE_DEADLOCK"                                      );    // 100000 + 1131
+      case ERR_WIN32_ERROR + ERROR_MAPPED_ALIGNMENT                                       : return("win32:ERROR_MAPPED_ALIGNMENT"                                       );    // 100000 + 1132
+      case ERR_WIN32_ERROR + ERROR_SET_POWER_STATE_VETOED                                 : return("win32:ERROR_SET_POWER_STATE_VETOED"                                 );    // 100000 + 1140
+      case ERR_WIN32_ERROR + ERROR_SET_POWER_STATE_FAILED                                 : return("win32:ERROR_SET_POWER_STATE_FAILED"                                 );    // 100000 + 1141
+      case ERR_WIN32_ERROR + ERROR_TOO_MANY_LINKS                                         : return("win32:ERROR_TOO_MANY_LINKS"                                         );    // 100000 + 1142
+      case ERR_WIN32_ERROR + ERROR_OLD_WIN_VERSION                                        : return("win32:ERROR_OLD_WIN_VERSION"                                        );    // 100000 + 1150
+      case ERR_WIN32_ERROR + ERROR_APP_WRONG_OS                                           : return("win32:ERROR_APP_WRONG_OS"                                           );    // 100000 + 1151
+      case ERR_WIN32_ERROR + ERROR_SINGLE_INSTANCE_APP                                    : return("win32:ERROR_SINGLE_INSTANCE_APP"                                    );    // 100000 + 1152
+      case ERR_WIN32_ERROR + ERROR_RMODE_APP                                              : return("win32:ERROR_RMODE_APP"                                              );    // 100000 + 1153
+      case ERR_WIN32_ERROR + ERROR_INVALID_DLL                                            : return("win32:ERROR_INVALID_DLL"                                            );    // 100000 + 1154
+      case ERR_WIN32_ERROR + ERROR_NO_ASSOCIATION                                         : return("win32:ERROR_NO_ASSOCIATION"                                         );    // 100000 + 1155
+      case ERR_WIN32_ERROR + ERROR_DDE_FAIL                                               : return("win32:ERROR_DDE_FAIL"                                               );    // 100000 + 1156
+      case ERR_WIN32_ERROR + ERROR_DLL_NOT_FOUND                                          : return("win32:ERROR_DLL_NOT_FOUND"                                          );    // 100000 + 1157
+      case ERR_WIN32_ERROR + ERROR_NO_MORE_USER_HANDLES                                   : return("win32:ERROR_NO_MORE_USER_HANDLES"                                   );    // 100000 + 1158
+      case ERR_WIN32_ERROR + ERROR_MESSAGE_SYNC_ONLY                                      : return("win32:ERROR_MESSAGE_SYNC_ONLY"                                      );    // 100000 + 1159
+      case ERR_WIN32_ERROR + ERROR_SOURCE_ELEMENT_EMPTY                                   : return("win32:ERROR_SOURCE_ELEMENT_EMPTY"                                   );    // 100000 + 1160
+      case ERR_WIN32_ERROR + ERROR_DESTINATION_ELEMENT_FULL                               : return("win32:ERROR_DESTINATION_ELEMENT_FULL"                               );    // 100000 + 1161
+      case ERR_WIN32_ERROR + ERROR_ILLEGAL_ELEMENT_ADDRESS                                : return("win32:ERROR_ILLEGAL_ELEMENT_ADDRESS"                                );    // 100000 + 1162
+      case ERR_WIN32_ERROR + ERROR_MAGAZINE_NOT_PRESENT                                   : return("win32:ERROR_MAGAZINE_NOT_PRESENT"                                   );    // 100000 + 1163
+      case ERR_WIN32_ERROR + ERROR_DEVICE_REINITIALIZATION_NEEDED                         : return("win32:ERROR_DEVICE_REINITIALIZATION_NEEDED"                         );    // 100000 + 1164
+      case ERR_WIN32_ERROR + ERROR_DEVICE_REQUIRES_CLEANING                               : return("win32:ERROR_DEVICE_REQUIRES_CLEANING"                               );    // 100000 + 1165
+      case ERR_WIN32_ERROR + ERROR_DEVICE_DOOR_OPEN                                       : return("win32:ERROR_DEVICE_DOOR_OPEN"                                       );    // 100000 + 1166
+      case ERR_WIN32_ERROR + ERROR_DEVICE_NOT_CONNECTED                                   : return("win32:ERROR_DEVICE_NOT_CONNECTED"                                   );    // 100000 + 1167
+      case ERR_WIN32_ERROR + ERROR_NOT_FOUND                                              : return("win32:ERROR_NOT_FOUND"                                              );    // 100000 + 1168
+      case ERR_WIN32_ERROR + ERROR_NO_MATCH                                               : return("win32:ERROR_NO_MATCH"                                               );    // 100000 + 1169
+      case ERR_WIN32_ERROR + ERROR_SET_NOT_FOUND                                          : return("win32:ERROR_SET_NOT_FOUND"                                          );    // 100000 + 1170
+      case ERR_WIN32_ERROR + ERROR_POINT_NOT_FOUND                                        : return("win32:ERROR_POINT_NOT_FOUND"                                        );    // 100000 + 1171
+      case ERR_WIN32_ERROR + ERROR_NO_TRACKING_SERVICE                                    : return("win32:ERROR_NO_TRACKING_SERVICE"                                    );    // 100000 + 1172
+      case ERR_WIN32_ERROR + ERROR_NO_VOLUME_ID                                           : return("win32:ERROR_NO_VOLUME_ID"                                           );    // 100000 + 1173
+      case ERR_WIN32_ERROR + ERROR_UNABLE_TO_REMOVE_REPLACED                              : return("win32:ERROR_UNABLE_TO_REMOVE_REPLACED"                              );    // 100000 + 1175
+      case ERR_WIN32_ERROR + ERROR_UNABLE_TO_MOVE_REPLACEMENT                             : return("win32:ERROR_UNABLE_TO_MOVE_REPLACEMENT"                             );    // 100000 + 1176
+      case ERR_WIN32_ERROR + ERROR_UNABLE_TO_MOVE_REPLACEMENT_2                           : return("win32:ERROR_UNABLE_TO_MOVE_REPLACEMENT_2"                           );    // 100000 + 1177
+      case ERR_WIN32_ERROR + ERROR_JOURNAL_DELETE_IN_PROGRESS                             : return("win32:ERROR_JOURNAL_DELETE_IN_PROGRESS"                             );    // 100000 + 1178
+      case ERR_WIN32_ERROR + ERROR_JOURNAL_NOT_ACTIVE                                     : return("win32:ERROR_JOURNAL_NOT_ACTIVE"                                     );    // 100000 + 1179
+      case ERR_WIN32_ERROR + ERROR_POTENTIAL_FILE_FOUND                                   : return("win32:ERROR_POTENTIAL_FILE_FOUND"                                   );    // 100000 + 1180
+      case ERR_WIN32_ERROR + ERROR_JOURNAL_ENTRY_DELETED                                  : return("win32:ERROR_JOURNAL_ENTRY_DELETED"                                  );    // 100000 + 1181
+      case ERR_WIN32_ERROR + ERROR_SHUTDOWN_IS_SCHEDULED                                  : return("win32:ERROR_SHUTDOWN_IS_SCHEDULED"                                  );    // 100000 + 1190
+      case ERR_WIN32_ERROR + ERROR_SHUTDOWN_USERS_LOGGED_ON                               : return("win32:ERROR_SHUTDOWN_USERS_LOGGED_ON"                               );    // 100000 + 1191
+      case ERR_WIN32_ERROR + ERROR_BAD_DEVICE                                             : return("win32:ERROR_BAD_DEVICE"                                             );    // 100000 + 1200
+      case ERR_WIN32_ERROR + ERROR_CONNECTION_UNAVAIL                                     : return("win32:ERROR_CONNECTION_UNAVAIL"                                     );    // 100000 + 1201
+      case ERR_WIN32_ERROR + ERROR_DEVICE_ALREADY_REMEMBERED                              : return("win32:ERROR_DEVICE_ALREADY_REMEMBERED"                              );    // 100000 + 1202
+      case ERR_WIN32_ERROR + ERROR_NO_NET_OR_BAD_PATH                                     : return("win32:ERROR_NO_NET_OR_BAD_PATH"                                     );    // 100000 + 1203
+      case ERR_WIN32_ERROR + ERROR_BAD_PROVIDER                                           : return("win32:ERROR_BAD_PROVIDER"                                           );    // 100000 + 1204
+      case ERR_WIN32_ERROR + ERROR_CANNOT_OPEN_PROFILE                                    : return("win32:ERROR_CANNOT_OPEN_PROFILE"                                    );    // 100000 + 1205
+      case ERR_WIN32_ERROR + ERROR_BAD_PROFILE                                            : return("win32:ERROR_BAD_PROFILE"                                            );    // 100000 + 1206
+      case ERR_WIN32_ERROR + ERROR_NOT_CONTAINER                                          : return("win32:ERROR_NOT_CONTAINER"                                          );    // 100000 + 1207
+      case ERR_WIN32_ERROR + ERROR_EXTENDED_ERROR                                         : return("win32:ERROR_EXTENDED_ERROR"                                         );    // 100000 + 1208
+      case ERR_WIN32_ERROR + ERROR_INVALID_GROUPNAME                                      : return("win32:ERROR_INVALID_GROUPNAME"                                      );    // 100000 + 1209
+      case ERR_WIN32_ERROR + ERROR_INVALID_COMPUTERNAME                                   : return("win32:ERROR_INVALID_COMPUTERNAME"                                   );    // 100000 + 1210
+      case ERR_WIN32_ERROR + ERROR_INVALID_EVENTNAME                                      : return("win32:ERROR_INVALID_EVENTNAME"                                      );    // 100000 + 1211
+      case ERR_WIN32_ERROR + ERROR_INVALID_DOMAINNAME                                     : return("win32:ERROR_INVALID_DOMAINNAME"                                     );    // 100000 + 1212
+      case ERR_WIN32_ERROR + ERROR_INVALID_SERVICENAME                                    : return("win32:ERROR_INVALID_SERVICENAME"                                    );    // 100000 + 1213
+      case ERR_WIN32_ERROR + ERROR_INVALID_NETNAME                                        : return("win32:ERROR_INVALID_NETNAME"                                        );    // 100000 + 1214
+      case ERR_WIN32_ERROR + ERROR_INVALID_SHARENAME                                      : return("win32:ERROR_INVALID_SHARENAME"                                      );    // 100000 + 1215
+      case ERR_WIN32_ERROR + ERROR_INVALID_PASSWORDNAME                                   : return("win32:ERROR_INVALID_PASSWORDNAME"                                   );    // 100000 + 1216
+      case ERR_WIN32_ERROR + ERROR_INVALID_MESSAGENAME                                    : return("win32:ERROR_INVALID_MESSAGENAME"                                    );    // 100000 + 1217
+      case ERR_WIN32_ERROR + ERROR_INVALID_MESSAGEDEST                                    : return("win32:ERROR_INVALID_MESSAGEDEST"                                    );    // 100000 + 1218
+      case ERR_WIN32_ERROR + ERROR_SESSION_CREDENTIAL_CONFLICT                            : return("win32:ERROR_SESSION_CREDENTIAL_CONFLICT"                            );    // 100000 + 1219
+      case ERR_WIN32_ERROR + ERROR_REMOTE_SESSION_LIMIT_EXCEEDED                          : return("win32:ERROR_REMOTE_SESSION_LIMIT_EXCEEDED"                          );    // 100000 + 1220
+      case ERR_WIN32_ERROR + ERROR_DUP_DOMAINNAME                                         : return("win32:ERROR_DUP_DOMAINNAME"                                         );    // 100000 + 1221
+      case ERR_WIN32_ERROR + ERROR_NO_NETWORK                                             : return("win32:ERROR_NO_NETWORK"                                             );    // 100000 + 1222
+      case ERR_WIN32_ERROR + ERROR_CANCELLED                                              : return("win32:ERROR_CANCELLED"                                              );    // 100000 + 1223
+      case ERR_WIN32_ERROR + ERROR_USER_MAPPED_FILE                                       : return("win32:ERROR_USER_MAPPED_FILE"                                       );    // 100000 + 1224
+      case ERR_WIN32_ERROR + ERROR_CONNECTION_REFUSED                                     : return("win32:ERROR_CONNECTION_REFUSED"                                     );    // 100000 + 1225
+      case ERR_WIN32_ERROR + ERROR_GRACEFUL_DISCONNECT                                    : return("win32:ERROR_GRACEFUL_DISCONNECT"                                    );    // 100000 + 1226
+      case ERR_WIN32_ERROR + ERROR_ADDRESS_ALREADY_ASSOCIATED                             : return("win32:ERROR_ADDRESS_ALREADY_ASSOCIATED"                             );    // 100000 + 1227
+      case ERR_WIN32_ERROR + ERROR_ADDRESS_NOT_ASSOCIATED                                 : return("win32:ERROR_ADDRESS_NOT_ASSOCIATED"                                 );    // 100000 + 1228
+      case ERR_WIN32_ERROR + ERROR_CONNECTION_INVALID                                     : return("win32:ERROR_CONNECTION_INVALID"                                     );    // 100000 + 1229
+      case ERR_WIN32_ERROR + ERROR_CONNECTION_ACTIVE                                      : return("win32:ERROR_CONNECTION_ACTIVE"                                      );    // 100000 + 1230
+      case ERR_WIN32_ERROR + ERROR_NETWORK_UNREACHABLE                                    : return("win32:ERROR_NETWORK_UNREACHABLE"                                    );    // 100000 + 1231
+      case ERR_WIN32_ERROR + ERROR_HOST_UNREACHABLE                                       : return("win32:ERROR_HOST_UNREACHABLE"                                       );    // 100000 + 1232
+      case ERR_WIN32_ERROR + ERROR_PROTOCOL_UNREACHABLE                                   : return("win32:ERROR_PROTOCOL_UNREACHABLE"                                   );    // 100000 + 1233
+      case ERR_WIN32_ERROR + ERROR_PORT_UNREACHABLE                                       : return("win32:ERROR_PORT_UNREACHABLE"                                       );    // 100000 + 1234
+      case ERR_WIN32_ERROR + ERROR_REQUEST_ABORTED                                        : return("win32:ERROR_REQUEST_ABORTED"                                        );    // 100000 + 1235
+      case ERR_WIN32_ERROR + ERROR_CONNECTION_ABORTED                                     : return("win32:ERROR_CONNECTION_ABORTED"                                     );    // 100000 + 1236
+      case ERR_WIN32_ERROR + ERROR_RETRY                                                  : return("win32:ERROR_RETRY"                                                  );    // 100000 + 1237
+      case ERR_WIN32_ERROR + ERROR_CONNECTION_COUNT_LIMIT                                 : return("win32:ERROR_CONNECTION_COUNT_LIMIT"                                 );    // 100000 + 1238
+      case ERR_WIN32_ERROR + ERROR_LOGIN_TIME_RESTRICTION                                 : return("win32:ERROR_LOGIN_TIME_RESTRICTION"                                 );    // 100000 + 1239
+      case ERR_WIN32_ERROR + ERROR_LOGIN_WKSTA_RESTRICTION                                : return("win32:ERROR_LOGIN_WKSTA_RESTRICTION"                                );    // 100000 + 1240
+      case ERR_WIN32_ERROR + ERROR_INCORRECT_ADDRESS                                      : return("win32:ERROR_INCORRECT_ADDRESS"                                      );    // 100000 + 1241
+      case ERR_WIN32_ERROR + ERROR_ALREADY_REGISTERED                                     : return("win32:ERROR_ALREADY_REGISTERED"                                     );    // 100000 + 1242
+      case ERR_WIN32_ERROR + ERROR_SERVICE_NOT_FOUND                                      : return("win32:ERROR_SERVICE_NOT_FOUND"                                      );    // 100000 + 1243
+      case ERR_WIN32_ERROR + ERROR_NOT_AUTHENTICATED                                      : return("win32:ERROR_NOT_AUTHENTICATED"                                      );    // 100000 + 1244
+      case ERR_WIN32_ERROR + ERROR_NOT_LOGGED_ON                                          : return("win32:ERROR_NOT_LOGGED_ON"                                          );    // 100000 + 1245
+      case ERR_WIN32_ERROR + ERROR_CONTINUE                                               : return("win32:ERROR_CONTINUE"                                               );    // 100000 + 1246
+      case ERR_WIN32_ERROR + ERROR_ALREADY_INITIALIZED                                    : return("win32:ERROR_ALREADY_INITIALIZED"                                    );    // 100000 + 1247
+      case ERR_WIN32_ERROR + ERROR_NO_MORE_DEVICES                                        : return("win32:ERROR_NO_MORE_DEVICES"                                        );    // 100000 + 1248
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_SITE                                           : return("win32:ERROR_NO_SUCH_SITE"                                           );    // 100000 + 1249
+      case ERR_WIN32_ERROR + ERROR_DOMAIN_CONTROLLER_EXISTS                               : return("win32:ERROR_DOMAIN_CONTROLLER_EXISTS"                               );    // 100000 + 1250
+      case ERR_WIN32_ERROR + ERROR_ONLY_IF_CONNECTED                                      : return("win32:ERROR_ONLY_IF_CONNECTED"                                      );    // 100000 + 1251
+      case ERR_WIN32_ERROR + ERROR_OVERRIDE_NOCHANGES                                     : return("win32:ERROR_OVERRIDE_NOCHANGES"                                     );    // 100000 + 1252
+      case ERR_WIN32_ERROR + ERROR_BAD_USER_PROFILE                                       : return("win32:ERROR_BAD_USER_PROFILE"                                       );    // 100000 + 1253
+      case ERR_WIN32_ERROR + ERROR_NOT_SUPPORTED_ON_SBS                                   : return("win32:ERROR_NOT_SUPPORTED_ON_SBS"                                   );    // 100000 + 1254
+      case ERR_WIN32_ERROR + ERROR_SERVER_SHUTDOWN_IN_PROGRESS                            : return("win32:ERROR_SERVER_SHUTDOWN_IN_PROGRESS"                            );    // 100000 + 1255
+      case ERR_WIN32_ERROR + ERROR_HOST_DOWN                                              : return("win32:ERROR_HOST_DOWN"                                              );    // 100000 + 1256
+      case ERR_WIN32_ERROR + ERROR_NON_ACCOUNT_SID                                        : return("win32:ERROR_NON_ACCOUNT_SID"                                        );    // 100000 + 1257
+      case ERR_WIN32_ERROR + ERROR_NON_DOMAIN_SID                                         : return("win32:ERROR_NON_DOMAIN_SID"                                         );    // 100000 + 1258
+      case ERR_WIN32_ERROR + ERROR_APPHELP_BLOCK                                          : return("win32:ERROR_APPHELP_BLOCK"                                          );    // 100000 + 1259
+      case ERR_WIN32_ERROR + ERROR_ACCESS_DISABLED_BY_POLICY                              : return("win32:ERROR_ACCESS_DISABLED_BY_POLICY"                              );    // 100000 + 1260
+      case ERR_WIN32_ERROR + ERROR_REG_NAT_CONSUMPTION                                    : return("win32:ERROR_REG_NAT_CONSUMPTION"                                    );    // 100000 + 1261
+      case ERR_WIN32_ERROR + ERROR_CSCSHARE_OFFLINE                                       : return("win32:ERROR_CSCSHARE_OFFLINE"                                       );    // 100000 + 1262
+      case ERR_WIN32_ERROR + ERROR_PKINIT_FAILURE                                         : return("win32:ERROR_PKINIT_FAILURE"                                         );    // 100000 + 1263
+      case ERR_WIN32_ERROR + ERROR_SMARTCARD_SUBSYSTEM_FAILURE                            : return("win32:ERROR_SMARTCARD_SUBSYSTEM_FAILURE"                            );    // 100000 + 1264
+      case ERR_WIN32_ERROR + ERROR_DOWNGRADE_DETECTED                                     : return("win32:ERROR_DOWNGRADE_DETECTED"                                     );    // 100000 + 1265
+      case ERR_WIN32_ERROR + ERROR_MACHINE_LOCKED                                         : return("win32:ERROR_MACHINE_LOCKED"                                         );    // 100000 + 1271
+      case ERR_WIN32_ERROR + ERROR_CALLBACK_SUPPLIED_INVALID_DATA                         : return("win32:ERROR_CALLBACK_SUPPLIED_INVALID_DATA"                         );    // 100000 + 1273
+      case ERR_WIN32_ERROR + ERROR_SYNC_FOREGROUND_REFRESH_REQUIRED                       : return("win32:ERROR_SYNC_FOREGROUND_REFRESH_REQUIRED"                       );    // 100000 + 1274
+      case ERR_WIN32_ERROR + ERROR_DRIVER_BLOCKED                                         : return("win32:ERROR_DRIVER_BLOCKED"                                         );    // 100000 + 1275
+      case ERR_WIN32_ERROR + ERROR_INVALID_IMPORT_OF_NON_DLL                              : return("win32:ERROR_INVALID_IMPORT_OF_NON_DLL"                              );    // 100000 + 1276
+      case ERR_WIN32_ERROR + ERROR_ACCESS_DISABLED_WEBBLADE                               : return("win32:ERROR_ACCESS_DISABLED_WEBBLADE"                               );    // 100000 + 1277
+      case ERR_WIN32_ERROR + ERROR_ACCESS_DISABLED_WEBBLADE_TAMPER                        : return("win32:ERROR_ACCESS_DISABLED_WEBBLADE_TAMPER"                        );    // 100000 + 1278
+      case ERR_WIN32_ERROR + ERROR_RECOVERY_FAILURE                                       : return("win32:ERROR_RECOVERY_FAILURE"                                       );    // 100000 + 1279
+      case ERR_WIN32_ERROR + ERROR_ALREADY_FIBER                                          : return("win32:ERROR_ALREADY_FIBER"                                          );    // 100000 + 1280
+      case ERR_WIN32_ERROR + ERROR_ALREADY_THREAD                                         : return("win32:ERROR_ALREADY_THREAD"                                         );    // 100000 + 1281
+      case ERR_WIN32_ERROR + ERROR_STACK_BUFFER_OVERRUN                                   : return("win32:ERROR_STACK_BUFFER_OVERRUN"                                   );    // 100000 + 1282
+      case ERR_WIN32_ERROR + ERROR_PARAMETER_QUOTA_EXCEEDED                               : return("win32:ERROR_PARAMETER_QUOTA_EXCEEDED"                               );    // 100000 + 1283
+      case ERR_WIN32_ERROR + ERROR_DEBUGGER_INACTIVE                                      : return("win32:ERROR_DEBUGGER_INACTIVE"                                      );    // 100000 + 1284
+      case ERR_WIN32_ERROR + ERROR_DELAY_LOAD_FAILED                                      : return("win32:ERROR_DELAY_LOAD_FAILED"                                      );    // 100000 + 1285
+      case ERR_WIN32_ERROR + ERROR_VDM_DISALLOWED                                         : return("win32:ERROR_VDM_DISALLOWED"                                         );    // 100000 + 1286
+      case ERR_WIN32_ERROR + ERROR_UNIDENTIFIED_ERROR                                     : return("win32:ERROR_UNIDENTIFIED_ERROR"                                     );    // 100000 + 1287
+      case ERR_WIN32_ERROR + ERROR_INVALID_CRUNTIME_PARAMETER                             : return("win32:ERROR_INVALID_CRUNTIME_PARAMETER"                             );    // 100000 + 1288
+      case ERR_WIN32_ERROR + ERROR_BEYOND_VDL                                             : return("win32:ERROR_BEYOND_VDL"                                             );    // 100000 + 1289
+      case ERR_WIN32_ERROR + ERROR_INCOMPATIBLE_SERVICE_SID_TYPE                          : return("win32:ERROR_INCOMPATIBLE_SERVICE_SID_TYPE"                          );    // 100000 + 1290
+      case ERR_WIN32_ERROR + ERROR_DRIVER_PROCESS_TERMINATED                              : return("win32:ERROR_DRIVER_PROCESS_TERMINATED"                              );    // 100000 + 1291
+      case ERR_WIN32_ERROR + ERROR_IMPLEMENTATION_LIMIT                                   : return("win32:ERROR_IMPLEMENTATION_LIMIT"                                   );    // 100000 + 1292
+      case ERR_WIN32_ERROR + ERROR_PROCESS_IS_PROTECTED                                   : return("win32:ERROR_PROCESS_IS_PROTECTED"                                   );    // 100000 + 1293
+      case ERR_WIN32_ERROR + ERROR_SERVICE_NOTIFY_CLIENT_LAGGING                          : return("win32:ERROR_SERVICE_NOTIFY_CLIENT_LAGGING"                          );    // 100000 + 1294
+      case ERR_WIN32_ERROR + ERROR_DISK_QUOTA_EXCEEDED                                    : return("win32:ERROR_DISK_QUOTA_EXCEEDED"                                    );    // 100000 + 1295
+      case ERR_WIN32_ERROR + ERROR_CONTENT_BLOCKED                                        : return("win32:ERROR_CONTENT_BLOCKED"                                        );    // 100000 + 1296
+      case ERR_WIN32_ERROR + ERROR_INCOMPATIBLE_SERVICE_PRIVILEGE                         : return("win32:ERROR_INCOMPATIBLE_SERVICE_PRIVILEGE"                         );    // 100000 + 1297
+      case ERR_WIN32_ERROR + ERROR_APP_HANG                                               : return("win32:ERROR_APP_HANG"                                               );    // 100000 + 1298
+      case ERR_WIN32_ERROR + ERROR_INVALID_LABEL                                          : return("win32:ERROR_INVALID_LABEL"                                          );    // 100000 + 1299
+
       case ERR_WIN32_ERROR + ERROR_CONTROL_ID_NOT_FOUND                                   : return("win32:ERROR_CONTROL_ID_NOT_FOUND"                                   );    // 100000 + 1421
 
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT                                    : return("win32:ERROR_NOT_A_REPARSE_POINT"                                    );    // 100000 + 4390
@@ -1099,7 +1320,7 @@ const char* WINAPI ErrorToStrA(int error) {
  * @return wchar*
  */
 const wchar* WINAPI ErrorToStrW(int error) {
-   wstring s = ansiToUnicode(string(ErrorToStrA(error)));
+   wstring s = ansiToUtf16(string(ErrorToStrA(error)));
    return wsdup(s.c_str());
    #pragma EXPANDER_EXPORT
 }
@@ -1114,7 +1335,7 @@ const wchar* WINAPI ErrorToStrW(int error) {
  * @return char* - 8 character string
  */
 char* WINAPI IntToHexStr(int value) {
-   return(asformat("%p", value));
+   return asformat("%p", value);
    #pragma EXPANDER_EXPORT
 }
 
@@ -1255,7 +1476,7 @@ const wchar* WINAPI LoglevelToStrW(int level) {
    const char* s = LoglevelToStrA(level);
    if (!s) return NULL;
 
-   wstring ws = ansiToUnicode(string(s));
+   wstring ws = ansiToUtf16(string(s));
    return wsdup(ws.c_str());
    #pragma EXPANDER_EXPORT
 }
@@ -1299,7 +1520,7 @@ const wchar* WINAPI MessageBoxButtonToStrW(int id) {
    const char* s = MessageBoxButtonToStrA(id);
    if (!s) return NULL;
 
-   wstring ws = ansiToUnicode(string(s));
+   wstring ws = ansiToUtf16(string(s));
    return wsdup(ws.c_str());
    #pragma EXPANDER_EXPORT
 }
@@ -1521,7 +1742,7 @@ const char* WINAPI PeriodDescriptionA(int period) {
 const wchar* WINAPI PeriodDescriptionW(int period) {
    const char* s = PeriodDescriptionA(period);
    if (!s) return NULL;
-   return wsdup(ansiToUnicode(string(s)).c_str());
+   return wsdup(ansiToUtf16(string(s)).c_str());
 }
 
 

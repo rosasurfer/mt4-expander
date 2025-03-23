@@ -332,13 +332,13 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
          uint   offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
          uint   len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
-         string target = unicodeToAnsi(wstring(&rdata->MountPointReparseBuffer.PathBuffer[offset], len));
+         string target = utf16ToAnsi(wstring(&rdata->MountPointReparseBuffer.PathBuffer[offset], len));
          result = sdup(target.c_str() + strlen("\\??\\"));
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
          uint   offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
          uint   len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
-         string target = unicodeToAnsi(wstring(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len));
+         string target = utf16ToAnsi(wstring(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len));
 
          BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
          if (isRelative) {
