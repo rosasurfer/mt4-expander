@@ -19,7 +19,7 @@ struct MqlStringA {
 
 
 /**
- * Internal MT4 representation of an MQL5 string. MQL5 strings are stored as Unicode strings.
+ * Internal MT4 representation of an MQL5 string. MQL5 strings are stored as UTF-16 strings.
  *
  * TODO: document behavior when passing variables and arrays to C functions
  *
@@ -29,7 +29,7 @@ struct MqlStringA {
  */
 struct MqlStringW {
    uint   size;                     // size of the buffer allocated for the string
-   wchar* value;                    // Unicode string
+   wchar* value;                    // UTF-16 string
    int    reserved;                 // reserved
 };
 //typedef MqlStringW MqlString;     // MetaQuotes alias

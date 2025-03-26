@@ -1,6 +1,7 @@
 #pragma once
 #include "expander.h"
 
+BOOL        WINAPI IsDebugBuild();
 
 uint        WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, uint bufferSize);
 char*       WINAPI GetInternalWindowTextA(HWND hWnd);

@@ -122,7 +122,7 @@ const char* WINAPI GetGlobalConfigPathA() {
       if (!commonDataPath) return(NULL);
 
       string filename = string(commonDataPath).append("\\global-config.ini");
-      char* tmp = strdup(filename.c_str());
+      char* tmp = sdup(filename.c_str());
       if (!configPath) configPath = tmp;
       else free(tmp);                                                               // another thread may have been faster
 
@@ -130,7 +130,7 @@ const char* WINAPI GetGlobalConfigPathA() {
          // make sure the config directory exists
          int error = CreateDirectoryA(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
-            warn(ERR_WIN32_ERROR+error, "cannot create directory \"%s\" (%s)", commonDataPath, strerror(errno));
+            warn(error, "cannot create directory \"%s\" (%s)", commonDataPath, strerror(errno));
          }
          else {
             // make sure the config file exists
@@ -162,7 +162,7 @@ const char* WINAPI GetTerminalConfigPathA() {
       if (!dataPath) return(NULL);
 
       string iniFile = string(dataPath).append("\\terminal-config.ini");
-      char* tmp = strdup(iniFile.c_str());                                    // on the heap
+      char* tmp = sdup(iniFile.c_str());                                      // on the heap
       if (!configPath) configPath = tmp;
       else free(tmp);                                                         // another thread may have been faster
 

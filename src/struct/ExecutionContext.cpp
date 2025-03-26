@@ -1259,7 +1259,7 @@ const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server
                if (master->accountServer) {                    // free an existing string
                   free(master->accountServer);
                }
-               master->accountServer = _server ? strdup(_server) : NULL;
+               master->accountServer = _server ? sdup(_server) : NULL;
             }
             // update all other program modules (ignore existing strings; must not be different anyway)
             for (i=1; i < chainSize; i++) {
@@ -1753,7 +1753,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
                if (master->logFilename) {                               // free an existing string
                   free(master->logFilename);
                }
-               master->logFilename = _filename ? strdup(_filename) : NULL;
+               master->logFilename = _filename ? sdup(_filename) : NULL;
             }
             // update all other program modules (ignore existing strings; must not be different anyway)
             for (i=1; i < chainSize; i++) {
@@ -1852,7 +1852,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << "}";
    }
    ss << asformat(" (0x%p)", ec);
-   char* result = strdup(ss.str().c_str());                             // TODO: add to GC (close memory leak)
+   char* result = sdup(ss.str().c_str());                               // TODO: add to GC (close memory leak)
 
    return(result);
    #pragma EXPANDER_EXPORT
