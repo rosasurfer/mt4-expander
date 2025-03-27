@@ -588,19 +588,19 @@ TM WINAPI UnixTimeToTm(time64 gmtTime, BOOL toLocalTime/*=FALSE*/) {
  *
  * Convert a GMT time to local time.
  *
- * @param  time32 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  time32 time - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
  *
  * @return time32 - Unix timestamp (seconds since 01.01.1970 00:00 local time) or NaT (Not-a-Time) in case of errors
  */
-time32 WINAPI GmtToLocalTime(time32 gmtTime) {
-   if (gmtTime == NaT) return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time")));
-   if (gmtTime < 0)    return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime)));
+time32 WINAPI GmtToLocalTime(time32 time) {
+   if (time == NaT) return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter time: Not-a-Time")));
+   if (time < 0)    return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time)));
 
-   SYSTEMTIME st=UnixTimeToSystemTime(gmtTime), lt={};
+   SYSTEMTIME st = UnixTimeToSystemTime(time), lt = {};
 
-   if (!SystemTimeToTzSpecificLocalTime(NULL, &st, &lt))
+   if (!SystemTimeToTzSpecificLocalTime(NULL, &st, &lt)) {
       return(_NaT32(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToTzSpecificLocalTime()")));
-
+   }
    return(SystemTimeToUnixTime32(lt));
    #pragma EXPANDER_EXPORT
 }
@@ -611,19 +611,19 @@ time32 WINAPI GmtToLocalTime(time32 gmtTime) {
  *
  * Convert a local time to GMT.
  *
- * @param  time32 localTime - Unix timestamp (seconds since 01.01.1970 00:00 local time)
+ * @param  time32 time - Unix timestamp (seconds since 01.01.1970 00:00 local time)
  *
  * @return time32 - Unix timestamp (seconds since 01.01.1970 00:00 GMT) or NaT (Not-a-Time) in case of errors
  */
-time32 WINAPI LocalToGmtTime(time32 localTime) {
-   if (localTime == NaT) return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter localTime: Not-a-Time")));
-   if (localTime < 0)    return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter localTime: %d (must be non-negative)", localTime)));
+time32 WINAPI LocalToGmtTime(time32 time) {
+   if (time == NaT) return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter time: Not-a-Time")));
+   if (time < 0)    return(_NaT32(error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time)));
 
-   SYSTEMTIME lt=UnixTimeToSystemTime(localTime), st={};
+   SYSTEMTIME lt = UnixTimeToSystemTime(time), st = {};
 
-   if (!TzSpecificLocalTimeToSystemTime(NULL, &lt, &st))
+   if (!TzSpecificLocalTimeToSystemTime(NULL, &lt, &st)) {
       return(_NaT32(error(ERR_WIN32_ERROR+GetLastError(), "TzSpecificLocalTimeToSystemTime()")));
-
+   }
    return(SystemTimeToUnixTime32(st));
    #pragma EXPANDER_EXPORT
 }

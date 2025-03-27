@@ -14,8 +14,8 @@ BOOL       WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, cons
 
 
 // timezone conversions
-time32     WINAPI GmtToLocalTime(time32 gmtTime);
-time32     WINAPI LocalToGmtTime(time32 localTime);
+time32     WINAPI GmtToLocalTime(time32 time);
+time32     WINAPI LocalToGmtTime(time32 time);
 
 
 // time to string conversions
