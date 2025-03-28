@@ -41,6 +41,11 @@ SYSTEMTIME WINAPI UnixTimeToSystemTime(time32 time);
 TM         WINAPI UnixTimeToTm        (time32 time, BOOL toLocalTime = FALSE);
 TM         WINAPI UnixTimeToTm        (time64 time, BOOL toLocalTime = FALSE);
 
+// timezone lookup
+int        WINAPI GetTimeZoneIdByIanaName(const char* name);
+int        WINAPI GetTimeZoneIdByWindowsName(const char* name);
+BOOL       WINAPI GetTimeZoneInfoByNameA(TIME_ZONE_INFORMATION* tzi, const char* name);
+
 // timezone conversion
 time32     WINAPI GmtToLocalTime(time32 time);
 time32     WINAPI LocalToGmtTime(time32 time);
