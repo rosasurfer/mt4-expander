@@ -7,9 +7,9 @@
 #define mbstrlen     _mbstrlen         // length of a UTF-8 string (checks for invalid UTF-8 chars)
 #define wstrlen      wcslen            // length of a UTF-16 string
 
-#define sdup         _strdup           // duplicate a C string
-#define mbsdup       _mbsdup           // duplicate a UTF-8 string
-#define wsdup        _wcsdup           // duplicate a UTF-16 string
+#define sdup         _strdup           // duplicate a C string on the heap
+#define mbsdup       _mbsdup           // duplicate a UTF-8 string on the heap
+#define wsdup        _wcsdup           // duplicate a UTF-16 string on the heap
 
 #define vscprintf    _vscprintf        // count C chars of the resulting string using a var-list of arguments
 #define vwscprintf   _vscwprintf       // count UTF-16 chars of the resulting string using a var-list of arguments
@@ -24,19 +24,33 @@
 
 
 /**
- * C++11 to_string() replacement for VS 2008.
+ * Duplicate a C string on the stack.
+ *
+ * @param  char* s
+ *
+ * @return char*
+ */
+__forceinline char* WINAPI sdupa(const char* s) {
+   size_t size = strlen(s) + 1;
+   char* copy = (char*)_alloca(size);
+   return (char*)memcpy(copy, s, size);
+}
+
+
+/**
+ * VS2008: C++03 replacement for the C++11 to_string() function.
  *
  * @param  T value
  *
  * @return string
  *
- * Note: The returned string is a temporary object that will be destructed at the end of the expression.
+ * Note: The returned string is a temporary object that will be destroyed at the end of the expression.
  */
 template <typename T>
-string to_string(T value) {
+string WINAPI to_string(T value) {
    std::ostringstream os;
    os << value;
-   return(os.str());
+   return os.str();
 }
 
 

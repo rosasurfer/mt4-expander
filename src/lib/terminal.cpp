@@ -173,7 +173,7 @@ const wchar* WINAPI GetExpanderFileNameW() {
    static wchar* filename;
 
    if (!filename) {
-      wchar* buffer;
+      wchar* buffer = NULL;
       uint size=MAX_PATH >> 1, length=size;
       while (length >= size) {
          size <<= 1;
@@ -372,7 +372,7 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
 
 /**
  * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
- * introduced in MQL5). The common data directory is shared between all terminals installed by a user. The function does not
+ * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
@@ -395,7 +395,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
 /**
  * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
- * introduced in MQL5). The common data directory is shared between all terminals installed by a user. The function does not
+ * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
  * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
@@ -421,7 +421,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
 
 
 /**
- * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL5).
+ * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
@@ -443,7 +443,7 @@ const char* WINAPI GetTerminalDataPathA() {
 
 
 /**
- * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL5).
+ * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
  * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
@@ -586,7 +586,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
    static wchar* filename;
 
    if (!filename) {
-      wchar* buffer;
+      wchar* buffer = NULL;
       uint size=MAX_PATH >> 1, length=size;
 
       while (length >= size) {
@@ -607,7 +607,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
 
 /**
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
- * introduced in MQL5).
+ * introduced in MQL4.5).
  *
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
@@ -628,7 +628,7 @@ const char* WINAPI GetTerminalPathA() {
 
 /**
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
- * introduced in MQL5).
+ * introduced in MQL4.5).
  *
  * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
@@ -703,7 +703,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
 
 
 /**
- * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL5.
+ * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL4.5.
  *
  * @return uint - build number or 0 in case of errors
  */

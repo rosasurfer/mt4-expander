@@ -3,7 +3,10 @@
 #include "lib/format.h"
 #include "lib/string.h"
 
+#pragma warning(push)
+#pragma warning(disable:4201)          // nonstandard extension used : nameless struct/union
 #include <mmsystem.h>
+#pragma warning(pop)
 
 
 /**
@@ -64,7 +67,7 @@ const char* WINAPI BoolToStr(BOOL value) {
  * @return char* - name or NULL if the parameter is invalid
  */
 const char* WINAPI CoreFunctionDescription(CoreFunction func) {
-   switch (func) {
+   switch ((int)func) {
       case NULL     : return("(null)");
       case CF_INIT  : return("init");
       case CF_START : return("start");
@@ -83,7 +86,7 @@ const char* WINAPI CoreFunctionDescription(CoreFunction func) {
  * @return char* - readable version or NULL if the parameter is invalid
  */
 const char* WINAPI CoreFunctionToStr(CoreFunction func) {
-   switch (func) {
+   switch ((int)func) {
       case NULL     : return("(null)");
       case CF_INIT  : return("CF_INIT");
       case CF_START : return("CF_START");
@@ -1387,7 +1390,7 @@ char* WINAPI DeinitFlagsToStr(DWORD flags) {
  * @return char* - readable version or NULL if the parameter is invalid
  */
 const char* WINAPI InitReasonToStr(InitializeReason reason) {
-   switch (reason) {
+   switch ((int)reason) {
       case NULL                : return("(null)"              );
       case IR_USER             : return("IR_USER"             );
       case IR_TEMPLATE         : return("IR_TEMPLATE"         );
@@ -1534,7 +1537,7 @@ const wchar* WINAPI MessageBoxButtonToStrW(int id) {
  * @return char* - description or NULL if the parameter is invalid
  */
 const char* WINAPI ModuleTypeDescription(ModuleType type) {
-   switch (type) {
+   switch ((int)type) {
       case NULL        : return("(null)"   );
       case MT_EXPERT   : return("Expert"   );
       case MT_SCRIPT   : return("Script"   );
@@ -1554,7 +1557,7 @@ const char* WINAPI ModuleTypeDescription(ModuleType type) {
  * @return char* - readable version or NULL if the parameter is invalid
  */
 const char* WINAPI ModuleTypeToStr(ModuleType type) {
-   switch (type) {
+   switch ((int)type) {
       case NULL        : return("(null)"      );
       case MT_EXPERT   : return("MT_EXPERT"   );
       case MT_SCRIPT   : return("MT_SCRIPT"   );
@@ -1595,7 +1598,7 @@ char* WINAPI NumberToStr(double value, const char* format) {
  * @return char* - description or NULL if the parameter is invalid
  */
 const char* WINAPI ProgramTypeDescription(ProgramType type) {
-   switch (type) {
+   switch ((int)type) {
       case NULL        : return("(null)");
       case PT_EXPERT   : return("Expert");
       case PT_SCRIPT   : return("Script");
@@ -1614,7 +1617,7 @@ const char* WINAPI ProgramTypeDescription(ProgramType type) {
  * @return char* - readable version or NULL if the parameter is invalid
  */
 const char* WINAPI ProgramTypeToStr(ProgramType type) {
-   switch (type) {
+   switch ((int)type) {
       case NULL        : return("(null)");
       case PT_EXPERT   : return("PT_EXPERT");
       case PT_SCRIPT   : return("PT_SCRIPT");

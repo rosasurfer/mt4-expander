@@ -439,7 +439,7 @@ char* WINAPI StrToLower(char* const str) {
    if (str) {
       char* c = str;
       while (*c) {
-         *c = tolower(*c);
+         *c = (char) tolower((uchar)*c);
          ++c;
       }
    }
@@ -456,7 +456,7 @@ char* WINAPI StrToLower(char* const str) {
  */
 string& WINAPI StrToLower(string &str) {
    for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
-      *it = tolower(*it);
+      *it = (char)tolower((uchar)*it);
    }
    return(str);
 }
@@ -487,7 +487,7 @@ wstring& WINAPI StrToLower(wstring &str) {
 char* WINAPI StrToUpper(char* const str) {
    char* c = str;
    while (*c) {
-      *c = toupper(*c);
+      *c = (char)toupper((uchar)*c);
       ++c;
    }
    return(str);
@@ -503,7 +503,7 @@ char* WINAPI StrToUpper(char* const str) {
  */
 string& WINAPI StrToUpper(string &str) {
    for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
-      *it = toupper(*it);
+      *it = (char)toupper((uchar)*it);
    }
    return(str);
 }

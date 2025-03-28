@@ -203,7 +203,7 @@ const char* WINAPI GetTerminalConfigPathA() {
 /**
  * Return all keys of an .ini file section.
  *
- * Alias of GetPrivateProfileString(). Required for MQL4 which doesn't support multiple different function signatures.
+ * Alias of GetPrivateProfileString(). Required for MQL4.0 which doesn't support multiple different function signatures.
  *
  * @param  _In_  char* fileName   - initialization file name
  * @param  _In_  char* section    - case-insensitive section name
@@ -359,10 +359,7 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
       buffer = new char[bufferSize];                     // on the heap as a section may be big
       chars = GetIniKeysA(fileName, section, buffer, bufferSize);
    }
-
-   // convert the passed key to lower-case
-   bufferSize = strlen(key)+1;
-   char* lKey = StrToLower(StrTrim((char*)memcpy(alloca(bufferSize), key, bufferSize)));
+   char* lKey = StrToLower(StrTrim(sdupa(key)));
 
    // look for a case-insensitive match
    BOOL result = FALSE;
@@ -396,7 +393,7 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
    if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
 
    // read all sections
-   char* buffer    = NULL;
+   char* buffer = NULL;
    uint bufferSize = 512;
    uint chars = bufferSize-2;
    while (chars == bufferSize-2) {                       // handle a too small buffer
@@ -405,10 +402,7 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
       buffer = new char[bufferSize];                     // on the heap as there may be plenty of sections
       chars = GetIniSectionsA(fileName, buffer, bufferSize);
    }
-
-   // convert the passed section to lower-case
-   bufferSize = strlen(section)+1;
-   char* lSection = StrToLower(StrTrim((char*)memcpy(alloca(bufferSize), section, bufferSize)));
+   char* lSection = StrToLower(StrTrim(sdupa(section)));
 
    // look for a case-insensitive match
    BOOL result = FALSE;

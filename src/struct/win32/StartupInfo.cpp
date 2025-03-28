@@ -67,7 +67,7 @@ DWORD WINAPI si_setFlags(STARTUPINFOA* si, DWORD flags) {
  * @return WORD - dieselbe Konstante oder -1, falls ein Fehler auftrat
  */
 WORD WINAPI si_setShowWindow(STARTUPINFOA* si, WORD cmdShow) {
-   if ((uint)si < MIN_VALID_POINTER) return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter si: 0x%p (not a valid pointer)", si)));
+   if ((uint)si < MIN_VALID_POINTER) return((WORD)_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter si: 0x%p (not a valid pointer)", si)));
 
    return(si->wShowWindow = cmdShow);
    #pragma EXPANDER_EXPORT

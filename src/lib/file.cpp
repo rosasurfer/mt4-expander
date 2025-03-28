@@ -5,13 +5,15 @@
  *
  * Naming Files, Paths, and Namespaces
  * @see  https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file
- *
  */
 #include "expander.h"
 #include "lib/file.h"
 #include "lib/string.h"
 
+#pragma warning(push)
+#pragma warning(disable:4201)          // nonstandard extension used : nameless struct/union
 #include <winioctl.h>
+#pragma warning(pop)
 
 
 /**
@@ -271,8 +273,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
    while (true) {
       path = new char[size];                                                           // on the heap
       len  = GetFinalPathNameByHandleA(hFile, path, size, VOLUME_NAME_DOS|FILE_NAME_OPENED);
-      if (len < size)
-         break;
+      if (len < size) break;
       size <<= 1;                                                                      // increase buffer size
       delete[] path;
    }

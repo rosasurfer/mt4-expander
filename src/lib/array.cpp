@@ -46,7 +46,7 @@ template BOOL InitializeArray<double>(double[], int, double, int, int);
 
 
 /**
- * Initialize a range of <MQL4:bool> array elements with a custom value.
+ * Initialize a range of <MQL4.0:bool> array elements with a custom value.
  *
  * @param  BOOL array[]   - array with sizeof(element) = 4
  * @param  int  size      - number of elements in the array
@@ -63,7 +63,7 @@ BOOL WINAPI InitializeBOOLArray(BOOL array[], int size, BOOL initValue, int from
 
 
 /**
- * Initialize a range of <MQL5:bool> array elements with a custom value.
+ * Initialize a range of <MQL4.5:bool> array elements with a custom value.
  *
  * @param  bool array[]   - array with sizeof(element) = 1
  * @param  int  size      - number of elements in the array
@@ -131,7 +131,7 @@ BOOL WINAPI InitializeIntArray(int array[], int size, int initValue, int from, i
 
 
 /**
- * Initialize a range of <MQL5:long> array elements with a custom value.
+ * Initialize a range of <MQL4.5:long> array elements with a custom value.
  *
  * @param  int64 array[]   - array with sizeof(element) = 8
  * @param  int   size      - number of elements in the array
@@ -236,7 +236,7 @@ template BOOL ShiftIndicatorBuffer<double>(double[], int, int, double);
 
 
 /**
- * Shift the content of an <MQL4:bool> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of an <MQL4.0:bool> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
  * @param  BOOL buffer[]   - timeseries array with sizeof(element) = 4
@@ -253,7 +253,7 @@ BOOL WINAPI ShiftBOOLIndicatorBuffer(BOOL buffer[], int size, int count, BOOL em
 
 
 /**
- * Shift the content of an <MQL5:bool> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of an <MQL4.5:bool> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
  * @param  bool buffer[]   - timeseries array with sizeof(element) = 1
@@ -321,7 +321,7 @@ BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int empty
 
 
 /**
- * Shift the content of an <MQL5:long> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
+ * Shift the content of an <MQL4.5:long> timeseries array (e.g. an indicator buffer) by the specified number of elements. Discards
  * elements at the beginning (the oldest values of a timeseries).
  *
  * @param  int64 buffer[]   - timeseries array with sizeof(element) = 8
@@ -330,8 +330,6 @@ BOOL WINAPI ShiftIntIndicatorBuffer(int buffer[], int size, int count, int empty
  * @param  int64 emptyValue - initialization value for elements interpreted as "empty"
  *
  * @return BOOL - success status
- *
- * Note: The function name refers to the MQL5 type <long> (a 64 bit wide integer).
  */
 BOOL WINAPI ShiftLongIndicatorBuffer(int64 buffer[], int size, int count, int64 emptyValue) {
    return(ShiftIndicatorBuffer(buffer, size, count, emptyValue));

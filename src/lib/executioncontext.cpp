@@ -441,7 +441,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetRecorder    (ec, recorder);
 
    HWND hMainWnd = GetTerminalMainWindow();
-   if (!strlen(accountServer)) accountServer = NULL;                       // populate empty account values from existing window properties
+   if (!*accountServer) accountServer = NULL;                              // populate empty account values from existing window properties
    if (!accountServer) accountServer = (char*) GetPropA(hMainWnd, PROP_STRING_ACCOUNT_SERVER);
    if (!accountNumber) accountNumber = (int) GetPropA(hMainWnd, PROP_INT_ACCOUNT_NUMBER);
 
@@ -667,7 +667,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          else {
             // Library::init() of a formerly recompiled library at test start (non-UI thread), Expert::init() is called afterwards
             // check if a partially initialized context chain exists (master->coreFunction=CF_INIT, main=NULL)
-            EXECUTION_CONTEXT* master;                               // master of current test
+            EXECUTION_CONTEXT* master = NULL;                        // master of current test
             uint currentPid = GetLastThreadProgram();                // pid of the current test
             BOOL isPartialChain;
 
@@ -795,7 +795,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
       EXECUTION_CONTEXT* master = NULL;
-      uint currentPid, lastPid = GetLastThreadProgram();             // pid of the last executed program
+      uint currentPid=0, lastPid=GetLastThreadProgram();             // pid of the last executed program
       BOOL isPartialChain;
 
       // check if a partially initialized context chain exists: master->programCoreFunction=NULL, main=NULL, lib1!=NULL

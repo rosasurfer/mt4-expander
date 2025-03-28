@@ -2,6 +2,7 @@
 #include "expander.h"
 
 
+// current time
 time32     WINAPI GetGmtTime32();
 time64     WINAPI GetGmtTime64();
 time32     WINAPI GetLocalTime32();
@@ -10,25 +11,17 @@ SYSTEMTIME WINAPI getLocalTime();
 FILETIME   WINAPI getLocalTimeAsFileTime();
 SYSTEMTIME WINAPI getSystemTime();
 FILETIME   WINAPI getSystemTimeAsFileTime();
-BOOL       WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char* name);
 
+// time to string conversion
+char*      WINAPI GmtTimeFormatA(time32 time, const char*  format);
+wchar*     WINAPI GmtTimeFormatW(time64 time, const wchar* format);
+string     WINAPI gmtTimeFormat (time32 time, const char*  format);
 
-// timezone conversions
-time32     WINAPI GmtToLocalTime(time32 time);
-time32     WINAPI LocalToGmtTime(time32 time);
+char*      WINAPI LocalTimeFormatA(time32 time, const char*  format);
+wchar*     WINAPI LocalTimeFormatW(time64 time, const wchar* format);
+string     WINAPI localTimeFormat (time32 time, const char*  format);
 
-
-// time to string conversions
-string     WINAPI gmtTimeFormat (time32 gmtTime, const char*  format);
-char*      WINAPI GmtTimeFormatA(time32 gmtTime, const char*  format);
-wchar*     WINAPI GmtTimeFormatW(time64 gmtTime, const wchar* format);
-
-string     WINAPI localTimeFormat (time32 gmtTime, const char*  format);
-char*      WINAPI LocalTimeFormatA(time32 gmtTime, const char*  format);
-wchar*     WINAPI LocalTimeFormatW(time64 gmtTime, const wchar* format);
-
-
-// type conversions and helpers
+// type conversion
 SYSTEMTIME WINAPI FileTimeToSystemTime(const FILETIME &ft);
 time32     WINAPI FileTimeToUnixTime32(const FILETIME &ft);
 time64     WINAPI FileTimeToUnixTime64(const FILETIME &ft);
@@ -45,5 +38,9 @@ time64     WINAPI TmToUnixTime64(const TM &time, BOOL isLocalTime = FALSE);
 
 FILETIME   WINAPI UnixTimeToFileTime  (time32 time);
 SYSTEMTIME WINAPI UnixTimeToSystemTime(time32 time);
-TM         WINAPI UnixTimeToTm        (time32 gmtTime, BOOL toLocalTime = FALSE);
-TM         WINAPI UnixTimeToTm        (time64 gmtTime, BOOL toLocalTime = FALSE);
+TM         WINAPI UnixTimeToTm        (time32 time, BOOL toLocalTime = FALSE);
+TM         WINAPI UnixTimeToTm        (time64 time, BOOL toLocalTime = FALSE);
+
+// timezone conversion
+time32     WINAPI GmtToLocalTime(time32 time);
+time32     WINAPI LocalToGmtTime(time32 time);

@@ -58,7 +58,7 @@
 				EnableEnhancedInstructionSet="2"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -148,7 +148,7 @@
 				EnableEnhancedInstructionSet="2"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>

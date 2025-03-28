@@ -112,14 +112,14 @@ FILETIME WINAPI getSystemTimeAsFileTime() {
 
 
 /**
- * Get timezone settings for a specific timezone.
+ * Get timezone infos for a Windows timezone.
  *
- * @param  _Out_ TIME_ZONE_INFORMATION* tzi  - struct receiving the timezone settings
+ * @param  _Out_ TIME_ZONE_INFORMATION* tzi  - struct receiving the timezone infos
  * @param  _In_  char*                  name - timezone name
  *
  * @return BOOL - success status; FALSE if no timezone with the specified name was found
  */
-BOOL WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char* name) {
+BOOL WINAPI GetTimeZoneInfoByNameA(TIME_ZONE_INFORMATION* tzi, const char* name) {
    // open the registry key
    string key = string("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\").append(name);
    HKEY hKey;
@@ -151,6 +151,7 @@ BOOL WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char
    success = success && local::ReadRegistryValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regtzi,            sizeof(regtzi));
    success = success && local::ReadRegistryValue(hKey, key, L"Std", RRF_RT_REG_SZ,     &tzi->StandardName, sizeof(tzi->StandardName));
    success = success && local::ReadRegistryValue(hKey, key, L"Dlt", RRF_RT_REG_SZ,     &tzi->DaylightName, sizeof(tzi->DaylightName));
+
    if (success) {
       tzi->Bias         = regtzi.Bias;
       tzi->DaylightBias = regtzi.DaylightBias;
@@ -167,23 +168,23 @@ BOOL WINAPI GetTimeZoneInformationByNameA(TIME_ZONE_INFORMATION* tzi, const char
 /**
  * Format a Unix timestamp as a string representing GMT time.
  *
- * @param  time32 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  char*  format  - format control string as supported by strftime()
+ * @param  time32 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  char*  format - format control string as supported by strftime()
  *
  * @return string - formatted string or an empty string in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-string WINAPI gmtTimeFormat(time32 gmtTime, const char* format) {
-   TM time = UnixTimeToTm(gmtTime);
+string WINAPI gmtTimeFormat(time32 time, const char* format) {
+   TM tm = UnixTimeToTm(time);
    char* buffer = NULL;
    size_t bufSize = strlen(format) << 1;                    // times 2 (final initial size is 4 times strlen(format)
 
    for (;;) {
       bufSize <<= 1;                                        // times 2
       buffer = (char*)alloca(bufSize);                      // on the stack
-      if (strftime(buffer, bufSize, format, &time)) break;
+      if (strftime(buffer, bufSize, format, &tm)) break;
    }
    return(string(buffer));
 }
@@ -192,20 +193,20 @@ string WINAPI gmtTimeFormat(time32 gmtTime, const char* format) {
 /**
  * Format a 32-bit Unix timestamp as a string representing GMT time.
  *
- * @param  time32 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  char*  format  - format control string supported by strftime()
+ * @param  time32 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  char*  format - format control string supported by strftime()
  *
  * @return char* - time string or a NULL pointer in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-char* WINAPI GmtTimeFormatA(time32 gmtTime, const char* format) {
-   if (gmtTime == NaT)                   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+char* WINAPI GmtTimeFormatA(time32 time, const char* format) {
+   if (time == NaT)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: Not-a-Time"));
+   if (time < 0)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
    if ((uint)format < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   string s = gmtTimeFormat(gmtTime, format);
+   string s = gmtTimeFormat(time, format);
    return sdup(s.c_str());                                  // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
@@ -214,27 +215,27 @@ char* WINAPI GmtTimeFormatA(time32 gmtTime, const char* format) {
 /**
  * Format a 64-bit Unix timestamp as a string representing GMT time.
  *
- * @param  time64 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  wchar* format  - format control string supported by strftime()
+ * @param  time64 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  wchar* format - format control string supported by strftime()
  *
  * @return wchar* - time string or a NULL pointer in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-wchar* WINAPI GmtTimeFormatW(time64 gmtTime, const wchar* format) {
-   if (gmtTime == NaT)                   return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+wchar* WINAPI GmtTimeFormatW(time64 time, const wchar* format) {
+   if (time == NaT)                      return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: Not-a-Time"));
+   if (time < 0)                         return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
    if ((uint)format < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   TM time = UnixTimeToTm(gmtTime);
+   TM tm = UnixTimeToTm(time);
    wchar* buffer = NULL;
    uint bufSize = 32;                                       // initial buffer size is 64 (32 << 1)
 
    for (;;) {
       bufSize <<= 1;
       buffer = (wchar*)alloca(bufSize);                     // on the stack
-      if (wcsftime(buffer, bufSize, format, &time)) break;
+      if (wcsftime(buffer, bufSize, format, &tm)) break;
    }
 
    return wsdup(buffer);                                    // TODO: add to GC (close memory leak)
@@ -245,23 +246,23 @@ wchar* WINAPI GmtTimeFormatW(time64 gmtTime, const wchar* format) {
 /**
  * Format a Unix timestamp as a string representing local time.
  *
- * @param  time32 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  char*  format  - format control string as supported by strftime()
+ * @param  time32 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  char*  format - format control string as supported by strftime()
  *
  * @return string - formatted string or an empty string in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-string WINAPI localTimeFormat(time32 gmtTime, const char* format) {
-   TM time = UnixTimeToTm(gmtTime, TRUE);
+string WINAPI localTimeFormat(time32 time, const char* format) {
+   TM tm = UnixTimeToTm(time, TRUE);
    char* buffer = NULL;
    size_t bufSize = strlen(format) << 1;                    // times 2 (final initial size is 4 times strlen(format)
 
    for (;;) {
       bufSize <<= 1;                                        // times 2
       buffer = (char*)alloca(bufSize);                      // on the stack
-      if (strftime(buffer, bufSize, format, &time)) break;
+      if (strftime(buffer, bufSize, format, &tm)) break;
    }
    return string(buffer);
 }
@@ -270,20 +271,20 @@ string WINAPI localTimeFormat(time32 gmtTime, const char* format) {
 /**
  * Format a 32-bit Unix timestamp as a string representing local time.
  *
- * @param  time32 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  char*  format  - format control string supported by strftime()
+ * @param  time32 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  char*  format - format control string supported by strftime()
  *
  * @return char* - time string or a NULL pointer in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-char* WINAPI LocalTimeFormatA(time32 gmtTime, const char* format) {
-   if (gmtTime == NaT)                   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+char* WINAPI LocalTimeFormatA(time32 time, const char* format) {
+   if (time == NaT)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: Not-a-Time"));
+   if (time < 0)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
    if ((uint)format < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   string s = localTimeFormat(gmtTime, format);
+   string s = localTimeFormat(time, format);
    return sdup(s.c_str());                                  // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
@@ -292,27 +293,27 @@ char* WINAPI LocalTimeFormatA(time32 gmtTime, const char* format) {
 /**
  * Format a 64-bit Unix timestamp as a string representing local time.
  *
- * @param  time64 gmtTime - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
- * @param  wchar* format  - format control string supported by strftime()
+ * @param  time64 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  wchar* format - format control string supported by strftime()
  *
  * @return wchar* - time string or a NULL pointer in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
  */
-wchar* WINAPI LocalTimeFormatW(time64 gmtTime, const wchar* format) {
-   if (gmtTime == NaT)                   return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: Not-a-Time"));
-   if (gmtTime < 0)                      return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter gmtTime: %d (must be non-negative)", gmtTime));
+wchar* WINAPI LocalTimeFormatW(time64 time, const wchar* format) {
+   if (time == NaT)                      return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: Not-a-Time"));
+   if (time < 0)                         return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter time: %d (must be non-negative)", time));
    if ((uint)format < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
 
-   TM time = UnixTimeToTm(gmtTime, TRUE);
+   TM tm = UnixTimeToTm(time, TRUE);
    wchar* buffer = NULL;
    uint bufSize = 32;                                                // initial buffer size is 64 (32<<1)
 
    for (;;) {
       bufSize <<= 1;
       buffer = (wchar*)alloca(bufSize);                              // on the stack
-      if (wcsftime(buffer, bufSize, format, &time)) break;
+      if (wcsftime(buffer, bufSize, format, &tm)) break;
    }
 
    return wsdup(buffer);                                             // TODO: add to GC (close memory leak)
@@ -555,28 +556,28 @@ SYSTEMTIME WINAPI UnixTimeToSystemTime(time32 time) {
 /**
  * Convert a 32-bit Unix timestamp to a C time.
  *
- * @param  time32 gmtTime                - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  time32 time                   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
  * @param  BOOL   toLocalTime [optional] - whether the resulting C time holds local or GMT time (default: GMT)
  *
  * @return TM
  */
-TM WINAPI UnixTimeToTm(time32 gmtTime, BOOL toLocalTime/*=FALSE*/) {
-   if (toLocalTime) return(*_localtime32(&gmtTime));
-   else             return(*_gmtime32(&gmtTime));
+TM WINAPI UnixTimeToTm(time32 time, BOOL toLocalTime/*=FALSE*/) {
+   if (toLocalTime) return(*_localtime32(&time));
+   else             return(*_gmtime32(&time));
 }
 
 
 /**
  * Convert a 64-bit Unix timestamp to a C time.
  *
- * @param  time64 gmtTime                - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
+ * @param  time64 time                   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
  * @param  BOOL   toLocalTime [optional] - whether the resulting C struct holds local or GMT time (default: GMT)
  *
  * @return TM
  */
-TM WINAPI UnixTimeToTm(time64 gmtTime, BOOL toLocalTime/*=FALSE*/) {
-   if (toLocalTime) return(*_localtime64(&gmtTime));
-   else             return(*_gmtime64(&gmtTime));
+TM WINAPI UnixTimeToTm(time64 time, BOOL toLocalTime/*=FALSE*/) {
+   if (toLocalTime) return(*_localtime64(&time));
+   else             return(*_gmtime64(&time));
 }
 
 
@@ -637,21 +638,20 @@ SYSTEMTIME WINAPI D(const char* datetime) {
 
    if (!datetime || strlen(datetime) < 19) {
       error(ERR_INVALID_PARAMETER, "invalid parameter datetime: %s", datetime);
-      return(st);
+      return st;
    }
 
-   char* s = sdup(datetime);
+   char* s = sdupa(datetime);
    s[4] = s[7] = s[10] = s[13] = s[16] = s[19] = '\0';   // format: 1981.09.30 20:00:00
 
-   st.wYear   = atoi(&s[ 0]);
-   st.wMonth  = atoi(&s[ 5]);
-   st.wDay    = atoi(&s[ 8]);
-   st.wHour   = atoi(&s[11]);
-   st.wMinute = atoi(&s[14]);
-   st.wSecond = atoi(&s[17]);
+   st.wYear   = (WORD) atoi(&s[ 0]);
+   st.wMonth  = (WORD) atoi(&s[ 5]);
+   st.wDay    = (WORD) atoi(&s[ 8]);
+   st.wHour   = (WORD) atoi(&s[11]);
+   st.wMinute = (WORD) atoi(&s[14]);
+   st.wSecond = (WORD) atoi(&s[17]);
 
-   free(s);
-   return(st);
+   return st;
 }
 
 
@@ -663,9 +663,8 @@ int WINAPI test_Time(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
 
    TIME_ZONE_INFORMATION tzi = {};
-   BOOL result = GetTimeZoneInformationByNameA(&tzi, name);
-   //debug("timezone \"%s\": %d", name, result);
-
+   BOOL result = GetTimeZoneInfoByNameA(&tzi, name);
+   debug("timezone \"%s\": %d", name, result);
 
    SYSTEMTIME st = D("1981.09.30 20:12:13");
    debug("SYSTEMTIME = %s", SystemTimeToStr(st).c_str());
