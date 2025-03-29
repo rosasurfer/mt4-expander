@@ -271,7 +271,7 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
    size_t pos = string(value).find_first_of(";");  // drop trailing comments
    if (pos != string::npos) {
       value[pos] = '\0';
-      StrTrimRight(value);
+      strim_right(value);
    }
    return(value);
    #pragma EXPANDER_EXPORT
@@ -359,13 +359,13 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
       buffer = new char[bufferSize];                     // on the heap as a section may be big
       chars = GetIniKeysA(fileName, section, buffer, bufferSize);
    }
-   char* lKey = StrToLower(StrTrim(sdupa(key)));
+   char* lKey = strToLower(strim(sdupa(key)));
 
    // look for a case-insensitive match
    BOOL result = FALSE;
    char* name = buffer;                                  // The buffer is filled with one or more trimmed and null terminated
    while (*name) {                                       // strings. The last string is followed by a second null character.
-      if (StrCompare(StrToLower(name), lKey)) {
+      if (StrCompare(strToLower(name), lKey)) {
          result = TRUE;
          break;
       }
@@ -402,13 +402,13 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
       buffer = new char[bufferSize];                     // on the heap as there may be plenty of sections
       chars = GetIniSectionsA(fileName, buffer, bufferSize);
    }
-   char* lSection = StrToLower(StrTrim(sdupa(section)));
+   char* lSection = strToLower(strim(sdupa(section)));
 
    // look for a case-insensitive match
    BOOL result = FALSE;
    char* name = buffer;                                  // The buffer is filled with one or more trimmed and null terminated
    while (*name) {                                       // strings. The last string is followed by a second null character.
-      if (StrCompare(StrToLower(name), lSection)) {
+      if (StrCompare(strToLower(name), lSection)) {
          result = TRUE;
          break;
       }

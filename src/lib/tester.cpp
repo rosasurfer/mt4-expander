@@ -104,7 +104,7 @@ time32 WINAPI Tester_GetStartDate() {
    if (!hWndNext) return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) found"));
 
    uint bufSize = 32;                                 // big enough to hold class name "SysDateTimePick32"
-   wchar* className = (wchar*)alloca(bufSize*2);      // on the stack
+   wchar* className = (wchar*) alloca(bufSize * sizeof(wchar));
    GetClassNameW(hWndNext, className, bufSize);
    if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)));
 
@@ -145,7 +145,7 @@ time32 WINAPI Tester_GetEndDate() {
    if (!hWndNext) return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) found"));
 
    uint bufSize = 32;                                 // big enough to hold class name "SysDateTimePick32"
-   wchar* className = (wchar*)alloca(bufSize*2);      // on the stack
+   wchar* className = (wchar*) alloca(bufSize * sizeof(wchar));
    GetClassNameW(hWndNext, className, bufSize);
    if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)));
 
@@ -225,7 +225,7 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec) {
 int WINAPI Test_synchronize() {
    char* s1 = "Hello";
    char* s2 = " world";
-   char* result = strcat(strcat((char*)alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
+   char* result = strcat(strcat((char*) alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
    debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);                       // TODO: fix me
    return(0);
 }

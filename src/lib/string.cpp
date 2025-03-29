@@ -13,8 +13,7 @@
  * @return char* - wrapped string or the string "(null)" if a NULL pointer was passed
  */
 char* WINAPI DoubleQuoteStr(const char* value) {
-   if (!value)
-      return sdup("(null)");
+   if (!value) return sdup("(null)");
    return asformat("\"%s\"", value);
 }
 
@@ -27,8 +26,7 @@ char* WINAPI DoubleQuoteStr(const char* value) {
  * @return wchar* - wrapped string or the string "(null)" if a NULL pointer was passed
  */
 wchar* WINAPI DoubleQuoteStr(const wchar* value) {
-   if (!value)
-      return wsdup(L"(null)");
+   if (!value) return wsdup(L"(null)");
    return asformat(L"\"%s\"", value);
 }
 
@@ -106,7 +104,7 @@ std::istream& getline(std::istream &is, std::string &line) {
  */
 const char* WINAPI GetStringA(const char* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   return(value);
+   return value;
    #pragma EXPANDER_EXPORT
 }
 
@@ -121,7 +119,7 @@ const char* WINAPI GetStringA(const char* value) {
  */
 const wchar* WINAPI GetStringW(const wchar* value) {
    if (value && (uint)value < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
-   return(value);
+   return value;
    #pragma EXPANDER_EXPORT
 }
 
@@ -245,7 +243,7 @@ BOOL WINAPI StrCompare(const wchar* s1, const wchar* s2) {
  * @return BOOL
  */
 BOOL WINAPI StrIsNull(const char* value) {
-   return(!value);
+   return !value;
    #pragma EXPANDER_EXPORT
 }
 
@@ -429,21 +427,40 @@ string& WINAPI StrReplace(string &subject, const string &search, const string &r
 
 
 /**
- * Convert a C string to lower-case using the current locale. The function modifies the string.
+ * Convert a C string to lower-case. The function modifies the string.
  *
  * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
-char* WINAPI StrToLower(char* const str) {
+char* WINAPI strToLower(char* str) {
    if (str) {
       char* c = str;
       while (*c) {
          *c = (char) tolower((uchar)*c);
-         ++c;
+         c++;
       }
    }
-   return(str);
+   return str;
+}
+
+
+/**
+ * Convert a UTF-16 string to lower-case. The function modifies the string.
+ *
+ * @param  _InOut_ wchar* str
+ *
+ * @return wchar* - the same string
+ */
+wchar* WINAPI strToLower(wchar* str) {
+   if (str) {
+      wchar* c = str;
+      while (*c) {
+         *c = towlower(*c);
+         c++;
+      }
+   }
+   return str;
 }
 
 
@@ -454,11 +471,11 @@ char* WINAPI StrToLower(char* const str) {
  *
  * @return string& - the same string
  */
-string& WINAPI StrToLower(string &str) {
-   for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
-      *it = (char)tolower((uchar)*it);
+string& WINAPI strToLower(string &str) {
+   for (size_t i=0, n=str.length(); i < n; i++) {
+      str[i] = (char) tolower((uchar)str[i]);
    }
-   return(str);
+   return str;
 }
 
 
@@ -469,28 +486,49 @@ string& WINAPI StrToLower(string &str) {
  *
  * @return wstring& - the same string
  */
-wstring& WINAPI StrToLower(wstring &str) {
-   for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
-      *it = towlower(*it);
+wstring& WINAPI strToLower(wstring &str) {
+   for (size_t i=0, n=str.length(); i < n; i++) {
+      str[i] = towlower(str[i]);
    }
    return(str);
 }
 
 
 /**
- * Convert a C string to upper-case using the current locale. The function modifies the string.
+ * Convert a C string to upper-case. The function modifies the string.
  *
  * @param  _InOut_ char* str
  *
  * @return char* - the same string
  */
-char* WINAPI StrToUpper(char* const str) {
-   char* c = str;
-   while (*c) {
-      *c = (char)toupper((uchar)*c);
-      ++c;
+char* WINAPI strToUpper(char* str) {
+   if (str) {
+      char* c = str;
+      while (*c) {
+         *c = (char) toupper((uchar)*c);
+         c++;
+      }
    }
-   return(str);
+   return str;
+}
+
+
+/**
+ * Convert a UTF-16 string to upper-case. The function modifies the string.
+ *
+ * @param  _InOut_ wchar* str
+ *
+ * @return wchar* - the same string
+ */
+wchar* WINAPI strToUpper(wchar* str) {
+   if (str) {
+      wchar* c = str;
+      while (*c) {
+         *c = towupper(*c);
+         c++;
+      }
+   }
+   return str;
 }
 
 
@@ -501,11 +539,11 @@ char* WINAPI StrToUpper(char* const str) {
  *
  * @return string& - the same string
  */
-string& WINAPI StrToUpper(string &str) {
-   for (string::iterator it=str.begin(), end=str.end(); it != end; ++it) {
-      *it = (char)toupper((uchar)*it);
+string& WINAPI strToUpper(string &str) {
+   for (size_t i=0, n=str.length(); i < n; i++) {
+      str[i] = (char) toupper((uchar)str[i]);
    }
-   return(str);
+   return str;
 }
 
 
@@ -516,11 +554,11 @@ string& WINAPI StrToUpper(string &str) {
  *
  * @return wstring& - the same string
  */
-wstring& WINAPI StrToUpper(wstring &str) {
-   for (wstring::iterator it=str.begin(), end=str.end(); it != end; ++it) {
-      *it = towupper(*it);
+wstring& WINAPI strToUpper(wstring &str) {
+   for (size_t i=0, n=str.length(); i < n; i++) {
+      str[i] = towupper(str[i]);
    }
-   return(str);
+   return str;
 }
 
 
@@ -531,8 +569,20 @@ wstring& WINAPI StrToUpper(wstring &str) {
  *
  * @return char* - the same string
  */
-char* WINAPI StrTrim(char* const str) {
-   return(StrTrimLeft(StrTrimRight(str)));
+char* WINAPI strim(char* str) {
+   return(strim_left(strim_right(str)));
+}
+
+
+/**
+ * Trim leading and trailing white-space off a std::string. The function modifies the string.
+ *
+ * @param  string &str
+ *
+ * @return string& - the same string
+ */
+string& WINAPI strim(string &str) {
+   return(strim_left(strim_right(str)));
 }
 
 
@@ -543,23 +593,35 @@ char* WINAPI StrTrim(char* const str) {
  *
  * @return char* - the same string
  */
-char* WINAPI StrTrimLeft(char* const str) {
-   if (str && *str) {                           // handle NULL pointer and empty string
-      char* first = str;
-      while (isspace(*first)) {                 // find first non-space character
-         ++first;
-      }
-      if (first > str) {
-         uint pos = 0;
-         char* c = first;
-         while (*c) {
-            str[pos++] = *c;                    // move trimmed string to start of str
-            ++c;                                // (should be faster then memmove() as overlapping is handled better)
-         }
-         str[pos] = '\0';
-      }
+char* WINAPI strim_left(char* str) {
+   if (!str || !*str) return str;               // handle NULL pointer and empty string
+
+   char* first = str;
+   while (isspace((uchar)*first)) {
+      ++first;
    }
-   return(str);
+   if (first != str) {
+      memmove(str, first, strlen(first) + 1);   // include null terminator
+   }
+   return str;
+}
+
+
+/**
+* Trim leading white-space off a std::string. The function modifies the string.
+ *
+ * @param  string &str
+ *
+ * @return string& - the same string
+ */
+string& WINAPI strim_left(string &str) {
+   size_t start=0, size=str.length();
+   while (start < size && isspace((uchar)(str[start]))) {
+      ++start;
+   }
+   if (start) str.erase(0, start);
+
+   return str;
 }
 
 
@@ -570,19 +632,144 @@ char* WINAPI StrTrimLeft(char* const str) {
  *
  * @return char* - the same string
  */
-char* WINAPI StrTrimRight(char* const str) {
-   if (str && *str) {                           // handle NULL pointer and empty string
-      char* last = str + strlen(str);
+char* WINAPI strim_right(char* str) {
+   if (!str || !*str) return str;               // handle NULL pointer and empty string
 
-      while (isspace(*--last)) {
-         if (last == str) {
-            --last;
-            break;
-         }
-      }
-      *(last+1) = '\0';
+   char* last = str + strlen(str);
+   while (last > str && isspace((uchar)*(last-1))) {
+      --last;
    }
-   return(str);
+   *last = '\0';
+   return str;
+}
+
+
+/**
+* Trim trailing white-space off a std::string. The function modifies the string.
+ *
+ * @param  string &str
+ *
+ * @return string& - the same string
+ */
+string& WINAPI strim_right(string &str) {
+   size_t size=str.length(), end=size;
+
+   while (end && isspace((uchar)(str[end-1]))) {
+      --end;
+   }
+   if (end < size) str.erase(end);
+   return str;
+}
+
+
+/**
+ * Trim leading and trailing white-space off a UTF-16 string. The function modifies the string.
+ *
+ * @param  _InOut_ wchar* str
+ *
+ * @return wchar* - the same string
+ */
+wchar* WINAPI wstrim(wchar* str) {
+   return(wstrim_left(wstrim_right(str)));
+}
+
+
+/**
+ * Trim leading and trailing white-space off a std::wstring. The function modifies the string.
+ *
+ * @param  wstring &str
+ *
+ * @return wstring& - the same string
+ */
+wstring& WINAPI wstrim(wstring &str) {
+   return(wstrim_left(wstrim_right(str)));
+}
+
+
+/**
+ * Trim leading white-space off a UTF-16 string. The function modifies the string.
+ *
+ * @param  _InOut_ wchar* str
+ *
+ * @return wchar* - the same string
+ */
+wchar* WINAPI wstrim_left(wchar* str) {
+   if (!str || !*str) return str;               // handle NULL pointer and empty string
+
+   wchar* first = str;
+   while (iswspace(*first)) {
+      ++first;
+   }
+   if (first != str) {                          // include null terminator
+      memmove(str, first, (wstrlen(first) + 1) * sizeof(wchar));
+   }
+   return str;
+}
+
+
+/**
+ * Trim leading white-space off a std::wstring. The function modifies the string.
+ *
+ * @param  wstring &str
+ *
+ * @return wstring& - the same string
+ */
+wstring& WINAPI wstrim_left(wstring &str) {
+   size_t start=0, size=str.length();
+   while (start < size && iswspace(str[start])) {
+      ++start;
+   }
+   if (start) str.erase(0, start);
+   return str;
+}
+
+
+/**
+ * Trim trailing white-space off a UTF-16 string. The function modifies the string.
+ *
+ * @param  _InOut_ wchar* str
+ *
+ * @return wchar* - the same string
+ */
+wchar* WINAPI wstrim_right(wchar* str) {
+   if (!str || !*str) return str;               // handle NULL pointer and empty string
+
+   wchar* last = str + wcslen(str);
+   while (last > str && iswspace(*(last-1))) {
+      --last;
+   }
+   *last = L'\0';
+   return str;
+}
+
+
+/**
+ * Trim trailing white-space off a std::wstring. The function modifies the string.
+ *
+ * @param  wstring &str
+ *
+ * @return wstring& - the same string
+ */
+wstring& WINAPI wstrim_right(wstring &str) {
+   size_t length=str.length(), end=length;
+
+   while (end && iswspace(str[end-1])) {
+      --end;
+   }
+   if (end < length) str.erase(end);
+   return str;
+}
+
+
+/**
+ * Convert an ANSI string to UTF-8.
+ *
+ * @param  char* str - ANSI string
+ *
+ * @return char* - UTF-8 string or NULL in case of errors
+ */
+char* WINAPI ansiToUtf8(const char* str) {
+   return utf16ToUtf8(ansiToUtf16(str));
 }
 
 
@@ -601,12 +788,43 @@ string WINAPI ansiToUtf8(const string &str) {
 /**
  * Convert an ANSI string to UTF-16.
  *
+ * @param  char* str - ANSI C string
+ *
+ * @return wchar* - UTF-16 string or NULL in case of errors
+ */
+wchar* WINAPI ansiToUtf16(const char* str) {
+   if (!str) return NULL;
+
+   size_t length = strlen(str);
+   if (!length) return wsdup(L"");
+
+   uint codePage = CP_ACP;
+   DWORD flags = MB_ERR_INVALID_CHARS;
+
+   int bufSize = MultiByteToWideChar(codePage, flags, str, length, NULL, 0);
+   if (bufSize) {
+      wchar* wstr = (wchar*) malloc((bufSize+1) * sizeof(wchar));
+
+      if (MultiByteToWideChar(codePage, flags, str, length, wstr, bufSize)) {
+         wstr[bufSize] = L'\0';
+         return wstr;
+      }
+      free(wstr);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert ANSI string to UTF-16");
+   return NULL;
+}
+
+
+/**
+ * Convert an ANSI string to UTF-16.
+ *
  * @param  string &str - ANSI string
  *
  * @return wstring - UTF-16 string or an empty string in case of errors
  */
 wstring WINAPI ansiToUtf16(const string &str) {
-   int length = str.length();
+   size_t length = str.length();
    if (!length) return wstring(L"");
 
    uint codePage = CP_ACP;
@@ -627,6 +845,18 @@ wstring WINAPI ansiToUtf16(const string &str) {
 /**
  * Convert a UTF-8 string to ANSI.
  *
+ * @param  char* str - UTF-8 string
+ *
+ * @return char* - ANSI string or NULL in case of errors
+ */
+char* WINAPI utf8ToAnsi(const char* str) {
+   return utf16ToAnsi(utf8ToUtf16(str));
+}
+
+
+/**
+ * Convert a UTF-8 string to ANSI.
+ *
  * @param  string &str - UTF-8 string
  *
  * @return string - ANSI string or an empty string in case of errors
@@ -638,13 +868,44 @@ string WINAPI utf8ToAnsi(const string &str) {
 
 /**
  * Convert a UTF-8 string to UTF-16.
+ * * *
+ * @param  char* str - UTF-8 string
+ *
+ * @return wchar* - UTF-16 string or NULL in case of errors
+ */
+wchar* WINAPI utf8ToUtf16(const char* str) {
+   if (!str) return NULL;
+
+   size_t length = strlen(str);
+   if (!length) return wsdup(L"");
+
+   uint codePage = CP_UTF8;
+   DWORD flags = MB_ERR_INVALID_CHARS;
+
+   int bufSize = MultiByteToWideChar(codePage, flags, str, length, NULL, 0);
+   if (bufSize) {
+      wchar* wstr = (wchar*) malloc((bufSize+1) * sizeof(wchar));
+
+      if (MultiByteToWideChar(codePage, flags, str, length, wstr, bufSize)) {
+         wstr[bufSize] = L'\0';
+         return wstr;
+      }
+      free(wstr);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-8 string to UTF-16");
+   return NULL;
+}
+
+
+/**
+ * Convert a UTF-8 string to UTF-16.
  *
  * @param  string &str - UTF-8 string
  *
  * @return wstring - UTF-16 string or an empty string in case of errors
  */
 wstring WINAPI utf8ToUtf16(const string &str) {
-   int length = str.length();
+   size_t length = str.length();
    if (!length) return wstring(L"");
 
    uint codePage = CP_UTF8;
@@ -665,12 +926,42 @@ wstring WINAPI utf8ToUtf16(const string &str) {
 /**
  * Convert a UTF-16 string to ANSI.
  *
+ * @param  wchar* wstr - UTF-16 string
+ *
+ * @return char* - ANSI string or NULL in case of errors
+ */
+char* WINAPI utf16ToAnsi(const wchar* wstr) {
+   if (!wstr) return NULL;
+
+   size_t length = wstrlen(wstr);
+   if (!length) return sdup("");
+
+   uint codePage = CP_ACP;
+   DWORD flags = WC_COMPOSITECHECK;
+
+   int bufSize = WideCharToMultiByte(codePage, flags, wstr, length, NULL, 0, NULL, NULL);
+   if (bufSize) {
+      char* str = (char*) malloc(bufSize + 1);
+      if (WideCharToMultiByte(codePage, flags, wstr, length, str, bufSize, NULL, NULL)) {
+         str[bufSize] = '\0';
+         return str;
+      }
+      free(str);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-16 string to ANSI");
+   return NULL;
+}
+
+
+/**
+ * Convert a UTF-16 string to ANSI.
+ *
  * @param  wstring &wstr - UTF-16 string
  *
  * @return string - ANSI string or an empty string in case of errors
  */
 string WINAPI utf16ToAnsi(const wstring &wstr) {
-   int length = wstr.length();
+   size_t length = wstr.length();
    if (!length) return string("");
 
    uint codePage = CP_ACP;
@@ -691,12 +982,41 @@ string WINAPI utf16ToAnsi(const wstring &wstr) {
 /**
  * Convert a UTF-16 string to UTF-8.
  *
+ * @param  wchar* wstr - UTF-16 string
+ *
+ * @return char* UTF-8 string or NULL in case of errors
+ */
+char* WINAPI utf16ToUtf8(const wchar* wstr) {
+   if (!wstr) return NULL;
+
+   size_t length = wstrlen(wstr);
+   if (!length) return sdup("");
+
+   uint codePage = CP_UTF8;
+   DWORD flags = WC_COMPOSITECHECK | WC_ERR_INVALID_CHARS;
+
+   int bufSize = WideCharToMultiByte(codePage, flags, wstr, length, NULL, 0, NULL, NULL);
+   if (bufSize) {
+      char* str = (char*) malloc(bufSize + 1);
+      if (WideCharToMultiByte(codePage, flags, wstr, length, str, bufSize, NULL, NULL)) {
+         return str;
+      }
+      free(str);
+   }
+   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-16 string to UTF-8");
+   return NULL;
+}
+
+
+/**
+ * Convert a UTF-16 string to UTF-8.
+ *
  * @param  wstring &wstr - UTF-16 string
  *
  * @return string - UTF-8 string or an empty string in case of errors
  */
 string WINAPI utf16ToUtf8(const wstring &wstr) {
-   int length = wstr.length();
+   size_t length = wstr.length();
    if (!length) return string("");
 
    uint codePage = CP_UTF8;

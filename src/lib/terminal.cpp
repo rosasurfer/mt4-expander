@@ -177,7 +177,7 @@ const wchar* WINAPI GetExpanderFileNameW() {
       uint size=MAX_PATH >> 1, length=size;
       while (length >= size) {
          size <<= 1;
-         buffer = (wchar*) alloca(size);                                // on the stack
+         buffer = (wchar*) alloca(size * sizeof(wchar));
          length = GetModuleFileNameW(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
       }
       if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
@@ -686,10 +686,10 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
          return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->SHGetFolderPath()"));
       }
       wstring terminalPath(GetTerminalPathW());
-      StrToUpper(terminalPath);
+      strToUpper(terminalPath);
 
       string md5Hash(MD5Hash(terminalPath.c_str(), terminalPath.length()*sizeof(wchar)));
-      StrToUpper(md5Hash);
+      strToUpper(md5Hash);
 
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\").append(ansiToUtf16(md5Hash));
 
@@ -762,7 +762,7 @@ BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO &fileInfo) {
    DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
    if (!infoSize) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfoSize()"));
 
-   char* infos = (char*)alloca(infoSize);       // on the stack
+   char* infos = (char*) alloca(infoSize);      // on the stack
    BOOL success = GetFileVersionInfoA(fileName, NULL, infoSize, infos);
    if (!success) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetFileVersionInfo()"));
 
@@ -898,7 +898,7 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    DWORD processId, self=GetCurrentProcessId();
 
    uint bufSize = 8;                                        // big enough to hold class name "#32770"
-   wchar* className = (wchar*)alloca(bufSize*2);            // on the stack
+   wchar* className = (wchar*) alloca(bufSize * sizeof(wchar));
    wchar* wndTitle = NULL;
 
    // enumerate top-level windows

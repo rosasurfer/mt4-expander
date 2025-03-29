@@ -1181,7 +1181,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window has no children in Script::init()  hWndMain=%p", programName, hWndMain)));
 
       uint size = MAX_CHARTDESCRIPTION_LENGTH + 1;
-      char* chartDescription = (char*)alloca(size);            // on the stack
+      char* chartDescription = (char*) alloca(size);           // on the stack
       uint chars = ComposeChartTitle(symbol, timeframe, chartDescription, size);
       if (!chars) return(INVALID_HWND);
 
