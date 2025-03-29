@@ -215,7 +215,7 @@
 				Name="etc"
 				>
 				<File
-					RelativePath=".\header\etc\md5.h"
+					RelativePath=".\header\etc\VistaTools.h"
 					>
 				</File>
 			</Filter>
@@ -260,6 +260,10 @@
 				</File>
 				<File
 					RelativePath=".\header\lib\math.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\lib\md5.h"
 					>
 				</File>
 				<File
@@ -400,26 +404,6 @@
 			<Filter
 				Name="etc"
 				>
-				<File
-					RelativePath=".\src\etc\md5.c"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\etc\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\etc\"
-						/>
-					</FileConfiguration>
-				</File>
 				<File
 					RelativePath=".\src\etc\subclassing.cpp"
 					>
@@ -611,6 +595,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\md5.c"
+					>
 				</File>
 				<File
 					RelativePath=".\src\lib\memory.cpp"

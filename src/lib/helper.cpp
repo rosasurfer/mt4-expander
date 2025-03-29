@@ -5,7 +5,7 @@
 #include <map>
 
 extern "C" {
-   #include "etc/md5.h"
+   #include "lib/md5.h"
 }
 
 
