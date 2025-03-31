@@ -22,6 +22,7 @@
  */
 time32 WINAPI GetGmtTime32() {
    return(_time32(NULL));
+
    #pragma EXPANDER_EXPORT
 }
 
@@ -1589,7 +1590,6 @@ SYSTEMTIME WINAPI D(const char* datetime) {
 }
 
 
-
 /**
  * @return int
  */
@@ -1601,7 +1601,6 @@ int WINAPI test_Time(const char* name) {
 
    strim(s);
    debug("after trimming:  %p = \"%s\"", s.c_str(), s.c_str());
-
    return(NULL);
 
    TIME_ZONE_INFORMATION tzi = {};

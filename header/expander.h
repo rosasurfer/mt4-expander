@@ -10,7 +10,8 @@
 
 #pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
 
-#define  EXPANDER_EXPORT  comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+#define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+#define EXPANDER_EXPORT_AS(name) comment(linker, "/EXPORT:"name"="__FUNCDNAME__)
 
 #include "stdafx.h"
 #include "shared/defines.h"                                 // shared between C++ and MQL

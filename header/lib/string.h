@@ -4,13 +4,6 @@
 #include <cctype>
 #include <sstream>
 
-#define mbslen       _mbslen           // length of a UTF-8 string (doesn't check for invalid UTF-8 chars)
-#define mbstrlen     _mbstrlen         // length of a UTF-8 string (checks for invalid UTF-8 chars)
-#define wstrlen      wcslen            // length of a UTF-16 string
-
-#define sdup         _strdup           // duplicate a C string on the heap
-#define mbsdup       _mbsdup           // duplicate a UTF-8 string on the heap
-#define wsdup        _wcsdup           // duplicate a UTF-16 string on the heap
 
 #define vscprintf    _vscprintf        // count C chars of the resulting string using a var-list of arguments
 #define vwscprintf   _vscwprintf       // count UTF-16 chars of the resulting string using a var-list of arguments
@@ -24,48 +17,67 @@
 #define wstricmp     wcsicmp           // case-insensitive comparison of two UTF-16 strings
 
 
-/**
- * Duplicate a C string on the stack.
- *
- * @param  char* s
- *
- * @return char*
- */
-__forceinline char* WINAPI sdupa(const char* s) {
-   size_t size = strlen(s) + 1;
-   char* copy = (char*) alloca(size);
-   return (char*)memcpy(copy, s, size);
-}
+namespace rsf {
 
+   // length of a multi-byte UTF-8 string (doesn't check for invalid chars)
+   __forceinline size_t mbslen(const char* s)  { return ::_mbslen((const uchar*) s); }
+   __forceinline size_t mbslen(const uchar* s) { return ::_mbslen(s); }
 
-/**
- * Duplicate a UTF-16 string on the stack.
- *
- * @param  wchar* s
- *
- * @return wchar*
- */
-__forceinline wchar* WINAPI wsdupa(const wchar* s) {
-   size_t size = (wstrlen(s) + 1) * 2;
-   wchar* copy = (wchar*) alloca(size);
-   return (wchar*)memcpy(copy, s, size);
-}
+   // length of a multi-byte UTF-8 string (checks for invalid chars)
+   __forceinline size_t mbslenv(const char* s)  { return ::_mbstrlen(s); }
+   __forceinline size_t mbslenv(const uchar* s) { return ::_mbstrlen((const char*) s); }
 
+   // length of a wide character UTF-16 string
+   __forceinline size_t wstrlen(const wchar* s) { return ::wcslen(s); }
 
-/**
- * VS2008: C++03 replacement for the C++11 to_string() function.
- *
- * @param  T value
- *
- * @return string
- *
- * Note: The returned string is a temporary object that will be destroyed at the end of the expression.
- */
-template <typename T>
-string WINAPI to_string(T value) {
-   std::ostringstream os;
-   os << value;
-   return os.str();
+   // duplicate a C string on the heap
+   __forceinline char*  sdup(const char* s)  { return ::_strdup(s); }
+   __forceinline uchar* sdup(const uchar* s) { return (uchar*)::_strdup((const char*)s); }
+
+   // duplicate a wide character UTF-16 string on the heap
+   __forceinline wchar* wsdup(const wchar* s) { return ::_wcsdup(s); }
+
+   /**
+    * Duplicate a C string on the stack.
+    *
+    * @param  char* s
+    *
+    * @return char*
+    */
+   __forceinline char* WINAPI sdupa(const char* s) {
+      size_t size = strlen(s) + 1;
+      char* copy = (char*) alloca(size);
+      return (char*)memcpy(copy, s, size);
+   }
+
+   /**
+    * Duplicate a wide character UTF-16 string on the stack.
+    *
+    * @param  wchar* s
+    *
+    * @return wchar*
+    */
+   __forceinline wchar* WINAPI wsdupa(const wchar* s) {
+      size_t size = (wstrlen(s) + 1) * 2;
+      wchar* copy = (wchar*) alloca(size);
+      return (wchar*)memcpy(copy, s, size);
+   }
+
+   /**
+    * VS2008: C++03 replacement for the C++11 to_string() function.
+    *
+    * @param  T value
+    *
+    * @return string
+    *
+    * Note: The returned string is a temporary object that will be destroyed at the end of the expression.
+    */
+   template <typename T>
+   string WINAPI to_string(T value) {
+      std::ostringstream os;
+      os << value;
+      return os.str();
+   }
 }
 
 
