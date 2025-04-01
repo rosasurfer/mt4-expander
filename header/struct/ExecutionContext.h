@@ -49,47 +49,50 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    int                changedBars;                    //       592        4     number of changed bars                                    (var)
    uint               ticks;                          //       596        4     number of times start() was called for the instance       (var)
    uint               cycleTicks;                     //       600        4     number of times start() was called since init()           (var)    used for debugging purposes in DLL only
-   time32             currTickTime;                   //       604        4     server time of the currently processed tick               (var)
-   time32             prevTickTime;                   //       608        4     server time of the previously processed tick              (var)    used by IsBarOpen()
+   time32             currTick;                       //       604        4     server time of the current tick                           (var)
+   BOOL               currReal;                       //       608        4     whether the current tick is non-virtual                   (var)
+   time32             prevTick;                       //       612        4     server time of the previous tick                          (var)
+   BOOL               prevReal;                       //       616        4     whether the previous tick was non-virtual                 (var)
+   time32             lastRealTick;                   //       620        4     server time of the last non-virtual tick                  (var)    used by IsBarOpen()
                                                       //
-   uint               digits;                         //       612        4     digits of the symbol                                      (var)    MQL::Digits
-   uint               pipDigits;                      //       616        4     digits of a pip                                           (var)
-   double             pip;                            //       620        8     size of a pip                                             (var)
-   double             point;                          //       628        8     size of a point                                           (var)    MQL::Point
+   uint               digits;                         //       624        4     digits of the symbol                                      (var)    MQL::Digits
+   uint               pipDigits;                      //       628        4     digits of a pip                                           (var)
+   double             pip;                            //       632        8     size of a pip                                             (var)
+   double             point;                          //       640        8     size of a point                                           (var)    MQL::Point
                                                       //
-   EXECUTION_CONTEXT* superContext;                   //       636        4     indicator host program                                    (const)  whether loaded by iCustom()
-   uint               threadId;                       //       640        4     current executing thread                                  (var)
-   HWND               chartWindow;                    //       644        4     handle of chart window with title bar "Symbol,Period"     (const)
-   HWND               chart;                          //       648        4     handle of embedded chart AfxFrame                         (const)  MQL::WindowHandle()
+   EXECUTION_CONTEXT* superContext;                   //       648        4     indicator host program                                    (const)  whether loaded by iCustom()
+   uint               threadId;                       //       652        4     current executing thread                                  (var)
+   HWND               chartWindow;                    //       656        4     handle of chart window with title bar "Symbol,Period"     (const)
+   HWND               chart;                          //       660        4     handle of embedded chart AfxFrame                         (const)  MQL::WindowHandle()
                                                       //
-   BOOL               testing;                        //       652        4     IsTesting() status                                        (const)
-   BOOL               visualMode;                     //       656        4     expert IsVisualMode() status                              (const)
-   BOOL               optimization;                   //       660        4     expert IsOptimization() status                            (const)
-   int                recorder;                       //       664        4     expert recorder mode                                      (var)
+   BOOL               testing;                        //       664        4     IsTesting() status                                        (const)
+   BOOL               visualMode;                     //       668        4     expert IsVisualMode() status                              (const)
+   BOOL               optimization;                   //       672        4     expert IsOptimization() status                            (const)
+   int                recorder;                       //       676        4     expert recorder mode                                      (var)
                                                       //
-   char*              accountServer;                  //       668        4     MQL::AccountServer()                                      (var)
-   int                accountNumber;                  //       672        4     MQL::AccountNumber()                                      (var)
+   char*              accountServer;                  //       680        4     MQL::AccountServer()                                      (var)
+   int                accountNumber;                  //       684        4     MQL::AccountNumber()                                      (var)
                                                       //
-   int                dllWarning;                     //       676        4     last DLL warning                                          (var)
-   char*              dllWarningMsg;                  //       680        4     DLL warning message                                       (var)
-   int                dllError;                       //       684        4     last DLL error                                            (var)
-   char*              dllErrorMsg;                    //       688        4     DLL error message                                         (var)
-   int                mqlError;                       //       692        4     last MQL error (of all MQL modules)                       (var)
+   int                dllWarning;                     //       688        4     last DLL warning                                          (var)
+   char*              dllWarningMsg;                  //       692        4     DLL warning message                                       (var)
+   int                dllError;                       //       696        4     last DLL error                                            (var)
+   char*              dllErrorMsg;                    //       700        4     DLL error message                                         (var)
+   int                mqlError;                       //       704        4     last MQL error (of all MQL modules)                       (var)
                                                       //
-   DWORD              debugOptions;                   //       696        4     specified CLI debug options                               (var)
-   int                loglevel;                       //       700        4     program main loglevel                                     (var)
-   int                loglevelDebug;                  //       704        4     loglevel of the debug output appender                     (var)
-   int                loglevelTerminal;               //       708        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       712        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelFile;                   //       716        4     loglevel of the custom logfile appender                   (var)
-   int                loglevelMail;                   //       720        4     loglevel of the mail appender                             (var)
-   int                loglevelSMS;                    //       724        4     loglevel of the SMS appender                              (var)
+   DWORD              debugOptions;                   //       708        4     specified CLI debug options                               (var)
+   int                loglevel;                       //       712        4     program main loglevel                                     (var)
+   int                loglevelDebug;                  //       716        4     loglevel of the debug output appender                     (var)
+   int                loglevelTerminal;               //       720        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       724        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelFile;                   //       728        4     loglevel of the custom logfile appender                   (var)
+   int                loglevelMail;                   //       732        4     loglevel of the mail appender                             (var)
+   int                loglevelSMS;                    //       736        4     loglevel of the SMS appender                              (var)
 
-   std::ofstream*     logger;                         //       728        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       732        4     log buffer                                                (var)
-   char*              logFilename;                    //       736        4     log filename                                              (var)
+   std::ofstream*     logger;                         //       740        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       744        4     log buffer                                                (var)
+   char*              logFilename;                    //       748        4     log filename                                              (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //              = 740
+#pragma pack(pop)                                     //              = 752
 
 
 // exported getters
