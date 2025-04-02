@@ -57,7 +57,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
    wchar* utf16Text = GetInternalWindowTextW(hWnd);
    if (!utf16Text) return NULL;
 
-   char* ansiText = sdup(utf16ToAnsi(wstring(utf16Text)).c_str());     // on the heap
+   char* ansiText = utf16ToAnsi(utf16Text);
    free(utf16Text);
 
    return ansiText;
@@ -114,7 +114,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
    wchar* utf16Text = GetWindowTextW(hWnd);
    if (!utf16Text) return NULL;
 
-   char* ansiText = sdup(utf16ToAnsi(wstring(utf16Text)).c_str());     // on the heap
+   char* ansiText = utf16ToAnsi(utf16Text);
    free(utf16Text);
 
    return ansiText;

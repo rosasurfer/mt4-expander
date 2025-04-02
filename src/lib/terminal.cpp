@@ -28,7 +28,7 @@ BOOL WINAPI IsPortableMode() {
    if (portableMode < 0) {
       portableMode = (GetTerminalBuild() <= 509 || g_cliOptionPortableMode);
    }
-   return(portableMode);
+   return portableMode;
    #pragma EXPANDER_EXPORT
 }
 
@@ -45,17 +45,21 @@ const char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) 
    if ((uint)filename < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
    if (!*filename)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
 
-   char* hstDirectory = NULL;
-   string pattern = string(GetHistoryRootPathA()).append("\\*");
-   WIN32_FIND_DATA wfd = {};
+   const char* hstRootPath = GetHistoryRootPathA();
+   if (!hstRootPath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetHistoryRootPathA() => NULL");
 
+   string pattern = string(hstRootPath).append("\\*");
+   WIN32_FIND_DATA wfd = {};
    HANDLE hFind = FindFirstFileA(pattern.c_str(), &wfd);
    if (hFind == INVALID_HANDLE_VALUE) return((char*)!error(ERR_FILE_NOT_FOUND, "directory \"%s\" not found", pattern.c_str()));
 
+   char* hstDirectory = NULL;
    BOOL next = TRUE;
+
    while (next) {
       if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
          char* dirName = wfd.cFileName;
+
          if (!StrCompare(dirName, ".") && !StrCompare(dirName, "..")) {
             string fullFilename = string(GetHistoryRootPathA()).append("\\").append(dirName).append("\\").append(filename);
             if (IsFileA(fullFilename.c_str(), MODE_SYSTEM)) {
@@ -153,11 +157,12 @@ const char* WINAPI GetExpanderFileNameA() {
    static char* filename;
 
    if (!filename) {
-      if (const wchar* wname = GetExpanderFileNameW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wname)).c_str());
-         if (!filename) filename = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wname = GetExpanderFileNameW();
+      if (!wname) return (char*)!error(ERR_RUNTIME_ERROR, "->GetExpanderFileNameW() => NULL");
+
+      char* tmp = utf16ToAnsi(wname);
+      if (!filename) filename = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -226,11 +231,12 @@ const char* WINAPI GetHistoryRootPathA() {
    static char* hstDirectory;
 
    if (!hstDirectory) {
-      if (const wchar* wpath = GetHistoryRootPathW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
-         if (!hstDirectory) hstDirectory = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wpath = GetHistoryRootPathW();
+      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetHistoryRootPathW() => NULL");
+
+      char* tmp = utf16ToAnsi(wpath);
+      if (!hstDirectory) hstDirectory = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return hstDirectory;
    #pragma EXPANDER_EXPORT
@@ -246,12 +252,13 @@ const wchar* WINAPI GetHistoryRootPathW() {
    static wchar* hstDirectory;
 
    if (!hstDirectory) {
-      if (const wchar* dataPath = GetTerminalDataPathW()) {
-         wstring path = wstring(dataPath).append(L"\\history");
-         wchar* tmp = wsdup(path.c_str());
-         if (!hstDirectory) hstDirectory = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* dataPath = GetTerminalDataPathW();
+      if (!dataPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "->GetTerminalDataPathW() => NULL");
+
+      wstring path = wstring(dataPath).append(L"\\history");
+      wchar* tmp = wsdup(path.c_str());
+      if (!hstDirectory) hstDirectory = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return(hstDirectory);
    #pragma EXPANDER_EXPORT
@@ -267,11 +274,12 @@ const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
 
    if (!mqlDirectory) {
-      if (const wchar* wdirectory = GetMqlDirectoryW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wdirectory)).c_str());
-         if (!mqlDirectory) mqlDirectory = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wdirectory = GetMqlDirectoryW();
+      if (!wdirectory) return (char*)!error(ERR_RUNTIME_ERROR, "->GetMqlDirectoryW() => NULL");
+
+      char* tmp = utf16ToAnsi(wdirectory);
+      if (!mqlDirectory) mqlDirectory = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return mqlDirectory;
    #pragma EXPANDER_EXPORT
@@ -287,15 +295,16 @@ const wchar* WINAPI GetMqlDirectoryW() {
    static wchar* mqlDirectory;
 
    if (!mqlDirectory) {
-      if (const wchar* dataPath = GetTerminalDataPathW()) {
-         wstring path(dataPath);
-         if (GetTerminalBuild() <= 509) path.append(L"\\experts");
-         else                           path.append(L"\\mql4");
+      const wchar* dataPath = GetTerminalDataPathW();
+      if (!dataPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "->GetTerminalDataPathW() => NULL");
 
-         wchar* tmp = wsdup(path.c_str());
-         if (!mqlDirectory) mqlDirectory = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      wstring path(dataPath);
+      if (GetTerminalBuild() <= 509) path.append(L"\\experts");
+      else                           path.append(L"\\mql4");
+
+      wchar* tmp = wsdup(path.c_str());
+      if (!mqlDirectory) mqlDirectory = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return mqlDirectory;
    #pragma EXPANDER_EXPORT
@@ -314,21 +323,23 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
 
    if (inTester) {
       if (!testerPath) {
-         if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
-            char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
-            if (!testerPath) testerPath = tmp;
-            else free(tmp);               // another thread may have been faster
-         }
+         const wchar* wpath = GetMqlSandboxPathW(inTester);
+         if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetMqlSandboxPathW() => NULL");
+
+         char* tmp = utf16ToAnsi(wpath);
+         if (!testerPath) testerPath = tmp;
+         else free(tmp);               // another thread may have been faster
       }
       return testerPath;
    }
 
    if (!onlinePath) {
-      if (const wchar* wpath = GetMqlSandboxPathW(inTester)) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
-         if (!onlinePath) onlinePath = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wpath = GetMqlSandboxPathW(inTester);
+      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetMqlSandboxPathW() => NULL");
+
+      char* tmp = utf16ToAnsi(wpath);
+      if (!onlinePath) onlinePath = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return onlinePath;
    #pragma EXPANDER_EXPORT
@@ -347,23 +358,25 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
 
    if (inTester) {
       if (!testerPath) {
-         if (const wchar* dataDirectory = GetTerminalDataPathW()) {
-            wstring path = wstring(dataDirectory).append(L"\\tester\\files");
-            wchar* tmp = wsdup(path.c_str());
-            if (!testerPath) testerPath = tmp;
-            else free(tmp);               // another thread may have been faster
-         }
+         const wchar* dataDirectory = GetTerminalDataPathW();
+         if (!dataDirectory) return (wchar*)!error(ERR_RUNTIME_ERROR, "->GetTerminalDataPathW() => NULL");
+
+         wstring path = wstring(dataDirectory).append(L"\\tester\\files");
+         wchar* tmp = wsdup(path.c_str());
+         if (!testerPath) testerPath = tmp;
+         else free(tmp);               // another thread may have been faster
       }
       return(testerPath);
    }
 
    if (!onlinePath) {
-      if (const wchar* mqlDirectory = GetMqlDirectoryW()) {
-         wstring path = wstring(mqlDirectory).append(L"\\files");
-         wchar* tmp = wsdup(path.c_str());
-         if (!onlinePath) onlinePath = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* mqlDirectory = GetMqlDirectoryW();
+      if (!mqlDirectory) return (wchar*)!error(ERR_RUNTIME_ERROR, "->GetMqlDirectoryW() => NULL");
+
+      wstring path = wstring(mqlDirectory).append(L"\\files");
+      wchar* tmp = wsdup(path.c_str());
+      if (!onlinePath) onlinePath = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return(onlinePath);
    #pragma EXPANDER_EXPORT
@@ -382,11 +395,12 @@ const char* WINAPI GetTerminalCommonDataPathA() {
    static char* path;
 
    if (!path) {
-      if (const wchar* wpath = GetTerminalCommonDataPathW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
-         if (!path) path = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wpath = GetTerminalCommonDataPathW();
+      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetTerminalCommonDataPathW() => NULL");
+
+      char* tmp = utf16ToAnsi(wpath);
+      if (!path) path = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return path;
    #pragma EXPANDER_EXPORT
@@ -431,11 +445,12 @@ const char* WINAPI GetTerminalDataPathA() {
    static char* dataPath;
 
    if (!dataPath) {
-      if (const wchar* wpath = GetTerminalDataPathW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
-         if (!dataPath) dataPath = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wpath = GetTerminalDataPathW();
+      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetTerminalDataPathW() => NULL");
+
+      char* tmp = utf16ToAnsi(wpath);
+      if (!dataPath) dataPath = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return dataPath;
    #pragma EXPANDER_EXPORT
@@ -494,29 +509,39 @@ const wchar* WINAPI GetTerminalDataPathW() {
 
    if (!dataPath) {
       const wchar* terminalPath = GetTerminalPathW();
+      if (!terminalPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "->GetTerminalPathW() => NULL");
+
       const wchar* roamingDataPath = GetTerminalRoamingDataPathW();
-      wchar* tmp = NULL;
+      if (!roamingDataPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "->GetTerminalRoamingDataPathW() => NULL");
+
+      wchar* wtmp = NULL;
 
       // check portable mode
       if (IsPortableMode()) {
          // data path is the installation directory, independant of write permissions
-         tmp = wsdup(terminalPath);
+         wtmp = wsdup(terminalPath);
       }
       else {
          // check for locked terminal logs
          char* logFilename = LocalTimeFormatA(GetGmtTime32(), "\\logs\\%Y%m%d.log");
-         BOOL terminalPathIsLocked = IsLockedFile(utf16ToAnsi(wstring(terminalPath)).append(logFilename));
-         BOOL roamingPathIsLocked  = IsLockedFile(utf16ToAnsi(wstring(roamingDataPath)).append(logFilename));
+
+         char* path1 = utf16ToAnsi(terminalPath);
+         BOOL terminalPathIsLocked = IsLockedFile(string(path1).append(logFilename));
+         free(path1);
+
+         char* path2 = utf16ToAnsi(roamingDataPath);
+         BOOL roamingPathIsLocked = IsLockedFile(string(path2).append(logFilename));
+         free(path2);
          free(logFilename);
 
-         if      (roamingPathIsLocked)  tmp = wsdup(roamingDataPath);
-         else if (terminalPathIsLocked) tmp = wsdup(terminalPath);
+         if      (roamingPathIsLocked)  wtmp = wsdup(roamingDataPath);
+         else if (terminalPathIsLocked) wtmp = wsdup(terminalPath);
          else return (wchar*)!error(ERR_RUNTIME_ERROR, "no open terminal logfile found");   // no write permissions in both places
 
          // TODO: implement UAC check
       }
-      if (!dataPath) dataPath = tmp;
-      else free(tmp);                     // another thread may have been faster
+      if (!dataPath) dataPath = wtmp;
+      else free(wtmp);                    // another thread may have been faster
    }
    return dataPath;
    #pragma EXPANDER_EXPORT
@@ -566,11 +591,12 @@ const char* WINAPI GetTerminalFileNameA() {
    static char* filename;
 
    if (!filename) {
-      if (const wchar* wfilename = GetTerminalFileNameW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wfilename)).c_str());
-         if (!filename) filename = tmp;
-         else free(tmp);                                    // another thread may have been faster
-      }
+      const wchar* wfilename = GetTerminalFileNameW();
+      if (!wfilename) return (char*)!error(ERR_RUNTIME_ERROR, "->GetTerminalFileNameW() => NULL");
+
+      char* tmp = utf16ToAnsi(wfilename);
+      if (!filename) filename = tmp;
+      else free(tmp);                                    // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -615,11 +641,12 @@ const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
-      if (const wchar* wpath = GetTerminalPathW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
-         if (!path) path = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wpath = GetTerminalPathW();
+      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetTerminalPathW() => NULL");
+
+      char* tmp = utf16ToAnsi(wpath);
+      if (!path) path = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return path;
    #pragma EXPANDER_EXPORT
@@ -636,12 +663,13 @@ const wchar* WINAPI GetTerminalPathW() {
    static wchar* path;
 
    if (!path) {
-      if (const wchar* filename = GetTerminalFileNameW()) {
-         wchar* tmp = wsdup(filename);
-         tmp[wstring(tmp).find_last_of(L"\\")] = '\0';
-         if (!path) path = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* filename = GetTerminalFileNameW();
+      if (!filename) return (wchar*)!error(ERR_RUNTIME_ERROR, "->GetTerminalFileNameW() => NULL");
+
+      wchar* tmp = wsdup(filename);
+      tmp[wstring(tmp).find_last_of(L"\\")] = '\0';
+      if (!path) path = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return(path);
    #pragma EXPANDER_EXPORT
@@ -659,11 +687,12 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
    static char* path;
 
    if (!path) {
-      if (const wchar* wpath = GetTerminalRoamingDataPathW()) {
-         char* tmp = sdup(utf16ToAnsi(wstring(wpath)).c_str());
-         if (!path) path = tmp;
-         else free(tmp);                  // another thread may have been faster
-      }
+      const wchar* wpath = GetTerminalRoamingDataPathW();
+      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetTerminalRoamingDataPathW() => NULL");
+
+      char* tmp = utf16ToAnsi(wpath);
+      if (!path) path = tmp;
+      else free(tmp);                  // another thread may have been faster
    }
    return path;
    #pragma EXPANDER_EXPORT
