@@ -1577,7 +1577,7 @@ const char* WINAPI ModuleTypeToStr(ModuleType type) {
  * @param  doube value
  * @param  char* format - format control string as used for printf()
  *
- * @return char* - formatted string or a NULL pointer in case of errors
+ * @return char* - formatted string or NULL in case of errors
  *
  * Format codes:
  * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet

@@ -111,7 +111,7 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
  * the current user. If the file does not exist an attempt is made to create it. The file is located in the common MetaTrader
  * data folder and is named "global-config.ini".
  *
- * @return char* - filename or a NULL pointer in case of errors,
+ * @return char* - filename or NULL in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini"
  */
 const char* WINAPI GetGlobalConfigPathA() {
@@ -151,7 +151,7 @@ const char* WINAPI GetGlobalConfigPathA() {
  * current terminal only. If the file does not exist an attempt is made to create it. The file is located in the currently
  * active terminal-specific data folder and is named "terminal-config.ini".
  *
- * @return char* - filename or a NULL pointer in case of errors,
+ * @return char* - filename or NULL in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\terminal-config.ini"
  */
 const char* WINAPI GetTerminalConfigPathA() {
@@ -260,7 +260,7 @@ DWORD WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSiz
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space and inline
- *                 comments are removed. A NULL pointer in case of errors.
+ *                 comments are removed. NULL in case of errors.
  *
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
@@ -287,7 +287,7 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space is removed).
- *                 A NULL pointer in case of errors.
+ *                 NULL in case of errors.
  *
  * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */

@@ -90,7 +90,7 @@
 #define INITREASON_SYMBOLCHANGE                 7        // | chart symbol changed                          | no input dialog |   I, E      |
 #define INITREASON_ACCOUNTCHANGE                8        // | account changed                               | no input dialog |   I         |
 #define INITREASON_RECOMPILE                    9        // | reloaded after recompilation                  | no input dialog |   I, E      |
-#define INITREASON_TERMINAL_FAILURE            10        // | terminal failure                              |    input dialog |      E      |   @see  https://github.com/rosasurfer/mt4-mql/issues/1
+#define INITREASON_TERMINAL_FAILURE            10        // | terminal failure                              |    input dialog |      E      |   @see  https://github.com/rosasurfer/mt4-mql-framework/issues/1
                                                          // +-----------------------------------------------+-----------------+-------------+
 
 // UninitializeReason codes (matching the MetaQuotes REASON_* codes)

@@ -253,7 +253,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
  *
  * @param  char* name - path
  *
- * @return char* - resolved name in "\\?\" or UNC format or a NULL pointer in case of errors
+ * @return char* - resolved name in "\\?\" or UNC format or NULL in case of errors
  */
 const char* WINAPI GetFinalPathNameA(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
@@ -293,7 +293,7 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
  *
  * @param  char* name - path
  *
- * @return char* - resolved target path or a NULL pointer in case of errors
+ * @return char* - resolved target path or NULL in case of errors
  *
  * @see    http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
  * @see    https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html

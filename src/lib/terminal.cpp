@@ -39,7 +39,7 @@ BOOL WINAPI IsPortableMode() {
  * @param  char* filename   - simple filename
  * @param  BOOL  removeFile - whether to remove a found file
  *
- * @return char* - directory name (last segment of the full path) or a NULL pointer in case of errors
+ * @return char* - directory name (last segment of the full path) or NULL in case of errors
  */
 const char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
    if ((uint)filename < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
@@ -151,7 +151,7 @@ BOOL WINAPI IsLockedFile(const string &filename) {
 /**
  * Return the full filename of the loaded MT4Expander DLL.
  *
- * @return char* - filename or a NULL pointer in case of errors
+ * @return char* - filename or NULL in case of errors
  */
 const char* WINAPI GetExpanderFileNameA() {
    static char* filename;
@@ -172,7 +172,7 @@ const char* WINAPI GetExpanderFileNameA() {
 /**
  * Return the full filename of the loaded MT4Expander DLL.
  *
- * @return wchar* - filename or a NULL pointer in case of errors
+ * @return wchar* - filename or NULL in case of errors
  */
 const wchar* WINAPI GetExpanderFileNameW() {
    static wchar* filename;
@@ -225,7 +225,7 @@ HMODULE WINAPI GetExpanderModuleXP() {
 /**
  * Return the full path of the history root directory. The function doesn't check whether the directory exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or NULL in case of errors
  */
 const char* WINAPI GetHistoryRootPathA() {
    static char* hstDirectory;
@@ -246,7 +246,7 @@ const char* WINAPI GetHistoryRootPathA() {
 /**
 * Return the full path of the history root directory. The function doesn't check whether the directory exists.
  *
- * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or NULL in case of errors
  */
 const wchar* WINAPI GetHistoryRootPathW() {
    static wchar* hstDirectory;
@@ -268,7 +268,7 @@ const wchar* WINAPI GetHistoryRootPathW() {
 /**
  * Return the full path of the MQL directory.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or NULL in case of errors
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
@@ -289,7 +289,7 @@ const char* WINAPI GetMqlDirectoryA() {
 /**
  * Return the full path of the MQL directory.
  *
- * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or NULL in case of errors
  */
 const wchar* WINAPI GetMqlDirectoryW() {
    static wchar* mqlDirectory;
@@ -316,7 +316,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
  *
  * @param  BOOL inTester - whether to return the online path or the one in the tester
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or NULL in case of errors
  */
 const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
    static char* testerPath, *onlinePath;
@@ -351,7 +351,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
  *
  * @param  BOOL inTester - whether to return the online path or the one in the tester
  *
- * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or NULL in case of errors
  */
 const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
    static wchar* testerPath, *onlinePath;
@@ -388,7 +388,7 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
  * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
+ * @return char* - directory name without trailing path separator or NULL in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
@@ -412,7 +412,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
- * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
+ * @return wchar* - directory name without trailing path separator or NULL in case of errors,
  *                  e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const wchar* WINAPI GetTerminalCommonDataPathW() {
@@ -438,7 +438,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
  * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
+ * @return char* - directory name without trailing path separator or NULL in case of errors,
  *                 e.g. "%ProgramFiles%\MetaTrader4"
  */
 const char* WINAPI GetTerminalDataPathA() {
@@ -461,7 +461,7 @@ const char* WINAPI GetTerminalDataPathA() {
  * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
- * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
+ * @return wchar* - directory name without trailing path separator or NULL in case of errors,
  *                  e.g. "%ProgramFiles%\MetaTrader4"
  */
 const wchar* WINAPI GetTerminalDataPathW() {
@@ -585,7 +585,7 @@ HWND WINAPI GetTerminalMainWindow() {
 /**
  * Return the full filename of the executable the terminal was launched from.
  *
- * @return char* - filename or a NULL pointer in case of errors
+ * @return char* - filename or NULL in case of errors
  */
 const char* WINAPI GetTerminalFileNameA() {
    static char* filename;
@@ -606,7 +606,7 @@ const char* WINAPI GetTerminalFileNameA() {
 /**
  * Return the full filename of the executable the terminal was launched from.
  *
- * @return wchar* - filename or a NULL pointer in case of errors
+ * @return wchar* - filename or NULL in case of errors
  */
 const wchar* WINAPI GetTerminalFileNameW() {
    static wchar* filename;
@@ -635,7 +635,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
  * introduced in MQL4.5).
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or NULL in case of errors
  */
 const char* WINAPI GetTerminalPathA() {
    static char* path;
@@ -657,7 +657,7 @@ const char* WINAPI GetTerminalPathA() {
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
  * introduced in MQL4.5).
  *
- * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or NULL in case of errors
  */
 const wchar* WINAPI GetTerminalPathW() {
    static wchar* path;
@@ -680,7 +680,7 @@ const wchar* WINAPI GetTerminalPathW() {
  * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
  * data directory may differ. The function does not check whether the returned path exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or NULL in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
@@ -703,7 +703,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
  * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
  * data directory may differ. The function does not check whether the returned path exists.
  *
- * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or NULL in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
  */
 const wchar* WINAPI GetTerminalRoamingDataPathW() {
@@ -754,7 +754,7 @@ uint WINAPI GetTerminalBuild() {
 /**
  * Return the terminal's version string.
  *
- * @return char* - version or a NULL pointer in case of errors
+ * @return char* - version or NULL in case of errors
  */
 const char* WINAPI GetTerminalVersion() {
    static char* version;

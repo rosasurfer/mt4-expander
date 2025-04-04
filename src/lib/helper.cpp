@@ -49,7 +49,7 @@ DWORD WINAPI GetLastWin32Error() {
  *
  * @param  HWND hWnd - window handle
  *
- * @return char* - text (may be empty) or a NULL pointer in case of errors
+ * @return char* - text (may be empty) or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
@@ -71,7 +71,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  *
  * @param  HWND hWnd - window handle
  *
- * @return wchar* - text (may be empty) or a NULL pointer in case of errors
+ * @return wchar* - text (may be empty) or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
@@ -106,7 +106,7 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
  *
  * @param  HWND hWnd - window handle
  *
- * @return char* - text (may be empty) or a NULL pointer in case of errors
+ * @return char* - text (may be empty) or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
@@ -128,7 +128,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  *
  * @param  HWND hWnd - window handle
  *
- * @return wchar* - text (may be empty) or a NULL pointer in case of errors
+ * @return wchar* - text (may be empty) or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
@@ -561,7 +561,7 @@ uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, 
  * @param  void* input  - buffer with binary content
  * @param  uint  length - length of the content in bytes
  *
- * @return char* - MD5 hash or a NULL pointer in case of errors
+ * @return char* - MD5 hash or NULL in case of errors
  */
 const char* WINAPI MD5Hash(const void* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
@@ -588,7 +588,7 @@ const char* WINAPI MD5Hash(const void* input, uint length) {
  *
  * @param  char* input - input string
  *
- * @return char* - MD5 hash or a NULL pointer in case of errors
+ * @return char* - MD5 hash or NULL in case of errors
  */
 const char* WINAPI MD5HashA(const char* input) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));

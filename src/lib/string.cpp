@@ -1041,7 +1041,7 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
  * @param  char* format - string with format codes (see Microsoft extension for ANSI/UTF-16 specific codes)
  * @param        ...    - variable number of arguments (may contain UTF-16 strings)
  *
- * @return char* - formatted string or a NULL pointer in case of errors
+ * @return char* - formatted string or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  *
@@ -1068,7 +1068,7 @@ char* __cdecl asformat(const char* format, ...) {
  * @param  wchar* format - string with format codes (see Microsoft extension for ANSI/UTF-16 specific codes)
  * @param         ...    - variable number of arguments (may contain ANSI strings)
  *
- * @return wchar* - formatted string or a NULL pointer in case of errors
+ * @return wchar* - formatted string or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  *
@@ -1095,7 +1095,7 @@ wchar* __cdecl asformat(const wchar* format, ...) {
  * @param  char*   format - string with format codes (see Microsoft extension for ANSI/UTF-16 specific codes)
  * @param  va_list &args  - variable list of arguments (may contain UTF-16 strings)
  *
- * @return char* - formatted string or a NULL pointer in case of errors
+ * @return char* - formatted string or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  *
@@ -1122,7 +1122,7 @@ char* WINAPI _asformat(const char* format, const va_list &args) {
  * @param  wchar*  format - string with format codes (see Microsoft extension for ANSI/UTF-16 specific codes)
  * @param  va_list &args  - variable list of arguments (may contain ANSI strings)
  *
- * @return wchar* - formatted string or a NULL pointer in case of errors
+ * @return wchar* - formatted string or NULL in case of errors
  *
  * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  *

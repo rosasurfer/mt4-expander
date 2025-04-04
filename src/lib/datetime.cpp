@@ -1131,7 +1131,7 @@ string WINAPI gmtTimeFormat(time32 time, const char* format) {
  * @param  time32 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
  * @param  char*  format - format control string supported by strftime()
  *
- * @return char* - time string or a NULL pointer in case of errors
+ * @return char* - time string or NULL in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
@@ -1153,7 +1153,7 @@ char* WINAPI GmtTimeFormatA(time32 time, const char* format) {
  * @param  time64 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
  * @param  wchar* format - format control string supported by strftime()
  *
- * @return wchar* - time string or a NULL pointer in case of errors
+ * @return wchar* - time string or NULL in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
@@ -1209,7 +1209,7 @@ string WINAPI localTimeFormat(time32 time, const char* format) {
  * @param  time32 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
  * @param  char*  format - format control string supported by strftime()
  *
- * @return char* - time string or a NULL pointer in case of errors
+ * @return char* - time string or NULL in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
@@ -1231,7 +1231,7 @@ char* WINAPI LocalTimeFormatA(time32 time, const char* format) {
  * @param  time64 time   - Unix timestamp (seconds since 01.01.1970 00:00 GMT)
  * @param  wchar* format - format control string supported by strftime()
  *
- * @return wchar* - time string or a NULL pointer in case of errors
+ * @return wchar* - time string or NULL in case of errors
  *
  * @see  http://www.cplusplus.com/reference/ctime/strftime/
  * @see  ms-help://MS.VSCC.v90/MS.MSDNQTR.v90.en/dv_vccrt/html/6330ff20-4729-4c4a-82af-932915d893ea.htm
