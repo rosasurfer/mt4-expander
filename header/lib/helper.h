@@ -23,6 +23,7 @@ uint        WINAPI WM_MT4();
 
 HANDLE      WINAPI GetWindowPropertyA(HWND hWnd, const char* name);
 BOOL        WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value);
+HANDLE      WINAPI RemoveWindowPropertyA(HWND hWnd, const char* name);
 
 int         WINAPI GetWindowIntegerA(HWND hWnd, const char* name);
 double      WINAPI GetWindowDoubleA(HWND hWnd, const char* name);

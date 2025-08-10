@@ -296,7 +296,7 @@ BOOL WINAPI IsWindowAreaVisible(HWND hWnd) {
  * @param  HWND  hWnd - window handle
  * @param  char* name - property name
  *
- * @return HANDLE - stored value or NULL if the property does not exist in the window
+ * @return HANDLE - the stored value or NULL if no such property exists in the window
  */
 HANDLE WINAPI GetWindowPropertyA(HWND hWnd, const char* name) {
    return GetPropA(hWnd, name);
@@ -317,6 +317,22 @@ HANDLE WINAPI GetWindowPropertyA(HWND hWnd, const char* name) {
  */
 BOOL WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value) {
    return SetPropA(hWnd, name, value);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Alias of user32::RemovePropA()
+ *
+ * Removes a named value from the property list of the specified window.
+ *
+ * @param  HWND   hWnd  - window handle
+ * @param  char*  name  - property name
+ *
+ * @return HANDLE - the removed value or NULL if no such property exists in the window
+ */
+HANDLE WINAPI RemoveWindowPropertyA(HWND hWnd, const char* name) {
+   return RemovePropA(hWnd, name);
    #pragma EXPANDER_EXPORT
 }
 
