@@ -242,3 +242,28 @@ int __cdecl _error(const char* fileName, const char* funcName, int line, int err
    }
    return(error_code);
 }
+
+
+// Helper functions returning constant values. All parameters are ignored.
+int         __cdecl _EMPTY       (...) { return EMPTY;        }      // only __cdecl supports variadics
+int         __cdecl _EMPTY_VALUE (...) { return EMPTY_VALUE;  }
+const char* __cdecl _EMPTY_STR   (...) { return "";           }
+HWND        __cdecl _INVALID_HWND(...) { return INVALID_HWND; }
+int         __cdecl _NULL        (...) { return NULL;         }
+bool        __cdecl _true        (...) { return true;         }
+BOOL        __cdecl _TRUE        (...) { return TRUE;         }
+bool        __cdecl _false       (...) { return false;        }
+BOOL        __cdecl _FALSE       (...) { return FALSE;        }
+color       __cdecl _CLR_NONE    (...) { return CLR_NONE;     }
+color       __cdecl _NaC         (...) { return NaC;          }
+time32      __cdecl _NaT32       (...) { return NaT;          }
+time64      __cdecl _NaT64       (...) { return NaT;          }
+
+
+// Helper functions returning variable values. All parameters except the first one are ignored.
+bool   __cdecl _bool  (bool   value, ...) { return value; }          // only __cdecl supports variadics
+BOOL   __cdecl _BOOL  (BOOL   value, ...) { return value; }
+char   __cdecl _char  (char   value, ...) { return value; }
+int    __cdecl _int   (int    value, ...) { return value; }
+float  __cdecl _float (float  value, ...) { return value; }
+double __cdecl _double(double value, ...) { return value; }

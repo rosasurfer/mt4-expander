@@ -1,15 +1,17 @@
+# never ignore the following files
+!.gitattributes
+!.gitkeep
+
 # ignore Eclipse directories and files
 /.externalToolBuilders/
 /.settings/
 /.buildpath
 /.project*
 
+# ignore VSCode folders and files
+/.vscode
 
 # ignore the following directories and files
 /bin/
+/etc/
 /*.user
-
-
-# never ignore the following files
-!.gitattributes
-!/bin/Release/MT4Expander.dll

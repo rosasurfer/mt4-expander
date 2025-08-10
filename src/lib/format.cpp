@@ -8,7 +8,7 @@
  * @param  doube value
  * @param  char* format - format control string as used for printf()
  *
- * @return char* - formatted string or a NULL pointer in case of errors
+ * @return char* - formatted string or NULL in case of errors
  *
  * @see  https://alvinalexander.com/programming/printf-format-cheat-sheet
  * @see  http://www.cplusplus.com/reference/cstdio/printf/

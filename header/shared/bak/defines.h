@@ -21,7 +21,7 @@
 #define EOL_UNIX                             "\n"        // Unix line separator:      0x0A (MQL/Win32 file functions in text mode auto-convert EOL_UNIX to EOL_WINDOWS)
 #define EOL_WINDOWS                        "\r\n"        // Windows line separator:   0x0D0A
 
-#define NL                                   "\n"        // MQL4 bug: string constants cannot reference each other
+#define NL                                   "\n"        // MQL4.0 bug: string constants cannot reference each other
 #define CRLF                               "\r\n"
 #define TAB                                  "\t"        // tabulator: 0x09
 
@@ -90,7 +90,7 @@
 #define INITREASON_SYMBOLCHANGE                 7        // | chart symbol changed                          | no input dialog |   I, E      |
 #define INITREASON_ACCOUNTCHANGE                8        // | account changed                               | no input dialog |   I         |
 #define INITREASON_RECOMPILE                    9        // | reloaded after recompilation                  | no input dialog |   I, E      |
-#define INITREASON_TERMINAL_FAILURE            10        // | terminal failure                              |    input dialog |      E      |   @see  https://github.com/rosasurfer/mt4-mql/issues/1
+#define INITREASON_TERMINAL_FAILURE            10        // | terminal failure                              |    input dialog |      E      |   @see  https://github.com/rosasurfer/mt4-mql-framework/issues/1
                                                          // +-----------------------------------------------+-----------------+-------------+
 
 // UninitializeReason codes (matching the MetaQuotes REASON_* codes)
@@ -372,9 +372,9 @@
 #define DEC                              DECEMBER
 
 
-// timezone identifiers
-#define TZ_SERVER                               1        // the current trade server's timezone
-#define TZ_LOCAL                                2        // the timezone of the local system
+// timezone modes
+#define TZ_SERVER                               1        // timezone of the current trade server
+#define TZ_LOCAL                                2        // timezone of the local system
 #define TZ_FXT                                  3        // FXT (Forex Standard Time, aka America/New_York+0700)
 #define TZ_GMT                                  4        // GMT (Greenwich Mean Time, aka UTC)
 #define TZ_UTC                             TZ_GMT        // alias

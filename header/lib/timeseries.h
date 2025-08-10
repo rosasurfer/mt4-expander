@@ -13,8 +13,8 @@
  *
  * @return double
  */
-inline double WINAPI iOpen(const void* rates, uint bars, uint bar) {
-   static uint build = GetTerminalBuild();
+inline double iOpen(const void* rates, uint bars, uint bar) {
+   static uint build = GetTerminalBuild();               // TODO: defeats inlining
    if (!build || bar < 0 || bar >= bars) return(NULL);
 
    uint shift = bars-1-bar;
@@ -36,7 +36,7 @@ inline double WINAPI iOpen(const void* rates, uint bars, uint bar) {
  * @return double
  */
 inline double WINAPI iHigh(const void* rates, uint bars, uint bar) {
-   static uint build = GetTerminalBuild();
+   static uint build = GetTerminalBuild();               // TODO: defeats inlining
    if (!build || bar < 0 || bar >= bars) return(NULL);
 
    double high;
@@ -57,7 +57,7 @@ inline double WINAPI iHigh(const void* rates, uint bars, uint bar) {
  * @return double
  */
 inline double WINAPI iLow(const void* rates, uint bars, uint bar) {
-   static uint build = GetTerminalBuild();
+   static uint build = GetTerminalBuild();               // TODO: defeats inlining
    if (!build || bar < 0 || bar >= bars) return(NULL);
 
    double low;
@@ -78,7 +78,7 @@ inline double WINAPI iLow(const void* rates, uint bars, uint bar) {
  * @return double
  */
 inline double WINAPI iClose(const void* rates, uint bars, uint bar) {
-   static uint build = GetTerminalBuild();
+   static uint build = GetTerminalBuild();               // TODO: defeats inlining
    if (!build || bar < 0 || bar >= bars) return(NULL);
 
    double close;
@@ -99,7 +99,7 @@ inline double WINAPI iClose(const void* rates, uint bars, uint bar) {
  * @return uint
  */
 inline uint WINAPI iVolume(const void* rates, uint bars, uint bar) {
-   static uint build = GetTerminalBuild();
+   static uint build = GetTerminalBuild();               // TODO: defeats inlining
    if (!build || bar < 0 || bar >= bars) return(NULL);
 
    uint volume;
@@ -120,7 +120,7 @@ inline uint WINAPI iVolume(const void* rates, uint bars, uint bar) {
  * @return time32
  */
 inline time32 WINAPI iTime(const void* rates, int bars, int bar) {
-   static uint build = GetTerminalBuild();
+   static uint build = GetTerminalBuild();               // TODO: defeats inlining
    if (!build || bar < 0 || bar >= bars) return(NULL);
 
    time32 time;

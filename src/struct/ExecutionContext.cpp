@@ -237,7 +237,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
  *
- * @return char* - the same name or a NULL pointer in case of errors
+ * @return char* - the same name or NULL in case of errors
  */
 const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
    if ((uint)ec   < MIN_VALID_POINTER)                    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -500,7 +500,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
  *
- * @return char* - the same name or a NULL pointer in case of errors
+ * @return char* - the same name or NULL in case of errors
  */
 const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
    if ((uint)ec   < MIN_VALID_POINTER)                   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -676,7 +676,7 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              symbol
  *
- * @return char* - the same symbol or a NULL pointer in case of errors
+ * @return char* - the same symbol or NULL in case of errors
  */
 const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
    if ((uint)ec     < MIN_VALID_POINTER)               return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1236,7 +1236,7 @@ int WINAPI ec_SetRecorder(EXECUTION_CONTEXT* ec, int mode) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              server - server name (an empty string is converted to a NULL pointer)
  *
- * @return char* - the same server name or a NULL pointer in case of errors
+ * @return char* - the same server name or NULL in case of errors
  */
 const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server) {
    if ((uint)ec     < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1728,7 +1728,7 @@ int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              filename - filename (an empty string or a NULL pointer reset the field)
  *
- * @return char* - the same filename or a NULL pointer in case of errors
+ * @return char* - the same filename or NULL in case of errors
  */
 const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
    if ((uint)ec < MIN_VALID_POINTER)          return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
@@ -1813,8 +1813,11 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", changedBars="          <<                      ec->changedBars
          << ", ticks="                <<                      ec->ticks
          << ", cycleTicks="           <<                      ec->cycleTicks
-         << ", currTickTime="         <<                     (ec->currTickTime ? GmtTimeFormatA(ec->currTickTime, "%Y.%m.%d %H:%M:%S") : "0")
-         << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormatA(ec->prevTickTime, "%Y.%m.%d %H:%M:%S") : "0")
+         << ", currTick="             <<                     (ec->currTick ? GmtTimeFormatA(ec->currTick, "%Y.%m.%d %H:%M:%S") : "0")
+         << ", currReal="             <<            BoolToStr(ec->currReal)
+         << ", prevTick="             <<                     (ec->prevTick ? GmtTimeFormatA(ec->prevTick, "%Y.%m.%d %H:%M:%S") : "0")
+         << ", prevReal="             <<            BoolToStr(ec->prevReal)
+         << ", lastRealTick="         <<                     (ec->lastRealTick ? GmtTimeFormatA(ec->lastRealTick, "%Y.%m.%d %H:%M:%S") : "0")
 
          << ", digits="               <<                      ec->digits
          << ", pipDigits="            <<                      ec->pipDigits

@@ -418,9 +418,9 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetChangedBars         (ec, -1);                                     // ...
 
    if (initReason==IR_SYMBOLCHANGE || initReason==IR_ACCOUNTCHANGE) {
-      master->ticks        = ec->ticks        = (uint)(initReason == IR_ACCOUNTCHANGE);
-      master->currTickTime = ec->currTickTime = 0;
-      master->prevTickTime = ec->prevTickTime = 0;
+      master->ticks    = ec->ticks    = (uint)(initReason == IR_ACCOUNTCHANGE);
+      master->currTick = ec->currTick = 0;
+      master->prevTick = ec->prevTick = 0;
    }
    else {}                                                                 // all values NULL or kept from the previous tick
    master->cycleTicks = ec->cycleTicks = 0;
@@ -435,13 +435,13 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetChart       (ec, hChart);                                         // chart handles must be set before test values
    ec_SetChartWindow (ec, hChart ? GetParent(hChart) : NULL);
 
-   ec_SetTesting     (ec, isTesting     =Program_IsTesting     (ec, isTesting));
-   ec_SetVisualMode  (ec, isVisualMode  =Program_IsVisualMode  (ec, isVisualMode));
-   ec_SetOptimization(ec, isOptimization=Program_IsOptimization(ec, isOptimization));
+   ec_SetTesting     (ec, isTesting      = Program_IsTesting     (ec, isTesting));
+   ec_SetVisualMode  (ec, isVisualMode   = Program_IsVisualMode  (ec, isVisualMode));
+   ec_SetOptimization(ec, isOptimization = Program_IsOptimization(ec, isOptimization));
    ec_SetRecorder    (ec, recorder);
 
    HWND hMainWnd = GetTerminalMainWindow();
-   if (!strlen(accountServer)) accountServer = NULL;                       // populate empty account values from existing window properties
+   if (!*accountServer) accountServer = NULL;                              // populate empty account values from existing window properties
    if (!accountServer) accountServer = (char*) GetPropA(hMainWnd, PROP_STRING_ACCOUNT_SERVER);
    if (!accountNumber) accountNumber = (int) GetPropA(hMainWnd, PROP_INT_ACCOUNT_NUMBER);
 
@@ -498,24 +498,26 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
  * @param  int                bars        - current amount of price bars (chart history)
  * @param  int                changedBars - current amount of changed indicator values
  * @param  uint               ticks       - number of calls of the MQL start() function
- * @param  time32             time        - server time of the currently processed tick
- * @param  double             bid         - bid price of the currently processed tick
- * @param  double             ask         - ask price of the currently processed tick
+ * @param  time32             time        - server time of the current tick
+ * @param  BOOL               isVirtual   - whether the tick is virtual
+ * @param  double             bid         - bid price of the current tick
+ * @param  double             ask         - ask price of the current tick
  *
  * @return int - error status
  */
-int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, time32 tickTime, double bid, double ask) {
+int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, time32 tickTime, BOOL isVirtual, double bid, double ask) {
    if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d  %s  ec=%s", GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec)));
    SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
-   int    validBars    = (changedBars==-1) ? -1 : bars-changedBars;
-   uint   cycleTicks   = ec->cycleTicks + 1;
-   time32 prevTickTime = ec->currTickTime;
-   DWORD  threadId     = GetCurrentThreadId();
+   int    validBars  = (changedBars==-1) ? -1 : bars-changedBars;
+   uint   cycleTicks = ec->cycleTicks + 1;
+   time32 prevTick   = ec->currTick;
+   BOOL   prevReal   = ec->currReal;
+   DWORD  threadId   = GetCurrentThreadId();
 
-   if (validBars && tickTime < prevTickTime) {                       // don't warn if all bars have changed (was L_ERROR, now only L_WARN)
-      warn(ERR_ILLEGAL_STATE, "ticktime is running backwards:  tick=%d  tickTime=%s  prevTickTime=%s  bars=%d  validBars=%d  changedBars=%d  ec=%s", ticks, GmtTimeFormatA(tickTime, "%Y.%m.%d %H:%M:%S"), GmtTimeFormatA(prevTickTime, "%Y.%m.%d %H:%M:%S"), bars, validBars, changedBars, EXECUTION_CONTEXT_toStr(ec));
+   if (validBars && tickTime < prevTick) {                           // don't warn if all bars have changed (was L_ERROR, now only L_WARN)
+      warn(ERR_ILLEGAL_STATE, "ticktime is running backwards:  tick=%d  tickTime=%s  prevTick=%s  bars=%d  validBars=%d  changedBars=%d  ec=%s", ticks, GmtTimeFormatA(tickTime, "%Y.%m.%d %H:%M:%S"), GmtTimeFormatA(prevTick, "%Y.%m.%d %H:%M:%S"), bars, validBars, changedBars, EXECUTION_CONTEXT_toStr(ec));
    }
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
@@ -526,16 +528,20 @@ int WINAPI SyncMainContext_start(EXECUTION_CONTEXT* ec, const void* rates, int b
    for (uint i=0; i < chainSize; ++i) {                              // in all contexts
       if (ctx = chain[i]) {
          ctx->programCoreFunction = CF_START;                        // don't use ec_Set*() for max performance
-         ctx->rates               = rates;
-         ctx->bars                = bars;
-         ctx->validBars           = validBars;
-         ctx->changedBars         = changedBars;
-         ctx->ticks               = ticks;
-         ctx->cycleTicks          = cycleTicks;
-         ctx->currTickTime        = tickTime;
-         ctx->prevTickTime        = prevTickTime;
-         ctx->threadId            = threadId;
-
+         ctx->threadId     = threadId;
+         ctx->rates        = rates;
+         ctx->bars         = bars;
+         ctx->validBars    = validBars;
+         ctx->changedBars  = changedBars;
+         ctx->ticks        = ticks;
+         ctx->cycleTicks   = cycleTicks;
+         ctx->currTick     = tickTime;
+         ctx->currReal     = !isVirtual;
+         ctx->prevTick     = prevTick;
+         ctx->prevReal     = prevReal;
+         if (prevReal) {
+            ctx->lastRealTick = prevTick;
+         }
          if (i < 2) {
             ctx->moduleCoreFunction = ctx->programCoreFunction;      // in master and main context only
          }
@@ -667,7 +673,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          else {
             // Library::init() of a formerly recompiled library at test start (non-UI thread), Expert::init() is called afterwards
             // check if a partially initialized context chain exists (master->coreFunction=CF_INIT, main=NULL)
-            EXECUTION_CONTEXT* master;                               // master of current test
+            EXECUTION_CONTEXT* master = NULL;                        // master of current test
             uint currentPid = GetLastThreadProgram();                // pid of the current test
             BOOL isPartialChain;
 
@@ -795,7 +801,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
       if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUIThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
 
       EXECUTION_CONTEXT* master = NULL;
-      uint currentPid, lastPid = GetLastThreadProgram();             // pid of the last executed program
+      uint currentPid=0, lastPid=GetLastThreadProgram();             // pid of the last executed program
       BOOL isPartialChain;
 
       // check if a partially initialized context chain exists: master->programCoreFunction=NULL, main=NULL, lib1!=NULL
@@ -1181,7 +1187,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window has no children in Script::init()  hWndMain=%p", programName, hWndMain)));
 
       uint size = MAX_CHARTDESCRIPTION_LENGTH + 1;
-      char* chartDescription = (char*)alloca(size);            // on the stack
+      char* chartDescription = (char*) alloca(size);           // on the stack
       uint chars = ComposeChartTitle(symbol, timeframe, chartDescription, size);
       if (!chars) return(INVALID_HWND);
 

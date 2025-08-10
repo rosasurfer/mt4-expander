@@ -1,12 +1,17 @@
 #pragma once
 
 #pragma warning(push)
-//#pragma warning(disable:4060)                             // switch statement contains no 'case' or 'default' labels
-//#pragma warning(disable:4065)                             // switch statement contains 'default' but no 'case' labels
-//#pragma warning(disable:4101)                             // unreferenced local variable
+#pragma warning(disable:4127)                               // conditional expression is constant
+#pragma warning(disable:4706)                               // assignment within conditional expression
+
+#pragma warning(disable:4100)                               // unreferenced formal parameter
+#pragma warning(disable:4101)                               // unreferenced local variable
+#pragma warning(disable:4189)                               // local variable is initialized but not referenced
+
 #pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
 
-#define  EXPANDER_EXPORT  comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+#define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+#define EXPANDER_EXPORT_AS(name) comment(linker, "/EXPORT:"name"="__FUNCDNAME__)
 
 #include "stdafx.h"
 #include "shared/defines.h"                                 // shared between C++ and MQL
@@ -24,8 +29,8 @@ typedef unsigned   int       uint;
 typedef          __int64     int64;
 typedef unsigned __int64     uint64;
 typedef            DWORD     color;                         // MQL4 color
-typedef          __time32_t  time32;                        // MQL4 32-bit timestamp
-typedef          __time64_t  time64;                        // MQL5 64-bit timestamp
+typedef          __time32_t  time32;                        // MQL4.0 32-bit timestamp
+typedef          __time64_t  time64;                        // MQL4.5 64-bit timestamp
 typedef            tm        TM;                            // C time struct
 
 namespace rsf {}                                            // define our namespace and use it first
@@ -87,18 +92,18 @@ enum CoreFunction {
 
 // MQL program initialize reasons
 enum InitializeReason {                                     // +-- init reason --------------------------------+-- ui -----------+-- applies --+
-   IR_USER              = INITREASON_USER,                  // | loaded by the user (also in tester)           |    input dialog |   I, E, S   |   I = indicators
-   IR_TEMPLATE          = INITREASON_TEMPLATE,              // | loaded by a template (also at terminal start) | no input dialog |   I, E      |   E = experts
-   IR_PROGRAM           = INITREASON_PROGRAM,               // | loaded by iCustom()                           | no input dialog |   I         |   S = scripts
+   IR_USER              = INITREASON_USER,                  // | loaded by the user (also in tester)           |    input dialog |   I, E, S   | I = indicators
+   IR_TEMPLATE          = INITREASON_TEMPLATE,              // | loaded by a template (also at terminal start) | no input dialog |   I, E      | E = experts
+   IR_PROGRAM           = INITREASON_PROGRAM,               // | loaded by iCustom()                           | no input dialog |   I         | S = scripts
    IR_PROGRAM_AFTERTEST = INITREASON_PROGRAM_AFTERTEST,     // | loaded by iCustom() after end of test         | no input dialog |   I         |
    IR_PARAMETERS        = INITREASON_PARAMETERS,            // | input parameters changed                      |    input dialog |   I, E      |
    IR_TIMEFRAMECHANGE   = INITREASON_TIMEFRAMECHANGE,       // | chart period changed                          | no input dialog |   I, E      |
    IR_SYMBOLCHANGE      = INITREASON_SYMBOLCHANGE,          // | chart symbol changed                          | no input dialog |   I, E      |
    IR_ACCOUNTCHANGE     = INITREASON_ACCOUNTCHANGE,         // | account changed                               | no input dialog |   I         |
    IR_RECOMPILE         = INITREASON_RECOMPILE,             // | reloaded after recompilation                  | no input dialog |   I, E      |
-   IR_TERMINAL_FAILURE  = INITREASON_TERMINAL_FAILURE       // | terminal failure                              |    input dialog |      E      |   @see https://github.com/rosasurfer/mt4-mql/issues/1
+   IR_TERMINAL_FAILURE  = INITREASON_TERMINAL_FAILURE       // | terminal failure (1)                          |    input dialog |      E      |
 };                                                          // +-----------------------------------------------+-----------------+-------------+
-
+                                                            // (1) @see https://github.com/rosasurfer/mt4-mql/issues/1
 
 // MQL program uninitialize reasons
 enum UninitializeReason {
@@ -130,33 +135,30 @@ int __cdecl _warn  (const char* fileName, const char* funcName, int line, int co
 int __cdecl _error (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
 
 
-// Helper functions returning constant values. All parameters are ignored.
-inline int         __cdecl _EMPTY        (...) { return(EMPTY       ); }                // only __cdecl supports variadics
-inline int         __cdecl _EMPTY_VALUE  (...) { return(EMPTY_VALUE ); }
-inline const char* __cdecl _EMPTY_STR    (...) { return(""          ); }
-inline       char* __cdecl _EMPTY_NEW_STR(...) { char* s = new char[1]; s[0] = 0; return(s); }
-inline HWND        __cdecl _INVALID_HWND (...) { return(INVALID_HWND); }
-inline int         __cdecl _NULL         (...) { return(NULL        ); }
-inline bool        __cdecl _true         (...) { return(true        ); }
-inline BOOL        __cdecl _TRUE         (...) { return(TRUE        ); }
-inline bool        __cdecl _false        (...) { return(false       ); }
-inline BOOL        __cdecl _FALSE        (...) { return(FALSE       ); }
-inline color       __cdecl _CLR_NONE     (...) { return(CLR_NONE    ); }
-inline color       __cdecl _NaC          (...) { return(NaC         ); }
-inline time32      __cdecl _NaT32        (...) { return(NaT         ); }
-inline time64      __cdecl _NaT64        (...) { return(NaT         ); }
+// Helper functions returning constant values.
+int         __cdecl _EMPTY       (...);
+int         __cdecl _EMPTY_VALUE (...);                     // only __cdecl supports variadics
+const char* __cdecl _EMPTY_STR   (...);
+HWND        __cdecl _INVALID_HWND(...);
+int         __cdecl _NULL        (...);
+bool        __cdecl _true        (...);
+BOOL        __cdecl _TRUE        (...);
+bool        __cdecl _false       (...);
+BOOL        __cdecl _FALSE       (...);
+color       __cdecl _CLR_NONE    (...);
+color       __cdecl _NaC         (...);
+time32      __cdecl _NaT32       (...);
+time64      __cdecl _NaT64       (...);
 
 
-// Helper functions returning variable values. All parameters except the first one are ignored.
-inline bool        __cdecl _bool  (bool   value, ...) { return(value); }
-inline BOOL        __cdecl _BOOL  (BOOL   value, ...) { return(value); }
-inline char        __cdecl _char  (char   value, ...) { return(value); }
-inline int         __cdecl _int   (int    value, ...) { return(value); }
-inline float       __cdecl _float (float  value, ...) { return(value); }
-inline double      __cdecl _double(double value, ...) { return(value); }
+// Helper functions returning variable values.
+bool   __cdecl _bool  (bool   value, ...);
+BOOL   __cdecl _BOOL  (BOOL   value, ...);                  // only __cdecl supports variadics
+char   __cdecl _char  (char   value, ...);
+int    __cdecl _int   (int    value, ...);
+float  __cdecl _float (float  value, ...);
+double __cdecl _double(double value, ...);
 
 
-/**
- * Return the size of a type member without an actual instance.
- */
+// Return the size of a type member without an actual instance.
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)

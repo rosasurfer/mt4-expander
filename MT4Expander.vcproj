@@ -58,7 +58,7 @@
 				EnableEnhancedInstructionSet="2"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -102,7 +102,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copying DLL to MetaTrader libraries...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to &quot;mql4\libraries&quot;...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -148,7 +148,7 @@
 				EnableEnhancedInstructionSet="2"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
 				DebugInformationFormat="3"
 				CallingConvention="0"
 			/>
@@ -191,7 +191,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backing up shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copying DLL to MetaTrader libraries...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to &quot;mql4\libraries&quot;...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -211,14 +211,6 @@
 				RelativePath=".\header\stdafx.h"
 				>
 			</File>
-			<Filter
-				Name="etc"
-				>
-				<File
-					RelativePath=".\header\etc\md5.h"
-					>
-				</File>
-			</Filter>
 			<Filter
 				Name="lib"
 				>
@@ -260,6 +252,10 @@
 				</File>
 				<File
 					RelativePath=".\header\lib\math.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\lib\md5.h"
 					>
 				</File>
 				<File
@@ -401,26 +397,6 @@
 				Name="etc"
 				>
 				<File
-					RelativePath=".\src\etc\md5.c"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\etc\"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)\etc\"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\src\etc\subclassing.cpp"
 					>
 					<FileConfiguration
@@ -447,6 +423,22 @@
 				<File
 					RelativePath=".\src\lib\array.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\config.cpp"
@@ -591,9 +583,45 @@
 				<File
 					RelativePath=".\src\lib\log.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\math.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\md5.c"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -635,6 +663,22 @@
 				<File
 					RelativePath=".\src\lib\sound.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\string.cpp"
@@ -699,10 +743,42 @@
 				<File
 					RelativePath=".\src\lib\timer.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\virtual.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -711,6 +787,22 @@
 				<File
 					RelativePath=".\src\struct\ExecutionContext.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\struct\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\struct\"
+						/>
+					</FileConfiguration>
 				</File>
 				<Filter
 					Name="win32"
@@ -890,6 +982,22 @@
 					<File
 						RelativePath=".\src\mql4\indicators\Grid.cpp"
 						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\mql4\indicators\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\mql4\indicators\"
+							/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 			</Filter>
