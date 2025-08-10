@@ -21,13 +21,16 @@ const char* WINAPI MD5HashA(const char* input);
 uint        WINAPI MT4InternalMsg();
 uint        WINAPI WM_MT4();
 
-BOOL        WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value);
-BOOL        WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value);
-BOOL        WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value);
+HANDLE      WINAPI GetWindowPropertyA(HWND hWnd, const char* name);
+BOOL        WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value);
 
 int         WINAPI GetWindowIntegerA(HWND hWnd, const char* name);
 double      WINAPI GetWindowDoubleA(HWND hWnd, const char* name);
 const char* WINAPI GetWindowStringA(HWND hWnd, const char* name);
+
+BOOL        WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value);
+BOOL        WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value);
+BOOL        WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value);
 
 int         WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name);
 double      WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name);
