@@ -316,7 +316,11 @@ HANDLE WINAPI GetWindowPropertyA(HWND hWnd, const char* name) {
  * @return BOOL - success status
  */
 BOOL WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value) {
-   return SetPropA(hWnd, name, value);
+   BOOL success = SetPropA(hWnd, name, value);
+   if (!success) {
+      error(ERR_WIN32_ERROR+GetLastError(), "SetPropA()  name=\"%s\"", name);
+   }
+   return success;
    #pragma EXPANDER_EXPORT
 }
 
