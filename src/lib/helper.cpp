@@ -217,14 +217,56 @@ BOOL WINAPI IsProgramType(int type) {
 /**
  * Whether a virtual key is up or down at the time the function is called.
  *
- * @param  int vKey - one of 256 possible virtual-key codes
+ * @param  int key - one of 256 possible virtual-key codes
  *
  * @return BOOL
  *
  * @see  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate
  */
-BOOL WINAPI IsVirtualKeyDown(int vKey) {
-   return(GetAsyncKeyState(vKey) & 0x8000);     // check the most significant bit of the SHORT result
+BOOL WINAPI IsVirtualKeyDown(int key) {
+   return(GetAsyncKeyState(key) & 0x8000);      // check the most significant bit of the SHORT result
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the flags of all currently pressed virtual keys.
+ *
+ * @param  DWORD flags - combination of virtual-key flags as defined in "header/shared/defines.h"
+ *
+ * @return DWORD
+ *
+ * @see  "header/shared/defines.h"
+ */
+DWORD WINAPI GetPressedVirtualKeys(DWORD flags) {
+   DWORD result = 0;
+
+   if (flags & F_VK_ESCAPE && IsVirtualKeyDown(VK_ESCAPE)) {
+      result |= F_VK_ESCAPE;
+   }
+   if (flags & F_VK_TAB && IsVirtualKeyDown(VK_TAB)) {
+      result |= F_VK_TAB;
+   }
+   if (flags & F_VK_CAPITAL && IsVirtualKeyDown(VK_CAPITAL)) {
+      result |= F_VK_CAPITAL;
+   }
+   if (flags & F_VK_SHIFT && IsVirtualKeyDown(VK_SHIFT)) {
+      result |= F_VK_SHIFT;
+   }
+   if (flags & F_VK_CONTROL && IsVirtualKeyDown(VK_CONTROL)) {
+      result |= F_VK_CONTROL;
+   }
+   if (flags & F_VK_MENU && IsVirtualKeyDown(VK_MENU)) {
+      result |= F_VK_MENU;
+   }
+   if (flags & F_VK_LWIN && IsVirtualKeyDown(VK_LWIN)) {
+      result |= F_VK_LWIN;
+   }
+   if (flags & F_VK_RWIN && IsVirtualKeyDown(VK_RWIN)) {
+      result |= F_VK_RWIN;
+   }
+
+   return(result);
    #pragma EXPANDER_EXPORT
 }
 
