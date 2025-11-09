@@ -232,41 +232,41 @@ BOOL WINAPI IsVirtualKeyDown(int key) {
 /**
  * Return the flags of all currently pressed virtual keys.
  *
- * @param  DWORD flags - combination of virtual-key flags as defined in "header/shared/defines.h"
+ * @param  DWORD flags [optional] - combination of virtual-key flags (default: all flags)
  *
  * @return DWORD
  *
  * @see  "header/shared/defines.h"
  */
-DWORD WINAPI GetPressedVirtualKeys(DWORD flags) {
-   DWORD result = 0;
+DWORD WINAPI GetPressedVirtualKeys(DWORD flags = F_VK_ALL) {
+   DWORD pressed = 0;
 
    if (flags & F_VK_ESCAPE && IsVirtualKeyDown(VK_ESCAPE)) {
-      result |= F_VK_ESCAPE;
+      pressed |= F_VK_ESCAPE;
    }
    if (flags & F_VK_TAB && IsVirtualKeyDown(VK_TAB)) {
-      result |= F_VK_TAB;
+      pressed |= F_VK_TAB;
    }
    if (flags & F_VK_CAPITAL && IsVirtualKeyDown(VK_CAPITAL)) {
-      result |= F_VK_CAPITAL;
+      pressed |= F_VK_CAPITAL;
    }
    if (flags & F_VK_SHIFT && IsVirtualKeyDown(VK_SHIFT)) {
-      result |= F_VK_SHIFT;
+      pressed |= F_VK_SHIFT;
    }
    if (flags & F_VK_CONTROL && IsVirtualKeyDown(VK_CONTROL)) {
-      result |= F_VK_CONTROL;
+      pressed |= F_VK_CONTROL;
    }
    if (flags & F_VK_MENU && IsVirtualKeyDown(VK_MENU)) {
-      result |= F_VK_MENU;
+      pressed |= F_VK_MENU;
    }
    if (flags & F_VK_LWIN && IsVirtualKeyDown(VK_LWIN)) {
-      result |= F_VK_LWIN;
+      pressed |= F_VK_LWIN;
    }
    if (flags & F_VK_RWIN && IsVirtualKeyDown(VK_RWIN)) {
-      result |= F_VK_RWIN;
+      pressed |= F_VK_RWIN;
    }
 
-   return(result);
+   return(pressed);
    #pragma EXPANDER_EXPORT
 }
 

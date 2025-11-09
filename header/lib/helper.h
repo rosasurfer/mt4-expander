@@ -7,7 +7,7 @@ uint        WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* b
 char*       WINAPI GetInternalWindowTextA(HWND hWnd);
 wchar*      WINAPI GetInternalWindowTextW(HWND hWnd);
 DWORD       WINAPI GetLastWin32Error();
-DWORD       WINAPI GetPressedVirtualKeys(DWORD flags);
+DWORD       WINAPI GetPressedVirtualKeys(DWORD flags/*= F_VK_ALL*/);
 DWORD       WINAPI GetUIThreadId();
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
