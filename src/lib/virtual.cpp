@@ -227,12 +227,6 @@ void WINAPI DummyCalls() {
 }
 
 
-const char* WINAPI GetStatusFileNameData() {
-   return("");
-   #pragma EXPANDER_EXPORT
-}
-
-
 const char* WINAPI InputsToStr() {
    return("");
    #pragma EXPANDER_EXPORT
