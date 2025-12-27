@@ -1383,6 +1383,30 @@ char* WINAPI DeinitFlagsToStr(DWORD flags) {
 
 
 /**
+ * Return a string representation of an IndicatorList.
+ *
+ * @param  IndicatorList &list
+ *
+ * @return char*
+ */
+const char* WINAPI WINAPI IndicatorListToStr(const IndicatorList &list) {
+   size_t size = list.size();
+
+   std::ostringstream ss;
+   ss << "[";
+   for (size_t i=0; i < size; i++) {
+      if (i > 0) {
+         ss << ", ";
+      }
+      ss << list[i];
+   }
+   ss << "]";
+
+   return sdup(ss.str().c_str());                                    // TODO: add to GC (close memory leak)
+}
+
+
+/**
  * Return a readable version of an InitializeReason.
  *
  * @param  InitializeReason reason
@@ -1403,7 +1427,7 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
       case IR_RECOMPILE        : return("IR_RECOMPILE"        );
       case IR_TERMINAL_FAILURE : return("IR_TERMINAL_FAILURE" );
    }
-   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
+   return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason);
    #pragma EXPANDER_EXPORT
 }
 

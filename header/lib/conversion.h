@@ -1,5 +1,6 @@
 #pragma once
 #include "expander.h"
+#include "struct/ExecutionContext.h"
 
 
 const char*  WINAPI BarModelDescription(int id);
@@ -11,6 +12,7 @@ const char*  WINAPI CoreFunctionToStr(CoreFunction func);
 const char*  WINAPI ErrorToStrA(int error);
 const wchar* WINAPI ErrorToStrW(int error);
       char*  WINAPI InitFlagsToStr(DWORD flags);
+const char*  WINAPI IndicatorListToStr(const IndicatorList &list);
 const char*  WINAPI InitReasonToStr(InitializeReason reason);
       char*  WINAPI IntToHexStr(int value);
 const char*  WINAPI LoglevelDescriptionA(int level, BOOL upperCase = TRUE);

@@ -96,6 +96,10 @@ BOOL WINAPI onProcessAttach() {
          g_cliDebugOptions |= DEBUG_OBJECT_CREATE;
          continue;
       }
+      if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
+         g_cliDebugOptions |= DEBUG_INDICATOR_LIST;
+         continue;
+      }
    }
    LocalFree(argv);
 

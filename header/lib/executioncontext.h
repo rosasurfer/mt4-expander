@@ -21,7 +21,7 @@ uint               WINAPI GetLastThreadProgram();
 int                WINAPI SetLastThreadProgram(uint pid);
 
 InitializeReason   WINAPI GetInitReason          (EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec, ProgramType programType, const char* programName, UninitializeReason uninitReason, const char* symbol, uint timeframe, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint &prevPid);
-InitializeReason   WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec,                          const char* programName, UninitializeReason uninitReason, const char* symbol, uint timeframe, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart,                                       uint &prevPid);
+InitializeReason   WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXECUTION_CONTEXT* sec,                          const char* programName, UninitializeReason uninitReason, const char* symbol, uint timeframe, BOOL testing, BOOL visualMode, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, uint &prevPid);
 InitializeReason   WINAPI GetInitReason_expert   (EXECUTION_CONTEXT* ec,                                                        const char* programName, UninitializeReason uninitReason, const char* symbol, uint timeframe, BOOL testing,                                                   int droppedOnPosX, int droppedOnPosY);
 InitializeReason   WINAPI GetInitReason_script   (EXECUTION_CONTEXT* ec,                                                        const char* programName,                                                                                                                                      int droppedOnPosX, int droppedOnPosY);
 
@@ -31,3 +31,5 @@ BOOL               WINAPI Program_IsTesting     (const EXECUTION_CONTEXT* ec, BO
 BOOL               WINAPI Program_IsVisualMode  (const EXECUTION_CONTEXT* ec, BOOL isVisualMode);
 
 uint               WINAPI PushProgram(ContextChain* chain);
+
+uint               WINAPI TrackIndicatorPosition(EXECUTION_CONTEXT* ec);

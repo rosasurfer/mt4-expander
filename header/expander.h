@@ -18,8 +18,8 @@
 #include "shared/errors.h"                                  // shared between C++ and MQL
 
 #include <iomanip>
-#include <string>
 #include <mbstring.h>
+#include <string>
 
 
 // type aliases
