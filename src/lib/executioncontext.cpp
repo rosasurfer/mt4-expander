@@ -18,7 +18,6 @@ uint               g_lastUIThreadProgram;          // pid of the last MQL progra
 CRITICAL_SECTION   g_expanderMutex;                // mutex for Expander-wide locking
 extern DWORD       g_cliDebugOptions;              // bit mask of specified CLI debug options
 
-
 struct RECOMPILED_MODULE {                         // A struct holding the last MQL module with UninitReason UR_RECOMPILE.
    uint       pid;                                 // Only one module is tracked (the last one) and the variable is accessed
    ModuleType type;                                // from the UI thread only.
@@ -340,14 +339,14 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    if (!initReason)                       return(ERR_RUNTIME_ERROR);
    if (initReason == IR_TERMINAL_FAILURE) return(warn(ERR_TERMINAL_INIT_FAILURE, "%s  ProgramInitReason=IR_TERMINAL_FAILURE", programName));
 
-   // • if ec.pid is not set: check if an indicator can be re-used or if a new program
+   // â€¢ if ec.pid is not set: check if an indicator can be re-used or if a new program
    //   - indicator in init cycle           (UI thread) => re-use previous instance data
    //   - indicator after template reload   (UI thread)                                  ??? why don't we re-use the previous instance ???
    //   - indicator in IR_PROGRAM_AFTERTEST (UI thread) => re-use previous instance data
    //   - indicator after recompilation     (UI thread) => re-use previous instance data
    //   - something else: a new indicator|expert|script
-   // • update main and master context
-   // • synchronize all loaded libraries
+   // â€¢ update main and master context
+   // â€¢ synchronize all loaded libraries
 
    if (!isPid) {
       if (programType==PT_INDICATOR && prevPid) {                          // reuse the previous program chain and keep instance data
@@ -487,9 +486,9 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   // track indicator positions in the chart
-   if (programType==PT_INDICATOR && initReason!=IR_PROGRAM) {
-      uint index = TrackIndicatorPosition(ec);
+   // update indicator positions in the chart
+   if (programType == PT_INDICATOR) {
+      AddToIndicatorList(ec);
    }
 
    if (g_cliDebugOptions & DEBUG_EXECUTION_CONTEXT) debug("  o:%p  %-17s  %-14s  ec=%s", ec, programName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
@@ -1185,9 +1184,9 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
 
    // script
    else if (moduleType == MT_SCRIPT) {
-      // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurückgeben,
-      // solange das Terminal/der Chart nicht endgültig initialisiert sind. Ein laufendes Script wurde in diesem Fall über
-      // die Konfiguration in "terminal-start.ini" gestartet und läuft im ersten passenden Chart in absoluter Reihenfolge
+      // Bis Build 509+ ??? kann WindowHandle() bei Terminalstart oder LoadProfile in init() und in start() 0 zurï¿½ckgeben,
+      // solange das Terminal/der Chart nicht endgï¿½ltig initialisiert sind. Ein laufendes Script wurde in diesem Fall ï¿½ber
+      // die Konfiguration in "terminal-start.ini" gestartet und lï¿½uft im ersten passenden Chart in absoluter Reihenfolge
       // (CtrlID, nicht Z order).
       HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window has no children in Script::init()  hWndMain=%p", programName, hWndMain)));
@@ -1407,13 +1406,13 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    ------------------------------------------------------------------------------------------------------------------------------------
    - Build 577-583: onInitTemplate()         - Broken: Kein Aufruf bei Terminal-Start, der Indikator wird aber geladen.
    -----------------------------------------------------------------------------------------------------------------------------------
-   - Build 556-569: onInitProgram()          - Broken: Wird in- und außerhalb des Testers bei jedem Tick aufgerufen.
+   - Build 556-569: onInitProgram()          - Broken: Wird in- und auï¿½erhalb des Testers bei jedem Tick aufgerufen.
    -----------------------------------------------------------------------------------------------------------------------------------
    - Build  <= 229: onInitProgramAfterTest() - UninitializeReason() = UR_UNDEFINED
    - Build     387: onInitProgramAfterTest() - Broken: Wird nie aufgerufen.
    - Build 388-628: onInitProgramAfterTest() - UninitializeReason() = UR_REMOVE
    - Build  <= 577: onInitProgramAfterTest() - Wird nur nach einem automatisiertem Test aufgerufen (VisualMode=Off), der Aufruf
-                                               erfolgt vorm Start des nächsten Tests.
+                                               erfolgt vorm Start des nï¿½chsten Tests.
    - Build  >= 578: onInitProgramAfterTest() - Wird auch nach einem manuellen Test aufgerufen (VisualMode=On), nur in diesem Fall
                                                erfolgt der Aufruf sofort nach Testende.
    - Build  >= 633: onInitProgramAfterTest() - UninitializeReason() ist UR_CHARTCLOSE.
@@ -1435,7 +1434,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    if (uninitReason == UR_PARAMETERS) {
       // innerhalb iCustom(): nie
       if (sec) return((InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UR_PARAMETERS:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
-      // außerhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
+      // auï¿½erhalb iCustom(): bei erster Parameter-Eingabe eines neuen Indikators oder Parameter-Wechsel eines vorhandenen Indikators (auch im Tester bei VisualMode=On), Input-Dialog
       BOOL isProgramNew;
       uint pid = ec->pid;
       if (pid) {
@@ -1447,7 +1446,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
          prevPid = pid;
          isProgramNew = !pid;
       }
-      if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators
+      if (isProgramNew) return(IR_USER      );                       // erste Parameter-Eingabe eines manuell neu hinzugefï¿½gten Indikators
       else              return(IR_PARAMETERS);                       // Parameter-Wechsel eines vorhandenen Indikators
    }
 
@@ -1455,7 +1454,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    if (uninitReason == UR_CHARTCHANGE) {
       // innerhalb iCustom(): nie
       if (sec) return((InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCHANGE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s)", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
-      // außerhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
+      // auï¿½erhalb iCustom(): bei Symbol- oder Timeframe-Wechsel eines vorhandenen Indikators, kein Input-Dialog
       uint pid = ec->pid;
       if (!pid) {
          pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
@@ -1471,14 +1470,14 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
 
    // UR_UNDEFINED
    if (uninitReason == UR_UNDEFINED) {
-      // außerhalb iCustom(): je nach Umgebung
+      // auï¿½erhalb iCustom(): je nach Umgebung
       if (!sec) {
          if (terminalBuild < 654) return(IR_TEMPLATE);               // wenn Template mit Indikator geladen wird (auch bei Start und im Tester bei VisualMode=On|Off), kein Input-Dialog
          if (droppedOnChart >= 0) return(IR_TEMPLATE);
-         else                     return(IR_USER    );               // erste Parameter-Eingabe eines manuell neu hinzugefügten Indikators, Input-Dialog
+         else                     return(IR_USER    );               // erste Parameter-Eingabe eines manuell neu hinzugefï¿½gten Indikators, Input-Dialog
       }
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
-      if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhängig
+      if (isTesting && !isVisualMode/*Fix*/ && isUIThread) {         // versionsunabhï¿½ngig
          if (terminalBuild <= 229) {
             uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
             if (!pid) return((InitializeReason)!error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_UNDEFINED  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
@@ -1492,7 +1491,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
 
    // UR_REMOVE
    if (uninitReason == UR_REMOVE) {
-      // außerhalb iCustom(): nie
+      // auï¿½erhalb iCustom(): nie
       if (!sec)                      return((InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread) return((InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UR_REMOVE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
@@ -1508,7 +1507,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
    if (uninitReason == UR_RECOMPILE) {
       // innerhalb iCustom(): nie
       if (sec) return((InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UR_RECOMPILE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
-      // außerhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
+      // auï¿½erhalb iCustom(): bei Reload nach Recompilation, vorhandener Indikator, kein Input-Dialog
 
       uint pid = FindModuleInLimbo(MT_INDICATOR, programName, uninitReason, isTesting, hChart);
       if (!pid) return((InitializeReason)!error(ERR_RUNTIME_ERROR, "no %s indicator found in limbo:  UR_RECOMPILE  isTesting=%s  hChart=%p  ec=%s", programName, BoolToStr(isTesting), hChart, EXECUTION_CONTEXT_toStr(ec)));
@@ -1519,7 +1518,7 @@ InitializeReason WINAPI GetInitReason_indicator(EXECUTION_CONTEXT* ec, const EXE
 
    // UR_CHARTCLOSE
    if (uninitReason == UR_CHARTCLOSE) {
-      // außerhalb iCustom(): nie
+      // auï¿½erhalb iCustom(): nie
       if (!sec)                      return((InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
       // innerhalb iCustom(): je nach Umgebung, kein Input-Dialog
       if (!isTesting || !isUIThread) return((InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UR_CHARTCLOSE:  sec=%p  isTesting=%s  isVisualMode=%s  thread=%d %s  build=%d  ec=%s", sec, BoolToStr(isTesting), BoolToStr(isVisualMode), GetCurrentThreadId(), isUIThread ? "(UI)":"(non-UI)", terminalBuild, EXECUTION_CONTEXT_toStr(ec)));
@@ -1780,22 +1779,22 @@ uint WINAPI PushProgram(ContextChain* chain) {
 
 
 /**
- * Add an indicator to the given chart window and track its position.
+ * Add an indicator to the indicator list of the given chart.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
- * @return uint - current position in the indicator list (zero based), or EMPTY (-1) in case of errors
+ * @return BOOL - success status
  */
-uint WINAPI TrackIndicatorPosition(EXECUTION_CONTEXT* ec) {
-   if (ec->programType != PT_INDICATOR) return EMPTY;
+BOOL WINAPI AddToIndicatorList(EXECUTION_CONTEXT* ec) {
+   if (ec->programType != PT_INDICATOR) return FALSE;
 
    switch (ec->programInitReason) {
       case IR_TERMINAL_FAILURE:                             // terminal failure (experts only)
       case IR_ACCOUNTCHANGE:                                // account changed (no init cycle)
       case IR_PROGRAM:                                      // loaded by iCustom()
-         return EMPTY;
+         return TRUE;
 
-      case IR_TEMPLATE:          // new pid on new chart    | loaded/reloaded by template (also at terminal start)
+      case IR_TEMPLATE:          // new pid on new chart    | loaded by template (also at terminal start)
       case IR_USER:              // new pid on same chart   | loaded by the user (also in tester)
       case IR_PARAMETERS:        // same pid on same chart  | input parameters changed
       case IR_TIMEFRAMECHANGE:   // same pid on same chart  | chart period changed
@@ -1810,7 +1809,7 @@ uint WINAPI TrackIndicatorPosition(EXECUTION_CONTEXT* ec) {
    if (!indicators) {
       indicators = new IndicatorList();
       indicators->reserve(16);
-      if (!SetWindowPropertyA(ec->chart, label, indicators)) return EMPTY;
+      if (!SetWindowPropertyA(ec->chart, label, indicators)) return FALSE;
    }
 
    // look-up the current pid
@@ -1826,5 +1825,18 @@ uint WINAPI TrackIndicatorPosition(EXECUTION_CONTEXT* ec) {
    }
 
    if (g_cliDebugOptions & DEBUG_INDICATOR_LIST) debug("%-17s %-18s list=%s  ec=%s", ec->programName, InitReasonToStr(ec->programInitReason), IndicatorListToStr(*indicators), EXECUTION_CONTEXT_toStr(ec));
-   return 1;
+   return TRUE;
+}
+
+
+/**
+ * Remove an indicator from the indicator list of the given chart.
+ *
+ * @param  EXECUTION_CONTEXT* ec
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI RemoveFromIndicatorList(EXECUTION_CONTEXT* ec) {
+   if (ec->programType != PT_INDICATOR) return FALSE;
+   return TRUE;
 }

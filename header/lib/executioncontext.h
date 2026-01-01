@@ -32,4 +32,5 @@ BOOL               WINAPI Program_IsVisualMode  (const EXECUTION_CONTEXT* ec, BO
 
 uint               WINAPI PushProgram(ContextChain* chain);
 
-uint               WINAPI TrackIndicatorPosition(EXECUTION_CONTEXT* ec);
+BOOL               WINAPI AddToIndicatorList     (EXECUTION_CONTEXT* ec);
+BOOL               WINAPI RemoveFromIndicatorList(EXECUTION_CONTEXT* ec);
