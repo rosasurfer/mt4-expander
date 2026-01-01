@@ -288,7 +288,7 @@ BOOL WINAPI IsUIThread(DWORD threadId/*=NULL*/) {
 
 
 /**
- * Gibt die ID des Userinterface-Threads zurück.
+ * Gibt die ID des Userinterface-Threads zurï¿½ck.
  *
  * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
  */
@@ -379,6 +379,68 @@ BOOL WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value) {
  */
 HANDLE WINAPI RemoveWindowPropertyA(HWND hWnd, const char* name) {
    return RemovePropA(hWnd, name);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Callback function for EnumWindowPropertiesA(). Prints property names/values to the debug output.
+ *
+ * @param  HWND      hWnd   - window whose property list is being enumerated
+ * @param  wchar*    name   - property name
+ * @param  HANDLE    value  - property value
+ * @param  ULONG_PTR prefix - limiting name prefix of properties to print
+ *
+ * @return BOOL - whether to continue enumeration with the next property
+ */
+BOOL CALLBACK EnumWindowPropertiesProcW(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR prefix) {
+   wchar* wPrefix = (wchar*)prefix;
+   if (wPrefix && !*wPrefix) {
+      wPrefix = NULL;
+   }
+   if (wPrefix && !StrStartsWith(name, wPrefix)) {
+      return TRUE;
+   }
+   debug("property %S = %d", name, value);
+   return TRUE;
+}
+
+
+/**
+ * Enumerates the properties of the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - limiting name prefix of properties to print
+ *
+ * @return BOOL - success status; FALSE if the function did not find any window properties or in case of errors
+ */
+BOOL WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
+   wchar* wPrefix = NULL;
+   if (prefix) {
+      if ((uint)prefix < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix);
+      wPrefix = ansiToUtf16(prefix);
+   }
+   BOOL result = EnumWindowPropertiesW(hWnd, wPrefix);
+   if (wPrefix) free(wPrefix);
+   return result;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Enumerates the properties of the specified window.
+ *
+ * @param  HWND   hWnd - window handle
+ * @param  wchar* name - limiting name prefix of properties to print
+ *
+ * @return BOOL - success status; FALSE if the function did not find any window properties or in case of errors
+ */
+BOOL WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
+   if (prefix) {
+      if ((uint)prefix < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix);
+   }
+   int result = EnumPropsExW(hWnd, EnumWindowPropertiesProcW, (LPARAM)prefix);
+   return (result != -1);
    #pragma EXPANDER_EXPORT
 }
 
