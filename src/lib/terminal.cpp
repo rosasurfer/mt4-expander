@@ -435,7 +435,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
 
 
 /**
- * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
+ * Return the full path of the currently used data directory (same as TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
  * @return char* - directory name without trailing path separator or NULL in case of errors,
@@ -458,7 +458,7 @@ const char* WINAPI GetTerminalDataPathA() {
 
 
 /**
- * Return the full path of the currently used data directory (same TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
+ * Return the full path of the currently used data directory (same as TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
  * @return wchar* - directory name without trailing path separator or NULL in case of errors,
