@@ -115,7 +115,7 @@ BOOL WINAPI IsFileA(const char* path, DWORD mode) {
       }
       else /*MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesA(path);
-         return((attributes!=INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
+         return((attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
       }
    }
    return(FALSE);
@@ -142,7 +142,7 @@ BOOL WINAPI IsFileW(const wchar* path, DWORD mode) {
       }
       else /*MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesW(path);
-         return((attributes!=INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
+         return((attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
       }
    }
    return(FALSE);

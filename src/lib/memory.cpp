@@ -45,7 +45,7 @@ uint WINAPI GetIntsAddress(const int values[]) {
 
 
 /**
- * Return the memory location of a typed (single or wide character) string. Helper function to resolve addresses in MQL.
+ * Return the memory location of an ANSI or Unicode string. Helper function to resolve addresses in MQL.
  *
  * @param  TCHAR* value - MQL string
  *
