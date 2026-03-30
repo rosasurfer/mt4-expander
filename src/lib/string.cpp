@@ -199,7 +199,7 @@ BOOL WINAPI SortMqlStringsW(MqlStringW strings[], int size) {
    if (size == 1) return(TRUE);           // nothing to do
 
    qsort(strings, size, sizeof(MqlStringW), CompareMqlStringsW);
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -213,9 +213,9 @@ BOOL WINAPI SortMqlStringsW(MqlStringW strings[], int size) {
  * @return BOOL
  */
 BOOL WINAPI StrCompare(const char* s1, const char* s2) {
-   if (s1 == s2)   return(TRUE);          // if pointers are equal values are too
-   if (!s1 || !s2) return(FALSE);         // if one is a NULL pointer the other can't
-   return(strcmp(s1, s2) == 0);           // both are not NULL pointers
+   if (s1 == s2)   return TRUE;           // if pointers are equal values are too
+   if (!s1 || !s2) return FALSE;          // if one is a NULL pointer the other can't
+   return (strcmp(s1, s2) == 0);          // both are not NULL pointers
    #pragma EXPANDER_EXPORT
 }
 
@@ -231,7 +231,7 @@ BOOL WINAPI StrCompare(const char* s1, const char* s2) {
 BOOL WINAPI StrCompare(const wchar* s1, const wchar* s2) {
    if (s1 == s2)   return(TRUE);          // if pointers are equal values are too
    if (!s1 || !s2) return(FALSE);         // if one is a NULL pointer the other can't
-   return(wstrcmp(s1, s2) == 0);          // both are not NULL pointers
+   return (wstrcmp(s1, s2) == 0);         // both are not NULL pointers
 }
 
 
@@ -768,6 +768,22 @@ wstring& WINAPI wstrim_right(wstring &str) {
  *
  * @return char* - UTF-8 string or NULL in case of errors
  */
+const char* WINAPI AnsiToUtf8(const char* str) {
+   if (!str)                          return NULL;
+   if ((uint)str < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter str: 0x%p (not a valid pointer)", str);
+
+   return ansiToUtf8(str);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Convert an ANSI string to UTF-8.
+ *
+ * @param  char* str - ANSI string
+ *
+ * @return char* - UTF-8 string or NULL in case of errors
+ */
 char* WINAPI ansiToUtf8(const char* str) {
    return utf16ToUtf8(ansiToUtf16(str));
 }
@@ -839,6 +855,22 @@ wstring WINAPI ansiToUtf16(const string &str) {
    }
    error(ERR_WIN32_ERROR+GetLastError(), "cannot convert ANSI string to UTF-16");
    return wstring(L"");
+}
+
+
+/**
+ * Convert a UTF-8 string to ANSI.
+ *
+ * @param  char* str - UTF-8 string
+ *
+ * @return char* - ANSI string or NULL in case of errors
+ */
+const char* WINAPI Utf8ToAnsi(const char* str) {
+   if (!str)                          return NULL;
+   if ((uint)str < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter str: 0x%p (not a valid pointer)", str);
+
+   return utf8ToAnsi(str);
+   #pragma EXPANDER_EXPORT
 }
 
 

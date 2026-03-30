@@ -27,14 +27,14 @@ namespace rsf {
    __forceinline size_t mbslenv(const char* s)  { return ::_mbstrlen(s); }
    __forceinline size_t mbslenv(const uchar* s) { return ::_mbstrlen((const char*) s); }
 
-   // length of a wide character UTF-16 string
+   // length of a UTF-16 string
    __forceinline size_t wstrlen(const wchar* s) { return ::wcslen(s); }
 
    // duplicate a C string on the heap
    __forceinline char*  sdup(const char* s)  { return ::_strdup(s); }
    __forceinline uchar* sdup(const uchar* s) { return (uchar*)::_strdup((const char*)s); }
 
-   // duplicate a wide character UTF-16 string on the heap
+   // duplicate a UTF-16 string on the heap
    __forceinline wchar* wsdup(const wchar* s) { return ::_wcsdup(s); }
 
    /**
@@ -51,7 +51,7 @@ namespace rsf {
    }
 
    /**
-    * Duplicate a wide character UTF-16 string on the stack.
+    * Duplicate a UTF-16 string on the stack.
     *
     * @param  wchar* s
     *
@@ -124,12 +124,14 @@ wstring&     WINAPI wstrim_left(wstring &str);
 wchar*       WINAPI wstrim_right(wchar* str);
 wstring&     WINAPI wstrim_right(wstring &str);
 
+const char*  WINAPI AnsiToUtf8(const char* str);
 char*        WINAPI ansiToUtf8(const char* str);
 string       WINAPI ansiToUtf8(const string &str);
 
 wchar*       WINAPI ansiToUtf16(const char* str);
 wstring      WINAPI ansiToUtf16(const string &str);
 
+const char*  WINAPI Utf8ToAnsi(const char* str);
 char*        WINAPI utf8ToAnsi(const char* str);
 string       WINAPI utf8ToAnsi(const string &str);
 
