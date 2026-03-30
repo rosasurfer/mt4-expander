@@ -1031,7 +1031,7 @@ char* WINAPI utf16ToUtf8(const wchar* wstr) {
    if (!length) return sdup("");
 
    uint codePage = CP_UTF8;
-   DWORD flags = WC_COMPOSITECHECK | WC_ERR_INVALID_CHARS;
+   DWORD flags = WC_ERR_INVALID_CHARS;
 
    int bufSize = WideCharToMultiByte(codePage, flags, wstr, length, NULL, 0, NULL, NULL);
    if (bufSize) {
@@ -1059,7 +1059,7 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
    if (!length) return string("");
 
    uint codePage = CP_UTF8;
-   DWORD flags = WC_COMPOSITECHECK | WC_ERR_INVALID_CHARS;
+   DWORD flags = WC_ERR_INVALID_CHARS;
 
    int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
    if (bufSize) {
