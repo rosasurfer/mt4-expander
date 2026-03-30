@@ -87,12 +87,13 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    int                loglevelFile;                   //       728        4     loglevel of the custom logfile appender                   (var)
    int                loglevelMail;                   //       732        4     loglevel of the mail appender                             (var)
    int                loglevelSMS;                    //       736        4     loglevel of the SMS appender                              (var)
+   int                loglevelTelegram;               //       740        4     loglevel of the Telegram appender                         (var)
 
-   std::ofstream*     logger;                         //       740        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       744        4     log buffer                                                (var)
-   char*              logFilename;                    //       748        4     log filename                                              (var)
+   std::ofstream*     logger;                         //       744        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       748        4     log buffer                                                (var)
+   char*              logFilename;                    //       752        4     log filename                                              (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //              = 752
+#pragma pack(pop)                                     //              = 756
 
 
 // exported getters
@@ -105,6 +106,7 @@ int                WINAPI ec_SuperLoglevelAlert   (uint pid);
 int                WINAPI ec_SuperLoglevelFile    (uint pid);
 int                WINAPI ec_SuperLoglevelMail    (uint pid);
 int                WINAPI ec_SuperLoglevelSMS     (uint pid);
+int                WINAPI ec_SuperLoglevelTelegram(uint pid);
 
 
 // validating setters
@@ -162,6 +164,7 @@ int                WINAPI ec_SetLoglevelAlert       (EXECUTION_CONTEXT* ec, int 
 int                WINAPI ec_SetLoglevelFile        (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelMail        (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelSMS         (EXECUTION_CONTEXT* ec, int level);
+int                WINAPI ec_SetLoglevelTelegram    (EXECUTION_CONTEXT* ec, int level);
 //                        ec.logger
 //                        ec.logBuffer
 const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, const char* filename);
