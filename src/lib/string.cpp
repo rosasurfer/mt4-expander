@@ -1037,6 +1037,7 @@ char* WINAPI utf16ToUtf8(const wchar* wstr) {
    if (bufSize) {
       char* str = (char*) malloc(bufSize + 1);
       if (WideCharToMultiByte(codePage, flags, wstr, length, str, bufSize, NULL, NULL)) {
+         str[bufSize] = '\0';
          return str;
       }
       free(str);
