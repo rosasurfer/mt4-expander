@@ -788,7 +788,7 @@ char* WINAPI ansiToUtf8(const char* str) {
    wchar* wstr = ansiToUtf16(str);
    char* ustr = utf16ToUtf8(wstr);
 
-   if (wstrlen(wstr)) {    // an empty string doesn't come from malloc()
+   if (wstr && wstrlen(wstr)) {        // an empty string doesn't come from malloc()
       free(wstr);
    }
    return ustr;
@@ -891,7 +891,7 @@ char* WINAPI utf8ToAnsi(const char* str) {
    wchar* wstr = utf8ToUtf16(str);
    char* as = utf16ToAnsi(wstr);
 
-   if (wstrlen(wstr)) {    // an empty string doesn't come from malloc()
+   if (wstr && wstrlen(wstr)) {        // an empty string doesn't come from malloc()
       free(wstr);
    }
    return as;
