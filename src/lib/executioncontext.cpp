@@ -456,7 +456,6 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetLoglevelDebug   (ec, ecRef->loglevelDebug   );
    ec_SetLoglevelFile    (ec, ecRef->loglevelFile    );
    ec_SetLoglevelMail    (ec, ecRef->loglevelMail    );
-   ec_SetLoglevelSMS     (ec, ecRef->loglevelSMS     );
    ec_SetLoglevelTelegram(ec, ecRef->loglevelTelegram);
    ec_SetLogFilename     (ec, ecRef->logFilename     );
    ec_SetDebugOptions(ec, g_cliDebugOptions);

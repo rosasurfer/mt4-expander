@@ -174,27 +174,6 @@ int WINAPI ec_SuperLoglevelMail(uint pid) {
 
 
 /**
- * Return the loglevel for the SMS appender of the linked super context (if any).
- *
- * @param  uint pid - pid of the program
- *
- * @return int - loglevel
- */
-int WINAPI ec_SuperLoglevelSMS(uint pid) {
-   if (pid && g_mqlInstances.size() > pid) {
-      ContextChain &chain = *g_mqlInstances[pid];
-      EXECUTION_CONTEXT* master = chain[0];
-
-      if (master && master->superContext) {
-         return(master->superContext->loglevelSMS);
-      }
-   }
-   return(NULL);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the loglevel for the Telegram appender of the linked super context (if any).
  *
  * @param  uint pid - pid of the program
@@ -1711,39 +1690,6 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevelSMS and update all MQL modules of the program.
- *
- * @param  EXECUTION_CONTEXT* ec
- * @param  int                level - loglevel
- *
- * @return int - the same loglevel or NULL in case of errors
- */
-int WINAPI ec_SetLoglevelSMS(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-
-   uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
-
-   ContextChain &chain = *g_mqlInstances[pid];
-   size_t chainSize = chain.size();
-
-   for (size_t i=0; i < chainSize; i++) {
-      if (chain[i] == ec) {                           // context found
-         for (i=0; i < chainSize; i++) {              // update all program modules
-            if (chain[i]) {
-               chain[i]->loglevelSMS = level;
-            }
-         }
-         return(level);
-      }
-   }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Set EXECUTION_CONTEXT.loglevelTelegram and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
@@ -1902,7 +1848,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", loglevelAlert="        << LoglevelDescriptionA(ec->loglevelAlert)
          << ", loglevelFile="         << LoglevelDescriptionA(ec->loglevelFile)
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
-         << ", loglevelSMS="          << LoglevelDescriptionA(ec->loglevelSMS)
          << ", loglevelTelegram="     << LoglevelDescriptionA(ec->loglevelTelegram)
          << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "(null)")
          << ", logBufferSize="        <<                     (ec->logBuffer ? ec->logBuffer->size() : 0)
