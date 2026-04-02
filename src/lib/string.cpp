@@ -769,7 +769,6 @@ wstring& WINAPI wstrim_right(wstring &str) {
  * @return char* - UTF-8 string or NULL in case of errors
  */
 const char* WINAPI AnsiToUtf8(const char* str) {
-   if (!str)                          return NULL;
    if ((uint)str < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter str: 0x%p (not a valid pointer)", str);
 
    return ansiToUtf8(str);
@@ -787,10 +786,7 @@ const char* WINAPI AnsiToUtf8(const char* str) {
 char* WINAPI ansiToUtf8(const char* str) {
    wchar* wstr = ansiToUtf16(str);
    char* ustr = utf16ToUtf8(wstr);
-
-   if (wstr && wstrlen(wstr)) {        // an empty string doesn't come from malloc()
-      free(wstr);
-   }
+   free(wstr);
    return ustr;
 }
 
@@ -872,7 +868,6 @@ wstring WINAPI ansiToUtf16(const string &str) {
  * @return char* - ANSI string or NULL in case of errors
  */
 const char* WINAPI Utf8ToAnsi(const char* str) {
-   if (!str)                          return NULL;
    if ((uint)str < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter str: 0x%p (not a valid pointer)", str);
 
    return utf8ToAnsi(str);
@@ -890,10 +885,7 @@ const char* WINAPI Utf8ToAnsi(const char* str) {
 char* WINAPI utf8ToAnsi(const char* str) {
    wchar* wstr = utf8ToUtf16(str);
    char* as = utf16ToAnsi(wstr);
-
-   if (wstr && wstrlen(wstr)) {        // an empty string doesn't come from malloc()
-      free(wstr);
-   }
+   free(wstr);
    return as;
 }
 
@@ -978,7 +970,7 @@ char* WINAPI utf16ToAnsi(const wchar* wstr) {
    if (!wstr) return NULL;
 
    size_t length = wstrlen(wstr);
-   if (!length) return sdup("");
+   if (!length) return sdup("");       // caller must free()
 
    uint codePage = CP_ACP;
    DWORD flags = WC_COMPOSITECHECK;
@@ -988,7 +980,7 @@ char* WINAPI utf16ToAnsi(const wchar* wstr) {
       char* str = (char*) malloc(bufSize + 1);
       if (WideCharToMultiByte(codePage, flags, wstr, length, str, bufSize, NULL, NULL)) {
          str[bufSize] = '\0';
-         return str;
+         return str;                   // caller must free()
       }
       free(str);
    }
@@ -1178,8 +1170,8 @@ wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
    if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
    if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
 
-   uint size = vwscprintf(format, args) + 1;       // +1 for the terminating null wchar
-   wchar* buffer = (wchar*)malloc(size*2);
+   uint size = vwscprintf(format, args) + 1;             // +1 for the terminating NUL wchar
+   wchar* buffer = (wchar*)malloc(size * sizeof(wchar));
    if (buffer) {
       vwsprintf_s(buffer, size, format, args);
    }

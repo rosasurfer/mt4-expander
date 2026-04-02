@@ -85,7 +85,7 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
    while (length >= size-1) {                               // if (length == size-1) the string may have been truncated
       free(buffer);
       size <<= 1;                                           // double the size
-      buffer = (wchar*)malloc(size*2);                      // on the heap
+      buffer = (wchar*)malloc(size * sizeof(wchar));        // on the heap
       length = InternalGetWindowText(hWnd, buffer, size);
    }
 
@@ -142,7 +142,7 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
    while (length >= size-1) {                               // if (length == size-1) the string may have been truncated
       free(buffer);
       size <<= 1;                                           // double the size
-      buffer = (wchar*)malloc(size*2);                      // on the heap
+      buffer = (wchar*)malloc(size * sizeof(wchar));        // on the heap
       length = GetWindowTextW(hWnd, buffer, size);
    }
 

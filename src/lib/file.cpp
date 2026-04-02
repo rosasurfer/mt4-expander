@@ -356,14 +356,62 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
 
    free(rdata);
-
-   return(result);                                                                           // TODO: add to GC (close memory leak)
+   return result;                            // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
-
 
 // @see  PathCanonicalize()
 // @see  https://stackoverflow.com/questions/1816691/how-do-i-resolve-a-canonical-filename-in-windows
 // @see  http://pdh11.blogspot.com/2009/05/pathcanonicalize-versus-what-it-says-on.html
 //
 // @see  https://stackoverflow.com/questions/2487237/detect-symbolic-links-junction-points-mount-points-and-hard-links
+
+
+/**
+ * Searches the PATH for the specified file and returns the full file path.
+ *
+ * @param  char* file - file
+ *
+ * @return char* - found file path or NULL in case of errors
+ */
+char* WINAPI SearchPathA(const char* file) {
+   if ((uint)file < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: 0x%p (not a valid pointer)", file);
+   if (!*file)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: \"\" (empty)");
+
+   wstring ws = ansiToUtf16(string(file));
+   wchar* wpath = SearchPathW(ws.c_str());
+   char* path = utf16ToAnsi(wpath);
+   free(wpath);
+   return path;                                    // caller must free()
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Searches the PATH for the specified file and returns the full file path.
+ *
+ * @param  wchar* file - file
+ *
+ * @return wchar* - found file path or NULL in case of errors
+ */
+wchar* WINAPI SearchPathW(const wchar* file) {
+   if ((uint)file < MIN_VALID_POINTER) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: 0x%p (not a valid pointer)", file);
+   if (!*file)                         return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: \"\" (empty)");
+
+   wchar fullPath[MAX_PATH];                       // on the stack
+   DWORD result = SearchPathW(NULL, file, L".exe", MAX_PATH, fullPath, NULL);
+   if (!result) return NULL;                       // ERROR_FILE_NOT_FOUND
+   if (result < MAX_PATH) return wsdup(fullPath);  // copy to heap
+
+   // buffer too small, result is the required size (including NUL)
+   wchar* buffer = (wchar*)malloc(result * sizeof(wchar));
+   if (!buffer) return NULL;
+
+   DWORD result2 = SearchPathW(NULL, file, L".exe", result, buffer, NULL);
+   if (!result2 || result2 >= result) {            // failed or still too small (concurrent PATH modification)
+      free(buffer);
+      return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SearchPathW(\"%S\") failed or concurrent PATH modification", file);
+   }
+   return buffer;                                  // caller must free()
+   #pragma EXPANDER_EXPORT
+}
