@@ -1,7 +1,6 @@
 #pragma once
 #include "expander.h"
 
-
 struct REPARSE_DATA_BUFFER {
    ULONG  ReparseTag;
    USHORT ReparseDataLength;
@@ -28,9 +27,7 @@ struct REPARSE_DATA_BUFFER {
    };
 };
 
-
-#define SYMLINK_FLAG_RELATIVE    1
-
+#define SYMLINK_FLAG_RELATIVE 1
 
 int         WINAPI CreateDirectoryA(const char* path, DWORD flags);
 const char* WINAPI GetFinalPathNameA(const char* name);
@@ -41,3 +38,6 @@ BOOL        WINAPI IsFileW(const wchar* path, DWORD mode);
 BOOL        WINAPI IsFileOrDirectoryA(const char* name);
 BOOL        WINAPI IsJunctionA(const char* name);
 BOOL        WINAPI IsSymlinkA(const char* name);
+
+char*       WINAPI SearchPathA(const char* file);
+wchar*      WINAPI SearchPathW(const wchar* file);
