@@ -124,14 +124,14 @@ wstring&     WINAPI wstrim_left(wstring &str);
 wchar*       WINAPI wstrim_right(wchar* str);
 wstring&     WINAPI wstrim_right(wstring &str);
 
-const char*  WINAPI AnsiToUtf8(const char* str);
+char*        WINAPI AnsiToUtf8(const char* str);
 char*        WINAPI ansiToUtf8(const char* str);
 string       WINAPI ansiToUtf8(const string &str);
 
 wchar*       WINAPI ansiToUtf16(const char* str);
 wstring      WINAPI ansiToUtf16(const string &str);
 
-const char*  WINAPI Utf8ToAnsi(const char* str);
+char*        WINAPI Utf8ToAnsi(const char* str);
 char*        WINAPI utf8ToAnsi(const char* str);
 string       WINAPI utf8ToAnsi(const string &str);
 
