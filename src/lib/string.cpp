@@ -975,13 +975,13 @@ char* WINAPI utf16ToAnsi(const wchar* wstr) {
    if (!length) return sdup("");
 
    uint codePage = CP_ACP;
-   DWORD flags = WC_COMPOSITECHECK;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, wstr, -1, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, NULL, wstr, -1, NULL, 0, NULL, &lossy);
    if (bufSize) {
       char* str = (char*) malloc(bufSize);
 
-      if (WideCharToMultiByte(codePage, flags, wstr, -1, str, bufSize, NULL, NULL)) {
+      if (WideCharToMultiByte(codePage, NULL, wstr, -1, str, bufSize, NULL, &lossy)) {
          return str;                      // caller must free()
       }
       free(str);
@@ -1003,13 +1003,13 @@ string WINAPI utf16ToAnsi(const wstring &wstr) {
    if (!length) return string("");
 
    uint codePage = CP_ACP;
-   DWORD flags = WC_COMPOSITECHECK;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, NULL, &wstr[0], length, NULL, 0, NULL, &lossy);
    if (bufSize) {
       string str(bufSize, 0);
 
-      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
+      if (WideCharToMultiByte(codePage, NULL, &wstr[0], length, &str[0], bufSize, NULL, &lossy)) {
          return str;
       }
    }
@@ -1033,12 +1033,13 @@ char* WINAPI utf16ToUtf8(const wchar* wstr) {
 
    uint codePage = CP_UTF8;
    DWORD flags = WC_ERR_INVALID_CHARS;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, wstr, -1, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, flags, wstr, -1, NULL, 0, NULL, &lossy);
    if (bufSize) {
       char* str = (char*) malloc(bufSize);
 
-      if (WideCharToMultiByte(codePage, flags, wstr, -1, str, bufSize, NULL, NULL)) {
+      if (WideCharToMultiByte(codePage, flags, wstr, -1, str, bufSize, NULL, &lossy)) {
          return str;                      // caller must free()
       }
       free(str);
@@ -1061,12 +1062,13 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
 
    uint codePage = CP_UTF8;
    DWORD flags = WC_ERR_INVALID_CHARS;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, &lossy);
    if (bufSize) {
       string str(bufSize, 0);
 
-      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
+      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, &lossy)) {
          return str;
       }
    }
