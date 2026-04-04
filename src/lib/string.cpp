@@ -768,10 +768,11 @@ wstring& WINAPI wstrim_right(wstring &str) {
  *
  * @return char* - UTF-8 string or NULL in case of errors
  */
-const char* WINAPI AnsiToUtf8(const char* str) {
+char* WINAPI AnsiToUtf8(const char* str) {
+   if (!str) return NULL;
    if ((uint)str < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter str: 0x%p (not a valid pointer)", str);
 
-   return ansiToUtf8(str);
+   return ansiToUtf8(str);                // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -787,7 +788,7 @@ char* WINAPI ansiToUtf8(const char* str) {
    wchar* wstr = ansiToUtf16(str);
    char* ustr = utf16ToUtf8(wstr);
    free(wstr);
-   return ustr;
+   return ustr;                           // caller must free()
 }
 
 
@@ -819,17 +820,16 @@ wchar* WINAPI ansiToUtf16(const char* str) {
    uint codePage = CP_ACP;
    DWORD flags = MB_ERR_INVALID_CHARS;
 
-   int bufSize = MultiByteToWideChar(codePage, flags, str, length, NULL, 0);
+   int bufSize = MultiByteToWideChar(codePage, flags, str, -1, NULL, 0);
    if (bufSize) {
-      wchar* wstr = (wchar*) malloc((bufSize+1) * sizeof(wchar));
+      wchar* wstr = (wchar*) malloc(bufSize * sizeof(wchar));
 
-      if (MultiByteToWideChar(codePage, flags, str, length, wstr, bufSize)) {
-         wstr[bufSize] = L'\0';
-         return wstr;
+      if (MultiByteToWideChar(codePage, flags, str, -1, wstr, bufSize)) {
+         return wstr;                     // caller must free()
       }
       free(wstr);
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert ANSI string to UTF-16");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert ANSI string to UTF-16");
    return NULL;
 }
 
@@ -850,12 +850,13 @@ wstring WINAPI ansiToUtf16(const string &str) {
 
    int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
    if (bufSize) {
-      wstring wstr(bufSize + 1, 0);
+      wstring wstr(bufSize, 0);
+
       if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize)) {
          return wstr;
       }
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert ANSI string to UTF-16");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert ANSI string to UTF-16");
    return wstring(L"");
 }
 
@@ -867,10 +868,11 @@ wstring WINAPI ansiToUtf16(const string &str) {
  *
  * @return char* - ANSI string or NULL in case of errors
  */
-const char* WINAPI Utf8ToAnsi(const char* str) {
+char* WINAPI Utf8ToAnsi(const char* str) {
+   if (!str) return NULL;
    if ((uint)str < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter str: 0x%p (not a valid pointer)", str);
 
-   return utf8ToAnsi(str);
+   return utf8ToAnsi(str);                // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -884,9 +886,9 @@ const char* WINAPI Utf8ToAnsi(const char* str) {
  */
 char* WINAPI utf8ToAnsi(const char* str) {
    wchar* wstr = utf8ToUtf16(str);
-   char* as = utf16ToAnsi(wstr);
+   char* ansi = utf16ToAnsi(wstr);
    free(wstr);
-   return as;
+   return ansi;                           // caller must free()
 }
 
 
@@ -918,17 +920,16 @@ wchar* WINAPI utf8ToUtf16(const char* str) {
    uint codePage = CP_UTF8;
    DWORD flags = MB_ERR_INVALID_CHARS;
 
-   int bufSize = MultiByteToWideChar(codePage, flags, str, length, NULL, 0);
+   int bufSize = MultiByteToWideChar(codePage, flags, str, -1, NULL, 0);
    if (bufSize) {
-      wchar* wstr = (wchar*) malloc((bufSize+1) * sizeof(wchar));
+      wchar* wstr = (wchar*) malloc(bufSize * sizeof(wchar));
 
-      if (MultiByteToWideChar(codePage, flags, str, length, wstr, bufSize)) {
-         wstr[bufSize] = L'\0';
-         return wstr;
+      if (MultiByteToWideChar(codePage, flags, str, -1, wstr, bufSize)) {
+         return wstr;                     // caller must free()
       }
       free(wstr);
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-8 string to UTF-16");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-8 string to UTF-16");
    return NULL;
 }
 
@@ -949,12 +950,13 @@ wstring WINAPI utf8ToUtf16(const string &str) {
 
    int bufSize = MultiByteToWideChar(codePage, flags, &str[0], length, NULL, 0);
    if (bufSize) {
-      wstring wstr(bufSize + 1, 0);
+      wstring wstr(bufSize, 0);
+
       if (MultiByteToWideChar(codePage, flags, &str[0], length, &wstr[0], bufSize)) {
          return wstr;
       }
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-8 string to UTF-16");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-8 string to UTF-16");
    return wstring(L"");
 }
 
@@ -970,21 +972,21 @@ char* WINAPI utf16ToAnsi(const wchar* wstr) {
    if (!wstr) return NULL;
 
    size_t length = wstrlen(wstr);
-   if (!length) return sdup("");       // caller must free()
+   if (!length) return sdup("");
 
    uint codePage = CP_ACP;
-   DWORD flags = WC_COMPOSITECHECK;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, wstr, length, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, NULL, wstr, -1, NULL, 0, NULL, &lossy);
    if (bufSize) {
-      char* str = (char*) malloc(bufSize + 1);
-      if (WideCharToMultiByte(codePage, flags, wstr, length, str, bufSize, NULL, NULL)) {
-         str[bufSize] = '\0';
-         return str;                   // caller must free()
+      char* str = (char*) malloc(bufSize);
+
+      if (WideCharToMultiByte(codePage, NULL, wstr, -1, str, bufSize, NULL, &lossy)) {
+         return str;                      // caller must free()
       }
       free(str);
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-16 string to ANSI");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-16 string to ANSI");
    return NULL;
 }
 
@@ -1001,16 +1003,17 @@ string WINAPI utf16ToAnsi(const wstring &wstr) {
    if (!length) return string("");
 
    uint codePage = CP_ACP;
-   DWORD flags = WC_COMPOSITECHECK;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, NULL, &wstr[0], length, NULL, 0, NULL, &lossy);
    if (bufSize) {
-      string str(bufSize + 1, 0);
-      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
+      string str(bufSize, 0);
+
+      if (WideCharToMultiByte(codePage, NULL, &wstr[0], length, &str[0], bufSize, NULL, &lossy)) {
          return str;
       }
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-16 string to ANSI");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-16 string to ANSI");
    return string("");
 }
 
@@ -1030,17 +1033,18 @@ char* WINAPI utf16ToUtf8(const wchar* wstr) {
 
    uint codePage = CP_UTF8;
    DWORD flags = WC_ERR_INVALID_CHARS;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, wstr, length, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, flags, wstr, -1, NULL, 0, NULL, &lossy);
    if (bufSize) {
-      char* str = (char*) malloc(bufSize + 1);
-      if (WideCharToMultiByte(codePage, flags, wstr, length, str, bufSize, NULL, NULL)) {
-         str[bufSize] = '\0';
-         return str;
+      char* str = (char*) malloc(bufSize);
+
+      if (WideCharToMultiByte(codePage, flags, wstr, -1, str, bufSize, NULL, &lossy)) {
+         return str;                      // caller must free()
       }
       free(str);
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-16 string to UTF-8");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-16 string to UTF-8");
    return NULL;
 }
 
@@ -1058,15 +1062,17 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
 
    uint codePage = CP_UTF8;
    DWORD flags = WC_ERR_INVALID_CHARS;
+   BOOL lossy = FALSE;
 
-   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, NULL);
+   int bufSize = WideCharToMultiByte(codePage, flags, &wstr[0], length, NULL, 0, NULL, &lossy);
    if (bufSize) {
-      string str(bufSize + 1, 0);
-      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, NULL)) {
+      string str(bufSize, 0);
+
+      if (WideCharToMultiByte(codePage, flags, &wstr[0], length, &str[0], bufSize, NULL, &lossy)) {
          return str;
       }
    }
-   error(ERR_WIN32_ERROR+GetLastError(), "cannot convert UTF-16 string to UTF-8");
+   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-16 string to UTF-8");
    return string("");
 }
 
