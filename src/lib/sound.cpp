@@ -106,14 +106,14 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
 
 
 /**
- * Plays a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types supported on the system and
+ * Play a soundfile asynchronously and immediately return (non-blocking). Plays all sound types supported on the system and
  * supports simultaneous playback of multiple sounds (except MIDI files). Also plays sounds if the terminal doesn't support it
  * in the current context (e.g. in tester).
  *
- * @param  char* soundfile - an absolute filename or a filename relative to directory "sounds" of the terminal directory or
- *                           the data directory (both are searched)
+ * @param  char* soundfile - absolute filename or filename relative to directory "sounds" of the terminal or the data
+ *                           directory (both are searched)
  *
- * @return DWORD - error status
+ * @return DWORD - error status (MCI errors are mapped to ERR_MCI_ERROR + error)
  */
 DWORD WINAPI PlaySoundA(const char* soundfile) {
    if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
@@ -124,12 +124,12 @@ DWORD WINAPI PlaySoundA(const char* soundfile) {
 
 
 /**
- * Plays a soundfile asynchronously and immediately returns (non-blocking). Plays all sound types supported on the system and
+ * Play a soundfile asynchronously and immediately return (non-blocking). Plays all sound types supported on the system and
  * supports simultaneous playback of multiple sounds (except MIDI files). Also plays sounds if the terminal doesn't support it
  * in the current context (e.g. in tester).
  *
- * @param  wchar* soundfile - an absolute filename or a filename relative to directory "sounds" of the terminal directory or
- *                            the data directory (both are searched)
+ * @param  wchar* soundfile - absolute filename or filename relative to directory "sounds" of the terminal or the data
+ *                            directory (both are searched)
  *
  * @return DWORD - error status (MCI errors are mapped to ERR_MCI_ERROR + error)
  */
@@ -162,10 +162,15 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    MCIERROR error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
    if (error) {
       switch ((WORD)error) {
-         case MCIERR_DEVICE_OPEN:            break;            // if played again in the same thread: continue and re-use the device
-         case MCIERR_WAVE_OUTPUTSUNSUITABLE: return(NULL);     // no sound device installed, quite common in VMs without RDP connection
-         case MCIERR_INVALID_DEVICE_NAME:    return(notice(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S) unsupported file type or codec not available", cmd.c_str()));
-         default:                            return( error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
+         case MCIERR_DEVICE_OPEN:                              // if played again in the same thread: continue and re-use the device
+            break;
+         case MCIERR_WAVE_OUTPUTSUNSUITABLE:                   // quite common in VMs without RDP connection
+            return(notice(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S) no suitable sound device found", cmd.c_str()));
+         case MCIERR_INVALID_DEVICE_NAME:
+            return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S) unsupported file type or codec not available", cmd.c_str()));
+
+         default:                                              // MCI errors must not trigger MQL runtime errors (would terminate EAs)
+            return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str()));
       }
    }
 
@@ -174,12 +179,13 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
    error = mciSendStringW(cmd.c_str(), NULL, 0, NULL);
    if (error) {
       int loglevel = LOG_NOTICE;
-      switch ((WORD)error) {                                   // MIDI files can't be mixed with the MCI extension
-         case MCIERR_SEQ_PORT_INUSE:
+      switch ((WORD)error) {
+         case MCIERR_SEQ_PORT_INUSE:                           // MIDI files can't be mixed with the MCI extension
          case MCIERR_WAVE_OUTPUTSINUSE:
-            return(notice(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
-      }
-      return(error(ERR_MCI_ERROR+(WORD)error, "mciSendString(%S)", cmd.c_str()));
+         case MCIERR_WAVE_OUTPUTSUNSUITABLE:                   // spurious issue: open succeeded but playing fails
+            return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str()));
+      }                                                        // MCI errors must not trigger MQL runtime errors (would terminate EAs)
+      return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str()));
    }
 
    // intentionally leave sound open for faster re-use

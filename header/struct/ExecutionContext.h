@@ -79,7 +79,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    char*              dllErrorMsg;                    //       700        4     DLL error message                                         (var)
    int                mqlError;                       //       704        4     last MQL error (of all MQL modules)                       (var)
                                                       //
-   DWORD              debugOptions;                   //       708        4     specified CLI debug options                               (var)
+   DWORD              debugOptions;                   //       708        4     specified command line debug options                      (var)
    int                loglevel;                       //       712        4     program main loglevel                                     (var)
    int                loglevelDebug;                  //       716        4     loglevel of the debug output appender                     (var)
    int                loglevelTerminal;               //       720        4     loglevel of the terminal log appender                     (var)
@@ -173,6 +173,6 @@ const char*        WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec)
 
 
 // type definitions
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // A ContextChain holds the execution contexts of all modules of a single MQL program.
-typedef std::vector<uint>               IndicatorList;      // Indicator list (pids) of a chart window.
-typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL program instances ever loaded (index = instance id aka pid).
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // A ContextChain holds all EXECUTION_CONTEXTs of an MQL program (one per module).
+typedef std::vector<uint>               IndicatorList;      // List of indicators (pids) loaded in a chart window.
+typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL programs ever loaded (index = pid = instance id).

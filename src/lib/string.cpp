@@ -1045,7 +1045,7 @@ char* WINAPI utf16ToUtf8(const wchar* wstr) {
  *
  * @param  wstring &wstr - UTF-16 string
  *
- * @return string - UTF-8 string or an empty string in case of errors                     OK
+ * @return string - UTF-8 string or an empty string in case of errors
  */
 string WINAPI utf16ToUtf8(const wstring &wstr) {
    size_t length = wstr.length();
