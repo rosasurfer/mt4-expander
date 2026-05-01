@@ -1778,7 +1778,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
  * @return char*
  */
 const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    std::ostringstream ss;
    EXECUTION_CONTEXT empty = {};
@@ -1837,10 +1837,11 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
 
          << ", accountServer="        <<       DoubleQuoteStr(ec->accountServer)
          << ", accountNumber="        <<                      ec->accountNumber
+         << ", command="              <<       DoubleQuoteStr(ec->command)
 
          << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStrA(ec->dllWarning))
-         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
-         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
+         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError))
+         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError))
 
          << ", debugOptions="         <<                      ec->debugOptions
          << ", loglevel="             << LoglevelDescriptionA(ec->loglevel)
@@ -1858,7 +1859,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
    ss << asformat(" (0x%p)", ec);
    char* result = sdup(ss.str().c_str());                               // TODO: add to GC (close memory leak)
 
-   return(result);
+   return result;
    #pragma EXPANDER_EXPORT
 }
 
@@ -1871,6 +1872,6 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
  * @return char*
  */
 const char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
-   return(EXECUTION_CONTEXT_toStr(ec));
+   return EXECUTION_CONTEXT_toStr(ec);
    #pragma EXPANDER_EXPORT
 }

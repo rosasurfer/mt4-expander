@@ -62,8 +62,8 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
                                                       //
    EXECUTION_CONTEXT* superContext;                   //       648        4     indicator host program                                    (const)  whether loaded by iCustom()
    uint               threadId;                       //       652        4     current executing thread                                  (var)
-   HWND               chartWindow;                    //       656        4     handle of chart window with title bar "Symbol,Period"     (const)
-   HWND               chart;                          //       660        4     handle of embedded chart AfxFrame                         (const)  MQL::WindowHandle()
+   HWND               chartWindow;                    //       656        4     handle of the chart window with title bar "Symbol,Period" (const)
+   HWND               chart;                          //       660        4     handle of the embedded chart AfxFrame                     (const)  MQL::WindowHandle()
                                                       //
    BOOL               testing;                        //       664        4     IsTesting() status                                        (const)
    BOOL               visualMode;                     //       668        4     expert IsVisualMode() status                              (const)
@@ -72,27 +72,28 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
                                                       //
    char*              accountServer;                  //       680        4     MQL::AccountServer()                                      (var)
    int                accountNumber;                  //       684        4     MQL::AccountNumber()                                      (var)
+   char*              command;                        //       688        4     external command sent to the MQL program                  (var)
                                                       //
-   int                dllWarning;                     //       688        4     last DLL warning                                          (var)
-   char*              dllWarningMsg;                  //       692        4     DLL warning message                                       (var)
-   int                dllError;                       //       696        4     last DLL error                                            (var)
-   char*              dllErrorMsg;                    //       700        4     DLL error message                                         (var)
-   int                mqlError;                       //       704        4     last MQL error (of all MQL modules)                       (var)
+   int                dllWarning;                     //       692        4     last DLL warning                                          (var)
+   char*              dllWarningMsg;                  //       696        4     DLL warning message                                       (var)
+   int                dllError;                       //       700        4     last DLL error                                            (var)
+   char*              dllErrorMsg;                    //       704        4     DLL error message                                         (var)
+   int                mqlError;                       //       708        4     last MQL error (of all MQL modules)                       (var)
                                                       //
-   DWORD              debugOptions;                   //       708        4     specified command line debug options                      (var)
-   int                loglevel;                       //       712        4     program main loglevel                                     (var)
-   int                loglevelDebug;                  //       716        4     loglevel of the debug output appender                     (var)
-   int                loglevelTerminal;               //       720        4     loglevel of the terminal log appender                     (var)
-   int                loglevelAlert;                  //       724        4     loglevel of the terminal alert appender                   (var)
-   int                loglevelFile;                   //       728        4     loglevel of the custom logfile appender                   (var)
-   int                loglevelMail;                   //       732        4     loglevel of the mail appender                             (var)
-   int                loglevelTelegram;               //       736        4     loglevel of the Telegram appender                         (var)
+   DWORD              debugOptions;                   //       712        4     specified command line debug options                      (var)
+   int                loglevel;                       //       716        4     program main loglevel                                     (var)
+   int                loglevelDebug;                  //       720        4     loglevel of the debug output appender                     (var)
+   int                loglevelTerminal;               //       724        4     loglevel of the terminal log appender                     (var)
+   int                loglevelAlert;                  //       728        4     loglevel of the terminal alert appender                   (var)
+   int                loglevelFile;                   //       732        4     loglevel of the custom logfile appender                   (var)
+   int                loglevelMail;                   //       736        4     loglevel of the mail appender                             (var)
+   int                loglevelTelegram;               //       740        4     loglevel of the Telegram appender                         (var)
 
-   std::ofstream*     logger;                         //       740        4     logger instance                                           (var)
-   LogBuffer*         logBuffer;                      //       744        4     log buffer                                                (var)
-   char*              logFilename;                    //       748        4     log filename                                              (var)
+   std::ofstream*     logger;                         //       744        4     logger instance                                           (var)
+   LogBuffer*         logBuffer;                      //       748        4     log buffer                                                (var)
+   char*              logFilename;                    //       752        4     log filename                                              (var)
 };                                                    // -------------------------------------------------------------------------------------------------------------------------
-#pragma pack(pop)                                     //              = 752
+#pragma pack(pop)                                     //              = 756
 
 
 // exported getters
