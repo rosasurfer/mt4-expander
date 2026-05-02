@@ -839,7 +839,7 @@ wchar* WINAPI ansiToUtf16(const char* str) {
  * @return wstring - UTF-16 string or an empty string in case of errors
  */
 wstring WINAPI ansiToUtf16(const string &str) {
-   int length = static_cast<int>(str.length());
+   int length = (int)str.length();
    if (!length) return wstring();
 
    DWORD flags = MB_ERR_INVALID_CHARS;
@@ -933,7 +933,7 @@ wchar* WINAPI utf8ToUtf16(const char* str) {
  * @return wstring - UTF-16 string or an empty string in case of errors
  */
 wstring WINAPI utf8ToUtf16(const string &str) {
-   int length = static_cast<int>(str.length());
+   int length = (int)str.length();
    if (!length) return wstring();
 
    DWORD flags = MB_ERR_INVALID_CHARS;
@@ -986,7 +986,7 @@ char* WINAPI utf16ToAnsi(const wchar* wstr) {
  * @return string - ANSI string or an empty string in case of errors
  */
 string WINAPI utf16ToAnsi(const wstring &wstr) {
-   int length = static_cast<int>(wstr.length());
+   int length = (int)wstr.length();
    if (!length) return string();
 
    DWORD flags = WC_NO_BEST_FIT_CHARS;
@@ -1038,7 +1038,7 @@ char* WINAPI utf16ToUtf8(const wchar* wstr) {
  * @return string - UTF-8 string or an empty string in case of errors
  */
 string WINAPI utf16ToUtf8(const wstring &wstr) {
-   int length = static_cast<int>(wstr.length());
+   int length = (int)wstr.length();
    if (!length) return string();
 
    DWORD flags = WC_ERR_INVALID_CHARS;
