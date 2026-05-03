@@ -267,3 +267,13 @@ char   __cdecl _char  (char   value, ...) { return value; }
 int    __cdecl _int   (int    value, ...) { return value; }
 float  __cdecl _float (float  value, ...) { return value; }
 double __cdecl _double(double value, ...) { return value; }
+
+
+/**
+ * A no-op for explicitly loading the Expander from MQL. If the MQL framework is used it will implicitly
+ * load the Expander during MQL program initialization.
+ */
+void WINAPI LoadMT4Expander() {
+   // nothing to do here
+   #pragma EXPANDER_EXPORT
+}

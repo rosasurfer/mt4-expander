@@ -61,7 +61,6 @@ void WINAPI CustomizeTerminal() {
          local::CloseWindow(hBtnCtrl, onUIThread);
       }
    }
-   #pragma EXPANDER_EXPORT
 }
 
 
