@@ -1295,7 +1295,7 @@ uint WINAPI GetCurrentThreadIndex() {
    // look-up the current thread
    uint size = g_threads.size();
    for (uint i=0; i < size; i++) {
-      if (g_threads[i] == currentThread) return(i);               // thread found
+      if (g_threads[i] == currentThread) return i;                // thread found
    }
 
    // thread not found
@@ -1303,13 +1303,15 @@ uint WINAPI GetCurrentThreadIndex() {
       debug("waiting for lock on: g_expanderMutex...");
       EnterCriticalSection(&g_expanderMutex);
    }
-   g_threads        .push_back(currentThread);                    // add current thread to the list
+   g_threads.push_back(currentThread);                            // add current thread to the list
    g_threadsPrograms.push_back(0);                                // add empty program index of 0 (zero) to the list
    uint index = g_threads.size() - 1;
    LeaveCriticalSection(&g_expanderMutex);
 
-   if (index > 768 && !(index % 100)) debug("added thread %d to thread list (size=%d)", currentThread, index+1);
-   return(index);
+   if (index > 768 && !(index % 100)) {
+      debug("added thread %d to thread list (size=%d)", currentThread, index+1);
+   }
+   return index;
 }
 
 
@@ -1320,9 +1322,10 @@ uint WINAPI GetCurrentThreadIndex() {
  */
 uint WINAPI GetLastThreadProgram() {
    uint index = GetCurrentThreadIndex();
-   if (g_threadsPrograms.size() > index)
-      return(g_threadsPrograms[index]);
-   return(NULL);
+   if (g_threadsPrograms.size() > index) {
+      return g_threadsPrograms[index];
+   }
+   return NULL;
 }
 
 
