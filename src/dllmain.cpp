@@ -90,8 +90,8 @@ BOOL WINAPI onProcessAttach() {
 
    // launch independant worker thread for custom initializations
    HANDLE hThread = CreateThread(NULL, 0, onExpanderStart, NULL, 0, NULL);
-   if (!hThread) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");
-   CloseHandle(hThread);
+   if (hThread) CloseHandle(hThread);
+   else         error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");    // report error but don't fail
 
    return TRUE;
 }
