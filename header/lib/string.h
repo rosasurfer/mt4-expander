@@ -64,7 +64,7 @@ namespace rsf {
    }
 
    /**
-    * VS2008: C++03 replacement for the C++11 to_string() function.
+    * C++03 substitute for the C++11 to_string() function.
     *
     * @param  T value
     *

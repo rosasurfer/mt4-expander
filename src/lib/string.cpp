@@ -221,7 +221,7 @@ BOOL WINAPI StrCompare(const char* s1, const char* s2) {
 
 
 /**
- * Whether two UTF-16 strings are considered equal. Convenient helper to hide the non-intuitive strcmp() syntax.
+ * Whether two UTF-16 strings are considered equal. Convenient helper to hide the non-intuitive wcscmp() syntax.
  *
  * @param  wchar* s1
  * @param  wchar* s2
