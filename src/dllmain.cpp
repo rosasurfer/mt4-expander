@@ -8,8 +8,9 @@
 
 #include <shellapi.h>
 
-BOOL  g_cliOptionPortableMode;                              // whether cmd line option /portable is set
-DWORD g_cliDebugOptions;                                    // bit mask of specified CLI debug options
+HANDLE g_hExpanderStartThread;                              // handle of worker thread executing onExpanderStart()
+BOOL   g_cliOptionPortableMode;                             // whether cmd line option /portable is set
+DWORD  g_cliDebugOptions;                                   // bit mask of specified CLI debug options
 
 extern MqlInstanceList               g_mqlInstances;        // all MQL program instances
 extern std::vector<DWORD>            g_threads;             // all known threads executing MQL programs
@@ -89,9 +90,8 @@ BOOL WINAPI onProcessAttach() {
    LocalFree(argv);
 
    // launch independant worker thread for custom initializations
-   HANDLE hThread = CreateThread(NULL, 0, onExpanderStart, NULL, 0, NULL);
-   if (hThread) CloseHandle(hThread);
-   else         error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");    // report error but don't fail
+   g_hExpanderStartThread = CreateThread(NULL, 0, onExpanderStart, NULL, 0, NULL);
+   if (!g_hExpanderStartThread) error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");    // report error but don't fail
 
    return TRUE;
 }
@@ -105,6 +105,11 @@ BOOL WINAPI onProcessAttach() {
  * @return BOOL - success status
  */
 BOOL WINAPI onProcessDetach(BOOL isTerminating) {
+   if (g_hExpanderStartThread) {                   // debug builds may be unloaded while onExpanderStart() is still running
+      WaitForSingleObject(g_hExpanderStartThread, INFINITE);
+      CloseHandle(g_hExpanderStartThread);
+      g_hExpanderStartThread = NULL;
+   }
    if (!isTerminating) {
       DeleteCriticalSection(&g_expanderMutex);
       ReleaseTickTimers();
