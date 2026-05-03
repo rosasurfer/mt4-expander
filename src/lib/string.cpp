@@ -353,17 +353,18 @@ BOOL WINAPI StrEndsWithI(const char* str, const char* suffix) {
  * @return BOOL
  */
 BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
-   if (!str)          return(FALSE);
-   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
-   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!suffix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix);
+   if (str == suffix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = wstrlen(str);
    uint suffixLen = wstrlen(suffix);
-   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   if (!suffixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\"");
 
-   if (strLen >= suffixLen)
-      return(wstrcmp(str + strLen - suffixLen, suffix) == 0);
-   return(FALSE);
+   if (strLen >= suffixLen) {
+      return (wstrcmp(str + strLen - suffixLen, suffix) == 0);
+   }
+   return FALSE;
 }
 
 
@@ -376,17 +377,18 @@ BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
  * @return BOOL
  */
 BOOL WINAPI StrEndsWithI(const wchar* str, const wchar* suffix) {
-   if (!str)          return(FALSE);
-   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
-   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!suffix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix);
+   if (str == suffix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = wstrlen(str);
    uint suffixLen = wstrlen(suffix);
-   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   if (!suffixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\"");
 
-   if (strLen >= suffixLen)
-      return(wstricmp(str + strLen - suffixLen, suffix) == 0);
-   return(FALSE);
+   if (strLen >= suffixLen) {
+      return (wstricmp(str + strLen - suffixLen, suffix) == 0);
+   }
+   return FALSE;
 }
 
 
@@ -839,7 +841,7 @@ wchar* WINAPI ansiToUtf16(const char* str) {
  * @return wstring - UTF-16 string or an empty string in case of errors
  */
 wstring WINAPI ansiToUtf16(const string &str) {
-   int length = static_cast<int>(str.length());
+   int length = (int)str.length();
    if (!length) return wstring();
 
    DWORD flags = MB_ERR_INVALID_CHARS;
@@ -933,7 +935,7 @@ wchar* WINAPI utf8ToUtf16(const char* str) {
  * @return wstring - UTF-16 string or an empty string in case of errors
  */
 wstring WINAPI utf8ToUtf16(const string &str) {
-   int length = static_cast<int>(str.length());
+   int length = (int)str.length();
    if (!length) return wstring();
 
    DWORD flags = MB_ERR_INVALID_CHARS;
@@ -986,7 +988,7 @@ char* WINAPI utf16ToAnsi(const wchar* wstr) {
  * @return string - ANSI string or an empty string in case of errors
  */
 string WINAPI utf16ToAnsi(const wstring &wstr) {
-   int length = static_cast<int>(wstr.length());
+   int length = (int)wstr.length();
    if (!length) return string();
 
    DWORD flags = WC_NO_BEST_FIT_CHARS;
@@ -1038,7 +1040,7 @@ char* WINAPI utf16ToUtf8(const wchar* wstr) {
  * @return string - UTF-8 string or an empty string in case of errors
  */
 string WINAPI utf16ToUtf8(const wstring &wstr) {
-   int length = static_cast<int>(wstr.length());
+   int length = (int)wstr.length();
    if (!length) return string();
 
    DWORD flags = WC_ERR_INVALID_CHARS;

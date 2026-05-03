@@ -331,17 +331,17 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    // read the reparse data
    if (IsReparseTagMicrosoft(rdata->ReparseTag)) {
       if (rdata->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
-         uint   offset = rdata->MountPointReparseBuffer.SubstituteNameOffset >> 1;
-         uint   len    = rdata->MountPointReparseBuffer.SubstituteNameLength >> 1;
-         string target = utf16ToAnsi(wstring(&rdata->MountPointReparseBuffer.PathBuffer[offset], len));
+         uint   offset = rdata->MountPoint.SubstituteNameOffset >> 1;
+         uint   len    = rdata->MountPoint.SubstituteNameLength >> 1;
+         string target = utf16ToAnsi(wstring(&rdata->MountPoint.PathBuffer[offset], len));
          result = sdup(target.c_str() + strlen("\\??\\"));
       }
       else if (rdata->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
-         uint   offset = rdata->SymbolicLinkReparseBuffer.SubstituteNameOffset >> 1;
-         uint   len    = rdata->SymbolicLinkReparseBuffer.SubstituteNameLength >> 1;
-         string target = utf16ToAnsi(wstring(&rdata->SymbolicLinkReparseBuffer.PathBuffer[offset], len));
+         uint   offset = rdata->SymbolicLink.SubstituteNameOffset >> 1;
+         uint   len    = rdata->SymbolicLink.SubstituteNameLength >> 1;
+         string target = utf16ToAnsi(wstring(&rdata->SymbolicLink.PathBuffer[offset], len));
 
-         BOOL isRelative = rdata->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE;
+         BOOL isRelative = rdata->SymbolicLink.Flags & SYMLINK_FLAG_RELATIVE;
          if (isRelative) {
             char drive[MAX_DRIVE], dir[MAX_DIR];
             _splitpath(name, drive, dir, NULL, NULL);

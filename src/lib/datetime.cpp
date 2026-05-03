@@ -1071,7 +1071,7 @@ BOOL WINAPI GetTimeZoneInfoByWindowsNameA(TIME_ZONE_INFORMATION* tzi, const char
       SYSTEMTIME DaylightDate;
    };
 
-   // a local function as C++98 substitute for a lambda function
+   // a local function as substitute for missing lambda support in C++03
    struct local {
       static BOOL ReadRegistryValue(HKEY hKey, string &key, wchar* value, DWORD type, void* buffer, DWORD size) {
          int error = RegGetValueW(hKey, NULL, value, type, NULL, buffer, &size);

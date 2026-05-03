@@ -12,7 +12,7 @@ struct REPARSE_DATA_BUFFER {
          USHORT PrintNameOffset;
          USHORT PrintNameLength;
          WCHAR  PathBuffer[1];
-      } MountPointReparseBuffer;
+      } MountPoint;
       struct {
          USHORT SubstituteNameOffset;
          USHORT SubstituteNameLength;
@@ -20,10 +20,10 @@ struct REPARSE_DATA_BUFFER {
          USHORT PrintNameLength;
          ULONG  Flags;
          WCHAR  PathBuffer[1];
-      } SymbolicLinkReparseBuffer;
+      } SymbolicLink;
       struct {
          UCHAR DataBuffer[1];
-      } GenericReparseBuffer;
+      } Generic;
    };
 };
 
