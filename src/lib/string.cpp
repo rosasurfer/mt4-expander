@@ -353,17 +353,18 @@ BOOL WINAPI StrEndsWithI(const char* str, const char* suffix) {
  * @return BOOL
  */
 BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
-   if (!str)          return(FALSE);
-   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
-   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!suffix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix);
+   if (str == suffix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = wstrlen(str);
    uint suffixLen = wstrlen(suffix);
-   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   if (!suffixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\"");
 
-   if (strLen >= suffixLen)
-      return(wstrcmp(str + strLen - suffixLen, suffix) == 0);
-   return(FALSE);
+   if (strLen >= suffixLen) {
+      return (wstrcmp(str + strLen - suffixLen, suffix) == 0);
+   }
+   return FALSE;
 }
 
 
@@ -376,17 +377,18 @@ BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
  * @return BOOL
  */
 BOOL WINAPI StrEndsWithI(const wchar* str, const wchar* suffix) {
-   if (!str)          return(FALSE);
-   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix));
-   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!suffix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %S", suffix);
+   if (str == suffix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = wstrlen(str);
    uint suffixLen = wstrlen(suffix);
-   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   if (!suffixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\"");
 
-   if (strLen >= suffixLen)
-      return(wstricmp(str + strLen - suffixLen, suffix) == 0);
-   return(FALSE);
+   if (strLen >= suffixLen) {
+      return (wstricmp(str + strLen - suffixLen, suffix) == 0);
+   }
+   return FALSE;
 }
 
 

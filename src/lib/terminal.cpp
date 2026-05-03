@@ -9,10 +9,60 @@
 
 #include <shlobj.h>
 
-extern BOOL  g_cliOptionPortableMode;                    // whether cmd line option /portable is set
+extern BOOL g_cliOptionPortableMode;                     // whether cmd line option /portable is set
 
 extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
+
+
+/**
+ * Customize the terminal's UI.
+ */
+void WINAPI CustomizeTerminal() {
+   // get the terminal main window
+   HWND hWnd = GetTerminalMainWindow();
+   if (!hWnd) return;
+
+   // get the toolbar
+   HWND hToolbar = GetDlgItem(hWnd, IDC_TOOLBAR);
+   if (!hToolbar) {
+      error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_TOOLBAR) => NULL (terminal toolbar not found)");
+      return;
+   }
+
+   // a local function as substitute for missing lambda support in C++03
+   struct local {
+      static void CloseWindow(HWND hCtrl, BOOL onUIThread) {
+         if (onUIThread) {
+            DestroyWindow(hCtrl);
+         }
+         else {
+            PostMessageA(hCtrl, WM_CLOSE, 0, 0);
+            while (IsWindow(hCtrl)) Sleep(100);
+         }
+      }
+   };
+
+   // whether we are executed by the UI thread
+   BOOL onUIThread = (GetCurrentThreadId() == GetWindowThreadProcessId(hToolbar, NULL));
+
+   // find and remove a search box control (contains the community button)
+   HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
+   if (hSearchCtrl) {
+      local::CloseWindow(hSearchCtrl, onUIThread);
+      if (!RedrawWindow(hToolbar, NULL, NULL, RDW_ERASE|RDW_INVALIDATE)) {
+         error(ERR_WIN32_ERROR + GetLastError(), "RedrawWindow(IDC_TOOLBAR) failed");
+         return;
+      }
+   }
+   else {
+      // if search box control not found, find/remove an independent community button
+      if (HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON)) {
+         local::CloseWindow(hBtnCtrl, onUIThread);
+      }
+   }
+   #pragma EXPANDER_EXPORT
+}
 
 
 /**
@@ -162,7 +212,7 @@ const char* WINAPI GetExpanderFileNameA() {
 
       char* tmp = utf16ToAnsi(wname);
       if (!filename) filename = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else free(tmp);                        // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -179,19 +229,19 @@ const wchar* WINAPI GetExpanderFileNameW() {
 
    if (!filename) {
       wchar* buffer = NULL;
-      uint size=MAX_PATH >> 1, length=size;
+      uint size = MAX_PATH >> 1, length = size;
       while (length >= size) {
          size <<= 1;
          buffer = (wchar*) alloca(size * sizeof(wchar));
          length = GetModuleFileNameW(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
       }
-      if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()"));
+      if (!length) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetModuleFileNameW()");
 
       wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
-      else free(tmp);                     // another thread may have been faster
+      else free(tmp);                        // another thread may have been faster
    }
-   return(filename);
+   return filename;
    #pragma EXPANDER_EXPORT
 }
 
@@ -559,25 +609,24 @@ HWND WINAPI GetTerminalMainWindow() {
    if (!hWndMain) {
       DWORD processId, self = GetCurrentProcessId();
       uint  size = 255;
-      char* className = (char*) alloca(size);                        // on the stack: buffer for window class name
+      char* className = (char*) alloca(size);      // on the stack
 
       HWND hWndNext = GetTopWindow(NULL);
-
-      while (hWndNext) {                                             // iterate over all top-level windows
+      while (hWndNext) {                           // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {
-            if (!GetClassNameA(hWndNext, className, size)) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "GetClassNameA()"));
+            if (!GetClassNameA(hWndNext, className, size)) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA()");
             if (StrCompare(className, "MetaQuotes::MetaTrader::4.00")) {
                break;
             }
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
-      if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "cannot find terminal main window"));
+      if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
 
-      hWndMain = hWndNext;
+      if (!hWndMain) hWndMain = hWndNext;          // another thread may have been faster
    }
-   return(hWndMain);
+   return hWndMain;
    #pragma EXPANDER_EXPORT
 }
 

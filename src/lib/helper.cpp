@@ -230,13 +230,11 @@ BOOL WINAPI IsVirtualKeyDown(int key) {
 
 
 /**
- * Return the flags of all currently pressed virtual keys.
+ * Return the flags of currently pressed virtual keys.
  *
- * @param  DWORD flags [optional] - combination of virtual-key flags (default: all flags)
+ * @param  DWORD flags [optional] - virtual keys to test for (default: all keys defined in F_VK_ALL)
  *
  * @return DWORD
- *
- * @see  "header/shared/defines.h"
  */
 DWORD WINAPI GetPressedVirtualKeys(DWORD flags = F_VK_ALL) {
    DWORD pressed = 0;
@@ -288,16 +286,17 @@ BOOL WINAPI IsUIThread(DWORD threadId/*=NULL*/) {
 
 
 /**
- * Gibt die ID des Userinterface-Threads zur�ck.
+ * Return the id of the UI thread.
  *
- * @return DWORD - Thread-ID (nicht das Thread-Handle) oder 0, falls ein Fehler auftrat
+ * @return DWORD - thread id (not thread handle) or NULL in case of errors
  */
 DWORD WINAPI GetUIThreadId() {
    static DWORD uiThreadId;
 
    if (!uiThreadId) {
       if (HWND hWnd = GetTerminalMainWindow()) {
-         uiThreadId = GetWindowThreadProcessId(hWnd, NULL);
+         DWORD threadId = GetWindowThreadProcessId(hWnd, NULL);
+         if (!uiThreadId) uiThreadId = threadId;      // another thread may have been faster
       }
    }
    return(uiThreadId);
