@@ -725,11 +725,11 @@ const char* WINAPI MD5Hash(const void* input, uint length) {
    if ((uint)input < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
    if (length < 1)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
 
-   MD5_CTX context;
-   MD5_INIT(&context);
-   MD5_UPDATE(&context, input, length);
+   MD5Context context;
+   MD5_Init(&context);
+   MD5_Update(&context, input, length);
    uchar buffer[16];                                                 // on the stack
-   MD5_FINAL((uchar*)&buffer, &context);                             // fill buffer with binary MD5 hash (16 bytes)
+   MD5_Final((uchar*)&buffer, &context);                             // fill buffer with binary MD5 hash (16 bytes)
 
    std::ostringstream ss;                                            // convert hash to hex string (32 chars)
    ss << std::hex;
