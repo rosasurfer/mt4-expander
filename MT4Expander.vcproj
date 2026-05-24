@@ -27,7 +27,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Pre-build event:"
-				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\defines.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\errors.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;echo Shared header &quot;/header/shared/defines.h&quot; missing, using backup &quot;/header/shared/bak/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;echo Shared header &quot;/header/shared/errors.h&quot; missing, using backup &quot;/header/shared/bak/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib version.lib winmm.lib"
+				AdditionalDependencies="shlwapi.lib version.lib winmm.lib ws2_32.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -102,7 +102,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to &quot;mql4\libraries&quot;...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -116,7 +116,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Pre-build event:"
-				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\defines.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;echo Shared header &quot;$(ProjectDir)header\shared\errors.h&quot; missing, using backup...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;echo Shared header &quot;/header/shared/defines.h&quot; missing, using backup &quot;/header/shared/bak/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;echo Shared header &quot;/header/shared/errors.h&quot; missing, using backup &quot;/header/shared/bak/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -163,7 +163,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib version.lib winmm.lib"
+				AdditionalDependencies="shlwapi.lib version.lib winmm.lib ws2_32.lib"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -191,7 +191,96 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header files...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\*.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot;&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to &quot;mql4\libraries&quot;...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot;&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release (private)|Win32"
+			OutputDirectory="bin\$(ConfigurationName)"
+			IntermediateDirectory="bin\$(ConfigurationName)\intermediate"
+			ConfigurationType="2"
+			CharacterSet="0"
+			WholeProgramOptimization="0"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				Description="Pre-build event:"
+				CommandLine="if not exist &quot;$(ProjectDir)header\shared\defines.h&quot; (&#x0D;&#x0A;echo Shared header &quot;/header/shared/defines.h&quot; missing, using backup &quot;/header/shared/bak/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\defines.h&quot; &quot;$(ProjectDir)header\shared\&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;if not exist &quot;$(ProjectDir)header\shared\errors.h&quot; (&#x0D;&#x0A;echo Shared header &quot;/header/shared/errors.h&quot; missing, using backup &quot;/header/shared/bak/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\bak\errors.h&quot; &quot;$(ProjectDir)header\shared\&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				EnableFiberSafeOptimizations="true"
+				WholeProgramOptimization="true"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\header&quot;;&quot;$(SolutionDir)\Plog\include&quot;"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;_SECURE_SCL=0;STDLIB_EXPORTS;HAS_MT4_MANAGER_API"
+				StringPooling="true"
+				MinimalRebuild="true"
+				ExceptionHandling="1"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				EnableEnhancedInstructionSet="2"
+				DefaultCharIsUnsigned="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+				CallingConvention="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="shlwapi.lib version.lib winmm.lib ws2_32.lib"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Post-build event:"
+				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -300,6 +389,10 @@
 				</File>
 				<File
 					RelativePath=".\header\shared\errors.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\shared\metaquotes.h"
 					>
 				</File>
 			</Filter>
@@ -419,6 +512,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\config.cpp"
@@ -433,6 +534,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -459,6 +568,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\datetime.cpp"
@@ -473,6 +590,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -499,6 +624,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\file.cpp"
@@ -513,6 +646,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -539,6 +680,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\helper.cpp"
@@ -553,6 +702,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -579,6 +736,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\math.cpp"
@@ -593,6 +758,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -619,6 +792,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\memory.cpp"
@@ -633,6 +814,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -659,6 +848,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\string.cpp"
@@ -673,6 +870,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -699,6 +904,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\tester.cpp"
@@ -713,6 +926,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -739,6 +960,14 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\lib\virtual.cpp"
@@ -753,6 +982,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -783,6 +1020,14 @@
 							ObjectFile="$(IntDir)\struct\"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\struct\"
+						/>
+					</FileConfiguration>
 				</File>
 				<Filter
 					Name="win32"
@@ -800,6 +1045,14 @@
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"
@@ -826,6 +1079,14 @@
 								ObjectFile="$(IntDir)\struct\win32\"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\struct\win32\StartupInfo.cpp"
@@ -840,6 +1101,14 @@
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"
@@ -866,6 +1135,14 @@
 								ObjectFile="$(IntDir)\struct\win32\"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\win32\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\struct\win32\Win32FindData.cpp"
@@ -880,6 +1157,14 @@
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\win32\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"
@@ -910,6 +1195,14 @@
 								ObjectFile="$(IntDir)\struct\mt4\"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\mt4\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\struct\mt4\Symbol.cpp"
@@ -930,6 +1223,14 @@
 								ObjectFile="$(IntDir)\struct\mt4\"
 							/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\mt4\"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath=".\src\struct\mt4\SymbolGroup.cpp"
@@ -944,6 +1245,14 @@
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\struct\mt4\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"
@@ -972,6 +1281,14 @@
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\mql4\indicators\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"

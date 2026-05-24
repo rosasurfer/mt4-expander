@@ -1661,15 +1661,15 @@ const char* WINAPI ProgramTypeToStr(ProgramType type) {
  */
 const char* WINAPI OperationTypeDescription(int type) {
    switch (type) {
-      case OP_BUY      : return("Buy"       );
-      case OP_SELL     : return("Sell"      );
-      case OP_BUYLIMIT : return("Buy Limit" );
-      case OP_SELLLIMIT: return("Sell Limit");
-      case OP_BUYSTOP  : return("Stop Buy"  );
-      case OP_SELLSTOP : return("Stop Sell" );
-      case OP_BALANCE  : return("Balance"   );
-      case OP_CREDIT   : return("Credit"    );
-      case OP_UNDEFINED: return("undefined" );
+      case OP_BUY       : return("Buy"       );
+      case OP_SELL      : return("Sell"      );
+      case OP_BUY_LIMIT : return("Buy Limit" );
+      case OP_SELL_LIMIT: return("Sell Limit");
+      case OP_BUY_STOP  : return("Stop Buy"  );
+      case OP_SELL_STOP : return("Stop Sell" );
+      case OP_BALANCE   : return("Balance"   );
+      case OP_CREDIT    : return("Credit"    );
+      case OP_UNDEFINED : return("undefined" );
    }
    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
    #pragma EXPANDER_EXPORT
@@ -1685,15 +1685,15 @@ const char* WINAPI OperationTypeDescription(int type) {
  */
 const char* WINAPI OperationTypeToStr(int type) {
    switch (type) {
-      case OP_BUY      : return("OP_BUY"      );
-      case OP_SELL     : return("OP_SELL"     );
-      case OP_BUYLIMIT : return("OP_BUYLIMIT" );
-      case OP_SELLLIMIT: return("OP_SELLLIMIT");
-      case OP_BUYSTOP  : return("OP_BUYSTOP"  );
-      case OP_SELLSTOP : return("OP_SELLSTOP" );
-      case OP_BALANCE  : return("OP_BALANCE"  );
-      case OP_CREDIT   : return("OP_CREDIT"   );
-      case OP_UNDEFINED: return("OP_UNDEFINED");
+      case OP_BUY       : return("OP_BUY"       );
+      case OP_SELL      : return("OP_SELL"      );
+      case OP_BUY_LIMIT : return("OP_BUY_LIMIT" );
+      case OP_SELL_LIMIT: return("OP_SELL_LIMIT");
+      case OP_BUY_STOP  : return("OP_BUY_STOP"  );
+      case OP_SELL_STOP : return("OP_SELL_STOP" );
+      case OP_BALANCE   : return("OP_BALANCE"   );
+      case OP_CREDIT    : return("OP_CREDIT"    );
+      case OP_UNDEFINED : return("OP_UNDEFINED" );
    }
    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not an operation type)", type));
    #pragma EXPANDER_EXPORT

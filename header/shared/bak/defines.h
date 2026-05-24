@@ -223,10 +223,10 @@
 #define OP_LONG                            OP_BUY
 #define OP_SELL                                 1        // short position
 #define OP_SHORT                          OP_SELL
-#define OP_BUYLIMIT                             2        // buy limit order
-#define OP_SELLLIMIT                            3        // sell limit order
-#define OP_BUYSTOP                              4        // stop buy order
-#define OP_SELLSTOP                             5        // stop sell order
+#define OP_BUY_LIMIT                            2        // buy limit order
+#define OP_SELL_LIMIT                           3        // sell limit order
+#define OP_BUY_STOP                             4        // stop buy order
+#define OP_SELL_STOP                            5        // stop sell order
 #define OP_BALANCE                              6        // account debit or credit transaction
 #define OP_CREDIT                               7        // margin credit facility (no transaction)
 
@@ -384,11 +384,12 @@
 
 
 // init() flags
-#define INIT_TIMEZONE                           1        // initialize/check the timezone configuration
-#define INIT_PIPVALUE                           2        // check availability of the current pip value (requires tick size and value)
+#define INIT_TIMEZONE                           1        // ensure a valid timezone configuration
+#define INIT_PIPVALUE                           2        // check availability of the current pip value (requires tick size and tick value)
 #define INIT_BARS_ON_HIST_UPDATE                4        //
-#define INIT_NO_BARS_REQUIRED                   8        // executable without price history (scripts only)
+#define INIT_NO_BARS_REQUIRED                   8        // program operates without price history (scripts only)
 #define INIT_BUFFERED_LOG                      16        // setup a logfile buffer for logging
+#define INIT_AUTO_TRADING                      32        // ensure that auto-trading is enabled
 
 
 // MT4 internal messages

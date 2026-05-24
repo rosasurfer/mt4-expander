@@ -9,4 +9,5 @@
 #endif
 
 #define WIN32_LEAN_AND_MEAN            // exclude rarely-used stuff from Windows headers
+#include <winsock2.h>                  // must be included before windows.h
 #include <windows.h>
