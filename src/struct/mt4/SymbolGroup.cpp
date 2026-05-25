@@ -1,7 +1,7 @@
 /**
- * MT4 struct SYMBOL_GROUP (file format of "symgroups.raw")
+ * MT4 struct SYMBOL_GROUP and file format of "<data-directory>/history/<trade-server>/symgroups.raw"
  *
- * The file size is fix, a file always contains 32 groups. Unused group entries are empty (zeroed).
+ * The file size is fix, a file always contains 32 groups. Unused group entries are empty (zero-ed).
  */
 #include "expander.h"
 #include "struct/mt4/SymbolGroup.h"
@@ -143,7 +143,7 @@ const char* WINAPI sg_SetDescription(SYMBOL_GROUP* sg, const char* description) 
 
 
 /**
- * Set SYMBOL_GROUP's color in the "Market Watch" window.
+ * Set a SYMBOL_GROUP's color in the "Market Watch" window.
  *
  * @param  SYMBOL_GROUP* sg
  * @param  uint          color

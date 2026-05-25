@@ -4,7 +4,7 @@
 
 #pragma pack(push, 1)
 /**
- * MT4 struct TICK (file format of "ticks.raw")
+ * MT4 struct TICK (file format of "<data-directory>/history/<trade-server>/ticks.raw")
  */
 struct TICK {                                      // -- offset ---- size --- description ----------------------------------------------------------------------------
    char   symbol[MAX_SYMBOL_LENGTH+1];             //         0        12     symbol

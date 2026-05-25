@@ -1,13 +1,14 @@
 #pragma once
 
 #pragma warning(push)
+
+#pragma warning(error: 4005)                                // promote warning "macro redefinition" to an error
 #pragma warning(disable:4127)                               // conditional expression is constant
 #pragma warning(disable:4706)                               // assignment within conditional expression
 
 #pragma warning(disable:4100)                               // unreferenced formal parameter
 #pragma warning(disable:4101)                               // unreferenced local variable
 #pragma warning(disable:4189)                               // local variable is initialized but not referenced
-
 #pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
 
 #define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
@@ -50,7 +51,7 @@ using std::wstring;
 #define MAX_CHARTDESCRIPTION_LENGTH    ((MAX_SYMBOL_LENGTH) + 1 + 7) // e.g. "SYMBOL,Monthly"
 
 #if !defined(MAX_PATH)                                      // e.g. the max. path on drive D is "D:\some-256-chars-path-string<NUL>"
- #define MAX_PATH                      _MAX_PATH            // max. length of full pathname
+   #define MAX_PATH                    _MAX_PATH            // max. length of full pathname
 #endif
 #define MAX_DRIVE                      _MAX_DRIVE           // max. length of drive component
 #define MAX_DIR                        _MAX_DIR             // max. length of path component
