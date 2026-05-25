@@ -77,7 +77,7 @@ struct EXECUTION_CONTEXT {                            // -- offset --- size --- 
    char*              dllWarningMsg;                  //       692        4     DLL warning message                                       (var)
    int                dllError;                       //       696        4     last DLL error                                            (var)
    char*              dllErrorMsg;                    //       700        4     DLL error message                                         (var)
-   int                mqlError;                       //       704        4     last MQL error (of all MQL modules)                       (var)
+   int                mqlError;                       //       704        4     last MQL error of all MQL modules                         (var)
                                                       //
    DWORD              debugOptions;                   //       708        4     specified command line debug options                      (var)
    int                loglevel;                       //       712        4     program main loglevel                                     (var)

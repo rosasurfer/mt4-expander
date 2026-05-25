@@ -407,10 +407,6 @@
 					RelativePath=".\header\struct\ExecutionContext.h"
 					>
 				</File>
-				<File
-					RelativePath=".\header\struct\LogMessage.h"
-					>
-				</File>
 				<Filter
 					Name="mt4"
 					>
