@@ -4,9 +4,9 @@
 
 #pragma pack(push, 1)
 /**
- * MT4 struct SYMBOL_GROUP (file format of "symgroups.raw")
+ * MT4 struct SYMBOL_GROUP and file format of "<data-directory>/history/<trade-server>/symgroups.raw"
  *
- * The file size is fix, a file always contains 32 groups. Unused group entries are empty (zeroed).
+ * The file size is fix, a file always contains 32 groups. Unused group entries are empty (zero-ed).
  */
 struct SYMBOL_GROUP {                              // -- offset ---- size --- description -----------------------------------
    char name       [16];                           //         0        16     group name

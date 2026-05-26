@@ -222,12 +222,14 @@ double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec) {
 /**
  * @return int
  */
-int WINAPI Test_synchronize() {
-   char* s1 = "Hello";
-   char* s2 = " world";
-   char* result = strcat(strcat((char*) alloca(strlen(s1) + strlen(s2) + 2), s1), s2);
-   debug("s1=\"%s\"  s2=\"%s\"  result=\"%s\"", s1, s2, result);                       // TODO: fix me
+int WINAPI Test() {
+
+   //debug("sizeof(ConSessions)        = %d", sizeof(ConSessions));
+   //debug("offset(ConSymbol.sessions) = %d", offsetof(ConSymbol, sessions));
+   //debug("offset(ConSymbol.spread)   = %d", offsetof(ConSymbol, spread));
+
    return(0);
+   //#pragma EXPANDER_EXPORT
 }
 
 
@@ -239,7 +241,6 @@ int WINAPI Test_synchronize() {
 int WINAPI Tester_Test(HWND hWnd) {
 
    return((1, 2));
-
 
    RECT rect;
    if (!GetWindowRect(hWnd, &rect)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindowRect(hWnd=%p) failed", hWnd));

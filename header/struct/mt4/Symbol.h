@@ -1,12 +1,14 @@
 #pragma once
 #include "expander.h"
 
+#define MAX_SYMBOLS 1024                           // max. number of symbols "symbols.raw" must contain
+
 
 #pragma pack(push, 1)
 /**
- * MT4 struct SYMBOL (file format of "symbols.raw")
+ * MT4 struct SYMBOL and file format of "<data-directory>/history/<trade-server>/symbols.raw"
  *
- * All symbols of a file are sorted alphabetically by field "name".
+ * All symbols of a file are sorted alphabetically by SYMBOL.name.
  */
 struct SYMBOL {                                    // -- offset ---- size --- description -------------------------------------------------------------------
    char   name        [MAX_SYMBOL_LENGTH+1];       //         0        12     broker symbol (e.g. "AUDCAD.m")
