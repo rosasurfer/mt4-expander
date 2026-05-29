@@ -26,23 +26,26 @@ After a successfull build the post-build event creates new backups of the curren
 ```bash
 :: Pre-build event
 if not exist "$(ProjectDir)header\shared\defines.h" (
-   echo Shared header "$(ProjectDir)header\shared\defines.h" missing, using backup...
-   copy "$(ProjectDir)header\shared\bak\defines.h" "$(ProjectDir)header\shared\"
+   echo Shared header "/header/shared/defines.h" missing, using backup "/header/shared/bak/defines.h"...
+   copy "$(ProjectDir)header\shared\bak\defines.h" "$(ProjectDir)header\shared\" || exit 1
 )
 if not exist "$(ProjectDir)header\shared\errors.h" (
-   echo Shared header "$(ProjectDir)header\shared\errors.h" missing, using backup...
-   copy "$(ProjectDir)header\shared\bak\errors.h" "$(ProjectDir)header\shared\"
+   echo Shared header "/header/shared/errors.h" missing, using backup "/header/shared/bak/errors.h"...
+   copy "$(ProjectDir)header\shared\bak\errors.h" "$(ProjectDir)header\shared\" || exit 1
 )
 ```
 
 ```bash
 :: Post-build event
-echo Backing up shared header files...
-copy "$(ProjectDir)header\shared\*.h" "$(ProjectDir)header\shared\bak\"
+echo Backup shared header "/header/shared/defines.h"...
+copy "$(ProjectDir)header\shared\defines.h" "$(ProjectDir)header\shared\bak\" || exit 1
+
+echo Backup shared header "/header/shared/errors.h"...
+copy "$(ProjectDir)header\shared\errors.h" "$(ProjectDir)header\shared\bak\" || exit 1
 
 if exist "$(ProjectDir)bin\mql4-libraries\" (
-   echo Copying DLL to MetaTrader MQL libraries...
-   copy "$(TargetPath)" "$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)"
+    echo Copy DLL to MQL library folder...
+    copy "$(TargetPath)" "$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)" || exit 1
 )
 ```
 <br>
