@@ -2,6 +2,7 @@
 
 #define  NOMINMAX                      // another way to prevent std::min|max errors is the syntax std::min<int>(a, b)
 #define _USE_32BIT_TIME_T
+#define _WIN32_WINNT 0x0601            // target Windows 7/Server 2008 R2
 
 #ifdef _DEBUG
    #define _CRTDBG_MAP_ALLOC
