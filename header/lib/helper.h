@@ -17,8 +17,8 @@ BOOL        WINAPI IsProgramType(int type);
 BOOL        WINAPI IsUIThread(DWORD threadId = NULL);
 BOOL        WINAPI IsVirtualKeyDown(int key);
 BOOL        WINAPI IsWindowAreaVisible(HWND hWnd);
-const char* WINAPI MD5Hash(const void* input, uint length);
-const char* WINAPI MD5HashA(const char* input);
+char*       WINAPI MD5Hash(const void* input, uint length);
+char*       WINAPI MD5HashA(const char* input);
 uint        WINAPI MT4InternalMsg();
 uint        WINAPI WM_MT4();
 
@@ -38,6 +38,6 @@ BOOL        WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* val
 
 int         WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name);
 double      WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name);
-const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name);
+char*       WINAPI RemoveWindowStringA(HWND hWnd, const char* name);
 
 void        WINAPI ReleaseWindowProperties();

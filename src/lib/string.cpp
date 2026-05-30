@@ -103,7 +103,7 @@ std::istream& getline(std::istream &is, std::string &line) {
  * @return char* - the same string or NULL in case of errors
  */
 const char* WINAPI GetStringA(const char* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value);
    return value;
    #pragma EXPANDER_EXPORT
 }
@@ -118,7 +118,7 @@ const char* WINAPI GetStringA(const char* value) {
  * @return wchar* - the same string or NULL in case of errors
  */
 const wchar* WINAPI GetStringW(const wchar* value) {
-   if (value && (uint)value < MIN_VALID_POINTER) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   if (value && (uint)value < MIN_VALID_POINTER) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value);
    return value;
    #pragma EXPANDER_EXPORT
 }
@@ -1065,21 +1065,19 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
  *
  * @return char* - formatted string or NULL in case of errors
  *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
- *
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 char* __cdecl asformat(const char* format, ...) {
-   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
-   if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+   if (!format)  return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
+   if (!*format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)");
 
    va_list args;
    va_start(args, format);
    char* result = _asformat(format, args);
    va_end(args);
 
-   return(result);
+   return result;                   // caller must free()
 }
 
 
@@ -1091,8 +1089,6 @@ char* __cdecl asformat(const char* format, ...) {
  * @param         ...    - variable number of arguments (may contain ANSI strings)
  *
  * @return wchar* - formatted string or NULL in case of errors
- *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  *
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
@@ -1106,7 +1102,7 @@ wchar* __cdecl asformat(const wchar* format, ...) {
    wchar* result = _asformat(format, args);
    va_end(args);
 
-   return(result);
+   return(result);                              // caller must free()
 }
 
 
@@ -1119,21 +1115,19 @@ wchar* __cdecl asformat(const wchar* format, ...) {
  *
  * @return char* - formatted string or NULL in case of errors
  *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
- *
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 char* WINAPI _asformat(const char* format, const va_list &args) {
-   if (!format)  return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
-   if (!*format) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+   if (!format)  return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
+   if (!*format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)");
 
-   uint size = vscprintf(format, args) + 1;        // +1 for the terminating null char
+   uint size = vscprintf(format, args) + 1;     // +1 for the terminating null char
    char* buffer = (char*)malloc(size);
    if (buffer) {
       vsprintf_s(buffer, size, format, args);
    }
-   return(buffer);
+   return buffer;                               // caller must free()
 }
 
 
@@ -1146,19 +1140,17 @@ char* WINAPI _asformat(const char* format, const va_list &args) {
  *
  * @return wchar* - formatted string or NULL in case of errors
  *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
- *
  * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
  * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
-   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
-   if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+   if (!format)  return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
+   if (!*format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)");
 
-   uint size = vwscprintf(format, args) + 1;             // +1 for the terminating NUL wchar
+   uint size = vwscprintf(format, args) + 1;       // +1 for the terminating NUL wchar
    wchar* buffer = (wchar*)malloc(size * sizeof(wchar));
    if (buffer) {
       vwsprintf_s(buffer, size, format, args);
    }
-   return(buffer);
+   return buffer;                                  // caller must free()
 }

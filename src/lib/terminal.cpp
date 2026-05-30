@@ -90,9 +90,9 @@ BOOL WINAPI IsPortableMode() {
  *
  * @return char* - directory name (last segment of the full path) or NULL in case of errors
  */
-const char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
-   if ((uint)filename < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
-   if (!*filename)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)"));
+char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
+   if ((uint)filename < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename);
+   if (!*filename)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)");
 
    const char* hstRootPath = GetHistoryRootPathA();
    if (!hstRootPath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetHistoryRootPathA() => NULL");
@@ -100,7 +100,7 @@ const char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) 
    string pattern = string(hstRootPath).append("\\*");
    WIN32_FIND_DATA wfd = {};
    HANDLE hFind = FindFirstFileA(pattern.c_str(), &wfd);
-   if (hFind == INVALID_HANDLE_VALUE) return((char*)!error(ERR_FILE_NOT_FOUND, "directory \"%s\" not found", pattern.c_str()));
+   if (hFind == INVALID_HANDLE_VALUE) return (char*)!error(ERR_FILE_NOT_FOUND, "directory \"%s\" not found", pattern.c_str());
 
    char* hstDirectory = NULL;
    BOOL next = TRUE;
@@ -122,7 +122,7 @@ const char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) 
    }
    FindClose(hFind);
 
-   return sdup(hstDirectory);
+   return sdup(hstDirectory);          // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -211,7 +211,7 @@ const char* WINAPI GetExpanderFileNameA() {
 
       char* tmp = utf16ToAnsi(wname);
       if (!filename) filename = tmp;
-      else free(tmp);                        // another thread may have been faster
+      else           free(tmp);           // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -238,7 +238,7 @@ const wchar* WINAPI GetExpanderFileNameW() {
 
       wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
-      else free(tmp);                        // another thread may have been faster
+      else           free(tmp);           // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -285,7 +285,7 @@ const char* WINAPI GetHistoryRootPathA() {
 
       char* tmp = utf16ToAnsi(wpath);
       if (!hstDirectory) hstDirectory = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else               free(tmp);          // another thread may have been faster
    }
    return hstDirectory;
    #pragma EXPANDER_EXPORT
@@ -307,7 +307,7 @@ const wchar* WINAPI GetHistoryRootPathW() {
       wstring path = wstring(dataPath).append(L"\\history");
       wchar* tmp = wsdup(path.c_str());
       if (!hstDirectory) hstDirectory = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else               free(tmp);          // another thread may have been faster
    }
    return(hstDirectory);
    #pragma EXPANDER_EXPORT
@@ -328,7 +328,7 @@ const char* WINAPI GetMqlDirectoryA() {
 
       char* tmp = utf16ToAnsi(wdirectory);
       if (!mqlDirectory) mqlDirectory = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else               free(tmp);          // another thread may have been faster
    }
    return mqlDirectory;
    #pragma EXPANDER_EXPORT
@@ -353,7 +353,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
 
       wchar* tmp = wsdup(path.c_str());
       if (!mqlDirectory) mqlDirectory = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else               free(tmp);          // another thread may have been faster
    }
    return mqlDirectory;
    #pragma EXPANDER_EXPORT
@@ -377,7 +377,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
 
          char* tmp = utf16ToAnsi(wpath);
          if (!testerPath) testerPath = tmp;
-         else free(tmp);               // another thread may have been faster
+         else             free(tmp);         // another thread may have been faster
       }
       return testerPath;
    }
@@ -388,7 +388,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
 
       char* tmp = utf16ToAnsi(wpath);
       if (!onlinePath) onlinePath = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else             free(tmp);            // another thread may have been faster
    }
    return onlinePath;
    #pragma EXPANDER_EXPORT
@@ -449,7 +449,7 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
       char* tmp = utf16ToAnsi(wpath);
       if (!path) path = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else       free(tmp);            // another thread may have been faster
    }
    return path;
    #pragma EXPANDER_EXPORT
@@ -470,13 +470,13 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
    if (!path) {
       wchar appDataPath[MAX_PATH];
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
-         return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->SHGetFolderPath()"));
+         return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->SHGetFolderPath()");
       }
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");
 
       wchar* tmp = wsdup(dir.c_str());
       if (!path) path = tmp;
-      else free(tmp);                     // another thread may have been faster
+      else       free(tmp);            // another thread may have been faster
    }
    return(path);
    #pragma EXPANDER_EXPORT
@@ -499,7 +499,7 @@ const char* WINAPI GetTerminalDataPathA() {
 
       char* tmp = utf16ToAnsi(wpath);
       if (!dataPath) dataPath = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else           free(tmp);        // another thread may have been faster
    }
    return dataPath;
    #pragma EXPANDER_EXPORT
@@ -590,7 +590,7 @@ const wchar* WINAPI GetTerminalDataPathW() {
          // TODO: implement UAC check
       }
       if (!dataPath) dataPath = wtmp;
-      else free(wtmp);                    // another thread may have been faster
+      else           free(wtmp);       // another thread may have been faster
    }
    return dataPath;
    #pragma EXPANDER_EXPORT
@@ -644,7 +644,7 @@ const char* WINAPI GetTerminalFileNameA() {
 
       char* tmp = utf16ToAnsi(wfilename);
       if (!filename) filename = tmp;
-      else free(tmp);                                    // another thread may have been faster
+      else           free(tmp);        // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -668,13 +668,13 @@ const wchar* WINAPI GetTerminalFileNameW() {
          buffer = (wchar*) alloca(size * sizeof(wchar));    // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);   // may return a path longer than MAX_PATH
       }
-      if (!length) return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetModuleFileName()"));
+      if (!length) return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->GetModuleFileName()");
 
       wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
-      else free(tmp);                                       // another thread may have been faster
+      else           free(tmp);                             // another thread may have been faster
    }
-   return(filename);
+   return filename;
    #pragma EXPANDER_EXPORT
 }
 
@@ -694,7 +694,7 @@ const char* WINAPI GetTerminalPathA() {
 
       char* tmp = utf16ToAnsi(wpath);
       if (!path) path = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else       free(tmp);            // another thread may have been faster
    }
    return path;
    #pragma EXPANDER_EXPORT
@@ -717,9 +717,9 @@ const wchar* WINAPI GetTerminalPathW() {
       wchar* tmp = wsdup(filename);
       tmp[wstring(tmp).find_last_of(L"\\")] = '\0';
       if (!path) path = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else       free(tmp);            // another thread may have been faster
    }
-   return(path);
+   return path;
    #pragma EXPANDER_EXPORT
 }
 
@@ -740,7 +740,7 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
 
       char* tmp = utf16ToAnsi(wpath);
       if (!path) path = tmp;
-      else free(tmp);                  // another thread may have been faster
+      else       free(tmp);         // another thread may have been faster
    }
    return path;
    #pragma EXPANDER_EXPORT
@@ -760,7 +760,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
    if (!result) {
       wchar appDataPath[MAX_PATH];
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
-         return((wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->SHGetFolderPath()"));
+         return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "->SHGetFolderPath()");
       }
       wstring terminalPath(GetTerminalPathW());
       strToUpper(terminalPath);
@@ -772,7 +772,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
 
       wchar* tmp = wsdup(dir.c_str());
       if (!result) result = tmp;
-      else free(tmp);                     // another thread may have been faster
+      else         free(tmp);       // another thread may have been faster
    }
    return result;
    #pragma EXPANDER_EXPORT
@@ -811,7 +811,7 @@ const char* WINAPI GetTerminalVersion() {
       VS_FIXEDFILEINFO fileInfo = {};
       if      (GetTerminalVersionFromImage(fileInfo)) {}
       else if (GetTerminalVersionFromFile(fileInfo)) {}
-      else return(NULL);
+      else return NULL;
 
       uint major  = (fileInfo.dwFileVersionMS >> 16) & 0xffff;
       uint minor  = (fileInfo.dwFileVersionMS      ) & 0xffff;
@@ -822,7 +822,7 @@ const char* WINAPI GetTerminalVersion() {
       if (!version) version = tmp;
       else          free(tmp);         // another thread may have been faster
    }
-   return(version);
+   return version;
    #pragma EXPANDER_EXPORT
 }
 

@@ -1732,14 +1732,14 @@ int WINAPI ec_SetLoglevelTelegram(EXECUTION_CONTEXT* ec, int level) {
  * @return char* - the same filename or NULL in case of errors
  */
 const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename) {
-   if ((uint)ec < MIN_VALID_POINTER)          return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER)          return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
    if (filename) {
-      if ((uint)filename < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename));
+      if ((uint)filename < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename);
    }
 
    uint pid = ec->pid;
-   if (!pid)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid);
 
    const char* _filename = (filename && *filename) ? filename : NULL;   // empty string => NULL
 
@@ -1763,10 +1763,10 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
                }
             }
          }
-         return(filename);
+         return filename;
       }
    }
-   return((char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1777,7 +1777,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
  *
  * @return char*
  */
-const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
+char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
    if ((uint)ec < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
 
    std::ostringstream ss;
@@ -1856,9 +1856,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << "}";
    }
    ss << asformat(" (0x%p)", ec);
-   char* result = sdup(ss.str().c_str());                               // TODO: add to GC (close memory leak)
-
-   return(result);
+   return sdup(ss.str().c_str());      // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -1870,7 +1868,7 @@ const char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
  *
  * @return char*
  */
-const char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
-   return(EXECUTION_CONTEXT_toStr(ec));
+char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
+   return EXECUTION_CONTEXT_toStr(ec);
    #pragma EXPANDER_EXPORT
 }

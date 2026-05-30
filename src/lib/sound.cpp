@@ -101,7 +101,7 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
 
       case MCIERR_NO_IDENTITY             : return("MCIERR_NO_IDENTITY"             );
    }
-   return(asformat("%hu", lowWord));
+   return asformat("%hu", lowWord);       // TODO: mixed memory location (add to GC)
 }
 
 

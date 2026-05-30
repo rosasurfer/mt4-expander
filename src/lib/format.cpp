@@ -16,6 +16,7 @@
  */
 char* WINAPI NumberFormat(double value, const char* format) {
    if (format && (uint)format < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: 0x%p (not a valid pointer)", format));
-   return(asformat(format, value));
+
+   return asformat(format, value);           // caller must free()
    #pragma EXPANDER_EXPORT
 }
