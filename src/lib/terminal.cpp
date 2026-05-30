@@ -64,15 +64,14 @@ void WINAPI CustomizeTerminal() {
 
 
 /**
- * Parse command line arguments and return the flags of all specified and supported options.
+ * Parse command line arguments and return the flags of supported and enabled CLI options.
  *
  * @return DWORD - option flags
  */
 DWORD WINAPI GetCliOptions() {
-   static DWORD options = 0;                          // bit mask of specified options
-   static BOOL initialized = FALSE;
+   static DWORD options = MAXDWORD;                   // bit mask of specified options
 
-   if (!initialized) {
+   if (options == MAXDWORD) {
       int argc = 0;
       LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
       if (!argv) return !error(ERR_WIN32_ERROR + GetLastError(), "CommandLineToArgvW()");
@@ -106,10 +105,9 @@ DWORD WINAPI GetCliOptions() {
       }
       LocalFree(argv);
 
-      if (!initialized) {                             // another thread may have been faster
+      if (options == MAXDWORD) {                      // another thread may have been faster
          options = _options;
       }
-      initialized = TRUE;
    }
    return options;
    #pragma EXPANDER_EXPORT
@@ -117,29 +115,12 @@ DWORD WINAPI GetCliOptions() {
 
 
 /**
- * Whether a single command line option is set.
+ * Return the flags of enabled debug options.
  *
- * @return DWORD flag - option flag, one of:
- *                      OPTION_PORTABLE_MODE:           test for option "/portable"
- *                      OPTION_DEBUG_ACCOUNT_NUMBER:    test for option "/rsf:debug-accountnumber"
- *                      OPTION_DEBUG_ACCOUNT_SERVER:    test for option "/rsf:debug-accountserver"
- *                      OPTION_DEBUG_EXECUTION_CONTEXT: test for option "/rsf:debug-ec"
- *                      OPTION_DEBUG_INDICATOR_LIST:    test for option "/rsf:debug-indicatorlist"
- *                      OPTION_DEBUG_OBJECT_CREATE:     test for option "/rsf:debug-objectcreate"
- * @return BOOL
+ * @return DWORD - option flags
  */
-BOOL WINAPI IsCliOption(DWORD flag) {
-   switch (flag) {
-      case OPTION_PORTABLE_MODE:
-      case OPTION_DEBUG_ACCOUNT_NUMBER:
-      case OPTION_DEBUG_ACCOUNT_SERVER:
-      case OPTION_DEBUG_EXECUTION_CONTEXT:
-      case OPTION_DEBUG_INDICATOR_LIST:
-      case OPTION_DEBUG_OBJECT_CREATE:
-         return GetCliOptions() & flag;
-   }
-   error(ERR_INVALID_PARAMETER, "unsupported flag: %d", flag);
-   return FALSE;
+DWORD WINAPI GetDebugOptions() {
+   return GetCliOptions() & ~OPTION_PORTABLE_MODE;
    #pragma EXPANDER_EXPORT
 }
 

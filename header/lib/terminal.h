@@ -4,7 +4,7 @@
 
 void         WINAPI CustomizeTerminal();
 DWORD        WINAPI GetCliOptions();
-BOOL         WINAPI IsCliOption(DWORD flag);
+DWORD        WINAPI GetDebugOptions();
 char*        WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile);
 HWND         WINAPI FindInputDialogA(ProgramType programType, const char* programName);
 const char*  WINAPI GetExpanderFileNameA();
