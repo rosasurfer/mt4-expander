@@ -50,8 +50,6 @@ DWORD WINAPI GetLastWin32Error() {
  * @param  HWND hWnd - window handle
  *
  * @return char* - text (may be empty) or NULL in case of errors
- *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 char* WINAPI GetInternalWindowTextA(HWND hWnd) {
    wchar* utf16Text = GetInternalWindowTextW(hWnd);
@@ -60,7 +58,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
    char* ansiText = utf16ToAnsi(utf16Text);
    free(utf16Text);
 
-   return ansiText;
+   return ansiText;               // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -72,8 +70,6 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  * @param  HWND hWnd - window handle
  *
  * @return wchar* - text (may be empty) or NULL in case of errors
- *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
    if (!IsWindow(hWnd)) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -95,7 +91,7 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
          return((wchar*)!error(ERR_WIN32_ERROR+error, "->InternalGetWindowText()"));
       }
    }
-   return(buffer);
+   return(buffer);            // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -107,8 +103,6 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
  * @param  HWND hWnd - window handle
  *
  * @return char* - text (may be empty) or NULL in case of errors
- *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 char* WINAPI GetWindowTextA(HWND hWnd) {
    wchar* utf16Text = GetWindowTextW(hWnd);
@@ -117,7 +111,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
    char* ansiText = utf16ToAnsi(utf16Text);
    free(utf16Text);
 
-   return ansiText;
+   return ansiText;             // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -129,8 +123,6 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  * @param  HWND hWnd - window handle
  *
  * @return wchar* - text (may be empty) or NULL in case of errors
- *
- * Note: The caller is responsible for releasing the string's memory after usage with "free()".
  */
 wchar* WINAPI GetWindowTextW(HWND hWnd) {
    if (!IsWindow(hWnd)) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
@@ -152,7 +144,7 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
          return((wchar*)!error(ERR_WIN32_ERROR+error, "->GetWindowTextW()"));
       }
    }
-   return(buffer);
+   return(buffer);              // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -499,16 +491,17 @@ double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
  * @return char* - stored string or a NULL pointer if the name was not found or in case of errors
  */
 const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!IsWindow(hWnd))                return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    StringMap::iterator result = g_stringWndProperties.find(key);
 
-   if (result != g_stringWndProperties.end())
-      return(result->second.c_str());
-   return(NULL);
+   if (result != g_stringWndProperties.end()) {
+      return result->second.c_str();
+   }
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -642,10 +635,10 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
  *
  * @return char* - removed string or a NULL pointer if the name was not found or in case of errors
  */
-const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
+   if (!IsWindow(hWnd))                return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    StringMap::iterator result = g_stringWndProperties.find(key);
@@ -653,9 +646,9 @@ const char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
    if (result != g_stringWndProperties.end()) {
       string value = result->second;
       g_stringWndProperties.erase(result);      // invalidates result and releases result->second
-      return sdup(value.c_str());               // TODO: close memory leak
+      return sdup(value.c_str());               // caller must free()
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -721,22 +714,22 @@ uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, 
  *
  * @return char* - MD5 hash or NULL in case of errors
  */
-const char* WINAPI MD5Hash(const void* input, uint length) {
-   if ((uint)input < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
-   if (length < 1)                      return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length));
+char* WINAPI MD5Hash(const void* input, uint length) {
+   if ((uint)input < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input);
+   if (length < 1)                      return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length);
 
    MD5Context context;
    MD5_Init(&context);
    MD5_Update(&context, input, length);
-   uchar buffer[16];                                                 // on the stack
-   MD5_Final((uchar*)&buffer, &context);                             // fill buffer with binary MD5 hash (16 bytes)
+   uchar buffer[16];                            // on the stack
+   MD5_Final((uchar*)&buffer, &context);        // fill buffer with binary MD5 hash (16 bytes)
 
-   std::ostringstream ss;                                            // convert hash to hex string (32 chars)
+   std::ostringstream ss;                       // convert hash to hex string (32 chars)
    ss << std::hex;
    for (uint i=0; i < 16; i++) {
       ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
    }
-   return sdup(ss.str().c_str());                                    // TODO: close memory leak
+   return sdup(ss.str().c_str());               // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -748,10 +741,10 @@ const char* WINAPI MD5Hash(const void* input, uint length) {
  *
  * @return char* - MD5 hash or NULL in case of errors
  */
-const char* WINAPI MD5HashA(const char* input) {
-   if ((uint)input < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input));
+char* WINAPI MD5HashA(const char* input) {
+   if ((uint)input < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input);
 
-   return(MD5Hash(input, strlen(input)));
+   return MD5Hash(input, strlen(input));        // caller must free()
    #pragma EXPANDER_EXPORT
 }
 

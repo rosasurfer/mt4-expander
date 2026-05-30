@@ -23,8 +23,8 @@
 //BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
 //   // Es ist schneller, immer globale und lokale Konfiguration auszuwerten (intern jeweils nur ein Aufruf von GetPrivateProfileString()).
 //   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
-//   //return(GetTerminalConfigBool(section, key, result));
-//   return(FALSE);
+//   //return GetTerminalConfigBool(section, key, result);
+//   return FALSE;
 //}
 
 
@@ -39,18 +39,18 @@
  * @return BOOL - success status
  */
 BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-   if ((uint)section  < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
-   if ((uint)key      < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
-   if (!*key)                              return(!error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
+   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
+   if ((uint)key      < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key);
+   if (!*key)                              return !error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)");
 
    if (!WritePrivateProfileStringA(section, key, NULL, fileName)) {
       int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return(!error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key));
+      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key);
    }
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -65,16 +65,16 @@ BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char*
  * @return BOOL - success status
  */
 BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-   if ((uint)section  < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
+   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
 
    if (!WritePrivateProfileStringA(section, NULL, NULL, fileName)) {
       int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return(!error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section));
+      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section);
    }
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -90,18 +90,18 @@ BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
  * @return BOOL - success status
  */
 BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-   if ((uint)section  < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
+   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
 
    char values[2] = {};                   // an empty string (NULL) followed by a second NULL terminator
 
    if (!WritePrivateProfileSectionA(section, values, fileName)) {
       int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return(!error(ERR_WIN32_ERROR+error, "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section));
+      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR+error, "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section);
    }
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -119,12 +119,12 @@ const char* WINAPI GetGlobalConfigPathA() {
 
    if (!configPath) {
       const char* commonDataPath = GetTerminalCommonDataPathA();
-      if (!commonDataPath) return(NULL);
+      if (!commonDataPath) return NULL;
 
       string filename = string(commonDataPath).append("\\global-config.ini");
       char* tmp = sdup(filename.c_str());
       if (!configPath) configPath = tmp;
-      else free(tmp);                                                               // another thread may have been faster
+      else             free(tmp);                  // another thread may have been faster
 
       if (!IsFileA(configPath, MODE_SYSTEM)) {
          // make sure the config directory exists
@@ -136,12 +136,12 @@ const char* WINAPI GetGlobalConfigPathA() {
             // make sure the config file exists
             std::ofstream file(configPath);
             if (file.is_open()) file.close();
-            else warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
+            else                warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
          }
       }
    }
 
-   return(configPath);
+   return configPath;
    #pragma EXPANDER_EXPORT
 }
 
@@ -159,31 +159,33 @@ const char* WINAPI GetTerminalConfigPathA() {
 
    if (!configPath) {
       const char* dataPath = GetTerminalDataPathA();
-      if (!dataPath) return(NULL);
+      if (!dataPath) return NULL;
 
       string iniFile = string(dataPath).append("\\terminal-config.ini");
-      char* tmp = sdup(iniFile.c_str());                                      // on the heap
+      char* tmp = sdup(iniFile.c_str());
       if (!configPath) configPath = tmp;
-      else free(tmp);                                                         // another thread may have been faster
+      else             free(tmp);                                          // another thread may have been faster
 
       // make sure the config directory exists (e.g. if in non-portable mode)
       if (!IsDirectoryA(dataPath, MODE_SYSTEM)) {
          int error = CreateDirectoryA(dataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
             warn(ERR_WIN32_ERROR+error, "cannot create directory \"%s\" (%s)", dataPath, strerror(errno));
-            return(configPath);
+            return configPath;
          }
 
          // if in non-portable mode (terminalPath != dataPath): make sure file "origin.txt" exists
          const char* terminalPath = GetTerminalPathA();
          if (!StrCompare(terminalPath, dataPath)) {
-            string originFile = string(dataPath).append("\\origin.txt");       // store file "origin.txt"
+            string originFile = string(dataPath).append("\\origin.txt");   // store file "origin.txt"
             std::ofstream file(originFile.c_str());
             if (file.is_open()) {
                file << terminalPath << NL;
                file.close();
             }
-            else warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", originFile.c_str(), strerror(errno));
+            else {
+               warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", originFile.c_str(), strerror(errno));
+            }
          }
       }
 
@@ -191,11 +193,11 @@ const char* WINAPI GetTerminalConfigPathA() {
       if (!IsFileA(configPath, MODE_SYSTEM)) {
          std::ofstream file(configPath);
          if (file.is_open()) file.close();
-         else warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
+         else                warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
       }
    }
 
-   return(configPath);
+   return configPath;
    #pragma EXPANDER_EXPORT
 }
 
@@ -216,14 +218,14 @@ const char* WINAPI GetTerminalConfigPathA() {
  *                 characters. In this case, the return value is equal to bufferSize-2.
  */
 DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-   if ((uint)section  < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
-   if ((uint)buffer   < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
-   if (bufferSize < 2)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
+   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
+   if ((uint)buffer   < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer);
+   if (bufferSize < 2)                     return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize);
 
-   return(GetPrivateProfileStringA(section, NULL, NULL, buffer, bufferSize, fileName));
+   return GetPrivateProfileStringA(section, NULL, NULL, buffer, bufferSize, fileName);
    #pragma EXPANDER_EXPORT
 }
 
@@ -241,12 +243,12 @@ DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer
  *                 two null characters. In this case, the return value is equal to bufferSize-2.
  */
 DWORD WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSize) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-   if ((uint)buffer   < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer));
-   if (bufferSize < 2)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize));
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)buffer   < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer);
+   if (bufferSize < 2)                     return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize);
 
-   return(GetPrivateProfileStringA(NULL, NULL, NULL, buffer, bufferSize, fileName));
+   return GetPrivateProfileStringA(NULL, NULL, NULL, buffer, bufferSize, fileName);
    #pragma EXPANDER_EXPORT
 }
 
@@ -261,8 +263,6 @@ DWORD WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSiz
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space and inline
  *                 comments are removed. NULL in case of errors.
- *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
 char* WINAPI GetIniStringA(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
    char* value = GetIniStringRawA(fileName, section, key, defaultValue);
@@ -273,7 +273,7 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
       value[pos] = '\0';
       strim_right(value);
    }
-   return(value);
+   return value;                                   // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -288,8 +288,6 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space is removed).
  *                 NULL in case of errors.
- *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
 char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const char* key, const char* defaultValue/*=""*/) {
    if ((uint)fileName     < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
@@ -304,13 +302,13 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
    uint bufferSize = 128;
    uint chars = bufferSize-1;
 
-   while (chars == bufferSize-1) {                       // handle a too small buffer
+   while (chars == bufferSize-1) {              // handle a too small buffer
       free(buffer);
       bufferSize <<= 1;
-      buffer = (char*)malloc(bufferSize);                // on the heap
+      buffer = (char*)malloc(bufferSize);       // on the heap
       chars = GetPrivateProfileString(section, key, defaultValue, buffer, bufferSize, fileName);
    }
-   return(buffer);
+   return(buffer);                              // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -325,9 +323,7 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
  */
 BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
    const char* globalConfig = GetGlobalConfigPathA();
-   if (globalConfig)
-      return(IsIniKeyA(globalConfig, section, key));
-   return(FALSE);
+   return globalConfig && IsIniKeyA(globalConfig, section, key);
    #pragma EXPANDER_EXPORT
 }
 
@@ -342,21 +338,23 @@ BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
  * @return BOOL
  */
 BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-   if ((uint)section  < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
-   if ((uint)key      < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key));
-   if (!*key)                              return(!error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)"));
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
+   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
+   if ((uint)key      < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key);
+   if (!*key)                              return !error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)");
 
    // read all keys
-   char* buffer    = NULL;
+   char* buffer = NULL;
    uint bufferSize = 512;
    uint chars = bufferSize-2;
+
    while (chars == bufferSize-2) {                       // handle a too small buffer
-      delete[] buffer;
+      free(buffer);
       bufferSize <<= 1;
-      buffer = new char[bufferSize];                     // on the heap as a section may be big
+      buffer = (char*) malloc(bufferSize);               // on the heap as a section may be big
+      if (!buffer) return FALSE;
       chars = GetIniKeysA(fileName, section, buffer, bufferSize);
    }
    char* lKey = strToLower(strim(sdupa(key)));
@@ -371,9 +369,9 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
       }
       name += strlen(name) + 1;
    }
+   free(buffer);
 
-   delete[] buffer;
-   return(result);
+   return result;
    #pragma EXPANDER_EXPORT
 }
 
@@ -387,19 +385,21 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
  * @return BOOL
  */
 BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
-   if ((uint)fileName < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName));
-   if (!*fileName)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)"));
-   if ((uint)section  < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section));
-   if (!*section)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)"));
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
+   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
 
    // read all sections
    char* buffer = NULL;
    uint bufferSize = 512;
    uint chars = bufferSize-2;
+
    while (chars == bufferSize-2) {                       // handle a too small buffer
-      delete[] buffer;
+      free(buffer);
       bufferSize <<= 1;
-      buffer = new char[bufferSize];                     // on the heap as there may be plenty of sections
+      buffer = (char*) malloc(bufferSize);               // on the heap as there may be may sections
+      if (!buffer) return FALSE;
       chars = GetIniSectionsA(fileName, buffer, bufferSize);
    }
    char* lSection = strToLower(strim(sdupa(section)));
@@ -414,9 +414,9 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
       }
       name += strlen(name) + 1;
    }
+   free(buffer);
 
-   delete[] buffer;
-   return(result);
+   return result;
    #pragma EXPANDER_EXPORT
 }
 
@@ -431,8 +431,6 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
  */
 BOOL WINAPI IsTerminalConfigKeyA(const char* section, const char* key) {
    const char* terminalConfig = GetTerminalConfigPathA();
-   if (terminalConfig)
-      return(IsIniKeyA(terminalConfig, section, key));
-   return(FALSE);
+   return terminalConfig && IsIniKeyA(terminalConfig, section, key);
    #pragma EXPANDER_EXPORT
 }

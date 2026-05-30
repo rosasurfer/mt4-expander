@@ -255,35 +255,29 @@ BOOL WINAPI IsSymlinkA(const char* name) {
  *
  * @return char* - resolved name in "\\?\" or UNC format or NULL in case of errors
  */
-const char* WINAPI GetFinalPathNameA(const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+char* WINAPI GetFinalPathNameA(const char* name) {
+   if ((uint)name < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
 
-   HANDLE hFile = CreateFileA(name,                                                    // file name
-                              GENERIC_READ, FILE_SHARE_READ,                           // open for shared reading
-                              NULL,                                                    // default security
-                              OPEN_EXISTING,                                           // open existing file only
-                              FILE_ATTRIBUTE_NORMAL,                                   // normal file
-                              NULL);                                                   // no attribute template
-   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFileA() cannot open \"%s\"", name));
+   HANDLE hFile = CreateFileA(name,                            // file name
+                              GENERIC_READ, FILE_SHARE_READ,   // open for shared reading
+                              NULL,                            // default security
+                              OPEN_EXISTING,                   // open existing file only
+                              FILE_ATTRIBUTE_NORMAL,           // normal file
+                              NULL);                           // no attribute template
+   if (hFile == INVALID_HANDLE_VALUE) return (char*)!error(ERR_WIN32_ERROR + GetLastError(), "CreateFileA() cannot open \"%s\"", name);
 
    uint size = MAX_PATH;
-   char* path;
-   DWORD len;
 
    while (true) {
-      path = new char[size];                                                           // on the heap
-      len  = GetFinalPathNameByHandleA(hFile, path, size, VOLUME_NAME_DOS|FILE_NAME_OPENED);
-      if (len < size) break;
-      size <<= 1;                                                                      // increase buffer size
-      delete[] path;
+      char* path = (char*) alloca(size);   // on the stack
+      DWORD len = GetFinalPathNameByHandleA(hFile, path, size, VOLUME_NAME_DOS|FILE_NAME_OPENED);
+      if (len < size) {
+         CloseHandle(hFile);
+         if (!len) return (char*)!error(ERR_WIN32_ERROR + GetLastError(), "GetFinalPathNameByHandleA()");
+         return sdup(path);               // caller must free()
+      }
+      size <<= 1;
    }
-   CloseHandle(hFile);
-
-   if (!len) {
-      delete[] path;
-      return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "GetFinalPathNameByHandleA()"));
-   }
-   return(path);                                                                       // TODO: add to GC (close memory leak)
    #pragma EXPANDER_EXPORT
 }
 
@@ -297,11 +291,9 @@ const char* WINAPI GetFinalPathNameA(const char* name) {
  *
  * @see    http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
  * @see    https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
- *
- * Note: The caller is responsible for releasing the returned string's memory after usage with "free()".
  */
-const char* WINAPI GetReparsePointTargetA(const char* name) {
-   if ((uint)name < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+char* WINAPI GetReparsePointTargetA(const char* name) {
+   if ((uint)name < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
 
    // open the reparse point
    HANDLE hFile = CreateFileA(name,                                                    // file name
@@ -311,7 +303,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
                               OPEN_EXISTING,                                           // open existing file only
                               FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS, // open reparse point itself
                               NULL);                                                   // no attribute template
-   if (hFile == INVALID_HANDLE_VALUE) return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFileA() cannot open \"%s\"", name));
+   if (hFile == INVALID_HANDLE_VALUE) return (char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFileA() cannot open \"%s\"", name);
 
    // create a reparse data structure
    DWORD bufferSize = MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
@@ -323,7 +315,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    CloseHandle(hFile);
    if (!success) {
       free(rdata);
-      return((char*)!error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name));
+      return (char*)!error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name);
    }
 
    char* result = NULL;
@@ -356,7 +348,7 @@ const char* WINAPI GetReparsePointTargetA(const char* name) {
    else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
 
    free(rdata);
-   return result;                            // TODO: add to GC (close memory leak)
+   return result;                            // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
