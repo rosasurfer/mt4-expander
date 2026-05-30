@@ -7,9 +7,8 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
+#include <shellapi.h>
 #include <shlobj.h>
-
-extern BOOL g_cliOptionPortableMode;                     // whether cmd line option /portable is set
 
 extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
@@ -65,8 +64,89 @@ void WINAPI CustomizeTerminal() {
 
 
 /**
- * Whether the terminal operates in portable mode, i.e. it was launched with the command line parameter "/portable".
- * In portable mode the terminal behaves like under Windows XP or ealier. It uses the installation directory for program data
+ * Parse command line arguments and return the flags of all specified and supported options.
+ *
+ * @return DWORD - option flags
+ */
+DWORD WINAPI GetCliOptions() {
+   static DWORD options = 0;                          // bit mask of specified options
+   static BOOL initialized = FALSE;
+
+   if (!initialized) {
+      int argc = 0;
+      LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+      if (!argv) return !error(ERR_WIN32_ERROR + GetLastError(), "CommandLineToArgvW()");
+
+      DWORD _options = 0;
+      for (int i=1; i < argc; i++) {
+         if (StrStartsWith(argv[i], L"/portable")) {  // The terminal activates portable mode for any CLI argument starting
+            _options |= OPTION_PORTABLE_MODE;         // with "/portable", e.g. "/portable-poo" activates portable mode, too.
+            continue;                                 // This test mirrors that unusual behavior.
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-accountnumber")) {
+            _options |= OPTION_DEBUG_ACCOUNT_NUMBER;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
+            _options |= OPTION_DEBUG_ACCOUNT_SERVER;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-ec")) {
+            _options |= OPTION_DEBUG_EXECUTION_CONTEXT;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
+            _options |= OPTION_DEBUG_INDICATOR_LIST;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-objectcreate")) {
+            _options |= OPTION_DEBUG_OBJECT_CREATE;
+            continue;
+         }
+      }
+      LocalFree(argv);
+
+      if (!initialized) {                             // another thread may have been faster
+         options = _options;
+      }
+      initialized = TRUE;
+   }
+   return options;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a single command line option is set.
+ *
+ * @return DWORD flag - option flag, one of:
+ *                      OPTION_PORTABLE_MODE:           test for option "/portable"
+ *                      OPTION_DEBUG_ACCOUNT_NUMBER:    test for option "/rsf:debug-accountnumber"
+ *                      OPTION_DEBUG_ACCOUNT_SERVER:    test for option "/rsf:debug-accountserver"
+ *                      OPTION_DEBUG_EXECUTION_CONTEXT: test for option "/rsf:debug-ec"
+ *                      OPTION_DEBUG_INDICATOR_LIST:    test for option "/rsf:debug-indicatorlist"
+ *                      OPTION_DEBUG_OBJECT_CREATE:     test for option "/rsf:debug-objectcreate"
+ * @return BOOL
+ */
+BOOL WINAPI IsCliOption(DWORD flag) {
+   switch (flag) {
+      case OPTION_PORTABLE_MODE:
+      case OPTION_DEBUG_ACCOUNT_NUMBER:
+      case OPTION_DEBUG_ACCOUNT_SERVER:
+      case OPTION_DEBUG_EXECUTION_CONTEXT:
+      case OPTION_DEBUG_INDICATOR_LIST:
+      case OPTION_DEBUG_OBJECT_CREATE:
+         return GetCliOptions() & flag;
+   }
+   error(ERR_INVALID_PARAMETER, "unsupported flag: %d", flag);
+   return FALSE;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether the terminal operates in portable mode, i.e. whether it was launched with command line option "/portable".
+ * In portable mode the terminal behaves like under Windows XP or earlier. It uses the installation directory for program data
  * and ignores a UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
  *
  * @return BOOL
@@ -75,7 +155,7 @@ BOOL WINAPI IsPortableMode() {
    static int portableMode = -1;
 
    if (portableMode < 0) {
-      portableMode = (GetTerminalBuild() <= 509 || g_cliOptionPortableMode);
+      portableMode = (GetTerminalBuild() <= 509 || GetCliOptions() & OPTION_PORTABLE_MODE);
    }
    return portableMode;
    #pragma EXPANDER_EXPORT
