@@ -459,7 +459,7 @@ int WINAPI SyncMainContext_init(EXECUTION_CONTEXT* ec, ProgramType programType, 
    ec_SetLoglevelMail    (ec, ecRef->loglevelMail    );
    ec_SetLoglevelTelegram(ec, ecRef->loglevelTelegram);
    ec_SetLogFilename     (ec, ecRef->logFilename     );
-   ec_SetDebugOptions    (ec, cliOptions);
+   ec_SetDebugOptions    (ec, cliOptions & ~OPTION_PORTABLE_MODE);
 
    // TODO: reset errors if not in an init() call from start()
    //ec->dllErrorMsg   = NULL;
@@ -720,7 +720,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
 
                master->testing      = TRUE;                          // TODO: so wrong, we can be online and not in tester
                master->optimization = isOptimization;
-               master->debugOptions = cliOptions;
+               master->debugOptions = cliOptions & ~OPTION_PORTABLE_MODE;
             }
 
             *ec = *master;                                           // re-initialize empty library context with partial master context
@@ -869,7 +869,7 @@ int WINAPI SyncLibContext_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitR
          master->threadId     = g_threads[threadIndex];
          master->testing      = TRUE;
          master->optimization = isOptimization;
-         master->debugOptions = cliOptions;
+         master->debugOptions = cliOptions & ~OPTION_PORTABLE_MODE;
       }
 
       // re-initialize the stateful library context with the master context
