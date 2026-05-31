@@ -6,11 +6,7 @@
 #include "lib/timer.h"
 #include "struct/ExecutionContext.h"
 
-#include <shellapi.h>
-
-HANDLE g_hExpanderStartThread;                              // handle of worker thread executing onExpanderStart()
-BOOL   g_cliOptionPortableMode;                             // whether cmd line option /portable is set
-DWORD  g_cliDebugOptions;                                   // bit mask of specified CLI debug options
+HANDLE g_hExpanderStartThread;                              // handle of the thread executing onExpanderStart()
 
 extern MqlInstanceList               g_mqlInstances;        // all MQL program instances
 extern std::vector<DWORD>            g_threads;             // all known threads executing MQL programs
@@ -44,7 +40,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
 
 /**
  * Handler for DLL_PROCESS_ATTACH events.
- * Code in this function must be safe under DLL loader lock.
+ * Code in this function must be safe under the DLL loader-lock.
  *
  * @return BOOL - success status
  */
@@ -55,39 +51,6 @@ BOOL WINAPI onProcessAttach() {
    g_threads.        reserve(512);
    g_threadsPrograms.reserve(512);
    g_tickTimers.     reserve(32);
-
-   // parse command line arguments                    // TODO: replace global state by lazy-initialized getters
-   int argc;
-   LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-   if (!argv) return !error(ERR_WIN32_ERROR + GetLastError(), "CommandLineToArgvW()");
-
-   for (int i=1; i < argc; i++) {
-      if (StrStartsWith(argv[i], L"/portable")) {     // The terminal accepts any argument starting with prefix "/portable",
-         g_cliOptionPortableMode = TRUE;              // e.g. "/portable-poo" activates portable mode, too.
-         continue;                                    // This test mirrors that unusual behavior.
-      }
-      if (StrCompare(argv[i], L"/rsf:debug-ec")) {
-         g_cliDebugOptions |= DEBUG_EXECUTION_CONTEXT;
-         continue;
-      }
-      if (StrCompare(argv[i], L"/rsf:debug-accountnumber")) {
-         g_cliDebugOptions |= DEBUG_ACCOUNT_NUMBER;
-         continue;
-      }
-      if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
-         g_cliDebugOptions |= DEBUG_ACCOUNT_SERVER;
-         continue;
-      }
-      if (StrCompare(argv[i], L"/rsf:debug-objectcreate")) {
-         g_cliDebugOptions |= DEBUG_OBJECT_CREATE;
-         continue;
-      }
-      if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
-         g_cliDebugOptions |= DEBUG_INDICATOR_LIST;
-         continue;
-      }
-   }
-   LocalFree(argv);
 
    // launch independant worker thread for custom initializations
    g_hExpanderStartThread = CreateThread(NULL, 0, onExpanderStart, NULL, 0, NULL);
