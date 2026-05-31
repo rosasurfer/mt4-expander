@@ -6,8 +6,6 @@
 #include "lib/timer.h"
 #include "struct/ExecutionContext.h"
 
-HANDLE g_hExpanderStartThread;                              // handle of the thread executing onExpanderStart()
-
 extern MqlInstanceList               g_mqlInstances;        // all MQL program instances
 extern std::vector<DWORD>            g_threads;             // all known threads executing MQL programs
 extern std::vector<uint>             g_threadsPrograms;     // the last MQL program executed by a thread
@@ -16,7 +14,7 @@ extern CRITICAL_SECTION              g_expanderMutex;       // mutex for Expande
 
 
 /**
- * DLL entry point.
+ * DLL entry point. Code in this function must be safe under the DLL loader-lock.
  *
  * @param  HMODULE hModule
  * @param  DWORD   reason
@@ -39,40 +37,41 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
 
 
 /**
- * Handler for DLL_PROCESS_ATTACH events.
- * Code in this function must be safe under the DLL loader-lock.
+ * Handler for DLL_PROCESS_ATTACH events. Code in this function must be safe under the DLL loader-lock.
  *
  * @return BOOL - success status
  */
 BOOL WINAPI onProcessAttach() {
    InitializeCriticalSection(&g_expanderMutex);
 
-   g_mqlInstances.   reserve(128);                    // TODO: replace global state by getter/setter functions
+   g_mqlInstances.   reserve(128);              // TODO: replace global state by getters/setters with local state
    g_threads.        reserve(512);
    g_threadsPrograms.reserve(512);
    g_tickTimers.     reserve(32);
 
-   // launch independant worker thread for custom initializations
-   g_hExpanderStartThread = CreateThread(NULL, 0, onExpanderStart, NULL, 0, NULL);
-   if (!g_hExpanderStartThread) error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");    // report error but don't fail
+   // launch worker thread for custom initializations
+   HMODULE hModule = NULL;                      // increase ref-count so the DLL can't be unloaded before the thread finishes
+   GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)onProcessAttach, &hModule);
+
+   HANDLE hThread = CreateThread(NULL, 0, onExpanderStart, hModule, 0, NULL);
+   if (!hThread) {
+      error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");
+      FreeLibrary(hModule);                     // decrease ref-count if thread creation fails
+   }
+   else CloseHandle(hThread);
 
    return TRUE;
 }
 
 
 /**
- * Handler for DLL_PROCESS_DETACH events.
+ * Handler for DLL_PROCESS_DETACH events. Code in this function must be safe under the DLL loader-lock.
  *
  * @param  BOOL isTerminating - whether the DLL is detached because of process termination
  *
  * @return BOOL - success status
  */
 BOOL WINAPI onProcessDetach(BOOL isTerminating) {
-   if (g_hExpanderStartThread) {                   // debug builds may be unloaded while onExpanderStart() is still running
-      WaitForSingleObject(g_hExpanderStartThread, INFINITE);
-      CloseHandle(g_hExpanderStartThread);
-      g_hExpanderStartThread = NULL;
-   }
    if (!isTerminating) {
       DeleteCriticalSection(&g_expanderMutex);
       ReleaseTickTimers();
@@ -83,25 +82,25 @@ BOOL WINAPI onProcessDetach(BOOL isTerminating) {
 
 
 /**
- * Executes start tasks outside of the DLL loader lock (runs in a separate thread).
+ * Executes DLL start tasks in a separate thread (outside of the DLL loader-lock).
  * These are independant tasks not required for a working DLL.
  *
- * @param  void* lpParam - thread data passed by CreateThread()
+ * @param  void* lpParam - DLL module handle as passed by CreateThread()
  *
  * @return DWORD - error status
  */
 DWORD WINAPI onExpanderStart(void* lpParam) {
-   // lock the DLL in memory (production only, debug is immediately released for testing)
+   HMODULE hModule = (HMODULE)lpParam;
+
    const wchar* dllName = GetExpanderFileNameW();
    BOOL isProduction = StrEndsWithI(dllName, L"rsfMT4Expander.dll");
-   if (isProduction) {
-      HMODULE hModule = NULL;
-      GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onProcessAttach, &hModule);
-   }
 
-   // customize the terminal (production only as customization will subclass MT4 windows)
-   if (isProduction) {
-      CustomizeTerminal();
+   if (isProduction) {                                // lock DLL in memory
+      GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onExpanderStart, &hModule);
+      CustomizeTerminal();                            // modifies the UI, subclasses MT4 windows etc.
+   }
+   else {
+      FreeLibraryAndExitThread(hModule, NO_ERROR);    // nothing to do, decrease ref-count and terminate the thread
    }
    return NO_ERROR;
 }
