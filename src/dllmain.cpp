@@ -14,7 +14,7 @@ extern CRITICAL_SECTION              g_expanderMutex;       // mutex for Expande
 
 
 /**
- * DLL entry point.
+ * DLL entry point. Code in this function must be safe under the DLL loader-lock.
  *
  * @param  HMODULE hModule
  * @param  DWORD   reason
@@ -37,8 +37,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
 
 
 /**
- * Handler for DLL_PROCESS_ATTACH events.
- * Code in this function must be safe under the DLL loader-lock.
+ * Handler for DLL_PROCESS_ATTACH events. Code in this function must be safe under the DLL loader-lock.
  *
  * @return BOOL - success status
  */
@@ -51,16 +50,22 @@ BOOL WINAPI onProcessAttach() {
    g_tickTimers.     reserve(32);
 
    // launch worker thread for custom initializations
-   HANDLE hThread = CreateThread(NULL, 0, onExpanderStart, NULL, 0, NULL);
-   if (!hThread) error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");   // report error but don't fail
-   CloseHandle(hThread);
+   HMODULE hModule = NULL;                      // increase ref-count so the DLL can't be unloaded before the thread finishes
+   GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)onProcessAttach, &hModule);
+
+   HANDLE hThread = CreateThread(NULL, 0, onExpanderStart, hModule, 0, NULL);
+   if (!hThread) {
+      error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");
+      FreeLibrary(hModule);                     // decrease ref-count if thread creation fails
+   }
+   else CloseHandle(hThread);
 
    return TRUE;
 }
 
 
 /**
- * Handler for DLL_PROCESS_DETACH events.
+ * Handler for DLL_PROCESS_DETACH events. Code in this function must be safe under the DLL loader-lock.
  *
  * @param  BOOL isTerminating - whether the DLL is detached because of process termination
  *
@@ -80,29 +85,22 @@ BOOL WINAPI onProcessDetach(BOOL isTerminating) {
  * Executes DLL start tasks in a separate thread (outside of the DLL loader-lock).
  * These are independant tasks not required for a working DLL.
  *
- * @param  void* lpParam - thread data as passed by CreateThread()
+ * @param  void* lpParam - DLL module handle as passed by CreateThread()
  *
  * @return DWORD - error status
  */
 DWORD WINAPI onExpanderStart(void* lpParam) {
+   HMODULE hModule = (HMODULE)lpParam;
+
    const wchar* dllName = GetExpanderFileNameW();
    BOOL isProduction = StrEndsWithI(dllName, L"rsfMT4Expander.dll");
 
-   HMODULE hModule = NULL;
-   DWORD flags = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;    // increase the ref-count so the DLL is not unloaded before the thread finishes
-   if (isProduction) {
-      flags |= GET_MODULE_HANDLE_EX_FLAG_PIN;               // lock the DLL in memory (production only)
+   if (isProduction) {                                // lock DLL in memory
+      GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onExpanderStart, &hModule);
+      CustomizeTerminal();                            // modifies the UI, subclasses MT4 windows etc.
    }
-   GetModuleHandleExA(flags, (LPCTSTR)onExpanderStart, &hModule);
-
-   // customize the terminal
-   if (isProduction) {
-      CustomizeTerminal();                                  // modifies the UI, subclasses MT4 windows etc.
-   }
-
-   // decrease re-count of a non-production DLL
-   if (!isProduction) {
-      FreeLibraryAndExitThread(hModule, NO_ERROR);
+   else {
+      FreeLibraryAndExitThread(hModule, NO_ERROR);    // nothing to do, decrease re-count and terminate the thread
    }
    return NO_ERROR;
 }
