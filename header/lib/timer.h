@@ -15,3 +15,5 @@ struct TICK_TIMER_DATA {
 uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags = NULL);
 BOOL WINAPI ReleaseTickTimer(uint timerId);
 void WINAPI ReleaseTickTimers();
+
+static void CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired);
