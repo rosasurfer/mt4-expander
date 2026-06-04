@@ -15,7 +15,7 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module ha
 
 
 /**
- * Customize the terminal's UI.
+ * Customize the terminal UI.
  */
 void WINAPI CustomizeTerminal() {
    // get the terminal main window
