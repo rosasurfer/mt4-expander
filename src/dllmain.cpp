@@ -41,25 +41,26 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
  *
  * @return BOOL - success status
  */
-BOOL WINAPI onProcessAttach() {
+static BOOL WINAPI onProcessAttach() {
    InitializeCriticalSection(&g_expanderMutex);
 
-   g_mqlInstances.   reserve(128);              // TODO: replace global state by getters/setters with local state
+   g_mqlInstances.   reserve(128);        // TODO: replace global state by getters/setters with local state
    g_threads.        reserve(512);
    g_threadsPrograms.reserve(512);
    g_tickTimers.     reserve(32);
 
    // launch worker thread for custom initializations
-   HMODULE hModule = NULL;                      // increase ref-count so the DLL can't be unloaded before the thread finishes
+   HMODULE hModule = NULL;                // increase ref-count so the DLL can't be unloaded before the thread finishes
    GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)onProcessAttach, &hModule);
 
-   HANDLE hThread = CreateThread(NULL, 0, onExpanderStart, hModule, 0, NULL);
-   if (!hThread) {
-      error(ERR_WIN32_ERROR + GetLastError(), "CreateThread()");
-      FreeLibrary(hModule);                     // decrease ref-count if thread creation fails
+   HANDLE hThread = CreateThread(NULL, 0, ExpanderStartThread, hModule, 0, NULL);
+   if (hThread) {
+      CloseHandle(hThread);
    }
-   else CloseHandle(hThread);
-
+   else {
+      error(ERR_WIN32_ERROR + GetLastError(), "CreateThread(\"ExpanderStart\")");
+      FreeLibrary(hModule);               // on error decrease ref-count
+   }
    return TRUE;
 }
 
@@ -71,7 +72,7 @@ BOOL WINAPI onProcessAttach() {
  *
  * @return BOOL - success status
  */
-BOOL WINAPI onProcessDetach(BOOL isTerminating) {
+static BOOL WINAPI onProcessDetach(BOOL isTerminating) {
    if (!isTerminating) {
       DeleteCriticalSection(&g_expanderMutex);
       ReleaseTickTimers();
@@ -82,25 +83,120 @@ BOOL WINAPI onProcessDetach(BOOL isTerminating) {
 
 
 /**
- * Executes DLL start tasks in a separate thread (outside of the DLL loader-lock).
- * These are independant tasks not required for a working DLL.
+ * Executes MT4Expander start tasks in a separate thread (outside of the DLL loader-lock).
+ * These are independant tasks not required for the DLL to load.
  *
- * @param  void* lpParam - DLL module handle as passed by CreateThread()
+ * @param  void* lpParam - DLL module handle
  *
- * @return DWORD - error status
+ * @return DWORD - thread exit status
  */
-DWORD WINAPI onExpanderStart(void* lpParam) {
-   HMODULE hModule = (HMODULE)lpParam;
-
+static DWORD WINAPI ExpanderStartThread(void* lpParam) {
    const wchar* dllName = GetExpanderFileNameW();
    BOOL isProduction = StrEndsWithI(dllName, L"rsfMT4Expander.dll");
 
-   if (isProduction) {                                // lock DLL in memory
-      GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)onExpanderStart, &hModule);
-      CustomizeTerminal();                            // modifies the UI, subclasses MT4 windows etc.
+   if (!isProduction) {                                        // nothing to do, decrease ref-count and terminate the thread
+      FreeLibraryAndExitThread((HMODULE)lpParam, NO_ERROR);    // this never returns
    }
-   else {
-      FreeLibraryAndExitThread(hModule, NO_ERROR);    // nothing to do, decrease ref-count and terminate the thread
-   }
+
+   // production: lock the DLL in memory
+   HMODULE hModule = NULL;
+   GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)ExpanderStartThread, &hModule);
+
+   // start a background thread to monitor user logoff/system shutdown events
+   HANDLE hThread = CreateThread(NULL, 0, SessionMonitorThread, hModule, 0, NULL);
+   if (hThread) CloseHandle(hThread);
+   else         error(ERR_WIN32_ERROR + GetLastError(), "CreateThread(\"SessionMonitor\")");
+
+   // customize the UI
+   CustomizeTerminal();
    return NO_ERROR;
+}
+
+
+/**
+ * Create a hidden top-level window and run the message loop to capture WM_QUERYENDSESSION/WM_ENDSESSION messages.
+ * This is a workaround for terminal bug https://github.com/rosasurfer/mt4-expander/issues/26#.
+ *
+ * @param  void* lpParam - DLL module handle
+ *
+ * @return DWORD - thread exit status
+ */
+static DWORD WINAPI SessionMonitorThread(void* lpParam) {
+   HINSTANCE hInstance = (HINSTANCE)lpParam;
+
+   // register the window class
+   const char* className = "SessionMonitorClass";
+   WNDCLASSEXA wc = {};
+   wc.cbSize        = sizeof(WNDCLASSEXA);
+   wc.lpfnWndProc   = SessionMonitorWndProc;
+   wc.hInstance     = hInstance;
+   wc.lpszClassName = className;    // no icon, cursor, background - invisible
+   if (!RegisterClassExA(&wc)) {
+      return error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassExA(\"%s\")", className);
+   }
+
+   // create a message-only window
+   HWND hWnd = CreateWindowExA(
+      0,                            // no extended styles
+      className,
+      "MT4Expander session monitor",
+      0,                            // no style needed
+      0, 0, 0, 0,                   // position/size irrelevant
+      NULL,                         // no parent => top-level window
+      NULL,                         // no menu
+      hInstance,
+      NULL                          // no creation param
+   );
+   if (!hWnd) {
+      UnregisterClassA(className, hInstance);
+      return error(ERR_WIN32_ERROR + GetLastError(), "CreateWindowExA(\"%s\")", className);
+   }
+
+   // run the message loop
+   MSG msg;
+   while (GetMessage(&msg, NULL, 0, 0) > 0) {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+   }
+
+   // clean-up
+   DestroyWindow(hWnd);
+   UnregisterClassA(className, hInstance);
+   return NO_ERROR;
+}
+
+
+/**
+ * SessionMonitor window procedure - runs on the SessionMonitor thread.
+ *
+ * @param  HWND   hWnd   - window receiving the message
+ * @param  uint   msg    - sent message
+ * @param  WPARAM wParam - additional message info
+ * @param  LPARAM lParam - additional message info
+ *
+ * @return LRESULT - depends on the message sent
+ */
+static LRESULT CALLBACK SessionMonitorWndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+   switch (msg) {
+      case WM_QUERYENDSESSION: {                   // Windows: "Are you ready to shut down?"
+         if (lParam & ENDSESSION_LOGOFF) {}        // user logoff
+         else                            {}        // system shutdown/restart
+         debug("WM_QUERYENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
+         return TRUE;                              // we are ready
+      }
+
+      case WM_ENDSESSION: {
+         if (wParam) {                             // Windows: "Logoff/shutdown is happening now. You have ~5 seconds."
+            if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
+            else                            {}     // system shutdown/restart
+            debug("WM_ENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
+            // do something...
+         }
+         else /*!wParam*/ {}                       // logoff/shutdown was cancelled
+         return 0;
+      }
+
+      default:
+         return DefWindowProc(hWnd, msg, wParam, lParam);
+   }
 }
