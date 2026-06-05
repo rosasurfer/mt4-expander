@@ -755,12 +755,10 @@ char* WINAPI MD5HashA(const char* input) {
  * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
  */
 uint WINAPI MT4InternalMsg() {
-   static uint msgId;
-   if (!msgId) {
-      msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-      if (!msgId) return(!error(ERR_WIN32_ERROR+GetLastError(), "->RegisterWindowMessage()"));
-   }
-   return(msgId);
+   static uint msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
+   if (!msgId) return !error(ERR_WIN32_ERROR+GetLastError(), "->RegisterWindowMessage()");
+
+   return msgId;
    #pragma EXPANDER_EXPORT
 }
 
@@ -773,6 +771,6 @@ uint WINAPI MT4InternalMsg() {
  * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
  */
 uint WINAPI WM_MT4() {
-   return(MT4InternalMsg());
+   return MT4InternalMsg();
    #pragma EXPANDER_EXPORT
 }

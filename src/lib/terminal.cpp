@@ -133,11 +133,7 @@ DWORD WINAPI GetDebugOptions() {
  * @return BOOL
  */
 BOOL WINAPI IsPortableMode() {
-   static int portableMode = -1;
-
-   if (portableMode < 0) {
-      portableMode = (GetTerminalBuild() <= 509 || GetCliOptions() & OPTION_PORTABLE_MODE);
-   }
+   static BOOL portableMode = (GetTerminalBuild() <= 509 || GetCliOptions() & OPTION_PORTABLE_MODE);
    return portableMode;
    #pragma EXPANDER_EXPORT
 }

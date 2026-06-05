@@ -322,8 +322,7 @@ int WINAPI MqlProgram_init(EXECUTION_CONTEXT* ec, ProgramType programType, const
    if ((uint)accountServer < MIN_VALID_POINTER)        return(error(ERR_INVALID_PARAMETER, "invalid parameter accountServer: 0x%p (not a valid pointer)", accountServer));
    if (ec->pid) SetLastThreadProgram(ec->pid);                             // set the thread's currently executed program asap (error handling)
 
-   static DWORD debugOptions = MAXDWORD;
-   if (debugOptions == MAXDWORD) debugOptions = GetDebugOptions();
+   static DWORD debugOptions = GetDebugOptions();
    if (debugOptions & OPTION_DEBUG_EXECUTION_CONTEXT) debug("  i:%p  %-17s  %-14s  ec=%s", ec, programName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    uint currentPid = ec->pid;
@@ -576,8 +575,7 @@ int WINAPI MqlProgram_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitRea
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitReasonToStr(uninitReason), GetCurrentThreadId(), (IsUIThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec)));
    SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
-   static DWORD debugOptions = MAXDWORD;
-   if (debugOptions == MAXDWORD) debugOptions = GetDebugOptions();
+   static DWORD debugOptions = GetDebugOptions();
    if (debugOptions & OPTION_DEBUG_EXECUTION_CONTEXT) debug("i:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    ContextChain &chain = *g_mqlInstances[ec->pid];
@@ -634,8 +632,7 @@ int WINAPI MqlLibrary_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReaso
    if ((int)digits < 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits));
    if (point <= 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point));
 
-   static DWORD debugOptions = MAXDWORD;
-   if (debugOptions == MAXDWORD) debugOptions = GetDebugOptions();
+   static DWORD debugOptions = GetDebugOptions();
    if (debugOptions & OPTION_DEBUG_EXECUTION_CONTEXT) debug("   i:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // fix the UninitializeReason
@@ -907,8 +904,7 @@ int WINAPI MqlLibrary_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitRea
    if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitReasonToStr(uninitReason), GetCurrentThreadId(), IsUIThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
    SetLastThreadProgram(ec->pid);                        // set the thread's currently executed program asap (error handling)
 
-   static DWORD debugOptions = MAXDWORD;
-   if (debugOptions == MAXDWORD) debugOptions = GetDebugOptions();
+   static DWORD debugOptions = GetDebugOptions();
    if (debugOptions & OPTION_DEBUG_EXECUTION_CONTEXT) debug(" i:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // try to fix the UninitializeReason
@@ -1834,8 +1830,7 @@ BOOL WINAPI AddToIndicatorList(EXECUTION_CONTEXT* ec) {
       indicators->push_back(ec->pid);
    }
 
-   static DWORD debugOptions = MAXDWORD;
-   if (debugOptions == MAXDWORD) debugOptions = GetDebugOptions();
+   static DWORD debugOptions = GetDebugOptions();
    if (debugOptions & OPTION_DEBUG_INDICATOR_LIST) debug("%-17s %-18s list=%s  ec=%s", ec->programName, InitReasonToStr(ec->programInitReason), IndicatorListToStr(*indicators), EXECUTION_CONTEXT_toStr(ec));
    return TRUE;
 }
