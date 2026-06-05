@@ -52,7 +52,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
 
    // create the timer
    if (!CreateTimerQueueTimer(&ttd->hTimer, NULL, (WAITORTIMERCALLBACK) onTickTimerEvent, (void*)ttd, millis, millis, WT_EXECUTEINTIMERTHREAD)) {
-      return !error(ERR_WIN32_ERROR+GetLastError(), "->CreateTimerQueueTimer(interval=%d)", millis);
+      return !error(ERR_WIN32_ERROR + GetLastError(), "CreateTimerQueueTimer(interval=%d)", millis);
    }
    return ttd->timerId;
    #pragma EXPANDER_EXPORT
@@ -108,7 +108,7 @@ BOOL WINAPI ReleaseTickTimer(uint timerId) {
 
             if (!DeleteTimerQueueTimer(NULL, hTimer, NULL)) {  // ERROR_IO_PENDING: "Overlapped I/O operation in progress" is not an error
                DWORD error = GetLastError();                   // but a status. It says that there is still an operation in progress.
-               if (error != ERROR_IO_PENDING) error(ERR_WIN32_ERROR+error, "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
+               if (error != ERROR_IO_PENDING) error(ERR_WIN32_ERROR + error, "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
             }
          }
          else warn(ERR_ILLEGAL_STATE, "tick timer has already been released: id=%d", timerId);

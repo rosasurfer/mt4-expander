@@ -48,7 +48,7 @@ BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char*
 
    if (!WritePrivateProfileStringA(section, key, NULL, fileName)) {
       int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key);
+      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key);
    }
    return TRUE;
    #pragma EXPANDER_EXPORT
@@ -72,7 +72,7 @@ BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
 
    if (!WritePrivateProfileStringA(section, NULL, NULL, fileName)) {
       int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR+error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section);
+      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section);
    }
    return TRUE;
    #pragma EXPANDER_EXPORT
@@ -99,7 +99,7 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
 
    if (!WritePrivateProfileSectionA(section, values, fileName)) {
       int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR+error, "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section);
+      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section);
    }
    return TRUE;
    #pragma EXPANDER_EXPORT
@@ -136,7 +136,7 @@ const char* WINAPI GetGlobalConfigPathA() {
             // make sure the config file exists
             std::ofstream file(configPath);
             if (file.is_open()) file.close();
-            else                warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
+            else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
          }
       }
    }
@@ -170,7 +170,7 @@ const char* WINAPI GetTerminalConfigPathA() {
       if (!IsDirectoryA(dataPath, MODE_SYSTEM)) {
          int error = CreateDirectoryA(dataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
-            warn(ERR_WIN32_ERROR+error, "cannot create directory \"%s\" (%s)", dataPath, strerror(errno));
+            warn(ERR_WIN32_ERROR + error, "cannot create directory \"%s\" (%s)", dataPath, strerror(errno));
             return configPath;
          }
 
@@ -184,7 +184,7 @@ const char* WINAPI GetTerminalConfigPathA() {
                file.close();
             }
             else {
-               warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", originFile.c_str(), strerror(errno));
+               warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", originFile.c_str(), strerror(errno));
             }
          }
       }
@@ -193,7 +193,7 @@ const char* WINAPI GetTerminalConfigPathA() {
       if (!IsFileA(configPath, MODE_SYSTEM)) {
          std::ofstream file(configPath);
          if (file.is_open()) file.close();
-         else                warn(ERR_WIN32_ERROR+GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
+         else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
       }
    }
 

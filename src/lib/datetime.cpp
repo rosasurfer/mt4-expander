@@ -1535,7 +1535,7 @@ time32 WINAPI GmtToLocalTime(time32 time) {
    SYSTEMTIME st = UnixTimeToSystemTime(time), lt = {};
 
    if (!SystemTimeToTzSpecificLocalTime(NULL, &st, &lt)) {
-      return _NaT32(error(ERR_WIN32_ERROR+GetLastError(), "SystemTimeToTzSpecificLocalTime()"));
+      return _NaT32(error(ERR_WIN32_ERROR + GetLastError(), "SystemTimeToTzSpecificLocalTime()"));
    }
    return SystemTimeToUnixTime32(lt);
    #pragma EXPANDER_EXPORT
@@ -1558,7 +1558,7 @@ time32 WINAPI LocalToGmtTime(time32 time) {
    SYSTEMTIME lt = UnixTimeToSystemTime(time), st = {};
 
    if (!TzSpecificLocalTimeToSystemTime(NULL, &lt, &st)) {
-      return _NaT32(error(ERR_WIN32_ERROR+GetLastError(), "TzSpecificLocalTimeToSystemTime()"));
+      return _NaT32(error(ERR_WIN32_ERROR + GetLastError(), "TzSpecificLocalTimeToSystemTime()"));
    }
    return SystemTimeToUnixTime32(st);
    #pragma EXPANDER_EXPORT
