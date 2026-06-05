@@ -7,11 +7,15 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
+#include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
 
-extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
+extern "C" IMAGE_DOS_HEADER          __ImageBase;  // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
+
+HHOOK g_hUiThreadHook;                             // hook handle to subclass the terminal main window from a non-UI thread
+const uint g_subclassId = 1;                       // main window subclass identifier
 
 
 /**
@@ -19,11 +23,11 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module ha
  */
 void WINAPI CustomizeTerminal() {
    // get the terminal main window
-   HWND hWnd = GetTerminalMainWindow();
-   if (!hWnd) return;
+   HWND hWndMain = GetTerminalMainWindow();
+   if (!hWndMain) return;
 
    // get the toolbar
-   HWND hToolbar = GetDlgItem(hWnd, IDC_TOOLBAR);
+   HWND hToolbar = GetDlgItem(hWndMain, IDC_TOOLBAR);
    if (!hToolbar) {
       error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_TOOLBAR) => NULL (terminal toolbar not found)");
       return;
@@ -31,8 +35,8 @@ void WINAPI CustomizeTerminal() {
 
    // a local function as substitute for missing lambda support in C++03
    struct local {
-      static void CloseWindow(HWND hCtrl, BOOL onUIThread) {
-         if (onUIThread) {
+      static void CloseWindow(HWND hCtrl, BOOL onUiThread) {
+         if (onUiThread) {
             DestroyWindow(hCtrl);
          }
          else {
@@ -42,24 +46,99 @@ void WINAPI CustomizeTerminal() {
       }
    };
 
-   // whether we are executed by the UI thread
-   BOOL onUIThread = (GetCurrentThreadId() == GetWindowThreadProcessId(hToolbar, NULL));
+   // whether the function is executed by the UI thread
+   BOOL onUiThread = (GetCurrentThreadId() == GetWindowThreadProcessId(hWndMain, NULL));
 
-   // find and remove a search box control (contains the community button)
+   // find and remove a search box control (contains the "Community" button)
    HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
    if (hSearchCtrl) {
-      local::CloseWindow(hSearchCtrl, onUIThread);
+      local::CloseWindow(hSearchCtrl, onUiThread);
       if (!RedrawWindow(hToolbar, NULL, NULL, RDW_ERASE|RDW_INVALIDATE)) {
          error(ERR_WIN32_ERROR + GetLastError(), "RedrawWindow(IDC_TOOLBAR) failed");
          return;
       }
    }
    else {
-      // if search box control not found, find/remove an independent community button
+      // if search box control not found, find/remove an independent "Community" button
       if (HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON)) {
-         local::CloseWindow(hBtnCtrl, onUIThread);
+         local::CloseWindow(hBtnCtrl, onUiThread);
       }
    }
+
+   // subclass the terminal main window
+   SubclassMainWindow(hWndMain, onUiThread);
+}
+
+
+/**
+ * Subclass the terminal main window.
+ *
+ * @param  HWND hWndMain   - handle of the terminal main window
+ * @param  BOOL onUiThread - whether the function is executed by the UI thread
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL onUiThread) {
+   DWORD_PTR data = 0;  // guard against multiple calls
+   if (GetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, &data)) {
+      return TRUE;
+   }
+   if (onUiThread) {    // on the UI thread we can call SetWindowSubclass() directly
+      if (!SetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, 0)) {
+         return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+      }
+   }
+   else {               // otherwise we must install a hook to be executed by the UI thread
+      g_hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUIThreadId());
+      if (!g_hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
+      PostMessage(hWndMain, WM_NULL, 0, 0);   // wake-up the UI thread
+   }
+   return TRUE;
+}
+
+
+/**
+ * Callback function registered by SetWindowsHookEx(). Runs in the UI thread.
+ *
+ * @param  int    code   - whether the hook procedure must process the message
+ * @param  WPARAM wParam - whether the message was sent by the current thread
+ * @param  LPARAM lParam - pointer to message details
+ *
+ * @return LRESULT - return value of CallNextHookEx()
+ */
+static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
+   if (code >= 0) {
+      UnhookWindowsHookEx(g_hUiThreadHook);
+      g_hUiThreadHook = NULL;
+
+      if (!SetWindowSubclass(GetTerminalMainWindow(), MainWindowSubclassProc, g_subclassId, 0)) {
+         error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+      }
+   }
+   return CallNextHookEx(NULL, code, wParam, lParam);
+}
+
+
+/**
+ * The main window's subclassing window procedure. Runs on the UI thread.
+ *
+ * @param  HWND      hWnd       - the subclassed window receiving the message
+ * @param  uint      msg        - sent message
+ * @param  WPARAM    wParam     - additional message info
+ * @param  LPARAM    lParam     - additional message info
+ * @param  UINT_PTR  subclassId - subclass identifier
+ * @param  DWORD_PTR data       - reference data
+ *
+ * @return LRESULT - depends on the message sent
+ */
+static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
+   switch (msg) {
+      case WM_NCDESTROY:
+         //debug("WM_NCDESTROY");
+         RemoveWindowSubclass(hWnd, MainWindowSubclassProc, subclassId);
+         break;
+   }
+   return DefSubclassProc(hWnd, msg, wParam, lParam);
 }
 
 
@@ -76,7 +155,7 @@ char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
    if (!*filename)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)");
 
    const char* hstRootPath = GetHistoryRootPathA();
-   if (!hstRootPath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetHistoryRootPathA() => NULL");
+   if (!hstRootPath) return (char*)!error(ERR_RUNTIME_ERROR, "GetHistoryRootPathA() => NULL");
 
    string pattern = string(hstRootPath).append("\\*");
    WIN32_FIND_DATA wfd = {};
@@ -94,7 +173,7 @@ char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
             string fullFilename = string(GetHistoryRootPathA()).append("\\").append(dirName).append("\\").append(filename);
             if (IsFileA(fullFilename.c_str(), MODE_SYSTEM)) {
                hstDirectory = dirName;
-               if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR+GetLastError(), "cannot delete file %s", DoubleQuoteStr(fullFilename.c_str()));
+               if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR + GetLastError(), "cannot delete file %s", DoubleQuoteStr(fullFilename.c_str()));
                break;
             }
          }
@@ -481,7 +560,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
    if (!path) {
       wchar appDataPath[MAX_PATH];
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
-         return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()");
+         return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "SHGetFolderPathW()");
       }
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");
 
@@ -646,7 +725,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
          buffer = (wchar*) alloca(size * sizeof(wchar));    // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);   // may return a path longer than MAX_PATH
       }
-      if (!length) return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()");
+      if (!length) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetModuleFileNameW()");
 
       wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
@@ -771,7 +850,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
    if (!result) {
       wchar appDataPath[MAX_PATH];
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
-         return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()");
+         return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "SHGetFolderPathW()");
       }
       wstring terminalPath(GetTerminalPathW());
       strToUpper(terminalPath);
@@ -828,16 +907,16 @@ const char* WINAPI GetTerminalVersion() {
 BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO &fileInfo) {
    const char* fileName = GetTerminalFileNameA();
    DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
-   if (!infoSize) return !error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSizeA()");
+   if (!infoSize) return !error(ERR_WIN32_ERROR + GetLastError(), "GetFileVersionInfoSizeA()");
 
    char* infos = (char*) alloca(infoSize);      // on the stack
    BOOL success = GetFileVersionInfoA(fileName, NULL, infoSize, infos);
-   if (!success) return !error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoA()");
+   if (!success) return !error(ERR_WIN32_ERROR + GetLastError(), "GetFileVersionInfoA()");
 
    VS_FIXEDFILEINFO* result;                    // points to an offset in 'infos' (on the stack)
    uint len;
    success = VerQueryValueA(infos, "\\", (void**)&result, &len);
-   if (!success) return !error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValueA()");
+   if (!success) return !error(ERR_WIN32_ERROR + GetLastError(), "VerQueryValueA()");
 
    fileInfo = *result;                          // copy content of result to fileInfo
    return TRUE;
@@ -862,7 +941,7 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
       if (!hVersionInfo) return !error(ERR_WIN32_ERROR + GetLastError(), "LoadResource()");
 
       void* infos = LockResource(hVersionInfo);
-      if (!infos) return !error(ERR_WIN32_ERROR+GetLastError(), "LockResource()");
+      if (!infos) return !error(ERR_WIN32_ERROR + GetLastError(), "LockResource()");
 
       int offset = 6;
       if (!wstrcmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {

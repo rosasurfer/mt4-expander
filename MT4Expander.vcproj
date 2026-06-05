@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib version.lib winmm.lib ws2_32.lib"
+				AdditionalDependencies="comctl32.lib shlwapi.lib version.lib winmm.lib ws2_32.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -163,7 +163,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib version.lib winmm.lib ws2_32.lib"
+				AdditionalDependencies="comctl32.lib shlwapi.lib version.lib winmm.lib ws2_32.lib"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -252,7 +252,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib version.lib winmm.lib ws2_32.lib"
+				AdditionalDependencies="comctl32.lib shlwapi.lib version.lib winmm.lib ws2_32.lib"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
