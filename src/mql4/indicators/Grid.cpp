@@ -24,7 +24,7 @@ int WINAPI Grid_GetChartHeight(HWND hChart, int lastHeight) {
    }
 
    RECT rect;
-   if (!GetWindowRect(hChart, &rect)) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetWindowRect()"));
+   if (!GetWindowRect(hChart, &rect)) return(!error(ERR_WIN32_ERROR + GetLastError(), "GetWindowRect()"));
 
    return(rect.bottom - rect.top);                    // on (height == 0) the view port was resized to zero height
    #pragma EXPANDER_EXPORT

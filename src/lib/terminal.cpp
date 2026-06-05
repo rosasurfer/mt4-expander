@@ -7,11 +7,15 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
+#include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
 
-extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module handle
+extern "C" IMAGE_DOS_HEADER          __ImageBase;  // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
+
+HHOOK g_hUiThreadHook;                             // hook handle to subclass the terminal main window from a non-UI thread
+const uint g_subclassId = 1;                       // main window subclass identifier
 
 
 /**
@@ -19,11 +23,11 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;        // this DLL's module ha
  */
 void WINAPI CustomizeTerminal() {
    // get the terminal main window
-   HWND hWnd = GetTerminalMainWindow();
-   if (!hWnd) return;
+   HWND hWndMain = GetTerminalMainWindow();
+   if (!hWndMain) return;
 
    // get the toolbar
-   HWND hToolbar = GetDlgItem(hWnd, IDC_TOOLBAR);
+   HWND hToolbar = GetDlgItem(hWndMain, IDC_TOOLBAR);
    if (!hToolbar) {
       error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_TOOLBAR) => NULL (terminal toolbar not found)");
       return;
@@ -31,8 +35,8 @@ void WINAPI CustomizeTerminal() {
 
    // a local function as substitute for missing lambda support in C++03
    struct local {
-      static void CloseWindow(HWND hCtrl, BOOL onUIThread) {
-         if (onUIThread) {
+      static void CloseWindow(HWND hCtrl, BOOL onUiThread) {
+         if (onUiThread) {
             DestroyWindow(hCtrl);
          }
          else {
@@ -42,24 +46,185 @@ void WINAPI CustomizeTerminal() {
       }
    };
 
-   // whether we are executed by the UI thread
-   BOOL onUIThread = (GetCurrentThreadId() == GetWindowThreadProcessId(hToolbar, NULL));
+   // whether the function is executed by the UI thread
+   BOOL onUiThread = (GetCurrentThreadId() == GetWindowThreadProcessId(hWndMain, NULL));
 
-   // find and remove a search box control (contains the community button)
+   // find and remove a search box control (contains the "Community" button)
    HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
    if (hSearchCtrl) {
-      local::CloseWindow(hSearchCtrl, onUIThread);
+      local::CloseWindow(hSearchCtrl, onUiThread);
       if (!RedrawWindow(hToolbar, NULL, NULL, RDW_ERASE|RDW_INVALIDATE)) {
          error(ERR_WIN32_ERROR + GetLastError(), "RedrawWindow(IDC_TOOLBAR) failed");
          return;
       }
    }
    else {
-      // if search box control not found, find/remove an independent community button
+      // if search box control not found, find/remove an independent "Community" button
       if (HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON)) {
-         local::CloseWindow(hBtnCtrl, onUIThread);
+         local::CloseWindow(hBtnCtrl, onUiThread);
       }
    }
+
+   // subclass the terminal main window
+   SubclassMainWindow(hWndMain, onUiThread);
+}
+
+
+/**
+ * Subclass the terminal main window.
+ *
+ * @param  HWND hWndMain   - handle of the terminal main window
+ * @param  BOOL onUiThread - whether the function is executed by the UI thread
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL onUiThread) {
+   DWORD_PTR data = 0;  // guard against multiple calls
+   if (GetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, &data)) {
+      return TRUE;
+   }
+   if (onUiThread) {    // on the UI thread we can call SetWindowSubclass() directly
+      if (!SetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, 0)) {
+         return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+      }
+   }
+   else {               // otherwise we must install a hook to be executed by the UI thread
+      g_hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUIThreadId());
+      if (!g_hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
+      PostMessage(hWndMain, WM_NULL, 0, 0);   // wake-up the UI thread
+   }
+   return TRUE;
+}
+
+
+/**
+ * Callback function registered by SetWindowsHookEx(). Runs in the UI thread.
+ *
+ * @param  int    code   - whether the hook procedure must process the message
+ * @param  WPARAM wParam - whether the message was sent by the current thread
+ * @param  LPARAM lParam - pointer to message details
+ *
+ * @return LRESULT - return value of CallNextHookEx()
+ */
+static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
+   if (code >= 0) {
+      UnhookWindowsHookEx(g_hUiThreadHook);
+      g_hUiThreadHook = NULL;
+
+      if (!SetWindowSubclass(GetTerminalMainWindow(), MainWindowSubclassProc, g_subclassId, 0)) {
+         error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+      }
+   }
+   return CallNextHookEx(NULL, code, wParam, lParam);
+}
+
+
+/**
+ * The main window's subclassing window procedure. Runs in the UI thread.
+ *
+ * @param  HWND      hWnd       - the subclassed window receiving the message
+ * @param  uint      msg        - sent message
+ * @param  WPARAM    wParam     - additional message info
+ * @param  LPARAM    lParam     - additional message info
+ * @param  UINT_PTR  subclassId - subclass identifier
+ * @param  DWORD_PTR data       - reference data
+ *
+ * @return LRESULT - depends on the message sent
+ */
+static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
+   switch (msg) {
+      case WM_NCDESTROY:
+         //debug("WM_NCDESTROY");
+         RemoveWindowSubclass(hWnd, MainWindowSubclassProc, subclassId);
+         break;
+   }
+   return DefSubclassProc(hWnd, msg, wParam, lParam);
+}
+
+
+/**
+ * Find and return the name of the history directory containing the specified file.
+ *
+ * @param  char* filename   - simple filename
+ * @param  BOOL  removeFile - whether to remove a found file
+ *
+ * @return char* - directory name (last segment of the full path) or NULL in case of errors
+ */
+char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
+   if ((uint)filename < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename);
+   if (!*filename)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)");
+
+   const char* hstRootPath = GetHistoryRootPathA();
+   if (!hstRootPath) return (char*)!error(ERR_RUNTIME_ERROR, "GetHistoryRootPathA() => NULL");
+
+   string pattern = string(hstRootPath).append("\\*");
+   WIN32_FIND_DATA wfd = {};
+   HANDLE hFind = FindFirstFileA(pattern.c_str(), &wfd);
+   if (hFind == INVALID_HANDLE_VALUE) return (char*)!error(ERR_FILE_NOT_FOUND, "directory \"%s\" not found", pattern.c_str());
+
+   char* hstDirectory = NULL;
+   BOOL next = TRUE;
+
+   while (next) {
+      if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+         char* dirName = wfd.cFileName;
+
+         if (!StrCompare(dirName, ".") && !StrCompare(dirName, "..")) {
+            string fullFilename = string(GetHistoryRootPathA()).append("\\").append(dirName).append("\\").append(filename);
+            if (IsFileA(fullFilename.c_str(), MODE_SYSTEM)) {
+               hstDirectory = dirName;
+               if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR + GetLastError(), "cannot delete file %s", DoubleQuoteStr(fullFilename.c_str()));
+               break;
+            }
+         }
+      }
+      next = FindNextFileA(hFind, &wfd);
+   }
+   FindClose(hFind);
+
+   return sdup(hstDirectory);          // caller must free()
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Find the window handle of the open configuration dialog of the specified MQL program.
+ *
+ * @param  ProgramType programType - one of PT_INDICATOR | PT_EXPERT | PT_SCRIPT
+ * @param  char*       programName - name
+ *
+ * @return HWND - window handle or NULL if no open configuration dialog was found;
+ *                INVALID_HWND (-1) in case of errors
+ */
+HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
+   if (!IsProgramType(programType))           return _INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
+   if ((uint)programName < MIN_VALID_POINTER) return _INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
+   if (!*programName)                         return _INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)"));
+
+   string title(programName);
+   if (programType == PT_INDICATOR) title.insert(0, "Custom Indicator - ");
+
+   char* className = "#32770";
+   DWORD processId, self = GetCurrentProcessId();
+   HWND hWndDlg = NULL;
+
+   while (hWndDlg = FindWindowExA(NULL, hWndDlg, className, title.c_str())) {
+      GetWindowThreadProcessId(hWndDlg, &processId);
+
+      if (processId == self) {
+         if (programType == PT_INDICATOR) {
+            if (FindWindowExA(hWndDlg, NULL, className, "Common")) break;                    // FIX-ME: this text is subject to i18n
+         }
+         else if (programType==PT_EXPERT || programType==PT_SCRIPT) {                        // expert and script dialogs are indistinguishable
+            if (FindWindowExA(hWndDlg, NULL, className, "Expert Advisor settings")) break;   // FIX-ME: this text is subject to i18n
+         }
+         //else if (built-in-indicator) {
+         //   if (FindWindowExA(hWndDlg, NULL, className, "Parameters")) break;              // FIX-ME: this text is subject to i18n
+         //}
+      }
+   }
+   return hWndDlg;
+   //#pragma EXPANDER_EXPORT                                                                 // not exported as i18n issues are not fixed
 }
 
 
@@ -122,136 +287,6 @@ DWORD WINAPI GetCliOptions() {
 DWORD WINAPI GetDebugOptions() {
    return GetCliOptions() & ~OPTION_PORTABLE_MODE;
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether the terminal operates in portable mode, i.e. whether it was launched with command line option "/portable".
- * In portable mode the terminal behaves like under Windows XP or earlier. It uses the installation directory for program data
- * and ignores a UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
- *
- * @return BOOL
- */
-BOOL WINAPI IsPortableMode() {
-   static int portableMode = -1;
-
-   if (portableMode < 0) {
-      portableMode = (GetTerminalBuild() <= 509 || GetCliOptions() & OPTION_PORTABLE_MODE);
-   }
-   return portableMode;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Find and return the name of the history directory containing the specified file.
- *
- * @param  char* filename   - simple filename
- * @param  BOOL  removeFile - whether to remove a found file
- *
- * @return char* - directory name (last segment of the full path) or NULL in case of errors
- */
-char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
-   if ((uint)filename < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename);
-   if (!*filename)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)");
-
-   const char* hstRootPath = GetHistoryRootPathA();
-   if (!hstRootPath) return (char*)!error(ERR_RUNTIME_ERROR, "->GetHistoryRootPathA() => NULL");
-
-   string pattern = string(hstRootPath).append("\\*");
-   WIN32_FIND_DATA wfd = {};
-   HANDLE hFind = FindFirstFileA(pattern.c_str(), &wfd);
-   if (hFind == INVALID_HANDLE_VALUE) return (char*)!error(ERR_FILE_NOT_FOUND, "directory \"%s\" not found", pattern.c_str());
-
-   char* hstDirectory = NULL;
-   BOOL next = TRUE;
-
-   while (next) {
-      if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-         char* dirName = wfd.cFileName;
-
-         if (!StrCompare(dirName, ".") && !StrCompare(dirName, "..")) {
-            string fullFilename = string(GetHistoryRootPathA()).append("\\").append(dirName).append("\\").append(filename);
-            if (IsFileA(fullFilename.c_str(), MODE_SYSTEM)) {
-               hstDirectory = dirName;
-               if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR+GetLastError(), "cannot delete file %s", DoubleQuoteStr(fullFilename.c_str()));
-               break;
-            }
-         }
-      }
-      next = FindNextFileA(hFind, &wfd);
-   }
-   FindClose(hFind);
-
-   return sdup(hstDirectory);          // caller must free()
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Find the window handle of the open configuration dialog of the specified MQL program.
- *
- * @param  ProgramType programType - one of PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  char*       programName - name
- *
- * @return HWND - window handle or NULL if no open configuration dialog was found;
- *                INVALID_HWND (-1) in case of errors
- */
-HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
-   if (!IsProgramType(programType))           return _INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programType: %d (unknown)", programType));
-   if ((uint)programName < MIN_VALID_POINTER) return _INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: 0x%p (not a valid pointer)", programName));
-   if (!*programName)                         return _INVALID_HWND(error(ERR_INVALID_PARAMETER, "invalid parameter programName: \"\" (empty)"));
-
-   string title(programName);
-   if (programType == PT_INDICATOR) title.insert(0, "Custom Indicator - ");
-
-   char* className = "#32770";
-   DWORD processId, self = GetCurrentProcessId();
-   HWND hWndDlg = NULL;
-
-   while (hWndDlg = FindWindowExA(NULL, hWndDlg, className, title.c_str())) {
-      GetWindowThreadProcessId(hWndDlg, &processId);
-
-      if (processId == self) {
-         if (programType == PT_INDICATOR) {
-            if (FindWindowExA(hWndDlg, NULL, className, "Common")) break;                    // FIX-ME: this text is subject to i18n
-         }
-         else if (programType==PT_EXPERT || programType==PT_SCRIPT) {                        // expert and script dialogs are indistinguishable
-            if (FindWindowExA(hWndDlg, NULL, className, "Expert Advisor settings")) break;   // FIX-ME: this text is subject to i18n
-         }
-         //else if (built-in-indicator) {
-         //   if (FindWindowExA(hWndDlg, NULL, className, "Parameters")) break;              // FIX-ME: this text is subject to i18n
-         //}
-      }
-   }
-   return hWndDlg;
-   //#pragma EXPANDER_EXPORT                                                                 // not exported as i18n issues are not fixed
-}
-
-
-/**
- * Whether the specified file exists and is locked with the sharing modes of a terminal logfile.
- * The function cannot see which process is holding a lock.
- *
- * @param  string &filename - full filename
- *
- * @return BOOL
- */
-BOOL WINAPI IsLockedFile(const string &filename) {
-   if (!IsFileA(filename.c_str(), MODE_SYSTEM)) return FALSE;
-
-   // for logfile: OF_READWRITE|OF_SHARE_COMPAT must succeed
-   HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
-   if (hFile == HFILE_ERROR) return FALSE;         // not succeeded
-   _lclose(hFile);
-
-   // for logfile: OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
-   hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
-   if (hFile == HFILE_ERROR) {
-      return GetLastError() == ERROR_SHARING_VIOLATION;
-   }
-   _lclose(hFile);
-   return FALSE;                                   // not failed
 }
 
 
@@ -465,6 +500,29 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
 
 
 /**
+ * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL4.5.
+ *
+ * @return uint - build number or 0 in case of errors
+ */
+uint WINAPI GetTerminalBuild() {
+   static uint build;
+
+   if (!build) {
+      VS_FIXEDFILEINFO fileInfo = {};
+      if      (GetTerminalVersionFromImage(fileInfo)) {}
+      else if (GetTerminalVersionFromFile(fileInfo)) {}
+      else return NULL;
+
+      if (!build) {                             // another thread may have been faster
+         build = fileInfo.dwFileVersionLS & 0xffff;
+      }
+   }
+   return build;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
  * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
@@ -502,7 +560,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
    if (!path) {
       wchar appDataPath[MAX_PATH];
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
-         return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()");
+         return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "SHGetFolderPathW()");
       }
       wstring dir = wstring(appDataPath).append(L"\\MetaQuotes\\Terminal\\Common");
 
@@ -630,39 +688,6 @@ const wchar* WINAPI GetTerminalDataPathW() {
 
 
 /**
- * Return the window handle of the application's main window.
- *
- * @return HWND - handle or NULL (0) in case of errors
- */
-HWND WINAPI GetTerminalMainWindow() {
-   static HWND hWndMain;
-
-   if (!hWndMain) {
-      DWORD processId, self = GetCurrentProcessId();
-      uint  size = 255;
-      char* className = (char*) alloca(size);   // on the stack
-
-      HWND hWndNext = GetTopWindow(NULL);
-      while (hWndNext) {                        // iterate over all top-level windows
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == self) {
-            if (!GetClassNameA(hWndNext, className, size)) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA()");
-            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00")) {
-               break;
-            }
-         }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-      }
-      if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
-
-      if (!hWndMain) hWndMain = hWndNext;       // another thread may have been faster
-   }
-   return hWndMain;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the full filename of the executable the terminal was launched from.
  *
  * @return char* - filename or NULL in case of errors
@@ -700,13 +725,46 @@ const wchar* WINAPI GetTerminalFileNameW() {
          buffer = (wchar*) alloca(size * sizeof(wchar));    // on the stack
          length = GetModuleFileNameW(NULL, buffer, size);   // may return a path longer than MAX_PATH
       }
-      if (!length) return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "GetModuleFileNameW()");
+      if (!length) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetModuleFileNameW()");
 
       wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
       else           free(tmp);                             // another thread may have been faster
    }
    return filename;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the window handle of the application's main window.
+ *
+ * @return HWND - handle or NULL (0) in case of errors
+ */
+HWND WINAPI GetTerminalMainWindow() {
+   static HWND hWndMain;
+
+   if (!hWndMain) {
+      DWORD processId, self = GetCurrentProcessId();
+      uint  size = 255;
+      char* className = (char*) alloca(size);   // on the stack
+
+      HWND hWndNext = GetTopWindow(NULL);
+      while (hWndNext) {                        // iterate over all top-level windows
+         GetWindowThreadProcessId(hWndNext, &processId);
+         if (processId == self) {
+            if (!GetClassNameA(hWndNext, className, size)) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA()");
+            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00")) {
+               break;
+            }
+         }
+         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+      }
+      if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
+
+      if (!hWndMain) hWndMain = hWndNext;       // another thread may have been faster
+   }
+   return hWndMain;
    #pragma EXPANDER_EXPORT
 }
 
@@ -792,7 +850,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
    if (!result) {
       wchar appDataPath[MAX_PATH];
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
-         return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SHGetFolderPathW()");
+         return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "SHGetFolderPathW()");
       }
       wstring terminalPath(GetTerminalPathW());
       strToUpper(terminalPath);
@@ -807,29 +865,6 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
       else         free(tmp);                   // another thread may have been faster
    }
    return result;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL4.5.
- *
- * @return uint - build number or 0 in case of errors
- */
-uint WINAPI GetTerminalBuild() {
-   static uint build;
-
-   if (!build) {
-      VS_FIXEDFILEINFO fileInfo = {};
-      if      (GetTerminalVersionFromImage(fileInfo)) {}
-      else if (GetTerminalVersionFromFile(fileInfo)) {}
-      else return NULL;
-
-      if (!build) {                             // another thread may have been faster
-         build = fileInfo.dwFileVersionLS & 0xffff;
-      }
-   }
-   return build;
    #pragma EXPANDER_EXPORT
 }
 
@@ -872,16 +907,16 @@ const char* WINAPI GetTerminalVersion() {
 BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO &fileInfo) {
    const char* fileName = GetTerminalFileNameA();
    DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
-   if (!infoSize) return !error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoSizeA()");
+   if (!infoSize) return !error(ERR_WIN32_ERROR + GetLastError(), "GetFileVersionInfoSizeA()");
 
    char* infos = (char*) alloca(infoSize);      // on the stack
    BOOL success = GetFileVersionInfoA(fileName, NULL, infoSize, infos);
-   if (!success) return !error(ERR_WIN32_ERROR+GetLastError(), "GetFileVersionInfoA()");
+   if (!success) return !error(ERR_WIN32_ERROR + GetLastError(), "GetFileVersionInfoA()");
 
    VS_FIXEDFILEINFO* result;                    // points to an offset in 'infos' (on the stack)
    uint len;
    success = VerQueryValueA(infos, "\\", (void**)&result, &len);
-   if (!success) return !error(ERR_WIN32_ERROR+GetLastError(), "VerQueryValueA()");
+   if (!success) return !error(ERR_WIN32_ERROR + GetLastError(), "VerQueryValueA()");
 
    fileInfo = *result;                          // copy content of result to fileInfo
    return TRUE;
@@ -906,7 +941,7 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
       if (!hVersionInfo) return !error(ERR_WIN32_ERROR + GetLastError(), "LoadResource()");
 
       void* infos = LockResource(hVersionInfo);
-      if (!infos) return !error(ERR_WIN32_ERROR+GetLastError(), "LockResource()");
+      if (!infos) return !error(ERR_WIN32_ERROR + GetLastError(), "LockResource()");
 
       int offset = 6;
       if (!wstrcmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
@@ -920,6 +955,46 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
 
    fileInfo = *result;                          // copy content of result to fileInfo
    return TRUE;
+}
+
+
+/**
+ * Whether the specified file exists and is locked with the sharing modes of a terminal logfile.
+ * The function cannot see which process is holding a lock.
+ *
+ * @param  string &filename - full filename
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsLockedFile(const string &filename) {
+   if (!IsFileA(filename.c_str(), MODE_SYSTEM)) return FALSE;
+
+   // for logfile: OF_READWRITE|OF_SHARE_COMPAT must succeed
+   HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
+   if (hFile == HFILE_ERROR) return FALSE;         // not succeeded
+   _lclose(hFile);
+
+   // for logfile: OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
+   hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
+   if (hFile == HFILE_ERROR) {
+      return GetLastError() == ERROR_SHARING_VIOLATION;
+   }
+   _lclose(hFile);
+   return FALSE;                                   // not failed
+}
+
+
+/**
+ * Whether the terminal operates in portable mode, i.e. whether it was launched with command line option "/portable".
+ * In portable mode the terminal behaves like under Windows XP or earlier. It uses the installation directory for program data
+ * and ignores a UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsPortableMode() {
+   static BOOL portableMode = (GetTerminalBuild() <= 509 || GetCliOptions() & OPTION_PORTABLE_MODE);
+   return portableMode;
+   #pragma EXPANDER_EXPORT
 }
 
 

@@ -38,10 +38,10 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
    else /*flags & MODE_SYSTEM*/ {
       // check whether such a file or directory already exists
       if (IsFileOrDirectoryA(path)) {
-         if (!IsDirectoryA(path, MODE_SYSTEM)) return(error(ERR_WIN32_ERROR+ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path));
+         if (!IsDirectoryA(path, MODE_SYSTEM)) return(error(ERR_WIN32_ERROR + ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path));
          if (flags & MODE_MKPARENT)
             return(NO_ERROR);
-         return(error(ERR_WIN32_ERROR+ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path));
+         return(error(ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path));
       }
 
       // make sure a parent directory exists
@@ -63,7 +63,7 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
       int error = GetLastError();
       if (error==ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT))
          return(NO_ERROR);
-      return(error(ERR_WIN32_ERROR+error, "creation of \"%s\" failed", path));
+      return(error(ERR_WIN32_ERROR + error, "creation of \"%s\" failed", path));
    }
    #pragma EXPANDER_EXPORT
 }
@@ -195,7 +195,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
 
          WIN32_FIND_DATA wfd = {};
          HANDLE hFind = FindFirstFile(_name, &wfd);
-         if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR+GetLastError(), "cannot find path \"%s\"", _name);
+         if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR + GetLastError(), "cannot find path \"%s\"", _name);
          else {
             FindClose(hFind);
             result = (wfd.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT);
@@ -235,7 +235,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
 
          WIN32_FIND_DATA wfd = {};
          HANDLE hFind = FindFirstFile(_name, &wfd);
-         if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR+GetLastError(), "cannot find path \"%s\"", _name);
+         if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR + GetLastError(), "cannot find path \"%s\"", _name);
          else {
             FindClose(hFind);
             result = (wfd.dwReserved0 == IO_REPARSE_TAG_SYMLINK);
@@ -303,7 +303,7 @@ char* WINAPI GetReparsePointTargetA(const char* name) {
                               OPEN_EXISTING,                                           // open existing file only
                               FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS, // open reparse point itself
                               NULL);                                                   // no attribute template
-   if (hFile == INVALID_HANDLE_VALUE) return (char*)!error(ERR_WIN32_ERROR+GetLastError(), "CreateFileA() cannot open \"%s\"", name);
+   if (hFile == INVALID_HANDLE_VALUE) return (char*)!error(ERR_WIN32_ERROR + GetLastError(), "CreateFileA() cannot open \"%s\"", name);
 
    // create a reparse data structure
    DWORD bufferSize = MAXIMUM_REPARSE_DATA_BUFFER_SIZE;
@@ -315,7 +315,7 @@ char* WINAPI GetReparsePointTargetA(const char* name) {
    CloseHandle(hFile);
    if (!success) {
       free(rdata);
-      return (char*)!error(ERR_WIN32_ERROR+GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name);
+      return (char*)!error(ERR_WIN32_ERROR + GetLastError(), "DeviceIoControl() cannot query reparse data of \"%s\"", name);
    }
 
    char* result = NULL;
@@ -402,7 +402,7 @@ wchar* WINAPI SearchPathW(const wchar* file) {
    DWORD result2 = SearchPathW(NULL, file, L".exe", result, buffer, NULL);
    if (!result2 || result2 >= result) {            // failed or still too small (concurrent PATH modification)
       free(buffer);
-      return (wchar*)!error(ERR_WIN32_ERROR+GetLastError(), "SearchPathW(\"%S\") failed or concurrent PATH modification", file);
+      return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "SearchPathW(\"%S\") failed or concurrent PATH modification", file);
    }
    return buffer;                                  // caller must free()
    #pragma EXPANDER_EXPORT

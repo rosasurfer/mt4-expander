@@ -4,13 +4,8 @@
 #include "lib/terminal.h"
 #include <map>
 
-extern "C" {
-   #include "lib/md5.h"
-}
-
-
 typedef std::map<string, int>    IntegerMap;       // map = associative array
-typedef std::map<string, double> DoubleMap;        // new elements are always copied into the containers
+typedef std::map<string, double> DoubleMap;        // new elements are added "by-copy"
 typedef std::map<string, string> StringMap;        //
 
 IntegerMap g_intWndProperties;                     // a map with integers stored as window properties
@@ -38,7 +33,7 @@ BOOL WINAPI IsDebugBuild() {
  * @return DWORD - error code
  */
 DWORD WINAPI GetLastWin32Error() {
-   return(GetLastError());
+   return GetLastError();
    #pragma EXPANDER_EXPORT
 }
 
@@ -72,26 +67,26 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  * @return wchar* - text (may be empty) or NULL in case of errors
  */
 wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
-   if (!IsWindow(hWnd)) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
 
    SetLastError(NO_ERROR);
    wchar* buffer = NULL;
    uint size=32, length=size;
 
-   while (length >= size-1) {                               // if (length == size-1) the string may have been truncated
+   while (length >= size-1) {                            // if (length == size-1) the string may have been truncated
       free(buffer);
-      size <<= 1;                                           // double the size
-      buffer = (wchar*)malloc(size * sizeof(wchar));        // on the heap
+      size <<= 1;                                        // double the size
+      buffer = (wchar*)malloc(size * sizeof(wchar));     // on the heap
       length = InternalGetWindowText(hWnd, buffer, size);
    }
 
    if (!length) {
       if (DWORD error = GetLastError()) {
          free(buffer);
-         return((wchar*)!error(ERR_WIN32_ERROR+error, "->InternalGetWindowText()"));
+         return (wchar*)!error(ERR_WIN32_ERROR + error, "InternalGetWindowText()");
       }
    }
-   return(buffer);            // caller must free()
+   return buffer;                                        // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -111,7 +106,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
    char* ansiText = utf16ToAnsi(utf16Text);
    free(utf16Text);
 
-   return ansiText;             // caller must free()
+   return ansiText;                 // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -125,26 +120,26 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  * @return wchar* - text (may be empty) or NULL in case of errors
  */
 wchar* WINAPI GetWindowTextW(HWND hWnd) {
-   if (!IsWindow(hWnd)) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
 
    SetLastError(NO_ERROR);
    wchar* buffer = NULL;
    uint size=32, length=size;
 
-   while (length >= size-1) {                               // if (length == size-1) the string may have been truncated
+   while (length >= size-1) {                         // if (length == size-1) the string may have been truncated
       free(buffer);
-      size <<= 1;                                           // double the size
-      buffer = (wchar*)malloc(size * sizeof(wchar));        // on the heap
+      size <<= 1;                                     // double the size
+      buffer = (wchar*)malloc(size * sizeof(wchar));  // on the heap
       length = GetWindowTextW(hWnd, buffer, size);
    }
 
    if (!length) {
       if (DWORD error = GetLastError()) {
          free(buffer);
-         return((wchar*)!error(ERR_WIN32_ERROR+error, "->GetWindowTextW()"));
+         return (wchar*)!error(ERR_WIN32_ERROR + error, "GetWindowTextW()");
       }
    }
-   return(buffer);              // caller must free()
+   return buffer;                                     // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -158,17 +153,17 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
  */
 BOOL WINAPI IsStandardTimeframe(int timeframe) {
    switch (timeframe) {
-      case PERIOD_M1 : return(TRUE);
-      case PERIOD_M5 : return(TRUE);
-      case PERIOD_M15: return(TRUE);
-      case PERIOD_M30: return(TRUE);
-      case PERIOD_H1 : return(TRUE);
-      case PERIOD_H4 : return(TRUE);
-      case PERIOD_D1 : return(TRUE);
-      case PERIOD_W1 : return(TRUE);
-      case PERIOD_MN1: return(TRUE);
+      case PERIOD_M1 : return TRUE;
+      case PERIOD_M5 : return TRUE;
+      case PERIOD_M15: return TRUE;
+      case PERIOD_M30: return TRUE;
+      case PERIOD_H1 : return TRUE;
+      case PERIOD_H4 : return TRUE;
+      case PERIOD_D1 : return TRUE;
+      case PERIOD_W1 : return TRUE;
+      case PERIOD_MN1: return TRUE;
    }
-   return(FALSE);
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -181,9 +176,10 @@ BOOL WINAPI IsStandardTimeframe(int timeframe) {
  * @return BOOL
  */
 BOOL WINAPI IsCustomTimeframe(int timeframe) {
-   if (timeframe <= 0)
-      return(FALSE);
-   return(!IsStandardTimeframe(timeframe));
+   if (timeframe <= 0) {
+      return FALSE;
+   }
+   return !IsStandardTimeframe(timeframe);
    #pragma EXPANDER_EXPORT
 }
 
@@ -197,11 +193,11 @@ BOOL WINAPI IsCustomTimeframe(int timeframe) {
  */
 BOOL WINAPI IsProgramType(int type) {
    switch (type) {
-      case PT_INDICATOR: return(TRUE);
-      case PT_EXPERT:    return(TRUE);
-      case PT_SCRIPT:    return(TRUE);
+      case PT_INDICATOR: return TRUE;
+      case PT_EXPERT:    return TRUE;
+      case PT_SCRIPT:    return TRUE;
    }
-   return(FALSE);
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -216,7 +212,7 @@ BOOL WINAPI IsProgramType(int type) {
  * @see  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate
  */
 BOOL WINAPI IsVirtualKeyDown(int key) {
-   return(GetAsyncKeyState(key) & 0x8000);      // check the most significant bit of the SHORT result
+   return (GetAsyncKeyState(key) & 0x8000);     // check the most significant bit of the SHORT result
    #pragma EXPANDER_EXPORT
 }
 
@@ -256,7 +252,7 @@ DWORD WINAPI GetPressedVirtualKeys(DWORD flags = F_VK_ALL) {
       pressed |= F_VK_RWIN;
    }
 
-   return(pressed);
+   return pressed;
    #pragma EXPANDER_EXPORT
 }
 
@@ -272,7 +268,7 @@ BOOL WINAPI IsUIThread(DWORD threadId/*=NULL*/) {
    if (!threadId) {
       threadId = GetCurrentThreadId();
    }
-   return(threadId == GetUIThreadId());
+   return (threadId == GetUIThreadId());
    #pragma EXPANDER_EXPORT
 }
 
@@ -291,7 +287,7 @@ DWORD WINAPI GetUIThreadId() {
          if (!uiThreadId) uiThreadId = threadId;      // another thread may have been faster
       }
    }
-   return(uiThreadId);
+   return uiThreadId;
    #pragma EXPANDER_EXPORT
 }
 
@@ -305,18 +301,18 @@ DWORD WINAPI GetUIThreadId() {
  * @return BOOL
  */
 BOOL WINAPI IsWindowAreaVisible(HWND hWnd) {
-   if (!hWnd) return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
+   if (!hWnd) return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
 
    HDC hDC = GetDC(hWnd);
-   if (!hDC) return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetDC(hWnd=%p)", hWnd));
+   if (!hDC) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDC(hWnd=%p)", hWnd);
 
    RECT rect;
    int region = GetClipBox(hDC, &rect);
    ReleaseDC(hWnd, hDC);
 
-   if (region == RGN_ERROR)  return(!error(ERR_WIN32_ERROR+GetLastError(), "->GetClipBox(hDC=%p) => RGN_ERROR", hDC));
+   if (region == RGN_ERROR) return !error(ERR_WIN32_ERROR + GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
 
-   return(region != NULLREGION);
+   return (region != NULLREGION);
    #pragma EXPANDER_EXPORT
 }
 
@@ -351,7 +347,7 @@ HANDLE WINAPI GetWindowPropertyA(HWND hWnd, const char* name) {
 BOOL WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value) {
    BOOL success = SetPropA(hWnd, name, value);
    if (!success) {
-      error(ERR_WIN32_ERROR+GetLastError(), "SetPropA()  name=\"%s\"", name);
+      error(ERR_WIN32_ERROR + GetLastError(), "SetPropA()  name=\"%s\"", name);
    }
    return success;
    #pragma EXPANDER_EXPORT
@@ -445,16 +441,17 @@ BOOL WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
  * @return int - stored value or NULL if the name was not found or in case of errors
  */
 int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    IntegerMap::iterator result = g_intWndProperties.find(key);
 
-   if (result != g_intWndProperties.end())
-      return(result->second);
-   return(NULL);
+   if (result != g_intWndProperties.end()) {
+      return result->second;
+   }
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -468,16 +465,17 @@ int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
  * @return double - stored value or NULL if the name was not found or in case of errors
  */
 double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    DoubleMap::iterator result = g_doubleWndProperties.find(key);
 
-   if (result != g_doubleWndProperties.end())
-      return(result->second);
-   return(NULL);
+   if (result != g_doubleWndProperties.end()) {
+      return result->second;
+   }
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -516,14 +514,14 @@ const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
  * @return BOOL - success status
  */
 BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
-   if (!IsWindow(hWnd))                return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    g_intWndProperties[key] = value;
 
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -538,14 +536,14 @@ BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
  * @return BOOL - success status
  */
 BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
-   if (!IsWindow(hWnd))                return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    g_doubleWndProperties[key] = value;
 
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -560,19 +558,17 @@ BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
  * @return BOOL - success status
  */
 BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
-   if (!IsWindow(hWnd))                 return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER)  return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                          return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
-   if ((uint)value < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value));
+   if (!IsWindow(hWnd))                 return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER)  return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
+   if ((uint)value < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value);
 
    string key = to_string(hWnd).append("|").append(name);
    g_stringWndProperties[key] = value;
 
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
-
-
 
 
 /**
@@ -584,9 +580,9 @@ BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
  * @return int - removed value or NULL if the name was not found or in case of errors
  */
 int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    IntegerMap::iterator result = g_intWndProperties.find(key);
@@ -594,9 +590,9 @@ int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
    if (result != g_intWndProperties.end()) {
       int value = result->second;
       g_intWndProperties.erase(result);
-      return(value);
+      return value;
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -610,9 +606,9 @@ int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
  * @return double - removed value or NULL if the name was not found or in case of errors
  */
 double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return(!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd));
-   if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)"));
+   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
 
    string key = to_string(hWnd).append("|").append(name);
    DoubleMap::iterator result = g_doubleWndProperties.find(key);
@@ -620,9 +616,9 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
    if (result != g_doubleWndProperties.end()) {
       double value = result->second;
       g_doubleWndProperties.erase(result);
-      return(value);
+      return value;
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -677,9 +673,9 @@ void WINAPI ReleaseWindowProperties() {
  */
 uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
    uint symbolLength = strlen(symbol);
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: %s", DoubleQuoteStr(symbol)));
-   if (!buffer)                                           return(!error(ERR_INVALID_PARAMETER, "invalid parameter buffer: %p", buffer));
-   if ((int)bufferSize <= 0)                              return(!error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d", bufferSize));
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return !error(ERR_INVALID_PARAMETER, "invalid parameter symbol: %s", DoubleQuoteStr(symbol));
+   if (!buffer)                                           return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: %p", buffer);
+   if ((int)bufferSize <= 0)                              return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d", bufferSize);
 
    char* sTimeframe = NULL;
 
@@ -694,58 +690,15 @@ uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, 
       case PERIOD_W1 : sTimeframe = "Weekly";  break;
       case PERIOD_MN1: sTimeframe = "Monthly"; break;
       default:
-         return(!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe));
+         return !error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe);
    }
    uint chars = snprintf(buffer, bufferSize, "%s,%s", symbol, sTimeframe);
 
    if (chars < 0 || chars==bufferSize) {
       buffer[chars-1] = 0;
-      return(bufferSize);
+      return bufferSize;
    }
-   return(chars);
-}
-
-
-/**
- * Calculate the MD5 hash of the input.
- *
- * @param  void* input  - buffer with binary content
- * @param  uint  length - length of the content in bytes
- *
- * @return char* - MD5 hash or NULL in case of errors
- */
-char* WINAPI MD5Hash(const void* input, uint length) {
-   if ((uint)input < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input);
-   if (length < 1)                      return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length);
-
-   MD5Context context;
-   MD5_Init(&context);
-   MD5_Update(&context, input, length);
-   uchar buffer[16];                            // on the stack
-   MD5_Final((uchar*)&buffer, &context);        // fill buffer with binary MD5 hash (16 bytes)
-
-   std::ostringstream ss;                       // convert hash to hex string (32 chars)
-   ss << std::hex;
-   for (uint i=0; i < 16; i++) {
-      ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
-   }
-   return sdup(ss.str().c_str());               // caller must free()
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Calculate the MD5 hash of a string.
- *
- * @param  char* input - input string
- *
- * @return char* - MD5 hash or NULL in case of errors
- */
-char* WINAPI MD5HashA(const char* input) {
-   if ((uint)input < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input);
-
-   return MD5Hash(input, strlen(input));        // caller must free()
-   #pragma EXPANDER_EXPORT
+   return chars;
 }
 
 
@@ -755,12 +708,9 @@ char* WINAPI MD5HashA(const char* input) {
  * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
  */
 uint WINAPI MT4InternalMsg() {
-   static uint msgId;
-   if (!msgId) {
-      msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-      if (!msgId) return(!error(ERR_WIN32_ERROR+GetLastError(), "->RegisterWindowMessage()"));
-   }
-   return(msgId);
+   static uint msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
+   if (!msgId) return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessageA()");
+   return msgId;
    #pragma EXPANDER_EXPORT
 }
 
@@ -773,6 +723,6 @@ uint WINAPI MT4InternalMsg() {
  * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
  */
 uint WINAPI WM_MT4() {
-   return(MT4InternalMsg());
+   return MT4InternalMsg();
    #pragma EXPANDER_EXPORT
 }

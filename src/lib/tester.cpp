@@ -30,7 +30,7 @@ HWND WINAPI FindTesterWindow() {
       if (!hWndMain) return(NULL);
 
       HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKED_CONTAINER);           // container for docked terminal windows
-      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "TerminalMainWindow->IDC_DOCKED_CONTAINER not found"));
+      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR + GetLastError(), "TerminalMainWindow->IDC_DOCKED_CONTAINER not found"));
 
       HWND hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);                  // use non-static var for intermediate results (thread concurrency)
       if (!hWndSuccess) {
@@ -38,7 +38,7 @@ HWND WINAPI FindTesterWindow() {
 
          // check for a floating tester window
          HWND hWndNext = GetTopWindow(NULL);
-         if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR+GetLastError(), "no top-level windows found"));
+         if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR + GetLastError(), "no top-level windows found"));
 
          DWORD processId, self=GetCurrentProcessId();
          while (hWndNext) {                                             // iterate over all top-level windows owned by the current process
@@ -71,10 +71,10 @@ int WINAPI Tester_GetBarModel() {
    if (!hWndTester) return(EMPTY);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  \"Settings\" tab not found")));
+   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem()  \"Settings\" tab not found")));
 
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
-   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR+GetLastError(), "GetDlgItem()  control element \"Model\" not found")));
+   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem()  control element \"Model\" not found")));
 
    int index = ComboBox_GetCurSel(hWndBarModel);      // CB_ERR = EMPTY = -1
    if (index == CB_ERR) error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
@@ -94,14 +94,14 @@ time32 WINAPI Tester_GetStartDate() {
    if (!hWndTester) return(NULL);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(!error(ERR_WIN32_ERROR+GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found"));
+   if (!hWndSettings) return(!error(ERR_WIN32_ERROR + GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found"));
 
    HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
-   if (!hWndUseDate) return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) not found"));
+   if (!hWndUseDate) return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) not found"));
 
    HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT);
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-   if (!hWndNext) return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) found"));
+   if (!hWndNext) return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) found"));
 
    uint bufSize = 32;                                 // big enough to hold class name "SysDateTimePick32"
    wchar* className = (wchar*) alloca(bufSize * sizeof(wchar));
@@ -109,7 +109,7 @@ time32 WINAPI Tester_GetStartDate() {
    if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)));
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle)));
+   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle)));
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01
@@ -135,14 +135,14 @@ time32 WINAPI Tester_GetEndDate() {
    if (!hWndTester) return(NULL);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(!error(ERR_WIN32_ERROR+GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found"));
+   if (!hWndSettings) return(!error(ERR_WIN32_ERROR + GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found"));
 
    HWND hWndOptimize = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_OPTIMIZATION);
-   if (!hWndOptimize) return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) not found"));
+   if (!hWndOptimize) return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) not found"));
 
    HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT);
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-   if (!hWndNext) return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) found"));
+   if (!hWndNext) return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) found"));
 
    uint bufSize = 32;                                 // big enough to hold class name "SysDateTimePick32"
    wchar* className = (wchar*) alloca(bufSize * sizeof(wchar));
@@ -150,7 +150,7 @@ time32 WINAPI Tester_GetEndDate() {
    if (!StrCompare(className, L"SysDateTimePick32")) return(!error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)));
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR+GetLastError(), "TesterSettings: unexpected text of \"To date\" control: %S", DoubleQuoteStr(wndTitle)));
+   if (!wndTitle || wstrlen(wndTitle) < 10)          return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"To date\" control: %S", DoubleQuoteStr(wndTitle)));
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01
@@ -189,10 +189,10 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
    ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return(!warn(ERR_WIN32_ERROR+GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
+   if (!file) return(!warn(ERR_WIN32_ERROR + GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
 
    file.read((char*)&fxtHeader, sizeof(fxtHeader));
-   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR+GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(fxtHeader), fxtFile.c_str()));
+   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR + GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(fxtHeader), fxtFile.c_str()));
    return(TRUE);
 }
 
@@ -243,7 +243,7 @@ int WINAPI Tester_Test(HWND hWnd) {
    return((1, 2));
 
    RECT rect;
-   if (!GetWindowRect(hWnd, &rect)) return(!error(ERR_WIN32_ERROR+GetLastError(), "GetWindowRect(hWnd=%p) failed", hWnd));
+   if (!GetWindowRect(hWnd, &rect)) return(!error(ERR_WIN32_ERROR + GetLastError(), "GetWindowRect(hWnd=%p) failed", hWnd));
 
    debug("left=%d  top=%d  right=%d  bottom=%d", rect.left, rect.top, rect.right, rect.bottom);
    return(NULL);
