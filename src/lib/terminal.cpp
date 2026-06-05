@@ -120,7 +120,7 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
 
 
 /**
- * The main window's subclassing window procedure. Runs on the UI thread.
+ * The main window's subclassing window procedure. Runs in the UI thread.
  *
  * @param  HWND      hWnd       - the subclassed window receiving the message
  * @param  uint      msg        - sent message
