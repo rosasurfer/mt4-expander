@@ -149,4 +149,7 @@ wchar*      __cdecl asformat(const wchar* format, ...);
 char*        WINAPI _asformat(const char* format, const va_list &args);
 wchar*       WINAPI _asformat(const wchar* format, const va_list &args);
 
+char*        WINAPI MD5Hash(const void* input, uint length);
+char*        WINAPI MD5HashA(const char* input);
+
 std::istream& getline(std::istream &is, string &line);

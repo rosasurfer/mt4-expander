@@ -4,13 +4,8 @@
 #include "lib/terminal.h"
 #include <map>
 
-extern "C" {
-   #include "lib/md5.h"
-}
-
-
 typedef std::map<string, int>    IntegerMap;       // map = associative array
-typedef std::map<string, double> DoubleMap;        // new elements are always copied into the containers
+typedef std::map<string, double> DoubleMap;        // new elements are added "by-copy"
 typedef std::map<string, string> StringMap;        //
 
 IntegerMap g_intWndProperties;                     // a map with integers stored as window properties
@@ -704,49 +699,6 @@ uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, 
       return bufferSize;
    }
    return chars;
-}
-
-
-/**
- * Calculate the MD5 hash of the input.
- *
- * @param  void* input  - buffer with binary content
- * @param  uint  length - length of the content in bytes
- *
- * @return char* - MD5 hash or NULL in case of errors
- */
-char* WINAPI MD5Hash(const void* input, uint length) {
-   if ((uint)input < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input);
-   if (length < 1)                      return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter length: %d", length);
-
-   MD5Context context;
-   MD5_Init(&context);
-   MD5_Update(&context, input, length);
-   uchar buffer[16];                            // on the stack
-   MD5_Final((uchar*)&buffer, &context);        // fill buffer with binary MD5 hash (16 bytes)
-
-   std::ostringstream ss;                       // convert hash to hex string (32 chars)
-   ss << std::hex;
-   for (uint i=0; i < 16; i++) {
-      ss << std::setw(2) << std::setfill('0') << (int)buffer[i];
-   }
-   return sdup(ss.str().c_str());               // caller must free()
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Calculate the MD5 hash of a string.
- *
- * @param  char* input - input string
- *
- * @return char* - MD5 hash or NULL in case of errors
- */
-char* WINAPI MD5HashA(const char* input) {
-   if ((uint)input < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter input: 0x%p (not a valid pointer)", input);
-
-   return MD5Hash(input, strlen(input));        // caller must free()
-   #pragma EXPANDER_EXPORT
 }
 
 
