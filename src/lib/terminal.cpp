@@ -64,82 +64,6 @@ void WINAPI CustomizeTerminal() {
 
 
 /**
- * Parse command line arguments and return the flags of supported and enabled CLI options.
- *
- * @return DWORD - option flags
- */
-DWORD WINAPI GetCliOptions() {
-   static DWORD options = MAXDWORD;                   // bit mask of specified options
-
-   if (options == MAXDWORD) {
-      int argc = 0;
-      LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-      if (!argv) return !error(ERR_WIN32_ERROR + GetLastError(), "CommandLineToArgvW()");
-
-      DWORD _options = 0;
-      for (int i=1; i < argc; i++) {
-         if (StrStartsWith(argv[i], L"/portable")) {  // The terminal activates portable mode for any CLI argument starting
-            _options |= OPTION_PORTABLE_MODE;         // with "/portable", e.g. "/portable-poo" activates portable mode, too.
-            continue;                                 // This test mirrors that unusual behavior.
-         }
-         if (StrCompare(argv[i], L"/rsf:debug-accountnumber")) {
-            _options |= OPTION_DEBUG_ACCOUNT_NUMBER;
-            continue;
-         }
-         if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
-            _options |= OPTION_DEBUG_ACCOUNT_SERVER;
-            continue;
-         }
-         if (StrCompare(argv[i], L"/rsf:debug-ec")) {
-            _options |= OPTION_DEBUG_EXECUTION_CONTEXT;
-            continue;
-         }
-         if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
-            _options |= OPTION_DEBUG_INDICATOR_LIST;
-            continue;
-         }
-         if (StrCompare(argv[i], L"/rsf:debug-objectcreate")) {
-            _options |= OPTION_DEBUG_OBJECT_CREATE;
-            continue;
-         }
-      }
-      LocalFree(argv);
-
-      if (options == MAXDWORD) {                      // another thread may have been faster
-         options = _options;
-      }
-   }
-   return options;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the flags of enabled debug options.
- *
- * @return DWORD - option flags
- */
-DWORD WINAPI GetDebugOptions() {
-   return GetCliOptions() & ~OPTION_PORTABLE_MODE;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether the terminal operates in portable mode, i.e. whether it was launched with command line option "/portable".
- * In portable mode the terminal behaves like under Windows XP or earlier. It uses the installation directory for program data
- * and ignores a UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
- *
- * @return BOOL
- */
-BOOL WINAPI IsPortableMode() {
-   static BOOL portableMode = (GetTerminalBuild() <= 509 || GetCliOptions() & OPTION_PORTABLE_MODE);
-   return portableMode;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Find and return the name of the history directory containing the specified file.
  *
  * @param  char* filename   - simple filename
@@ -226,28 +150,64 @@ HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
 
 
 /**
- * Whether the specified file exists and is locked with the sharing modes of a terminal logfile.
- * The function cannot see which process is holding a lock.
+ * Parse command line arguments and return the flags of supported and enabled CLI options.
  *
- * @param  string &filename - full filename
- *
- * @return BOOL
+ * @return DWORD - option flags
  */
-BOOL WINAPI IsLockedFile(const string &filename) {
-   if (!IsFileA(filename.c_str(), MODE_SYSTEM)) return FALSE;
+DWORD WINAPI GetCliOptions() {
+   static DWORD options = MAXDWORD;                   // bit mask of specified options
 
-   // for logfile: OF_READWRITE|OF_SHARE_COMPAT must succeed
-   HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
-   if (hFile == HFILE_ERROR) return FALSE;         // not succeeded
-   _lclose(hFile);
+   if (options == MAXDWORD) {
+      int argc = 0;
+      LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+      if (!argv) return !error(ERR_WIN32_ERROR + GetLastError(), "CommandLineToArgvW()");
 
-   // for logfile: OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
-   hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
-   if (hFile == HFILE_ERROR) {
-      return GetLastError() == ERROR_SHARING_VIOLATION;
+      DWORD _options = 0;
+      for (int i=1; i < argc; i++) {
+         if (StrStartsWith(argv[i], L"/portable")) {  // The terminal activates portable mode for any CLI argument starting
+            _options |= OPTION_PORTABLE_MODE;         // with "/portable", e.g. "/portable-poo" activates portable mode, too.
+            continue;                                 // This test mirrors that unusual behavior.
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-accountnumber")) {
+            _options |= OPTION_DEBUG_ACCOUNT_NUMBER;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
+            _options |= OPTION_DEBUG_ACCOUNT_SERVER;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-ec")) {
+            _options |= OPTION_DEBUG_EXECUTION_CONTEXT;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
+            _options |= OPTION_DEBUG_INDICATOR_LIST;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-objectcreate")) {
+            _options |= OPTION_DEBUG_OBJECT_CREATE;
+            continue;
+         }
+      }
+      LocalFree(argv);
+
+      if (options == MAXDWORD) {                      // another thread may have been faster
+         options = _options;
+      }
    }
-   _lclose(hFile);
-   return FALSE;                                   // not failed
+   return options;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the flags of enabled debug options.
+ *
+ * @return DWORD - option flags
+ */
+DWORD WINAPI GetDebugOptions() {
+   return GetCliOptions() & ~OPTION_PORTABLE_MODE;
+   #pragma EXPANDER_EXPORT
 }
 
 
@@ -461,6 +421,29 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
 
 
 /**
+ * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL4.5.
+ *
+ * @return uint - build number or 0 in case of errors
+ */
+uint WINAPI GetTerminalBuild() {
+   static uint build;
+
+   if (!build) {
+      VS_FIXEDFILEINFO fileInfo = {};
+      if      (GetTerminalVersionFromImage(fileInfo)) {}
+      else if (GetTerminalVersionFromFile(fileInfo)) {}
+      else return NULL;
+
+      if (!build) {                             // another thread may have been faster
+         build = fileInfo.dwFileVersionLS & 0xffff;
+      }
+   }
+   return build;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
  * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
@@ -626,39 +609,6 @@ const wchar* WINAPI GetTerminalDataPathW() {
 
 
 /**
- * Return the window handle of the application's main window.
- *
- * @return HWND - handle or NULL (0) in case of errors
- */
-HWND WINAPI GetTerminalMainWindow() {
-   static HWND hWndMain;
-
-   if (!hWndMain) {
-      DWORD processId, self = GetCurrentProcessId();
-      uint  size = 255;
-      char* className = (char*) alloca(size);   // on the stack
-
-      HWND hWndNext = GetTopWindow(NULL);
-      while (hWndNext) {                        // iterate over all top-level windows
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == self) {
-            if (!GetClassNameA(hWndNext, className, size)) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA()");
-            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00")) {
-               break;
-            }
-         }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-      }
-      if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
-
-      if (!hWndMain) hWndMain = hWndNext;       // another thread may have been faster
-   }
-   return hWndMain;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the full filename of the executable the terminal was launched from.
  *
  * @return char* - filename or NULL in case of errors
@@ -703,6 +653,39 @@ const wchar* WINAPI GetTerminalFileNameW() {
       else           free(tmp);                             // another thread may have been faster
    }
    return filename;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the window handle of the application's main window.
+ *
+ * @return HWND - handle or NULL (0) in case of errors
+ */
+HWND WINAPI GetTerminalMainWindow() {
+   static HWND hWndMain;
+
+   if (!hWndMain) {
+      DWORD processId, self = GetCurrentProcessId();
+      uint  size = 255;
+      char* className = (char*) alloca(size);   // on the stack
+
+      HWND hWndNext = GetTopWindow(NULL);
+      while (hWndNext) {                        // iterate over all top-level windows
+         GetWindowThreadProcessId(hWndNext, &processId);
+         if (processId == self) {
+            if (!GetClassNameA(hWndNext, className, size)) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA()");
+            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00")) {
+               break;
+            }
+         }
+         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
+      }
+      if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
+
+      if (!hWndMain) hWndMain = hWndNext;       // another thread may have been faster
+   }
+   return hWndMain;
    #pragma EXPANDER_EXPORT
 }
 
@@ -808,29 +791,6 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
 
 
 /**
- * Return the terminal's build number. Same value as returned by TerminalInfoInteger(TERMINAL_BUILD) introduced in MQL4.5.
- *
- * @return uint - build number or 0 in case of errors
- */
-uint WINAPI GetTerminalBuild() {
-   static uint build;
-
-   if (!build) {
-      VS_FIXEDFILEINFO fileInfo = {};
-      if      (GetTerminalVersionFromImage(fileInfo)) {}
-      else if (GetTerminalVersionFromFile(fileInfo)) {}
-      else return NULL;
-
-      if (!build) {                             // another thread may have been faster
-         build = fileInfo.dwFileVersionLS & 0xffff;
-      }
-   }
-   return build;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Return the terminal's version string.
  *
  * @return char* - version or NULL in case of errors
@@ -916,6 +876,46 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
 
    fileInfo = *result;                          // copy content of result to fileInfo
    return TRUE;
+}
+
+
+/**
+ * Whether the specified file exists and is locked with the sharing modes of a terminal logfile.
+ * The function cannot see which process is holding a lock.
+ *
+ * @param  string &filename - full filename
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsLockedFile(const string &filename) {
+   if (!IsFileA(filename.c_str(), MODE_SYSTEM)) return FALSE;
+
+   // for logfile: OF_READWRITE|OF_SHARE_COMPAT must succeed
+   HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
+   if (hFile == HFILE_ERROR) return FALSE;         // not succeeded
+   _lclose(hFile);
+
+   // for logfile: OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
+   hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_EXCLUSIVE);
+   if (hFile == HFILE_ERROR) {
+      return GetLastError() == ERROR_SHARING_VIOLATION;
+   }
+   _lclose(hFile);
+   return FALSE;                                   // not failed
+}
+
+
+/**
+ * Whether the terminal operates in portable mode, i.e. whether it was launched with command line option "/portable".
+ * In portable mode the terminal behaves like under Windows XP or earlier. It uses the installation directory for program data
+ * and ignores a UAC-aware environment. Terminal builds <= 509 always operate in portable mode.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsPortableMode() {
+   static BOOL portableMode = (GetTerminalBuild() <= 509 || GetCliOptions() & OPTION_PORTABLE_MODE);
+   return portableMode;
+   #pragma EXPANDER_EXPORT
 }
 
 
