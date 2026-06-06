@@ -105,7 +105,7 @@ const char* WINAPI CoreFunctionToStr(CoreFunction func) {
  * @return char*
  */
 const char* WINAPI ErrorToStrA(int error) {
-   // for Win32 error codes see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
+   // for Win32 error codes, see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
    #ifndef ERROR_DEVICE_SUPPORT_IN_PROGRESS
    #define ERROR_DEVICE_SUPPORT_IN_PROGRESS                             171L
    #endif
@@ -453,7 +453,8 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_STOP_DISTANCE_VIOLATED                                                     : return("ERR_STOP_DISTANCE_VIOLATED"                                         );    //  65559
       case ERR_MARGIN_STOPOUT                                                             : return("ERR_MARGIN_STOPOUT"                                                 );    //  65560
 
-      // mapped Win32 error codes (for error descriptions see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...))
+      // mapped Win32 error codes, see https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes
+      // for error descriptions, see FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), ...)
       case ERR_WIN32_ERROR                                                                : return("win32:NO_ERROR"                                                     );    // 100000 +    0
       case ERR_WIN32_ERROR + ERROR_INVALID_FUNCTION                                       : return("win32:ERROR_INVALID_FUNCTION"                                       );    // 100000 +    1
       case ERR_WIN32_ERROR + ERROR_FILE_NOT_FOUND                                         : return("win32:ERROR_FILE_NOT_FOUND"                                         );    // 100000 +    2
@@ -1218,6 +1219,8 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_INCOMPATIBLE_SERVICE_PRIVILEGE                         : return("win32:ERROR_INCOMPATIBLE_SERVICE_PRIVILEGE"                         );    // 100000 + 1297
       case ERR_WIN32_ERROR + ERROR_APP_HANG                                               : return("win32:ERROR_APP_HANG"                                               );    // 100000 + 1298
       case ERR_WIN32_ERROR + ERROR_INVALID_LABEL                                          : return("win32:ERROR_INVALID_LABEL"                                          );    // 100000 + 1299
+
+      case ERR_WIN32_ERROR + ERROR_INVALID_HOOK_HANDLE                                    : return("win32:ERROR_INVALID_HOOK_HANDLE"                                    );    // 100000 + 1404
 
       case ERR_WIN32_ERROR + ERROR_CONTROL_ID_NOT_FOUND                                   : return("win32:ERROR_CONTROL_ID_NOT_FOUND"                                   );    // 100000 + 1421
 

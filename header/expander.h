@@ -9,6 +9,7 @@
 #pragma warning(disable:4100)                               // unreferenced formal parameter
 #pragma warning(disable:4101)                               // unreferenced local variable
 #pragma warning(disable:4189)                               // local variable is initialized but not referenced
+#pragma warning(disable:4505)                               // unreferenced local function has been removed
 #pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
 
 #define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)

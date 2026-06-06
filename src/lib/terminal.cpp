@@ -14,8 +14,8 @@
 extern "C" IMAGE_DOS_HEADER          __ImageBase;  // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
 
-HHOOK g_hUiThreadHook;                             // hook handle to subclass the terminal main window from a non-UI thread
-const uint g_subclassId = 1;                       // main window subclass identifier
+static HHOOK g_hUiThreadHook = NULL;               // hook handle to subclass the terminal main window from a non-UI thread
+static const uint g_subclassId = 1;                // main window subclass identifier
 
 
 /**
@@ -26,47 +26,44 @@ void WINAPI CustomizeTerminal() {
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return;
 
+   // whether we run in the UI thread
+   BOOL isUiThread = IsUIThread();
+
+   // subclass the terminal main window (must be the first customization task)
+   SubclassMainWindow(hWndMain, isUiThread);
+
    // get the toolbar
    HWND hToolbar = GetDlgItem(hWndMain, IDC_TOOLBAR);
    if (!hToolbar) {
-      error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_TOOLBAR) => NULL (terminal toolbar not found)");
+      error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_TOOLBAR) terminal toolbar not found");
       return;
    }
 
    // a local function as substitute for missing lambda support in C++03
    struct local {
-      static void CloseWindow(HWND hCtrl, BOOL onUiThread) {
-         if (onUiThread) {
-            DestroyWindow(hCtrl);
+      static void CloseWindow(HWND hCtrl, BOOL isUiThread) {
+         if (isUiThread) {
+            DestroyWindow(hCtrl);                        // can only be called from the UI thread
          }
          else {
             PostMessageA(hCtrl, WM_CLOSE, 0, 0);
-            while (IsWindow(hCtrl)) Sleep(100);
+            while (IsWindow(hCtrl)) Sleep(100);          // TODO: so ugly, move it to the UI thread
          }
       }
    };
 
-   // whether the function is executed by the UI thread
-   BOOL onUiThread = (GetCurrentThreadId() == GetWindowThreadProcessId(hWndMain, NULL));
-
    // find and remove a search box control (contains the "Community" button)
-   HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
-   if (hSearchCtrl) {
-      local::CloseWindow(hSearchCtrl, onUiThread);
+   if (HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX)) {
+      local::CloseWindow(hSearchCtrl, isUiThread);
       if (!RedrawWindow(hToolbar, NULL, NULL, RDW_ERASE|RDW_INVALIDATE)) {
-         error(ERR_WIN32_ERROR + GetLastError(), "RedrawWindow(IDC_TOOLBAR) failed");
+         error(ERR_WIN32_ERROR + GetLastError(), "RedrawWindow(IDC_TOOLBAR)");
          return;
       }
    }
-   else {
-      // if search box control not found, find/remove an independent "Community" button
-      if (HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON)) {
-         local::CloseWindow(hBtnCtrl, onUiThread);
-      }
+   // if search box control not found, find/remove an independent "Community" button
+   else if (HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON)) {
+      local::CloseWindow(hBtnCtrl, isUiThread);
    }
-
-   // subclass the terminal main window
-   SubclassMainWindow(hWndMain, onUiThread);
 }
 
 
@@ -74,16 +71,16 @@ void WINAPI CustomizeTerminal() {
  * Subclass the terminal main window.
  *
  * @param  HWND hWndMain   - handle of the terminal main window
- * @param  BOOL onUiThread - whether the function is executed by the UI thread
+ * @param  BOOL isUiThread - whether the function is executed by the UI thread
  *
  * @return BOOL - success status
  */
-static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL onUiThread) {
+static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL isUiThread) {
    DWORD_PTR data = 0;  // guard against multiple calls
    if (GetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, &data)) {
       return TRUE;
    }
-   if (onUiThread) {    // on the UI thread we can call SetWindowSubclass() directly
+   if (isUiThread) {    // on the UI thread we can call SetWindowSubclass() directly
       if (!SetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, 0)) {
          return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
       }
@@ -91,7 +88,7 @@ static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL onUiThread) {
    else {               // otherwise we must install a hook to be executed by the UI thread
       g_hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUIThreadId());
       if (!g_hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
-      PostMessage(hWndMain, WM_NULL, 0, 0);   // wake-up the UI thread
+      PostMessage(hWndMain, WM_NULL, 0, 0);   // wake-up the UI thread (cosmetic)
    }
    return TRUE;
 }
@@ -108,9 +105,13 @@ static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL onUiThread) {
  */
 static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
    if (code >= 0) {
-      UnhookWindowsHookEx(g_hUiThreadHook);
-      g_hUiThreadHook = NULL;
-
+      if (g_hUiThreadHook) {
+         HHOOK hhk = g_hUiThreadHook;
+         g_hUiThreadHook = NULL;
+         if (!UnhookWindowsHookEx(hhk)) {
+            error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hhk=0x%p)", hhk);
+         }
+      }
       if (!SetWindowSubclass(GetTerminalMainWindow(), MainWindowSubclassProc, g_subclassId, 0)) {
          error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
       }
@@ -120,9 +121,9 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
 
 
 /**
- * The main window's subclassing window procedure. Runs in the UI thread.
+ * The main window's subclassing window procedure. Executed in the UI thread.
  *
- * @param  HWND      hWnd       - the subclassed window receiving the message
+ * @param  HWND      hWnd       - subclassed window receiving the message
  * @param  uint      msg        - sent message
  * @param  WPARAM    wParam     - additional message info
  * @param  LPARAM    lParam     - additional message info
@@ -133,10 +134,15 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
  */
 static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
    switch (msg) {
-      case WM_NCDESTROY:
-         //debug("WM_NCDESTROY");
+      case WM_COMMAND: {
+         static DWORD debugOptions = GetDebugOptions();
+         if (debugOptions & OPTION_DEBUG_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", wParam, lParam);
+         break;
+      }
+      case WM_NCDESTROY: {
          RemoveWindowSubclass(hWnd, MainWindowSubclassProc, subclassId);
          break;
+      }
    }
    return DefSubclassProc(hWnd, msg, wParam, lParam);
 }
@@ -265,6 +271,10 @@ DWORD WINAPI GetCliOptions() {
          }
          if (StrCompare(argv[i], L"/rsf:debug-objectcreate")) {
             _options |= OPTION_DEBUG_OBJECT_CREATE;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-wmcommand")) {
+            _options |= OPTION_DEBUG_WM_COMMAND;
             continue;
          }
       }
