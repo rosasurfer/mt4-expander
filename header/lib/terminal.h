@@ -4,7 +4,7 @@
 void           WINAPI   CustomizeTerminal();
 static BOOL    WINAPI   SubclassMainWindow(HWND hWndMain, BOOL onUiThread);
 static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam,LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data);
-static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK UiHookProc(int code, WPARAM wParam, LPARAM lParam);
 
 char*        WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile);
 HWND         WINAPI FindInputDialogA(ProgramType programType, const char* programName);
