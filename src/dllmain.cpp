@@ -53,8 +53,7 @@ static BOOL WINAPI onProcessAttach() {
    HMODULE hModule = NULL;                // increase ref-count so the DLL can't be unloaded before the thread finishes
    GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)onProcessAttach, &hModule);
 
-   HANDLE hThread = CreateThread(NULL, 0, ExpanderStartThread, hModule, 0, NULL);
-   if (hThread) {
+   if (HANDLE hThread = CreateThread(NULL, 0, ExpanderStartThread, hModule, 0, NULL)) {
       CloseHandle(hThread);
    }
    else {
@@ -84,30 +83,28 @@ static BOOL WINAPI onProcessDetach(BOOL isTerminating) {
 
 /**
  * Executes MT4Expander start tasks in a separate thread (outside of the DLL loader-lock).
- * These are independant tasks not required for the DLL to load.
+ * These are independant tasks not required for the DLL to work.
  *
  * @param  void* lpParam - DLL module handle
  *
  * @return DWORD - thread exit status
  */
 static DWORD WINAPI ExpanderStartThread(void* lpParam) {
+   HMODULE hModule = (HMODULE)lpParam;
+
    const wchar* dllName = GetExpanderFileNameW();
    BOOL isProduction = StrEndsWithI(dllName, L"rsfMT4Expander.dll");
 
-   if (!isProduction) {                                        // nothing to do, decrease ref-count and terminate the thread
-      FreeLibraryAndExitThread((HMODULE)lpParam, NO_ERROR);    // this never returns
+   if (!isProduction) {                               // nothing to do, decrease ref-count and terminate the thread
+      FreeLibraryAndExitThread(hModule, NO_ERROR);    // this never returns
    }
-
-   // production: lock the DLL in memory
-   HMODULE hModule = NULL;
-   GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)ExpanderStartThread, &hModule);
+   PinDllToMemory();
 
    // start a background thread to monitor user logoff/system shutdown events
    HANDLE hThread = CreateThread(NULL, 0, SessionMonitorThread, hModule, 0, NULL);
    if (hThread) CloseHandle(hThread);
    else         error(ERR_WIN32_ERROR + GetLastError(), "CreateThread(\"SessionMonitor\")");
 
-   // customize the UI
    CustomizeTerminal();
    return NO_ERROR;
 }
@@ -199,4 +196,21 @@ static LRESULT CALLBACK SessionMonitorWndProc(HWND hWnd, uint msg, WPARAM wParam
       default:
          return DefWindowProc(hWnd, msg, wParam, lParam);
    }
+}
+
+
+/**
+ * Pin the DLL to memory until the process terminates, so it can't be unloaded by calling FreeLibrary().
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI PinDllToMemory() {
+   HMODULE hModule = NULL;
+
+   static BOOL pinned = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCTSTR)PinDllToMemory, &hModule);
+   if (!pinned) {
+      static BOOL warned = (BOOL)warn(ERR_WIN32_ERROR + GetLastError(), "GetModuleHandleExA()");
+   }
+   return pinned;
+   #pragma EXPANDER_EXPORT
 }

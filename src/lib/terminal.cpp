@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "dllmain.h"
 #include "lib/conversion.h"
 #include "lib/datetime.h"
 #include "lib/file.h"
@@ -11,22 +12,19 @@
 #include <shellapi.h>
 #include <shlobj.h>
 
-extern "C" IMAGE_DOS_HEADER          __ImageBase;  // this DLL's module handle
+extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handle
 #define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
 
-static HHOOK g_hUiThreadHook = NULL;               // hook handle to subclass the terminal main window from a non-UI thread
-static const uint g_subclassId = 1;                // main window subclass identifier
+static HHOOK g_hUiHook = NULL;                        // hook handle to subclass the terminal main window from a non-UI thread
+static const uint g_subclassId = 1;                   // main window subclass identifier
 
 
 /**
  * Customize the terminal UI.
  */
 void WINAPI CustomizeTerminal() {
-   // get the terminal main window
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return;
-
-   // whether we run in the UI thread
    BOOL isUiThread = IsUIThread();
 
    // subclass the terminal main window
@@ -43,11 +41,11 @@ void WINAPI CustomizeTerminal() {
    struct local {
       static void CloseWindow(HWND hCtrl, BOOL isUiThread) {
          if (isUiThread) {
-            DestroyWindow(hCtrl);                        // can only be called from the UI thread
+            DestroyWindow(hCtrl);                     // must be called from the UI thread
          }
          else {
             PostMessageA(hCtrl, WM_CLOSE, 0, 0);
-            while (IsWindow(hCtrl)) Sleep(100);          // TODO: so ugly, move it to the UI thread
+            while (IsWindow(hCtrl)) Sleep(100);       // TODO: so ugly, move to the UI thread
          }
       }
    };
@@ -76,18 +74,18 @@ void WINAPI CustomizeTerminal() {
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL isUiThread) {
-   DWORD_PTR data = 0;  // guard against multiple calls
+   DWORD_PTR data = 0;        // guard against multiple calls
    if (GetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, &data)) {
       return TRUE;
    }
-   if (isUiThread) {    // on the UI thread we can call SetWindowSubclass() directly
+   if (isUiThread) {          // on the UI thread we can call SetWindowSubclass() directly
       if (!SetWindowSubclass(hWndMain, MainWindowSubclassProc, g_subclassId, 0)) {
          return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
       }
    }
-   else {               // otherwise we must install a hook to be executed by the UI thread
-      g_hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUIThreadId());
-      if (!g_hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
+   else {                     // otherwise we must install a hook to be executed by the UI thread
+      g_hUiHook = SetWindowsHookEx(WH_CALLWNDPROC, UiHookProc, NULL, GetUIThreadId());
+      if (!g_hUiHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
 
       // wake-up the UI thread with a non-blocking SendMessage()
       SetLastError(ERROR_SUCCESS);
@@ -100,32 +98,6 @@ static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL isUiThread) {
 
 
 /**
- * Callback function registered by SetWindowsHookEx(). Runs in the UI thread.
- *
- * @param  int    code   - whether the hook procedure must process the message
- * @param  WPARAM wParam - whether the message was sent by the current thread
- * @param  LPARAM lParam - pointer to message details
- *
- * @return LRESULT - return value of CallNextHookEx()
- */
-static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
-   if (code >= 0) {
-      if (g_hUiThreadHook) {
-         HHOOK hhk = g_hUiThreadHook;
-         g_hUiThreadHook = NULL;
-         if (!UnhookWindowsHookEx(hhk)) {
-            error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hhk=0x%p)", hhk);
-         }
-      }
-      if (!SetWindowSubclass(GetTerminalMainWindow(), MainWindowSubclassProc, g_subclassId, 0)) {
-         error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
-      }
-   }
-   return CallNextHookEx(NULL, code, wParam, lParam);
-}
-
-
-/**
  * The main window's subclassing window procedure. Executed in the UI thread.
  *
  * @param  HWND      hWnd       - subclassed window receiving the message
@@ -133,7 +105,7 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
  * @param  WPARAM    wParam     - additional message info
  * @param  LPARAM    lParam     - additional message info
  * @param  UINT_PTR  subclassId - subclass identifier
- * @param  DWORD_PTR data       - custom user data passed to SetWindowSubclass()
+ * @param  DWORD_PTR data       - user data as passed to SetWindowSubclass()
  *
  * @return LRESULT - depends on the message sent
  */
@@ -150,6 +122,32 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
       }
    }
    return DefSubclassProc(hWnd, msg, wParam, lParam);
+}
+
+
+/**
+ * Callback function registered by SetWindowsHookEx(). Runs in the UI thread.
+ *
+ * @param  int    code   - whether the hook procedure must process the message
+ * @param  WPARAM wParam - whether the message was sent by the current thread
+ * @param  LPARAM lParam - pointer to message details
+ *
+ * @return LRESULT - return value of CallNextHookEx()
+ */
+static LRESULT CALLBACK UiHookProc(int code, WPARAM wParam, LPARAM lParam) {
+   if (code >= 0) {
+      if (g_hUiHook) {
+         HHOOK hHook = g_hUiHook;
+         g_hUiHook = NULL;
+         if (!UnhookWindowsHookEx(hHook)) {
+            error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hHook=0x%p)", hHook);
+         }
+      }
+      if (!SetWindowSubclass(GetTerminalMainWindow(), MainWindowSubclassProc, g_subclassId, 0)) {
+         error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+      }
+   }
+   return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
 
@@ -1072,14 +1070,14 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
    }
    if (!IsFileW(file.c_str(), MODE_SYSTEM)) return !error(ERR_FILE_NOT_FOUND, "file not found: \"%S\"", file.c_str());
 
+   // create a copy of programName on the heap (`programName` may be immediately destroyed after return)
+   const wchar* name = wsdup(programName);               // TODO: add to GC
+
    // trigger the launch of the program
-   PostMessageW(hChart, WM_MT4(), cmd, (LPARAM)wsdup(programName));     // pass a copy of programName (the passed value may get immediately destroyed)
-   debug("queued launch of %s \"%S\"", sProgramType, programName);
-
-   // prevent the DLL from getting unloaded before the message is processed
-   HMODULE hModule = NULL;
-   GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN, (LPCWSTR)LoadMqlProgramW, &hModule);
-
+   PinDllToMemory();                                     // prevent the DLL from being unloaded before the message is processed
+   if (PostMessageW(hChart, WM_MT4(), cmd, (LPARAM)name)) {
+      debug("queued launch of %s \"%S\"", sProgramType, name);
+   }
    return TRUE;
    #pragma EXPANDER_EXPORT
 }
