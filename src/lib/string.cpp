@@ -607,7 +607,7 @@ char* WINAPI strim_left(char* str) {
       ++first;
    }
    if (first != str) {
-      memmove(str, first, strlen(first) + 1);   // include null terminator
+      memmove(str, first, strlen(first) + 1);   // include NUL terminator
    }
    return str;
 }
@@ -706,7 +706,7 @@ wchar* WINAPI wstrim_left(wchar* str) {
    while (iswspace(*first)) {
       ++first;
    }
-   if (first != str) {                          // include null terminator
+   if (first != str) {                          // include NUL terminator
       memmove(str, first, (wstrlen(first) + 1) * sizeof(wchar));
    }
    return str;
@@ -1126,7 +1126,7 @@ char* WINAPI _asformat(const char* format, const va_list &args) {
    if (!format)  return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
    if (!*format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)");
 
-   uint size = vscprintf(format, args) + 1;     // +1 for the terminating null char
+   uint size = vscprintf(format, args) + 1;     // +1 for the terminating NUL char
    char* buffer = (char*)malloc(size);
    if (buffer) {
       vsprintf_s(buffer, size, format, args);
