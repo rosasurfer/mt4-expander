@@ -29,7 +29,7 @@ void WINAPI CustomizeTerminal() {
    // whether we run in the UI thread
    BOOL isUiThread = IsUIThread();
 
-   // subclass the terminal main window (must be the first customization task)
+   // subclass the terminal main window
    SubclassMainWindow(hWndMain, isUiThread);
 
    // get the toolbar
@@ -88,7 +88,12 @@ static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL isUiThread) {
    else {               // otherwise we must install a hook to be executed by the UI thread
       g_hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUIThreadId());
       if (!g_hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
-      PostMessage(hWndMain, WM_NULL, 0, 0);   // wake-up the UI thread (cosmetic)
+
+      // wake-up the UI thread with a non-blocking SendMessage()
+      SetLastError(ERROR_SUCCESS);
+      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, SMTO_NORMAL, 1000, NULL)) {
+         notice(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
+      }
    }
    return TRUE;
 }
@@ -128,7 +133,7 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
  * @param  WPARAM    wParam     - additional message info
  * @param  LPARAM    lParam     - additional message info
  * @param  UINT_PTR  subclassId - subclass identifier
- * @param  DWORD_PTR data       - reference data
+ * @param  DWORD_PTR data       - custom user data passed to SetWindowSubclass()
  *
  * @return LRESULT - depends on the message sent
  */
