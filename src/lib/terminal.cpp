@@ -124,7 +124,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
          break;
       }
 
-      case WM_ENDSESSION: {
+      case WM_ENDSESSION: {                        // workaround for terminal bug https://github.com/rosasurfer/mt4-expander/issues/26
          if (wParam) {                             // Windows: "Logoff/shutdown is happening now. You have ~5 seconds."
             if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
             else                            {}     // system shutdown/restart
