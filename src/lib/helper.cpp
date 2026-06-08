@@ -661,14 +661,14 @@ void WINAPI ReleaseWindowProperties() {
 
 /**
  * Compose a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily") and copy it to the passed buffer.
- * If the buffer is too small the string in the buffer is truncated. The string is always terminated with a null character.
+ * If the buffer is too small the string in the buffer is truncated. The string is always terminated with a NUL character.
  *
  * @param  char* symbol
  * @param  uint  timeframe
  * @param  char* buffer
  * @param  uint  bufferSize
  *
- * @return uint - Amount of copied characters not counting the terminating null character or the passed parameter 'bufferSize'
+ * @return uint - Amount of copied characters not counting the terminating NUL character or the passed parameter 'bufferSize'
  *                if the buffer is too small and the string in the buffer was truncated. NULL in case of errors.
  */
 uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
