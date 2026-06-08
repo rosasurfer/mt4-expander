@@ -256,6 +256,18 @@ const char* WINAPI ErrorToStrA(int error) {
    #ifndef ERROR_APP_HANG
    #define ERROR_APP_HANG                                              1298L
    #endif
+   #ifndef ERROR_NO_NVRAM_RESOURCES
+   #define ERROR_NO_NVRAM_RESOURCES                                    1470L
+   #endif
+   #ifndef ERROR_NOT_GUI_PROCESS
+   #define ERROR_NOT_GUI_PROCESS                                       1471L
+   #endif
+   #ifndef ERROR_FAIL_FAST_EXCEPTION
+   #define ERROR_FAIL_FAST_EXCEPTION                                   1653L
+   #endif
+   #ifndef ERROR_INSTALL_REJECTED
+   #define ERROR_INSTALL_REJECTED                                      1654L
+   #endif
 
    switch (error) {
       case NO_ERROR                                                                       : return("NO_ERROR"                                                           );    //      0
@@ -1219,10 +1231,238 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_INCOMPATIBLE_SERVICE_PRIVILEGE                         : return("win32:ERROR_INCOMPATIBLE_SERVICE_PRIVILEGE"                         );    // 100000 + 1297
       case ERR_WIN32_ERROR + ERROR_APP_HANG                                               : return("win32:ERROR_APP_HANG"                                               );    // 100000 + 1298
       case ERR_WIN32_ERROR + ERROR_INVALID_LABEL                                          : return("win32:ERROR_INVALID_LABEL"                                          );    // 100000 + 1299
-
+      case ERR_WIN32_ERROR + ERROR_NOT_ALL_ASSIGNED                                       : return("win32:ERROR_NOT_ALL_ASSIGNED"                                       );    // 100000 + 1300
+      case ERR_WIN32_ERROR + ERROR_SOME_NOT_MAPPED                                        : return("win32:ERROR_SOME_NOT_MAPPED"                                        );    // 100000 + 1301
+      case ERR_WIN32_ERROR + ERROR_NO_QUOTAS_FOR_ACCOUNT                                  : return("win32:ERROR_NO_QUOTAS_FOR_ACCOUNT"                                  );    // 100000 + 1302
+      case ERR_WIN32_ERROR + ERROR_LOCAL_USER_SESSION_KEY                                 : return("win32:ERROR_LOCAL_USER_SESSION_KEY"                                 );    // 100000 + 1303
+      case ERR_WIN32_ERROR + ERROR_NULL_LM_PASSWORD                                       : return("win32:ERROR_NULL_LM_PASSWORD"                                       );    // 100000 + 1304
+      case ERR_WIN32_ERROR + ERROR_UNKNOWN_REVISION                                       : return("win32:ERROR_UNKNOWN_REVISION"                                       );    // 100000 + 1305
+      case ERR_WIN32_ERROR + ERROR_REVISION_MISMATCH                                      : return("win32:ERROR_REVISION_MISMATCH"                                      );    // 100000 + 1306
+      case ERR_WIN32_ERROR + ERROR_INVALID_OWNER                                          : return("win32:ERROR_INVALID_OWNER"                                          );    // 100000 + 1307
+      case ERR_WIN32_ERROR + ERROR_INVALID_PRIMARY_GROUP                                  : return("win32:ERROR_INVALID_PRIMARY_GROUP"                                  );    // 100000 + 1308
+      case ERR_WIN32_ERROR + ERROR_NO_IMPERSONATION_TOKEN                                 : return("win32:ERROR_NO_IMPERSONATION_TOKEN"                                 );    // 100000 + 1309
+      case ERR_WIN32_ERROR + ERROR_CANT_DISABLE_MANDATORY                                 : return("win32:ERROR_CANT_DISABLE_MANDATORY"                                 );    // 100000 + 1310
+      case ERR_WIN32_ERROR + ERROR_NO_LOGON_SERVERS                                       : return("win32:ERROR_NO_LOGON_SERVERS"                                       );    // 100000 + 1311
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_LOGON_SESSION                                  : return("win32:ERROR_NO_SUCH_LOGON_SESSION"                                  );    // 100000 + 1312
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_PRIVILEGE                                      : return("win32:ERROR_NO_SUCH_PRIVILEGE"                                      );    // 100000 + 1313
+      case ERR_WIN32_ERROR + ERROR_PRIVILEGE_NOT_HELD                                     : return("win32:ERROR_PRIVILEGE_NOT_HELD"                                     );    // 100000 + 1314
+      case ERR_WIN32_ERROR + ERROR_INVALID_ACCOUNT_NAME                                   : return("win32:ERROR_INVALID_ACCOUNT_NAME"                                   );    // 100000 + 1315
+      case ERR_WIN32_ERROR + ERROR_USER_EXISTS                                            : return("win32:ERROR_USER_EXISTS"                                            );    // 100000 + 1316
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_USER                                           : return("win32:ERROR_NO_SUCH_USER"                                           );    // 100000 + 1317
+      case ERR_WIN32_ERROR + ERROR_GROUP_EXISTS                                           : return("win32:ERROR_GROUP_EXISTS"                                           );    // 100000 + 1318
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_GROUP                                          : return("win32:ERROR_NO_SUCH_GROUP"                                          );    // 100000 + 1319
+      case ERR_WIN32_ERROR + ERROR_MEMBER_IN_GROUP                                        : return("win32:ERROR_MEMBER_IN_GROUP"                                        );    // 100000 + 1320
+      case ERR_WIN32_ERROR + ERROR_MEMBER_NOT_IN_GROUP                                    : return("win32:ERROR_MEMBER_NOT_IN_GROUP"                                    );    // 100000 + 1321
+      case ERR_WIN32_ERROR + ERROR_LAST_ADMIN                                             : return("win32:ERROR_LAST_ADMIN"                                             );    // 100000 + 1322
+      case ERR_WIN32_ERROR + ERROR_WRONG_PASSWORD                                         : return("win32:ERROR_WRONG_PASSWORD"                                         );    // 100000 + 1323
+      case ERR_WIN32_ERROR + ERROR_ILL_FORMED_PASSWORD                                    : return("win32:ERROR_ILL_FORMED_PASSWORD"                                    );    // 100000 + 1324
+      case ERR_WIN32_ERROR + ERROR_PASSWORD_RESTRICTION                                   : return("win32:ERROR_PASSWORD_RESTRICTION"                                   );    // 100000 + 1325
+      case ERR_WIN32_ERROR + ERROR_LOGON_FAILURE                                          : return("win32:ERROR_LOGON_FAILURE"                                          );    // 100000 + 1326
+      case ERR_WIN32_ERROR + ERROR_ACCOUNT_RESTRICTION                                    : return("win32:ERROR_ACCOUNT_RESTRICTION"                                    );    // 100000 + 1327
+      case ERR_WIN32_ERROR + ERROR_INVALID_LOGON_HOURS                                    : return("win32:ERROR_INVALID_LOGON_HOURS"                                    );    // 100000 + 1328
+      case ERR_WIN32_ERROR + ERROR_INVALID_WORKSTATION                                    : return("win32:ERROR_INVALID_WORKSTATION"                                    );    // 100000 + 1329
+      case ERR_WIN32_ERROR + ERROR_PASSWORD_EXPIRED                                       : return("win32:ERROR_PASSWORD_EXPIRED"                                       );    // 100000 + 1330
+      case ERR_WIN32_ERROR + ERROR_ACCOUNT_DISABLED                                       : return("win32:ERROR_ACCOUNT_DISABLED"                                       );    // 100000 + 1331
+      case ERR_WIN32_ERROR + ERROR_NONE_MAPPED                                            : return("win32:ERROR_NONE_MAPPED"                                            );    // 100000 + 1332
+      case ERR_WIN32_ERROR + ERROR_TOO_MANY_LUIDS_REQUESTED                               : return("win32:ERROR_TOO_MANY_LUIDS_REQUESTED"                               );    // 100000 + 1333
+      case ERR_WIN32_ERROR + ERROR_LUIDS_EXHAUSTED                                        : return("win32:ERROR_LUIDS_EXHAUSTED"                                        );    // 100000 + 1334
+      case ERR_WIN32_ERROR + ERROR_INVALID_SUB_AUTHORITY                                  : return("win32:ERROR_INVALID_SUB_AUTHORITY"                                  );    // 100000 + 1335
+      case ERR_WIN32_ERROR + ERROR_INVALID_ACL                                            : return("win32:ERROR_INVALID_ACL"                                            );    // 100000 + 1336
+      case ERR_WIN32_ERROR + ERROR_INVALID_SID                                            : return("win32:ERROR_INVALID_SID"                                            );    // 100000 + 1337
+      case ERR_WIN32_ERROR + ERROR_INVALID_SECURITY_DESCR                                 : return("win32:ERROR_INVALID_SECURITY_DESCR"                                 );    // 100000 + 1338
+      case ERR_WIN32_ERROR + ERROR_BAD_INHERITANCE_ACL                                    : return("win32:ERROR_BAD_INHERITANCE_ACL"                                    );    // 100000 + 1340
+      case ERR_WIN32_ERROR + ERROR_SERVER_DISABLED                                        : return("win32:ERROR_SERVER_DISABLED"                                        );    // 100000 + 1341
+      case ERR_WIN32_ERROR + ERROR_SERVER_NOT_DISABLED                                    : return("win32:ERROR_SERVER_NOT_DISABLED"                                    );    // 100000 + 1342
+      case ERR_WIN32_ERROR + ERROR_INVALID_ID_AUTHORITY                                   : return("win32:ERROR_INVALID_ID_AUTHORITY"                                   );    // 100000 + 1343
+      case ERR_WIN32_ERROR + ERROR_ALLOTTED_SPACE_EXCEEDED                                : return("win32:ERROR_ALLOTTED_SPACE_EXCEEDED"                                );    // 100000 + 1344
+      case ERR_WIN32_ERROR + ERROR_INVALID_GROUP_ATTRIBUTES                               : return("win32:ERROR_INVALID_GROUP_ATTRIBUTES"                               );    // 100000 + 1345
+      case ERR_WIN32_ERROR + ERROR_BAD_IMPERSONATION_LEVEL                                : return("win32:ERROR_BAD_IMPERSONATION_LEVEL"                                );    // 100000 + 1346
+      case ERR_WIN32_ERROR + ERROR_CANT_OPEN_ANONYMOUS                                    : return("win32:ERROR_CANT_OPEN_ANONYMOUS"                                    );    // 100000 + 1347
+      case ERR_WIN32_ERROR + ERROR_BAD_VALIDATION_CLASS                                   : return("win32:ERROR_BAD_VALIDATION_CLASS"                                   );    // 100000 + 1348
+      case ERR_WIN32_ERROR + ERROR_BAD_TOKEN_TYPE                                         : return("win32:ERROR_BAD_TOKEN_TYPE"                                         );    // 100000 + 1349
+      case ERR_WIN32_ERROR + ERROR_NO_SECURITY_ON_OBJECT                                  : return("win32:ERROR_NO_SECURITY_ON_OBJECT"                                  );    // 100000 + 1350
+      case ERR_WIN32_ERROR + ERROR_CANT_ACCESS_DOMAIN_INFO                                : return("win32:ERROR_CANT_ACCESS_DOMAIN_INFO"                                );    // 100000 + 1351
+      case ERR_WIN32_ERROR + ERROR_INVALID_SERVER_STATE                                   : return("win32:ERROR_INVALID_SERVER_STATE"                                   );    // 100000 + 1352
+      case ERR_WIN32_ERROR + ERROR_INVALID_DOMAIN_STATE                                   : return("win32:ERROR_INVALID_DOMAIN_STATE"                                   );    // 100000 + 1353
+      case ERR_WIN32_ERROR + ERROR_INVALID_DOMAIN_ROLE                                    : return("win32:ERROR_INVALID_DOMAIN_ROLE"                                    );    // 100000 + 1354
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_DOMAIN                                         : return("win32:ERROR_NO_SUCH_DOMAIN"                                         );    // 100000 + 1355
+      case ERR_WIN32_ERROR + ERROR_DOMAIN_EXISTS                                          : return("win32:ERROR_DOMAIN_EXISTS"                                          );    // 100000 + 1356
+      case ERR_WIN32_ERROR + ERROR_DOMAIN_LIMIT_EXCEEDED                                  : return("win32:ERROR_DOMAIN_LIMIT_EXCEEDED"                                  );    // 100000 + 1357
+      case ERR_WIN32_ERROR + ERROR_INTERNAL_DB_CORRUPTION                                 : return("win32:ERROR_INTERNAL_DB_CORRUPTION"                                 );    // 100000 + 1358
+      case ERR_WIN32_ERROR + ERROR_INTERNAL_ERROR                                         : return("win32:ERROR_INTERNAL_ERROR"                                         );    // 100000 + 1359
+      case ERR_WIN32_ERROR + ERROR_GENERIC_NOT_MAPPED                                     : return("win32:ERROR_GENERIC_NOT_MAPPED"                                     );    // 100000 + 1360
+      case ERR_WIN32_ERROR + ERROR_BAD_DESCRIPTOR_FORMAT                                  : return("win32:ERROR_BAD_DESCRIPTOR_FORMAT"                                  );    // 100000 + 1361
+      case ERR_WIN32_ERROR + ERROR_NOT_LOGON_PROCESS                                      : return("win32:ERROR_NOT_LOGON_PROCESS"                                      );    // 100000 + 1362
+      case ERR_WIN32_ERROR + ERROR_LOGON_SESSION_EXISTS                                   : return("win32:ERROR_LOGON_SESSION_EXISTS"                                   );    // 100000 + 1363
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_PACKAGE                                        : return("win32:ERROR_NO_SUCH_PACKAGE"                                        );    // 100000 + 1364
+      case ERR_WIN32_ERROR + ERROR_BAD_LOGON_SESSION_STATE                                : return("win32:ERROR_BAD_LOGON_SESSION_STATE"                                );    // 100000 + 1365
+      case ERR_WIN32_ERROR + ERROR_LOGON_SESSION_COLLISION                                : return("win32:ERROR_LOGON_SESSION_COLLISION"                                );    // 100000 + 1366
+      case ERR_WIN32_ERROR + ERROR_INVALID_LOGON_TYPE                                     : return("win32:ERROR_INVALID_LOGON_TYPE"                                     );    // 100000 + 1367
+      case ERR_WIN32_ERROR + ERROR_CANNOT_IMPERSONATE                                     : return("win32:ERROR_CANNOT_IMPERSONATE"                                     );    // 100000 + 1368
+      case ERR_WIN32_ERROR + ERROR_RXACT_INVALID_STATE                                    : return("win32:ERROR_RXACT_INVALID_STATE"                                    );    // 100000 + 1369
+      case ERR_WIN32_ERROR + ERROR_RXACT_COMMIT_FAILURE                                   : return("win32:ERROR_RXACT_COMMIT_FAILURE"                                   );    // 100000 + 1370
+      case ERR_WIN32_ERROR + ERROR_SPECIAL_ACCOUNT                                        : return("win32:ERROR_SPECIAL_ACCOUNT"                                        );    // 100000 + 1371
+      case ERR_WIN32_ERROR + ERROR_SPECIAL_GROUP                                          : return("win32:ERROR_SPECIAL_GROUP"                                          );    // 100000 + 1372
+      case ERR_WIN32_ERROR + ERROR_SPECIAL_USER                                           : return("win32:ERROR_SPECIAL_USER"                                           );    // 100000 + 1373
+      case ERR_WIN32_ERROR + ERROR_MEMBERS_PRIMARY_GROUP                                  : return("win32:ERROR_MEMBERS_PRIMARY_GROUP"                                  );    // 100000 + 1374
+      case ERR_WIN32_ERROR + ERROR_TOKEN_ALREADY_IN_USE                                   : return("win32:ERROR_TOKEN_ALREADY_IN_USE"                                   );    // 100000 + 1375
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_ALIAS                                          : return("win32:ERROR_NO_SUCH_ALIAS"                                          );    // 100000 + 1376
+      case ERR_WIN32_ERROR + ERROR_MEMBER_NOT_IN_ALIAS                                    : return("win32:ERROR_MEMBER_NOT_IN_ALIAS"                                    );    // 100000 + 1377
+      case ERR_WIN32_ERROR + ERROR_MEMBER_IN_ALIAS                                        : return("win32:ERROR_MEMBER_IN_ALIAS"                                        );    // 100000 + 1378
+      case ERR_WIN32_ERROR + ERROR_ALIAS_EXISTS                                           : return("win32:ERROR_ALIAS_EXISTS"                                           );    // 100000 + 1379
+      case ERR_WIN32_ERROR + ERROR_LOGON_NOT_GRANTED                                      : return("win32:ERROR_LOGON_NOT_GRANTED"                                      );    // 100000 + 1380
+      case ERR_WIN32_ERROR + ERROR_TOO_MANY_SECRETS                                       : return("win32:ERROR_TOO_MANY_SECRETS"                                       );    // 100000 + 1381
+      case ERR_WIN32_ERROR + ERROR_SECRET_TOO_LONG                                        : return("win32:ERROR_SECRET_TOO_LONG"                                        );    // 100000 + 1382
+      case ERR_WIN32_ERROR + ERROR_INTERNAL_DB_ERROR                                      : return("win32:ERROR_INTERNAL_DB_ERROR"                                      );    // 100000 + 1383
+      case ERR_WIN32_ERROR + ERROR_TOO_MANY_CONTEXT_IDS                                   : return("win32:ERROR_TOO_MANY_CONTEXT_IDS"                                   );    // 100000 + 1384
+      case ERR_WIN32_ERROR + ERROR_LOGON_TYPE_NOT_GRANTED                                 : return("win32:ERROR_LOGON_TYPE_NOT_GRANTED"                                 );    // 100000 + 1385
+      case ERR_WIN32_ERROR + ERROR_NT_CROSS_ENCRYPTION_REQUIRED                           : return("win32:ERROR_NT_CROSS_ENCRYPTION_REQUIRED"                           );    // 100000 + 1386
+      case ERR_WIN32_ERROR + ERROR_NO_SUCH_MEMBER                                         : return("win32:ERROR_NO_SUCH_MEMBER"                                         );    // 100000 + 1387
+      case ERR_WIN32_ERROR + ERROR_INVALID_MEMBER                                         : return("win32:ERROR_INVALID_MEMBER"                                         );    // 100000 + 1388
+      case ERR_WIN32_ERROR + ERROR_TOO_MANY_SIDS                                          : return("win32:ERROR_TOO_MANY_SIDS"                                          );    // 100000 + 1389
+      case ERR_WIN32_ERROR + ERROR_LM_CROSS_ENCRYPTION_REQUIRED                           : return("win32:ERROR_LM_CROSS_ENCRYPTION_REQUIRED"                           );    // 100000 + 1390
+      case ERR_WIN32_ERROR + ERROR_NO_INHERITANCE                                         : return("win32:ERROR_NO_INHERITANCE"                                         );    // 100000 + 1391
+      case ERR_WIN32_ERROR + ERROR_FILE_CORRUPT                                           : return("win32:ERROR_FILE_CORRUPT"                                           );    // 100000 + 1392
+      case ERR_WIN32_ERROR + ERROR_DISK_CORRUPT                                           : return("win32:ERROR_DISK_CORRUPT"                                           );    // 100000 + 1393
+      case ERR_WIN32_ERROR + ERROR_NO_USER_SESSION_KEY                                    : return("win32:ERROR_NO_USER_SESSION_KEY"                                    );    // 100000 + 1394
+      case ERR_WIN32_ERROR + ERROR_LICENSE_QUOTA_EXCEEDED                                 : return("win32:ERROR_LICENSE_QUOTA_EXCEEDED"                                 );    // 100000 + 1395
+      case ERR_WIN32_ERROR + ERROR_WRONG_TARGET_NAME                                      : return("win32:ERROR_WRONG_TARGET_NAME"                                      );    // 100000 + 1396
+      case ERR_WIN32_ERROR + ERROR_MUTUAL_AUTH_FAILED                                     : return("win32:ERROR_MUTUAL_AUTH_FAILED"                                     );    // 100000 + 1397
+      case ERR_WIN32_ERROR + ERROR_TIME_SKEW                                              : return("win32:ERROR_TIME_SKEW"                                              );    // 100000 + 1398
+      case ERR_WIN32_ERROR + ERROR_CURRENT_DOMAIN_NOT_ALLOWED                             : return("win32:ERROR_CURRENT_DOMAIN_NOT_ALLOWED"                             );    // 100000 + 1399
+      case ERR_WIN32_ERROR + ERROR_INVALID_WINDOW_HANDLE                                  : return("win32:ERROR_INVALID_WINDOW_HANDLE"                                  );    // 100000 + 1400
+      case ERR_WIN32_ERROR + ERROR_INVALID_MENU_HANDLE                                    : return("win32:ERROR_INVALID_MENU_HANDLE"                                    );    // 100000 + 1401
+      case ERR_WIN32_ERROR + ERROR_INVALID_CURSOR_HANDLE                                  : return("win32:ERROR_INVALID_CURSOR_HANDLE"                                  );    // 100000 + 1402
+      case ERR_WIN32_ERROR + ERROR_INVALID_ACCEL_HANDLE                                   : return("win32:ERROR_INVALID_ACCEL_HANDLE"                                   );    // 100000 + 1403
       case ERR_WIN32_ERROR + ERROR_INVALID_HOOK_HANDLE                                    : return("win32:ERROR_INVALID_HOOK_HANDLE"                                    );    // 100000 + 1404
-
+      case ERR_WIN32_ERROR + ERROR_INVALID_DWP_HANDLE                                     : return("win32:ERROR_INVALID_DWP_HANDLE"                                     );    // 100000 + 1405
+      case ERR_WIN32_ERROR + ERROR_TLW_WITH_WSCHILD                                       : return("win32:ERROR_TLW_WITH_WSCHILD"                                       );    // 100000 + 1406
+      case ERR_WIN32_ERROR + ERROR_CANNOT_FIND_WND_CLASS                                  : return("win32:ERROR_CANNOT_FIND_WND_CLASS"                                  );    // 100000 + 1407
+      case ERR_WIN32_ERROR + ERROR_WINDOW_OF_OTHER_THREAD                                 : return("win32:ERROR_WINDOW_OF_OTHER_THREAD"                                 );    // 100000 + 1408
+      case ERR_WIN32_ERROR + ERROR_HOTKEY_ALREADY_REGISTERED                              : return("win32:ERROR_HOTKEY_ALREADY_REGISTERED"                              );    // 100000 + 1409
+      case ERR_WIN32_ERROR + ERROR_CLASS_ALREADY_EXISTS                                   : return("win32:ERROR_CLASS_ALREADY_EXISTS"                                   );    // 100000 + 1410
+      case ERR_WIN32_ERROR + ERROR_CLASS_DOES_NOT_EXIST                                   : return("win32:ERROR_CLASS_DOES_NOT_EXIST"                                   );    // 100000 + 1411
+      case ERR_WIN32_ERROR + ERROR_CLASS_HAS_WINDOWS                                      : return("win32:ERROR_CLASS_HAS_WINDOWS"                                      );    // 100000 + 1412
+      case ERR_WIN32_ERROR + ERROR_INVALID_INDEX                                          : return("win32:ERROR_INVALID_INDEX"                                          );    // 100000 + 1413
+      case ERR_WIN32_ERROR + ERROR_INVALID_ICON_HANDLE                                    : return("win32:ERROR_INVALID_ICON_HANDLE"                                    );    // 100000 + 1414
+      case ERR_WIN32_ERROR + ERROR_PRIVATE_DIALOG_INDEX                                   : return("win32:ERROR_PRIVATE_DIALOG_INDEX"                                   );    // 100000 + 1415
+      case ERR_WIN32_ERROR + ERROR_LISTBOX_ID_NOT_FOUND                                   : return("win32:ERROR_LISTBOX_ID_NOT_FOUND"                                   );    // 100000 + 1416
+      case ERR_WIN32_ERROR + ERROR_NO_WILDCARD_CHARACTERS                                 : return("win32:ERROR_NO_WILDCARD_CHARACTERS"                                 );    // 100000 + 1417
+      case ERR_WIN32_ERROR + ERROR_CLIPBOARD_NOT_OPEN                                     : return("win32:ERROR_CLIPBOARD_NOT_OPEN"                                     );    // 100000 + 1418
+      case ERR_WIN32_ERROR + ERROR_HOTKEY_NOT_REGISTERED                                  : return("win32:ERROR_HOTKEY_NOT_REGISTERED"                                  );    // 100000 + 1419
+      case ERR_WIN32_ERROR + ERROR_WINDOW_NOT_DIALOG                                      : return("win32:ERROR_WINDOW_NOT_DIALOG"                                      );    // 100000 + 1420
       case ERR_WIN32_ERROR + ERROR_CONTROL_ID_NOT_FOUND                                   : return("win32:ERROR_CONTROL_ID_NOT_FOUND"                                   );    // 100000 + 1421
+      case ERR_WIN32_ERROR + ERROR_INVALID_COMBOBOX_MESSAGE                               : return("win32:ERROR_INVALID_COMBOBOX_MESSAGE"                               );    // 100000 + 1422
+      case ERR_WIN32_ERROR + ERROR_WINDOW_NOT_COMBOBOX                                    : return("win32:ERROR_WINDOW_NOT_COMBOBOX"                                    );    // 100000 + 1423
+      case ERR_WIN32_ERROR + ERROR_INVALID_EDIT_HEIGHT                                    : return("win32:ERROR_INVALID_EDIT_HEIGHT"                                    );    // 100000 + 1424
+      case ERR_WIN32_ERROR + ERROR_DC_NOT_FOUND                                           : return("win32:ERROR_DC_NOT_FOUND"                                           );    // 100000 + 1425
+      case ERR_WIN32_ERROR + ERROR_INVALID_HOOK_FILTER                                    : return("win32:ERROR_INVALID_HOOK_FILTER"                                    );    // 100000 + 1426
+      case ERR_WIN32_ERROR + ERROR_INVALID_FILTER_PROC                                    : return("win32:ERROR_INVALID_FILTER_PROC"                                    );    // 100000 + 1427
+      case ERR_WIN32_ERROR + ERROR_HOOK_NEEDS_HMOD                                        : return("win32:ERROR_HOOK_NEEDS_HMOD"                                        );    // 100000 + 1428
+      case ERR_WIN32_ERROR + ERROR_GLOBAL_ONLY_HOOK                                       : return("win32:ERROR_GLOBAL_ONLY_HOOK"                                       );    // 100000 + 1429
+      case ERR_WIN32_ERROR + ERROR_JOURNAL_HOOK_SET                                       : return("win32:ERROR_JOURNAL_HOOK_SET"                                       );    // 100000 + 1430
+      case ERR_WIN32_ERROR + ERROR_HOOK_NOT_INSTALLED                                     : return("win32:ERROR_HOOK_NOT_INSTALLED"                                     );    // 100000 + 1431
+      case ERR_WIN32_ERROR + ERROR_INVALID_LB_MESSAGE                                     : return("win32:ERROR_INVALID_LB_MESSAGE"                                     );    // 100000 + 1432
+      case ERR_WIN32_ERROR + ERROR_SETCOUNT_ON_BAD_LB                                     : return("win32:ERROR_SETCOUNT_ON_BAD_LB"                                     );    // 100000 + 1433
+      case ERR_WIN32_ERROR + ERROR_LB_WITHOUT_TABSTOPS                                    : return("win32:ERROR_LB_WITHOUT_TABSTOPS"                                    );    // 100000 + 1434
+      case ERR_WIN32_ERROR + ERROR_DESTROY_OBJECT_OF_OTHER_THREAD                         : return("win32:ERROR_DESTROY_OBJECT_OF_OTHER_THREAD"                         );    // 100000 + 1435
+      case ERR_WIN32_ERROR + ERROR_CHILD_WINDOW_MENU                                      : return("win32:ERROR_CHILD_WINDOW_MENU"                                      );    // 100000 + 1436
+      case ERR_WIN32_ERROR + ERROR_NO_SYSTEM_MENU                                         : return("win32:ERROR_NO_SYSTEM_MENU"                                         );    // 100000 + 1437
+      case ERR_WIN32_ERROR + ERROR_INVALID_MSGBOX_STYLE                                   : return("win32:ERROR_INVALID_MSGBOX_STYLE"                                   );    // 100000 + 1438
+      case ERR_WIN32_ERROR + ERROR_INVALID_SPI_VALUE                                      : return("win32:ERROR_INVALID_SPI_VALUE"                                      );    // 100000 + 1439
+      case ERR_WIN32_ERROR + ERROR_SCREEN_ALREADY_LOCKED                                  : return("win32:ERROR_SCREEN_ALREADY_LOCKED"                                  );    // 100000 + 1440
+      case ERR_WIN32_ERROR + ERROR_HWNDS_HAVE_DIFF_PARENT                                 : return("win32:ERROR_HWNDS_HAVE_DIFF_PARENT"                                 );    // 100000 + 1441
+      case ERR_WIN32_ERROR + ERROR_NOT_CHILD_WINDOW                                       : return("win32:ERROR_NOT_CHILD_WINDOW"                                       );    // 100000 + 1442
+      case ERR_WIN32_ERROR + ERROR_INVALID_GW_COMMAND                                     : return("win32:ERROR_INVALID_GW_COMMAND"                                     );    // 100000 + 1443
+      case ERR_WIN32_ERROR + ERROR_INVALID_THREAD_ID                                      : return("win32:ERROR_INVALID_THREAD_ID"                                      );    // 100000 + 1444
+      case ERR_WIN32_ERROR + ERROR_NON_MDICHILD_WINDOW                                    : return("win32:ERROR_NON_MDICHILD_WINDOW"                                    );    // 100000 + 1445
+      case ERR_WIN32_ERROR + ERROR_POPUP_ALREADY_ACTIVE                                   : return("win32:ERROR_POPUP_ALREADY_ACTIVE"                                   );    // 100000 + 1446
+      case ERR_WIN32_ERROR + ERROR_NO_SCROLLBARS                                          : return("win32:ERROR_NO_SCROLLBARS"                                          );    // 100000 + 1447
+      case ERR_WIN32_ERROR + ERROR_INVALID_SCROLLBAR_RANGE                                : return("win32:ERROR_INVALID_SCROLLBAR_RANGE"                                );    // 100000 + 1448
+      case ERR_WIN32_ERROR + ERROR_INVALID_SHOWWIN_COMMAND                                : return("win32:ERROR_INVALID_SHOWWIN_COMMAND"                                );    // 100000 + 1449
+      case ERR_WIN32_ERROR + ERROR_NO_SYSTEM_RESOURCES                                    : return("win32:ERROR_NO_SYSTEM_RESOURCES"                                    );    // 100000 + 1450
+      case ERR_WIN32_ERROR + ERROR_NONPAGED_SYSTEM_RESOURCES                              : return("win32:ERROR_NONPAGED_SYSTEM_RESOURCES"                              );    // 100000 + 1451
+      case ERR_WIN32_ERROR + ERROR_PAGED_SYSTEM_RESOURCES                                 : return("win32:ERROR_PAGED_SYSTEM_RESOURCES"                                 );    // 100000 + 1452
+      case ERR_WIN32_ERROR + ERROR_WORKING_SET_QUOTA                                      : return("win32:ERROR_WORKING_SET_QUOTA"                                      );    // 100000 + 1453
+      case ERR_WIN32_ERROR + ERROR_PAGEFILE_QUOTA                                         : return("win32:ERROR_PAGEFILE_QUOTA"                                         );    // 100000 + 1454
+      case ERR_WIN32_ERROR + ERROR_COMMITMENT_LIMIT                                       : return("win32:ERROR_COMMITMENT_LIMIT"                                       );    // 100000 + 1455
+      case ERR_WIN32_ERROR + ERROR_MENU_ITEM_NOT_FOUND                                    : return("win32:ERROR_MENU_ITEM_NOT_FOUND"                                    );    // 100000 + 1456
+      case ERR_WIN32_ERROR + ERROR_INVALID_KEYBOARD_HANDLE                                : return("win32:ERROR_INVALID_KEYBOARD_HANDLE"                                );    // 100000 + 1457
+      case ERR_WIN32_ERROR + ERROR_HOOK_TYPE_NOT_ALLOWED                                  : return("win32:ERROR_HOOK_TYPE_NOT_ALLOWED"                                  );    // 100000 + 1458
+      case ERR_WIN32_ERROR + ERROR_REQUIRES_INTERACTIVE_WINDOWSTATION                     : return("win32:ERROR_REQUIRES_INTERACTIVE_WINDOWSTATION"                     );    // 100000 + 1459
+      case ERR_WIN32_ERROR + ERROR_TIMEOUT                                                : return("win32:ERROR_TIMEOUT"                                                );    // 100000 + 1460
+      case ERR_WIN32_ERROR + ERROR_INVALID_MONITOR_HANDLE                                 : return("win32:ERROR_INVALID_MONITOR_HANDLE"                                 );    // 100000 + 1461
+      case ERR_WIN32_ERROR + ERROR_INCORRECT_SIZE                                         : return("win32:ERROR_INCORRECT_SIZE"                                         );    // 100000 + 1462
+      case ERR_WIN32_ERROR + ERROR_SYMLINK_CLASS_DISABLED                                 : return("win32:ERROR_SYMLINK_CLASS_DISABLED"                                 );    // 100000 + 1463
+      case ERR_WIN32_ERROR + ERROR_SYMLINK_NOT_SUPPORTED                                  : return("win32:ERROR_SYMLINK_NOT_SUPPORTED"                                  );    // 100000 + 1464
+      case ERR_WIN32_ERROR + ERROR_XML_PARSE_ERROR                                        : return("win32:ERROR_XML_PARSE_ERROR"                                        );    // 100000 + 1465
+      case ERR_WIN32_ERROR + ERROR_XMLDSIG_ERROR                                          : return("win32:ERROR_XMLDSIG_ERROR"                                          );    // 100000 + 1466
+      case ERR_WIN32_ERROR + ERROR_RESTART_APPLICATION                                    : return("win32:ERROR_RESTART_APPLICATION"                                    );    // 100000 + 1467
+      case ERR_WIN32_ERROR + ERROR_WRONG_COMPARTMENT                                      : return("win32:ERROR_WRONG_COMPARTMENT"                                      );    // 100000 + 1468
+      case ERR_WIN32_ERROR + ERROR_AUTHIP_FAILURE                                         : return("win32:ERROR_AUTHIP_FAILURE"                                         );    // 100000 + 1469
+      case ERR_WIN32_ERROR + ERROR_NO_NVRAM_RESOURCES                                     : return("win32:ERROR_NO_NVRAM_RESOURCES"                                     );    // 100000 + 1470
+      case ERR_WIN32_ERROR + ERROR_NOT_GUI_PROCESS                                        : return("win32:ERROR_NOT_GUI_PROCESS"                                        );    // 100000 + 1471
+      case ERR_WIN32_ERROR + ERROR_EVENTLOG_FILE_CORRUPT                                  : return("win32:ERROR_EVENTLOG_FILE_CORRUPT"                                  );    // 100000 + 1500
+      case ERR_WIN32_ERROR + ERROR_EVENTLOG_CANT_START                                    : return("win32:ERROR_EVENTLOG_CANT_START"                                    );    // 100000 + 1501
+      case ERR_WIN32_ERROR + ERROR_LOG_FILE_FULL                                          : return("win32:ERROR_LOG_FILE_FULL"                                          );    // 100000 + 1502
+      case ERR_WIN32_ERROR + ERROR_EVENTLOG_FILE_CHANGED                                  : return("win32:ERROR_EVENTLOG_FILE_CHANGED"                                  );    // 100000 + 1503
+      case ERR_WIN32_ERROR + ERROR_INVALID_TASK_NAME                                      : return("win32:ERROR_INVALID_TASK_NAME"                                      );    // 100000 + 1550
+      case ERR_WIN32_ERROR + ERROR_INVALID_TASK_INDEX                                     : return("win32:ERROR_INVALID_TASK_INDEX"                                     );    // 100000 + 1551
+      case ERR_WIN32_ERROR + ERROR_THREAD_ALREADY_IN_TASK                                 : return("win32:ERROR_THREAD_ALREADY_IN_TASK"                                 );    // 100000 + 1552
+      case ERR_WIN32_ERROR + ERROR_INSTALL_SERVICE_FAILURE                                : return("win32:ERROR_INSTALL_SERVICE_FAILURE"                                );    // 100000 + 1601
+      case ERR_WIN32_ERROR + ERROR_INSTALL_USEREXIT                                       : return("win32:ERROR_INSTALL_USEREXIT"                                       );    // 100000 + 1602
+      case ERR_WIN32_ERROR + ERROR_INSTALL_FAILURE                                        : return("win32:ERROR_INSTALL_FAILURE"                                        );    // 100000 + 1603
+      case ERR_WIN32_ERROR + ERROR_INSTALL_SUSPEND                                        : return("win32:ERROR_INSTALL_SUSPEND"                                        );    // 100000 + 1604
+      case ERR_WIN32_ERROR + ERROR_UNKNOWN_PRODUCT                                        : return("win32:ERROR_UNKNOWN_PRODUCT"                                        );    // 100000 + 1605
+      case ERR_WIN32_ERROR + ERROR_UNKNOWN_FEATURE                                        : return("win32:ERROR_UNKNOWN_FEATURE"                                        );    // 100000 + 1606
+      case ERR_WIN32_ERROR + ERROR_UNKNOWN_COMPONENT                                      : return("win32:ERROR_UNKNOWN_COMPONENT"                                      );    // 100000 + 1607
+      case ERR_WIN32_ERROR + ERROR_UNKNOWN_PROPERTY                                       : return("win32:ERROR_UNKNOWN_PROPERTY"                                       );    // 100000 + 1608
+      case ERR_WIN32_ERROR + ERROR_INVALID_HANDLE_STATE                                   : return("win32:ERROR_INVALID_HANDLE_STATE"                                   );    // 100000 + 1609
+      case ERR_WIN32_ERROR + ERROR_BAD_CONFIGURATION                                      : return("win32:ERROR_BAD_CONFIGURATION"                                      );    // 100000 + 1610
+      case ERR_WIN32_ERROR + ERROR_INDEX_ABSENT                                           : return("win32:ERROR_INDEX_ABSENT"                                           );    // 100000 + 1611
+      case ERR_WIN32_ERROR + ERROR_INSTALL_SOURCE_ABSENT                                  : return("win32:ERROR_INSTALL_SOURCE_ABSENT"                                  );    // 100000 + 1612
+      case ERR_WIN32_ERROR + ERROR_INSTALL_PACKAGE_VERSION                                : return("win32:ERROR_INSTALL_PACKAGE_VERSION"                                );    // 100000 + 1613
+      case ERR_WIN32_ERROR + ERROR_PRODUCT_UNINSTALLED                                    : return("win32:ERROR_PRODUCT_UNINSTALLED"                                    );    // 100000 + 1614
+      case ERR_WIN32_ERROR + ERROR_BAD_QUERY_SYNTAX                                       : return("win32:ERROR_BAD_QUERY_SYNTAX"                                       );    // 100000 + 1615
+      case ERR_WIN32_ERROR + ERROR_INVALID_FIELD                                          : return("win32:ERROR_INVALID_FIELD"                                          );    // 100000 + 1616
+      case ERR_WIN32_ERROR + ERROR_DEVICE_REMOVED                                         : return("win32:ERROR_DEVICE_REMOVED"                                         );    // 100000 + 1617
+      case ERR_WIN32_ERROR + ERROR_INSTALL_ALREADY_RUNNING                                : return("win32:ERROR_INSTALL_ALREADY_RUNNING"                                );    // 100000 + 1618
+      case ERR_WIN32_ERROR + ERROR_INSTALL_PACKAGE_OPEN_FAILED                            : return("win32:ERROR_INSTALL_PACKAGE_OPEN_FAILED"                            );    // 100000 + 1619
+      case ERR_WIN32_ERROR + ERROR_INSTALL_PACKAGE_INVALID                                : return("win32:ERROR_INSTALL_PACKAGE_INVALID"                                );    // 100000 + 1620
+      case ERR_WIN32_ERROR + ERROR_INSTALL_UI_FAILURE                                     : return("win32:ERROR_INSTALL_UI_FAILURE"                                     );    // 100000 + 1621
+      case ERR_WIN32_ERROR + ERROR_INSTALL_LOG_FAILURE                                    : return("win32:ERROR_INSTALL_LOG_FAILURE"                                    );    // 100000 + 1622
+      case ERR_WIN32_ERROR + ERROR_INSTALL_LANGUAGE_UNSUPPORTED                           : return("win32:ERROR_INSTALL_LANGUAGE_UNSUPPORTED"                           );    // 100000 + 1623
+      case ERR_WIN32_ERROR + ERROR_INSTALL_TRANSFORM_FAILURE                              : return("win32:ERROR_INSTALL_TRANSFORM_FAILURE"                              );    // 100000 + 1624
+      case ERR_WIN32_ERROR + ERROR_INSTALL_PACKAGE_REJECTED                               : return("win32:ERROR_INSTALL_PACKAGE_REJECTED"                               );    // 100000 + 1625
+      case ERR_WIN32_ERROR + ERROR_FUNCTION_NOT_CALLED                                    : return("win32:ERROR_FUNCTION_NOT_CALLED"                                    );    // 100000 + 1626
+      case ERR_WIN32_ERROR + ERROR_FUNCTION_FAILED                                        : return("win32:ERROR_FUNCTION_FAILED"                                        );    // 100000 + 1627
+      case ERR_WIN32_ERROR + ERROR_INVALID_TABLE                                          : return("win32:ERROR_INVALID_TABLE"                                          );    // 100000 + 1628
+      case ERR_WIN32_ERROR + ERROR_DATATYPE_MISMATCH                                      : return("win32:ERROR_DATATYPE_MISMATCH"                                      );    // 100000 + 1629
+      case ERR_WIN32_ERROR + ERROR_UNSUPPORTED_TYPE                                       : return("win32:ERROR_UNSUPPORTED_TYPE"                                       );    // 100000 + 1630
+      case ERR_WIN32_ERROR + ERROR_CREATE_FAILED                                          : return("win32:ERROR_CREATE_FAILED"                                          );    // 100000 + 1631
+      case ERR_WIN32_ERROR + ERROR_INSTALL_TEMP_UNWRITABLE                                : return("win32:ERROR_INSTALL_TEMP_UNWRITABLE"                                );    // 100000 + 1632
+      case ERR_WIN32_ERROR + ERROR_INSTALL_PLATFORM_UNSUPPORTED                           : return("win32:ERROR_INSTALL_PLATFORM_UNSUPPORTED"                           );    // 100000 + 1633
+      case ERR_WIN32_ERROR + ERROR_INSTALL_NOTUSED                                        : return("win32:ERROR_INSTALL_NOTUSED"                                        );    // 100000 + 1634
+      case ERR_WIN32_ERROR + ERROR_PATCH_PACKAGE_OPEN_FAILED                              : return("win32:ERROR_PATCH_PACKAGE_OPEN_FAILED"                              );    // 100000 + 1635
+      case ERR_WIN32_ERROR + ERROR_PATCH_PACKAGE_INVALID                                  : return("win32:ERROR_PATCH_PACKAGE_INVALID"                                  );    // 100000 + 1636
+      case ERR_WIN32_ERROR + ERROR_PATCH_PACKAGE_UNSUPPORTED                              : return("win32:ERROR_PATCH_PACKAGE_UNSUPPORTED"                              );    // 100000 + 1637
+      case ERR_WIN32_ERROR + ERROR_PRODUCT_VERSION                                        : return("win32:ERROR_PRODUCT_VERSION"                                        );    // 100000 + 1638
+      case ERR_WIN32_ERROR + ERROR_INVALID_COMMAND_LINE                                   : return("win32:ERROR_INVALID_COMMAND_LINE"                                   );    // 100000 + 1639
+      case ERR_WIN32_ERROR + ERROR_INSTALL_REMOTE_DISALLOWED                              : return("win32:ERROR_INSTALL_REMOTE_DISALLOWED"                              );    // 100000 + 1640
+      case ERR_WIN32_ERROR + ERROR_SUCCESS_REBOOT_INITIATED                               : return("win32:ERROR_SUCCESS_REBOOT_INITIATED"                               );    // 100000 + 1641
+      case ERR_WIN32_ERROR + ERROR_PATCH_TARGET_NOT_FOUND                                 : return("win32:ERROR_PATCH_TARGET_NOT_FOUND"                                 );    // 100000 + 1642
+      case ERR_WIN32_ERROR + ERROR_PATCH_PACKAGE_REJECTED                                 : return("win32:ERROR_PATCH_PACKAGE_REJECTED"                                 );    // 100000 + 1643
+      case ERR_WIN32_ERROR + ERROR_INSTALL_TRANSFORM_REJECTED                             : return("win32:ERROR_INSTALL_TRANSFORM_REJECTED"                             );    // 100000 + 1644
+      case ERR_WIN32_ERROR + ERROR_INSTALL_REMOTE_PROHIBITED                              : return("win32:ERROR_INSTALL_REMOTE_PROHIBITED"                              );    // 100000 + 1645
+      case ERR_WIN32_ERROR + ERROR_PATCH_REMOVAL_UNSUPPORTED                              : return("win32:ERROR_PATCH_REMOVAL_UNSUPPORTED"                              );    // 100000 + 1646
+      case ERR_WIN32_ERROR + ERROR_UNKNOWN_PATCH                                          : return("win32:ERROR_UNKNOWN_PATCH"                                          );    // 100000 + 1647
+      case ERR_WIN32_ERROR + ERROR_PATCH_NO_SEQUENCE                                      : return("win32:ERROR_PATCH_NO_SEQUENCE"                                      );    // 100000 + 1648
+      case ERR_WIN32_ERROR + ERROR_PATCH_REMOVAL_DISALLOWED                               : return("win32:ERROR_PATCH_REMOVAL_DISALLOWED"                               );    // 100000 + 1649
+      case ERR_WIN32_ERROR + ERROR_INVALID_PATCH_XML                                      : return("win32:ERROR_INVALID_PATCH_XML"                                      );    // 100000 + 1650
+      case ERR_WIN32_ERROR + ERROR_PATCH_MANAGED_ADVERTISED_PRODUCT                       : return("win32:ERROR_PATCH_MANAGED_ADVERTISED_PRODUCT"                       );    // 100000 + 1651
+      case ERR_WIN32_ERROR + ERROR_INSTALL_SERVICE_SAFEBOOT                               : return("win32:ERROR_INSTALL_SERVICE_SAFEBOOT"                               );    // 100000 + 1652
+      case ERR_WIN32_ERROR + ERROR_FAIL_FAST_EXCEPTION                                    : return("win32:ERROR_FAIL_FAST_EXCEPTION"                                    );    // 100000 + 1653
+      case ERR_WIN32_ERROR + ERROR_INSTALL_REJECTED                                       : return("win32:ERROR_INSTALL_REJECTED"                                       );    // 100000 + 1654
 
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT                                    : return("win32:ERROR_NOT_A_REPARSE_POINT"                                    );    // 100000 + 4390
 
