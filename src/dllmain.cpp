@@ -58,7 +58,7 @@ static BOOL WINAPI onProcessAttach() {
    }
    else {
       error(ERR_WIN32_ERROR + GetLastError(), "CreateThread(\"ExpanderStart\")");
-      FreeLibrary(hModule);               // on error decrease ref-count
+      FreeLibrary(hModule);               // on error only (triggers DLL unloading after return)
    }
    return TRUE;
 }
@@ -95,107 +95,13 @@ static DWORD WINAPI ExpanderStartThread(void* lpParam) {
    const wchar* dllName = GetExpanderFileNameW();
    BOOL isProduction = StrEndsWithI(dllName, L"rsfMT4Expander.dll");
 
-   if (!isProduction) {                               // nothing to do, decrease ref-count and terminate the thread
-      FreeLibraryAndExitThread(hModule, NO_ERROR);    // this never returns
+   if (!isProduction) {                            // nothing to do
+      FreeLibraryAndExitThread(hModule, NO_ERROR); // decrease ref-count and terminate the thread (never returns)
    }
-   PinDllToMemory();
-
-   // start a background thread to monitor user logoff/system shutdown events
-   HANDLE hThread = CreateThread(NULL, 0, SessionMonitorThread, hModule, 0, NULL);
-   if (hThread) CloseHandle(hThread);
-   else         error(ERR_WIN32_ERROR + GetLastError(), "CreateThread(\"SessionMonitor\")");
+   PinDllToMemory();                               // otherwise we keep the DLL in memory until process termination
 
    CustomizeTerminal();
    return NO_ERROR;
-}
-
-
-/**
- * Create a hidden top-level window and run the message loop to capture WM_QUERYENDSESSION/WM_ENDSESSION messages.
- * This is a workaround for terminal bug https://github.com/rosasurfer/mt4-expander/issues/26#.
- *
- * @param  void* lpParam - DLL module handle
- *
- * @return DWORD - thread exit status
- */
-static DWORD WINAPI SessionMonitorThread(void* lpParam) {
-   HINSTANCE hInstance = (HINSTANCE)lpParam;
-
-   // register the window class
-   const char* className = "SessionMonitorClass";
-   WNDCLASSEXA wc = {};
-   wc.cbSize        = sizeof(WNDCLASSEXA);
-   wc.lpfnWndProc   = SessionMonitorWndProc;
-   wc.hInstance     = hInstance;
-   wc.lpszClassName = className;    // no icon, cursor, background - invisible
-   if (!RegisterClassExA(&wc)) {
-      return error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassExA(\"%s\")", className);
-   }
-
-   // create a message-only window
-   HWND hWnd = CreateWindowExA(
-      0,                            // no extended styles
-      className,
-      "MT4Expander session monitor",
-      0,                            // no style needed
-      0, 0, 0, 0,                   // position/size irrelevant
-      NULL,                         // no parent => top-level window
-      NULL,                         // no menu
-      hInstance,
-      NULL                          // no creation param
-   );
-   if (!hWnd) {
-      UnregisterClassA(className, hInstance);
-      return error(ERR_WIN32_ERROR + GetLastError(), "CreateWindowExA(\"%s\")", className);
-   }
-
-   // run the message loop
-   MSG msg;
-   while (GetMessage(&msg, NULL, 0, 0) > 0) {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
-   }
-
-   // clean-up
-   DestroyWindow(hWnd);
-   UnregisterClassA(className, hInstance);
-   return NO_ERROR;
-}
-
-
-/**
- * SessionMonitor window procedure - runs on the SessionMonitor thread.
- *
- * @param  HWND   hWnd   - window receiving the message
- * @param  uint   msg    - sent message
- * @param  WPARAM wParam - additional message info
- * @param  LPARAM lParam - additional message info
- *
- * @return LRESULT - depends on the message sent
- */
-static LRESULT CALLBACK SessionMonitorWndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
-   switch (msg) {
-      case WM_QUERYENDSESSION: {                   // Windows: "Are you ready to shut down?"
-         if (lParam & ENDSESSION_LOGOFF) {}        // user logoff
-         else                            {}        // system shutdown/restart
-         debug("WM_QUERYENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
-         return TRUE;                              // we are ready
-      }
-
-      case WM_ENDSESSION: {
-         if (wParam) {                             // Windows: "Logoff/shutdown is happening now. You have ~5 seconds."
-            if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
-            else                            {}     // system shutdown/restart
-            debug("WM_ENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
-            // do something...
-         }
-         else /*!wParam*/ {}                       // logoff/shutdown was cancelled
-         return 0;
-      }
-
-      default:
-         return DefWindowProc(hWnd, msg, wParam, lParam);
-   }
 }
 
 
