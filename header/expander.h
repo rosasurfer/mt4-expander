@@ -132,11 +132,12 @@ enum UninitializeReason {
 #define warn(...)   _warn  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)  _error (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int __cdecl _dump  (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode=DUMPMODE_HEX);
+int __cdecl _dump  (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
 int __cdecl _debug (const char* fileName, const char* funcName, int line, const char* message, ...);
-int __cdecl _notice(const char* fileName, const char* funcName, int line, int code, const char* message, ...);
-int __cdecl _warn  (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
-int __cdecl _error (const char* fileName, const char* funcName, int line, int code, const char* message, ...);
+int __cdecl _debug (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
+int __cdecl _notice(const char* fileName, const char* funcName, int line, int error, const char* message, ...);
+int __cdecl _warn  (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
+int __cdecl _error (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
 
 
 // Helper functions returning constant values.
