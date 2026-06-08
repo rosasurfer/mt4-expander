@@ -1,8 +1,8 @@
 
-## MetaTrader 4 framework DLL extension
+## DLL extension for the MetaTrader4 MQL framework
 
 
-This project is part of the [MetaTrader 4 development framework](https://github.com/rosasurfer/mt4-mql).
+This project is part of the [MetaTrader4 MQL framework](https://github.com/rosasurfer/mt4-mql).
 - - -
 
 ### Build environment
