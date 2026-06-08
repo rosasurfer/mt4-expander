@@ -89,8 +89,8 @@ static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL isUiThread) {
 
       // wake-up the UI thread with a non-blocking SendMessage()
       SetLastError(ERROR_SUCCESS);
-      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, SMTO_ABORTIFHUNG|SMTO_NOTIMEOUTIFNOTHUNG, 1000, NULL)) {
-         notice(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
+      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, SMTO_ABORTIFHUNG|SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL)) {
+         debug(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
       }
    }
    return TRUE;
@@ -116,6 +116,24 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
          if (debugOptions & OPTION_DEBUG_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", wParam, lParam);
          break;
       }
+
+      case WM_QUERYENDSESSION: {                   // Windows: "Are you ready to shut down?"
+         if (lParam & ENDSESSION_LOGOFF) {}        // user logoff
+         else                            {}        // system shutdown/restart
+         debug("WM_QUERYENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
+         break;
+      }
+
+      case WM_ENDSESSION: {                        // workaround for terminal bug https://github.com/rosasurfer/mt4-expander/issues/26
+         if (wParam) {                             // Windows: "Logoff/shutdown is happening now. You have ~5 seconds."
+            if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
+            else                            {}     // system shutdown/restart
+            debug("WM_ENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
+         }
+         //else                                    // logoff/shutdown was cancelled
+         break;
+      }
+
       case WM_NCDESTROY: {
          RemoveWindowSubclass(hWnd, MainWindowSubclassProc, subclassId);
          break;
