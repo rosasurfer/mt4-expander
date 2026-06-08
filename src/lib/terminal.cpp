@@ -116,6 +116,24 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
          if (debugOptions & OPTION_DEBUG_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", wParam, lParam);
          break;
       }
+
+      case WM_QUERYENDSESSION: {                   // Windows: "Are you ready to shut down?"
+         if (lParam & ENDSESSION_LOGOFF) {}        // user logoff
+         else                            {}        // system shutdown/restart
+         debug("WM_QUERYENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
+         break;
+      }
+
+      case WM_ENDSESSION: {
+         if (wParam) {                             // Windows: "Logoff/shutdown is happening now. You have ~5 seconds."
+            if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
+            else                            {}     // system shutdown/restart
+            debug("WM_ENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
+         }
+         //else                                    // logoff/shutdown was cancelled
+         break;
+      }
+
       case WM_NCDESTROY: {
          RemoveWindowSubclass(hWnd, MainWindowSubclassProc, subclassId);
          break;
