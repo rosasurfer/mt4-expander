@@ -89,7 +89,7 @@ static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL isUiThread) {
 
       // wake-up the UI thread with a non-blocking SendMessage()
       SetLastError(ERROR_SUCCESS);
-      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, SMTO_NORMAL, 1000, NULL)) {
+      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, SMTO_ABORTIFHUNG|SMTO_NOTIMEOUTIFNOTHUNG, 1000, NULL)) {
          notice(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
       }
    }
