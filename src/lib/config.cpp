@@ -105,6 +105,36 @@ const char* WINAPI GetTerminalConfigPathA() {
 
 
 /**
+ * Whether a config key exists in the global configuration.
+ *
+ * @param  char* section - case-insensitive config section name
+ * @param  char* key     - case-insensitive config key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
+   const char* globalConfig = GetGlobalConfigPathA();
+   return globalConfig && IsIniKeyA(globalConfig, section, key);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a config key exists in the terminal configuration.
+ *
+ * @param  char* section - case-insensitive config section name
+ * @param  char* key     - case-insensitive config key
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsTerminalConfigKeyA(const char* section, const char* key) {
+   const char* terminalConfig = GetTerminalConfigPathA();
+   return terminalConfig && IsIniKeyA(terminalConfig, section, key);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Whether a config key exists in the specified .ini file.
  *
  * @param  char* fileName - name of the .ini file
@@ -153,82 +183,28 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
 
 
 /**
- * Whether a config key exists in the terminal configuration.
+ * Delete a config key from the specified .ini file. If the file does not exist an attempt is made to create it. No error is
+ * returned if creation fails.
  *
- * @param  char* section - case-insensitive config section name
- * @param  char* key     - case-insensitive config key
+ * @param  char* fileName - name of the .ini file
+ * @param  char* section  - case-insensitive config section name
+ * @param  char* key      - case-insensitive config key to delete
  *
- * @return BOOL
+ * @return BOOL - success status
  */
-BOOL WINAPI IsTerminalConfigKeyA(const char* section, const char* key) {
-   const char* terminalConfig = GetTerminalConfigPathA();
-   return terminalConfig && IsIniKeyA(terminalConfig, section, key);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Whether a config key exists in the global configuration.
- *
- * @param  char* section - case-insensitive config section name
- * @param  char* key     - case-insensitive config key
- *
- * @return BOOL
- */
-BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
-   const char* globalConfig = GetGlobalConfigPathA();
-   return globalConfig && IsIniKeyA(globalConfig, section, key);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return all keys of the specified .ini file section.
- *
- * Alias of GetPrivateProfileString(). Required for MQL4.0 which doesn't support function overloading (multiple signatures).
- *
- * @param  _In_  char* fileName   - initialization file name
- * @param  _In_  char* section    - case-insensitive section name
- * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
- *                                  NUL terminated strings. The last string is followed by a second NUL character.
- * @param  _In_  DWORD bufferSize - size of the buffer in bytes
- *
- * @return DWORD - Number of bytes copied to the specified buffer, not including the last terminating NUL character.
- *                 If the buffer is to small to hold all keys the first non-fitting key is truncated and followed by two NUL
- *                 characters. In this case, the return value is equal to bufferSize-2.
- */
-DWORD WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, DWORD bufferSize) {
+BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key) {
    if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
    if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
    if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
    if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
-   if ((uint)buffer   < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer);
-   if (bufferSize < 2)                     return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize);
+   if ((uint)key      < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key);
+   if (!*key)                              return !error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)");
 
-   return GetPrivateProfileStringA(section, NULL, NULL, buffer, bufferSize, fileName);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return all section names of the specified .ini file.
- *
- * @param  _In_  char* fileName   - initialization file name
- * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found section names. The buffer is filled with one
- *                                  or more NUL terminated strings. The last string is followed by a second NUL character.
- * @param  _In_  DWORD bufferSize - size of the buffer in bytes
- *
- * @return DWORD - Number of bytes copied to the specified buffer, not including the last terminating NUL character.
- *                 If the buffer is to small to hold all section names the first non-fitting name is truncated and followed by
- *                 two NUL characters. In this case, the return value is equal to bufferSize-2.
- */
-DWORD WINAPI GetIniSectionsA(const char* fileName, char* buffer, DWORD bufferSize) {
-   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
-   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
-   if ((uint)buffer   < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer);
-   if (bufferSize < 2)                     return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize);
-
-   return GetPrivateProfileStringA(NULL, NULL, NULL, buffer, bufferSize, fileName);
+   if (!WritePrivateProfileStringA(section, key, NULL, fileName)) {
+      int error = GetLastError();
+      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key);
+   }
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -279,33 +255,6 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
 
 
 /**
- * Delete a config key from the specified .ini file. If the file does not exist an attempt is made to create it. No error is
- * returned if creation fails.
- *
- * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
- * @param  char* key      - case-insensitive config key to delete
- *
- * @return BOOL - success status
- */
-BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key) {
-   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
-   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
-   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
-   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
-   if ((uint)key      < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter key: 0x%p (not a valid pointer)", key);
-   if (!*key)                              return !error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)");
-
-   if (!WritePrivateProfileStringA(section, key, NULL, fileName)) {
-      int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key);
-   }
-   return TRUE;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Delete a config section from the specified .ini file. If the file does not exist an attempt is made to create it. No error
  * is returned if creation fails.
  *
@@ -351,6 +300,57 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
       if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section);
    }
    return TRUE;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return all keys of the specified .ini file section.
+ *
+ * Alias of GetPrivateProfileString(). Required for MQL4.0 which doesn't support function overloading (multiple signatures).
+ *
+ * @param  _In_  char* fileName   - initialization file name
+ * @param  _In_  char* section    - case-insensitive section name
+ * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
+ *                                  NUL terminated strings. The last string is followed by a second NUL character.
+ * @param  _In_  uint  bufferSize - size of the buffer in bytes (note: MQL4.0 has no unsigned integer type)
+ *
+ * @return uint - Number of bytes copied to the specified buffer, not including the last terminating NUL character.
+ *                If the buffer is to small to hold all keys the first non-fitting key is truncated and followed by two NUL
+ *                characters. In this case, the return value is equal to `bufferSize-2`.
+ */
+uint WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, uint bufferSize) {
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)section  < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter section: 0x%p (not a valid pointer)", section);
+   if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
+   if ((uint)buffer   < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer);
+   if ((int)bufferSize < 2)                return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize);
+
+   return GetPrivateProfileStringA(section, NULL, NULL, buffer, bufferSize, fileName);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return all section names of the specified .ini file.
+ *
+ * @param  _In_  char* fileName   - initialization file name
+ * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found section names. The buffer is filled with one
+ *                                  or more NUL terminated strings. The last string is followed by a second NUL character.
+ * @param  _In_  uint  bufferSize - size of the buffer in bytes (note: MQL4.0 has no unsigned integer type)
+ *
+ * @return uint - Number of bytes copied to the specified buffer, not including the last terminating NUL character.
+ *                If the buffer is to small to hold all section names the first non-fitting name is truncated and followed by
+ *                two NUL characters. In this case, the return value is equal to `bufferSize-2`.
+ */
+uint WINAPI GetIniSectionsA(const char* fileName, char* buffer, uint bufferSize) {
+   if ((uint)fileName < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: 0x%p (not a valid pointer)", fileName);
+   if (!*fileName)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter fileName: \"\" (empty)");
+   if ((uint)buffer   < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: 0x%p (not a valid pointer)", buffer);
+   if ((int)bufferSize < 2)                return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d (min. 2 bytes)", bufferSize);
+
+   return GetPrivateProfileStringA(NULL, NULL, NULL, buffer, bufferSize, fileName);
    #pragma EXPANDER_EXPORT
 }
 
