@@ -7,6 +7,7 @@
 #include "lib/sound.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/ui/menu.h"
 
 #include <commctrl.h>
 #include <shellapi.h>
@@ -117,6 +118,15 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
          break;
       }
 
+      case WM_INITMENUPOPUP: {
+         HMENU hPopup = (HMENU)wParam;
+         BOOL isSystemMenu = HIWORD(lParam);
+         if (!isSystemMenu && IsChartTemplatesMenu(hPopup)) {
+            RebuildChartTemplatesMenu(hPopup);
+         }
+         break;
+      }
+
       case WM_QUERYENDSESSION: {                   // Windows: "Are you ready to shut down?"
          if (lParam & ENDSESSION_LOGOFF) {}        // user logoff
          else                            {}        // system shutdown/restart
@@ -129,8 +139,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
             if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
             else                            {}     // system shutdown/restart
             debug("WM_ENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
-         }
-         //else                                    // logoff/shutdown was cancelled
+         }//else                                   // logoff/shutdown was cancelled
          break;
       }
 
@@ -589,7 +598,7 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
    static wchar* path;
 
    if (!path) {
-      wchar appDataPath[MAX_PATH];
+      wchar appDataPath[MAX_PATH] = {};
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
          return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "SHGetFolderPathW()");
       }
@@ -879,7 +888,7 @@ const wchar* WINAPI GetTerminalRoamingDataPathW() {
    static wchar* result;
 
    if (!result) {
-      wchar appDataPath[MAX_PATH];
+      wchar appDataPath[MAX_PATH] = {};
       if (FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath))) {
          return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "SHGetFolderPathW()");
       }

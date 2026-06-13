@@ -379,6 +379,14 @@
 					RelativePath=".\header\lib\timeseries.h"
 					>
 				</File>
+				<Filter
+					Name="ui"
+					>
+					<File
+						RelativePath=".\header\lib\ui\menu.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="shared"
@@ -993,6 +1001,14 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<Filter
+					Name="ui"
+					>
+					<File
+						RelativePath=".\src\lib\ui\menu.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="struct"
