@@ -81,7 +81,7 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, const c
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
-   char baseName[MAX_FNAME], ext[MAX_EXT];
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
    char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
@@ -118,7 +118,7 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, int err
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
-   char baseName[MAX_FNAME], ext[MAX_EXT];
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
    char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
@@ -162,7 +162,7 @@ int __cdecl _notice(const char* fileName, const char* funcName, int line, int er
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
-   char baseName[MAX_FNAME], ext[MAX_EXT];
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
    char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  NOTICE: %s", baseName, ext, funcName, line, formattedMsg);
@@ -206,7 +206,7 @@ int __cdecl _warn(const char* fileName, const char* funcName, int line, int erro
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
-   char baseName[MAX_FNAME], ext[MAX_EXT];
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
    char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  WARN: %s", baseName, ext, funcName, line, formattedMsg);
@@ -266,7 +266,7 @@ int __cdecl _error(const char* fileName, const char* funcName, int line, int err
    va_end(args);
 
    // insert the call location at the beginning: {basename.ext(line)}
-   char baseName[MAX_FNAME], ext[MAX_EXT];
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
    char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, formattedMsg, ErrorToStrA(error));

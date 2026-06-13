@@ -335,7 +335,7 @@ char* WINAPI GetReparsePointTargetA(const char* name) {
 
          BOOL isRelative = rdata->SymbolicLink.Flags & SYMLINK_FLAG_RELATIVE;
          if (isRelative) {
-            char drive[MAX_DRIVE], dir[MAX_DIR];
+            char drive[MAX_DRIVE] = {}, dir[MAX_DIR] = {};
             _splitpath(name, drive, dir, NULL, NULL);
             result = sdup(string(drive).append(dir).append(target).c_str());
          }
@@ -390,7 +390,7 @@ wchar* WINAPI SearchPathW(const wchar* file) {
    if ((uint)file < MIN_VALID_POINTER) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: 0x%p (not a valid pointer)", file);
    if (!*file)                         return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: \"\" (empty)");
 
-   wchar fullPath[MAX_PATH];                       // on the stack
+   wchar fullPath[MAX_PATH] = {};                  // on the stack
    DWORD result = SearchPathW(NULL, file, L".exe", MAX_PATH, fullPath, NULL);
    if (!result) return NULL;                       // ERROR_FILE_NOT_FOUND
    if (result < MAX_PATH) return wsdup(fullPath);  // copy to heap
