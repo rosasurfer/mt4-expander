@@ -33,7 +33,7 @@ BOOL WINAPI IsChartTemplatesMenu(HMENU hPopup) {
             if (mi.hSubMenu) continue;
             break;
          case 3:        // MENUITEM SEPARATOR
-            if (mi.fType | MFT_SEPARATOR) continue;
+            if (mi.fType & MFT_SEPARATOR) continue;
             break;
       }
       return FALSE;
