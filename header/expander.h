@@ -167,3 +167,5 @@ double __cdecl _double(double value, ...);
 
 // Return the size of a type member without an actual instance.
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)
+
+#define countof(text)   _countof(text)
