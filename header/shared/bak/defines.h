@@ -433,10 +433,10 @@
 #define ID_CHART_STEPBACKWARD               33198        //          One bar backward               Shift+F12
 #define ID_CHART_TEMPLATES_SAVE             33220        //          Templates->Save Template
 #define ID_CHART_TEMPLATES_LOAD             35511        //          Templates->Load Template
-#define ID_CHART_TEMPLATES_DEFAULT          34825        //          Templates->Default
-#define ID_CHART_TEMPLATES_OFFLINE          34826        //          Templates->Offline
-#define ID_CHART_TEMPLATES_TESTER           34827        //          Templates->Tester
 #define ID_CHART_TEMPLATES_USER1            34800        //          Templates->{first-user-template}
+#define ID_CHART_TEMPLATES_DEFAULT          34825        //          Templates->Default (base id, dynamic if more than 25 user templates)
+#define ID_CHART_TEMPLATES_OFFLINE          34826        //          Templates->Offline (base id, dynamic if more than 25 user templates)
+#define ID_CHART_TEMPLATES_TESTER           34827        //          Templates->Tester  (base id, dynamic if more than 25 user templates)
 
 #define ID_WINDOW_NEWWINDOW                 57648        // Window:  New Window
 #define ID_WINDOW_TILEWINDOWS               38259        //          Tile Windows                       Alt+R

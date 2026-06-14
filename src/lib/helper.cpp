@@ -705,7 +705,7 @@ uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, 
 /**
  * Get a unique message id for the string "MetaTrader4_Internal_Message".
  *
- * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
+ * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (NULL) in case of errors
  */
 uint WINAPI MT4InternalMsg() {
    static uint msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
@@ -720,7 +720,7 @@ uint WINAPI MT4InternalMsg() {
  *
  * Get a unique message id for the string "MetaTrader4_Internal_Message".
  *
- * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (zero) in case of errors
+ * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (NULL) in case of errors
  */
 uint WINAPI WM_MT4() {
    return MT4InternalMsg();

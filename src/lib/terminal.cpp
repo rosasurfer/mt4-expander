@@ -28,8 +28,8 @@ void WINAPI CustomizeTerminal() {
    if (!hWndMain) return;
    BOOL isUiThread = IsUIThread();
 
-   // subclass the terminal main window
-   SubclassMainWindow(hWndMain, isUiThread);
+   SubclassMainWindow(hWndMain, isUiThread);          // subclass the terminal main window
+   SubclassChartWindows(hWndMain, isUiThread);        // subclass all current and future chart windows
 
    // get the toolbar
    HWND hToolbar = GetDlgItem(hWndMain, IDC_TOOLBAR);
@@ -99,6 +99,19 @@ static BOOL WINAPI SubclassMainWindow(HWND hWndMain, BOOL isUiThread) {
 
 
 /**
+ * Subclass all current and future chart windows.
+ *
+ * @param  HWND hWndMain   - handle of the terminal main window
+ * @param  BOOL isUiThread - whether the function is executed by the UI thread
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI SubclassChartWindows(HWND hWndMain, BOOL isUiThread) {
+   return TRUE;
+}
+
+
+/**
  * The main window's subclassing window procedure. Executed in the UI thread.
  *
  * @param  HWND      hWnd       - subclassed window receiving the message
@@ -119,10 +132,10 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
       }
 
       case WM_INITMENUPOPUP: {
-         HMENU hPopup = (HMENU)wParam;
+         HMENU hMenu = (HMENU)wParam;
          BOOL isSystemMenu = HIWORD(lParam);
-         if (!isSystemMenu && IsChartTemplatesMenu(hPopup)) {
-            RebuildChartTemplatesMenu(hPopup);
+         if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
+            RebuildChartTemplatesMenu(hMenu);
          }
          break;
       }
@@ -153,11 +166,28 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
 
 
 /**
- * Callback function registered by SetWindowsHookEx(). Runs in the UI thread.
+ * A chart window's subclassing window procedure. Executed in the UI thread.
+ *
+ * @param  HWND      hWnd       - subclassed window receiving the message
+ * @param  uint      msg        - sent message
+ * @param  WPARAM    wParam     - additional message info
+ * @param  LPARAM    lParam     - additional message info
+ * @param  UINT_PTR  subclassId - subclass identifier
+ * @param  DWORD_PTR data       - user data as passed to SetWindowSubclass()
+ *
+ * @return LRESULT - depends on the message sent
+ */
+static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
+   return DefSubclassProc(hWnd, msg, wParam, lParam);
+}
+
+
+/**
+ * Callback function registered by SetWindowsHookEx() to run in the UI thread.
  *
  * @param  int    code   - whether the hook procedure must process the message
  * @param  WPARAM wParam - whether the message was sent by the current thread
- * @param  LPARAM lParam - pointer to message details
+ * @param  LPARAM lParam - pointer to message details (if any)
  *
  * @return LRESULT - return value of CallNextHookEx()
  */
