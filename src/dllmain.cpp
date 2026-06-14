@@ -4,6 +4,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/timer.h"
+#include "lib/ui/integration.h"
 #include "struct/ExecutionContext.h"
 
 extern MqlInstanceList               g_mqlInstances;        // all MQL program instances
@@ -101,7 +102,7 @@ static DWORD WINAPI ExpanderStartThread(void* lpParam) {
    }
    PinDllToMemory();                               // otherwise we keep the DLL in memory until process termination
 
-   CustomizeTerminal();
+   SetupUiIntegration();
    return NO_ERROR;
 }
 

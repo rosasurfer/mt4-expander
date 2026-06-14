@@ -383,6 +383,10 @@
 					Name="ui"
 					>
 					<File
+						RelativePath=".\header\lib\ui\integration.h"
+						>
+					</File>
+					<File
 						RelativePath=".\header\lib\ui\menu.h"
 						>
 					</File>
@@ -1004,6 +1008,10 @@
 				<Filter
 					Name="ui"
 					>
+					<File
+						RelativePath=".\src\lib\ui\integration.cpp"
+						>
+					</File>
 					<File
 						RelativePath=".\src\lib\ui\menu.cpp"
 						>
