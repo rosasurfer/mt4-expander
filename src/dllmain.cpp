@@ -52,6 +52,7 @@ static BOOL WINAPI onProcessAttach() {
    // launch worker thread for custom initializations
    HMODULE hModule = NULL;                // increase ref-count so the DLL can't be unloaded before the thread finishes
    GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)onProcessAttach, &hModule);
+   if (!hModule) return !error(ERR_WIN32_ERROR + GetLastError(), "GetModuleHandleExA()");
 
    if (HANDLE hThread = CreateThread(NULL, 0, ExpanderStartThread, hModule, 0, NULL)) {
       CloseHandle(hThread);
