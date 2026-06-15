@@ -30,7 +30,7 @@ HWND WINAPI FindTesterWindow() {
       if (!hWndMain) return(NULL);
 
       HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKED_CONTAINER);           // container for docked terminal windows
-      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR + GetLastError(), "TerminalMainWindow->IDC_DOCKED_CONTAINER not found"));
+      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_DOCKED_CONTAINER)"));
 
       HWND hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);                  // use non-static var for intermediate results (thread concurrency)
       if (!hWndSuccess) {
@@ -71,10 +71,10 @@ int WINAPI Tester_GetBarModel() {
    if (!hWndTester) return(EMPTY);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem()  \"Settings\" tab not found")));
+   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(TesterWindow, IDC_TESTER_SETTINGS)")));
 
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
-   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem()  control element \"Model\" not found")));
+   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(Settings, IDC_TESTER_SETTINGS_BARMODEL)")));
 
    int index = ComboBox_GetCurSel(hWndBarModel);      // CB_ERR = EMPTY = -1
    if (index == CB_ERR) error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
@@ -94,10 +94,10 @@ time32 WINAPI Tester_GetStartDate() {
    if (!hWndTester) return(NULL);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(!error(ERR_WIN32_ERROR + GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found"));
+   if (!hWndSettings) return(!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(TesterWindow, IDC_TESTER_SETTINGS)"));
 
    HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
-   if (!hWndUseDate) return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) not found"));
+   if (!hWndUseDate) return(!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(Settings, IDC_TESTER_SETTINGS_USEDATE)"));
 
    HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT);
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
@@ -135,10 +135,10 @@ time32 WINAPI Tester_GetEndDate() {
    if (!hWndTester) return(NULL);
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(!error(ERR_WIN32_ERROR + GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found"));
+   if (!hWndSettings) return(!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(TesterWindow, IDC_TESTER_SETTINGS)"));
 
    HWND hWndOptimize = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_OPTIMIZATION);
-   if (!hWndOptimize) return(!error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) not found"));
+   if (!hWndOptimize) return(!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(Settings, IDC_TESTER_SETTINGS_OPTIMIZATION)"));
 
    HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT);
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);

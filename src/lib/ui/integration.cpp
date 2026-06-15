@@ -7,64 +7,68 @@
 #include <commctrl.h>
 
 
-const uint MAIN_WINDOW_SUBCLASS_ID  = 1;              // subclass identifier for the main window
-const uint CHART_WINDOW_SUBCLASS_ID = 2;              // subclass identifier for chart windows
+#define MAIN_WINDOW_SUBCLASS_ID     1              // subclass identifier for the main window
+#define CHART_WINDOW_SUBCLASS_ID    2              // subclass identifier for chart windows
 
-static HHOOK g_hUiHook = NULL;                        // hook handle to switch to the UI thread
+static HHOOK hMainWndSendMsgHook = NULL;           // hook handle
 
 
 /**
- * Setup UI integration of the Expander.
+ * Setup UI integration of the Expander. The first call is always from a non-UI thread (DLL loader).
  *
  * @return BOOL - success status
  */
 BOOL WINAPI SetupUiIntegration() {
-   // make sure we run in the UI thread
+   // Some integration tasks must run in the UI thread, some tasks must NOT run there to not delay startup.
+
    if (!IsUIThread()) {
-      if (g_hUiHook) return FALSE;
-      g_hUiHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadProc, NULL, GetUIThreadId());
-      if (!g_hUiHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
+      static BOOL done = FALSE;
+      if (!done) {
+         done = TRUE;
+         // perform configured modifications
+         if (!CustomizeTerminal()) return FALSE;
 
-      HWND hWndMain = GetTerminalMainWindow();
-      if (!hWndMain) return FALSE;
+         // register a hook in the UI thread and continue there
+         if (hMainWndSendMsgHook) return FALSE;
+         hMainWndSendMsgHook = SetWindowsHookEx(WH_CALLWNDPROC, MainWindowSendMessageHook, NULL, GetUIThreadId());
+         if (!hMainWndSendMsgHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx()");
 
-      // wake-up the UI thread with a non-blocking SendMessage()
-      SetLastError(ERROR_SUCCESS);
-      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL)) {
-         debug(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
+         // wake-up the UI thread
+         SendMessageTimeout(GetTerminalMainWindow(), WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL);
       }
-      return TRUE;
    }
-
-   // we run in the UI thread
-   if (!SubclassMainWindow())   return FALSE;      // subclass the terminal main window
-   if (!SubclassChartWindows()) return FALSE;      // subclass all current and future chart windows
-   if (!CustomizeTerminal())    return FALSE;      // customize the terminal as configured
+   else {
+      static BOOL done = FALSE;
+      if (!done) {
+         done = TRUE;
+         if (!SubclassMainWindow())   return FALSE;      // subclass the terminal main window
+         if (!SubclassChartWindows()) return FALSE;      // subclass all current and future chart windows
+      }
+   }
    return TRUE;
 }
 
 
 /**
- * Callback function registered by SetWindowsHookEx(). Runs in the UI thread.
+ * Hook function for messages sent to the terminal main window. Triggers Expander integration tasks which require
+ * execution in the UI thread, and immediately removes itself.
  *
- * @param  int    code   - whether the hook procedure must process the message
+ * @param  int    code   - below 0 (zero) if the hook should skip the message
  * @param  WPARAM wParam - whether the message was sent by the current thread
  * @param  LPARAM lParam - pointer to message details
  *
  * @return LRESULT - return value of CallNextHookEx()
  */
-static LRESULT CALLBACK UiThreadProc(int code, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK MainWindowSendMessageHook(int code, WPARAM wParam, LPARAM lParam) {
    if (code >= 0) {
-      if (g_hUiHook) {
-         HHOOK hHook = g_hUiHook;
-         g_hUiHook = NULL;
-         if (!UnhookWindowsHookEx(hHook)) {
-            error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hHook=0x%p)", hHook);
-         }
+      if (hMainWndSendMsgHook) {
+         HHOOK hHook = hMainWndSendMsgHook;
+         hMainWndSendMsgHook = NULL;
+         if (!UnhookWindowsHookEx(hHook)) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hHook=0x%p)", hHook);
+         SetupUiIntegration();
       }
-      SetupUiIntegration();
    }
-   return CallNextHookEx(NULL, code, wParam, lParam);
+   return CallNextHookEx(hMainWndSendMsgHook, code, wParam, lParam);   // NULL after the hook was removed
 }
 
 
@@ -163,7 +167,7 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
 
 
 /**
- * Customize the UI of the terminal as configured.
+ * Customize the UI of the terminal as configured. Runs in a non-UI thread to not delay terminal startup.
  *
  * @return BOOL - success status
  */
@@ -171,25 +175,21 @@ static BOOL WINAPI CustomizeTerminal() {
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return FALSE;
 
-   // get the toolbar
+   // find the toolbar
    HWND hToolbar = GetDlgItem(hWndMain, IDC_TOOLBAR);
-   if (!hToolbar) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_TOOLBAR) not found");
+   if (!hToolbar) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_TOOLBAR)");
 
-   // find and remove a search box control (contains the "Community" button)
-   if (HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX)) {
-      if (!DestroyWindow(hSearchCtrl)) {
-         return !error(ERR_WIN32_ERROR + GetLastError(), "DestroyWindow(IDC_TOOLBAR_SEARCHBOX)");;
-      }
-      if (!RedrawWindow(hToolbar, NULL, NULL, RDW_ERASE|RDW_INVALIDATE)) {
-         return !error(ERR_WIN32_ERROR + GetLastError(), "RedrawWindow(IDC_TOOLBAR)");;
-      }
+   // find and remove a search box control (contains the "Community" button, builds > 509)
+   HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
+   if (hSearchCtrl) {
+      PostMessageA(hSearchCtrl, WM_CLOSE, 0, 0);      // no redrawing needed
       return TRUE;
    }
 
-   // if search box control not found, find/remove an independent "Community" button
+   // find and remove an independent "Community" button (builds <= 509)
    HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON);
-   if (hBtnCtrl && !DestroyWindow(hBtnCtrl)) {
-      return !error(ERR_WIN32_ERROR + GetLastError(), "DestroyWindow(IDC_TOOLBAR_COMMUNITY_BUTTON)");;
+   if (hBtnCtrl) {
+      PostMessageA(hBtnCtrl, WM_CLOSE, 0, 0);         // no redrawing needed
    }
    return TRUE;
 }

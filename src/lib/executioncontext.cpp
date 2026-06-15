@@ -1153,7 +1153,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
    if (!hWndMain) return(INVALID_HWND);
 
    HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDI_CLIENT);
-   if (!hWndMdi) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window not found (hWndMain=%p)", programName, hWndMain)));
+   if (!hWndMdi) return(_INVALID_HWND(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_MDI_CLIENT)")));
 
    HWND hChartWindow = NULL;                                   // chart system window holding the chart AfxFrameOrView
 
@@ -1191,7 +1191,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       // solange das Terminal/der Chart nicht endg�ltig initialisiert sind. Ein laufendes Script wurde in diesem Fall �ber
       // die Konfiguration in "terminal-start.ini" gestartet und l�uft im ersten passenden Chart in absoluter Reihenfolge
       // (CtrlID, nicht Z order).
-      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top-most chart window)
       if (!hWndChild) return(_INVALID_HWND(error(ERR_RUNTIME_ERROR, "%s: MDIClient window has no children in Script::init()  hWndMain=%p", programName, hWndMain)));
 
       uint size = MAX_CHARTDESCRIPTION_LENGTH + 1;
