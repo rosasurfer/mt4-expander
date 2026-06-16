@@ -423,19 +423,20 @@
 #define TICK_PAUSE_ON_WEEKEND                  16        // send ticks only at regular session times (not implemented)
 
 
-/**
- * MT4 command ids (menu, toolbar and hotkey ids). ID naming and numbering conventions for resources, commands, strings,
- * controls and child windows as defined by MFC 2.0:
- *
- *  @link  https://msdn.microsoft.com/en-us/library/t2zechd4.aspx
- */
-#define ID_EXPERTS_ONOFF                    33020        // Toolbar: Experts on/off                    Ctrl+E
-
-#define ID_CHART_REFRESH                    33324        // Chart:   Refresh
+// MT4 command ids (main/context menus, toolbars, hotkeys)
+#define ID_CHART_INDICATORS_LIST            35419        // Chart:   Indicators List dialog            Ctrl+I
+#define ID_CHART_EXPERT_PROPERTIES          33048        //          Expert properties dialog              F7
+#define ID_CHART_OBJECTS_UNSELECTALL        35462        //          Objects->Unselect All
+#define ID_CHART_REFRESH                    33324        //          Refresh
+#define ID_CHART_SAVE_AS_PICTURE            33054        //          Save as Picture dialog
 #define ID_CHART_STEPFORWARD                33197        //          One bar forward                      F12
 #define ID_CHART_STEPBACKWARD               33198        //          One bar backward               Shift+F12
-#define ID_CHART_EXPERT_PROPERTIES          33048        //          Expert properties dialog              F7
-#define ID_CHART_OBJECTS_UNSELECTALL        35462        //          Objects: Unselect All
+#define ID_CHART_TEMPLATES_SAVE             33220        //          Templates->Save Template
+#define ID_CHART_TEMPLATES_LOAD             35511        //          Templates->Load Template
+#define ID_CHART_TEMPLATES_USER1            34800        //          Templates->{first-user-template}
+#define ID_CHART_TEMPLATES_DEFAULT          34825        //          Templates->Default (base id, dynamic if more than 25 user templates)
+#define ID_CHART_TEMPLATES_OFFLINE          34826        //          Templates->Offline (base id, dynamic if more than 25 user templates)
+#define ID_CHART_TEMPLATES_TESTER           34827        //          Templates->Tester  (base id, dynamic if more than 25 user templates)
 
 #define ID_WINDOW_NEWWINDOW                 57648        // Window:  New Window
 #define ID_WINDOW_TILEWINDOWS               38259        //          Tile Windows                       Alt+R
@@ -444,17 +445,19 @@
 #define ID_WINDOW_TILEVERTICALLY            57652        //          Tile Vertically
 #define ID_WINDOW_ARRANGEICONS              57649        //          Arrange Icons
 
-#define ID_MARKETWATCH_SYMBOLS              33171        // Market Watch: Symbols
+#define ID_EXPERTS_ONOFF                    33020        // Toolbar: Experts on/off                    Ctrl+E
+
+#define ID_MARKETWATCH_SYMBOLS              33171        // Market Watch: Symbols dialog
 
 #define ID_TESTER_TICK       ID_CHART_STEPFORWARD        // Tester:  Next Tick                            F12
 
 
-// MT4 control ids (controls, windows)
+// MT4 control ids (windows, controls, ui elements)
 #define IDC_TOOLBAR                         59419        // Toolbar
-#define IDC_TOOLBAR_COMMUNITY_BUTTON        38160        // MQL4/MQL5 button (terminal builds <= 509)
-#define IDC_TOOLBAR_SEARCHBOX               38213        // search box       (terminal builds >  509)
+#define IDC_TOOLBAR_COMMUNITY_BUTTON        38160        // MQL4/MQL5 community button (terminal builds <= 509)
+#define IDC_TOOLBAR_SEARCHBOX               38213        // search box                 (terminal builds > 509)
 #define IDC_STATUSBAR                       59393        // status bar
-#define IDC_MDI_CLIENT                      59648        // MDI container (holding all charts)
+#define IDC_MDI_CLIENT                      59648        // main MDI container (holding all charts)
 #define IDC_DOCKED_CONTAINER                59422        // window containing all dockable child windows docked to the main application window
 #define IDC_FLOATING_CONTAINER              59423        // window containing a single dockable but floating child window (possibly more than one, not a toplevel window)
 

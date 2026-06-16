@@ -51,7 +51,7 @@ copy "$(ProjectDir)header\shared\errors.h" "$(ProjectDir)header\shared\bak\" || 
 
 if exist "$(ProjectDir)bin\mql4-libraries\" (
     echo Copy DLL to MQL library folder...
-    copy "$(TargetPath)" "$(ProjectDir)bin\mql4-libraries\rsfExpander.$(ConfigurationName)$(TargetExt)" || exit 1
+    copy "$(TargetPath)" "$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)" || exit 1
 )
 ```
 <br>

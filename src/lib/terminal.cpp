@@ -7,6 +7,7 @@
 #include "lib/sound.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/win32.h"
 
 #include <commctrl.h>
 #include <shellapi.h>
@@ -777,20 +778,21 @@ HWND WINAPI GetTerminalMainWindow() {
 
    if (!hWndMain) {
       DWORD processId, self = GetCurrentProcessId();
-      uint  size = 255;
-      char* className = (char*) alloca(size);   // on the stack
+      wchar* className = NULL;
 
       HWND hWndNext = GetTopWindow(NULL);
       while (hWndNext) {                        // iterate over all top-level windows
          GetWindowThreadProcessId(hWndNext, &processId);
          if (processId == self) {
-            if (!GetClassNameA(hWndNext, className, size)) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA()");
-            if (StrCompare(className, "MetaQuotes::MetaTrader::4.00")) {
+            free(className);
+            className = GetClassNameW(hWndNext);
+            if (StrCompare(className, L"MetaQuotes::MetaTrader::4.00")) {
                break;
             }
          }
          hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
       }
+      free(className);
       if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
 
       if (!hWndMain) hWndMain = hWndNext;       // another thread may have been faster
@@ -1114,18 +1116,19 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    HWND hWndAlert = NULL, hWndNext = GetTopWindow(NULL);
    DWORD processId, self = GetCurrentProcessId();
-
-   uint bufSize = 8;                                        // big enough to hold class name "#32770"
-   wchar* className = (wchar*) alloca(bufSize * sizeof(wchar));
-   wchar* wndTitle = NULL;
+   wchar *className = NULL, *wndTitle = NULL;
 
    // enumerate top-level windows
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
       if (processId == self) {                              // the window belongs to us
          free(wndTitle);
-         wndTitle = GetInternalWindowTextW(hWndNext); if (!wndTitle) return FALSE;
-         GetClassNameW(hWndNext, className, bufSize);       // TODO: because of i18n we can't rely on the window's text
+         wndTitle = GetInternalWindowTextW(hWndNext);
+         if (!wndTitle) return FALSE;
+
+         free(className);
+         className = GetClassNameW(hWndNext);               // TODO: because of i18n we can't rely on the window's text
+
          if (StrCompare(wndTitle, L"Alert") && StrCompare(className, L"#32770")) {
             hWndAlert = hWndNext;
             break;
@@ -1134,6 +1137,8 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    }
    free(wndTitle);
+   free(className);
+
    if (!hWndAlert) return debug("\"Alert\" dialog window not found");
 
    // show the "Alert" window

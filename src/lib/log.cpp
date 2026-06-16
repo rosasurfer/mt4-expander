@@ -41,7 +41,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
    // open a closed logger
    if (useLogger && !master->logger->is_open()) {
       if (!IsFileA(master->logFilename, MODE_SYSTEM)) {
-         char drive[MAX_DRIVE], dir[MAX_DIR];                                             // extract the directory part of logFilename
+         char drive[MAX_DRIVE] = {}, dir[MAX_DIR] = {};                                   // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
          string path = string(drive).append(dir);
          if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT)) return FALSE;     // make sure the directory exists
@@ -124,7 +124,7 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
             if (!IsFileA(filename, MODE_SYSTEM)) {
-               char drive[MAX_DRIVE], dir[MAX_DIR];                              // extract the directory part of filename
+               char drive[MAX_DRIVE] = {}, dir[MAX_DIR] = {};                    // extract the directory part of filename
                _splitpath(filename, drive, dir, NULL, NULL);
                string path = string(drive).append(dir);                          // make sure the directory exists
                if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT)) return FALSE;
