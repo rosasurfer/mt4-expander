@@ -141,8 +141,8 @@ int __cdecl _error (const char* fileName, const char* funcName, int line, int er
 
 
 // Helper functions returning constant values.
-int         __cdecl _EMPTY       (...);
-int         __cdecl _EMPTY_VALUE (...);                     // only __cdecl supports variadics
+int         __cdecl _EMPTY       (...);                     // only __cdecl supports variadics
+int         __cdecl _EMPTY_VALUE (...);
 const char* __cdecl _EMPTY_STR   (...);
 HWND        __cdecl _INVALID_HWND(...);
 int         __cdecl _NULL        (...);
@@ -157,8 +157,8 @@ time64      __cdecl _NaT64       (...);
 
 
 // Helper functions returning variable values.
-bool   __cdecl _bool  (bool   value, ...);
-BOOL   __cdecl _BOOL  (BOOL   value, ...);                  // only __cdecl supports variadics
+bool   __cdecl _bool  (bool   value, ...);                  // only __cdecl supports variadics
+BOOL   __cdecl _BOOL  (BOOL   value, ...);
 char   __cdecl _char  (char   value, ...);
 int    __cdecl _int   (int    value, ...);
 float  __cdecl _float (float  value, ...);
@@ -167,3 +167,16 @@ double __cdecl _double(double value, ...);
 
 // Return the size of a type member without an actual instance.
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)
+
+
+/**
+ * Helper to use free() as expression and/or in nested statements.
+ *
+ * @param  void* ptr
+ *
+ * @return BOOL
+ */
+__forceinline BOOL bfree(void* ptr) {
+   free(ptr);
+   return TRUE;
+}

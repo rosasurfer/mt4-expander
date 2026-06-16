@@ -28,10 +28,10 @@ HWND WINAPI FindTesterWindow() {
 
       // check for a docked tester window
       HWND hWndMain = GetTerminalMainWindow();
-      if (!hWndMain) return(NULL);
+      if (!hWndMain) return NULL;
 
       HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKED_CONTAINER);           // container for docked terminal windows
-      if (!hWnd) return((HWND)!error(ERR_WIN32_ERROR + GetLastError(), "TerminalMainWindow->IDC_DOCKED_CONTAINER not found"));
+      if (!hWnd) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_DOCKED_CONTAINER)");
 
       HWND hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);                  // use non-static var for intermediate results (thread concurrency)
       if (!hWndSuccess) {
@@ -39,7 +39,7 @@ HWND WINAPI FindTesterWindow() {
 
          // check for a floating tester window
          HWND hWndNext = GetTopWindow(NULL);
-         if (!hWndNext) return((HWND)!error(ERR_WIN32_ERROR + GetLastError(), "no top-level windows found"));
+         if (!hWndNext) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "no top-level windows found");
 
          DWORD processId, self=GetCurrentProcessId();
          while (hWndNext) {                                             // iterate over all top-level windows owned by the current process
@@ -57,7 +57,7 @@ HWND WINAPI FindTesterWindow() {
       }
       if (hWndSuccess) hWndTester = hWndSuccess;
    }
-   return(hWndTester);
+   return hWndTester;
    #pragma EXPANDER_EXPORT
 }
 
@@ -69,18 +69,18 @@ HWND WINAPI FindTesterWindow() {
  */
 int WINAPI Tester_GetBarModel() {
    HWND hWndTester = FindTesterWindow();
-   if (!hWndTester) return(EMPTY);
+   if (!hWndTester) return EMPTY;
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem()  \"Settings\" tab not found")));
+   if (!hWndSettings) return _EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(TesterWindow, IDC_TESTER_SETTINGS)"));
 
    HWND hWndBarModel = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_BARMODEL);
-   if (!hWndBarModel) return(_EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem()  control element \"Model\" not found")));
+   if (!hWndBarModel) return _EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(Settings, IDC_TESTER_SETTINGS_BARMODEL)"));
 
    int index = ComboBox_GetCurSel(hWndBarModel);      // CB_ERR = EMPTY = -1
    if (index == CB_ERR) error(ERR_RUNTIME_ERROR, "failed to retrieve selection of control element Tester->Settings->Model (hWnd=%p)", hWndBarModel);
 
-   return(index);
+   return index;
    #pragma EXPANDER_EXPORT
 }
 
@@ -95,21 +95,21 @@ time32 WINAPI Tester_GetStartDate() {
    if (!hWndTester) return NULL;
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return !error(ERR_WIN32_ERROR + GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found");
+   if (!hWndSettings) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(TesterWindow, IDC_TESTER_SETTINGS)");
 
    HWND hWndUseDate = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_USEDATE);
-   if (!hWndUseDate) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) not found");
+   if (!hWndUseDate) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(Settings, IDC_TESTER_SETTINGS_USEDATE");
 
    HWND hWndNext = GetWindow(hWndUseDate, GW_HWNDNEXT);
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    if (!hWndNext) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) found");
 
    wchar* className = GetClassNameW(hWndNext);
-   if (!StrCompare(className, L"SysDateTimePick32")) return !error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className));
+   if (!StrCompare(className, L"SysDateTimePick32")) return _NULL(error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)), bfree(className));
    free(className);
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle));
+   if (!wndTitle || wstrlen(wndTitle) < 10) return _NULL(error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle)), bfree(wndTitle));
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01
@@ -135,21 +135,21 @@ time32 WINAPI Tester_GetEndDate() {
    if (!hWndTester) return NULL;
 
    HWND hWndSettings = GetDlgItem(hWndTester, IDC_TESTER_SETTINGS);
-   if (!hWndSettings) return !error(ERR_WIN32_ERROR + GetLastError(), "Tester->IDC_TESTER_SETTINGS (\"Settings\" tab) not found");
+   if (!hWndSettings) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(TesterWindow, IDC_TESTER_SETTINGS)");
 
    HWND hWndOptimize = GetDlgItem(hWndSettings, IDC_TESTER_SETTINGS_OPTIMIZATION);
-   if (!hWndOptimize) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings->IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) not found");
+   if (!hWndOptimize) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(TesterSettings, IDC_TESTER_SETTINGS_OPTIMIZATION)");
 
    HWND hWndNext = GetWindow(hWndOptimize, GW_HWNDNEXT);
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    if (!hWndNext) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) found");
 
    wchar* className = GetClassNameW(hWndNext);
-   if (!StrCompare(className, L"SysDateTimePick32")) return !error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className));
+   if (!StrCompare(className, L"SysDateTimePick32")) return _NULL(error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)), bfree(className));
    free(className);
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"To date\" control: %S", DoubleQuoteStr(wndTitle));
+   if (!wndTitle || wstrlen(wndTitle) < 10) return _NULL(error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"To date\" control: %S", DoubleQuoteStr(wndTitle)), bfree(wndTitle));
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01
@@ -176,8 +176,8 @@ time32 WINAPI Tester_GetEndDate() {
  * @return BOOL - success status (e.g. FALSE on I/O errors or if the file does not exist)
  */
 BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER &fxtHeader) {
-   if ((uint)symbol < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if ((int)timeframe <= 0)              return(!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
+   if ((uint)symbol < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol);
+   if ((int)timeframe <= 0)              return !error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe);
    using namespace std;
 
    // e.g. string(GetTerminalDataPathA()).append("\\tester\\history\\GBPJPY15_2.fxt");
@@ -188,11 +188,11 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
                                                   .append(to_string(barModel))
                                                   .append(".fxt");
    ifstream file(fxtFile.c_str(), ios::binary);
-   if (!file) return(!warn(ERR_WIN32_ERROR + GetLastError(), "cannot open file \"%s\"", fxtFile.c_str()));
+   if (!file) return !warn(ERR_WIN32_ERROR + GetLastError(), "cannot open file \"%s\"", fxtFile.c_str());
 
    file.read((char*)&fxtHeader, sizeof(fxtHeader));
-   file.close(); if (file.fail()) return(!error(ERR_WIN32_ERROR + GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(fxtHeader), fxtFile.c_str()));
-   return(TRUE);
+   file.close(); if (file.fail()) return !error(ERR_WIN32_ERROR + GetLastError(), "cannot read %d bytes from file \"%s\"", sizeof(fxtHeader), fxtFile.c_str());
+   return TRUE;
 }
 
 
@@ -204,58 +204,15 @@ BOOL WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barMod
  * @return double - commission value or EMPTY (-1) in case of errors
  */
 double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER)               return(_EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec)));
-   if (ec->programType!=PT_EXPERT || !ec->testing) return(_EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test")));
+   if ((uint)ec < MIN_VALID_POINTER)               return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if (ec->programType!=PT_EXPERT || !ec->testing) return _EMPTY(error(ERR_FUNC_NOT_ALLOWED, "function allowed only in experts under test"));
 
    int barModel = Tester_GetBarModel();
    FXT_HEADER fxtHeader = {};
 
    if (!Tester_ReadFxtHeader(ec->symbol, ec->timeframe, barModel, fxtHeader)) {
-      return(_EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header for %s,%s (bar model: %s)", ec->symbol, PeriodDescriptionA(ec->timeframe), BarModelDescription(barModel))));
+      return _EMPTY(error(ERR_RUNTIME_ERROR, "cannot read FXT header for %s,%s (bar model: %s)", ec->symbol, PeriodDescriptionA(ec->timeframe), BarModelDescription(barModel)));
    }
-   return(fxtHeader.commissionValue);
+   return fxtHeader.commissionValue;
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * @return int
- */
-int WINAPI Test() {
-
-   //debug("sizeof(ConSessions)        = %d", sizeof(ConSessions));
-   //debug("offset(ConSymbol.sessions) = %d", offsetof(ConSymbol, sessions));
-   //debug("offset(ConSymbol.spread)   = %d", offsetof(ConSymbol, spread));
-
-   return(0);
-   //#pragma EXPANDER_EXPORT
-}
-
-
-/**
- * @param  HWND hWnd - window handle
- *
- * @return int
- */
-int WINAPI Tester_Test(HWND hWnd) {
-
-   return((1, 2));
-
-   RECT rect;
-   if (!GetWindowRect(hWnd, &rect)) return(!error(ERR_WIN32_ERROR + GetLastError(), "GetWindowRect(hWnd=%p) failed", hWnd));
-
-   debug("left=%d  top=%d  right=%d  bottom=%d", rect.left, rect.top, rect.right, rect.bottom);
-   return(NULL);
-
-
-   time32 startdate = Tester_GetStartDate();
-   string sStartdate = gmtTimeFormat(startdate, "%a, %Y.%m.%d %H:%M:%S");
-   debug("start date: %s", sStartdate.c_str());
-
-   time32 enddate = Tester_GetEndDate();
-   string sEnddate = gmtTimeFormat(enddate, "%a, %Y.%m.%d %H:%M:%S");
-   debug("end date:   %s", sEnddate.c_str());
-
-   return(startdate);
-   //#pragma EXPANDER_EXPORT
 }
