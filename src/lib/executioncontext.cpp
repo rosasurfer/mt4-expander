@@ -1114,11 +1114,11 @@ uint WINAPI FindModuleInLimbo(ModuleType moduleType, const char* name, Uninitial
 
 
 /**
- * Called from MqlProgram_init() to resolve/fix an unset chart handle in terminal builds <= 509, i.e. WindowHandle()
- * returns NULL. Since build 600 the terminal delays execution of init() start until the handle is set. This change in newer
- * builds siginificantly terminal start and chart initialization. The fix applied by the Expander doesn't delay execution at all.
+ * Called from MqlProgram_init() to resolve an unset chart handle in terminal builds <= 509, i.e. WindowHandle() = NULL.
+ * Since build 600 the terminal delays execution of init() until the handle is set. This siginificantly slows down terminal
+ * start and chart initialization. The fix applied by this function doesn't delay execution.
  *
- * Find the chart of the current program and return its window handle (also in cases when the built-in function fails).
+ * Find the chart of the current MQL program and return its window handle.
  *
  * @param  char*              programName    - program name (with or w/o path depending on the terminal version)
  * @param  ModuleType         moduleType     - module type
@@ -1138,14 +1138,14 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
    // situation:
    //  we are in the main module
    //  there's no super context
-   //  MQL's WindowHandle() returned NULL
+   //  MQL::WindowHandle() = NULL
 
    if ((isTesting && !isVisualMode) || isOptimization) {       // in these standard situations there's no chart
       return(NULL);
    }
 
    // situation:
-   //  No program type has WindowHandle=NULL in tester with VisualMode=on.
+   //  No program type has WindowHandle() = NULL in tester with VisualMode=on.
    //  We are either not in tester (indicator or script in online chart).
    //  Or we are a standalone indicator in a tester template (on VisualMode=off and on Optimization=1 the indicator's init cycle is still executed).
 
@@ -1155,7 +1155,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
    HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDI_CLIENT);
    if (!hWndMdi) return(_INVALID_HWND(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_MDI_CLIENT)")));
 
-   HWND hChartWindow = NULL;                                   // chart system window holding the chart AfxFrameOrView
+   HWND hChartWindow = NULL;                                   // chart window holding the chart AfxFrameOrView
 
    // indicator
    if (moduleType == MT_INDICATOR) {

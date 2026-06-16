@@ -7,55 +7,64 @@
 #include <commctrl.h>
 
 
-#define MAIN_WINDOW_SUBCLASS_ID     1              // subclass identifier for the main window
-#define CHART_WINDOW_SUBCLASS_ID    2              // subclass identifier for chart windows
+#define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the main window
+#define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
 
-static HHOOK hMainWindowSendMessageHook = NULL;    // hook handle
+static HHOOK hUiThreadHook = NULL;                    // hook handles
+static HHOOK hWindowEventHook = NULL;                 //
 
 
 /**
- * Setup UI integration of the Expander. The first call is always from a non-UI thread (worker in DLL loader).
- * Some integration tasks must run in the UI thread, some must not run there, some may run anywhere.
+ * Setup UI integration of the Expander. Called two times: once from a non-UI thread, once from the UI thread.
+ * The first call is always from a non-UI thread (worker in DLL loader).
  *
  * @return BOOL - success status
  */
 BOOL WINAPI SetupUiIntegration() {
-   // register a hook for window events in the UI thread (should be the very first task)
-   static HHOOK hWindowEventsHook = SetWindowsHookExW(WH_CBT, WindowEventsHook, NULL, GetUIThreadId());
-   if (!hWindowEventsHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WindowEventsHook)");
+   // Some integration tasks must run in the UI thread. Some must not run there. Some may run anywhere.
+
+   // register a hook for window events
+   static BOOL success = RegisterWindowEventHook();   // no full synchronization needed
+   if (!success) return FALSE;
 
    // if in a non-UI thread
    if (!IsUIThread()) {
       static BOOL done = FALSE;
-      if (!done) {
+      if (!done) {                                    // no full synchronization needed
          done = TRUE;
-         // perform configured modifications
-         if (!CustomizeTerminal()) return FALSE;
-
-         // register a hook in the UI thread and continue there
-         if (hMainWindowSendMessageHook) return FALSE;
-         hMainWindowSendMessageHook = SetWindowsHookEx(WH_CALLWNDPROC, MainWindowSendMessageHook, NULL, GetUIThreadId());
-         if (!hMainWindowSendMessageHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(MainWindowSendMessageHook)");
-         // wake-up the UI thread
-         SendMessageTimeout(GetTerminalMainWindow(), WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL);
+         if (!CustomizeTerminal()) return FALSE;      // perform configured modifications
+         if (!NotifyUiThread())    return FALSE;      // continue in the UI thread
       }
       return TRUE;
    }
 
    // if in the UI thread
    static BOOL done = FALSE;
-   if (!done) {
+   if (!done) {                                       // fully synchronized
       done = TRUE;
       if (!SubclassMainWindow())   return FALSE;      // subclass the terminal main window
-      if (!SubclassChartWindows()) return FALSE;      // subclass existing chart windows
+      if (!SubclassChartWindows()) return FALSE;      // subclass all chart windows
    }
    return TRUE;
 }
 
 
 /**
- * Hook function receiving window related events of the UI thread (beneath many others). The system calls this function
- * before activating, creating, destroying, minimizing, maximizing, moving, or sizing a window.
+ * Register a hook for window related events of the UI thread.
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI RegisterWindowEventHook() {
+   if (!hWindowEventHook) {
+      hWindowEventHook = SetWindowsHookExW(WH_CBT, WindowEventHook, NULL, GetUIThreadId());
+      if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WindowEventHook)");
+   }
+   return TRUE;
+}
+
+
+/**
+ * Hook procedure (listener) receiving window related events of the UI thread. Called in the UI thread.
  *
  * @param  int    type   - event type; below 0 (zero) if the hook should skip the event
  * @param  WPARAM wParam - whether the event was sent by the current thread
@@ -63,25 +72,46 @@ BOOL WINAPI SetupUiIntegration() {
  *
  * @return LRESULT - whether the system should allow or prevent the event operation (depends on the event type)
  */
-static LRESULT CALLBACK WindowEventsHook(int type, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
+   // This hook (a WH_CBT hook) receives a large amount of messages and must be as fast as possible.
+
    switch (type) {
-      case HCBT_CREATEWND: {           // A window is about to be created.
+      case HCBT_CREATEWND: {                 // A window is about to be created.
          HWND hWnd = (HWND)wParam;
-         debug("HCBT_CREATEWND  %p", hWnd);
+         //debug("HCBT_CREATEWND  %p", hWnd);
          break;
       }
-      case HCBT_DESTROYWND: break;     // A window is about to be destroyed.
-      case HCBT_MINMAX:     break;     // A window is about to be minimized or maximized.
-      case HCBT_MOVESIZE:   break;     // A window is about to be moved or sized.
-      case HCBT_SETFOCUS:   break;     // A window is about to receive the keyboard focus.
+      case HCBT_DESTROYWND: break;           // A window is about to be destroyed.
+      case HCBT_MINMAX:     break;           // A window is about to be minimized or maximized.
+      case HCBT_MOVESIZE:   break;           // A window is about to be moved or sized.
+      case HCBT_SETFOCUS:   break;           // A window is about to receive the keyboard focus.
    }
-   return CallNextHookEx(NULL, type, wParam, lParam);
+   return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
 }
 
 
 /**
- * Hook function for messages sent to the terminal main window. Triggers Expander integration tasks which require
- * execution in the UI thread, and immediately removes itself.
+ * Register a hook in the UI thread and trigger it. Called from a non-UI thread to run code in the UI thread.
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI NotifyUiThread() {
+   // register a hook for sent messages
+   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHook, NULL, GetUIThreadId());
+   if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHook)");
+
+   // trigger the UI thread
+   SetLastError(ERROR_SUCCESS);
+   if (!SendMessageTimeout(GetTerminalMainWindow(), WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL)) {
+      warn(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");  // don't fail, as the hook is OK
+   }
+   return TRUE;
+}
+
+
+/**
+ * Hook procedure (listener) for messages sent to the terminal main window (UI thread). Continues Expander integration and
+ * removes itself.
  *
  * @param  int    code   - below 0 (zero) if the hook should skip the message
  * @param  WPARAM wParam - whether the message was sent by the current thread
@@ -89,16 +119,16 @@ static LRESULT CALLBACK WindowEventsHook(int type, WPARAM wParam, LPARAM lParam)
  *
  * @return LRESULT - return value of CallNextHookEx()
  */
-static LRESULT CALLBACK MainWindowSendMessageHook(int code, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK UiThreadHook(int code, WPARAM wParam, LPARAM lParam) {
    if (code >= 0) {
-      if (hMainWindowSendMessageHook) {
-         HHOOK hHook = hMainWindowSendMessageHook;
-         hMainWindowSendMessageHook = NULL;
+      if (hUiThreadHook) {
+         HHOOK hHook = hUiThreadHook;
+         hUiThreadHook = NULL;
          if (!UnhookWindowsHookEx(hHook)) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hHook=0x%p)", hHook);
-         SetupUiIntegration();
+         SetupUiIntegration();                                    // continue Expander integration
       }
    }
-   return CallNextHookEx(hMainWindowSendMessageHook, code, wParam, lParam);   // NULL after the hook was removed
+   return CallNextHookEx(hUiThreadHook, code, wParam, lParam);    // will be NULL after the hook was removed
 }
 
 
@@ -158,7 +188,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
             if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
             else                            {}     // system shutdown/restart
             debug("WM_ENDSESSION  %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
-         }//else                                   // logoff/shutdown was cancelled
+         } // else                                 // logoff/shutdown was cancelled
          break;
       }
 
@@ -183,6 +213,19 @@ static BOOL WINAPI SubclassChartWindows() {
 
 
 /**
+ * Subclass a single chart window. Executed in the UI thread.
+ *
+ * @param  HWND hWnd - chart window
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
+   if (!IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   return TRUE;
+}
+
+
+/**
  * A chart window's subclassing window procedure. Executed in the UI thread.
  *
  * @param  HWND      hWnd       - subclassed window receiving the message
@@ -200,7 +243,7 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
 
 
 /**
- * Customize the UI of the terminal as configured. Runs in a non-UI thread to not delay terminal startup.
+ * Customize the UI of the terminal as configured. Executed in a non-UI thread to not delay terminal startup.
  *
  * @return BOOL - success status
  */
