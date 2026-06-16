@@ -102,7 +102,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;    echo Copy DLL to MQL library folder...&#x0D;&#x0A;    copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -191,7 +191,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;    echo Copy DLL to MQL library folder...&#x0D;&#x0A;    copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -280,7 +280,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;    echo Copy DLL to MQL library folder...&#x0D;&#x0A;    copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -377,6 +377,10 @@
 				</File>
 				<File
 					RelativePath=".\header\lib\timeseries.h"
+					>
+				</File>
+				<File
+					RelativePath=".\header\lib\win32.h"
 					>
 				</File>
 			</Filter>
@@ -992,6 +996,10 @@
 							ObjectFile="$(IntDir)\lib\"
 						/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\win32.cpp"
+					>
 				</File>
 			</Filter>
 			<Filter

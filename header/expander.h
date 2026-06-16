@@ -13,8 +13,8 @@
 #pragma warning(disable:4706)                               // assignment within conditional expression
 #pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
 
-#define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
-#define EXPANDER_EXPORT_AS(name) comment(linker, "/EXPORT:"name"="__FUNCDNAME__)
+#define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)  // export as defined from global namespace
+#define EXPANDER_EXPORT_AS(name) comment(linker, "/EXPORT:"name"="__FUNCDNAME__)          // custom export from namespace without prefix
 
 #include "stdafx.h"
 #include "shared/defines.h"                                 // shared between C++ and MQL
