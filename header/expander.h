@@ -13,8 +13,8 @@
 #pragma warning(disable:4706)                               // assignment within conditional expression
 #pragma warning(disable:4996)                               // deprecation warnings and function calls with parameters that may be unsafe
 
-#define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
-#define EXPANDER_EXPORT_AS(name) comment(linker, "/EXPORT:"name"="__FUNCDNAME__)
+#define EXPANDER_EXPORT          comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)  // export as defined from global namespace
+#define EXPANDER_EXPORT_AS(name) comment(linker, "/EXPORT:"name"="__FUNCDNAME__)          // custom export from namespace without prefix
 
 #include "stdafx.h"
 #include "shared/defines.h"                                 // shared between C++ and MQL
@@ -26,7 +26,7 @@
 #include <string>
 
 
-// type aliases
+// type and function aliases
 typedef unsigned   char      uchar;
 typedef            wchar_t   wchar;
 typedef unsigned   int       uint;
@@ -36,6 +36,9 @@ typedef            DWORD     color;                         // MQL4 color
 typedef          __time32_t  time32;                        // MQL4.0 32-bit timestamp
 typedef          __time64_t  time64;                        // MQL4.5 64-bit timestamp
 typedef            tm        TM;                            // C time struct
+
+#define countof(array)  _countof(array)                     // MSVC array helper
+
 
 namespace rsf {}                                            // define our namespace and use it first
 using namespace rsf;
@@ -125,7 +128,7 @@ enum UninitializeReason {
 };
 
 
-// Debugging and error handling
+// debugging and error handling
 #define dump(...)   _dump  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define debug(...)  _debug (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define notice(...) _notice(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -140,9 +143,9 @@ int __cdecl _warn  (const char* fileName, const char* funcName, int line, int er
 int __cdecl _error (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
 
 
-// Helper functions returning constant values.
-int         __cdecl _EMPTY       (...);
-int         __cdecl _EMPTY_VALUE (...);                     // only __cdecl supports variadics
+// helper functions returning constant values
+int         __cdecl _EMPTY       (...);                     // only __cdecl supports variadics
+int         __cdecl _EMPTY_VALUE (...);
 const char* __cdecl _EMPTY_STR   (...);
 HWND        __cdecl _INVALID_HWND(...);
 int         __cdecl _NULL        (...);
@@ -156,16 +159,27 @@ time32      __cdecl _NaT32       (...);
 time64      __cdecl _NaT64       (...);
 
 
-// Helper functions returning variable values.
-bool   __cdecl _bool  (bool   value, ...);
-BOOL   __cdecl _BOOL  (BOOL   value, ...);                  // only __cdecl supports variadics
+// helper functions returning variable values
+bool   __cdecl _bool  (bool   value, ...);                  // only __cdecl supports variadics
+BOOL   __cdecl _BOOL  (BOOL   value, ...);
 char   __cdecl _char  (char   value, ...);
 int    __cdecl _int   (int    value, ...);
 float  __cdecl _float (float  value, ...);
 double __cdecl _double(double value, ...);
 
 
-// Return the size of a type member without an actual instance.
+// return the size of a type member without an actual instance
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)
 
-#define countof(text)   _countof(text)
+
+/**
+ * Helper to use free() as expression and/or in nested statements.
+ *
+ * @param  void* ptr
+ *
+ * @return BOOL
+ */
+__forceinline BOOL bfree(void* ptr) {
+   free(ptr);
+   return TRUE;
+}
