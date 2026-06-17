@@ -23,10 +23,6 @@ static HHOOK hWindowEventHook = NULL;                 //
 BOOL WINAPI SetupUiIntegration() {
    // Some integration tasks must run in the UI thread. Some must not run there. Some may run anywhere.
 
-   // register a hook for window events
-   static BOOL success = RegisterWindowEventHook();   // no full synchronization needed
-   if (!success) return FALSE;
-
    // if in a non-UI thread
    if (!IsUIThread()) {
       static BOOL done = FALSE;
@@ -42,8 +38,9 @@ BOOL WINAPI SetupUiIntegration() {
    static BOOL done = FALSE;
    if (!done) {                                       // fully synchronized
       done = TRUE;
-      if (!SubclassMainWindow())   return FALSE;      // subclass the terminal main window
-      if (!SubclassChartWindows()) return FALSE;      // subclass all chart windows
+      if (!SubclassMainWindow())      return FALSE;
+      if (!SubclassChartWindows())    return FALSE;
+      if (!RegisterWindowEventHook()) return FALSE;   // in the UI thread and late (after MT4 installed its own blocking hook)
    }
    return TRUE;
 }
@@ -56,7 +53,7 @@ BOOL WINAPI SetupUiIntegration() {
  */
 static BOOL WINAPI RegisterWindowEventHook() {
    if (!hWindowEventHook) {
-      hWindowEventHook = SetWindowsHookExW(WH_CBT, WindowEventHook, NULL, GetUIThreadId());
+      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventHook, NULL, GetUIThreadId());
       if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WindowEventHook)");
    }
    return TRUE;
@@ -73,20 +70,26 @@ static BOOL WINAPI RegisterWindowEventHook() {
  * @return LRESULT - whether the system should allow or prevent the event operation (depends on the event type)
  */
 static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
-   // This hook (a WH_CBT hook) receives a large amount of messages and must be as fast as possible.
-
    switch (type) {
       case HCBT_CREATEWND: {                 // A window is about to be created.
          HWND hWnd = (HWND)wParam;
-         //debug("HCBT_CREATEWND  %p", hWnd);
+         debug("HCBT_CREATEWND  %p", hWnd);
+
+         //CBT_CREATEWND* cbt = (CBT_CREATEWND*) lParam;
+         //LPCREATESTRUCT cs = cbt->lpcs;
+         //debug("HCBT_CREATEWND  %p  %s", hWnd, IsWindowUnicode(hWnd) ? "unicode" : "ansi");
          break;
       }
-      case HCBT_DESTROYWND: break;           // A window is about to be destroyed.
+      case HCBT_DESTROYWND: {                // A window is about to be destroyed.
+         //HWND hWnd = (HWND)wParam;
+         //debug("HCBT_DESTROYWND  %p", hWnd);
+         break;
+      }
       case HCBT_MINMAX:     break;           // A window is about to be minimized or maximized.
       case HCBT_MOVESIZE:   break;           // A window is about to be moved or sized.
       case HCBT_SETFOCUS:   break;           // A window is about to receive the keyboard focus.
    }
-   return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
+   return CallNextHookEx(NULL, type, wParam, lParam);
 }
 
 
@@ -260,14 +263,14 @@ static BOOL WINAPI CustomizeTerminal() {
    // find and remove a search box control (contains the "Community" button, builds > 509)
    HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
    if (hSearchCtrl) {
-      PostMessageA(hSearchCtrl, WM_CLOSE, 0, 0);      // no redrawing needed
+      PostMessageA(hSearchCtrl, WM_CLOSE, 0, 0);   // a synchronous DestroyWindow() significantly delays startup
       return TRUE;
    }
 
    // find and remove an independent "Community" button (builds <= 509)
    HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON);
    if (hBtnCtrl) {
-      PostMessageA(hBtnCtrl, WM_CLOSE, 0, 0);         // no redrawing needed
+      PostMessageA(hBtnCtrl, WM_CLOSE, 0, 0);      // a synchronous DestroyWindow() significantly delays startup
    }
    return TRUE;
 }
