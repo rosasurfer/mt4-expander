@@ -1,6 +1,7 @@
 #include "expander.h"
 #include "lib/helper.h"
 #include "lib/terminal.h"
+#include "lib/win32.h"
 #include "lib/ui/integration.h"
 #include "lib/ui/menu.h"
 
@@ -73,23 +74,27 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
    switch (type) {
       case HCBT_CREATEWND: {                 // A window is about to be created.
          HWND hWnd = (HWND)wParam;
-         debug("HCBT_CREATEWND  %p", hWnd);
+         wchar* className = GetClassNameW(hWnd);
+         LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
 
-         //CBT_CREATEWND* cbt = (CBT_CREATEWND*) lParam;
-         //LPCREATESTRUCT cs = cbt->lpcs;
-         //debug("HCBT_CREATEWND  %p  %s", hWnd, IsWindowUnicode(hWnd) ? "unicode" : "ansi");
-         break;
+         debug("HCBT_CREATEWND   %p  \"%S\"%s", hWnd, className, denied ? " denied by previous hook" : "");
+         free(className);
+         return denied;
+         /*
+         if (IsWindowUnicode(hWnd)) {
+            CREATESTRUCTW* cs = ((CBT_CREATEWNDW*) lParam)->lpcs;
+         }
+         */
       }
+      /*
       case HCBT_DESTROYWND: {                // A window is about to be destroyed.
-         //HWND hWnd = (HWND)wParam;
-         //debug("HCBT_DESTROYWND  %p", hWnd);
+         HWND hWnd = (HWND)wParam;
+         debug("HCBT_DESTROYWND  %p", hWnd);
          break;
       }
-      case HCBT_MINMAX:     break;           // A window is about to be minimized or maximized.
-      case HCBT_MOVESIZE:   break;           // A window is about to be moved or sized.
-      case HCBT_SETFOCUS:   break;           // A window is about to receive the keyboard focus.
+      */
    }
-   return CallNextHookEx(NULL, type, wParam, lParam);
+   return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
 }
 
 
