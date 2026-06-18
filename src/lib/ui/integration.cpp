@@ -73,26 +73,22 @@ static BOOL WINAPI RegisterWindowEventHook() {
 static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
    switch (type) {
       case HCBT_CREATEWND: {                 // A window is about to be created.
+         static DWORD debugOptions = GetDebugOptions();
          HWND hWnd = (HWND)wParam;
-         wchar* className = GetClassNameW(hWnd);
          LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
 
-         debug("HCBT_CREATEWND   %p  \"%S\"%s", hWnd, className, denied ? " denied by previous hook" : "");
-         free(className);
-         return denied;
-         /*
-         if (IsWindowUnicode(hWnd)) {
-            CREATESTRUCTW* cs = ((CBT_CREATEWNDW*) lParam)->lpcs;
+         if (denied) {
+            wchar* className = GetClassNameW(hWnd);
+            notice("HCBT_CREATEWND   %p  \"%S\" denied by previous hook", hWnd, className);
+            free(className);
          }
-         */
+         else if (debugOptions & OPTION_DEBUG_CREATE_WINDOW) {
+            wchar* className = GetClassNameW(hWnd);
+            debug("HCBT_CREATEWND   %p  \"%S", hWnd, className);
+            free(className);
+         }
+         return denied;
       }
-      /*
-      case HCBT_DESTROYWND: {                // A window is about to be destroyed.
-         HWND hWnd = (HWND)wParam;
-         debug("HCBT_DESTROYWND  %p", hWnd);
-         break;
-      }
-      */
    }
    return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
 }
