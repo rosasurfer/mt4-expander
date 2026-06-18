@@ -1172,7 +1172,6 @@ wchar* WINAPI GmtTimeFormatW(time64 time, const wchar* format) {
       buffer = (wchar*) alloca(bufSize * sizeof(wchar));
       if (wcsftime(buffer, bufSize, format, &tm)) break;
    }
-
    return wsdup(buffer);                                    // caller must free()
    #pragma EXPANDER_EXPORT
 }
@@ -1243,7 +1242,7 @@ wchar* WINAPI LocalTimeFormatW(time64 time, const wchar* format) {
 
    TM tm = UnixTimeToTm(time, TRUE);
    wchar* buffer = NULL;
-   uint bufSize = 32;                                                // initial buffer size is 64 (32<<1)
+   uint bufSize = 32;                                                // initial buffer size is 64 (32 << 1)
 
    for (;;) {
       bufSize <<= 1;

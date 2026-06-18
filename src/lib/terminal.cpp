@@ -754,7 +754,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
 
    if (!filename) {
       wchar* buffer = NULL;
-      uint size=MAX_PATH >> 1, length=size;
+      uint size = MAX_PATH >> 1, length = size;
 
       while (length >= size) {
          size <<= 1;

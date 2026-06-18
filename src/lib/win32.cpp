@@ -10,10 +10,9 @@
  * @return char* - classname or a NULL pointer in case of errors
  */
 char* WINAPI GetClassNameA(HWND hWnd) {
-   uint bufSize = 256;                          // max. possible value
-   char* className = (char*) alloca(bufSize * sizeof(char));
+   char className[256];                         // max. possible value
 
-   if (!::GetClassNameA(hWnd, className, bufSize)) {
+   if (!::GetClassNameA(hWnd, className, countof(className))) {
       return (char*)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA(hWnd=%p)", hWnd);
    }
    return sdup(className);                      // caller must free()
@@ -29,10 +28,9 @@ char* WINAPI GetClassNameA(HWND hWnd) {
  * @return wchar* - classname or a NULL pointer in case of errors
  */
 wchar* WINAPI GetClassNameW(HWND hWnd) {
-   uint bufSize = 256;                          // max. possible value
-   wchar* className = (wchar*) alloca(bufSize * sizeof(wchar));
+   wchar className[256];                        // max. possible value
 
-   if (!::GetClassNameW(hWnd, className, bufSize)) {
+   if (!::GetClassNameW(hWnd, className, countof(className))) {
       return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameW(hWnd=%p)", hWnd);
    }
    return wsdup(className);                     // caller must free()
