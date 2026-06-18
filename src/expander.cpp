@@ -84,13 +84,13 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, const c
    char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
+   char* fullMsg = asformat("MT4Expander        %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
    free(formattedMsg);
 
    // pass the message to the system debugger
    OutputDebugStringA(fullMsg);
    free(fullMsg);
-   return 0;
+   return NO_ERROR;
 }
 
 
@@ -121,7 +121,7 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, int err
    char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
+   char* fullMsg = asformat("MT4Expander        %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
    free(formattedMsg);
 
    // add the error code at the end (if any)
@@ -135,6 +135,122 @@ int __cdecl _debug(const char* fileName, const char* funcName, int line, int err
    OutputDebugStringA(fullMsg);
    free(fullMsg);
    return error;
+}
+
+
+/**
+ * Process a logmessage of level L_INFO.
+ *
+ * @param  char* fileName - file name of the call
+ * @param  char* funcName - function name of the call
+ * @param  int   line     - line of the call
+ * @param  char* message  - message with format codes for additional parameters
+ * @param        ...      - variable number of additional parameters
+ *
+ * @return int - the passed error code
+ */
+int __cdecl _info(const char* fileName, const char* funcName, int line, const char* message, ...) {
+   const char* msg = message;
+   if (!msg)  msg = "(null)";
+   if (!*msg) msg = "(empty)";
+
+   // format the variable parameters
+   va_list args;
+   va_start(args, message);
+   char* formattedMsg = _asformat(msg, args);
+   va_end(args);
+
+   // insert the call location at the beginning: {basename.ext(line)}
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
+   char* fullMsg = asformat("MT4Expander INFO   %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
+   free(formattedMsg);
+
+   // pass the message to the system debugger
+   OutputDebugStringA(fullMsg);
+   free(fullMsg);
+   return NO_ERROR;
+}
+
+
+/**
+ * Process a logmessage of level L_INFO.
+ *
+ * @param  char* fileName - file name of the call
+ * @param  char* funcName - function name of the call
+ * @param  int   line     - line of the call
+ * @param  int   error    - error code of the message
+ * @param  char* message  - message with format codes for additional parameters
+ * @param        ...      - variable number of additional parameters
+ *
+ * @return int - the passed error code
+ */
+int __cdecl _info(const char* fileName, const char* funcName, int line, int error, const char* message, ...) {
+   const char* msg = message;
+   if (!msg)  msg = "(null)";
+   if (!*msg) msg = "(empty)";
+
+   // format the variable parameters
+   va_list args;
+   va_start(args, message);
+   char* formattedMsg = _asformat(msg, args);
+   va_end(args);
+
+   // insert the call location at the beginning: {basename.ext(line)}
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
+   char* fullMsg = asformat("MT4Expander INFO   %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
+   free(formattedMsg);
+
+   // add the error code at the end (if any)
+   if (error) {
+      char* newMsg = asformat("%s  [%s]", fullMsg, ErrorToStrA(error));
+      free(fullMsg);
+      fullMsg = newMsg;
+   }
+
+   // pass the message to the system debugger
+   OutputDebugStringA(fullMsg);
+   free(fullMsg);
+   return error;
+}
+
+
+/**
+ * Process a logmessage of level L_NOTICE.
+ *
+ * @param  char* fileName - file name of the call
+ * @param  char* funcName - function name of the call
+ * @param  int   line     - line of the call
+ * @param  char* message  - message with format codes for additional parameters
+ * @param        ...      - variable number of additional parameters
+ *
+ * @return int - the passed error code
+ */
+int __cdecl _notice(const char* fileName, const char* funcName, int line, const char* message, ...) {
+   const char* msg = message;
+   if (!msg)  msg = "(null)";
+   if (!*msg) msg = "(empty)";
+
+   // format the variable parameters
+   va_list args;
+   va_start(args, message);
+   char* formattedMsg = _asformat(msg, args);
+   va_end(args);
+
+   // insert the call location at the beginning: {basename.ext(line)}
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
+   char* fullMsg = asformat("MT4Expander NOTICE %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
+   free(formattedMsg);
+
+   // pass the message to the system debugger
+   OutputDebugStringA(fullMsg);
+   free(fullMsg);
+   return NO_ERROR;
 }
 
 
@@ -165,7 +281,7 @@ int __cdecl _notice(const char* fileName, const char* funcName, int line, int er
    char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  NOTICE: %s", baseName, ext, funcName, line, formattedMsg);
+   char* fullMsg = asformat("MT4Expander NOTICE %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
    free(formattedMsg);
 
    // add the error code at the end (if any)
@@ -179,6 +295,56 @@ int __cdecl _notice(const char* fileName, const char* funcName, int line, int er
    OutputDebugStringA(fullMsg);
    free(fullMsg);
    return error;
+}
+
+
+/**
+ * Process a logmessage of level L_WARN.
+ *
+ * @param  char* fileName - file name of the call
+ * @param  char* funcName - function name of the call
+ * @param  int   line     - line of the call
+ * @param  char* message  - message with format codes for additional parameters
+ * @param        ...      - variable number of additional parameters
+ *
+ * @return int - the passed error code
+ */
+int __cdecl _warn(const char* fileName, const char* funcName, int line, const char* message, ...) {
+   const char* msg = message;
+   if (!msg)  msg = "(null)";
+   if (!*msg) msg = "(empty)";
+
+   // format the variable parameters
+   va_list args;
+   va_start(args, message);
+   char* formattedMsg = _asformat(msg, args);
+   va_end(args);
+
+   // insert the call location at the beginning: {basename.ext(line)}
+   char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
+   if (!fileName) baseName[0] = ext[0] = '\0';
+   else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
+   char* fullMsg = asformat("MT4Expander WARN   %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
+   free(formattedMsg);
+
+   // pass the message to the system debugger
+   OutputDebugStringA(fullMsg);
+   free(fullMsg);
+
+   // store the warning in the EXECUTION_CONTEXT of the currently executed MQL program
+   if (uint pid = GetLastThreadProgram()) {
+      ContextChain &chain = *g_mqlInstances[pid];
+      uint size = chain.size();
+      if (size && chain[0]) {                                        // master context (if available)
+         chain[0]->dllWarning = NO_ERROR;
+         //ec_SetDllWarningMsg(ec, formattedMsg);
+      }
+      if (size > 1 && chain[1]) {                                    // main context (if available)
+         chain[1]->dllWarning = NO_ERROR;
+         //ec_SetDllWarningMsg(ec, formattedMsg);
+      }
+   }
+   return NO_ERROR;
 }
 
 
@@ -209,7 +375,7 @@ int __cdecl _warn(const char* fileName, const char* funcName, int line, int erro
    char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  WARN: %s", baseName, ext, funcName, line, formattedMsg);
+   char* fullMsg = asformat("MT4Expander WARN   %s%s::%s(%d)  %s", baseName, ext, funcName, line, formattedMsg);
    free(formattedMsg);
 
    // add the error code at the end (if any)
@@ -269,7 +435,7 @@ int __cdecl _error(const char* fileName, const char* funcName, int line, int err
    char baseName[MAX_FNAME] = {}, ext[MAX_EXT] = {};
    if (!fileName) baseName[0] = ext[0] = '\0';
    else           _splitpath_s(fileName, NULL, 0, NULL, 0, baseName, MAX_FNAME, ext, MAX_EXT);
-   char* fullMsg = asformat("MT4Expander::%s%s::%s(%d)  ERROR: %s  [%s]", baseName, ext, funcName, line, formattedMsg, ErrorToStrA(error));
+   char* fullMsg = asformat("MT4Expander ERROR  %s%s::%s(%d)  %s  [%s]", baseName, ext, funcName, line, formattedMsg, ErrorToStrA(error));
    free(formattedMsg);
 
    // pass the message to the system debugger

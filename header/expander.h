@@ -128,6 +128,7 @@ enum UninitializeReason {
 // Debugging and error handling
 #define dump(...)   _dump  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define debug(...)  _debug (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define info(...)   _info  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define notice(...) _notice(__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define warn(...)   _warn  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)  _error (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -135,13 +136,17 @@ enum UninitializeReason {
 int __cdecl _dump  (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
 int __cdecl _debug (const char* fileName, const char* funcName, int line, const char* message, ...);
 int __cdecl _debug (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
+int __cdecl _info  (const char* fileName, const char* funcName, int line, const char* message, ...);
+int __cdecl _info  (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
+int __cdecl _notice(const char* fileName, const char* funcName, int line, const char* message, ...);
 int __cdecl _notice(const char* fileName, const char* funcName, int line, int error, const char* message, ...);
+int __cdecl _warn  (const char* fileName, const char* funcName, int line, const char* message, ...);
 int __cdecl _warn  (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
 int __cdecl _error (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
 
 
 // Helper functions returning constant values.
-int         __cdecl _EMPTY       (...);                     // only __cdecl supports variadics
+int         __cdecl _EMPTY       (...);
 int         __cdecl _EMPTY_VALUE (...);
 const char* __cdecl _EMPTY_STR   (...);
 HWND        __cdecl _INVALID_HWND(...);
@@ -157,7 +162,7 @@ time64      __cdecl _NaT64       (...);
 
 
 // Helper functions returning variable values.
-bool   __cdecl _bool  (bool   value, ...);                  // only __cdecl supports variadics
+bool   __cdecl _bool  (bool   value, ...);
 BOOL   __cdecl _BOOL  (BOOL   value, ...);
 char   __cdecl _char  (char   value, ...);
 int    __cdecl _int   (int    value, ...);
@@ -165,8 +170,8 @@ float  __cdecl _float (float  value, ...);
 double __cdecl _double(double value, ...);
 
 
-// Return the size of a type member without an actual instance.
-#define sizeofMember(type, member) sizeof(((type*)NULL)->member)
+#define countof(array)             _countof(array)                // MSVC array helper
+#define sizeofMember(type, member) sizeof(((type*)NULL)->member)  // return the size of a type member without an actual instance
 
 
 /**
