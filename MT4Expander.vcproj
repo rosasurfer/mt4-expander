@@ -1000,6 +1000,30 @@
 				<File
 					RelativePath=".\src\lib\win32.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter

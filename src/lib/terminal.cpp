@@ -283,16 +283,20 @@ DWORD WINAPI GetCliOptions() {
             _options |= OPTION_DEBUG_ACCOUNT_SERVER;
             continue;
          }
+         if (StrCompare(argv[i], L"/rsf:debug-createobject")) {
+            _options |= OPTION_DEBUG_CREATE_OBJECT;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-createwindow")) {
+            _options |= OPTION_DEBUG_CREATE_WINDOW;
+            continue;
+         }
          if (StrCompare(argv[i], L"/rsf:debug-ec")) {
             _options |= OPTION_DEBUG_EXECUTION_CONTEXT;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
             _options |= OPTION_DEBUG_INDICATOR_LIST;
-            continue;
-         }
-         if (StrCompare(argv[i], L"/rsf:debug-objectcreate")) {
-            _options |= OPTION_DEBUG_OBJECT_CREATE;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-wmcommand")) {
@@ -750,7 +754,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
 
    if (!filename) {
       wchar* buffer = NULL;
-      uint size=MAX_PATH >> 1, length=size;
+      uint size = MAX_PATH >> 1, length = size;
 
       while (length >= size) {
          size <<= 1;
