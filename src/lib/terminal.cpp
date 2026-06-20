@@ -793,7 +793,7 @@ HWND WINAPI GetTerminalMainWindow() {
       // time to create it. This can occur particularly in terminals of build <= 509. Starting with build 600, thread
       // synchronization has changed.
       //
-      // Workaround: In such a case, the requesting thread enters a brief wait loop. This is not critical, as normal MQL
+      // Workaround: In such a case, the calling thread enters a brief wait loop. This is not critical, as normal MQL
       // programs and the UI thread itself never enter this loop.
 
       while (TRUE) {
@@ -812,6 +812,7 @@ HWND WINAPI GetTerminalMainWindow() {
             hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
          }
          free(className);
+         className = NULL;
          if (hWndFound) break;
 
          static int log1 = info("cannot find terminal main window, waiting...");
