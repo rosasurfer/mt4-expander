@@ -1808,7 +1808,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
 
          << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
          << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
-         << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "(null)")
+         << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "0")
          << ", bars="                 <<                      ec->bars
          << ", validBars="            <<                      ec->validBars
          << ", changedBars="          <<                      ec->changedBars
@@ -1825,10 +1825,10 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", pip="   << std::setprecision(ec->pipDigits) << ec->pip
          << ", point=" << std::setprecision(ec->digits)    << ec->point
 
-         << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "(null)")
+         << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "0")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
-         << ", chartWindow="          <<                     (ec->chartWindow ? asformat("0x%p", ec->chartWindow ) : "(null)")
-         << ", chart="                <<                     (ec->chart       ? asformat("0x%p", ec->chart       ) : "(null)")
+         << ", chartWindow="          <<                     (ec->chartWindow ? asformat("%p", ec->chartWindow ) : "0")
+         << ", chart="                <<                     (ec->chart       ? asformat("%p", ec->chart       ) : "0")
 
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
@@ -1838,9 +1838,9 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", accountServer="        <<       DoubleQuoteStr(ec->accountServer)
          << ", accountNumber="        <<                      ec->accountNumber
 
-         << ", dllWarning="           <<                    (!ec->dllWarning ? "0" : ErrorToStrA(ec->dllWarning))
-         << ", dllError="             <<                    (!ec->dllError   ? "0" : ErrorToStrA(ec->dllError  ))
-         << ", mqlError="             <<                    (!ec->mqlError   ? "0" : ErrorToStrA(ec->mqlError  ))
+         << ", dllWarning="           <<                     (ec->dllWarning ? ErrorToStrA(ec->dllWarning) : "0")
+         << ", dllError="             <<                     (ec->dllError   ? ErrorToStrA(ec->dllError)   : "0")
+         << ", mqlError="             <<                     (ec->mqlError   ? ErrorToStrA(ec->mqlError)   : "0")
 
          << ", debugOptions="         <<                      ec->debugOptions
          << ", loglevel="             << LoglevelDescriptionA(ec->loglevel)
@@ -1850,12 +1850,13 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", loglevelFile="         << LoglevelDescriptionA(ec->loglevelFile)
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
          << ", loglevelTelegram="     << LoglevelDescriptionA(ec->loglevelTelegram)
-         << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "(null)")
+         << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "0")
          << ", logBufferSize="        <<                     (ec->logBuffer ? ec->logBuffer->size() : 0)
          << ", logFilename="          <<       DoubleQuoteStr(ec->logFilename)
          << "}";
    }
    ss << asformat(" (0x%p)", ec);
+
    return sdup(ss.str().c_str());      // caller must free()
    #pragma EXPANDER_EXPORT
 }
