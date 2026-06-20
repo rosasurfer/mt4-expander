@@ -45,7 +45,7 @@ namespace rsf {
     * @return char*
     */
    __forceinline char* WINAPI sdupa(const char* s) {
-      size_t size = strlen(s) + 1;
+      size_t size = (strlen(s) + 1) * sizeof(char);
       char* copy = (char*) alloca(size);
       return (char*)memcpy(copy, s, size);
    }
@@ -58,7 +58,7 @@ namespace rsf {
     * @return wchar*
     */
    __forceinline wchar* WINAPI wsdupa(const wchar* s) {
-      size_t size = (wstrlen(s) + 1) * 2;
+      size_t size = (wstrlen(s) + 1) * sizeof(wchar);
       wchar* copy = (wchar*) alloca(size);
       return (wchar*)memcpy(copy, s, size);
    }

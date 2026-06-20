@@ -40,11 +40,11 @@ DWORD WINAPI GetLastWin32Error() {
 
 /**
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
+ * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
  *
- * @return char* - text (may be empty) or NULL in case of errors
+ * @return char* - text (may be empty) or a NULL pointer in case of errors
  */
 char* WINAPI GetInternalWindowTextA(HWND hWnd) {
    wchar* utf16Text = GetInternalWindowTextW(hWnd);
@@ -60,33 +60,30 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
 
 /**
  * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function obtains the text directly from the window structure and doesn't send a WM_GETTEXT message.
+ * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
  *
- * @return wchar* - text (may be empty) or NULL in case of errors
+ * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  */
 wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
    if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
 
    SetLastError(NO_ERROR);
    wchar* buffer = NULL;
-   uint size=32, length=size;
+   int chars = 64, copiedChars = chars;
 
-   while (length >= size-1) {                            // if (length == size-1) the string may have been truncated
-      free(buffer);
-      size <<= 1;                                        // double the size
-      buffer = (wchar*)malloc(size * sizeof(wchar));     // on the heap
-      length = InternalGetWindowText(hWnd, buffer, size);
+   while (copiedChars >= chars-1) {                      // if (length == size-1) the string may have been truncated
+      chars <<= 1;                                       // double the length (starts with 128 chars)
+      buffer = (wchar*) alloca(chars * sizeof(wchar));   // on the stack
+      copiedChars = InternalGetWindowText(hWnd, buffer, chars);
    }
 
-   if (!length) {
-      if (DWORD error = GetLastError()) {
-         free(buffer);
-         return (wchar*)!error(ERR_WIN32_ERROR + error, "InternalGetWindowText()");
-      }
+   if (!copiedChars) {
+      DWORD error = GetLastError();
+      if (error) return (wchar*)!error(ERR_WIN32_ERROR + error, "InternalGetWindowText()");
    }
-   return buffer;                                        // caller must free()
+   return wsdup(buffer);                                 // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -97,7 +94,7 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
  *
  * @param  HWND hWnd - window handle
  *
- * @return char* - text (may be empty) or NULL in case of errors
+ * @return char* - text (may be empty) or a NULL pointer in case of errors
  */
 char* WINAPI GetWindowTextA(HWND hWnd) {
    wchar* utf16Text = GetWindowTextW(hWnd);
@@ -117,29 +114,26 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  *
  * @param  HWND hWnd - window handle
  *
- * @return wchar* - text (may be empty) or NULL in case of errors
+ * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  */
 wchar* WINAPI GetWindowTextW(HWND hWnd) {
    if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
 
    SetLastError(NO_ERROR);
    wchar* buffer = NULL;
-   uint size=32, length=size;
+   int chars = 64, copiedChars = chars;
 
-   while (length >= size-1) {                         // if (length == size-1) the string may have been truncated
-      free(buffer);
-      size <<= 1;                                     // double the size
-      buffer = (wchar*)malloc(size * sizeof(wchar));  // on the heap
-      length = GetWindowTextW(hWnd, buffer, size);
+   while (copiedChars >= chars-1) {                      // if (length == size-1) the string may have been truncated
+      chars <<= 1;                                       // double the size (starts with 128 chars)
+      buffer = (wchar*) alloca(chars * sizeof(wchar));   // on the stack
+      copiedChars = GetWindowTextW(hWnd, buffer, chars);
    }
 
-   if (!length) {
-      if (DWORD error = GetLastError()) {
-         free(buffer);
-         return (wchar*)!error(ERR_WIN32_ERROR + error, "GetWindowTextW()");
-      }
+   if (!copiedChars) {
+      DWORD error = GetLastError();
+      if (error) return (wchar*)!error(ERR_WIN32_ERROR + error, "GetWindowTextW()");
    }
-   return buffer;                                     // caller must free()
+   return wsdup(buffer);                                 // caller must free()
    #pragma EXPANDER_EXPORT
 }
 

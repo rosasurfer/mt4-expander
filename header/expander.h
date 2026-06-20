@@ -43,6 +43,8 @@ using namespace rsf;
 using std::size_t;
 using std::string;
 using std::wstring;
+using std::min;
+using std::max;
 
 #define CLR_NONE             0xFFFFFFFFL                    // different types/same value in C++ and MQL
 #define NO_ERROR                      0L                    // different types/same value in C++ and MQL
@@ -133,16 +135,18 @@ enum UninitializeReason {
 #define warn(...)   _warn  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)  _error (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int __cdecl _dump  (const char* fileName, const char* funcName, int line, const void* data, uint size, uint mode = DUMPMODE_HEX);
-int __cdecl _debug (const char* fileName, const char* funcName, int line, const char* message, ...);
-int __cdecl _debug (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
-int __cdecl _info  (const char* fileName, const char* funcName, int line, const char* message, ...);
-int __cdecl _info  (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
-int __cdecl _notice(const char* fileName, const char* funcName, int line, const char* message, ...);
-int __cdecl _notice(const char* fileName, const char* funcName, int line, int error, const char* message, ...);
-int __cdecl _warn  (const char* fileName, const char* funcName, int line, const char* message, ...);
-int __cdecl _warn  (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
-int __cdecl _error (const char* fileName, const char* funcName, int line, int error, const char* message, ...);
+int __cdecl _dump  (const char* fileName, const char* funcName, uint line, const void* data, uint size, DWORD mode = DUMPMODE_HEX);
+int __cdecl _debug (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _debug (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _info  (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _info  (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _notice(const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _notice(const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _warn  (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _warn  (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _error (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+
+int __cdecl debug_raw(const char* message, ...);
 
 
 // helper functions returning constant values
@@ -174,14 +178,14 @@ double __cdecl _double(double value, ...);
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)  // return the size of a type member without an actual instance
 
 
-/**
- * Helper to use free() as expression and/or in nested statements.
- *
- * @param  void* ptr
- *
- * @return BOOL
- */
-__forceinline BOOL bfree(void* ptr) {
-   free(ptr);
-   return TRUE;
-}
+// helpers to free() multiple pointers at once
+__forceinline void free(void* ptr1, void* ptr2)                         { free(ptr1); free(ptr2);                         }
+__forceinline void free(void* ptr1, void* ptr2, void* ptr3)             { free(ptr1); free(ptr2); free(ptr3);             }
+__forceinline void free(void* ptr1, void* ptr2, void* ptr3, void* ptr4) { free(ptr1); free(ptr2); free(ptr3); free(ptr4); }
+
+
+// helpers to use free() as expression and/or in nested statements
+__forceinline int bfree(void* ptr1)                                     { free(ptr1);                   return 0; }
+__forceinline int bfree(void* ptr1, void* ptr2)                         { free(ptr1, ptr2);             return 0; }
+__forceinline int bfree(void* ptr1, void* ptr2, void* ptr3)             { free(ptr1, ptr2, ptr3);       return 0; }
+__forceinline int bfree(void* ptr1, void* ptr2, void* ptr3, void* ptr4) { free(ptr1, ptr2, ptr3, ptr4); return 0; }

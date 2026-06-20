@@ -105,11 +105,17 @@ time32 WINAPI Tester_GetStartDate() {
    if (!hWndNext) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) found");
 
    wchar* className = GetClassNameW(hWndNext);
-   if (!StrCompare(className, L"SysDateTimePick32")) return _NULL(error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)), bfree(className));
+   if (!StrCompare(className, L"SysDateTimePick32")) {
+      error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className));
+      return _NULL(bfree(className));
+   }
    free(className);
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10) return _NULL(error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle)), bfree(wndTitle));
+   if (!wndTitle || wstrlen(wndTitle) < 10) {
+      error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle));
+      return _NULL(bfree(wndTitle));
+   }
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01
