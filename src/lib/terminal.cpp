@@ -176,14 +176,14 @@ static LRESULT CALLBACK UiHookProc(int code, WPARAM wParam, LPARAM lParam) {
  * @param  char* filename   - simple filename
  * @param  BOOL  removeFile - whether to remove a found file
  *
- * @return char* - directory name (last segment of the full path) or NULL in case of errors
+ * @return char* - directory name (last segment of the full path) or a NULL pointer in case of errors
  */
 char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
    if ((uint)filename < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: 0x%p (not a valid pointer)", filename);
    if (!*filename)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter filename: \"\" (empty)");
 
    const char* hstRootPath = GetHistoryRootPathA();
-   if (!hstRootPath) return (char*)!error(ERR_RUNTIME_ERROR, "GetHistoryRootPathA() => NULL");
+   if (!hstRootPath) return NULL;
 
    string pattern = string(hstRootPath).append("\\*");
    WIN32_FIND_DATA wfd = {};
@@ -327,20 +327,20 @@ DWORD WINAPI GetDebugOptions() {
 
 
 /**
- * Return the full filename of the loaded MT4Expander DLL.
+ * Return the full filename of the loaded MT4Expander DLL. May return a path longer than MAX_PATH.
  *
- * @return char* - filename or NULL in case of errors
+ * @return char* - filename or a NULL pointer in case of errors
  */
 const char* WINAPI GetExpanderFileNameA() {
    static char* filename;
 
    if (!filename) {
       const wchar* wname = GetExpanderFileNameW();
-      if (!wname) return (char*)!error(ERR_RUNTIME_ERROR, "GetExpanderFileNameW()");
+      if (!wname) return NULL;
 
       char* tmp = utf16ToAnsi(wname);
       if (!filename) filename = tmp;
-      else           free(tmp);                    // another thread may have been faster
+      else           free(tmp);                 // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -348,26 +348,26 @@ const char* WINAPI GetExpanderFileNameA() {
 
 
 /**
- * Return the full filename of the loaded MT4Expander DLL.
+ * Return the full filename of the loaded MT4Expander DLL. May return a path longer than MAX_PATH.
  *
- * @return wchar* - filename or NULL in case of errors
+ * @return wchar* - filename or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetExpanderFileNameW() {
    static wchar* filename;
 
    if (!filename) {
       wchar* buffer = NULL;
-      uint size = MAX_PATH >> 1, length = size;
-      while (length >= size) {
-         size <<= 1;
-         buffer = (wchar*) alloca(size * sizeof(wchar));
-         length = GetModuleFileNameW(HMODULE_EXPANDER, buffer, size);   // may return a path longer than MAX_PATH
+      uint chars = MAX_PATH >> 1, copiedChars = chars;
+      while (copiedChars >= chars) {
+         chars <<= 1;
+         buffer = (wchar*) alloca(chars * sizeof(wchar));
+         copiedChars = GetModuleFileNameW(HMODULE_EXPANDER, buffer, chars);
       }
-      if (!length) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetModuleFileNameW()");
+      if (!copiedChars) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetModuleFileNameW()");
 
       wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
-      else           free(tmp);                                         // another thread may have been faster
+      else           free(tmp);                 // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -377,14 +377,14 @@ const wchar* WINAPI GetExpanderFileNameW() {
 /**
  * Return the full path of the history root directory. The function doesn't check whether the directory exists.
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetHistoryRootPathA() {
    static char* hstDirectory;
 
    if (!hstDirectory) {
       const wchar* wpath = GetHistoryRootPathW();
-      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "GetHistoryRootPathW()");
+      if (!wpath) return NULL;
 
       char* tmp = utf16ToAnsi(wpath);
       if (!hstDirectory) hstDirectory = tmp;
@@ -398,14 +398,14 @@ const char* WINAPI GetHistoryRootPathA() {
 /**
 * Return the full path of the history root directory. The function doesn't check whether the directory exists.
  *
- * @return wchar* - directory name without trailing path separator or NULL in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetHistoryRootPathW() {
    static wchar* hstDirectory;
 
    if (!hstDirectory) {
       const wchar* dataPath = GetTerminalDataPathW();
-      if (!dataPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "GetTerminalDataPathW()");
+      if (!dataPath) return NULL;
 
       wstring path = wstring(dataPath).append(L"\\history");
       wchar* tmp = wsdup(path.c_str());
@@ -420,14 +420,14 @@ const wchar* WINAPI GetHistoryRootPathW() {
 /**
  * Return the full path of the MQL directory.
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlDirectoryA() {
    static char* mqlDirectory;
 
    if (!mqlDirectory) {
       const wchar* wdirectory = GetMqlDirectoryW();
-      if (!wdirectory) return (char*)!error(ERR_RUNTIME_ERROR, "GetMqlDirectoryW()");
+      if (!wdirectory) return NULL;
 
       char* tmp = utf16ToAnsi(wdirectory);
       if (!mqlDirectory) mqlDirectory = tmp;
@@ -441,14 +441,14 @@ const char* WINAPI GetMqlDirectoryA() {
 /**
  * Return the full path of the MQL directory.
  *
- * @return wchar* - directory name without trailing path separator or NULL in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetMqlDirectoryW() {
    static wchar* mqlDirectory;
 
    if (!mqlDirectory) {
       const wchar* dataPath = GetTerminalDataPathW();
-      if (!dataPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "GetTerminalDataPathW()");
+      if (!dataPath) return NULL;
 
       wstring path(dataPath);
       if (GetTerminalBuild() <= 509) path.append(L"\\experts");
@@ -468,7 +468,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
  *
  * @param  BOOL inTester - whether to return the online path or the one in the tester
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
    static char* testerPath, *onlinePath;
@@ -476,7 +476,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
    if (inTester) {
       if (!testerPath) {
          const wchar* wpath = GetMqlSandboxPathW(inTester);
-         if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "GetMqlSandboxPathW()");
+         if (!wpath) return NULL;
 
          char* tmp = utf16ToAnsi(wpath);
          if (!testerPath) testerPath = tmp;
@@ -487,7 +487,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
 
    if (!onlinePath) {
       const wchar* wpath = GetMqlSandboxPathW(inTester);
-      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "GetMqlSandboxPathW()");
+      if (!wpath) return NULL;
 
       char* tmp = utf16ToAnsi(wpath);
       if (!onlinePath) onlinePath = tmp;
@@ -503,7 +503,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
  *
  * @param  BOOL inTester - whether to return the online path or the one in the tester
  *
- * @return wchar* - directory name without trailing path separator or NULL in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
    static wchar* testerPath, *onlinePath;
@@ -511,26 +511,26 @@ const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
    if (inTester) {
       if (!testerPath) {
          const wchar* dataDirectory = GetTerminalDataPathW();
-         if (!dataDirectory) return (wchar*)!error(ERR_RUNTIME_ERROR, "GetTerminalDataPathW()");
+         if (!dataDirectory) return NULL;
 
          wstring path = wstring(dataDirectory).append(L"\\tester\\files");
          wchar* tmp = wsdup(path.c_str());
          if (!testerPath) testerPath = tmp;
          else free(tmp);                        // another thread may have been faster
       }
-      return(testerPath);
+      return testerPath;
    }
 
    if (!onlinePath) {
       const wchar* mqlDirectory = GetMqlDirectoryW();
-      if (!mqlDirectory) return (wchar*)!error(ERR_RUNTIME_ERROR, "GetMqlDirectoryW()");
+      if (!mqlDirectory) return NULL;
 
       wstring path = wstring(mqlDirectory).append(L"\\files");
       wchar* tmp = wsdup(path.c_str());
       if (!onlinePath) onlinePath = tmp;
       else free(tmp);                           // another thread may have been faster
    }
-   return(onlinePath);
+   return onlinePath;
    #pragma EXPANDER_EXPORT
 }
 
@@ -563,15 +563,15 @@ uint WINAPI GetTerminalBuild() {
  * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors,
- *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
+ * @return char* - directory name without trailing path separator, e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common";
+ *                 or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
    static char* path;
 
    if (!path) {
       const wchar* wpath = GetTerminalCommonDataPathW();
-      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "GetTerminalCommonDataPathW()");
+      if (!wpath) return NULL;
 
       char* tmp = utf16ToAnsi(wpath);
       if (!path) path = tmp;
@@ -587,8 +587,8 @@ const char* WINAPI GetTerminalCommonDataPathA() {
  * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
- * @return wchar* - directory name without trailing path separator or NULL in case of errors,
- *                  e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
+ * @return wchar* - directory name without trailing path separator, e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common";
+ *                  or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetTerminalCommonDataPathW() {
    static wchar* path;
@@ -613,15 +613,15 @@ const wchar* WINAPI GetTerminalCommonDataPathW() {
  * Return the full path of the currently used data directory (same as TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors,
- *                 e.g. "%ProgramFiles%\MetaTrader4"
+ * @return char* - directory name without trailing path separator, e.g. "%ProgramFiles%\MetaTrader4";
+ *                 or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalDataPathA() {
    static char* dataPath;
 
    if (!dataPath) {
       const wchar* wpath = GetTerminalDataPathW();
-      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "GetTerminalDataPathW()");
+      if (!wpath) return NULL;
 
       char* tmp = utf16ToAnsi(wpath);
       if (!dataPath) dataPath = tmp;
@@ -636,8 +636,8 @@ const char* WINAPI GetTerminalDataPathA() {
  * Return the full path of the currently used data directory (same as TerminalInfoString(TERMINAL_DATA_PATH) introduced in MQL4.5).
  * The function does not check whether the returned directory exists.
  *
- * @return wchar* - directory name without trailing path separator or NULL in case of errors,
- *                  e.g. "%ProgramFiles%\MetaTrader4"
+ * @return wchar* - directory name without trailing path separator, e.g. "%ProgramFiles%\MetaTrader4";
+ *                  or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetTerminalDataPathW() {
    // VirtualStore (since Vista): file and registry virtualization
@@ -684,10 +684,10 @@ const wchar* WINAPI GetTerminalDataPathW() {
 
    if (!dataPath) {
       const wchar* terminalPath = GetTerminalPathW();
-      if (!terminalPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "GetTerminalPathW()");
+      if (!terminalPath) return NULL;
 
       const wchar* roamingDataPath = GetTerminalRoamingDataPathW();
-      if (!roamingDataPath) return (wchar*)!error(ERR_RUNTIME_ERROR, "GetTerminalRoamingDataPathW()");
+      if (!roamingDataPath) return NULL;
 
       wchar* wtmp = NULL;
 
@@ -724,16 +724,16 @@ const wchar* WINAPI GetTerminalDataPathW() {
 
 
 /**
- * Return the full filename of the executable the terminal was launched from.
+ * Return the full filename of the executable the terminal was launched from. May return a path longer than MAX_PATH.
  *
- * @return char* - filename or NULL in case of errors
+ * @return char* - filename or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalFileNameA() {
    static char* filename;
 
    if (!filename) {
       const wchar* wfilename = GetTerminalFileNameW();
-      if (!wfilename) return (char*)!error(ERR_RUNTIME_ERROR, "GetTerminalFileNameW()");
+      if (!wfilename) return NULL;
 
       char* tmp = utf16ToAnsi(wfilename);
       if (!filename) filename = tmp;
@@ -745,27 +745,27 @@ const char* WINAPI GetTerminalFileNameA() {
 
 
 /**
- * Return the full filename of the executable the terminal was launched from.
+ * Return the full filename of the executable the terminal was launched from. May return a path longer than MAX_PATH.
  *
- * @return wchar* - filename or NULL in case of errors
+ * @return wchar* - filename or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetTerminalFileNameW() {
    static wchar* filename;
 
    if (!filename) {
       wchar* buffer = NULL;
-      uint size = MAX_PATH >> 1, length = size;
+      uint chars = MAX_PATH >> 1, copiedChars = chars;
 
-      while (length >= size) {
-         size <<= 1;
-         buffer = (wchar*) alloca(size * sizeof(wchar));    // on the stack
-         length = GetModuleFileNameW(NULL, buffer, size);   // may return a path longer than MAX_PATH
+      while (copiedChars >= chars) {
+         chars <<= 1;
+         buffer = (wchar*) alloca(chars * sizeof(wchar));
+         copiedChars = GetModuleFileNameW(NULL, buffer, chars);
       }
-      if (!length) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetModuleFileNameW()");
+      if (!copiedChars) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetModuleFileNameW()");
 
       wchar* tmp = wsdup(buffer);
       if (!filename) filename = tmp;
-      else           free(tmp);                             // another thread may have been faster
+      else           free(tmp);                 // another thread may have been faster
    }
    return filename;
    #pragma EXPANDER_EXPORT
@@ -781,25 +781,50 @@ HWND WINAPI GetTerminalMainWindow() {
    static HWND hWndMain;
 
    if (!hWndMain) {
-      DWORD processId, self = GetCurrentProcessId();
+      DWORD processId = NULL, self = GetCurrentProcessId();
+      HWND hWndNext = NULL, hWndFound = NULL;
       wchar* className = NULL;
+      uint i = 0;
 
-      HWND hWndNext = GetTopWindow(NULL);
-      while (hWndNext) {                        // iterate over all top-level windows
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == self) {
-            free(className);
-            className = GetClassNameW(hWndNext);
-            if (StrCompare(className, L"MetaQuotes::MetaTrader::4.00")) {
-               break;
+      // MQL scripts run in their own thread. On fast CPUs with multiple cores, a race condition may occur when the
+      // Expander starts or when a script is launched via terminal startup configuration ("start.ini"):
+      //
+      // A non-UI thread is already looking-up the terminal main window, even though the UI thread has not yet had enough
+      // time to create it. This can occur particularly in terminals of build <= 509. Starting with build 600, thread
+      // synchronization has changed.
+      //
+      // Workaround: In such a case, the calling thread enters a brief wait loop. This is not critical, as normal MQL
+      // programs and the UI thread itself never enter this loop.
+
+      while (TRUE) {
+         hWndNext = GetTopWindow(NULL);
+
+         while (hWndNext) {                        // iterate over all top-level windows
+            GetWindowThreadProcessId(hWndNext, &processId);
+            if (processId == self) {
+               free(className);
+               className = GetClassNameW(hWndNext);
+               if (StrCompare(className, L"MetaQuotes::MetaTrader::4.00")) {
+                  hWndFound = hWndNext;
+                  break;
+               }
             }
+            hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
          }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-      }
-      free(className);
-      if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
+         free(className);
+         className = NULL;
+         if (hWndFound) break;
 
-      if (!hWndMain) hWndMain = hWndNext;       // another thread may have been faster
+         static int log1 = info("cannot find terminal main window, waiting...");
+         if (i >= 10) {
+            static int log2 = error(ERR_RUNTIME_ERROR, "cannot find terminal main window, giving up");
+            return NULL;
+         }
+         i++;
+         Sleep(100);                               // wait in total 1 sec
+      }
+
+      if (!hWndMain) hWndMain = hWndFound;         // another thread may have been faster
    }
    return hWndMain;
    #pragma EXPANDER_EXPORT
@@ -810,14 +835,14 @@ HWND WINAPI GetTerminalMainWindow() {
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
  * introduced in MQL4.5).
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalPathA() {
    static char* path;
 
    if (!path) {
       const wchar* wpath = GetTerminalPathW();
-      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "GetTerminalPathW()");
+      if (!wpath) return NULL;
 
       char* tmp = utf16ToAnsi(wpath);
       if (!path) path = tmp;
@@ -832,14 +857,14 @@ const char* WINAPI GetTerminalPathA() {
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
  * introduced in MQL4.5).
  *
- * @return wchar* - directory name without trailing path separator or NULL in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetTerminalPathW() {
    static wchar* path;
 
    if (!path) {
       const wchar* filename = GetTerminalFileNameW();
-      if (!filename) return (wchar*)!error(ERR_RUNTIME_ERROR, "GetTerminalFileNameW()");
+      if (!filename) return NULL;
 
       wchar* tmp = wsdup(filename);
       tmp[wstring(tmp).find_last_of(L"\\")] = '\0';
@@ -855,15 +880,15 @@ const wchar* WINAPI GetTerminalPathW() {
  * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
  * data directory may differ. The function does not check whether the returned path exists.
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors,
- *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
+ * @return char* - directory name without trailing path separator, e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}";
+ *                 or a NULL pointer in case of errors
  */
 const char* WINAPI GetTerminalRoamingDataPathA() {
    static char* path;
 
    if (!path) {
       const wchar* wpath = GetTerminalRoamingDataPathW();
-      if (!wpath) return (char*)!error(ERR_RUNTIME_ERROR, "GetTerminalRoamingDataPathW()");
+      if (!wpath) return NULL;
 
       char* tmp = utf16ToAnsi(wpath);
       if (!path) path = tmp;
@@ -878,8 +903,8 @@ const char* WINAPI GetTerminalRoamingDataPathA() {
  * Return the full path of the terminal's roaming data directory. Depending on terminal version and runtime mode the used
  * data directory may differ. The function does not check whether the returned path exists.
  *
- * @return char* - directory name without trailing path separator or NULL in case of errors,
- *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
+ * @return char* - directory name without trailing path separator, e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-hash}"
+ *                 or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetTerminalRoamingDataPathW() {
    static wchar* result;
@@ -946,7 +971,7 @@ BOOL WINAPI GetTerminalVersionFromFile(VS_FIXEDFILEINFO &fileInfo) {
    DWORD infoSize = GetFileVersionInfoSizeA(fileName, &infoSize);
    if (!infoSize) return !error(ERR_WIN32_ERROR + GetLastError(), "GetFileVersionInfoSizeA()");
 
-   char* infos = (char*) alloca(infoSize);      // on the stack
+   char* infos = (char*) alloca(infoSize);
    BOOL success = GetFileVersionInfoA(fileName, NULL, infoSize, infos);
    if (!success) return !error(ERR_WIN32_ERROR + GetLastError(), "GetFileVersionInfoA()");
 
@@ -1017,7 +1042,7 @@ BOOL WINAPI IsLockedFile(const string &filename) {
       return GetLastError() == ERROR_SHARING_VIOLATION;
    }
    _lclose(hFile);
-   return FALSE;                                   // not failed
+   return FALSE;                                // not failed
 }
 
 
@@ -1120,7 +1145,7 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    HWND hWndAlert = NULL, hWndNext = GetTopWindow(NULL);
    DWORD processId, self = GetCurrentProcessId();
-   wchar *className = NULL, *wndTitle = NULL;
+   wchar *wndTitle = NULL, *className = NULL;
 
    // enumerate top-level windows
    while (hWndNext) {
@@ -1140,10 +1165,9 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
       }
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    }
-   free(wndTitle);
-   free(className);
+   free(wndTitle, className);
 
-   if (!hWndAlert) return debug("\"Alert\" dialog window not found");
+   if (!hWndAlert) return _FALSE(debug("\"Alert\" dialog window not found"));
 
    // show the "Alert" window
    bool wasHidden = !ShowWindow(hWndAlert, SW_SHOW);
