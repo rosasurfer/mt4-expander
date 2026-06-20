@@ -1067,10 +1067,7 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
  * @param  char* format - string with format codes (see Microsoft extension for ANSI/UTF-16 specific codes)
  * @param        ...    - variable number of arguments (may contain UTF-16 strings)
  *
- * @return char* - formatted string or NULL in case of errors
- *
- * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
- * @see  https://www.tutorialspoint.com/format-specifiers-in-c
+ * @return char* - formatted string or a NULL pointer in case of errors
  */
 char* __cdecl asformat(const char* format, ...) {
    if (!format)  return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
@@ -1081,7 +1078,7 @@ char* __cdecl asformat(const char* format, ...) {
    char* result = _asformat(format, args);
    va_end(args);
 
-   return result;                   // caller must free()
+   return result;                               // caller must free()
 }
 
 
@@ -1092,10 +1089,7 @@ char* __cdecl asformat(const char* format, ...) {
  * @param  wchar* format - string with format codes (see Microsoft extension for ANSI/UTF-16 specific codes)
  * @param         ...    - variable number of arguments (may contain ANSI strings)
  *
- * @return wchar* - formatted string or NULL in case of errors
- *
- * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
- * @see  https://www.tutorialspoint.com/format-specifiers-in-c
+ * @return wchar* - formatted string or a NULL pointer in case of errors
  */
 wchar* __cdecl asformat(const wchar* format, ...) {
    if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));

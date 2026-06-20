@@ -1135,14 +1135,14 @@ uint WINAPI FindModuleInLimbo(ModuleType moduleType, const char* name, Uninitial
  *                INVALID_HWND (-1) in case of errors
  */
 HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, const EXECUTION_CONTEXT* sec, const char* symbol, uint timeframe, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization) {
-   if (sec) return sec->chart;                                 // with a super context return the inherited chart handle
+   if (sec) return sec->chart;                                    // with a super context return the inherited chart handle
 
    // situation:
    //  we are in the main module
    //  there's no super context
    //  MQL's WindowHandle() returned NULL
 
-   if ((isTesting && !isVisualMode) || isOptimization) {       // in these standard situations there's no chart
+   if ((isTesting && !isVisualMode) || isOptimization) {          // in these standard situations there's no chart
       return NULL;
    }
 
@@ -1157,7 +1157,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
    HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDI_CLIENT);
    if (!hWndMdi) return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window not found (hWndMain=%p)", hWndMain));
 
-   HWND hChartWindow = NULL;                                   // chart system window holding the chart AfxFrameOrView
+   HWND hChartWindow = NULL;                                      // chart system window holding the chart AfxFrameOrView
 
    // indicator
    if (moduleType == MT_INDICATOR) {
@@ -1166,7 +1166,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       //  Or we are a standalone indicator in a tester template:
       //   UI thread:     VisualMode=on|off (on VisualMode=off only indicator::init() is executed)
       //   non-UI thread: IsOptimization=on (only indicator::init() is executed)
-      if (!IsUIThread()) return NULL;                          // no chart for standalone indicator in tester template during optimization
+      if (!IsUIThread()) return NULL;                             // no chart for standalone indicator in tester template during optimization
 
       // WindowHandle() uses the title string to find a chart window. On execution of indicator::init() the window title may
       // not yet be set which results in the function returning NULL (can't find current window). However the window exists.
@@ -1176,13 +1176,13 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       // If there's no last window in Z order without a title text, then the indicator was loaded by a tester template with
       // VisualMode=off (no chart window). In this case init() is executed but start() will never.
       //
-      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child in Z order (first chart)
-      if (!hWndChild) return NULL;                             // no MDIClient children => there is no chart: Tester with VisualMode=Off
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);              // first child in Z order (first chart)
+      if (!hWndChild) return NULL;                                // no MDIClient children => there is no chart: Tester with VisualMode=Off
 
-      HWND hWndLast = GetWindow(hWndChild, GW_HWNDLAST);       // last child in Z order (last chart)
-      if (GetWindowTextLength(hWndLast)) return NULL;          // last child already has a title => there is no chart: Tester with VisualMode=Off
+      HWND hWndLast = GetWindow(hWndChild, GW_HWNDLAST);          // last child in Z order (last chart)
+      if (GetWindowTextLength(hWndLast)) return NULL;             // last child already has a title => there is no chart: Tester with VisualMode=Off
 
-      hChartWindow = hWndLast;                                 // keep last chart (holding the chart AfxFrameOrView)
+      hChartWindow = hWndLast;                                    // keep last chart (holding the chart AfxFrameOrView)
    }
 
    // script
@@ -1191,34 +1191,34 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       // solange Terminal/Chart nicht endgültig initialisiert sind. Ein laufendes Script wurde in diesem Fall über
       // die Konfiguration in "terminal-start.ini" gestartet und läuft im ersten passenden Chart in absoluter Reihenfolge
       // (CtrlID, nicht Z order).
-      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);           // first child window in Z order (top most chart window)
+      HWND hWndChild = GetWindow(hWndMdi, GW_CHILD);              // first child window in Z order (top-most chart window)
       if (!hWndChild) return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient window has no children in Script::init()  hWndMain=%p", hWndMain));
 
-      char chartDescription[MAX_CHARTDESCRIPTION_LENGTH + 1];
-      uint chars = ComposeChartTitle(symbol, timeframe, chartDescription, countof(chartDescription));
-      if (!chars) return INVALID_HWND;
-
-      char* title = NULL;
+      char *chartTitle = MakeChartTitleA(symbol, timeframe), *wndTitle = NULL;
+      if (!chartTitle) return INVALID_HWND;
       int id = INT_MAX;
 
-      while (hWndChild) {                                      // iterate over all child windows
-         free(title);
-         title = GetWindowTextA(hWndChild);                    // Here we can't use GetInternalWindowText() as the window
-         if (!title) return INVALID_HWND;                      // creation needs to finish before we get a valid response.
+      while (hWndChild) {                                         // iterate over all child windows
+         free(wndTitle);
+         wndTitle = GetWindowTextA(hWndChild);                    // Here we can't use GetInternalWindowText() as the window
+         if (!wndTitle) return _INVALID_HWND(bfree(chartTitle));  // creation needs to finish before we get a valid response.
 
-         if (StrEndsWith(title, " (offline)")) {
-            title[strlen(title)-10] = '\0';
+         if (StrEndsWith(wndTitle, " (offline)")) {
+            wndTitle[strlen(wndTitle)-10] = '\0';
          }
-         if (StrCompare(title, chartDescription)) {            // find all matching windows
-            id = std::min(id, GetDlgCtrlID(hWndChild));        // track the smallest in absolute order
-            if (!id) return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child window %p has no control id", hWndChild), bfree(title));
+         if (StrCompare(wndTitle, chartTitle)) {                  // find all matching windows
+            id = std::min(id, GetDlgCtrlID(hWndChild));           // track the smallest in absolute order
+            if (!id) return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient child %p has no control id", hWndChild), bfree(chartTitle, wndTitle));
          }
-         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);        // next child in Z order
+         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);           // next child in Z order
       }
-      free(title);
-      if (id == INT_MAX) return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "no matching MDIClient child window found for \"%s\"", chartDescription));
+      if (id == INT_MAX) {
+         error(ERR_RUNTIME_ERROR, "no matching MDIClient child found for \"%s\"", chartTitle);
+         return _INVALID_HWND(bfree(chartTitle, wndTitle));
+      }
+      free(chartTitle, wndTitle);
 
-      hChartWindow = GetDlgItem(hWndMdi, id);                  // keep chart window (holding the chart AfxFrameOrView)
+      hChartWindow = GetDlgItem(hWndMdi, id);                     // keep chart window (holding the chart AfxFrameOrView)
    }
 
    // expert

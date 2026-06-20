@@ -654,45 +654,45 @@ void WINAPI ReleaseWindowProperties() {
 
 
 /**
- * Compose a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily") and copy it to the passed buffer.
- * If the buffer is too small the string in the buffer is truncated. The string is always terminated with a NUL character.
+ * Return a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily").
  *
  * @param  char* symbol
  * @param  uint  timeframe
- * @param  char* buffer
- * @param  uint  bufferSize
  *
- * @return uint - Amount of copied characters not counting the terminating NUL character or the passed parameter 'bufferSize'
- *                if the buffer is too small and the string in the buffer was truncated. NULL in case of errors.
+ * @return char* - chart title description or a NULL pointer in case of errors
  */
-uint WINAPI ComposeChartTitle(const char* symbol, uint timeframe, char* buffer, uint bufferSize) {
-   uint symbolLength = strlen(symbol);
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return !error(ERR_INVALID_PARAMETER, "invalid parameter symbol: %s", DoubleQuoteStr(symbol));
-   if (!buffer)                                           return !error(ERR_INVALID_PARAMETER, "invalid parameter buffer: %p", buffer);
-   if ((int)bufferSize <= 0)                              return !error(ERR_INVALID_PARAMETER, "invalid parameter bufferSize: %d", bufferSize);
+char* WINAPI MakeChartTitleA(const char* symbol, uint timeframe) {
+   size_t symbolLength = strlen(symbol);
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol);
 
    char* sTimeframe = NULL;
 
    switch (timeframe) {
       case PERIOD_M1 : sTimeframe = "M1";      break;
+      case PERIOD_M2 : sTimeframe = "M2";      break;
+      case PERIOD_M3 : sTimeframe = "M3";      break;
+      case PERIOD_M4 : sTimeframe = "M4";      break;
       case PERIOD_M5 : sTimeframe = "M5";      break;
+      case PERIOD_M6 : sTimeframe = "M6";      break;
+      case PERIOD_M10: sTimeframe = "M10";     break;
+      case PERIOD_M12: sTimeframe = "M12";     break;
       case PERIOD_M15: sTimeframe = "M15";     break;
+      case PERIOD_M20: sTimeframe = "M20";     break;
       case PERIOD_M30: sTimeframe = "M30";     break;
       case PERIOD_H1 : sTimeframe = "H1";      break;
+      case PERIOD_H2 : sTimeframe = "H2";      break;
+      case PERIOD_H3 : sTimeframe = "H3";      break;
       case PERIOD_H4 : sTimeframe = "H4";      break;
+      case PERIOD_H6 : sTimeframe = "H6";      break;
+      case PERIOD_H8 : sTimeframe = "H8";      break;
+      case PERIOD_H12: sTimeframe = "H12";     break;
       case PERIOD_D1 : sTimeframe = "Daily";   break;
       case PERIOD_W1 : sTimeframe = "Weekly";  break;
       case PERIOD_MN1: sTimeframe = "Monthly"; break;
       default:
-         return !error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe);
+         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe);
    }
-   uint chars = snprintf(buffer, bufferSize, "%s,%s", symbol, sTimeframe);
-
-   if (chars < 0 || chars==bufferSize) {
-      buffer[chars-1] = 0;
-      return bufferSize;
-   }
-   return chars;
+   return asformat("%s,%s", symbol, sTimeframe);      // caller must free()
 }
 
 
