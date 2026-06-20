@@ -627,25 +627,50 @@ HWND WINAPI GetTerminalMainWindow() {
    static HWND hWndMain;
 
    if (!hWndMain) {
-      DWORD processId, self = GetCurrentProcessId();
+      DWORD processId = NULL, self = GetCurrentProcessId();
+      HWND hWndNext = NULL, hWndFound = NULL;
       wchar* className = NULL;
+      uint i = 0;
 
-      HWND hWndNext = GetTopWindow(NULL);
-      while (hWndNext) {                        // iterate over all top-level windows
-         GetWindowThreadProcessId(hWndNext, &processId);
-         if (processId == self) {
-            free(className);
-            className = GetClassNameW(hWndNext);
-            if (StrCompare(className, L"MetaQuotes::MetaTrader::4.00")) {
-               break;
+      // MQL scripts run in their own thread. On fast CPUs with multiple cores, a race condition may occur when the
+      // Expander starts or when a script is launched via terminal startup configuration ("start.ini"):
+      //
+      // A non-UI thread is already looking-up the terminal main window, even though the UI thread has not yet had enough
+      // time to create it. This can occur particularly in terminals of build <= 509. Starting with build 600, thread
+      // synchronization has changed.
+      //
+      // Workaround: In such a case, the calling thread enters a brief wait loop. This is not critical, as normal MQL
+      // programs and the UI thread itself never enter this loop.
+
+      while (TRUE) {
+         hWndNext = GetTopWindow(NULL);
+
+         while (hWndNext) {                        // iterate over all top-level windows
+            GetWindowThreadProcessId(hWndNext, &processId);
+            if (processId == self) {
+               free(className);
+               className = GetClassNameW(hWndNext);
+               if (StrCompare(className, L"MetaQuotes::MetaTrader::4.00")) {
+                  hWndFound = hWndNext;
+                  break;
+               }
             }
+            hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
          }
-         hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-      }
-      free(className);
-      if (!hWndNext) return (HWND)!error(ERR_RUNTIME_ERROR, "cannot find terminal main window");
+         free(className);
+         className = NULL;
+         if (hWndFound) break;
 
-      if (!hWndMain) hWndMain = hWndNext;       // another thread may have been faster
+         static int log1 = info("cannot find terminal main window, waiting...");
+         if (i >= 10) {
+            static int log2 = error(ERR_RUNTIME_ERROR, "cannot find terminal main window, giving up");
+            return NULL;
+         }
+         i++;
+         Sleep(100);                               // wait in total 1 sec
+      }
+
+      if (!hWndMain) hWndMain = hWndFound;         // another thread may have been faster
    }
    return hWndMain;
    #pragma EXPANDER_EXPORT
