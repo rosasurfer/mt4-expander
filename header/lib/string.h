@@ -98,7 +98,9 @@ BOOL         WINAPI StrEndsWith(const char* str, const char* suffix);
 BOOL         WINAPI StrEndsWith(const wchar* str, const wchar* suffix);
 BOOL         WINAPI StrEndsWithI(const char* str, const char* suffix);
 BOOL         WINAPI StrEndsWithI(const wchar* str, const wchar* suffix);
-string&      WINAPI StrReplace(string &subject, const string &search, const string &replace, size_t count=INT_MAX);
+
+string       WINAPI strLeftTo(const string &subject, const string &limiter, int count = 1);
+string&      WINAPI strReplace(string &subject, const string &search, const string &replace, size_t count = INT_MAX);
 
 char*        WINAPI strToLower(char* str);
 wchar*       WINAPI strToLower(wchar* str);

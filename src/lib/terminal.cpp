@@ -786,18 +786,15 @@ HWND WINAPI GetTerminalMainWindow() {
       wchar* className = NULL;
       uint i = 0;
 
-      // MQL scripts run in their own thread. On fast CPUs with multiple cores, a race condition may occur when the
-      // Expander starts or when a script is launched via terminal startup configuration ("start.ini"):
+      // MQL scripts run in their own thread. On fast CPUs with multiple cores, the following race condition may occur when
+      // the Expander is loaded early: A non-UI thread is already looking-up the terminal main window, even though the UI
+      // thread has not yet had enough time to create it.
       //
-      // A non-UI thread is already looking-up the terminal main window, even though the UI thread has not yet had enough
-      // time to create it. This can occur particularly in terminals of build <= 509. Starting with build 600, thread
-      // synchronization has changed.
-      //
-      // Workaround: In such a case, the calling thread enters a brief wait loop. This is not critical, as normal MQL
-      // programs and the UI thread itself never enter this loop.
+      // Workaround: In such a case, the calling thread enters a brief wait loop. This is not critical, as MQL programs or
+      // the UI thread itself will never enter this loop.
 
       while (TRUE) {
-         hWndNext = GetTopWindow(NULL);
+         hWndNext = GetTopWindow(NULL);            // TODO: use EnumWindows() as a Z order change will corrupt the result
 
          while (hWndNext) {                        // iterate over all top-level windows
             GetWindowThreadProcessId(hWndNext, &processId);
