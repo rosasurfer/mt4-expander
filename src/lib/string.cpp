@@ -74,7 +74,7 @@ std::istream& getline(std::istream &is, std::string &line) {
       }
       line += (char)ch;
    }
-   return(is);
+   return is;
 
    /*
    char* fileName = "terminal-config.ini";
@@ -142,10 +142,10 @@ int __cdecl CompareMqlStringsA(const void* first, const void* second) {
    MqlStringA* s1 = (MqlStringA*) first;
    MqlStringA* s2 = (MqlStringA*) second;
 
-   if (s1 == s2) return( 0);
-   if (!s1)      return(-1);
-   if (!s2)      return(+1);
-   return(strcmp(s1->value, s2->value));
+   if (s1 == s2) return  0;
+   if (!s1)      return -1;
+   if (!s2)      return +1;
+   return strcmp(s1->value, s2->value);
 }
 
 
@@ -163,10 +163,10 @@ int __cdecl CompareMqlStringsW(const void* first, const void* second) {
    MqlStringW* s1 = (MqlStringW*) first;
    MqlStringW* s2 = (MqlStringW*) second;
 
-   if (s1 == s2) return( 0);
-   if (!s1)      return(-1);
-   if (!s2)      return(+1);
-   return(wstrcmp(s1->value, s2->value));
+   if (s1 == s2) return  0;
+   if (!s1)      return -1;
+   if (!s2)      return +1;
+   return wstrcmp(s1->value, s2->value);
 }
 
 
@@ -179,12 +179,12 @@ int __cdecl CompareMqlStringsW(const void* first, const void* second) {
  * @return BOOL - success status
  */
 BOOL WINAPI SortMqlStringsA(MqlStringA strings[], int size) {
-   if ((uint)strings < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
-   if (size <= 0)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
-   if (size == 1) return(TRUE);           // nothing to do
+   if ((uint)strings < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings);
+   if (size <= 0)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size);
+   if (size == 1) return TRUE;            // nothing to do
 
    qsort(strings, size, sizeof(MqlStringA), CompareMqlStringsA);
-   return(TRUE);
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -198,9 +198,9 @@ BOOL WINAPI SortMqlStringsA(MqlStringA strings[], int size) {
  * @return BOOL - success status
  */
 BOOL WINAPI SortMqlStringsW(MqlStringW strings[], int size) {
-   if ((uint)strings < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings));
-   if (size <= 0)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size));
-   if (size == 1) return(TRUE);           // nothing to do
+   if ((uint)strings < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter strings: 0x%p (not a valid pointer)", strings);
+   if (size <= 0)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter size: %d", size);
+   if (size == 1) return TRUE;            // nothing to do
 
    qsort(strings, size, sizeof(MqlStringW), CompareMqlStringsW);
    return TRUE;
@@ -261,17 +261,18 @@ BOOL WINAPI StrIsNull(const char* value) {
  * @return BOOL
  */
 BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
-   if (!str)          return(FALSE);
-   if (!prefix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix));
-   if (str == prefix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!prefix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %s", prefix);
+   if (str == prefix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = strlen(str);
    uint prefixLen = strlen(prefix);
-   if (!prefixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
+   if (!prefixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\"");
 
-   if (strLen >= prefixLen)
-      return(strncmp(str, prefix, prefixLen) == 0);
-   return(FALSE);
+   if (strLen >= prefixLen) {
+      return (strncmp(str, prefix, prefixLen) == 0);
+   }
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -285,17 +286,18 @@ BOOL WINAPI StrStartsWith(const char* str, const char* prefix) {
  * @return BOOL
  */
 BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
-   if (!str)          return(FALSE);
-   if (!prefix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix));
-   if (str == prefix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!prefix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: %S", prefix);
+   if (str == prefix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = wstrlen(str);
    uint prefixLen = wstrlen(prefix);
-   if (!prefixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\""));
+   if (!prefixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: \"\"");
 
-   if (strLen >= prefixLen)
-      return(wcsncmp(str, prefix, prefixLen) == 0);
-   return(FALSE);
+   if (strLen >= prefixLen) {
+      return (wcsncmp(str, prefix, prefixLen) == 0);
+   }
+   return FALSE;
 }
 
 
@@ -308,17 +310,18 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
  * @return BOOL
  */
 BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
-   if (!str)          return(FALSE);
-   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
-   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!suffix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix);
+   if (str == suffix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = strlen(str);
    uint suffixLen = strlen(suffix);
-   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   if (!suffixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\"");
 
-   if (strLen >= suffixLen)
-      return(strcmp(str + strLen - suffixLen, suffix) == 0);
-   return(FALSE);
+   if (strLen >= suffixLen) {
+      return (strcmp(str + strLen - suffixLen, suffix) == 0);
+   }
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -332,17 +335,18 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
  * @return BOOL
  */
 BOOL WINAPI StrEndsWithI(const char* str, const char* suffix) {
-   if (!str)          return(FALSE);
-   if (!suffix)       return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix));
-   if (str == suffix) return(TRUE);       // if pointers are equal values are too
+   if (!str)          return FALSE;
+   if (!suffix)       return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: %s", suffix);
+   if (str == suffix) return TRUE;        // if pointers are equal values are too
 
    uint strLen    = strlen(str);
    uint suffixLen = strlen(suffix);
-   if (!suffixLen) return(!error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\""));
+   if (!suffixLen) return !error(ERR_INVALID_PARAMETER, "invalid parameter suffix: \"\"");
 
-   if (strLen >= suffixLen)
-      return(stricmp(str + strLen - suffixLen, suffix) == 0);
-   return(FALSE);
+   if (strLen >= suffixLen) {
+      return (stricmp(str + strLen - suffixLen, suffix) == 0);
+   }
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -397,6 +401,54 @@ BOOL WINAPI StrEndsWithI(const wchar* str, const wchar* suffix) {
 
 
 /**
+ * Return the left part of a string up to the specified occurrence of a limiting substring.
+ * The result does not include the limiting substring.
+ *
+ * @param  string subject          - initial string
+ * @param  string limiter          - limiting substring (if empty the entire string is returned)
+ * @param  int    count [optional] - Number of occurrences of the limiting substring (default: 1).
+ *                                    positive: counted from the start of the string
+ *                                    negative: counted from the end of the string
+ *                                    0:        an empty string is returned
+ *                                   If the absolute number exceeds the number of occurrences, the entire string is returned.
+ * @return string - new string
+ */
+string WINAPI strLeftTo(const string &subject, const string &limiter, int count/*= 1*/) {
+   size_t subjectLength = subject.length(), limiterLength = limiter.length();
+
+   if (!subjectLength) return subject;
+   if (!limiterLength) return subject;
+   if (!count)         return string();
+
+   if (count > 0) {
+      size_t offset = 0;
+      for (int i=0; i < count; i++) {
+         size_t pos = subject.find(limiter, offset);
+         if (pos == string::npos) {
+            return subject;                  // fewer occurrences than count
+         }
+         offset = pos + limiterLength;
+      }
+      return subject.substr(0, offset - limiterLength);
+   }
+   else {
+      size_t offset = subjectLength;
+      for (int i=0; i < -count; i++) {
+         if (offset < limiterLength) {
+            return subject;                  // fewer occurrences than count
+         }
+         size_t pos = subject.rfind(limiter, offset - limiterLength);
+         if (pos == string::npos) {
+            return subject;                  // fewer occurrences than count
+         }
+         offset = pos;
+      }
+      return subject.substr(0, offset);
+   }
+}
+
+
+/**
  * Replace a substring of a string by another substring. The function modifies the string.
  *
  * @param  _InOut_ string &subject         - string to process
@@ -406,15 +458,15 @@ BOOL WINAPI StrEndsWithI(const wchar* str, const wchar* suffix) {
  *
  * @return string& - the same string
  */
-string& WINAPI StrReplace(string &subject, const string &search, const string &replace, size_t count/*=INT_MAX*/) {
+string& WINAPI strReplace(string &subject, const string &search, const string &replace, size_t count/*= INT_MAX*/) {
    size_t subjectLen = subject.length();
-   if (!subjectLen) return(subject);
+   if (!subjectLen) return subject;
 
    size_t searchLen = search.length();
-   if (!searchLen) return(subject);
+   if (!searchLen) return subject;
 
    size_t replaceLen = replace.length();
-   if (subjectLen < searchLen || !search.compare(replace)) return(subject);
+   if (subjectLen < searchLen || !search.compare(replace)) return subject;
 
    size_t replacements = 0, pos = 0;
    while (replacements < count && (pos = subject.find(search, pos)) != string::npos) {
@@ -428,7 +480,7 @@ string& WINAPI StrReplace(string &subject, const string &search, const string &r
       pos += replaceLen;
       ++replacements;
    }
-   return(subject);
+   return subject;
 }
 
 
@@ -496,7 +548,7 @@ wstring& WINAPI strToLower(wstring &str) {
    for (size_t i=0, n=str.length(); i < n; i++) {
       str[i] = towlower(str[i]);
    }
-   return(str);
+   return str;
 }
 
 
@@ -576,7 +628,7 @@ wstring& WINAPI strToUpper(wstring &str) {
  * @return char* - the same string
  */
 char* WINAPI strim(char* str) {
-   return(strim_left(strim_right(str)));
+   return strim_left(strim_right(str));
 }
 
 
@@ -588,7 +640,7 @@ char* WINAPI strim(char* str) {
  * @return string& - the same string
  */
 string& WINAPI strim(string &str) {
-   return(strim_left(strim_right(str)));
+   return strim_left(strim_right(str));
 }
 
 
@@ -676,7 +728,7 @@ string& WINAPI strim_right(string &str) {
  * @return wchar* - the same string
  */
 wchar* WINAPI wstrim(wchar* str) {
-   return(wstrim_left(wstrim_right(str)));
+   return wstrim_left(wstrim_right(str));
 }
 
 
@@ -688,7 +740,7 @@ wchar* WINAPI wstrim(wchar* str) {
  * @return wstring& - the same string
  */
 wstring& WINAPI wstrim(wstring &str) {
-   return(wstrim_left(wstrim_right(str)));
+   return wstrim_left(wstrim_right(str));
 }
 
 
@@ -1055,8 +1107,7 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
          return str;
       }
    }
-   error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-16 string to UTF-8: \"%S\"", wstr.c_str());
-   return string();
+   return _empty_str(error(ERR_WIN32_ERROR + GetLastError(), "cannot convert UTF-16 string to UTF-8: \"%S\"", wstr.c_str()));
 }
 
 
@@ -1070,8 +1121,7 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
  * @return char* - formatted string or a NULL pointer in case of errors
  */
 char* __cdecl asformat(const char* format, ...) {
-   if (!format)  return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
-   if (!*format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)");
+   if (!format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
 
    va_list args;
    va_start(args, format);
@@ -1092,15 +1142,14 @@ char* __cdecl asformat(const char* format, ...) {
  * @return wchar* - formatted string or a NULL pointer in case of errors
  */
 wchar* __cdecl asformat(const wchar* format, ...) {
-   if (!format)  return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)"));
-   if (!*format) return((wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)"));
+   if (!format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
 
    va_list args;
    va_start(args, format);
    wchar* result = _asformat(format, args);
    va_end(args);
 
-   return(result);                              // caller must free()
+   return result;                               // caller must free()
 }
 
 
@@ -1112,16 +1161,12 @@ wchar* __cdecl asformat(const wchar* format, ...) {
  * @param  va_list &args  - variable list of arguments (may contain UTF-16 strings)
  *
  * @return char* - formatted string or NULL in case of errors
- *
- * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
- * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 char* WINAPI _asformat(const char* format, const va_list &args) {
-   if (!format)  return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
-   if (!*format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)");
+   if (!format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
 
    uint size = vscprintf(format, args) + 1;     // +1 for the terminating NUL char
-   char* buffer = (char*)malloc(size);
+   char* buffer = (char*) malloc(size);
    if (buffer) {
       vsprintf_s(buffer, size, format, args);
    }
@@ -1137,13 +1182,9 @@ char* WINAPI _asformat(const char* format, const va_list &args) {
  * @param  va_list &args  - variable list of arguments (may contain ANSI strings)
  *
  * @return wchar* - formatted string or NULL in case of errors
- *
- * @see  https://learn.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-170
- * @see  https://www.tutorialspoint.com/format-specifiers-in-c
  */
 wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
-   if (!format)  return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
-   if (!*format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: \"\" (empty)");
+   if (!format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
 
    uint size = vwscprintf(format, args) + 1;       // +1 for the terminating NUL wchar
    wchar* buffer = (wchar*)malloc(size * sizeof(wchar));
