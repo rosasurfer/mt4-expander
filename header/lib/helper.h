@@ -16,7 +16,7 @@ BOOL        WINAPI IsProgramType(int type);
 BOOL        WINAPI IsUIThread(DWORD threadId = NULL);
 BOOL        WINAPI IsVirtualKeyDown(int key);
 BOOL        WINAPI IsWindowAreaVisible(HWND hWnd);
-char*       WINAPI MakeChartTitleA(const char* symbol, uint timeframe);
+string      WINAPI makeChartTitle(const char* symbol, uint timeframe);
 uint        WINAPI MT4InternalMsg();
 uint        WINAPI WM_MT4();
 

@@ -659,11 +659,11 @@ void WINAPI ReleaseWindowProperties() {
  * @param  char* symbol
  * @param  uint  timeframe
  *
- * @return char* - chart title description or a NULL pointer in case of errors
+ * @return string - chart title description or an empty string in case of errors
  */
-char* WINAPI MakeChartTitleA(const char* symbol, uint timeframe) {
+string WINAPI makeChartTitle(const char* symbol, uint timeframe) {
    size_t symbolLength = strlen(symbol);
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol);
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol));
 
    char* sTimeframe = NULL;
 
@@ -690,9 +690,9 @@ char* WINAPI MakeChartTitleA(const char* symbol, uint timeframe) {
       case PERIOD_W1 : sTimeframe = "Weekly";  break;
       case PERIOD_MN1: sTimeframe = "Monthly"; break;
       default:
-         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe);
+         return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe));
    }
-   return asformat("%s,%s", symbol, sTimeframe);      // caller must free()
+   return string(symbol).append(",").append(sTimeframe);
 }
 
 
