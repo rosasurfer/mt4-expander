@@ -67,8 +67,7 @@ int __cdecl _dump(const char* fileName, const char* funcName, uint line, const v
  */
 int __cdecl debug_raw(const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -100,8 +99,7 @@ int __cdecl debug_raw(const char* message, ...) {
  */
 int __cdecl _debug(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -137,8 +135,7 @@ int __cdecl _debug(const char* fileName, const char* funcName, uint line, const 
  */
 int __cdecl _debug(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -180,8 +177,7 @@ int __cdecl _debug(const char* fileName, const char* funcName, uint line, int er
  */
 int __cdecl _info(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -217,8 +213,7 @@ int __cdecl _info(const char* fileName, const char* funcName, uint line, const c
  */
 int __cdecl _info(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -260,8 +255,7 @@ int __cdecl _info(const char* fileName, const char* funcName, uint line, int err
  */
 int __cdecl _notice(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -297,8 +291,7 @@ int __cdecl _notice(const char* fileName, const char* funcName, uint line, const
  */
 int __cdecl _notice(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -340,8 +333,7 @@ int __cdecl _notice(const char* fileName, const char* funcName, uint line, int e
  */
 int __cdecl _warn(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -391,8 +383,7 @@ int __cdecl _warn(const char* fileName, const char* funcName, uint line, const c
  */
 int __cdecl _warn(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg)  msg = "(null)";
-   if (!*msg) msg = "(empty)";
+   if (!msg) msg = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -448,11 +439,10 @@ int __cdecl _warn(const char* fileName, const char* funcName, uint line, int err
  * @return int - the passed error code
  */
 int __cdecl _error(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
-   if (!error) return 0;
+   if (!error) return NO_ERROR;
 
    const char* msg = message;
-   if (!msg)  message = "(null)";
-   if (!*msg) message = "(empty)";
+   if (!msg) message = "(null)";
 
    // format the variable parameters
    va_list args;
@@ -492,6 +482,7 @@ int __cdecl _error(const char* fileName, const char* funcName, uint line, int er
 int         __cdecl _EMPTY       (...) { return EMPTY;        }      // only __cdecl supports variadics
 int         __cdecl _EMPTY_VALUE (...) { return EMPTY_VALUE;  }
 const char* __cdecl _EMPTY_STR   (...) { return "";           }
+string      __cdecl _empty_str   (...) { return string();     }
 HWND        __cdecl _INVALID_HWND(...) { return INVALID_HWND; }
 int         __cdecl _NULL        (...) { return NULL;         }
 bool        __cdecl _true        (...) { return true;         }
