@@ -1232,7 +1232,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       free(wndTitle);
 
       if (!hChartWindow) {
-         return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient: no \"%s\" chart window found", refTitle), EnumChildWindowsToDebug(hWndMdi));
+         return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient: no \"%s\" chart window found", refTitle.c_str()), EnumChildWindowsToDebug(hWndMdi));
       }
    }
 
