@@ -72,7 +72,7 @@ static BOOL WINAPI RegisterWindowEventHook() {
  */
 static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
    switch (type) {
-      case HCBT_CREATEWND: {                 // A window is about to be created.
+      case HCBT_CREATEWND: {                                // A window is about to be created.
          static DWORD debugOptions = GetDebugOptions();
          HWND hWnd = (HWND)wParam;
          LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
@@ -206,25 +206,23 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
 
 
 /**
- * Subclass all existing chart windows. Executed in the UI thread.
+ * Subclass the registered window class for chart windows. Executed in the UI thread.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindows() {
    if (!IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
-   return TRUE;
-}
 
+   // find the window class of chart windows
+   HWND hWndMain    = GetTerminalMainWindow();                   if (!hWndMain)  return FALSE;
+   HWND hWndMdi     = GetDlgItem(hWndMain, IDC_MDICLIENT);       if (!hWndMdi)   return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_MDICLIENT)");
+   HWND hWndChart   = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1); if (!hWndChart) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MDIClient, IDC_MDICLIENT_CHART1)");
+   wchar* className = GetClassNameW(hWndChart);                  if (!className) return FALSE;
+   debug("className(hWndChart) = \"%S\"", className);
 
-/**
- * Subclass a single chart window. Executed in the UI thread.
- *
- * @param  HWND hWnd - chart window
- *
- * @return BOOL - success status
- */
-static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
-   if (!IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   // subclass the window class
+
+   free(className);
    return TRUE;
 }
 

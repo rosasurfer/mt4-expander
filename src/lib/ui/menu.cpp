@@ -23,17 +23,17 @@ BOOL WINAPI IsChartTemplatesMenu(HMENU hMenu) {
       if (!GetMenuItemInfoW(hMenu, i, TRUE, &mi)) return !error(ERR_WIN32_ERROR + GetLastError(), "GetMenuItemInfoW(%p, %d)", hMenu, i);
 
       switch (i) {
-         case 0:        // MENUITEM "&Save Template...", 33220
-            if (mi.wID == ID_CHART_TEMPLATES_SAVE) continue;
+         case 0:
+            if (mi.wID == ID_CHART_TEMPLATES_SAVE) continue;   // MENUITEM "&Save Template...", 33220
             break;
-         case 1:        // MENUITEM "&Load Template...", 35511
-            if (mi.wID == ID_CHART_TEMPLATES_LOAD) continue;
+         case 1:
+            if (mi.wID == ID_CHART_TEMPLATES_LOAD) continue;   // MENUITEM "&Load Template...", 35511
             break;
-         case 2:        // POPUP "Remove Template", has submenu
-            if (mi.hSubMenu) continue;
+         case 2:
+            if (mi.hSubMenu) continue;                         // POPUP "Remove Template", has submenu
             break;
-         case 3:        // MENUITEM SEPARATOR
-            if (mi.fType & MFT_SEPARATOR) continue;
+         case 3:
+            if (mi.fType & MFT_SEPARATOR) continue;            // MENUITEM SEPARATOR
             break;
       }
       return FALSE;
