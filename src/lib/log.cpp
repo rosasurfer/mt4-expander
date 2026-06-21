@@ -68,7 +68,7 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
    string sLoglevel(level==LOG_DEBUG ? "": LoglevelDescriptionA(level));                  // loglevel (LOG_DEBUG is blanked out)
    string sExecPath(master->programName); sExecPath.append("::");                         // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
-   string sMessage(message); StrReplace(StrReplace(sMessage, "\r\n", " "), "\n", " ");    // replace linebreaks with spaces
+   string sMessage(message); strReplace(strReplace(sMessage, "\r\n", " "), "\n", " ");    // replace linebreaks with spaces
    string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // append error description
 
    if (master->testing) {                                                                 // tester:

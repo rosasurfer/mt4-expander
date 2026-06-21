@@ -153,6 +153,7 @@ int __cdecl debug_raw(const char* message, ...);
 int         __cdecl _EMPTY       (...);
 int         __cdecl _EMPTY_VALUE (...);
 const char* __cdecl _EMPTY_STR   (...);
+string      __cdecl _empty_str   (...);
 HWND        __cdecl _INVALID_HWND(...);
 int         __cdecl _NULL        (...);
 bool        __cdecl _true        (...);
