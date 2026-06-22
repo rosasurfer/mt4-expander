@@ -87,10 +87,12 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
          }
 
          // call previous hooks first (MT4 overrides/disables subclassing)
-         LRESULT retNextHook = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
-         if (retNextHook) {
+         LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
+         if (denied) {
             if (!className) className = GetClassNameW(hWnd);
             notice("HCBT_CREATEWND  %p  %S  denied by previous hook", hWnd, className);
+            free(className);
+            return denied;
          }
 
          // subclass chart windows if the feature is enabled (after MT4 hook)
@@ -106,7 +108,7 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
          }
 
          free(className);
-         return retNextHook;
+         return NULL;
       }
    }
    return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
