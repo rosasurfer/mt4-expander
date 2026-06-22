@@ -8,8 +8,11 @@
 
 #include <commctrl.h>
 
+
 #define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the main window
 #define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
+
+#define PROP_WINDOW_SUBCLASSED      L"rsf.MT4Expander.WindowSubclassed"
 
 static HHOOK hUiThreadHook    = NULL;                 // hook handles
 static HHOOK hWindowEventHook = NULL;
@@ -165,9 +168,18 @@ static LRESULT CALLBACK UiThreadHook(int code, WPARAM wParam, LPARAM lParam) {
 static BOOL WINAPI SubclassMainWindow() {
    if (!IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
 
-   if (!SetWindowSubclass(GetTerminalMainWindow(), MainWindowSubclassProc, MAIN_WINDOW_SUBCLASS_ID, 0)) {
+   HWND hWnd = GetTerminalMainWindow();
+   if (!hWnd) return FALSE;
+
+   if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
+      warn("main window %p already subclassed", hWnd);      // accepted but serious: we want to know
+      return TRUE;
+   }
+   if (!SetWindowSubclass(hWnd, MainWindowSubclassProc, MAIN_WINDOW_SUBCLASS_ID, 0)) {
       return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
    }
+   SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
+
    return TRUE;
 }
 
@@ -267,11 +279,15 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
    if (!IsUIThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
    if (!subclassChartWindows) return TRUE;
 
-   // TODO: skip already subclassed windows
-
+   if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
+      notice("chart window %p already subclassed", hWnd);   // accepted but should not happen
+      return TRUE;
+   }
    if (!SetWindowSubclass(hWnd, ChartWindowSubclassProc, CHART_WINDOW_SUBCLASS_ID, 0)) {
       return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
    }
+   SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
+
    debug("chart window %p subclassed", hWnd);
    return TRUE;
 }
