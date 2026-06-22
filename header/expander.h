@@ -26,7 +26,7 @@
 #include <string>
 
 
-// type aliases
+// type and function aliases
 typedef unsigned   char      uchar;
 typedef            wchar_t   wchar;
 typedef unsigned   int       uint;
@@ -127,7 +127,7 @@ enum UninitializeReason {
 };
 
 
-// Debugging and error handling
+// debugging and error handling
 #define dump(...)   _dump  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define debug(...)  _debug (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define info(...)   _info  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -149,7 +149,7 @@ int __cdecl _error (const char* fileName, const char* funcName, uint line, int e
 int __cdecl debug_raw(const char* message, ...);
 
 
-// Helper functions returning constant values.
+// helper functions returning constant values
 int         __cdecl _EMPTY       (...);
 int         __cdecl _EMPTY_VALUE (...);
 const char* __cdecl _EMPTY_STR   (...);
@@ -166,7 +166,7 @@ time32      __cdecl _NaT32       (...);
 time64      __cdecl _NaT64       (...);
 
 
-// Helper functions returning variable values.
+// helper functions returning variable values
 bool   __cdecl _bool  (bool   value, ...);
 BOOL   __cdecl _BOOL  (BOOL   value, ...);
 char   __cdecl _char  (char   value, ...);

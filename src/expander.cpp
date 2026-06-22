@@ -1,9 +1,7 @@
 #include "expander.h"
 #include "lib/conversion.h"
 #include "lib/executioncontext.h"
-#include "lib/helper.h"
 #include "lib/string.h"
-
 
 extern MqlInstanceList g_mqlInstances;       // all MQL program instances
 
