@@ -38,8 +38,6 @@ BOOL WINAPI IsChartTemplatesMenu(HMENU hMenu) {
       }
       return FALSE;
    }
-
-   debug("WM_INITMENUPOPUP \"Chart->Templates\"");
    return TRUE;
 }
 
