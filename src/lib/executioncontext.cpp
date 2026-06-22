@@ -1152,11 +1152,8 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
    //  We are either not in tester (indicator or script in online chart).
    //  Or we are a standalone indicator in a tester template (on VisualMode=off and on Optimization=1 the indicator's init cycle is still executed).
 
-   HWND hWndMain = GetTerminalMainWindow();
-   if (!hWndMain) return INVALID_HWND;
-
-   HWND hWndMdi  = GetDlgItem(hWndMain, IDC_MDICLIENT);
-   if (!hWndMdi) return _INVALID_HWND(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_MDICLIENT)"));
+   HWND hWndMdi = GetTerminalMdiWindow();                         // container holding all chart windows
+   if (!hWndMdi) return INVALID_HWND;
 
    HWND hChartWindow = NULL;                                      // chart window holding the chart AfxFrameOrView
 

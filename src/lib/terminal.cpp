@@ -675,6 +675,28 @@ HWND WINAPI GetTerminalMainWindow() {
 
 
 /**
+ * Return the window handle of the application's "MDIClient" window (container for chart windows).
+ *
+ * @return HWND - handle or NULL (0) in case of errors
+ */
+HWND WINAPI GetTerminalMdiWindow() {
+   static HWND hWndMdi;
+
+   if (!hWndMdi) {
+      HWND hWndMain = GetTerminalMainWindow();
+      if (!hWndMain) return INVALID_HWND;
+
+      HWND hWndFound = GetDlgItem(hWndMain, IDC_MDICLIENT);
+      if (!hWndFound) return _INVALID_HWND(error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_MDICLIENT)"));
+
+      if (!hWndMdi) hWndMdi = hWndFound;           // another thread may have been faster
+   }
+   return hWndMdi;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
  * Return the name of the terminal's installation directory (same value as returned by TerminalInfoString(TERMINAL_PATH)
  * introduced in MQL4.5).
  *

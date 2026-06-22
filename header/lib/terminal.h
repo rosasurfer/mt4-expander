@@ -21,6 +21,7 @@ const wchar* WINAPI GetTerminalDataPathW();
 const char*  WINAPI GetTerminalFileNameA();
 const wchar* WINAPI GetTerminalFileNameW();
 HWND         WINAPI GetTerminalMainWindow();
+HWND         WINAPI GetTerminalMdiWindow();
 const char*  WINAPI GetTerminalPathA();
 const wchar* WINAPI GetTerminalPathW();
 const char*  WINAPI GetTerminalRoamingDataPathA();

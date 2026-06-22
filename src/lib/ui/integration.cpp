@@ -1,5 +1,6 @@
 #include "expander.h"
 #include "lib/helper.h"
+#include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/win32.h"
 #include "lib/ui/integration.h"
@@ -12,6 +13,8 @@
 
 static HHOOK hUiThreadHook    = NULL;                 // hook handles
 static HHOOK hWindowEventHook = NULL;
+
+static BOOL subclassChartWindows = TRUE;              // whether to subclass chart windows
 
 
 /**
@@ -40,7 +43,7 @@ BOOL WINAPI SetupUiIntegration() {
       done = TRUE;
       if (!SubclassMainWindow())      return FALSE;
       if (!SubclassChartWindows())    return FALSE;
-      if (!RegisterWindowEventHook()) return FALSE;   // in the UI thread and late (after MT4 installed its own blocking hook)
+      if (!RegisterWindowEventHook()) return FALSE;   // in the UI thread and after MT4 installed its own blocking hook
    }
    return TRUE;
 }
@@ -71,22 +74,39 @@ static BOOL WINAPI RegisterWindowEventHook() {
  */
 static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
    switch (type) {
-      case HCBT_CREATEWND: {                                // A window is about to be created.
-         static DWORD debugOptions = GetDebugOptions();
+      case HCBT_CREATEWND: {                                  // a window is about to be created
          HWND hWnd = (HWND)wParam;
-         LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
+         CREATESTRUCT* cs = ((CBT_CREATEWND*)lParam)->lpcs;
+         wchar* className = NULL;
 
-         if (denied) {
-            wchar* className = GetClassNameW(hWnd);
-            notice("HCBT_CREATEWND   %p  \"%S\" denied by previous hook", hWnd, className);
-            free(className);
+         // log if the debug feature is enabled
+         static DWORD debugOptions = GetDebugOptions();
+         if (debugOptions & OPTION_DEBUG_CREATE_WINDOW) {
+            if (!className) className = GetClassNameW(hWnd);
+            debug(" HCBT_CREATEWND  %p  %S", hWnd, className);
          }
-         else if (debugOptions & OPTION_DEBUG_CREATE_WINDOW) {
-            wchar* className = GetClassNameW(hWnd);
-            debug("HCBT_CREATEWND   %p  \"%S", hWnd, className);
-            free(className);
+
+         // call previous hooks first (MT4 overrides/disables subclassing)
+         LRESULT retNextHook = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
+         if (retNextHook) {
+            if (!className) className = GetClassNameW(hWnd);
+            notice("HCBT_CREATEWND  %p  %S  denied by previous hook", hWnd, className);
          }
-         return denied;
+
+         // subclass chart windows if the feature is enabled (after MT4 hook)
+         if (subclassChartWindows) {
+            static HWND hWndMdi = GetTerminalMdiWindow();
+            uint ctrlId = (uint)cs->hMenu;
+
+            if (hWndMdi && cs->hwndParent == hWndMdi && cs->style & WS_CHILD) {
+               if (ctrlId >= IDC_MDICLIENT_CHART1 && ctrlId < IDC_MDICLIENT_CHART1 + 128) {  // current limit: 100
+                  SubclassChartWindow(hWnd);
+               }
+            }
+         }
+
+         free(className);
+         return retNextHook;
       }
    }
    return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
@@ -207,29 +227,49 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
 
 
 /**
- * Subclass all chart windows. Executed in the UI thread.
+ * Subclass all chart windows if the feature is enabled. Executed in the UI thread.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindows() {
-   if (!IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUIThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!subclassChartWindows) return TRUE;
 
    // subclass existing chart windows
-   HWND hWndMain  = GetTerminalMainWindow();                   if (!hWndMain)  return FALSE;
-   HWND hWndMdi   = GetDlgItem(hWndMain, IDC_MDICLIENT);       if (!hWndMdi)   return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_MDICLIENT)");
-   HWND hWndChart = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1); if (!hWndChart) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MDIClient, IDC_MDICLIENT_CHART1)");
-   int i = 0;
+   HWND hWndMdi = GetTerminalMdiWindow();
+   if (!hWndMdi) return FALSE;
 
+   HWND hWndChart = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1);
+   if (!hWndChart) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MDIClient, IDC_MDICLIENT_CHART1)");
+
+   int i = 0;
    while (hWndChart) {
-      if (!SetWindowSubclass(hWndChart, ChartWindowSubclassProc, CHART_WINDOW_SUBCLASS_ID, 0)) {
-         return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
-      }
-      debug("chart window %p subclassed", hWndChart);
+      if (!SubclassChartWindow(hWndChart)) return FALSE;
       i++;
       hWndChart = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1 + i);
    }
 
-   // Subclassing the chart window class gets overwritten by MT4. New chart windows will be subclassed by the CBT hook.
+   // new chart windows will be subclassed by the CBT hook (MT4 overrides/disables class subclassing)
+   return TRUE;
+}
+
+
+/**
+ * Subclass a single chart window if the feature is enabled. Executed in the UI thread.
+ *
+ * @param  HWND hWnd - chart window
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
+   if (!IsUIThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!subclassChartWindows) return TRUE;
+
+   // TODO: skip already subclassed windows
+
+   if (!SetWindowSubclass(hWnd, ChartWindowSubclassProc, CHART_WINDOW_SUBCLASS_ID, 0)) {
+      return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+   }
    return TRUE;
 }
 
@@ -249,9 +289,13 @@ static BOOL WINAPI SubclassChartWindows() {
 static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
    switch (msg) {
       case WM_COMMAND: {
-         wchar* title = GetInternalWindowTextW(hWnd);
-         debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, title, LOWORD(wParam), lParam);
-         free(title);
+         static DWORD debugOptions = GetDebugOptions();
+
+         if (debugOptions & OPTION_DEBUG_WM_COMMAND) {
+            wchar* title = GetInternalWindowTextW(hWnd);
+            debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, title, LOWORD(wParam), lParam);
+            free(title);
+         }
          break;
       }
 
@@ -262,9 +306,6 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
             debug("WM_INITMENUPOPUP \"Chart->Templates\"");
             RebuildChartTemplatesMenu(hMenu);
-         }
-         else {
-            debug("WM_INITMENUPOPUP");
          }
          break;
       }
