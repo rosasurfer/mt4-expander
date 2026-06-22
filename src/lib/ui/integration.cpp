@@ -261,7 +261,11 @@ static BOOL WINAPI SubclassChartWindows() {
    if (!hWndMdi) return FALSE;
 
    HWND hWndChart = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1);
-   if (!hWndChart) return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MDIClient, IDC_MDICLIENT_CHART1)");
+   if (!hWndChart) {
+      DWORD error = GetLastError();
+      if (error == ERROR_CONTROL_ID_NOT_FOUND) return TRUE;    // no chart currently open
+      return !error(ERR_WIN32_ERROR + error, "GetDlgItem(MDIClient, IDC_MDICLIENT_CHART1)");
+   }
 
    int i = 0;
    while (hWndChart) {
