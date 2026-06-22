@@ -97,7 +97,7 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
 
          // subclass chart windows if the feature is enabled (after MT4 hook)
          if (subclassChartWindows) {
-            static HWND hWndMdi = GetTerminalMdiWindow();
+            static HWND hWndMdi = NULL; if (!hWndMdi) hWndMdi = GetTerminalMdiWindow();      // retry on error
             uint ctrlId = (uint)cs->hMenu;
 
             if (hWndMdi && cs->hwndParent == hWndMdi && cs->style & WS_CHILD) {
@@ -198,24 +198,24 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
             debug("WM_INITMENUPOPUP \"Chart->Templates\"");
-            RebuildChartTemplatesMenu(hMenu);
-         }
-         break;
+            RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()
+         }                                                     // - adds MFT_OWNERDRAW to mi.fType of all items
+         break;                                                // - sets mi.dwItemData of all items to a shared (same) pointer
       }
 
-      case WM_QUERYENDSESSION: {                   // Windows: "Are you ready to shut down?"
-         if (lParam & ENDSESSION_LOGOFF) {}        // user logoff
-         else                            {}        // system shutdown/restart
+      case WM_QUERYENDSESSION: {                               // Windows: "Are you ready to shut down?"
+         if (lParam & ENDSESSION_LOGOFF) {}                    // user logoff
+         else                            {}                    // system shutdown/restart
          debug("WM_QUERYENDSESSION %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
          break;
       }
 
-      case WM_ENDSESSION: {                        // workaround for terminal bug https://github.com/rosasurfer/mt4-expander/issues/26
-         if (wParam) {                             // Windows: "Logoff/shutdown is happening now. You have ~5 seconds."
-            if (lParam & ENDSESSION_LOGOFF) {}     // user logoff
-            else                            {}     // system shutdown/restart
+      case WM_ENDSESSION: {                                    // workaround for terminal bug https://github.com/rosasurfer/mt4-expander/issues/26
+         if (wParam) {                                         // Windows: "Logoff/shutdown is happening now. You have ~5 seconds."
+            if (lParam & ENDSESSION_LOGOFF) {}                 // user logoff
+            else                            {}                 // system shutdown/restart
             debug("WM_ENDSESSION %s", lParam & ENDSESSION_LOGOFF ? "logoff" : "shutdown");
-         } // else                                 // logoff/shutdown was cancelled
+         } // else                                             // logoff/shutdown was cancelled
          break;
       }
 
@@ -272,6 +272,7 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
    if (!SetWindowSubclass(hWnd, ChartWindowSubclassProc, CHART_WINDOW_SUBCLASS_ID, 0)) {
       return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
    }
+   debug("chart window %p subclassed", hWnd);
    return TRUE;
 }
 
@@ -307,9 +308,9 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
             debug("WM_INITMENUPOPUP \"Chart->Templates\"");
-            RebuildChartTemplatesMenu(hMenu);
-         }
-         break;
+            RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()
+         }                                                     // - adds MFT_OWNERDRAW to mi.fType of all items
+         break;                                                // - sets mi.dwItemData of all items to a shared (same) pointer
       }
 
       case WM_NCDESTROY: {

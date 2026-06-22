@@ -130,7 +130,7 @@ BOOL WINAPI IsChartTemplateSeparatorName(const wstring &label) {
  *
  * @return BOOL - success status
  */
-BOOL WINAPI dumpMenu(HMENU hMenu) {
+BOOL WINAPI DumpMenu(HMENU hMenu) {
    int size = GetMenuItemCount(hMenu);
    if (size < 0) return !error(ERR_WIN32_ERROR + GetLastError(), "GetMenuItemCount(hMenu=%p)", hMenu);
 
@@ -139,12 +139,12 @@ BOOL WINAPI dumpMenu(HMENU hMenu) {
 
       MENUITEMINFOW mi = {};
       mi.cbSize = sizeof(mi);
-      mi.fMask = MIIM_FTYPE | MIIM_ID | MIIM_SUBMENU | MIIM_STRING;
+      mi.fMask = MIIM_FTYPE | MIIM_ID | MIIM_SUBMENU | MIIM_STRING | MIIM_DATA;
       mi.dwTypeData = text;
       mi.cch = countof(text);
       if (!GetMenuItemInfoW(hMenu, i, TRUE, &mi)) return !error(ERR_WIN32_ERROR + GetLastError(), "GetMenuItemInfoW(%p, i=%d)", hMenu, i);
 
-      debug("%p  %d  \"%S\" (type=%d, id=%d, hSubMenu=%p)", hMenu, i, text, mi.fType, mi.wID, mi.hSubMenu);
+      debug("%p  %d  \"%S\" (type=%d, item=%p, id=%d, hSubMenu=%p)", hMenu, i, text, mi.fType, mi.dwItemData, mi.wID, mi.hSubMenu);
    }
    return TRUE;
 }
