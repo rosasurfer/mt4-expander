@@ -129,6 +129,10 @@ DWORD WINAPI GetCliOptions() {
             _options |= OPTION_DEBUG_ACCOUNT_SERVER;
             continue;
          }
+         if (StrCompare(argv[i], L"/rsf:debug-charttemplates")) {
+            _options |= OPTION_DEBUG_CHART_TEMPLATES;
+            continue;
+         }
          if (StrCompare(argv[i], L"/rsf:debug-createobject")) {
             _options |= OPTION_DEBUG_CREATE_OBJECT;
             continue;

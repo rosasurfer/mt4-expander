@@ -201,9 +201,10 @@ static BOOL WINAPI SubclassMainWindow() {
  * @return LRESULT - depends on the message
  */
 static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
+   static DWORD debugOptions = GetDebugOptions();
+
    switch (msg) {
       case WM_COMMAND: {
-         static DWORD debugOptions = GetDebugOptions();
          if (debugOptions & OPTION_DEBUG_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
          break;
       }
@@ -213,7 +214,9 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
          BOOL isSystemMenu = HIWORD(lParam);
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
-            debug("WM_INITMENUPOPUP \"Chart->Templates\"");
+            if (debugOptions & OPTION_DEBUG_CHART_TEMPLATES) {
+               debug("WM_INITMENUPOPUP \"Chart->Templates\"");
+            }
             RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()
          }                                                     // - adds MFT_OWNERDRAW to mi.fType of all items
          break;                                                // - sets mi.dwItemData of all items to a shared (same) pointer
@@ -313,10 +316,10 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
  * @return LRESULT - depends on the message
  */
 static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
+   static DWORD debugOptions = GetDebugOptions();
+
    switch (msg) {
       case WM_COMMAND: {
-         static DWORD debugOptions = GetDebugOptions();
-
          if (debugOptions & OPTION_DEBUG_WM_COMMAND) {
             wchar* title = GetInternalWindowTextW(hWnd);
             debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, title, LOWORD(wParam), lParam);
@@ -330,7 +333,9 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
          BOOL isSystemMenu = HIWORD(lParam);
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
-            debug("WM_INITMENUPOPUP \"Chart->Templates\"");
+            if (debugOptions & OPTION_DEBUG_CHART_TEMPLATES) {
+               debug("WM_INITMENUPOPUP \"Chart->Templates\"");
+            }
             RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()
          }                                                     // - adds MFT_OWNERDRAW to mi.fType of all items
          break;                                                // - sets mi.dwItemData of all items to a shared (same) pointer
