@@ -115,6 +115,7 @@
 #define OPTION_DEBUG_EXECUTION_CONTEXT         32        // option "/rsf:debug-ec"
 #define OPTION_DEBUG_INDICATOR_LIST            64        // option "/rsf:debug-indicatorlist"
 #define OPTION_DEBUG_WM_COMMAND               128        // option "/rsf:debug-wmcommand"
+#define OPTION_DEBUG_SUBCLASS                 256        // option "/rsf:debug-subclass"
 
 
 // window property names

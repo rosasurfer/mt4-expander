@@ -172,7 +172,7 @@ static BOOL WINAPI SubclassMainWindow() {
    if (!hWnd) return FALSE;
 
    if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
-      warn("main window %p already subclassed", hWnd);      // accepted but serious: we want to know
+      warn("main window %p already subclassed", hWnd);      // accepted but an issue: we want to know
       return TRUE;
    }
    if (!SetWindowSubclass(hWnd, MainWindowSubclassProc, MAIN_WINDOW_SUBCLASS_ID, 0)) {
@@ -180,6 +180,10 @@ static BOOL WINAPI SubclassMainWindow() {
    }
    SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
 
+   static DWORD debugOptions = GetDebugOptions();
+   if (debugOptions & OPTION_DEBUG_SUBCLASS) {
+      debug("main window %p subclassed", hWnd);
+   }
    return TRUE;
 }
 
@@ -263,7 +267,7 @@ static BOOL WINAPI SubclassChartWindows() {
       hWndChart = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1 + i);
    }
 
-   // new chart windows will be subclassed by the CBT hook (MT4 overrides/disables class subclassing)
+   // new chart windows will be subclassed by the CBT hook (MT4 prevents class subclassing)
    return TRUE;
 }
 
@@ -288,7 +292,10 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
    }
    SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
 
-   debug("chart window %p subclassed", hWnd);
+   static DWORD debugOptions = GetDebugOptions();
+   if (debugOptions & OPTION_DEBUG_SUBCLASS) {
+      debug("chart window %p subclassed", hWnd);
+   }
    return TRUE;
 }
 

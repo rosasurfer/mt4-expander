@@ -145,6 +145,10 @@ DWORD WINAPI GetCliOptions() {
             _options |= OPTION_DEBUG_INDICATOR_LIST;
             continue;
          }
+         if (StrCompare(argv[i], L"/rsf:debug-subclass")) {
+            _options |= OPTION_DEBUG_SUBCLASS;
+            continue;
+         }
          if (StrCompare(argv[i], L"/rsf:debug-wmcommand")) {
             _options |= OPTION_DEBUG_WM_COMMAND;
             continue;
