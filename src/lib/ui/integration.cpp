@@ -325,9 +325,7 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
    switch (msg) {
       case WM_COMMAND: {
          if (debugOptions & OPTION_DEBUG_WM_COMMAND) {
-            wchar* title = GetInternalWindowTextW(hWnd);
-            debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, title, LOWORD(wParam), lParam);
-            free(title);
+            debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, getInternalWindowTextW(hWnd).c_str(), LOWORD(wParam), lParam);
          }
          break;
       }

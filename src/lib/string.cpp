@@ -449,6 +449,54 @@ string WINAPI strLeftTo(const string &subject, const string &limiter, int count/
 
 
 /**
+ * Return the left part of a string up to the specified occurrence of a limiting substring.
+ * The result does not include the limiting substring.
+ *
+ * @param  wstring subject          - initial string
+ * @param  wstring limiter          - limiting substring (if empty the entire string is returned)
+ * @param  int     count [optional] - Number of occurrences of the limiting substring (default: 1).
+ *                                     positive: counted from the start of the string
+ *                                     negative: counted from the end of the string
+ *                                     0:        an empty string is returned
+ *                                    If the absolute number exceeds the number of occurrences, the entire string is returned.
+ * @return wstring - new string
+ */
+wstring WINAPI strLeftTo(const wstring &subject, const wstring &limiter, int count/*= 1*/) {
+   size_t subjectLength = subject.length(), limiterLength = limiter.length();
+
+   if (!subjectLength) return subject;
+   if (!limiterLength) return subject;
+   if (!count)         return wstring();
+
+   if (count > 0) {
+      size_t offset = 0;
+      for (int i=0; i < count; i++) {
+         size_t pos = subject.find(limiter, offset);
+         if (pos == string::npos) {
+            return subject;                  // fewer occurrences than count
+         }
+         offset = pos + limiterLength;
+      }
+      return subject.substr(0, offset - limiterLength);
+   }
+   else {
+      size_t offset = subjectLength;
+      for (int i=0; i < -count; i++) {
+         if (offset < limiterLength) {
+            return subject;                  // fewer occurrences than count
+         }
+         size_t pos = subject.rfind(limiter, offset - limiterLength);
+         if (pos == string::npos) {
+            return subject;                  // fewer occurrences than count
+         }
+         offset = pos;
+      }
+      return subject.substr(0, offset);
+   }
+}
+
+
+/**
  * Replace a substring of a string by another substring. The function modifies the string.
  *
  * @param  _InOut_ string &subject         - string to process

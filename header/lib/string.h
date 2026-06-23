@@ -100,6 +100,7 @@ BOOL         WINAPI StrEndsWithI(const char* str, const char* suffix);
 BOOL         WINAPI StrEndsWithI(const wchar* str, const wchar* suffix);
 
 string       WINAPI strLeftTo(const string &subject, const string &limiter, int count = 1);
+wstring      WINAPI strLeftTo(const wstring &subject, const wstring &limiter, int count = 1);
 string&      WINAPI strReplace(string &subject, const string &search, const string &replace, size_t count = INT_MAX);
 
 char*        WINAPI strToLower(char* str);

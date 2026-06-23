@@ -150,20 +150,22 @@ int __cdecl debug_raw(const char* message, ...);
 
 
 // helper functions returning constant values
-int         __cdecl _EMPTY       (...);
-int         __cdecl _EMPTY_VALUE (...);
-const char* __cdecl _EMPTY_STR   (...);
-string      __cdecl _empty_str   (...);
-HWND        __cdecl _INVALID_HWND(...);
-int         __cdecl _NULL        (...);
-bool        __cdecl _true        (...);
-BOOL        __cdecl _TRUE        (...);
-bool        __cdecl _false       (...);
-BOOL        __cdecl _FALSE       (...);
-color       __cdecl _CLR_NONE    (...);
-color       __cdecl _NaC         (...);
-time32      __cdecl _NaT32       (...);
-time64      __cdecl _NaT64       (...);
+int          __cdecl _EMPTY       (...);
+int          __cdecl _EMPTY_VALUE (...);
+const char*  __cdecl _EMPTY_STR   (...);
+const wchar* __cdecl _EMPTY_WSTR  (...);
+string       __cdecl _empty_str   (...);
+wstring      __cdecl _empty_wstr  (...);
+HWND         __cdecl _INVALID_HWND(...);
+int          __cdecl _NULL        (...);
+bool         __cdecl _true        (...);
+BOOL         __cdecl _TRUE        (...);
+bool         __cdecl _false       (...);
+BOOL         __cdecl _FALSE       (...);
+color        __cdecl _CLR_NONE    (...);
+color        __cdecl _NaC         (...);
+time32       __cdecl _NaT32       (...);
+time64       __cdecl _NaT64       (...);
 
 
 // helper functions returning variable values

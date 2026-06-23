@@ -47,7 +47,7 @@ char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
             string fullFilename = string(GetHistoryRootPathA()).append("\\").append(dirName).append("\\").append(filename);
             if (IsFileA(fullFilename.c_str(), MODE_SYSTEM)) {
                hstDirectory = dirName;
-               if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR + GetLastError(), "cannot delete file %s", DoubleQuoteStr(fullFilename.c_str()));
+               if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR + GetLastError(), "cannot delete file \"%s\"", fullFilename.c_str());
                break;
             }
          }
@@ -1018,27 +1018,24 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    HWND hWndAlert = NULL, hWndNext = GetTopWindow(NULL);
    DWORD processId, self = GetCurrentProcessId();
-   wchar *wndTitle = NULL, *className = NULL;
+   wchar *className = NULL;
 
    // enumerate top-level windows
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
       if (processId == self) {                              // the window belongs to us
-         free(wndTitle);
-         wndTitle = GetInternalWindowTextW(hWndNext);
-         if (!wndTitle) return FALSE;
-
+         wstring wndTitle = getInternalWindowTextW(hWndNext);
          free(className);
          className = GetClassNameW(hWndNext);               // TODO: because of i18n we can't rely on the window's text
 
-         if (StrCompare(wndTitle, L"Alert") && StrCompare(className, L"#32770")) {
+         if (wndTitle == L"Alert" && StrCompare(className, L"#32770")) {
             hWndAlert = hWndNext;
             break;
          }
       }
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    }
-   free(wndTitle, className);
+   free(className);
 
    if (!hWndAlert) return _FALSE(debug("\"Alert\" dialog window not found"));
 

@@ -68,8 +68,8 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
          if (!wndClass) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
 
          SetLastError(NO_ERROR);
-         wchar* wndTitle = GetInternalWindowTextW(hWnd);
-         if (!wndTitle) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())), bfree(wndClass));
+         wstring wndTitle = getInternalWindowTextW(hWnd);
+         if (GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())), bfree(wndClass));
 
          const char* sType = "";
          if      (hWnd == hWndDesktop)       sType = " (desktop)";
@@ -79,15 +79,15 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
          int ctrlId = GetDlgCtrlID(hWnd);
          if (!ctrlId) {
             int error = GetLastError();
-            if (error) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(error)), bfree(wndClass, wndTitle));
+            if (error) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(error)), bfree(wndClass));
          }
          if (!hWndParent || hWndParent == hWndDesktop) {
             ctrlId = 0;
          }
          char* sCtrlId = asformat(" (id %d)", ctrlId);
 
-         debug_raw("  %s%s%p: %S \"%S\"%s%s", spaces.c_str(), marker, hWnd, wndClass, wndTitle, sType, ctrlId ? sCtrlId : "");
-         free(wndClass, wndTitle, sCtrlId);
+         debug_raw("  %s%s%p: %S \"%S\"%s%s", spaces.c_str(), marker, hWnd, wndClass, wndTitle.c_str(), sType, ctrlId ? sCtrlId : "");
+         free(wndClass, sCtrlId);
          int count = !isRoot;
 
          // enumerate child windows

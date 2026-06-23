@@ -106,14 +106,14 @@ time32 WINAPI Tester_GetStartDate() {
 
    wchar* className = GetClassNameW(hWndNext);
    if (!StrCompare(className, L"SysDateTimePick32")) {
-      error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className));
+      error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p %S \"%S\"", hWndNext, className, getInternalWindowTextW(hWndNext).c_str());
       return _NULL(bfree(className));
    }
    free(className);
 
-   wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
+   wchar* wndTitle = GetWindowTextW(hWndNext);        // class SysDateTimePick32 can't be read using GetInternalWindowText()
    if (!wndTitle || wstrlen(wndTitle) < 10) {
-      error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"From date\" control: %S", DoubleQuoteStr(wndTitle));
+      error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"From date\" control: \"%S\"", wndTitle);
       return _NULL(bfree(wndTitle));
    }
 
@@ -151,11 +151,17 @@ time32 WINAPI Tester_GetEndDate() {
    if (!hWndNext) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) found");
 
    wchar* className = GetClassNameW(hWndNext);
-   if (!StrCompare(className, L"SysDateTimePick32")) return _NULL(error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p  title=%S  class=%S", hWndNext, DoubleQuoteStr(GetInternalWindowTextW(hWndNext)), DoubleQuoteStr(className)), bfree(className));
+   if (!StrCompare(className, L"SysDateTimePick32")) {
+      error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p %S \"%S\"", hWndNext, className, getInternalWindowTextW(hWndNext).c_str());
+      return _NULL(bfree(className));
+   }
    free(className);
 
-   wchar* wndTitle = GetWindowTextW(hWndNext);        // class "SysDateTimePick32" can't be read using GetInternalWindowText()
-   if (!wndTitle || wstrlen(wndTitle) < 10) return _NULL(error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"To date\" control: %S", DoubleQuoteStr(wndTitle)), bfree(wndTitle));
+   wchar* wndTitle = GetWindowTextW(hWndNext);        // class SysDateTimePick32 can't be read using GetInternalWindowText()
+   if (!wndTitle || wstrlen(wndTitle) < 10) {
+      error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: unexpected text of \"To date\" control: \"%S\"", wndTitle);
+      return _NULL(bfree(wndTitle));
+   }
 
    wchar* sDate = wndTitle;
    sDate[4] = sDate[7] = '\0';                        // string format: 2018.01.01

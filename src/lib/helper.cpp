@@ -47,13 +47,8 @@ DWORD WINAPI GetLastWin32Error() {
  * @return char* - text (may be empty) or a NULL pointer in case of errors
  */
 char* WINAPI GetInternalWindowTextA(HWND hWnd) {
-   wchar* utf16Text = GetInternalWindowTextW(hWnd);
-   if (!utf16Text) return NULL;
-
-   char* ansiText = utf16ToAnsi(utf16Text);
-   free(utf16Text);
-
-   return ansiText;               // caller must free()
+   string text = getInternalWindowTextA(hWnd);
+   return sdup(text.c_str());                            // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -64,27 +59,53 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  *
  * @param  HWND hWnd - window handle
  *
- * @return wchar* - text (may be empty) or a NULL pointer in case of errors
+ * @return string - text or an empty string in case of errors; call GetLastError() for details
+ */
+string WINAPI getInternalWindowTextA(HWND hWnd) {
+   wstring text = getInternalWindowTextW(hWnd);
+   return utf16ToAnsi(text);
+}
+
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
+ *
+ * @param  HWND hWnd - window handle
+ *
+ * @return wchar* - text or a NULL pointer in case of errors
  */
 wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
-   if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
+   wstring text = getInternalWindowTextW(hWnd);
+   return wsdup(text.c_str());                           // caller must free()
+   #pragma EXPANDER_EXPORT
+}
 
-   SetLastError(NO_ERROR);
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
+ *
+ * @param  HWND hWnd - window handle
+ *
+ * @return wstring - text or an empty string in case of errors; call GetLastError() for details
+ */
+wstring WINAPI getInternalWindowTextW(HWND hWnd) {
    wchar* buffer = NULL;
    int chars = 64, copiedChars = chars;
 
-   while (copiedChars >= chars-1) {                      // if (length == size-1) the string may have been truncated
+   SetLastError(NO_ERROR);
+   while (copiedChars >= chars-1) {                      // if (length == chars-1) the string may have been truncated
       chars <<= 1;                                       // double the length (starts with 128 chars)
-      buffer = (wchar*) alloca(chars * sizeof(wchar));   // on the stack
+      buffer = (wchar*) alloca(chars * sizeof(wchar));
       copiedChars = InternalGetWindowText(hWnd, buffer, chars);
    }
 
    if (!copiedChars) {
       DWORD error = GetLastError();
-      if (error) return (wchar*)!error(ERR_WIN32_ERROR + error, "InternalGetWindowText()");
+      if (error) return _empty_wstr(error(ERR_WIN32_ERROR + error, "InternalGetWindowText()"));
    }
-   return wsdup(buffer);                                 // caller must free()
-   #pragma EXPANDER_EXPORT
+   return wstring(buffer);
 }
 
 

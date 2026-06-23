@@ -1203,7 +1203,6 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       // a script's chart window always exists, if no other window matches, the window with an empty title must be the script's
       // chart window.
 
-      char* wndTitle = NULL;
       string refTitle = MakeChartTitle(symbol, timeframe);
 
       // iterate over all chart windows in creation order (using Z order can corrupt the result)
@@ -1211,22 +1210,22 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       int i = 0;
 
       while (hWndChild = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1 + i)) {
-         free(wndTitle);
-         wndTitle = GetInternalWindowTextA(hWndChild);
-         if (!wndTitle) return INVALID_HWND;
+         SetLastError(NO_ERROR);
 
-         if (!*wndTitle) {                   // An empty title may happen only for the last created window.
-            hChartWindow = hWndChild;        // As nothing else matched before, this must be the script's chart window.
-            break;
+         string wndTitle = getInternalWindowTextA(hWndChild);
+         if (!wndTitle.length()) {
+            if (GetLastError()) return INVALID_HWND;
+            hChartWindow = hWndChild;                 // An empty title may happen only for the last created window.
+            break;                                    // As nothing else matched before, this must be the script's chart window.
          }
+
          string title = strLeftTo(wndTitle, " (offline)", -1);
          if (title == refTitle) {
-            hChartWindow = hWndChild;        // our chart window
+            hChartWindow = hWndChild;                 // our chart window
             break;
          }
          i++;
       }
-      free(wndTitle);
 
       if (!hChartWindow) {
          return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient: no \"%s\" chart window found", refTitle.c_str()), EnumChildWindowsToDebug(hWndMdi));
@@ -1730,10 +1729,8 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
          HWND hWnd = ec->chartWindow;
          if (!hWnd) return TRUE;                                     // (2.3) no chart => in Tester with VisualMode=Off
 
-         wchar* title = GetInternalWindowTextW(hWnd);
-         BOOL result = StrEndsWith(title, L"(visual)");
-         free(title);
-         return result;                                              // all remaining cases according to "(visual)" in title
+         wstring title = getInternalWindowTextW(hWnd);
+         return StrEndsWith(title.c_str(), L"(visual)");             // all remaining cases according to "(visual)" in title
       }
 
       case PT_EXPERT:
@@ -1742,10 +1739,8 @@ BOOL WINAPI Program_IsTesting(const EXECUTION_CONTEXT* ec, BOOL isTesting) {
       case PT_SCRIPT: {
          HWND hWnd = ec->chartWindow;
          if (hWnd) {
-            wchar* title = GetInternalWindowTextW(hWnd);
-            BOOL result = StrEndsWith(title, L"(visual)");
-            free(title);
-            return result;
+            wstring title = getInternalWindowTextW(hWnd);
+            return StrEndsWith(title.c_str(), L"(visual)");
          }
          return !error(ERR_ILLEGAL_STATE, "script without a chart:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
       }
