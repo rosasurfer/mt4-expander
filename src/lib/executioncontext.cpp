@@ -1204,7 +1204,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       // chart window.
 
       char* wndTitle = NULL;
-      string refTitle = makeChartTitle(symbol, timeframe);
+      string refTitle = MakeChartTitle(symbol, timeframe);
 
       // iterate over all chart windows in creation order (using Z order can corrupt the result)
       HWND hWndChild = NULL;

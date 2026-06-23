@@ -656,14 +656,14 @@ void WINAPI ReleaseWindowProperties() {
 /**
  * Return a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily").
  *
- * @param  char* symbol
- * @param  uint  timeframe
+ * @param  string &symbol
+ * @param  uint   timeframe
  *
  * @return string - chart title description or an empty string in case of errors
  */
-string WINAPI makeChartTitle(const char* symbol, uint timeframe) {
-   size_t symbolLength = strlen(symbol);
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol));
+string WINAPI MakeChartTitle(const string &symbol, uint timeframe) {
+   size_t symbolLength = symbol.length();
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
 
    char* sTimeframe = NULL;
 
