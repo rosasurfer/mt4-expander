@@ -27,21 +27,20 @@
  * @return int - error status
  */
 int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
-   if ((uint)path < MIN_VALID_POINTER)     return(error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
-   if (!*path)                             return(error(ERR_INVALID_PARAMETER, "invalid parameter path: \"\" (empty)"));
-   if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter flag: only one of MODE_MQL or MODE_SYSTEM can be specified"));
-   if (!( flags & (MODE_MQL|MODE_SYSTEM))) return(error(ERR_INVALID_PARAMETER, "invalid parameter flag: one of MODE_MQL or MODE_SYSTEM must be specified"));
+   if ((uint)path < MIN_VALID_POINTER)     return error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
+   if (!*path)                             return error(ERR_INVALID_PARAMETER, "invalid parameter path: \"\" (empty)");
+   if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flag: only one of MODE_MQL or MODE_SYSTEM can be specified");
+   if (!( flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flag: one of MODE_MQL or MODE_SYSTEM must be specified");
 
    if (flags & MODE_MQL) {
-      return(error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented"));
+      return error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented");
    }
    else /*flags & MODE_SYSTEM*/ {
       // check whether such a file or directory already exists
       if (IsFileOrDirectoryA(path)) {
-         if (!IsDirectoryA(path, MODE_SYSTEM)) return(error(ERR_WIN32_ERROR + ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path));
-         if (flags & MODE_MKPARENT)
-            return(NO_ERROR);
-         return(error(ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path));
+         if (!IsDirectoryA(path, MODE_SYSTEM)) return error(ERR_WIN32_ERROR + ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path);
+         if (!(flags & MODE_MKPARENT))         return error(ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path);
+         return NO_ERROR;
       }
 
       // make sure a parent directory exists
@@ -49,21 +48,22 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
          string sPath = string(path);
          size_t pos = sPath.find_last_of("\\/");
          if (pos != string::npos) {
-            if (pos == 0) return(error(ERR_INVALID_PARAMETER, "invalid parameter path: \"%s\"", path));
+            if (pos == 0) return error(ERR_INVALID_PARAMETER, "invalid parameter path: \"%s\"", path);
             int error = CreateDirectoryA(sPath.substr(0, pos).c_str(), flags);
-            if (error) return(error);
+            if (error) return error;
          }
       }
 
       // create the final directory
-      if (CreateDirectory(path, (LPSECURITY_ATTRIBUTES)NULL))
-         return(NO_ERROR);
+      if (CreateDirectory(path, (LPSECURITY_ATTRIBUTES)NULL)) {
+         return NO_ERROR;
+      }
 
       // with multiple path separators the directory may already exist
-      int error = GetLastError();
-      if (error==ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT))
-         return(NO_ERROR);
-      return(error(ERR_WIN32_ERROR + error, "creation of \"%s\" failed", path));
+      if (GetLastError() == ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT)) {
+         return NO_ERROR;
+      }
+      return error(ERR_WIN32_ERROR + GetLastError(), "creation of \"%s\" failed", path);
    }
    #pragma EXPANDER_EXPORT
 }
@@ -79,19 +79,19 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
  */
 BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
    if (path) {
-      if ((uint)path < MIN_VALID_POINTER)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
-      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
-      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
+      if ((uint)path < MIN_VALID_POINTER)    return !error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
+      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified");
+      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified");
 
       if (mode & MODE_MQL) {
-         return(!error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
+         return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
       }
       else /*mode & MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesA(path);
-         return((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY));
+         return (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
       }
    }
-   return(FALSE);
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -106,19 +106,19 @@ BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
  */
 BOOL WINAPI IsFileA(const char* path, DWORD mode) {
    if (path) {
-      if ((uint)path < MIN_VALID_POINTER)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
-      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
-      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
+      if ((uint)path < MIN_VALID_POINTER)    return !error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
+      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified");
+      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified");
 
       if (mode & MODE_MQL) {
-         return(!error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
+         return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
       }
       else /*MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesA(path);
-         return((attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
+         return (attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY);
       }
    }
-   return(FALSE);
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 

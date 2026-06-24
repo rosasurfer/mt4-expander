@@ -100,11 +100,8 @@ wstring WINAPI getInternalWindowTextW(HWND hWnd) {
       buffer = (wchar*) alloca(chars * sizeof(wchar));
       copiedChars = InternalGetWindowText(hWnd, buffer, chars);
    }
+   if (!copiedChars && GetLastError()) return _empty_wstr(error(ERR_WIN32_ERROR + GetLastError(), "InternalGetWindowText()"));
 
-   if (!copiedChars) {
-      DWORD error = GetLastError();
-      if (error) return _empty_wstr(error(ERR_WIN32_ERROR + error, "InternalGetWindowText()"));
-   }
    return wstring(buffer);
 }
 

@@ -201,8 +201,7 @@ BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char*
    if (!*key)                              return !error(ERR_INVALID_PARAMETER, "invalid parameter key: \"\" (empty)");
 
    if (!WritePrivateProfileStringA(section, key, NULL, fileName)) {
-      int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key);
+      if (GetLastError() != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + GetLastError(), "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\", key=\"%s\"", fileName, section, key);
    }
    return TRUE;
    #pragma EXPANDER_EXPORT
@@ -270,8 +269,7 @@ BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
    if (!*section)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter section: \"\" (empty)");
 
    if (!WritePrivateProfileStringA(section, NULL, NULL, fileName)) {
-      int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section);
+      if (GetLastError() != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + GetLastError(), "WritePrivateProfileStringA()  fileName=\"%s\", section=\"%s\"", fileName, section);
    }
    return TRUE;
    #pragma EXPANDER_EXPORT
@@ -296,8 +294,7 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
    char values[2] = {};                   // an empty string (NUL) followed by a second NUL terminator
 
    if (!WritePrivateProfileSectionA(section, values, fileName)) {
-      int error = GetLastError();
-      if (error != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + error, "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section);
+      if (GetLastError() != ERROR_PATH_NOT_FOUND) return !error(ERR_WIN32_ERROR + GetLastError(), "WritePrivateProfileSectionA()  fileName=\"%s\", section=\"%s\"", fileName, section);
    }
    return TRUE;
    #pragma EXPANDER_EXPORT

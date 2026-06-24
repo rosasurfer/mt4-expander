@@ -825,10 +825,10 @@ int WINAPI MqlLibrary_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReaso
          if (!isPartialChain) {
             if (ec->optimization && lastMaster && lastMaster->programType==PT_INDICATOR && lastMaster->programInitReason==IR_TEMPLATE) {
                // a reloaded indicator in tester template during optimization, now excuted by the EA thread
-               warn(NO_ERROR, "For max optimization speed template \"Tester.tpl\" must not contain any indicators!");
+               warn("For max optimization speed template \"Tester.tpl\" must not contain any indicators!");
             }
             else {
-               warn(NO_ERROR, "Unseen library init cycle in tester (the last program (pid=%d) executed by this thread doesn't seem to be the previous test):  ec=%s", lastPid, EXECUTION_CONTEXT_toStr(ec));
+               warn("Unseen library init cycle in tester (the last program (pid=%d) executed by this thread doesn't seem to be the previous test):  ec=%s", lastPid, EXECUTION_CONTEXT_toStr(ec));
             }
          }
          else {

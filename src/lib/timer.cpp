@@ -106,9 +106,9 @@ BOOL WINAPI ReleaseTickTimer(uint timerId) {
          if (HANDLE hTimer = ttd->hTimer) {
             ttd->hTimer = NULL;                                // reset handle to prevent multiple release errors
 
-            if (!DeleteTimerQueueTimer(NULL, hTimer, NULL)) {  // ERROR_IO_PENDING: "Overlapped I/O operation in progress" is not an error
-               DWORD error = GetLastError();                   // but a status. It says that there is still an operation in progress.
-               if (error != ERROR_IO_PENDING) error(ERR_WIN32_ERROR + error, "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
+            if (!DeleteTimerQueueTimer(NULL, hTimer, NULL)) {
+               // ERROR_IO_PENDING: "Overlapped I/O operation in progress" is not an error but a status. It says that there is still an operation in progress.
+               if (GetLastError() != ERROR_IO_PENDING) error(ERR_WIN32_ERROR + GetLastError(), "DeleteTimerQueueTimer(timerId=%d, hTimer=%p)", timerId, hTimer);
             }
          }
          else warn(ERR_ILLEGAL_STATE, "tick timer has already been released: id=%d", timerId);
@@ -130,7 +130,7 @@ void WINAPI ReleaseTickTimers() {
       TICK_TIMER_DATA* ttd = g_tickTimers[i];
 
       if (ttd->hTimer) {
-         warn(NO_ERROR, "releasing unreleased tick timer: id=%d", ttd->timerId);
+         warn("releasing unreleased tick timer: id=%d", ttd->timerId);
          ReleaseTickTimer(ttd->timerId);
       }
    }
