@@ -44,10 +44,13 @@ DWORD WINAPI GetLastWin32Error() {
  *
  * @param  HWND hWnd - window handle
  *
- * @return char* - text (may be empty) or a NULL pointer in case of errors
+ * @return char* - text or a NULL pointer in case of errors
  */
 char* WINAPI GetInternalWindowTextA(HWND hWnd) {
+   SetLastError(NO_ERROR);
    string text = getInternalWindowTextA(hWnd);
+   if (GetLastError()) return NULL;
+
    return sdup(text.c_str());                            // caller must free()
    #pragma EXPANDER_EXPORT
 }
@@ -76,7 +79,10 @@ string WINAPI getInternalWindowTextA(HWND hWnd) {
  * @return wchar* - text or a NULL pointer in case of errors
  */
 wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
+   SetLastError(NO_ERROR);
    wstring text = getInternalWindowTextW(hWnd);
+   if (GetLastError()) return NULL;
+
    return wsdup(text.c_str());                           // caller must free()
    #pragma EXPANDER_EXPORT
 }
