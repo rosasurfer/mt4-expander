@@ -109,7 +109,7 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
          }
          char* sCtrlId = asformat(" (id %d)", ctrlId);
 
-         debug_raw("  %s%s%p: %S \"%S\"%s%s", spaces.c_str(), marker, hWnd, wndClass, wndTitle.c_str(), sType, ctrlId ? sCtrlId : "");
+         debug_raw("  %s%s%p: %S \"%S\"%s%s", spaces.c_str(), marker, hWnd, wndClass.c_str(), wndTitle.c_str(), sType, ctrlId ? sCtrlId : "");
          free(sCtrlId);
 
          // enumerate child windows
