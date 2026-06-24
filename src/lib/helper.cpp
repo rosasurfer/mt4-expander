@@ -275,7 +275,7 @@ BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
    if (!threadId) {
       threadId = GetCurrentThreadId();
    }
-   return (threadId == GetUIThreadId());
+   return (threadId == GetUiThreadId());
    #pragma EXPANDER_EXPORT
 }
 
@@ -285,7 +285,7 @@ BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
  *
  * @return DWORD - thread id (not thread handle) or NULL in case of errors
  */
-DWORD WINAPI GetUIThreadId() {
+DWORD WINAPI GetUiThreadId() {
    static DWORD uiThreadId;
 
    if (!uiThreadId) {

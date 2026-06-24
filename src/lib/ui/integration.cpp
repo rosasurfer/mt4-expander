@@ -56,7 +56,7 @@ BOOL WINAPI SetupUiIntegration() {
  */
 static BOOL WINAPI RegisterWindowEventHook() {
    if (!hWindowEventHook) {
-      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventHook, NULL, GetUIThreadId());
+      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventHook, NULL, GetUiThreadId());
       if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WindowEventHook)");
    }
    return TRUE;
@@ -114,7 +114,7 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
  */
 static BOOL WINAPI NotifyUiThread() {
    // register a hook for sent messages
-   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHook, NULL, GetUIThreadId());
+   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHook, NULL, GetUiThreadId());
    if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHook)");
 
    // trigger the UI thread

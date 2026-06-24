@@ -9,7 +9,7 @@ string      WINAPI getInternalWindowTextA(HWND hWnd);
 wstring     WINAPI getInternalWindowTextW(HWND hWnd);
 DWORD       WINAPI GetLastWin32Error();
 DWORD       WINAPI GetPressedVirtualKeys(DWORD flags/*= F_VK_ALL*/);
-DWORD       WINAPI GetUIThreadId();
+DWORD       WINAPI GetUiThreadId();
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
 BOOL        WINAPI IsCustomTimeframe(int timeframe);
