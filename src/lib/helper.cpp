@@ -271,7 +271,7 @@ DWORD WINAPI GetPressedVirtualKeys(DWORD flags = F_VK_ALL) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
+BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
    if (!threadId) {
       threadId = GetCurrentThreadId();
    }

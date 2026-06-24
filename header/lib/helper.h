@@ -15,7 +15,7 @@ wchar*      WINAPI GetWindowTextW(HWND hWnd);
 BOOL        WINAPI IsCustomTimeframe(int timeframe);
 BOOL        WINAPI IsStandardTimeframe(int timeframe);
 BOOL        WINAPI IsProgramType(int type);
-BOOL        WINAPI IsUIThread(DWORD threadId = NULL);
+BOOL        WINAPI IsUiThread(DWORD threadId = NULL);
 BOOL        WINAPI IsVirtualKeyDown(int key);
 BOOL        WINAPI IsWindowAreaVisible(HWND hWnd);
 string      WINAPI MakeChartTitleA(const string &symbol, uint timeframe);

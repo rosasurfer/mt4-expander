@@ -28,7 +28,7 @@ BOOL WINAPI SetupUiIntegration() {
    // Some integration tasks must run in the UI thread. Some must not run there. Some may run anywhere.
 
    // if in a non-UI thread
-   if (!IsUIThread()) {
+   if (!IsUiThread()) {
       static BOOL done = FALSE;
       if (!done) {                                    // no full synchronization needed
          done = TRUE;
@@ -153,7 +153,7 @@ static LRESULT CALLBACK UiThreadHook(int code, WPARAM wParam, LPARAM lParam) {
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassMainWindow() {
-   if (!IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUiThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
 
    HWND hWnd = GetTerminalMainWindow();
    if (!hWnd) return FALSE;
@@ -238,7 +238,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindows() {
-   if (!IsUIThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUiThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
    if (!subclassChartWindows) return TRUE;
 
    // subclass existing chart windows
@@ -272,7 +272,7 @@ static BOOL WINAPI SubclassChartWindows() {
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
-   if (!IsUIThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUiThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
    if (!subclassChartWindows) return TRUE;
 
    if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
@@ -341,7 +341,7 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
  * @return BOOL - success status
  */
 static BOOL WINAPI CustomizeTerminal() {
-   if (IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must not run in the UI thread");
+   if (IsUiThread()) return !error(ERR_ILLEGAL_STATE, "must not run in the UI thread");
 
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return FALSE;
