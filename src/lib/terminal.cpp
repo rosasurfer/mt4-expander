@@ -637,7 +637,6 @@ HWND WINAPI GetTerminalMainWindow() {
    if (!hWndMain) {
       DWORD processId = NULL, self = GetCurrentProcessId();
       HWND hWndNext = NULL, hWndFound = NULL;
-      wchar* className = NULL;
       uint i = 0;
 
       // MQL scripts run in their own thread. On fast CPUs with multiple cores, the following race condition may occur when
@@ -653,17 +652,14 @@ HWND WINAPI GetTerminalMainWindow() {
          while (hWndNext) {                        // iterate over all top-level windows
             GetWindowThreadProcessId(hWndNext, &processId);
             if (processId == self) {
-               free(className);
-               className = GetClassNameW(hWndNext);
-               if (StrCompare(className, L"MetaQuotes::MetaTrader::4.00")) {
+               wstring className = getClassNameW(hWndNext);
+               if (className == L"MetaQuotes::MetaTrader::4.00") {
                   hWndFound = hWndNext;
                   break;
                }
             }
             hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
          }
-         free(className);
-         className = NULL;
          if (hWndFound) break;
 
          static int log1 = info("cannot find terminal main window, waiting...");
@@ -1018,25 +1014,21 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
 BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    HWND hWndAlert = NULL, hWndNext = GetTopWindow(NULL);
    DWORD processId, self = GetCurrentProcessId();
-   wchar *className = NULL;
 
    // enumerate top-level windows
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
-      if (processId == self) {                              // the window belongs to us
-         wstring wndTitle = getInternalWindowTextW(hWndNext);
-         free(className);
-         className = GetClassNameW(hWndNext);               // TODO: because of i18n we can't rely on the window's text
+      if (processId == self) {                                 // the top-level window belongs to us
+         wstring className = getClassNameW(hWndNext);
+         wstring wndTitle = getInternalWindowTextW(hWndNext);  // TODO: because of i18n we must not rely on the window's text
 
-         if (wndTitle == L"Alert" && StrCompare(className, L"#32770")) {
+         if (className == L"#32770" && wndTitle == L"Alert") {
             hWndAlert = hWndNext;
             break;
          }
       }
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    }
-   free(className);
-
    if (!hWndAlert) return _FALSE(debug("\"Alert\" dialog window not found"));
 
    // show the "Alert" window

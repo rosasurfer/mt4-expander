@@ -2,6 +2,7 @@
 #include "lib/conversion.h"
 #include "lib/helper.h"
 #include "lib/string.h"
+#include "lib/win32.h"
 
 
 /**
@@ -12,12 +13,25 @@
  * @return char* - classname or a NULL pointer in case of errors
  */
 char* WINAPI GetClassNameA(HWND hWnd) {
-   char className[256];                         // max. possible value
-   if (!::GetClassNameA(hWnd, className, countof(className))) {
-      return (char*)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA(hWnd=%p)", hWnd);
-   }
-   return sdup(className);                      // caller must free()
+   string className = getClassNameA(hWnd);
+   return sdup(className.c_str());              // caller must free()
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the classname of the specified window. Simplified version of user32::GetClassNameA().
+ *
+ * @param  HWND hWnd - window handle
+ *
+ * @return string - classname or an empty string in case of errors
+ */
+string WINAPI getClassNameA(HWND hWnd) {
+   char className[256];                         // max. possible value
+   if (!GetClassNameA(hWnd, className, countof(className))) {
+      return _empty_str(error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameA(hWnd=%p)", hWnd));
+   }
+   return string(className);
 }
 
 
@@ -29,12 +43,25 @@ char* WINAPI GetClassNameA(HWND hWnd) {
  * @return wchar* - classname or a NULL pointer in case of errors
  */
 wchar* WINAPI GetClassNameW(HWND hWnd) {
-   wchar className[256];                        // max. possible value
-   if (!::GetClassNameW(hWnd, className, countof(className))) {
-      return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameW(hWnd=%p)", hWnd);
-   }
-   return wsdup(className);                     // caller must free()
+   wstring className = getClassNameW(hWnd);
+   return wsdup(className.c_str());             // caller must free()
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the classname of the specified window. Simplified version of user32::GetClassNameW().
+ *
+ * @param  HWND hWnd - window handle
+ *
+ * @return wstring - classname or an empty string in case of errors; call GetLastError() for details
+ */
+wstring WINAPI getClassNameW(HWND hWnd) {
+   wchar className[256];                        // max. possible value
+   if (!GetClassNameW(hWnd, className, countof(className))) {
+      return _empty_wstr(error(ERR_WIN32_ERROR + GetLastError(), "GetClassNameW(hWnd=%p)", hWnd));
+   }
+   return wstring(className);
 }
 
 
@@ -64,33 +91,29 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
          char* marker = level ? "-> " : "";
 
          SetLastError(NO_ERROR);
-         wchar* wndClass = GetClassNameW(hWnd);
-         if (!wndClass) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
+         wstring wndClass = getClassNameW(hWnd);
+         if (GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
 
-         SetLastError(NO_ERROR);
          wstring wndTitle = getInternalWindowTextW(hWnd);
-         if (GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())), bfree(wndClass));
+         if (GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
 
          const char* sType = "";
          if      (hWnd == hWndDesktop)       sType = " (desktop)";
          else if (hWndParent == hWndDesktop) sType = " (top-level)";
 
-         SetLastError(NO_ERROR);
          int ctrlId = GetDlgCtrlID(hWnd);
-         if (!ctrlId) {
-            int error = GetLastError();
-            if (error) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(error)), bfree(wndClass));
-         }
+         if (!ctrlId && GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
+
          if (!hWndParent || hWndParent == hWndDesktop) {
             ctrlId = 0;
          }
          char* sCtrlId = asformat(" (id %d)", ctrlId);
 
          debug_raw("  %s%s%p: %S \"%S\"%s%s", spaces.c_str(), marker, hWnd, wndClass, wndTitle.c_str(), sType, ctrlId ? sCtrlId : "");
-         free(wndClass, sCtrlId);
-         int count = !isRoot;
+         free(sCtrlId);
 
          // enumerate child windows
+         int count = !isRoot;
          if (isRoot || recursive) {
             HWND hWndNext = GetWindow(hWnd, GW_CHILD);      // no more error handling as the window was successfully reported
             while (hWndNext != 0) {

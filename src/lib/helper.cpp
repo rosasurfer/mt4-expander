@@ -124,7 +124,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
    char* ansiText = utf16ToAnsi(utf16Text);
    free(utf16Text);
 
-   return ansiText;                 // caller must free()
+   return ansiText;                                      // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -138,22 +138,17 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  */
 wchar* WINAPI GetWindowTextW(HWND hWnd) {
-   if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-
-   SetLastError(NO_ERROR);
    wchar* buffer = NULL;
    int chars = 64, copiedChars = chars;
 
-   while (copiedChars >= chars-1) {                      // if (length == size-1) the string may have been truncated
+   SetLastError(NO_ERROR);
+   while (copiedChars >= chars-1) {                      // if (length == chars-1) the string may have been truncated
       chars <<= 1;                                       // double the size (starts with 128 chars)
-      buffer = (wchar*) alloca(chars * sizeof(wchar));   // on the stack
+      buffer = (wchar*) alloca(chars * sizeof(wchar));
       copiedChars = GetWindowTextW(hWnd, buffer, chars);
    }
+   if (!copiedChars && GetLastError()) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetWindowTextW()");
 
-   if (!copiedChars) {
-      DWORD error = GetLastError();
-      if (error) return (wchar*)!error(ERR_WIN32_ERROR + error, "GetWindowTextW()");
-   }
    return wsdup(buffer);                                 // caller must free()
    #pragma EXPANDER_EXPORT
 }
@@ -680,9 +675,9 @@ void WINAPI ReleaseWindowProperties() {
  * @param  string &symbol
  * @param  uint   timeframe
  *
- * @return string - chart title description or an empty string in case of errors
+ * @return string - chart title or an empty string in case of errors; call GetLastError() for details
  */
-string WINAPI MakeChartTitle(const string &symbol, uint timeframe) {
+string WINAPI MakeChartTitleA(const string &symbol, uint timeframe) {
    size_t symbolLength = symbol.length();
    if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
 

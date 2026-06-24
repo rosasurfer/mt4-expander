@@ -104,12 +104,8 @@ time32 WINAPI Tester_GetStartDate() {
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    if (!hWndNext) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_USEDATE (\"Use date\" checkbox) found");
 
-   wchar* className = GetClassNameW(hWndNext);
-   if (!StrCompare(className, L"SysDateTimePick32")) {
-      error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p %S \"%S\"", hWndNext, className, getInternalWindowTextW(hWndNext).c_str());
-      return _NULL(bfree(className));
-   }
-   free(className);
+   wstring className = getClassNameW(hWndNext);
+   if (className != L"SysDateTimePick32") return !error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Use date\" checkbox: %p %S \"%S\"", hWndNext, className.c_str(), getInternalWindowTextW(hWndNext).c_str());
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class SysDateTimePick32 can't be read using GetInternalWindowText()
    if (!wndTitle || wstrlen(wndTitle) < 10) {
@@ -150,12 +146,8 @@ time32 WINAPI Tester_GetEndDate() {
    if (hWndNext) hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
    if (!hWndNext) return !error(ERR_WIN32_ERROR + GetLastError(), "TesterSettings: no 2 siblings of IDC_TESTER_SETTINGS_OPTIMIZATION (\"Optimization\" checkbox) found");
 
-   wchar* className = GetClassNameW(hWndNext);
-   if (!StrCompare(className, L"SysDateTimePick32")) {
-      error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p %S \"%S\"", hWndNext, className, getInternalWindowTextW(hWndNext).c_str());
-      return _NULL(bfree(className));
-   }
-   free(className);
+   wstring className = getClassNameW(hWndNext);
+   if (className != L"SysDateTimePick32") return !error(ERR_ILLEGAL_STATE, "TesterSettings: unexpected sibling of \"Optimization:\" checkbox: %p %S \"%S\"", hWndNext, className.c_str(), getInternalWindowTextW(hWndNext).c_str());
 
    wchar* wndTitle = GetWindowTextW(hWndNext);        // class SysDateTimePick32 can't be read using GetInternalWindowText()
    if (!wndTitle || wstrlen(wndTitle) < 10) {

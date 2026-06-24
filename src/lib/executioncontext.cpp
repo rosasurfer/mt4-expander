@@ -1203,7 +1203,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
       // a script's chart window always exists, if no other window matches, the window with an empty title must be the script's
       // chart window.
 
-      string refTitle = MakeChartTitle(symbol, timeframe);
+      string refTitle = MakeChartTitleA(symbol, timeframe);
 
       // iterate over all chart windows in creation order (using Z order can corrupt the result)
       HWND hWndChild = NULL;
@@ -1211,7 +1211,6 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
 
       while (hWndChild = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1 + i)) {
          SetLastError(NO_ERROR);
-
          string wndTitle = getInternalWindowTextA(hWndChild);
          if (!wndTitle.length()) {
             if (GetLastError()) return INVALID_HWND;
@@ -1226,10 +1225,7 @@ HWND WINAPI FindWindowHandle(const char* programName, ModuleType moduleType, con
          }
          i++;
       }
-
-      if (!hChartWindow) {
-         return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient: no \"%s\" chart window found", refTitle.c_str()), EnumChildWindowsToDebug(hWndMdi));
-      }
+      if (!hChartWindow) return _INVALID_HWND(error(ERR_RUNTIME_ERROR, "MDIClient: no \"%s\" chart window found", refTitle.c_str()), EnumChildWindowsToDebug(hWndMdi));
    }
 
    // experts
