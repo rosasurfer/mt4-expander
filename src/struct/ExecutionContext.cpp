@@ -1826,7 +1826,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", point=" << std::setprecision(ec->digits)    << ec->point
 
          << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "0")
-         << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUIThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
+         << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUiThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
          << ", chartWindow="          <<                     (ec->chartWindow ? asformat("%p", ec->chartWindow ) : "0")
          << ", chart="                <<                     (ec->chart       ? asformat("%p", ec->chart       ) : "0")
 

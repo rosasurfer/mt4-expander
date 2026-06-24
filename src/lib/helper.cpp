@@ -44,16 +44,14 @@ DWORD WINAPI GetLastWin32Error() {
  *
  * @param  HWND hWnd - window handle
  *
- * @return char* - text (may be empty) or a NULL pointer in case of errors
+ * @return char* - text or a NULL pointer in case of errors
  */
 char* WINAPI GetInternalWindowTextA(HWND hWnd) {
-   wchar* utf16Text = GetInternalWindowTextW(hWnd);
-   if (!utf16Text) return NULL;
+   SetLastError(NO_ERROR);
+   string text = getInternalWindowTextA(hWnd);
+   if (GetLastError()) return NULL;
 
-   char* ansiText = utf16ToAnsi(utf16Text);
-   free(utf16Text);
-
-   return ansiText;               // caller must free()
+   return sdup(text.c_str());                            // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -64,27 +62,53 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
  *
  * @param  HWND hWnd - window handle
  *
- * @return wchar* - text (may be empty) or a NULL pointer in case of errors
+ * @return string - text or an empty string in case of errors; call GetLastError() for details
+ */
+string WINAPI getInternalWindowTextA(HWND hWnd) {
+   wstring text = getInternalWindowTextW(hWnd);
+   return utf16ToAnsi(text);
+}
+
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
+ *
+ * @param  HWND hWnd - window handle
+ *
+ * @return wchar* - text or a NULL pointer in case of errors
  */
 wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
-   if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-
    SetLastError(NO_ERROR);
+   wstring text = getInternalWindowTextW(hWnd);
+   if (GetLastError()) return NULL;
+
+   return wsdup(text.c_str());                           // caller must free()
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
+ *
+ * @param  HWND hWnd - window handle
+ *
+ * @return wstring - text or an empty string in case of errors; call GetLastError() for details
+ */
+wstring WINAPI getInternalWindowTextW(HWND hWnd) {
    wchar* buffer = NULL;
    int chars = 64, copiedChars = chars;
 
-   while (copiedChars >= chars-1) {                      // if (length == size-1) the string may have been truncated
+   SetLastError(NO_ERROR);
+   while (copiedChars >= chars-1) {                      // if (length == chars-1) the string may have been truncated
       chars <<= 1;                                       // double the length (starts with 128 chars)
-      buffer = (wchar*) alloca(chars * sizeof(wchar));   // on the stack
+      buffer = (wchar*) alloca(chars * sizeof(wchar));
       copiedChars = InternalGetWindowText(hWnd, buffer, chars);
    }
+   if (!copiedChars && GetLastError()) return _empty_wstr(error(ERR_WIN32_ERROR + GetLastError(), "InternalGetWindowText()"));
 
-   if (!copiedChars) {
-      DWORD error = GetLastError();
-      if (error) return (wchar*)!error(ERR_WIN32_ERROR + error, "InternalGetWindowText()");
-   }
-   return wsdup(buffer);                                 // caller must free()
-   #pragma EXPANDER_EXPORT
+   return wstring(buffer);
 }
 
 
@@ -103,7 +127,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
    char* ansiText = utf16ToAnsi(utf16Text);
    free(utf16Text);
 
-   return ansiText;                 // caller must free()
+   return ansiText;                                      // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
@@ -117,22 +141,17 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
  * @return wchar* - text (may be empty) or a NULL pointer in case of errors
  */
 wchar* WINAPI GetWindowTextW(HWND hWnd) {
-   if (!IsWindow(hWnd)) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-
-   SetLastError(NO_ERROR);
    wchar* buffer = NULL;
    int chars = 64, copiedChars = chars;
 
-   while (copiedChars >= chars-1) {                      // if (length == size-1) the string may have been truncated
+   SetLastError(NO_ERROR);
+   while (copiedChars >= chars-1) {                      // if (length == chars-1) the string may have been truncated
       chars <<= 1;                                       // double the size (starts with 128 chars)
-      buffer = (wchar*) alloca(chars * sizeof(wchar));   // on the stack
+      buffer = (wchar*) alloca(chars * sizeof(wchar));
       copiedChars = GetWindowTextW(hWnd, buffer, chars);
    }
+   if (!copiedChars && GetLastError()) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetWindowTextW()");
 
-   if (!copiedChars) {
-      DWORD error = GetLastError();
-      if (error) return (wchar*)!error(ERR_WIN32_ERROR + error, "GetWindowTextW()");
-   }
    return wsdup(buffer);                                 // caller must free()
    #pragma EXPANDER_EXPORT
 }
@@ -258,11 +277,11 @@ DWORD WINAPI GetPressedVirtualKeys(DWORD flags = F_VK_ALL) {
  *
  * @return BOOL
  */
-BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
+BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
    if (!threadId) {
       threadId = GetCurrentThreadId();
    }
-   return (threadId == GetUIThreadId());
+   return (threadId == GetUiThreadId());
    #pragma EXPANDER_EXPORT
 }
 
@@ -272,7 +291,7 @@ BOOL WINAPI IsUIThread(DWORD threadId/*= NULL*/) {
  *
  * @return DWORD - thread id (not thread handle) or NULL in case of errors
  */
-DWORD WINAPI GetUIThreadId() {
+DWORD WINAPI GetUiThreadId() {
    static DWORD uiThreadId;
 
    if (!uiThreadId) {
@@ -656,14 +675,14 @@ void WINAPI ReleaseWindowProperties() {
 /**
  * Return a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily").
  *
- * @param  char* symbol
- * @param  uint  timeframe
+ * @param  string &symbol
+ * @param  uint   timeframe
  *
- * @return string - chart title description or an empty string in case of errors
+ * @return string - chart title or an empty string in case of errors; call GetLastError() for details
  */
-string WINAPI makeChartTitle(const char* symbol, uint timeframe) {
-   size_t symbolLength = strlen(symbol);
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol));
+string WINAPI MakeChartTitleA(const string &symbol, uint timeframe) {
+   size_t symbolLength = symbol.length();
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
 
    char* sTimeframe = NULL;
 

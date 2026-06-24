@@ -64,17 +64,29 @@ namespace rsf {
    }
 
    /**
-    * C++03 substitute for the C++11 to_string() function.
+    * C++03 substitute for to_string() of C++11.
     *
-    * @param  T value
+    * @param  T &value
     *
     * @return string
-    *
-    * Note: The returned string is a temporary object that will be destroyed at the end of the expression.
     */
    template <typename T>
-   string WINAPI to_string(T value) {
+   string WINAPI to_string(const T &value) {
       std::ostringstream os;
+      os << value;
+      return os.str();
+   }
+
+   /**
+    * C++03 substitute for to_wstring() of C++11.
+    *
+    * @param  T &value
+    *
+    * @return wstring
+    */
+   template <typename T>
+   wstring WINAPI to_wstring(const T &value) {
+      std::wostringstream os;
       os << value;
       return os.str();
    }
@@ -100,6 +112,7 @@ BOOL         WINAPI StrEndsWithI(const char* str, const char* suffix);
 BOOL         WINAPI StrEndsWithI(const wchar* str, const wchar* suffix);
 
 string       WINAPI strLeftTo(const string &subject, const string &limiter, int count = 1);
+wstring      WINAPI strLeftTo(const wstring &subject, const wstring &limiter, int count = 1);
 string&      WINAPI strReplace(string &subject, const string &search, const string &replace, size_t count = INT_MAX);
 
 char*        WINAPI strToLower(char* str);
@@ -146,7 +159,7 @@ string       WINAPI utf16ToAnsi(const wstring &str);
 char*        WINAPI utf16ToUtf8(const wchar* wstr);
 string       WINAPI utf16ToUtf8(const wstring &str);
 
-char*       __cdecl asformat(const char* format, ...);                        // only __cdecl supports variadics
+char*       __cdecl asformat(const char* format, ...);         // only __cdecl supports variadics
 wchar*      __cdecl asformat(const wchar* format, ...);
 char*        WINAPI _asformat(const char* format, const va_list &args);
 wchar*       WINAPI _asformat(const wchar* format, const va_list &args);

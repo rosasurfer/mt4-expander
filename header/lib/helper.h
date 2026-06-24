@@ -5,18 +5,20 @@ BOOL        WINAPI IsDebugBuild();
 
 char*       WINAPI GetInternalWindowTextA(HWND hWnd);
 wchar*      WINAPI GetInternalWindowTextW(HWND hWnd);
+string      WINAPI getInternalWindowTextA(HWND hWnd);
+wstring     WINAPI getInternalWindowTextW(HWND hWnd);
 DWORD       WINAPI GetLastWin32Error();
 DWORD       WINAPI GetPressedVirtualKeys(DWORD flags/*= F_VK_ALL*/);
-DWORD       WINAPI GetUIThreadId();
+DWORD       WINAPI GetUiThreadId();
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
 BOOL        WINAPI IsCustomTimeframe(int timeframe);
 BOOL        WINAPI IsStandardTimeframe(int timeframe);
 BOOL        WINAPI IsProgramType(int type);
-BOOL        WINAPI IsUIThread(DWORD threadId = NULL);
+BOOL        WINAPI IsUiThread(DWORD threadId = NULL);
 BOOL        WINAPI IsVirtualKeyDown(int key);
 BOOL        WINAPI IsWindowAreaVisible(HWND hWnd);
-string      WINAPI makeChartTitle(const char* symbol, uint timeframe);
+string      WINAPI MakeChartTitleA(const string &symbol, uint timeframe);
 uint        WINAPI MT4InternalMsg();
 uint        WINAPI WM_MT4();
 

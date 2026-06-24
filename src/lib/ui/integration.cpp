@@ -8,7 +8,6 @@
 
 #include <commctrl.h>
 
-
 #define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the main window
 #define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
 
@@ -18,7 +17,6 @@ static HHOOK hUiThreadHook    = NULL;                 // hook handles
 static HHOOK hWindowEventHook = NULL;
 
 static BOOL subclassChartWindows = TRUE;              // whether to subclass chart windows
-
 
 /**
  * Setup UI integration of the Expander. Called two times: once from a non-UI thread, once from the UI thread.
@@ -30,7 +28,7 @@ BOOL WINAPI SetupUiIntegration() {
    // Some integration tasks must run in the UI thread. Some must not run there. Some may run anywhere.
 
    // if in a non-UI thread
-   if (!IsUIThread()) {
+   if (!IsUiThread()) {
       static BOOL done = FALSE;
       if (!done) {                                    // no full synchronization needed
          done = TRUE;
@@ -51,7 +49,6 @@ BOOL WINAPI SetupUiIntegration() {
    return TRUE;
 }
 
-
 /**
  * Register a hook for window related events of the UI thread.
  *
@@ -59,12 +56,11 @@ BOOL WINAPI SetupUiIntegration() {
  */
 static BOOL WINAPI RegisterWindowEventHook() {
    if (!hWindowEventHook) {
-      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventHook, NULL, GetUIThreadId());
+      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventHook, NULL, GetUiThreadId());
       if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WindowEventHook)");
    }
    return TRUE;
 }
-
 
 /**
  * Hook procedure (listener) receiving window related events of the UI thread. Called in the UI thread.
@@ -80,21 +76,17 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
       case HCBT_CREATEWND: {                                  // a window is about to be created
          HWND hWnd = (HWND)wParam;
          CREATESTRUCT* cs = ((CBT_CREATEWND*)lParam)->lpcs;
-         wchar* className = NULL;
 
          // log if the debug feature is enabled
          static DWORD debugOptions = GetDebugOptions();
          if (debugOptions & OPTION_DEBUG_CREATE_WINDOW) {
-            if (!className) className = GetClassNameW(hWnd);
-            debug(" HCBT_CREATEWND  %p  %S", hWnd, className);
+            debug(" HCBT_CREATEWND  %p  %S", hWnd, getClassNameW(hWnd).c_str());
          }
 
          // call previous hooks first (MT4 overrides/disables subclassing)
          LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
          if (denied) {
-            if (!className) className = GetClassNameW(hWnd);
-            notice("HCBT_CREATEWND  %p  %S  denied by previous hook", hWnd, className);
-            free(className);
+            notice("HCBT_CREATEWND  %p  %S  denied by previous hook", hWnd, getClassNameW(hWnd).c_str());
             return denied;
          }
 
@@ -109,14 +101,11 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
                }
             }
          }
-
-         free(className);
          return NULL;
       }
    }
    return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
 }
-
 
 /**
  * Register a hook in the UI thread and trigger it. Called from a non-UI thread to run code in the UI thread.
@@ -125,7 +114,7 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
  */
 static BOOL WINAPI NotifyUiThread() {
    // register a hook for sent messages
-   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHook, NULL, GetUIThreadId());
+   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHook, NULL, GetUiThreadId());
    if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHook)");
 
    // trigger the UI thread
@@ -135,7 +124,6 @@ static BOOL WINAPI NotifyUiThread() {
    }
    return TRUE;
 }
-
 
 /**
  * Hook procedure (listener) for messages sent to the terminal main window (UI thread). Continues Expander integration and
@@ -159,14 +147,13 @@ static LRESULT CALLBACK UiThreadHook(int code, WPARAM wParam, LPARAM lParam) {
    return CallNextHookEx(hUiThreadHook, code, wParam, lParam);    // will be NULL after the hook was removed
 }
 
-
 /**
  * Subclass the terminal main window.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassMainWindow() {
-   if (!IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUiThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
 
    HWND hWnd = GetTerminalMainWindow();
    if (!hWnd) return FALSE;
@@ -186,7 +173,6 @@ static BOOL WINAPI SubclassMainWindow() {
    }
    return TRUE;
 }
-
 
 /**
  * Main window subclassing procedure. Processes all messages for the window. Executed in the UI thread.
@@ -246,14 +232,13 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
    return DefSubclassProc(hWnd, msg, wParam, lParam);
 }
 
-
 /**
  * Subclass all chart windows if the feature is enabled. Executed in the UI thread.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindows() {
-   if (!IsUIThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUiThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
    if (!subclassChartWindows) return TRUE;
 
    // subclass existing chart windows
@@ -262,9 +247,10 @@ static BOOL WINAPI SubclassChartWindows() {
 
    HWND hWndChart = GetDlgItem(hWndMdi, IDC_MDICLIENT_CHART1);
    if (!hWndChart) {
-      DWORD error = GetLastError();
-      if (error == ERROR_CONTROL_ID_NOT_FOUND) return TRUE;    // no chart currently open
-      return !error(ERR_WIN32_ERROR + error, "GetDlgItem(MDIClient, IDC_MDICLIENT_CHART1)");
+      if (GetLastError() == ERROR_CONTROL_ID_NOT_FOUND) {
+         return TRUE;                                       // no chart currently open
+      }
+      return !error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MDIClient, IDC_MDICLIENT_CHART1)");
    }
 
    int i = 0;
@@ -278,7 +264,6 @@ static BOOL WINAPI SubclassChartWindows() {
    return TRUE;
 }
 
-
 /**
  * Subclass a single chart window if the feature is enabled. Executed in the UI thread.
  *
@@ -287,7 +272,7 @@ static BOOL WINAPI SubclassChartWindows() {
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
-   if (!IsUIThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUiThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
    if (!subclassChartWindows) return TRUE;
 
    if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
@@ -305,7 +290,6 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
    }
    return TRUE;
 }
-
 
 /**
  * Chart window subclassing procedure. Processes all messages for a window. Executed in the UI thread.
@@ -325,9 +309,7 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
    switch (msg) {
       case WM_COMMAND: {
          if (debugOptions & OPTION_DEBUG_WM_COMMAND) {
-            wchar* title = GetInternalWindowTextW(hWnd);
-            debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, title, LOWORD(wParam), lParam);
-            free(title);
+            debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, getInternalWindowTextW(hWnd).c_str(), LOWORD(wParam), lParam);
          }
          break;
       }
@@ -353,14 +335,13 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
    return DefSubclassProc(hWnd, msg, wParam, lParam);
 }
 
-
 /**
  * Customize the UI of the terminal. Executed in a non-UI thread to not delay terminal startup.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI CustomizeTerminal() {
-   if (IsUIThread()) return !error(ERR_ILLEGAL_STATE, "must not run in the UI thread");
+   if (IsUiThread()) return !error(ERR_ILLEGAL_STATE, "must not run in the UI thread");
 
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return FALSE;
