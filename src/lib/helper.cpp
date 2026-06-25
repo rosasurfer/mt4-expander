@@ -677,41 +677,49 @@ void WINAPI ReleaseWindowProperties() {
  *
  * @param  string &symbol
  * @param  uint   timeframe
+ * @param  bool   custom [optional] - whether to support custom timeframes (default: no)
  *
  * @return string - chart title or an empty string in case of errors; call GetLastError() for details
  */
-string WINAPI MakeChartTitleA(const string &symbol, uint timeframe) {
+string WINAPI MakeChartTitleA(const string &symbol, uint timeframe, bool custom/*= false*/) {
    size_t symbolLength = symbol.length();
    if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
 
-   char* sTimeframe = NULL;
+   string description = "";
 
    switch (timeframe) {
-      case PERIOD_M1 : sTimeframe = "M1";      break;
-      case PERIOD_M2 : sTimeframe = "M2";      break;
-      case PERIOD_M3 : sTimeframe = "M3";      break;
-      case PERIOD_M4 : sTimeframe = "M4";      break;
-      case PERIOD_M5 : sTimeframe = "M5";      break;
-      case PERIOD_M6 : sTimeframe = "M6";      break;
-      case PERIOD_M10: sTimeframe = "M10";     break;
-      case PERIOD_M12: sTimeframe = "M12";     break;
-      case PERIOD_M15: sTimeframe = "M15";     break;
-      case PERIOD_M20: sTimeframe = "M20";     break;
-      case PERIOD_M30: sTimeframe = "M30";     break;
-      case PERIOD_H1 : sTimeframe = "H1";      break;
-      case PERIOD_H2 : sTimeframe = "H2";      break;
-      case PERIOD_H3 : sTimeframe = "H3";      break;
-      case PERIOD_H4 : sTimeframe = "H4";      break;
-      case PERIOD_H6 : sTimeframe = "H6";      break;
-      case PERIOD_H8 : sTimeframe = "H8";      break;
-      case PERIOD_H12: sTimeframe = "H12";     break;
-      case PERIOD_D1 : sTimeframe = "Daily";   break;
-      case PERIOD_W1 : sTimeframe = "Weekly";  break;
-      case PERIOD_MN1: sTimeframe = "Monthly"; break;
+      case PERIOD_M1 : description += "M1";      break;
+      case PERIOD_M5 : description += "M5";      break;
+      case PERIOD_M10: description += "M10";     break;
+      case PERIOD_M15: description += "M15";     break;
+      case PERIOD_M30: description += "M30";     break;
+      case PERIOD_H1 : description += "H1";      break;
+      case PERIOD_H4 : description += "H4";      break;
+      case PERIOD_D1 : description += "Daily";   break;
+      case PERIOD_W1 : description += "Weekly";  break;
+      case PERIOD_MN1: description += "Monthly"; break;
       default:
-         return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", timeframe));
+         if (custom) {
+            switch (timeframe) {
+               case PERIOD_M2 : description += "M2";  break;
+               case PERIOD_M3 : description += "M3";  break;
+               case PERIOD_M4 : description += "M4";  break;
+               case PERIOD_M6 : description += "M6";  break;
+               case PERIOD_M12: description += "M12"; break;
+               case PERIOD_M20: description += "M20"; break;
+               case PERIOD_H2 : description += "H2";  break;
+               case PERIOD_H3 : description += "H3";  break;
+               case PERIOD_H6 : description += "H6";  break;
+               case PERIOD_H8 : description += "H8";  break;
+               case PERIOD_H12: description += "H12"; break;
+            }
+         }
+         if (!description.length()) {
+            description += "M";
+            description += to_string(timeframe);      // for custom offline charts
+         }
    }
-   return string(symbol).append(",").append(sTimeframe);
+   return string(symbol).append(",").append(description);
 }
 
 
