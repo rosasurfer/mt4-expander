@@ -535,7 +535,7 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
    HWND hWndParent = GetAncestor(hWnd, GA_PARENT);
    int count = local::ProcessWindow(hWnd, hWndParent, hWndDesktop, TRUE, recursive, 0);
 
-   // indicate if no child windows were found to visually distinguish from error conditions
+   // indicate if no child windows found to visually distinguish from error condition
    if (!count) debug_raw("  -> (no child windows)");
 
    return count;
@@ -569,39 +569,45 @@ int WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
  * @return int - number of reported window properties or EMPTY (-1) in case of errors
  */
 int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
-   if (!IsWindow(hWnd))                            return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %p (not a window)", hWnd));
    if (prefix && (uint)prefix < MIN_VALID_POINTER) return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
 
    struct local {
       /**
-       * @param  HWND      hWnd  - window whose property list is being enumerated
-       * @param  wchar*    name  - property name
-       * @param  HANDLE    value - property value
-       * @param  ULONG_PTR data  - user data as passed by the outer function
+       * @param  HWND      hWnd   - window whose property list is being enumerated
+       * @param  wchar*    name   - property name
+       * @param  HANDLE    value  - property value
+       * @param  ULONG_PTR lpData - user data as passed by the outer function
        *
        * @return BOOL - whether to continue enumeration with the next property
        */
-      static BOOL CALLBACK EnumPropsProc(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR data) {
-         DATA* d = (DATA*)data;
-         const wchar* prefix = d->prefix;
+      static BOOL CALLBACK EnumPropsProc(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR lpData) {
+         USER_DATA* data = (USER_DATA*)lpData;
+         const wchar* prefix = data->prefix;
 
          if (prefix && !*prefix) {
             prefix = NULL;
          }
          if (!prefix || StrStartsWith(name, prefix)) {
-            debug_raw("property \"%S\" = %p (%d)", name, value, value);
-            d->count++;
+            debug_raw("  \"%S\" = 0x%p (%d)", name, value, value);
+            data->count++;
          }
          return TRUE;
       }
    };
 
-   struct DATA {
+   struct USER_DATA {
       const wchar* prefix;
-      int count;
+      int          count;
    } data = { prefix, 0 };
 
-   EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&data);
+   SetLastError(NO_ERROR);
+
+   debug("for HWND %p", hWnd);
+   int result = EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&data);
+   if (result == -1 && GetLastError()) return _EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "EnumPropsExW()"));
+
+   // indicate if no properties found to visually distinguish from error condition
+   if (!data.count) debug_raw("  (no window properties)");
    return data.count;
    #pragma EXPANDER_EXPORT
 }
