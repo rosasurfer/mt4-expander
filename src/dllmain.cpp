@@ -1,9 +1,9 @@
 #include "expander.h"
 #include "dllmain.h"
-#include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/timer.h"
+#include "lib/window.h"
 #include "lib/ui/integration.h"
 #include "struct/ExecutionContext.h"
 

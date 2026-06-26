@@ -1,10 +1,10 @@
 #pragma once
-#include "stdafx.h"
+#include "expander.h"
+
 #include <cmath>
 
 #define INF    HUGE_VAL                      // positive infinity, negative: -INF
 #define NaN    ((INF)-(INF))                 // not-a-number
-
 
 int    WINAPI DoubleExp(double value);
 BOOL   WINAPI IsInfinite(double value);

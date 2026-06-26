@@ -2,7 +2,6 @@
 #include "expander.h"
 #include "struct/ExecutionContext.h"
 
-
 const char*  WINAPI BarModelDescription(int id);
 const char*  WINAPI BarModelToStr(int id);
 const char*  WINAPI BoolToStr(BOOL value);

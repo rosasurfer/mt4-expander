@@ -1,7 +1,6 @@
 #pragma once
 #include "expander.h"
 
-
 // current time
 time32     WINAPI GetGmtTime32();
 time64     WINAPI GetGmtTime64();

@@ -2,7 +2,7 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
-#include "lib/win32.h"
+#include "lib/window.h"
 #include "lib/ui/integration.h"
 #include "lib/ui/menu.h"
 

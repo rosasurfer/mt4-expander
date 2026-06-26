@@ -1967,12 +1967,11 @@ const char* WINAPI OrderTypeToStr(int type) {
  * @param  int period - timeframe identifier or amount of minutes per bar period
  *
  * @return char* - description or a NULL pointer in case of errors
- *
- * Note: This implementation should match the one in MQL's stdfunctions.mqh.
  */
 const char* WINAPI PeriodDescriptionA(int period) {
    if (period < 0) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter period: %d", period);
 
+   // This implementation should match the one in MQL's stdfunctions.mqh.
    switch (period) {
       case NULL      : return "(null)";
       case PERIOD_M1 : return "M1";       // 1 minute
@@ -2090,9 +2089,8 @@ const char* WINAPI ShowWindowCmdToStr(int cmd) {
  *
  * @return char* - content of the string or "(null)" if the parameter is a NULL pointer
  *
- * Note: Purpose of this function is to output an initialized and a non-initialized string from the same function.
- *       In an MQL implementation the terminal raises ERR_NOT_INITIALIZED_STRING for a NULL pointer and logs the warning
- *       "warn: not initialized string".
+ * Note: Purpose of this function is an MQL helper which supports initialized and non-initialized MQL string arguments.
+ *       The MQL runtime environment raises ERR_NOT_INITIALIZED_STRING if a non-initialized MQL string is processed.
  */
 const char* WINAPI StringToStr(const char* value) {
    return value ? value : "(null)";
@@ -2126,9 +2124,9 @@ const char* WINAPI TimeframeToStr(int timeframe) {
  */
 const char* WINAPI TradeDirectionDescription(int direction) {
    switch (direction) {
-      case TRADE_DIRECTION_LONG:  return("Long");
-      case TRADE_DIRECTION_SHORT: return("Short");
-      case TRADE_DIRECTION_BOTH:  return("Both");
+      case TRADE_DIRECTION_LONG:  return "Long";
+      case TRADE_DIRECTION_SHORT: return "Short";
+      case TRADE_DIRECTION_BOTH:  return "Both";
    }
    return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction);
    #pragma EXPANDER_EXPORT
@@ -2144,9 +2142,9 @@ const char* WINAPI TradeDirectionDescription(int direction) {
  */
 const char* WINAPI TradeDirectionToStr(int direction) {
    switch (direction) {
-      case TRADE_DIRECTION_LONG:  return("TRADE_DIRECTION_LONG");
-      case TRADE_DIRECTION_SHORT: return("TRADE_DIRECTION_SHORT");
-      case TRADE_DIRECTION_BOTH:  return("TRADE_DIRECTION_BOTH");
+      case TRADE_DIRECTION_LONG:  return "TRADE_DIRECTION_LONG";
+      case TRADE_DIRECTION_SHORT: return "TRADE_DIRECTION_SHORT";
+      case TRADE_DIRECTION_BOTH:  return "TRADE_DIRECTION_BOTH";
    }
    return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter direction: %d (not a trade direction)", direction);
    #pragma EXPANDER_EXPORT
@@ -2162,17 +2160,17 @@ const char* WINAPI TradeDirectionToStr(int direction) {
  */
 const char* WINAPI UninitReasonToStr(UninitializeReason reason) {
    switch (reason) {
-      case UR_UNDEFINED  : return("UR_UNDEFINED"  );
-      case UR_REMOVE     : return("UR_REMOVE"     );
-      case UR_RECOMPILE  : return("UR_RECOMPILE"  );
-      case UR_CHARTCHANGE: return("UR_CHARTCHANGE");
-      case UR_CHARTCLOSE : return("UR_CHARTCLOSE" );
-      case UR_PARAMETERS : return("UR_PARAMETERS" );
-      case UR_ACCOUNT    : return("UR_ACCOUNT"    );
+      case UR_UNDEFINED  : return "UR_UNDEFINED";
+      case UR_REMOVE     : return "UR_REMOVE";
+      case UR_RECOMPILE  : return "UR_RECOMPILE";
+      case UR_CHARTCHANGE: return "UR_CHARTCHANGE";
+      case UR_CHARTCLOSE : return "UR_CHARTCLOSE";
+      case UR_PARAMETERS : return "UR_PARAMETERS";
+      case UR_ACCOUNT    : return "UR_ACCOUNT";
       // since build > 509
-      case UR_TEMPLATE   : return("UR_TEMPLATE"   );
-      case UR_INITFAILED : return("UR_INITFAILED" );
-      case UR_CLOSE      : return("UR_CLOSE"      );
+      case UR_TEMPLATE   : return "UR_TEMPLATE";
+      case UR_INITFAILED : return "UR_INITFAILED";
+      case UR_CLOSE      : return "UR_CLOSE";
    }
    return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason);
    #pragma EXPANDER_EXPORT

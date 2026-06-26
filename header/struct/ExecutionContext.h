@@ -1,4 +1,6 @@
 #pragma once
+#include "expander.h"
+
 #include <vector>
 
 typedef std::vector<string> LogBuffer;

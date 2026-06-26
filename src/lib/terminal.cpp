@@ -7,7 +7,6 @@
 #include "lib/sound.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
-#include "lib/win32.h"
 #include "lib/window.h"
 
 #include <shellapi.h>
