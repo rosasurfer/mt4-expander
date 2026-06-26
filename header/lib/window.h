@@ -55,9 +55,8 @@ BOOL        WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* val
 int         WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name);
 double      WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name);
 char*       WINAPI RemoveWindowStringA(HWND hWnd, const char* name);
-
-BOOL        WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix);
-BOOL        WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix);
 void        WINAPI ReleaseWindowProperties();
 
 int         WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive = FALSE);
+int         WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix);
+int         WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix);

@@ -135,18 +135,17 @@ enum UninitializeReason {
 #define warn(...)   _warn  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)  _error (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int __cdecl _dump  (const char* fileName, const char* funcName, uint line, const void* data, uint size, DWORD mode = DUMPMODE_HEX);
-int __cdecl _debug (const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _debug (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _info  (const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _info  (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _notice(const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _notice(const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _warn  (const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _warn  (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _error (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-
-int __cdecl debug_raw(const char* message, ...);
+int __cdecl _dump     (const char* fileName, const char* funcName, uint line, const void* data, uint size, DWORD mode = DUMPMODE_HEX);
+int __cdecl _debug    (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl  debug_raw(const char* message, ...);
+int __cdecl _debug    (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _info     (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _info     (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _notice   (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _notice   (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _warn     (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _warn     (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _error    (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
 
 
 // helper functions returning constant values
