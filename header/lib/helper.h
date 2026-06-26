@@ -20,7 +20,9 @@ BOOL        WINAPI IsVirtualKeyDown(int key);
 BOOL        WINAPI IsWindowAreaVisible(HWND hWnd);
 string      WINAPI MakeChartTitleA(const string &symbol, uint timeframe, bool custom = false);
 uint        WINAPI MT4InternalMsg();
+uint        WINAPI MT4ExpanderMsg();
 uint        WINAPI WM_MT4();
+uint        WINAPI WM_MT4X();
 
 HANDLE      WINAPI GetWindowPropertyA(HWND hWnd, const char* name);
 BOOL        WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value);

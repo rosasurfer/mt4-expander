@@ -724,9 +724,9 @@ string WINAPI MakeChartTitleA(const string &symbol, uint timeframe, bool custom/
 
 
 /**
- * Get a unique message id for the string "MetaTrader4_Internal_Message".
+ * Get the message id of the internal message used by MT4.
  *
- * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (NULL) in case of errors
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
  */
 uint WINAPI MT4InternalMsg() {
    static uint msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
@@ -739,11 +739,37 @@ uint WINAPI MT4InternalMsg() {
 /**
  * Alias of MT4InternalMsg()
  *
- * Get a unique message id for the string "MetaTrader4_Internal_Message".
+ * Get the message id of the internal message used by MT4.
  *
- * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (NULL) in case of errors
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
  */
 uint WINAPI WM_MT4() {
    return MT4InternalMsg();
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get a unique message id for internal messages of the MT4Expander.
+ *
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
+ */
+uint WINAPI MT4ExpanderMsg() {
+   static uint msgId = RegisterWindowMessageA("rsf.MT4Expander.Message");
+   if (!msgId) return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessageA()");
+   return msgId;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Alias of MT4ExpanderMsg()
+ *
+ * Get a unique message id for internal messages of the MT4Expander.
+ *
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
+ */
+uint WINAPI WM_MT4X() {
+   return MT4ExpanderMsg();
    #pragma EXPANDER_EXPORT
 }
