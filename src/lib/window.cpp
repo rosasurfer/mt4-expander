@@ -569,9 +569,8 @@ int WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
  * @return int - number of reported window properties or EMPTY (-1) in case of errors
  */
 int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
-   if (prefix && (uint)prefix < MIN_VALID_POINTER) {
-      return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
-   }
+   if (!IsWindow(hWnd))                            return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %p (not a window)", hWnd));
+   if (prefix && (uint)prefix < MIN_VALID_POINTER) return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
 
    struct local {
       /**

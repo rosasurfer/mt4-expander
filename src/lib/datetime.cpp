@@ -1083,11 +1083,12 @@ BOOL WINAPI GetTimeZoneInfoByWindowsNameA(TIME_ZONE_INFORMATION* tzi, const char
 
    // read timezone settings from the registry
    BOOL success = FALSE;
+   *tzi = TIME_ZONE_INFORMATION();
+
    if (local::ReadRegistryValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regTzi,            sizeof(regTzi))            &&
        local::ReadRegistryValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regTzi,            sizeof(regTzi))            &&
        local::ReadRegistryValue(hKey, key, L"Std", RRF_RT_REG_SZ,     &tzi->StandardName, sizeof(tzi->StandardName)) &&
        local::ReadRegistryValue(hKey, key, L"Dlt", RRF_RT_REG_SZ,     &tzi->DaylightName, sizeof(tzi->DaylightName)) && (success = TRUE)) {
-      *tzi = TIME_ZONE_INFORMATION();
       tzi->Bias         = regTzi.Bias;
       tzi->DaylightBias = regTzi.DaylightBias;
       tzi->DaylightDate = regTzi.DaylightDate;
