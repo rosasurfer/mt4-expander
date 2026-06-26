@@ -462,68 +462,6 @@ char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
 
 
 /**
- * Enumerates the properties of the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - limiting name prefix of properties to print
- *
- * @return BOOL - success status; FALSE if the function did not find any window properties or in case of errors
- */
-BOOL WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
-   wchar* wPrefix = NULL;
-   if (prefix) {
-      if ((uint)prefix < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix);
-      wPrefix = ansiToUtf16(prefix);
-   }
-   BOOL result = EnumWindowPropertiesW(hWnd, wPrefix);
-   free(wPrefix);
-   return result;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Enumerates the properties of the specified window.
- *
- * @param  HWND   hWnd - window handle
- * @param  wchar* name - limiting name prefix of properties to print
- *
- * @return BOOL - success status; FALSE if the function did not find any window properties or in case of errors
- */
-BOOL WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
-   if (prefix) {
-      if ((uint)prefix < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix);
-   }
-
-   // A local function as substitute for missing lambda support in C++03.
-   struct local {
-      /**
-       * @param  HWND      hWnd   - window whose property list is being enumerated
-       * @param  wchar*    name   - property name
-       * @param  HANDLE    value  - property value
-       * @param  ULONG_PTR prefix - name prefix of properties to print as passed by the outer function
-       *
-       * @return BOOL - whether to continue enumeration with the next property
-       */
-      static BOOL CALLBACK EnumPropsProc(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR prefix) {
-         wchar* wPrefix = (wchar*)prefix;
-         if (wPrefix && !*wPrefix) {
-            wPrefix = NULL;
-         }
-         if (!wPrefix || StrStartsWith(name, wPrefix)) {
-            debug_raw("property \"%S\" = %p (%d)", name, value, value);
-         }
-         return TRUE;
-      }
-   };
-
-   int result = EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)prefix);
-   return (result != -1);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Release all stored window properties. Called from DLL::onProcessDetach() only.
  */
 void WINAPI ReleaseWindowProperties() {
@@ -546,13 +484,12 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
    if (!hWnd) hWnd = hWndDesktop;
    if (!IsWindow(hWnd)) return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %p (not a valid window)", hWnd));
 
-   /**
-    * A local function as substitute for missing lambda support in C++03.
-    * On error a window was destroyed cross-thread. Such a window is reported as "gone".
-    *
-    * @return int - number of reported child windows
-    */
    struct local {
+      /**
+       * On error a window was destroyed cross-thread. Such a window is reported as "gone" and not included in the return value.
+       *
+       * @return int - number of reported child windows
+       */
       static int ProcessWindow(HWND hWnd, HWND hWndParent, HWND hWndDesktop, BOOL isRoot, BOOL recursive, uint level) {
          uint indentLevel = (level > 0) ? (level-1) : 0;
          string spaces(indentLevel * 2, ' ');
@@ -560,17 +497,17 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
 
          SetLastError(NO_ERROR);
          wstring wndClass = getClassNameW(hWnd);
-         if (GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
+         if (GetLastError()) return debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError()));
 
          wstring wndTitle = getInternalWindowTextW(hWnd);
-         if (GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
+         if (GetLastError()) return debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError()));
 
          const char* sType = "";
          if      (hWnd == hWndDesktop)       sType = " (desktop)";
          else if (hWndParent == hWndDesktop) sType = " (top-level)";
 
          int ctrlId = GetDlgCtrlID(hWnd);
-         if (!ctrlId && GetLastError()) return _NULL(debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError())));
+         if (!ctrlId && GetLastError()) return debug_raw("  %s%s%p: (gone)  [%s]", spaces.c_str(), marker, hWnd, ErrorToStrA(GetLastError()));
 
          if (!hWndParent || hWndParent == hWndDesktop) {
             ctrlId = 0;
@@ -602,5 +539,70 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
    if (!count) debug_raw("  -> (no child windows)");
 
    return count;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Enumerates the properties of the specified window.
+ *
+ * @param  HWND  hWnd - window handle
+ * @param  char* name - limiting name prefix of properties to print
+ *
+ * @return int - number of reported window properties or EMPTY (-1) in case of errors
+ */
+int WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
+   if (prefix && (uint)prefix < MIN_VALID_POINTER) {
+      return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
+   }
+   return EnumWindowPropertiesW(hWnd, prefix ? ansiToUtf16(string(prefix)).c_str() : NULL);
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Enumerates the properties of the specified window.
+ *
+ * @param  HWND   hWnd - window handle
+ * @param  wchar* name - limiting name prefix of properties to print
+ *
+ * @return int - number of reported window properties or EMPTY (-1) in case of errors
+ */
+int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
+   if (prefix && (uint)prefix < MIN_VALID_POINTER) {
+      return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
+   }
+
+   struct local {
+      /**
+       * @param  HWND      hWnd  - window whose property list is being enumerated
+       * @param  wchar*    name  - property name
+       * @param  HANDLE    value - property value
+       * @param  ULONG_PTR data  - user data as passed by the outer function
+       *
+       * @return BOOL - whether to continue enumeration with the next property
+       */
+      static BOOL CALLBACK EnumPropsProc(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR data) {
+         DATA* d = (DATA*)data;
+         const wchar* prefix = d->prefix;
+
+         if (prefix && !*prefix) {
+            prefix = NULL;
+         }
+         if (!prefix || StrStartsWith(name, prefix)) {
+            debug_raw("property \"%S\" = %p (%d)", name, value, value);
+            d->count++;
+         }
+         return TRUE;
+      }
+   };
+
+   struct DATA {
+      const wchar* prefix;
+      int count;
+   } data = { prefix, 0 };
+
+   EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&data);
+   return data.count;
    #pragma EXPANDER_EXPORT
 }

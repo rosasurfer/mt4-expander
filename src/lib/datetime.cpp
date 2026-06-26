@@ -1063,8 +1063,8 @@ BOOL WINAPI GetTimeZoneInfoByWindowsNameA(TIME_ZONE_INFORMATION* tzi, const char
       return !error(ERR_WIN32_ERROR + error, "failed to open key: \"HKEY_LOCAL_MACHINE\\%s\"", key.c_str());
    }
 
-   // simplify RegGetValueW(), substitute for missing lambdas in C++03                    // TODO: move to registry.cpp
    struct local {
+      // simplify RegGetValueW()                         // TODO: move to registry.cpp
       static BOOL WINAPI ReadRegistryValue(HKEY hKey, const string &key, const wchar* value, DWORD type, void* buffer, DWORD bufferSize) {
          int error = RegGetValueW(hKey, NULL, value, type, NULL, buffer, &bufferSize);
          if (error) error(ERR_WIN32_ERROR + error, "failed to read value: \"HKEY_LOCAL_MACHINE\\%s\\%S\"", key.c_str(), value);
@@ -1079,20 +1079,20 @@ BOOL WINAPI GetTimeZoneInfoByWindowsNameA(TIME_ZONE_INFORMATION* tzi, const char
       long       DaylightBias;
       SYSTEMTIME StandardDate;
       SYSTEMTIME DaylightDate;
-   } regtzi = {};
+   } regTzi = {};
 
    // read timezone settings from the registry
-   BOOL success = 1;
-   success = success && local::ReadRegistryValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regtzi,            sizeof(regtzi));
-   success = success && local::ReadRegistryValue(hKey, key, L"Std", RRF_RT_REG_SZ,     &tzi->StandardName, sizeof(tzi->StandardName));
-   success = success && local::ReadRegistryValue(hKey, key, L"Dlt", RRF_RT_REG_SZ,     &tzi->DaylightName, sizeof(tzi->DaylightName));
-
-   if (success) {
-      tzi->Bias         = regtzi.Bias;
-      tzi->DaylightBias = regtzi.DaylightBias;
-      tzi->DaylightDate = regtzi.DaylightDate;
-      tzi->StandardBias = regtzi.StandardBias;
-      tzi->StandardDate = regtzi.StandardDate;
+   BOOL success = FALSE;
+   if (local::ReadRegistryValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regTzi,            sizeof(regTzi))            &&
+       local::ReadRegistryValue(hKey, key, L"TZI", RRF_RT_REG_BINARY, &regTzi,            sizeof(regTzi))            &&
+       local::ReadRegistryValue(hKey, key, L"Std", RRF_RT_REG_SZ,     &tzi->StandardName, sizeof(tzi->StandardName)) &&
+       local::ReadRegistryValue(hKey, key, L"Dlt", RRF_RT_REG_SZ,     &tzi->DaylightName, sizeof(tzi->DaylightName)) && (success = TRUE)) {
+      *tzi = TIME_ZONE_INFORMATION();
+      tzi->Bias         = regTzi.Bias;
+      tzi->DaylightBias = regTzi.DaylightBias;
+      tzi->DaylightDate = regTzi.DaylightDate;
+      tzi->StandardBias = regTzi.StandardBias;
+      tzi->StandardDate = regTzi.StandardDate;
    }
 
    RegCloseKey(hKey);
