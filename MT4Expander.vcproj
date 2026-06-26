@@ -383,6 +383,10 @@
 					RelativePath=".\header\lib\win32.h"
 					>
 				</File>
+				<File
+					RelativePath=".\header\lib\window.h"
+					>
+				</File>
 				<Filter
 					Name="ui"
 					>

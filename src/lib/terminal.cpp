@@ -8,6 +8,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/win32.h"
+#include "lib/window.h"
 
 #include <shellapi.h>
 #include <shlobj.h>
@@ -1019,22 +1020,14 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    while (hWndNext) {
       GetWindowThreadProcessId(hWndNext, &processId);
       if (processId == self) {
-         // the window belongs to us: inspect the child controls (i18n prevents checking against the text)
-         if (getClassNameW(hWndNext) == L"#32770") {
-            hWnd = GetDlgItem(hWndNext, IDC_ALERT_BUTTON);
-            if (hWnd && getClassNameW(hWnd) == L"Button") {
-               hWnd = GetDlgItem(hWndNext, IDC_ALERT_ICON);
-               if (hWnd && getClassNameW(hWnd) == L"Static" && GetWindowLongPtrW(hWnd, GWL_STYLE) & SS_BITMAP) {
-                  hWnd = GetDlgItem(hWndNext, IDC_ALERT_EDITTEXT);
-                  if (hWnd && getClassNameW(hWnd) == L"Edit") {
-                     hWnd = GetDlgItem(hWndNext, IDC_ALERT_LISTVIEW);
-                     if (hWnd && getClassNameW(hWnd) == L"SysListView32") {
-                        hWndAlert = hWndNext;
-                        break;
-                     }
-                  }
-               }
-            }
+         // the window is ours, inspect child controls (i18n prevents checking against the window text)
+         if (getClassNameW(hWndNext) == L"#32770"                                                 &&
+            (hWnd = GetDlgItem(hWndNext, IDC_ALERT_BUTTON))   && getClassNameW(hWnd) == L"Button" &&
+            (hWnd = GetDlgItem(hWndNext, IDC_ALERT_ICON))     && getClassNameW(hWnd) == L"Static" && GetWindowStyles(hWnd) & SS_BITMAP &&
+            (hWnd = GetDlgItem(hWndNext, IDC_ALERT_EDITTEXT)) && getClassNameW(hWnd) == L"Edit"   &&
+            (hWnd = GetDlgItem(hWndNext, IDC_ALERT_LISTVIEW)) && getClassNameW(hWnd) == L"SysListView32") {
+            hWndAlert = hWndNext;
+            break;
          }
       }
       hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
@@ -1051,18 +1044,4 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
    }
    return TRUE;
    #pragma EXPANDER_EXPORT
-   /*
-   340 DIALOGEX 0, 0, 250, 134, 0
-   STYLE DS_SETFONT | DS_CONTEXTHELP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-   EXSTYLE WS_EX_CONTEXTHELP
-   CAPTION "Alert"
-   LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-   FONT 8, "Tahoma"
-   {
-     DEFPUSHBUTTON   "OK", 1, 100, 115, 50, 14
-     CONTROL 125, 1236, "STATIC", SS_BITMAP, 5, 5, 32, 30
-     EDITTEXT   "", 1325, 45, 10, 200, 40, NOT WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
-     CONTROL "List1", 4018, "SysListView32", WS_BORDER | WS_TABSTOP | 0x0000C405, 5, 55, 240, 55
-   }
-   */
 }
