@@ -517,7 +517,7 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
          debug_raw("  %s%s%p: %S \"%S\"%s%s", spaces.c_str(), marker, hWnd, wndClass.c_str(), wndTitle.c_str(), sType, ctrlId ? sCtrlId : "");
          free(sCtrlId);
 
-         // enumerate child windows
+         // enumerate child windows                         // TODO: convert to EnumWindows/EnumChildWindows
          int count = !isRoot;
          if (isRoot || recursive) {
             HWND hWndNext = GetWindow(hWnd, GW_CHILD);      // no more error handling as the window was successfully reported

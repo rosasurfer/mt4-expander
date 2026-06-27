@@ -641,9 +641,7 @@ HWND WINAPI GetTerminalMainWindow() {
       } data = { GetCurrentProcessId(), 0 };
 
       struct local {
-         /**
-          * @return BOOL - whether to continue enumeration
-          */
+         /** @return BOOL - whether to continue enumeration */
          static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
             USER_DATA* data = (USER_DATA*)lParam;
             DWORD processId = NULL;
@@ -1026,9 +1024,7 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
 
    // enumerate top-level windows
    struct local {
-      /**
-       * @return BOOL - whether to continue enumeration
-       */
+      /** @return BOOL - whether to continue enumeration */
       static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
          USER_DATA* data = (USER_DATA*)lParam;
          DWORD processId = NULL;

@@ -22,39 +22,48 @@ HWND WINAPI FindTesterWindow() {
    static HWND hWndTester;
 
    if (!hWndTester) {
-      // The window may be docked at the terminal main window or float in an independent top-level window.
-      // In both cases the handle is the same.
+      // The tester window may be docked at the terminal main window (child of IDC_DOCK_CONTAINER) or
+      // float independently (child of IDC_FLOAT_CONTAINER). In both cases the handle is the same.
 
       // check for a docked tester window
       HWND hWndMain = GetTerminalMainWindow();
       if (!hWndMain) return NULL;
 
-      HWND hWnd = GetDlgItem(hWndMain, IDC_DOCKED_CONTAINER);           // container for docked terminal windows
-      if (!hWnd) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_DOCKED_CONTAINER)");
+      HWND hWnd = GetDlgItem(hWndMain, IDC_DOCK_CONTAINER);
+      if (!hWnd) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "GetDlgItem(MainWindow, IDC_DOCK_CONTAINER)");
 
-      HWND hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);                  // use non-static var for intermediate results (thread concurrency)
-      if (!hWndSuccess) {
-         SetLastError(NO_ERROR);                                        // reset the last ERROR_CONTROL_ID_NOT_FOUND
+      HWND hWndFound = GetDlgItem(hWnd, IDC_TESTER);
 
-         // check for a floating tester window
-         HWND hWndNext = GetTopWindow(NULL);
-         if (!hWndNext) return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "no top-level windows found");
+      if (!hWndFound) {
+         // no docked tester, check for a floating tester window
+         struct USER_DATA {
+            DWORD myProcessId;
+            HWND  hWndTester;
+         } data = { GetCurrentProcessId(), 0 };
 
-         DWORD processId, self=GetCurrentProcessId();
-         while (hWndNext) {                                             // iterate over all top-level windows owned by the current process
-            GetWindowThreadProcessId(hWndNext, &processId);
-            if (processId == self) {                                    // the window belongs to us
-               hWnd = GetDlgItem(hWndNext, IDC_FLOATING_CONTAINER);     // due to i18n we can't interprete the window titles
-               if (hWnd) {
-                  hWndSuccess = GetDlgItem(hWnd, IDC_TESTER);
-                  if (hWndSuccess) break;
+         struct local {
+            /** @return BOOL - whether to continue enumeration */
+            static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
+               USER_DATA* data = (USER_DATA*)lParam;
+               DWORD processId = NULL;
+               GetWindowThreadProcessId(hWnd, &processId);
+
+               if (processId == data->myProcessId) {
+                  if (hWnd = GetDlgItem(hWnd, IDC_FLOAT_CONTAINER)) {
+                     if (hWnd = GetDlgItem(hWnd, IDC_TESTER)) {
+                        data->hWndTester = hWnd;
+                     }
+                  }
                }
+               SetLastError(NO_ERROR);                      // an unrelated window may have been destroyed cross-thread
+               return !data->hWndTester;
             }
-            hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-         }
-         if (!hWndSuccess) debug("tester window doesn't yet exist");
+         };
+         SetLastError(NO_ERROR);
+         if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&data) && GetLastError()) return (HWND)!error(GetLastError(), "EnumWindows()");
+         hWndFound = data.hWndTester;
       }
-      if (hWndSuccess) hWndTester = hWndSuccess;
+      if (hWndFound && !hWndTester) hWndTester = hWndFound; // another thread may have been faster
    }
    return hWndTester;
    #pragma EXPANDER_EXPORT
