@@ -188,7 +188,21 @@ static BOOL WINAPI SubclassMainWindow() {
  */
 static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
    static DWORD debugFeatures = GetDebugFeatures();
+   static uint WM_MT4EXPANDER = MT4ExpanderMsg();
 
+   // process MT4Expander messages
+   if (msg == WM_MT4EXPANDER) {
+      switch (wParam) {
+         case ID_CALLBACK: {                                   // executes a task in the UI thread
+            JOB* job = (JOB*)lParam;
+            if (!job) return !error(ERR_INVALID_POINTER, "WM_MT4EXPANDER  id=ID_CALLBACK  invalid parameter job: NULL");
+            return job->run();
+         }
+      }
+      return DefSubclassProc(hWnd, msg, wParam, lParam);
+   }
+
+   // process regular messages
    switch (msg) {
       case WM_COMMAND: {
          if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
@@ -200,9 +214,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
          BOOL isSystemMenu = HIWORD(lParam);
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
-            if (debugFeatures & DEBUG_FEATURE_CHART_TEMPLATES) {
-               debug("WM_INITMENUPOPUP \"Chart->Templates\"");
-            }
+            if (debugFeatures & DEBUG_FEATURE_CHART_TEMPLATES) debug("WM_INITMENUPOPUP \"Chart->Templates\"");
             RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()
          }                                                     // - adds MFT_OWNERDRAW to mi.fType of all items
          break;                                                // - sets mi.dwItemData of all items to a shared (same) pointer
@@ -363,4 +375,41 @@ static BOOL WINAPI CustomizeTerminal() {
       PostMessageA(hBtnCtrl, WM_CLOSE, 0, 0);      // a DestroyWindow() in the UI thread delays startup
    }
    return TRUE;
+}
+
+
+/**
+ * Test implementation
+ *
+ * @return BOOL
+ */
+BOOL WINAPI TestJob() {
+   struct local {
+      static LRESULT TestUiDispatcher(LPARAM lParam) {
+         USER_DATA* data = (USER_DATA*)lParam;
+         if (!data) return !error(ERR_INVALID_POINTER, "invalid parameter lParam: NULL");
+
+         debug("UI-thread=%d  %S %d Luftballons", IsUiThread(), data->msg, data->count);
+         return 0;
+      }
+   };
+
+   struct USER_DATA {
+      const wchar* msg;
+      int          count;
+   } data = { L"Hello world!", 99 };
+
+   JOB job = {
+      local::TestUiDispatcher,
+      (LPARAM)&data,
+      0,
+      CreateEventW(NULL, TRUE, FALSE, NULL)
+   };
+   if (!job.done) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateEventW()");
+
+   PostMessageW(GetTerminalMainWindow(), WM_MT4EXPANDER(), ID_CALLBACK, (LPARAM)&job);
+   WaitForSingleObject(job.done, INFINITE);
+   CloseHandle(job.done);
+   return TRUE;
+   //#pragma EXPANDER_EXPORT
 }
