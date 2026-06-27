@@ -64,7 +64,7 @@ BOOL WINAPI RebuildChartTemplatesMenu(HMENU hMenu) {
       if (!GetMenuItemInfoW(hMenu, i, TRUE, &mi)) return !error(ERR_WIN32_ERROR + GetLastError(), "GetMenuItemInfoW(%p, %d)", hMenu, i);
 
       // if an actual chart template item
-      if (mi.fType == MFT_STRING && mi.wID >= ID_CHART_TEMPLATES_USER1) {
+      if (mi.fType == MFT_STRING && mi.wID >= ID_CHART_TEMPLATES_USER1 && mi.wID < ID_CHART_TEMPLATES_USER1 + 100) {
          wstring label(text);
          BOOL modified = ModifyChartTemplateLabel(label);
 

@@ -96,7 +96,7 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
             uint ctrlId = (uint)cs->hMenu;
 
             if (hWndMdi && cs->hwndParent == hWndMdi && cs->style & WS_CHILD) {
-               if (ctrlId >= IDC_MDICLIENT_CHART1 && ctrlId < IDC_MDICLIENT_CHART1 + 128) {  // current limit: 100
+               if (ctrlId >= IDC_MDICLIENT_CHART1 && ctrlId < IDC_MDICLIENT_CHART1 + CHARTS_MAX) {
                   SubclassChartWindow(hWnd);
                }
             }

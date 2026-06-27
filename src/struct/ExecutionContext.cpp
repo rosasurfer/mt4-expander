@@ -1043,12 +1043,12 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
  * @return HWND - the same handle or NULL in case of errors
  */
 HWND WINAPI ec_SetChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)hWnd <= 0)               return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %d (not a valid handle)", hWnd));
+   if ((uint)ec < MIN_VALID_POINTER) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((int)hWnd <= 0)               return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %d (not a valid handle)", hWnd);
 
    uint pid = ec->pid;
-   if (!pid)                         return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1060,10 +1060,10 @@ HWND WINAPI ec_SetChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
                chain[i]->chartWindow = hWnd;
             }
          }
-         return(hWnd);
+         return hWnd;
       }
    }
-   return((HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 

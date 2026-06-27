@@ -5,16 +5,53 @@
 
 
 /**
- * Whether the build of the DLL is a debug build.
+ * Return a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily").
  *
- * @return BOOL
+ * @param  string &symbol
+ * @param  uint   timeframe
+ * @param  bool   custom [optional] - whether to support custom timeframes (default: no)
+ *
+ * @return string - chart title or an empty string in case of errors; call GetLastError() for details
  */
-BOOL WINAPI IsDebugBuild() {
-   #ifdef _DEBUG
-      return TRUE;
-   #else
-      return FALSE;
-   #endif
+string WINAPI ChartTitleA(const string &symbol, uint timeframe, bool custom/*= false*/) {
+   size_t symbolLength = symbol.length();
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
+
+   string description = "";
+
+   switch (timeframe) {
+      case PERIOD_M1 : description += "M1";      break;
+      case PERIOD_M5 : description += "M5";      break;
+      case PERIOD_M10: description += "M10";     break;
+      case PERIOD_M15: description += "M15";     break;
+      case PERIOD_M30: description += "M30";     break;
+      case PERIOD_H1 : description += "H1";      break;
+      case PERIOD_H4 : description += "H4";      break;
+      case PERIOD_D1 : description += "Daily";   break;
+      case PERIOD_W1 : description += "Weekly";  break;
+      case PERIOD_MN1: description += "Monthly"; break;
+      default:
+         if (custom) {
+            switch (timeframe) {
+               case PERIOD_M2 : description += "M2";  break;
+               case PERIOD_M3 : description += "M3";  break;
+               case PERIOD_M4 : description += "M4";  break;
+               case PERIOD_M6 : description += "M6";  break;
+               case PERIOD_M12: description += "M12"; break;
+               case PERIOD_M20: description += "M20"; break;
+               case PERIOD_H2 : description += "H2";  break;
+               case PERIOD_H3 : description += "H3";  break;
+               case PERIOD_H6 : description += "H6";  break;
+               case PERIOD_H8 : description += "H8";  break;
+               case PERIOD_H12: description += "H12"; break;
+            }
+         }
+         if (!description.length()) {
+            description += "M";
+            description += to_string(timeframe);      // for custom offline charts
+         }
+   }
+   return string(symbol).append(",").append(description);
 }
 
 
@@ -26,6 +63,20 @@ BOOL WINAPI IsDebugBuild() {
 DWORD WINAPI GetLastWin32Error() {
    return GetLastError();
    #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether the build of the DLL is a debug build.
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsDebugBuild() {
+   #ifdef _DEBUG
+      return TRUE;
+   #else
+      return FALSE;
+   #endif
 }
 
 
@@ -199,57 +250,6 @@ BOOL WINAPI IsWindowAreaVisible(HWND hWnd) {
 
    return (region != NULLREGION);
    #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily").
- *
- * @param  string &symbol
- * @param  uint   timeframe
- * @param  bool   custom [optional] - whether to support custom timeframes (default: no)
- *
- * @return string - chart title or an empty string in case of errors; call GetLastError() for details
- */
-string WINAPI MakeChartTitleA(const string &symbol, uint timeframe, bool custom/*= false*/) {
-   size_t symbolLength = symbol.length();
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
-
-   string description = "";
-
-   switch (timeframe) {
-      case PERIOD_M1 : description += "M1";      break;
-      case PERIOD_M5 : description += "M5";      break;
-      case PERIOD_M10: description += "M10";     break;
-      case PERIOD_M15: description += "M15";     break;
-      case PERIOD_M30: description += "M30";     break;
-      case PERIOD_H1 : description += "H1";      break;
-      case PERIOD_H4 : description += "H4";      break;
-      case PERIOD_D1 : description += "Daily";   break;
-      case PERIOD_W1 : description += "Weekly";  break;
-      case PERIOD_MN1: description += "Monthly"; break;
-      default:
-         if (custom) {
-            switch (timeframe) {
-               case PERIOD_M2 : description += "M2";  break;
-               case PERIOD_M3 : description += "M3";  break;
-               case PERIOD_M4 : description += "M4";  break;
-               case PERIOD_M6 : description += "M6";  break;
-               case PERIOD_M12: description += "M12"; break;
-               case PERIOD_M20: description += "M20"; break;
-               case PERIOD_H2 : description += "H2";  break;
-               case PERIOD_H3 : description += "H3";  break;
-               case PERIOD_H6 : description += "H6";  break;
-               case PERIOD_H8 : description += "H8";  break;
-               case PERIOD_H12: description += "H12"; break;
-            }
-         }
-         if (!description.length()) {
-            description += "M";
-            description += to_string(timeframe);      // for custom offline charts
-         }
-   }
-   return string(symbol).append(",").append(description);
 }
 
 
