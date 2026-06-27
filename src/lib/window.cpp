@@ -611,3 +611,53 @@ int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
    return data.count;
    #pragma EXPANDER_EXPORT
 }
+
+
+/**
+ * Get the message id of the internal MT4 messages.
+ *
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
+ */
+uint WINAPI MT4InternalMsg() {
+   static uint msgId = RegisterWindowMessageW(L"MetaTrader4_Internal_Message");
+   if (!msgId) return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessageW()");
+   return msgId;
+}
+
+
+/**
+ * Alias of MT4InternalMsg()
+ *
+ * Get the message id of the internal MT4 messages.
+ *
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
+ */
+uint WINAPI WM_MT4() {
+   return MT4InternalMsg();
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Get the message id for internal MT4Expander messages.
+ *
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
+ */
+uint WINAPI MT4ExpanderMsg() {
+   static uint msgId = RegisterWindowMessageW(L"rsf.MT4Expander.Message");
+   if (!msgId) return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessageW()");
+   return msgId;
+}
+
+
+/**
+ * Alias of MT4ExpanderMsg()
+ *
+ * Get the message id for internal MT4Expander messages.
+ *
+ * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
+ */
+uint WINAPI WM_MT4EXPANDER() {
+   return MT4ExpanderMsg();
+   #pragma EXPANDER_EXPORT
+}

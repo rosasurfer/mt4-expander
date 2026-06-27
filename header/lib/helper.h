@@ -12,7 +12,3 @@ BOOL   WINAPI IsProgramType(int type);
 BOOL   WINAPI IsUiThread(DWORD threadId = NULL);
 BOOL   WINAPI IsVirtualKeyDown(int key);
 BOOL   WINAPI IsWindowAreaVisible(HWND hWnd);
-uint   WINAPI MT4InternalMsg();
-uint   WINAPI MT4ExpanderMsg();
-uint   WINAPI WM_MT4();
-uint   WINAPI WM_MT4X();
