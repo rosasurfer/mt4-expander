@@ -78,8 +78,8 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
          CREATESTRUCT* cs = ((CBT_CREATEWND*)lParam)->lpcs;
 
          // log if the debug feature is enabled
-         static DWORD debugOptions = GetDebugOptions();
-         if (debugOptions & OPTION_DEBUG_CREATE_WINDOW) {
+         static DWORD debugFeatures = GetDebugFeatures();
+         if (debugFeatures & DEBUG_FEATURE_CREATE_WINDOW) {
             debug(" HCBT_CREATEWND  %p  %S", hWnd, getClassNameW(hWnd).c_str());
          }
 
@@ -167,8 +167,8 @@ static BOOL WINAPI SubclassMainWindow() {
    }
    SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
 
-   static DWORD debugOptions = GetDebugOptions();
-   if (debugOptions & OPTION_DEBUG_SUBCLASS) {
+   static DWORD debugFeatures = GetDebugFeatures();
+   if (debugFeatures & DEBUG_FEATURE_SUBCLASS) {
       debug("main window %p subclassed", hWnd);
    }
    return TRUE;
@@ -187,11 +187,11 @@ static BOOL WINAPI SubclassMainWindow() {
  * @return LRESULT - depends on the message
  */
 static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
-   static DWORD debugOptions = GetDebugOptions();
+   static DWORD debugFeatures = GetDebugFeatures();
 
    switch (msg) {
       case WM_COMMAND: {
-         if (debugOptions & OPTION_DEBUG_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
+         if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
          break;
       }
 
@@ -200,7 +200,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
          BOOL isSystemMenu = HIWORD(lParam);
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
-            if (debugOptions & OPTION_DEBUG_CHART_TEMPLATES) {
+            if (debugFeatures & DEBUG_FEATURE_CHART_TEMPLATES) {
                debug("WM_INITMENUPOPUP \"Chart->Templates\"");
             }
             RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()
@@ -284,8 +284,8 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
    }
    SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
 
-   static DWORD debugOptions = GetDebugOptions();
-   if (debugOptions & OPTION_DEBUG_SUBCLASS) {
+   static DWORD debugFeatures = GetDebugFeatures();
+   if (debugFeatures & DEBUG_FEATURE_SUBCLASS) {
       debug("chart window %p subclassed", hWnd);
    }
    return TRUE;
@@ -304,11 +304,11 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
  * @return LRESULT - depends on the message
  */
 static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
-   static DWORD debugOptions = GetDebugOptions();
+   static DWORD debugFeatures = GetDebugFeatures();
 
    switch (msg) {
       case WM_COMMAND: {
-         if (debugOptions & OPTION_DEBUG_WM_COMMAND) {
+         if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) {
             debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, getInternalWindowTextW(hWnd).c_str(), LOWORD(wParam), lParam);
          }
          break;
@@ -319,7 +319,7 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
          BOOL isSystemMenu = HIWORD(lParam);
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
-            if (debugOptions & OPTION_DEBUG_CHART_TEMPLATES) {
+            if (debugFeatures & DEBUG_FEATURE_CHART_TEMPLATES) {
                debug("WM_INITMENUPOPUP \"Chart->Templates\"");
             }
             RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()

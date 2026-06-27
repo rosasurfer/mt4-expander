@@ -81,7 +81,7 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    char*              dllErrorMsg;                 //     700        4     DLL error message                                     |       |                               |
    int                mqlError;                    //     704        4     last MQL error of all MQL modules                     |       |                               |
                                                    //                                                                            |       |                               |
-   DWORD              debugOptions;                //     708        4     specified command line debug options                  |       |                               |
+   DWORD              debugFeatures;               //     708        4     enabled debug features                                |       |                               |
    int                loglevel;                    //     712        4     program main loglevel                                 |       |                               |
    int                loglevelDebug;               //     716        4     loglevel of the debug output appender                 |       |                               |
    int                loglevelTerminal;            //     720        4     loglevel of the terminal log appender                 |       |                               |
@@ -156,7 +156,7 @@ int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int 
 //                        ec.dllErrorMsg
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int error);
 
-DWORD              WINAPI ec_SetDebugOptions        (EXECUTION_CONTEXT* ec, DWORD options);
+DWORD              WINAPI ec_SetDebugFeatures       (EXECUTION_CONTEXT* ec, DWORD features);
 int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelDebug       (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int level);

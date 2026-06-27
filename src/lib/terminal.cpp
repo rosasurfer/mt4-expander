@@ -103,7 +103,7 @@ HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
 
 
 /**
- * Parse command line arguments and return the flags of supported and enabled CLI options.
+ * Parse command line arguments and return the flags of enabled CLI options.
  *
  * @return DWORD - option flags
  */
@@ -122,39 +122,39 @@ DWORD WINAPI GetCliOptions() {
             continue;                                 // This test mirrors that unusual behavior.
          }
          if (StrCompare(argv[i], L"/rsf:debug-accountnumber")) {
-            _options |= OPTION_DEBUG_ACCOUNT_NUMBER;
+            _options |= DEBUG_FEATURE_ACCOUNT_NUMBER;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
-            _options |= OPTION_DEBUG_ACCOUNT_SERVER;
+            _options |= DEBUG_FEATURE_ACCOUNT_SERVER;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-charttemplates")) {
-            _options |= OPTION_DEBUG_CHART_TEMPLATES;
+            _options |= DEBUG_FEATURE_CHART_TEMPLATES;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-createobject")) {
-            _options |= OPTION_DEBUG_CREATE_OBJECT;
+            _options |= DEBUG_FEATURE_CREATE_OBJECT;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-createwindow")) {
-            _options |= OPTION_DEBUG_CREATE_WINDOW;
+            _options |= DEBUG_FEATURE_CREATE_WINDOW;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-ec")) {
-            _options |= OPTION_DEBUG_EXECUTION_CONTEXT;
+            _options |= DEBUG_FEATURE_EXECUTION_CONTEXT;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
-            _options |= OPTION_DEBUG_INDICATOR_LIST;
+            _options |= DEBUG_FEATURE_INDICATOR_LIST;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-subclass")) {
-            _options |= OPTION_DEBUG_SUBCLASS;
+            _options |= DEBUG_FEATURE_SUBCLASS;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-wmcommand")) {
-            _options |= OPTION_DEBUG_WM_COMMAND;
+            _options |= DEBUG_FEATURE_WM_COMMAND;
             continue;
          }
       }
@@ -170,11 +170,11 @@ DWORD WINAPI GetCliOptions() {
 
 
 /**
- * Return the flags of enabled debug options.
+ * Return enabled debug feature flags.
  *
  * @return DWORD - option flags
  */
-DWORD WINAPI GetDebugOptions() {
+DWORD WINAPI GetDebugFeatures() {
    return GetCliOptions() & ~OPTION_PORTABLE_MODE;
    #pragma EXPANDER_EXPORT
 }

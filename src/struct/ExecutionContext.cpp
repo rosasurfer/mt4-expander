@@ -1449,19 +1449,19 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Set EXECUTION_CONTEXT.debugOptions and update all MQL modules of the program.
+ * Set EXECUTION_CONTEXT.debugFeatures and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
- * @param  DWORD              options
+ * @param  DWORD              features - feature flags
  *
- * @return DWORD - the same options or NULL in case of errors
+ * @return DWORD - the same feature flags or NULL in case of errors
  */
-DWORD WINAPI ec_SetDebugOptions(EXECUTION_CONTEXT* ec, DWORD options) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+DWORD WINAPI ec_SetDebugFeatures(EXECUTION_CONTEXT* ec, DWORD features) {
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1470,13 +1470,13 @@ DWORD WINAPI ec_SetDebugOptions(EXECUTION_CONTEXT* ec, DWORD options) {
       if (chain[i] == ec) {                           // context found
          for (i=0; i < chainSize; i++) {              // update all program modules
             if (chain[i]) {
-               chain[i]->debugOptions = options;
+               chain[i]->debugFeatures = features;
             }
          }
-         return(options);
+         return features;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1842,7 +1842,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", dllError="             <<                     (ec->dllError   ? ErrorToStrA(ec->dllError)   : "0")
          << ", mqlError="             <<                     (ec->mqlError   ? ErrorToStrA(ec->mqlError)   : "0")
 
-         << ", debugOptions="         <<                      ec->debugOptions
+         << ", debugFeatures="        <<                      ec->debugFeatures
          << ", loglevel="             << LoglevelDescriptionA(ec->loglevel)
          << ", loglevelDebug="        << LoglevelDescriptionA(ec->loglevelDebug)
          << ", loglevelTerminal="     << LoglevelDescriptionA(ec->loglevelTerminal)
