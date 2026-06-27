@@ -635,9 +635,31 @@ HWND WINAPI GetTerminalMainWindow() {
    static HWND hWndMain;
 
    if (!hWndMain) {
-      DWORD processId = NULL, self = GetCurrentProcessId();
-      HWND hWndNext = NULL, hWndFound = NULL;
-      uint i = 0;
+      struct USER_DATA {
+         DWORD myProcessId;
+         HWND  hWndFound;
+      } data = { GetCurrentProcessId(), 0 };
+
+      struct local {
+         /**
+          * @param  HWND   hWnd   - handle to a top-level window
+          * @param  LPARAM lParam - user-defined data as passed to EnumWindows()
+          *
+          * @return BOOL - whether to continue enumeration
+          */
+         static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
+            USER_DATA* data = (USER_DATA*)lParam;
+
+            DWORD processId = NULL;
+            GetWindowThreadProcessId(hWnd, &processId);
+
+            if (processId == data->myProcessId && getClassNameW(hWnd) == L"MetaQuotes::MetaTrader::4.00") {
+               data->hWndFound = hWnd;
+            }
+            SetLastError(NO_ERROR);             // an unrelated window may have been destroyed cross-thread
+            return !data->hWndFound;
+         }
+      };
 
       // MQL scripts run in their own thread. On fast CPUs with multiple cores, the following race condition may occur when
       // the Expander is loaded early: A non-UI thread is already looking-up the terminal main window, even though the UI
@@ -645,22 +667,11 @@ HWND WINAPI GetTerminalMainWindow() {
       //
       // Workaround: In such a case, the calling thread enters a brief wait loop. This is not critical, as MQL programs or
       // the UI thread itself will never enter this loop.
-
-      while (TRUE) {
-         hWndNext = GetTopWindow(NULL);            // TODO: use EnumWindows() as a Z order change will corrupt the result
-
-         while (hWndNext) {                        // iterate over all top-level windows
-            GetWindowThreadProcessId(hWndNext, &processId);
-            if (processId == self) {
-               wstring className = getClassNameW(hWndNext);
-               if (className == L"MetaQuotes::MetaTrader::4.00") {
-                  hWndFound = hWndNext;
-                  break;
-               }
-            }
-            hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-         }
-         if (hWndFound) break;
+      uint i = 0;
+      while (true) {
+         SetLastError(NO_ERROR);
+         if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&data) && GetLastError()) return (HWND)_NULL(error(GetLastError(), "EnumWindows()"));
+         if (data.hWndFound) break;
 
          static int log1 = info("cannot find terminal main window, waiting...");
          if (i >= 10) {
@@ -671,7 +682,7 @@ HWND WINAPI GetTerminalMainWindow() {
          Sleep(100);                               // wait in total 1 sec
       }
 
-      if (!hWndMain) hWndMain = hWndFound;         // another thread may have been faster
+      if (!hWndMain) hWndMain = data.hWndFound;    // another thread may have been faster
    }
    return hWndMain;
    #pragma EXPANDER_EXPORT

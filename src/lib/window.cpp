@@ -482,7 +482,7 @@ void WINAPI ReleaseWindowProperties() {
 int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
    HWND hWndDesktop = GetDesktopWindow();
    if (!hWnd) hWnd = hWndDesktop;
-   if (!IsWindow(hWnd)) return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %p (not a valid window)", hWnd));
+   if (!IsWindow(hWnd)) return _EMPTY(error(ERR_WIN32_ERROR + ERROR_INVALID_WINDOW_HANDLE, "hWnd=%p", hWnd));
 
    struct local {
       /**
@@ -535,7 +535,7 @@ int WINAPI EnumChildWindowsToDebug(HWND hWnd, BOOL recursive/*=FALSE*/) {
    HWND hWndParent = GetAncestor(hWnd, GA_PARENT);
    int count = local::ProcessWindow(hWnd, hWndParent, hWndDesktop, TRUE, recursive, 0);
 
-   // indicate if no child windows found to visually distinguish from error condition
+   // report no child windows to visually distinguish from errors
    if (!count) debug_raw("  -> (no child windows)");
 
    return count;
@@ -571,6 +571,11 @@ int WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
 int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
    if (prefix && (uint)prefix < MIN_VALID_POINTER) return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
 
+   struct USER_DATA {
+      const wchar* prefix;
+      int          count;
+   } data = { prefix, 0 };
+
    struct local {
       /**
        * @param  HWND      hWnd   - window whose property list is being enumerated
@@ -595,18 +600,13 @@ int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
       }
    };
 
-   struct USER_DATA {
-      const wchar* prefix;
-      int          count;
-   } data = { prefix, 0 };
+   debug("for HWND %p", hWnd);
 
    SetLastError(NO_ERROR);
-
-   debug("for HWND %p", hWnd);
    int result = EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&data);
    if (result == -1 && GetLastError()) return _EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "EnumPropsExW()"));
 
-   // indicate if no properties found to visually distinguish from error condition
+   // report no properties to visually distinguish from errors
    if (!data.count) debug_raw("  (no window properties)");
    return data.count;
    #pragma EXPANDER_EXPORT
