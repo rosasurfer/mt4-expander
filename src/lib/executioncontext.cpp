@@ -1060,8 +1060,8 @@ uint WINAPI FindModuleInLimbo(ModuleType moduleType, const char* name, Uninitial
                            }
                         }
                      }
-                  } else warn(ERR_ILLEGAL_STATE, "illegal master context found in g_mqlPrograms[%d]:  master=NULL", i);
-               } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_mqlPrograms[%d]:  size=%d", i, size);
+                  } else warn(ERR_ILLEGAL_STATE, "illegal master context in g_mqlInstances[%d]: NULL", i);
+               } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain in g_mqlInstances[%d]: size=%d", i, size);
             }
          }
 
@@ -1087,8 +1087,8 @@ uint WINAPI FindModuleInLimbo(ModuleType moduleType, const char* name, Uninitial
                               }
                            }
                         }
-                     } else warn(ERR_ILLEGAL_STATE, "illegal master context found in g_mqlPrograms[%d]:  master=NULL", i);
-                  } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain found at g_mqlPrograms[%d]:  size=%d", i, chain.size());
+                     } else warn(ERR_ILLEGAL_STATE, "illegal master context in g_mqlInstances[%d]: NULL", i);
+                  } else warn(ERR_ILLEGAL_STATE, "illegal ContextChain in g_mqlInstances[%d]: size=%d", i, chain.size());
                }
             }
          }

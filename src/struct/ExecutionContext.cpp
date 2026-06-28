@@ -20,8 +20,8 @@ extern MqlInstanceList g_mqlInstances;             // all MQL program instances
  * @return char* - program name
  */
 const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   return(ec->programName);
+   if ((uint)ec < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   return ec->programName;
    #pragma EXPANDER_EXPORT
 }
 
@@ -29,7 +29,7 @@ const char* WINAPI ec_ProgramName(const EXECUTION_CONTEXT* ec) {
 /**
  * Return the program name of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return char* - program name
  */
@@ -39,10 +39,10 @@ const char* WINAPI ec_SuperProgramName(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->programName);
+         return master->superContext->programName;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -50,7 +50,7 @@ const char* WINAPI ec_SuperProgramName(uint pid) {
 /**
  * Return the main loglevel of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return int - loglevel
  */
@@ -60,10 +60,10 @@ int WINAPI ec_SuperLoglevel(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->loglevel);
+         return master->superContext->loglevel;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -71,7 +71,7 @@ int WINAPI ec_SuperLoglevel(uint pid) {
 /**
  * Return the loglevel for the debug output appender of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return int - loglevel
  */
@@ -81,10 +81,10 @@ int WINAPI ec_SuperLoglevelDebug(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->loglevelDebug);
+         return master->superContext->loglevelDebug;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -92,7 +92,7 @@ int WINAPI ec_SuperLoglevelDebug(uint pid) {
 /**
  * Return the loglevel for the terminal log appender of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return int - loglevel
  */
@@ -102,10 +102,10 @@ int WINAPI ec_SuperLoglevelTerminal(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->loglevelTerminal);
+         return master->superContext->loglevelTerminal;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -113,7 +113,7 @@ int WINAPI ec_SuperLoglevelTerminal(uint pid) {
 /**
  * Return the loglevel for the terminal alert appender of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return int - loglevel
  */
@@ -123,10 +123,10 @@ int WINAPI ec_SuperLoglevelAlert(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->loglevelAlert);
+         return master->superContext->loglevelAlert;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -134,7 +134,7 @@ int WINAPI ec_SuperLoglevelAlert(uint pid) {
 /**
  * Return the loglevel for the custom logfile appender of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return int - loglevel
  */
@@ -144,10 +144,10 @@ int WINAPI ec_SuperLoglevelFile(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->loglevelFile);
+         return master->superContext->loglevelFile;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -155,7 +155,7 @@ int WINAPI ec_SuperLoglevelFile(uint pid) {
 /**
  * Return the loglevel for the mail appender of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return int - loglevel
  */
@@ -165,10 +165,10 @@ int WINAPI ec_SuperLoglevelMail(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->loglevelMail);
+         return master->superContext->loglevelMail;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -176,7 +176,7 @@ int WINAPI ec_SuperLoglevelMail(uint pid) {
 /**
  * Return the loglevel for the Telegram appender of the linked super context (if any).
  *
- * @param  uint pid - pid of the program
+ * @param  uint pid - pid of the MQL program
  *
  * @return int - loglevel
  */
@@ -186,10 +186,10 @@ int WINAPI ec_SuperLoglevelTelegram(uint pid) {
       EXECUTION_CONTEXT* master = chain[0];
 
       if (master && master->superContext) {
-         return(master->superContext->loglevelTelegram);
+         return master->superContext->loglevelTelegram;
       }
    }
-   return(NULL);
+   return NULL;
    #pragma EXPANDER_EXPORT
 }
 
@@ -203,16 +203,20 @@ int WINAPI ec_SuperLoglevelTelegram(uint pid) {
  * @return ProgramType - the same type or NULL in case of errors
  */
 ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
-   if ((uint)ec < MIN_VALID_POINTER) return((ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+
    switch (type) {
       case PT_INDICATOR:
       case PT_EXPERT:
-      case PT_SCRIPT: break;
-      default: return((ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type));
+      case PT_SCRIPT:
+         break;
+      default:
+         return (ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ProgramType)", type);
    }
+
    uint pid = ec->pid;
-   if (!pid)                         return((ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (ProgramType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -224,10 +228,10 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
                chain[i]->programType = type;
             }
          }
-         return(type);
+         return type;
       }
    }
-   return((ProgramType)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (ProgramType)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -240,13 +244,13 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
  * @return char* - the same name or NULL in case of errors
  */
 const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)                    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)                    return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name || strlen(name) >= sizeof(ec->programName)) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"%s\" (must be 1 to %d chars long)", name, sizeof(ec->programName)-1));
+   if ((uint)ec   < MIN_VALID_POINTER)                    return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((uint)name < MIN_VALID_POINTER)                    return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name || strlen(name) >= sizeof(ec->programName)) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"%s\" (must be 1 to %d chars long)", name, sizeof(ec->programName)-1);
 
    uint pid = ec->pid;
-   if (!pid)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -255,13 +259,15 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
       if (chain[i] == ec) {                           // context found
          for (i=0; i < chainSize; i++) {              // update all program modules
             if (chain[i]) {
-               if (!strcpy(chain[i]->programName, name)) return(NULL);
+               if (!strcpy(chain[i]->programName, name)) {
+                  return NULL;
+               }
             }
          }
-         return(name);
+         return name;
       }
    }
-   return((char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -274,7 +280,8 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
  * @return InitializeReason - the same reason or NULL in case of errors
  */
 InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, InitializeReason reason) {
-   if ((uint)ec < MIN_VALID_POINTER) return((InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+
    switch (reason) {
       case IR_USER:
       case IR_TEMPLATE:
@@ -287,11 +294,13 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
       case IR_RECOMPILE:
       case IR_TERMINAL_FAILURE:
          break;
-      default: return((InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason));
+      default:
+         return (InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an InitializeReason)", reason);
    }
+
    uint pid = ec->pid;
-   if (!pid)                         return((InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -303,10 +312,10 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
                chain[i]->programInitReason = reason;
             }
          }
-         return(reason);
+         return reason;
       }
    }
-   return((InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -319,7 +328,8 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
  * @return UninitializeReason - the same reason or NULL in case of errors
  */
 UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, UninitializeReason reason) {
-   if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+
    switch (reason) {
       case UR_UNDEFINED:
       case UR_REMOVE:
@@ -330,12 +340,15 @@ UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, Unini
       case UR_ACCOUNT:
       case UR_TEMPLATE:
       case UR_CLOSE:
-      case UR_INITFAILED: break;
-      default: return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
+      case UR_INITFAILED:
+         break;
+      default:
+         return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason);
    }
+
    uint pid = ec->pid;
-   if (!pid)                         return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -347,10 +360,10 @@ UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, Unini
                chain[i]->programUninitReason = reason;
             }
          }
-         return(reason);
+         return reason;
       }
    }
-   return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -363,16 +376,20 @@ UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, Unini
  * @return CoreFunction - the same id or NULL in case of errors
  */
 CoreFunction WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction id) {
-   if ((uint)ec < MIN_VALID_POINTER) return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+
    switch (id) {
       case CF_INIT:
       case CF_START:
-      case CF_DEINIT: break;
-      default: return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a CoreFunction id)", id));
+      case CF_DEINIT:
+         break;
+      default:
+         return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a CoreFunction id)", id);
    }
+
    uint pid = ec->pid;
-   if (!pid)                         return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -384,10 +401,10 @@ CoreFunction WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunctio
                chain[i]->programCoreFunction = id;
             }
          }
-         return(id);
+         return id;
       }
    }
-   return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -401,11 +418,11 @@ CoreFunction WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunctio
  * @return DWORD - the same flags or NULL in case of errors
  */
 DWORD WINAPI ec_SetProgramInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -417,10 +434,10 @@ DWORD WINAPI ec_SetProgramInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
                chain[i]->programInitFlags = flags;
             }
          }
-         return(flags);
+         return flags;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -433,11 +450,11 @@ DWORD WINAPI ec_SetProgramInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
  * @return DWORD - the same flags or NULL in case of errors
  */
 DWORD WINAPI ec_SetProgramDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -449,10 +466,10 @@ DWORD WINAPI ec_SetProgramDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
                chain[i]->programDeinitFlags = flags;
             }
          }
-         return(flags);
+         return flags;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -465,18 +482,21 @@ DWORD WINAPI ec_SetProgramDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
  * @return ModuleType - the same module type or NULL in case of errors
  */
 ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
-   if ((uint)ec < MIN_VALID_POINTER) return((ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+
    switch (type) {
       case MT_INDICATOR:
       case MT_EXPERT:
       case MT_SCRIPT:
-      case MT_LIBRARY: break;
-      default: return((ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type));
+      case MT_LIBRARY:
+         break;
+      default:
+         return (ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter type: %d (not a ModuleType)", type);
    }
 
    uint pid = ec->pid;
-   if (!pid)                         return((ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (ModuleType)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -487,10 +507,10 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
          if (i==1 && chain[0]) {
             chain[0]->moduleType = type;              // update master
          }
-         return(type);
+         return type;
       }
    }
-   return((ModuleType)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (ModuleType)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -503,13 +523,13 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
  * @return char* - the same name or NULL in case of errors
  */
 const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
-   if ((uint)ec   < MIN_VALID_POINTER)                   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)name < MIN_VALID_POINTER)                   return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
-   if (!*name || strlen(name) >= sizeof(ec->moduleName)) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"%s\" (must be 1 to %d chars long)", name, sizeof(ec->moduleName)-1));
+   if ((uint)ec   < MIN_VALID_POINTER)                   return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((uint)name < MIN_VALID_POINTER)                   return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+   if (!*name || strlen(name) >= sizeof(ec->moduleName)) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"%s\" (must be 1 to %d chars long)", name, sizeof(ec->moduleName)-1);
 
    uint pid = ec->pid;
-   if (!pid)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -520,10 +540,10 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
          if (i==1 && chain[0]) {
             if (!strcpy(chain[0]->moduleName, name)) return(NULL);   // update master
          }
-         return(name);
+         return name;
       }
    }
-   return((char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -536,7 +556,8 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
  * @return UninitializeReason - the same reason or NULL in case of errors
  */
 UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, UninitializeReason reason) {
-   if ((uint)ec < MIN_VALID_POINTER) return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+
    switch (reason) {
       case UR_UNDEFINED:
       case UR_REMOVE:
@@ -547,13 +568,15 @@ UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, Uninit
       case UR_ACCOUNT:
       case UR_TEMPLATE:
       case UR_CLOSE:
-      case UR_INITFAILED: break;
-      default: return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason));
+      case UR_INITFAILED:
+         break;
+      default:
+         return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter reason: %d (not an UninitializeReason)", reason);
    }
 
    uint pid = ec->pid;
-   if (!pid)                         return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -564,10 +587,10 @@ UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, Uninit
          if (i==1 && chain[0]) {
             chain[0]->moduleUninitReason = reason;    // update master
          }
-         return(reason);
+         return reason;
       }
    }
-   return((UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -580,17 +603,20 @@ UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, Uninit
  * @return CoreFunction - the same id or NULL in case of errors
  */
 CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction id) {
-   if ((uint)ec < MIN_VALID_POINTER) return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+
    switch (id) {
       case CF_INIT:
       case CF_START:
-      case CF_DEINIT: break;
-      default: return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a CoreFunction id)", id));
+      case CF_DEINIT:
+         break;
+      default:
+         return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (not a CoreFunction id)", id);
    }
 
    uint pid = ec->pid;
-   if (!pid)                         return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -601,10 +627,10 @@ CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction
          if (i==1 && chain[0]) {
             chain[0]->moduleCoreFunction = id;        // update master
          }
-         return(id);
+         return id;
       }
    }
-   return((CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -617,11 +643,11 @@ CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction
  * @return DWORD - the same flags or NULL in case of errors
  */
 DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -632,10 +658,10 @@ DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
          if (i==1 && chain[0]) {
             chain[0]->moduleInitFlags = flags;        // update master
          }
-         return(flags);
+         return flags;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -648,11 +674,11 @@ DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
  * @return DWORD - the same flags or NULL in case of errors
  */
 DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -663,10 +689,10 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
          if (i==1 && chain[0]) {
             chain[0]->moduleDeinitFlags = flags;      // update master
          }
-         return(flags);
+         return flags;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -679,13 +705,13 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
  * @return char* - the same symbol or NULL in case of errors
  */
 const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
-   if ((uint)ec     < MIN_VALID_POINTER)               return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)symbol < MIN_VALID_POINTER)               return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if (!*symbol || strlen(symbol) > MAX_SYMBOL_LENGTH) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\" (must be 1 to %d chars long)", symbol, MAX_SYMBOL_LENGTH));
+   if ((uint)ec     < MIN_VALID_POINTER)               return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((uint)symbol < MIN_VALID_POINTER)               return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol);
+   if (!*symbol || strlen(symbol) > MAX_SYMBOL_LENGTH) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\" (must be 1 to %d chars long)", symbol, MAX_SYMBOL_LENGTH);
 
    uint pid = ec->pid;
-   if (!pid)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -694,13 +720,15 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
       if (chain[i] == ec) {                           // context found
          for (i=0; i < chainSize; i++) {              // update all program modules
             if (chain[i]) {
-               if (!strcpy(chain[i]->symbol, symbol)) return(NULL);
+               if (!strcpy(chain[i]->symbol, symbol)) {
+                  return NULL;
+               }
             }
          }
-         return(symbol);
+         return symbol;
       }
    }
-   return((char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -713,12 +741,12 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
  * @return uint - the same timeframe or NULL in case of errors
  */
 uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)timeframe <= 0)          return(!error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d (must be positive)", timeframe));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((int)timeframe <= 0)          return !error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d (must be positive)", timeframe);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -730,10 +758,10 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
                chain[i]->timeframe = timeframe;
             }
          }
-         return(timeframe);
+         return timeframe;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -746,12 +774,12 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
  * @return int - the same bars value or NULL in case of errors
  */
 int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int bars) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (bars < 0)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d (must be non-negative)", bars));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (bars < 0)                     return !error(ERR_INVALID_PARAMETER, "invalid parameter bars: %d (must be non-negative)", bars);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -763,10 +791,10 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int bars) {
                chain[i]->bars = bars;
             }
          }
-         return(bars);
+         return bars;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -779,12 +807,12 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int bars) {
  * @return int - the same validBars value or NULL in case of errors
  */
 int WINAPI ec_SetValidBars(EXECUTION_CONTEXT* ec, int validBars) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (validBars < -1)               return(!error(ERR_INVALID_PARAMETER, "invalid parameter validBars: %d (can't be smaller than -1)", validBars));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (validBars < -1)               return !error(ERR_INVALID_PARAMETER, "invalid parameter validBars: %d (can't be smaller than -1)", validBars);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -796,10 +824,10 @@ int WINAPI ec_SetValidBars(EXECUTION_CONTEXT* ec, int validBars) {
                chain[i]->validBars = validBars;
             }
          }
-         return(validBars);
+         return validBars;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -812,12 +840,12 @@ int WINAPI ec_SetValidBars(EXECUTION_CONTEXT* ec, int validBars) {
  * @return int - the same changedBars value or NULL in case of errors
  */
 int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int changedBars) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (changedBars < -1)             return(!error(ERR_INVALID_PARAMETER, "invalid parameter changedBars: %d (can't be smaller than -1)", changedBars));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (changedBars < -1)             return !error(ERR_INVALID_PARAMETER, "invalid parameter changedBars: %d (can't be smaller than -1)", changedBars);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -829,10 +857,10 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int changedBars) {
                chain[i]->changedBars = changedBars;
             }
          }
-         return(changedBars);
+         return changedBars;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -845,12 +873,12 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int changedBars) {
  * @return uint - the same digits value of NULL in case of errors
  */
 uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)digits < 0)              return(!error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((int)digits < 0)              return !error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d (must be non-negative)", digits);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -862,10 +890,10 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
                chain[i]->digits = digits;
             }
          }
-         return(digits);
+         return digits;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -878,12 +906,12 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
  * @return uint - the same pipDigits value or NULL in case of errors
  */
 uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint pipDigits) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)pipDigits < 0)           return(!error(ERR_INVALID_PARAMETER, "invalid parameter pipDigits: %d (must be non-negative)", pipDigits));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((int)pipDigits < 0)           return !error(ERR_INVALID_PARAMETER, "invalid parameter pipDigits: %d (must be non-negative)", pipDigits);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -895,10 +923,10 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint pipDigits) {
                chain[i]->pipDigits = pipDigits;
             }
          }
-         return(pipDigits);
+         return pipDigits;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -911,12 +939,12 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint pipDigits) {
  * @return double - the same pip size value or NULL in case of errors
  */
 double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (size <= 0)                    return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %f (must be > 0)", size));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (size <= 0)                    return !error(ERR_INVALID_PARAMETER, "invalid parameter size: %f (must be > 0)", size);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -928,10 +956,10 @@ double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
                chain[i]->pip = size;
             }
          }
-         return(size);
+         return size;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -944,12 +972,12 @@ double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
  * @return double - the same point size or NULL in case of errors
  */
 double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (size <= 0)                    return(!error(ERR_INVALID_PARAMETER, "invalid parameter size: %f (must be > 0)", size));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (size <= 0)                    return !error(ERR_INVALID_PARAMETER, "invalid parameter size: %f (must be > 0)", size);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -961,10 +989,10 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
                chain[i]->point = size;
             }
          }
-         return(size);
+         return size;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -977,12 +1005,12 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
  * @return EXECUTION_CONTEXT* - the same super context or NULL in case of errors
  */
 EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CONTEXT* sec) {
-   if ((uint)ec         < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (sec && (uint)sec < MIN_VALID_POINTER) return((EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec));
+   if ((uint)ec         < MIN_VALID_POINTER) return (EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (sec && (uint)sec < MIN_VALID_POINTER) return (EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter sec: 0x%p (not a valid pointer)", sec);
 
    uint pid = ec->pid;
-   if (!pid)                         return((EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -994,10 +1022,10 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
                chain[i]->superContext = sec;
             }
          }
-         return(sec);
+         return sec;
       }
    }
-   return((EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1010,12 +1038,12 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
  * @return uint - the same thread id or NULL in case of errors
  */
 uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)id <= 0)                 return(!error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (must be > 0)", id));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((int)id <= 0)                 return !error(ERR_INVALID_PARAMETER, "invalid parameter id: %d (must be > 0)", id);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1027,10 +1055,10 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
                chain[i]->threadId = id;
             }
          }
-         return(id);
+         return id;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1048,7 +1076,7 @@ HWND WINAPI ec_SetChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
    uint pid = ec->pid;
    if (!pid)                         return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
-   if (g_mqlInstances.size() <= pid) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid);
+   if (g_mqlInstances.size() <= pid) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1063,7 +1091,7 @@ HWND WINAPI ec_SetChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
          return hWnd;
       }
    }
-   return (HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1076,12 +1104,12 @@ HWND WINAPI ec_SetChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
  * @return HWND - the same handle or NULL in case of errors
  */
 HWND WINAPI ec_SetChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
-   if ((uint)ec < MIN_VALID_POINTER) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((int)hWnd <= 0)               return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %d (not a valid handle)", hWnd));
+   if ((uint)ec < MIN_VALID_POINTER) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((int)hWnd <= 0)               return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: %d (not a valid handle)", hWnd);
 
    uint pid = ec->pid;
-   if (!pid)                         return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1093,10 +1121,10 @@ HWND WINAPI ec_SetChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
                chain[i]->chart = hWnd;
             }
          }
-         return(hWnd);
+         return hWnd;
       }
    }
-   return((HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1109,11 +1137,11 @@ HWND WINAPI ec_SetChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
  * @return BOOL - the same status or FALSE in case of errors
  */
 BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1125,10 +1153,10 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
                chain[i]->testing = status;
             }
          }
-         return(status);
+         return status;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1141,11 +1169,11 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return BOOL - the same status or FALSE in case of errors
  */
 BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1157,10 +1185,10 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
                chain[i]->visualMode = status;
             }
          }
-         return(status);
+         return status;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1173,11 +1201,11 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return BOOL - the same status or FALSE in case of errors
  */
 BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1189,10 +1217,10 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
                chain[i]->optimization = status;
             }
          }
-         return(status);
+         return status;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1205,12 +1233,12 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
  * @return int - the same mode or NULL in case of errors
  */
 int WINAPI ec_SetRecorder(EXECUTION_CONTEXT* ec, int mode) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (mode < 0)                     return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: %d (must be non-negative)", mode));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (mode < 0)                     return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: %d (must be non-negative)", mode);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1222,10 +1250,10 @@ int WINAPI ec_SetRecorder(EXECUTION_CONTEXT* ec, int mode) {
                chain[i]->recorder = mode;
             }
          }
-         return(mode);
+         return mode;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1239,12 +1267,12 @@ int WINAPI ec_SetRecorder(EXECUTION_CONTEXT* ec, int mode) {
  * @return char* - the same server name or NULL in case of errors
  */
 const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server) {
-   if ((uint)ec     < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)server < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter server: 0x%p (not a valid pointer)", server));
+   if ((uint)ec     < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((uint)server < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter server: 0x%p (not a valid pointer)", server);
 
    uint pid = ec->pid;
-   if (!pid)                         return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    const char* _server = (server && *server) ? server : NULL;  // empty string => NULL
 
@@ -1268,10 +1296,10 @@ const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server
                }
             }
          }
-         return(server);
+         return server;
       }
    }
-   return((char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1285,12 +1313,12 @@ const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server
  * @return int - the same account number or NULL in case of errors
  */
 int WINAPI ec_SetAccountNumber(EXECUTION_CONTEXT* ec, int number) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (number < 0)                   return(!error(ERR_INVALID_PARAMETER, "invalid parameter number: %d (must be > 0)", number));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (number < 0)                   return !error(ERR_INVALID_PARAMETER, "invalid parameter number: %d (must be > 0)", number);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1302,10 +1330,10 @@ int WINAPI ec_SetAccountNumber(EXECUTION_CONTEXT* ec, int number) {
                chain[i]->accountNumber = number;
             }
          }
-         return(number);
+         return number;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1324,11 +1352,11 @@ int WINAPI ec_SetAccountNumber(EXECUTION_CONTEXT* ec, int number) {
  * @return int - the same warning or NULL in case of errors
  */
 int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1348,10 +1376,10 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
          if (ec->superContext && error) {                   // propagation from iCustom() to host program
             ec_SetDllWarning(ec->superContext, error);
          }
-         return(error);
+         return error;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1370,11 +1398,11 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
  * @return int - the same error or NULL in case of errors
  */
 int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1394,10 +1422,10 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
          if (ec->superContext && error) {                   // propagation from iCustom() to host program
             ec_SetDllError(ec->superContext, error);
          }
-         return(error);
+         return error;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1416,11 +1444,11 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
  * @return int - the same error or NULL in case of errors
  */
 int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1440,10 +1468,10 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
          if (ec->superContext && error) {                   // propagation from iCustom() to host program
             ec_SetMqlError(ec->superContext, error);
          }
-         return(error);
+         return error;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1461,7 +1489,7 @@ DWORD WINAPI ec_SetDebugFeatures(EXECUTION_CONTEXT* ec, DWORD features) {
 
    uint pid = ec->pid;
    if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
-   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1476,7 +1504,7 @@ DWORD WINAPI ec_SetDebugFeatures(EXECUTION_CONTEXT* ec, DWORD features) {
          return features;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1489,11 +1517,11 @@ DWORD WINAPI ec_SetDebugFeatures(EXECUTION_CONTEXT* ec, DWORD features) {
  * @return int - the same loglevel or NULL in case of errors
  */
 int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1511,10 +1539,10 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
                master->logger->close();               // close an open logfile if logging was disabled
             }
          }
-         return(level);
+         return level;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1528,11 +1556,11 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel or NULL in case of errors
  */
 int WINAPI ec_SetLoglevelDebug(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1544,10 +1572,10 @@ int WINAPI ec_SetLoglevelDebug(EXECUTION_CONTEXT* ec, int level) {
                chain[i]->loglevelDebug = level;
             }
          }
-         return(level);
+         return level;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1561,11 +1589,11 @@ int WINAPI ec_SetLoglevelDebug(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel or NULL in case of errors
  */
 int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1577,10 +1605,10 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
                chain[i]->loglevelTerminal = level;
             }
          }
-         return(level);
+         return level;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1594,11 +1622,11 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel or NULL in case of errors
  */
 int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1610,10 +1638,10 @@ int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
                chain[i]->loglevelAlert = level;
             }
          }
-         return(level);
+         return level;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1627,11 +1655,11 @@ int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel or NULL in case of errors
  */
 int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1649,10 +1677,10 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
                master->logger->close();               // close an open logfile if the logfile appender was disabled
             }
          }
-         return(level);
+         return level;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1666,11 +1694,11 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel or NULL in case of errors
  */
 int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1682,10 +1710,10 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
                chain[i]->loglevelMail = level;
             }
          }
-         return(level);
+         return level;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1699,11 +1727,11 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
  * @return int - the same loglevel or NULL in case of errors
  */
 int WINAPI ec_SetLoglevelTelegram(EXECUTION_CONTEXT* ec, int level) {
-   if ((uint)ec < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    uint pid = ec->pid;
-   if (!pid)                         return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid));
-   if (g_mqlInstances.size() <= pid) return(!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid));
+   if (!pid)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid) return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
@@ -1715,10 +1743,10 @@ int WINAPI ec_SetLoglevelTelegram(EXECUTION_CONTEXT* ec, int level) {
                chain[i]->loglevelTelegram = level;
             }
          }
-         return(level);
+         return level;
       }
    }
-   return(!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec)));
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1739,7 +1767,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
 
    uint pid = ec->pid;
    if (!pid)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
-   if (g_mqlInstances.size() <= pid) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program instance not found)", pid);
+   if (g_mqlInstances.size() <= pid) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
 
    const char* _filename = (filename && *filename) ? filename : NULL;   // empty string => NULL
 
@@ -1766,7 +1794,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
          return filename;
       }
    }
-   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program instance %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1778,7 +1806,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
  * @return char*
  */
 char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
-   if ((uint)ec < MIN_VALID_POINTER) return((char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
+   if ((uint)ec < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
 
    std::ostringstream ss;
    EXECUTION_CONTEXT empty = {};
