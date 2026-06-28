@@ -10,13 +10,13 @@
 
 #define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the main window
 #define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
+#define CHART_FRAME_SUBCLASS_ID     3                 // subclass identifier for chart frames (painting area)
 
 #define PROP_WINDOW_SUBCLASSED      L"rsf.MT4Expander.WindowSubclassed"
 
 static HHOOK hUiThreadHook    = NULL;                 // hook handles
 static HHOOK hWindowEventHook = NULL;
 
-static BOOL subclassChartWindows = TRUE;              // whether to subclass chart windows
 
 /**
  * Setup UI integration of the Expander. Called two times: once from a non-UI thread, once from the UI thread.
@@ -49,6 +49,7 @@ BOOL WINAPI SetupUiIntegration() {
    return TRUE;
 }
 
+
 /**
  * Register a hook for window related events of the UI thread.
  *
@@ -62,6 +63,7 @@ static BOOL WINAPI RegisterWindowEventHook() {
    return TRUE;
 }
 
+
 /**
  * Hook procedure (listener) receiving window related events of the UI thread. Called in the UI thread.
  *
@@ -73,15 +75,15 @@ static BOOL WINAPI RegisterWindowEventHook() {
  */
 static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
    switch (type) {
-      case HCBT_CREATEWND: {                                  // a window is about to be created
+
+      // a window is about to be created
+      case HCBT_CREATEWND: {
          HWND hWnd = (HWND)wParam;
          CREATESTRUCT* cs = ((CBT_CREATEWND*)lParam)->lpcs;
+         uint ctrlId = (uint)cs->hMenu;
 
-         // log if the debug feature is enabled
          static DWORD debugFeatures = GetDebugFeatures();
-         if (debugFeatures & DEBUG_FEATURE_CREATE_WINDOW) {
-            debug(" HCBT_CREATEWND  %p  %S", hWnd, getClassNameW(hWnd).c_str());
-         }
+         if (debugFeatures & DEBUG_FEATURE_CREATE_WINDOW) debug(" HCBT_CREATEWND  %p  %S", hWnd, getClassNameW(hWnd).c_str());
 
          // call previous hooks first (MT4 overrides/disables subclassing)
          LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
@@ -90,22 +92,29 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
             return denied;
          }
 
-         // subclass chart windows if the feature is enabled (after MT4 hook)
-         if (subclassChartWindows) {
-            static HWND hWndMdi = NULL; if (!hWndMdi) hWndMdi = GetTerminalMdiWindow();      // retry on error
-            uint ctrlId = (uint)cs->hMenu;
+         // get the MDI container
+         static HWND hWndMdi = GetTerminalMdiWindow();
+         if (!hWndMdi) return NULL;
 
-            if (hWndMdi && cs->hwndParent == hWndMdi && cs->style & WS_CHILD) {
-               if (ctrlId >= IDC_MDICLIENT_CHART1 && ctrlId < IDC_MDICLIENT_CHART1 + CHARTS_MAX) {
-                  SubclassChartWindow(hWnd);
-               }
+         // subclass chart windows
+         if (cs->hwndParent == hWndMdi && cs->style & WS_CHILD) {
+            if (ctrlId >= IDC_MDICLIENT_CHART1 && ctrlId < IDC_MDICLIENT_CHART1 + CHARTS_MAX) {
+               SubclassChartWindow(hWnd);
             }
          }
-         return NULL;
+
+         // subclass chart frames (aka the painting area)
+         else if (ctrlId == IDC_MDICLIENT_CHART_FRAME && cs->style & WS_CHILD) {
+            if (GetAncestor(cs->hwndParent, GA_PARENT) == hWndMdi) {
+               SubclassChartFrame(cs->hwndParent, hWnd);
+            }
+         }
+         return NULL;   // not denied by previous hooks
       }
    }
    return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
 }
+
 
 /**
  * Register a hook in the UI thread and trigger it. Called from a non-UI thread to run code in the UI thread.
@@ -124,6 +133,7 @@ static BOOL WINAPI NotifyUiThread() {
    }
    return TRUE;
 }
+
 
 /**
  * Hook procedure (listener) for messages sent to the terminal main window (UI thread). Continues Expander integration and
@@ -147,13 +157,14 @@ static LRESULT CALLBACK UiThreadHook(int code, WPARAM wParam, LPARAM lParam) {
    return CallNextHookEx(hUiThreadHook, code, wParam, lParam);    // will be NULL after the hook was removed
 }
 
+
 /**
  * Subclass the terminal main window.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassMainWindow() {
-   if (!IsUiThread()) return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
+   if (!IsUiThread()) return !error(ERR_ILLEGAL_STATE, "not in UI thread");
 
    HWND hWnd = GetTerminalMainWindow();
    if (!hWnd) return FALSE;
@@ -168,11 +179,10 @@ static BOOL WINAPI SubclassMainWindow() {
    SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
 
    static DWORD debugFeatures = GetDebugFeatures();
-   if (debugFeatures & DEBUG_FEATURE_SUBCLASS) {
-      debug("main window %p subclassed", hWnd);
-   }
+   if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug("main window %p subclassed", hWnd);
    return TRUE;
 }
+
 
 /**
  * Main window subclassing procedure. Processes all messages for the window. Executed in the UI thread.
@@ -244,14 +254,14 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
    return DefSubclassProc(hWnd, msg, wParam, lParam);
 }
 
+
 /**
- * Subclass all chart windows if the feature is enabled. Executed in the UI thread.
+ * Subclass all chart windows.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindows() {
-   if (!IsUiThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
-   if (!subclassChartWindows) return TRUE;
+   if (!IsUiThread()) return !error(ERR_ILLEGAL_STATE, "not in UI thread");
 
    // subclass existing chart windows
    HWND hWndMdi = GetTerminalMdiWindow();
@@ -276,32 +286,37 @@ static BOOL WINAPI SubclassChartWindows() {
    return TRUE;
 }
 
+
 /**
- * Subclass a single chart window if the feature is enabled. Executed in the UI thread.
+ * Subclass a single chart window and it's chart frame (if it exists).
  *
  * @param  HWND hWnd - chart window
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
-   if (!IsUiThread())         return !error(ERR_ILLEGAL_STATE, "must run in the UI thread");
-   if (!subclassChartWindows) return TRUE;
-
-   if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
-      notice("chart window %p already subclassed", hWnd);   // accepted but should not happen
-      return TRUE;
-   }
-   if (!SetWindowSubclass(hWnd, ChartWindowSubclassProc, CHART_WINDOW_SUBCLASS_ID, 0)) {
-      return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
-   }
-   SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
-
+   if (!IsUiThread()) return !error(ERR_ILLEGAL_STATE, "not in UI thread");
    static DWORD debugFeatures = GetDebugFeatures();
-   if (debugFeatures & DEBUG_FEATURE_SUBCLASS) {
-      debug("chart window %p subclassed", hWnd);
+
+   // subclass the chart window
+   if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
+      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug("chart window %p already subclassed", hWnd);
+   }
+   else {
+      if (!SetWindowSubclass(hWnd, ChartWindowSubclassProc, CHART_WINDOW_SUBCLASS_ID, 0)) {
+         return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+      }
+      SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
+      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug("chart window %p subclassed", hWnd);
+   }
+
+   // check for and handle an existing chart frame (may not yet exist)
+   if (HWND hChartFrame = GetDlgItem(hWnd, IDC_MDICLIENT_CHART_FRAME)) {
+      return SubclassChartFrame(hWnd, hChartFrame);
    }
    return TRUE;
 }
+
 
 /**
  * Chart window subclassing procedure. Processes all messages for a window. Executed in the UI thread.
@@ -331,9 +346,7 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
          BOOL isSystemMenu = HIWORD(lParam);
 
          if (!isSystemMenu && IsChartTemplatesMenu(hMenu)) {
-            if (debugFeatures & DEBUG_FEATURE_CHART_TEMPLATES) {
-               debug("WM_INITMENUPOPUP \"Chart->Templates\"");
-            }
+            if (debugFeatures & DEBUG_FEATURE_CHART_TEMPLATES) debug("WM_INITMENUPOPUP \"Chart->Templates\"");
             RebuildChartTemplatesMenu(hMenu);                  // DefSubclassProc()
          }                                                     // - adds MFT_OWNERDRAW to mi.fType of all items
          break;                                                // - sets mi.dwItemData of all items to a shared (same) pointer
@@ -347,13 +360,72 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
    return DefSubclassProc(hWnd, msg, wParam, lParam);
 }
 
+
+/**
+ * Subclass a chart frame (aka a chart's painting area).
+ *
+ * @param  HWND hWndChart      - containing chart window
+ * @param  HWND hWndChartFrame - chart frame
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI SubclassChartFrame(HWND hWndChart, HWND hWndChartFrame) {
+   if (!IsUiThread()) return !error(ERR_ILLEGAL_STATE, "not in UI thread");
+   static DWORD debugFeatures = GetDebugFeatures();
+
+   if (GetPropW(hWndChartFrame, PROP_WINDOW_SUBCLASSED)) {
+      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug(" chart window %p: chart frame %p already subclassed", hWndChart, hWndChartFrame);
+   }
+   else {
+      if (!SetWindowSubclass(hWndChartFrame, ChartFrameSubclassProc, CHART_FRAME_SUBCLASS_ID, 0)) {
+         return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
+      }
+      SetPropW(hWndChartFrame, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
+      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug(" chart window %p: chart frame %p subclassed", hWndChart, hWndChartFrame);
+   }
+   return TRUE;
+}
+
+
+/**
+ * Chart frame subclassing procedure. Processes all messages for a window. Executed in the UI thread.
+ *
+ * @param  HWND      hWnd       - chart frame receiving the message (painting area)
+ * @param  uint      msg        - received message
+ * @param  WPARAM    wParam     - additional message info
+ * @param  LPARAM    lParam     - additional message info
+ * @param  UINT_PTR  subclassId - subclass identifier
+ * @param  DWORD_PTR data       - user data as passed to SetWindowSubclass()
+ *
+ * @return LRESULT - depends on the message
+ */
+static LRESULT CALLBACK ChartFrameSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data) {
+   static DWORD debugFeatures = GetDebugFeatures();
+
+   switch (msg) {
+      case WM_COMMAND: {
+         if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) {
+            debug("WM_COMMAND  %p  \"%S\"  id=%d  lParam=0x%p", hWnd, getInternalWindowTextW(GetAncestor(hWnd, GA_PARENT)).c_str(), LOWORD(wParam), lParam);
+         }
+         break;
+      }
+
+      case WM_NCDESTROY: {
+         RemoveWindowSubclass(hWnd, ChartFrameSubclassProc, subclassId);
+         break;
+      }
+   }
+   return DefSubclassProc(hWnd, msg, wParam, lParam);
+}
+
+
 /**
  * Customize the UI of the terminal. Executed in a non-UI thread to not delay terminal startup.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI CustomizeTerminal() {
-   if (IsUiThread()) return !error(ERR_ILLEGAL_STATE, "must not run in the UI thread");
+   if (IsUiThread()) return !error(ERR_ILLEGAL_STATE, "not in UI thread");
 
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return FALSE;
@@ -365,14 +437,14 @@ static BOOL WINAPI CustomizeTerminal() {
    // find and remove a search box control (contains the "Community" button, builds > 509)
    HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
    if (hSearchCtrl) {
-      PostMessageA(hSearchCtrl, WM_CLOSE, 0, 0);   // a DestroyWindow() in the UI thread delays startup
+      PostMessageA(hSearchCtrl, WM_CLOSE, 0, 0);   // a DestroyWindow() in the UI thread would delay startup
       return TRUE;
    }
 
    // find and remove a separate "Community" button (builds <= 509)
    HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON);
    if (hBtnCtrl) {
-      PostMessageA(hBtnCtrl, WM_CLOSE, 0, 0);      // a DestroyWindow() in the UI thread delays startup
+      PostMessageA(hBtnCtrl, WM_CLOSE, 0, 0);      // a DestroyWindow() in the UI thread would delay startup
    }
    return TRUE;
 }
