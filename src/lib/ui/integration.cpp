@@ -312,7 +312,7 @@ static BOOL WINAPI SubclassChartWindow(HWND hWnd) {
 
    // check for and handle an existing chart frame (may not yet exist)
    if (HWND hChartFrame = GetDlgItem(hWnd, IDC_MDICLIENT_CHART_FRAME)) {
-      SubclassChartFrame(hWnd, hChartFrame);
+      return SubclassChartFrame(hWnd, hChartFrame);
    }
    return TRUE;
 }
