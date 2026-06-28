@@ -13,10 +13,10 @@ typedef std::vector<string> LogBuffer;
  * Execution context of an MQL program. Used for keeping state, data exchange and communication between MQL modules and DLL.
  *
  * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
- * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
+ * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfï¿½gt ï¿½ber einen eigenen Kontext, alle Kontexte eines
  * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
  * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
- * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ * Contexte einer Chain sind Library-Contexte. ï¿½ber die Kontexte werden wie folgt Daten ausgetauscht:
  *
  *  - Data exchange between MQL modules and the DLL:
  *    The MQL modules pass MQL runtime state and market information to the DLL, the DLL passes back DLL runtime state and
@@ -25,7 +25,7 @@ typedef std::vector<string> LogBuffer;
  *  - Data exchange between different MQL programs (e.g. experts and indicators).
  */
 struct EXECUTION_CONTEXT {                         // -- offset -- size -- description ------------------------------------------+-------+-------------------------------+
-   uint               pid;                         //       0        4     MQL program id, starting from 1                       | const | index in g_mqlPrograms[]      |
+   uint               pid;                         //       0        4     MQL program id, starting from 1                       | const | index of g_mqlInstances[]     |
    uint               previousPid;                 //       4        4     previous pid of an indicator after IR_CHARTCHANGE     |       |                               |
                                                    //                                                                            |       |                               |
    ProgramType        programType;                 //       8        4     type of the MQL main module                           | const |                               |
@@ -175,6 +175,6 @@ char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec);
 
 
 // type definitions
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // A ContextChain holds all EXECUTION_CONTEXTs of an MQL program (one per module).
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // A ContextChain holds all EXECUTION_CONTEXTs of an MQL program (one EC per module).
 typedef std::vector<uint>               IndicatorList;      // List of indicators (pids) loaded in a chart window.
-typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL programs ever loaded (index = pid = instance id).
+typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL programs ever loaded (index: pid).
