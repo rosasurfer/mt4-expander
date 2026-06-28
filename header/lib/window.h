@@ -68,7 +68,7 @@ uint        WINAPI WM_MT4EXPANDER();
 struct JOB {
    LRESULT (*func)(LPARAM);               // function pointer
    LPARAM  args;                          // argument pointer
-   LRESULT result;                        // function result
+   LRESULT result;                        // return value
    HANDLE  done;                          // optional completion event
 
    LRESULT run() {                        // excutes the job

@@ -36,32 +36,32 @@ HWND WINAPI FindTesterWindow() {
 
       if (!hWndFound) {
          // no docked tester, check for a floating tester window
-         struct USER_DATA {
-            DWORD myProcessId;
-            HWND  hWndTester;
-         } data = { GetCurrentProcessId(), 0 };
-
          struct local {
             /** @return BOOL - whether to continue enumeration */
             static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
-               USER_DATA* data = (USER_DATA*)lParam;
+               ARGS* args = (ARGS*)lParam;
                DWORD processId = NULL;
                GetWindowThreadProcessId(hWnd, &processId);
 
-               if (processId == data->myProcessId) {
+               if (processId == args->myProcessId) {
                   if (hWnd = GetDlgItem(hWnd, IDC_FLOAT_CONTAINER)) {
                      if (hWnd = GetDlgItem(hWnd, IDC_TESTER)) {
-                        data->hWndTester = hWnd;
+                        args->hWndTester = hWnd;
                      }
                   }
                }
                SetLastError(NO_ERROR);                      // an unrelated window may have been destroyed cross-thread
-               return !data->hWndTester;
+               return !args->hWndTester;
             }
          };
+         struct ARGS {
+            __In_  DWORD myProcessId;
+            __Out_ HWND  hWndTester;
+         } args = { GetCurrentProcessId(), NULL };
+
          SetLastError(NO_ERROR);
-         if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&data) && GetLastError()) return (HWND)!error(GetLastError(), "EnumWindows()");
-         hWndFound = data.hWndTester;
+         if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&args) && GetLastError()) return (HWND)!error(GetLastError(), "EnumWindows()");
+         hWndFound = args.hWndTester;
       }
       if (hWndFound && !hWndTester) hWndTester = hWndFound; // another thread may have been faster
    }

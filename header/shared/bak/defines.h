@@ -524,7 +524,7 @@
 
 
 // MT4Expander command ids
-#define ID_CALLBACK                      1               // executes a job/task in the UI thread
+#define ID_UI_CALLBACK                   1               // execute a task in the UI thread
 
 
 // LFX trade commands

@@ -62,9 +62,9 @@ using std::max;
 #define MAX_FNAME                      _MAX_FNAME           // max. length of file name component
 #define MAX_EXT                        _MAX_EXT             // max. length of extension component
 
-#define __In__                                              // marks an input parameter
-#define __Out__                                             // marks an output parameter
-#define __InOut__                                           // marks an input and output parameter
+#define __In_                                               // marks an input parameter
+#define __Out_                                              // marks an output parameter
+#define __InOut_                                            // marks an input and output parameter
 
 
 // MQL program types (flags)

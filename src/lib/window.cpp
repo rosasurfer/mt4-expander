@@ -571,44 +571,43 @@ int WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
 int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
    if (prefix && (uint)prefix < MIN_VALID_POINTER) return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
 
-   struct USER_DATA {
-      const wchar* prefix;
-      int          count;
-   } data = { prefix, 0 };
-
    struct local {
       /**
        * @param  HWND      hWnd   - window whose property list is being enumerated
        * @param  wchar*    name   - property name
        * @param  HANDLE    value  - property value
-       * @param  ULONG_PTR lpData - user data as passed by the outer function
+       * @param  ULONG_PTR lpData - user arguments as passed by the outer function
        *
        * @return BOOL - whether to continue enumeration with the next property
        */
       static BOOL CALLBACK EnumPropsProc(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR lpData) {
-         USER_DATA* data = (USER_DATA*)lpData;
-         const wchar* prefix = data->prefix;
+         ARGS* args = (ARGS*)lpData;
+         const wchar* prefix = args->prefix;
 
          if (prefix && !*prefix) {
             prefix = NULL;
          }
          if (!prefix || StrStartsWith(name, prefix)) {
             debug_raw("  \"%S\" = 0x%p (%d)", name, value, value);
-            data->count++;
+            args->count++;
          }
          return TRUE;
       }
    };
+   struct ARGS {
+      __In_    const wchar* prefix;
+      __InOut_ int          count;
+   } args = { prefix, 0 };
 
    debug("for HWND %p", hWnd);
 
    SetLastError(NO_ERROR);
-   int result = EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&data);
+   int result = EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&args);
    if (result == -1 && GetLastError()) return _EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "EnumPropsExW()"));
 
    // report no properties to visually distinguish from errors
-   if (!data.count) debug_raw("  (no window properties)");
-   return data.count;
+   if (!args.count) debug_raw("  (no window properties)");
+   return args.count;
    #pragma EXPANDER_EXPORT
 }
 

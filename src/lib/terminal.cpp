@@ -635,25 +635,24 @@ HWND WINAPI GetTerminalMainWindow() {
    static HWND hWndMain;
 
    if (!hWndMain) {
-      struct USER_DATA {
-         DWORD myProcessId;
-         HWND  hWndFound;
-      } data = { GetCurrentProcessId(), 0 };
-
       struct local {
          /** @return BOOL - whether to continue enumeration */
          static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
-            USER_DATA* data = (USER_DATA*)lParam;
+            ARGS* args = (ARGS*)lParam;
             DWORD processId = NULL;
             GetWindowThreadProcessId(hWnd, &processId);
 
-            if (processId == data->myProcessId && getClassNameW(hWnd) == L"MetaQuotes::MetaTrader::4.00") {
-               data->hWndFound = hWnd;
+            if (processId == args->myProcessId && getClassNameW(hWnd) == L"MetaQuotes::MetaTrader::4.00") {
+               args->hWndFound = hWnd;
             }
             SetLastError(NO_ERROR);             // an unrelated window may have been destroyed cross-thread
-            return !data->hWndFound;
+            return !args->hWndFound;
          }
       };
+      struct ARGS {
+         __In_  DWORD myProcessId;
+         __Out_ HWND  hWndFound;
+      } args = { GetCurrentProcessId(), 0 };
 
       // MQL scripts run in their own thread. On fast CPUs with multiple cores, the following race condition may occur when
       // the Expander is loaded early: A non-UI thread is already looking-up the terminal main window, even though the UI
@@ -664,8 +663,8 @@ HWND WINAPI GetTerminalMainWindow() {
       uint i = 0;
       while (true) {
          SetLastError(NO_ERROR);
-         if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&data) && GetLastError()) return (HWND)_NULL(error(GetLastError(), "EnumWindows()"));
-         if (data.hWndFound) break;
+         if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&args) && GetLastError()) return (HWND)_NULL(error(GetLastError(), "EnumWindows()"));
+         if (args.hWndFound) break;
 
          static int log1 = info("cannot find terminal main window, waiting...");
          if (i >= 10) {
@@ -676,7 +675,7 @@ HWND WINAPI GetTerminalMainWindow() {
          Sleep(100);                               // wait in total 1 sec
       }
 
-      if (!hWndMain) hWndMain = data.hWndFound;    // another thread may have been faster
+      if (!hWndMain) hWndMain = args.hWndFound;    // another thread may have been faster
    }
    return hWndMain;
    #pragma EXPANDER_EXPORT
@@ -1017,36 +1016,37 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
  *                FALSE if the dialog was not yet opened before (window not found)
  */
 BOOL WINAPI ReopenAlertDialog(BOOL sound) {
-   struct USER_DATA {
-      DWORD myProcessId;
-      HWND  hWndAlert;
-   } data = { GetCurrentProcessId(), 0 };
-
-   // enumerate top-level windows
+   // prepare callback function
    struct local {
       /** @return BOOL - whether to continue enumeration */
       static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
-         USER_DATA* data = (USER_DATA*)lParam;
+         ARGS* args = (ARGS*)lParam;
          DWORD processId = NULL;
          GetWindowThreadProcessId(hWnd, &processId);
 
          // i18n prevents checking against the window text, so we must inspect child controls
-         if (processId == data->myProcessId && getClassNameW(hWnd) == L"#32770") {
+         if (processId == args->myProcessId && getClassNameW(hWnd) == L"#32770") {
             HWND hChild;
             if ((hChild = GetDlgItem(hWnd, IDC_ALERT_BUTTON))   && getClassNameW(hChild) == L"Button" &&
                 (hChild = GetDlgItem(hWnd, IDC_ALERT_ICON))     && getClassNameW(hChild) == L"Static" && GetWindowStyles(hChild) & SS_BITMAP &&
                 (hChild = GetDlgItem(hWnd, IDC_ALERT_EDITTEXT)) && getClassNameW(hChild) == L"Edit"   &&
                 (hChild = GetDlgItem(hWnd, IDC_ALERT_LISTVIEW)) && getClassNameW(hChild) == L"SysListView32") {
-               data->hWndAlert = hWnd;
+               args->hWndAlert = hWnd;
             }
          }
          SetLastError(NO_ERROR);             // an unrelated window may have been destroyed cross-thread
-         return !data->hWndAlert;
+         return !args->hWndAlert;
       }
    };
+   struct ARGS {
+      __In_  DWORD myProcessId;
+      __Out_ HWND  hWndAlert;
+   } args = { GetCurrentProcessId(), NULL };
+
+   // enumerate top-level windows
    SetLastError(NO_ERROR);
-   if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&data) && GetLastError()) return !error(GetLastError(), "EnumWindows()");
-   HWND hWndAlert = data.hWndAlert;
+   if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&args) && GetLastError()) return !error(GetLastError(), "EnumWindows()");
+   HWND hWndAlert = args.hWndAlert;
 
    if (hWndAlert) {
       bool wasHidden = !ShowWindow(hWndAlert, SW_SHOW);
