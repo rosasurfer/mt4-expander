@@ -8,10 +8,10 @@
  *
  * Version 405:
  *  - Tickdateien ab Version 405 haben je nach MetaTrader-Version unterschiedliche Tickdatenformate.
- *  - Tickdateien enthalten keine Infos zu MODE_MARGINREQUIRED, Tests benötigen also existierende und gültige Serverinformationen.
+ *  - Tickdateien enthalten keine Infos zu MODE_MARGINREQUIRED, Tests benÃ¶tigen also existierende und gÃ¼ltige Serverinformationen.
  *  - Vor den modellierten Ticks einer Datei kann sich ein Prolog von History-Bars mit Pseudo-Ticks befinden, der dem Expert eine
- *    History vor dem Startzeitpunkt des Test zur Verfügung stellt. Der vom Terminal erzeugte Prolog ist 1000 Bars lang, der erste
- *    modellierte Tick befindet sich an der 1001-sten Bar. Der Expert muß prüfen, ob diese History für seine Strategie
+ *    History vor dem Startzeitpunkt des Test zur VerfÃ¼gung stellt. Der vom Terminal erzeugte Prolog ist 1000 Bars lang, der erste
+ *    modellierte Tick befindet sich an der 1001-sten Bar. Der Expert muÃŸ prÃ¼fen, ob diese History fÃ¼r seine Strategie
  *    ausreichend ist und ggf. auf das Eintreffen ausreichender Bars warten.
  */
 struct FXT_HEADER {                                // -- offset -- size -- description ----------------------------------------------------------------------------
@@ -32,18 +32,18 @@ struct FXT_HEADER {                                // -- offset -- size -- descr
    uint     spread;                                //     252        4     Spread in Points: 0=current spread         = MarketInfo(MODE_SPREAD)
    uint     digits;                                //     256        4     Digits                                     = MarketInfo(MODE_DIGITS)
    BYTE     _alignment2[4];                        //     260        4
-   double   pointSize;                             //     264        8     Auflösung, z.B. 0.0000'1                   = MarketInfo(MODE_POINT)
+   double   pointSize;                             //     264        8     AuflÃ¶sung, z.B. 0.0000'1                   = MarketInfo(MODE_POINT)
    uint     minLotsize;                            //     272        4     Mindest-Lotsize in Hundertsteln Lot        = MarketInfo(MODE_MINLOT)  * 100
-   uint     maxLotsize;                            //     276        4     Höchst-Lotsize in Hundertsteln Lot         = MarketInfo(MODE_MAXLOT)  * 100
+   uint     maxLotsize;                            //     276        4     HÃ¶chst-Lotsize in Hundertsteln Lot         = MarketInfo(MODE_MAXLOT)  * 100
    uint     lotStepsize;                           //     280        4     Lot-Stepsize in Hundertsteln Lot           = MarketInfo(MODE_LOTSTEP) * 100
    uint     stopDistance;                          //     284        4     Stop level in Points                       = MarketInfo(MODE_STOPLEVEL)
    BOOL     pendingsGTC;                           //     288        4     close pending orders at end of day or GTC    @see struct SYMBOL
    BYTE     _alignment3[4];                        //     292        4
 
    // profit calculation parameters                // -------------------------------------------------------------------------------------------------------------
-   double   contractSize;                          //     296        8     Größe eines Lots, z.B. 100000              = MarketInfo(MODE_LOTSIZE)
+   double   contractSize;                          //     296        8     GrÃ¶ÃŸe eines Lots, z.B. 100000              = MarketInfo(MODE_LOTSIZE)
    double   tickValue;                             //     304        8     Tick-Value in Quote-Currency ???           = MarketInfo(MODE_TICKVALUE)
-   double   tickSize;                              //     312        8     Tick-Größe, z.B. 0.0000'1                  = MarketInfo(MODE_TICKSIZE)
+   double   tickSize;                              //     312        8     Tick-GrÃ¶ÃŸe, z.B. 0.0000'1                  = MarketInfo(MODE_TICKSIZE)
    uint     profitCalculationMode;                 //     320        4     0=Forex|1=CFD|2=Futures                    = MarketInfo(MODE_PROFITCALCMODE)
 
    // swap calculation parameters                  // -------------------------------------------------------------------------------------------------------------

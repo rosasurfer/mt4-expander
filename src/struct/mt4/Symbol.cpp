@@ -10,7 +10,7 @@
 
 
 /**
- * Gibt den Namen eines SYMBOLs zur�ck.
+ * Gibt den Namen eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -24,7 +24,7 @@ const char* WINAPI symbol_Name(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Beschreibung eines SYMBOLs zur�ck.
+ * Gibt die Beschreibung eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -38,7 +38,7 @@ const char* WINAPI symbol_Description(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den alternativen Namen eines SYMBOLs zur�ck.
+ * Gibt den alternativen Namen eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -52,7 +52,7 @@ const char* WINAPI symbol_AltName(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Basisw�hrung eines SYMBOLs zur�ck.
+ * Gibt die Basisw�hrung eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -66,7 +66,7 @@ const char* WINAPI symbol_BaseCurrency(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Index der Gruppe, in der ein SYMBOL aufgef�hrt ist, zur�ck.
+ * Gibt den Index der Gruppe, in der ein SYMBOL aufgef�hrt ist, zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -80,7 +80,7 @@ uint WINAPI symbol_Group(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Digits eines SYMBOLs zur�ck.
+ * Gibt die Digits eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -94,7 +94,7 @@ uint WINAPI symbol_Digits(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den TradeMode eines SYMBOLs zur�ck.
+ * Gibt den TradeMode eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -108,7 +108,7 @@ uint WINAPI symbol_TradeMode(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Hintergrundfarbe eines SYMBOLs im "Market Watch"-Window zur�ck.
+ * Gibt die Hintergrundfarbe eines SYMBOLs im "Market Watch"-Window zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -125,7 +125,7 @@ uint WINAPI symbol_BackgroundColor(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Array-Index eines SYMBOLs zur�ck. Der Wert kann sich �ndern, wenn "symbols.raw" gespeichert wird.
+ * Gibt den Array-Index eines SYMBOLs zurück. Der Wert kann sich �ndern, wenn "symbols.raw" gespeichert wird.
  *
  * @param  SYMBOL* symbol
  *
@@ -139,7 +139,7 @@ uint WINAPI symbol_Index(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die eindeutige ID eines SYMBOLs zur�ck. Diese ID ist eine feste Eigenschaft, sie �ndert sich beim Speichern von "symbols.raw" nicht.
+ * Gibt die eindeutige ID eines SYMBOLs zurück. Diese ID ist eine feste Eigenschaft, sie �ndert sich beim Speichern von "symbols.raw" nicht.
  *
  * @param  SYMBOL* symbol
  *
@@ -153,7 +153,7 @@ uint WINAPI symbol_Id(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Spreadkonfiguration eines SYMBOLs zur�ck.
+ * Gibt die Spreadkonfiguration eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -181,7 +181,7 @@ BOOL WINAPI symbol_SwapEnabled(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Swaptyp eines SYMBOLs zur�ck.
+ * Gibt den Swaptyp eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -195,7 +195,7 @@ uint WINAPI symbol_SwapType(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Swapbetrag eines SYMBOLs f�r Long-Positionen zur�ck.
+ * Gibt den Swapbetrag eines SYMBOLs f�r Long-Positionen zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -209,7 +209,7 @@ double WINAPI symbol_SwapLongValue(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Swapbetrag eines SYMBOLs f�r Short-Positionen zur�ck.
+ * Gibt den Swapbetrag eines SYMBOLs f�r Short-Positionen zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -223,7 +223,7 @@ double WINAPI symbol_SwapShortValue(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Wochentag des 3-fachen Swaps eines SYMBOLs zur�ck.
+ * Gibt den Wochentag des 3-fachen Swaps eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -237,7 +237,7 @@ uint WINAPI symbol_SwapTripleRolloverDay(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die ContractSize eines SYMBOLs zur�ck.
+ * Gibt die ContractSize eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -251,7 +251,7 @@ double WINAPI symbol_ContractSize(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die StopDistance eines SYMBOLs zur�ck.
+ * Gibt die StopDistance eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -265,7 +265,7 @@ uint WINAPI symbol_StopDistance(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Margin-Requirements zum �ffnen einer Position von 1 Lot in einem SYMBOL zur�ck.
+ * Gibt die Margin-Requirements zum �ffnen einer Position von 1 Lot in einem SYMBOL zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -279,7 +279,7 @@ double WINAPI symbol_MarginInit(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Margin-Requirements zum Halten einer Position von 1 Lot in einem SYMBOL zur�ck.
+ * Gibt die Margin-Requirements zum Halten einer Position von 1 Lot in einem SYMBOL zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -293,7 +293,7 @@ double WINAPI symbol_MarginMaintenance(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Margin-Requirements einer gehedgten Position von 1 Lot in einem SYMBOL zur�ck.
+ * Gibt die Margin-Requirements einer gehedgten Position von 1 Lot in einem SYMBOL zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -307,7 +307,7 @@ double WINAPI symbol_MarginHedged(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den MarginDivider zur MarginBerechnung eines SYMBOLs zur�ck.
+ * Gibt den MarginDivider zur MarginBerechnung eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -321,7 +321,7 @@ double WINAPI symbol_MarginDivider(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die PointSize eines SYMBOLs zur�ck.
+ * Gibt die PointSize eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -335,7 +335,7 @@ double WINAPI symbol_PointSize(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die PointsPerUnit eines SYMBOLs zur�ck.
+ * Gibt die PointsPerUnit eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -349,7 +349,7 @@ double WINAPI symbol_PointsPerUnit(const SYMBOL* symbol) {
 
 
 /**
- * Gibt die Marginw�hrung eines SYMBOLs zur�ck.
+ * Gibt die Marginw�hrung eines SYMBOLs zurück.
  *
  * @param  SYMBOL* symbol
  *
@@ -363,7 +363,7 @@ const char* WINAPI symbol_MarginCurrency(const SYMBOL* symbol) {
 
 
 /**
- * Gibt den Namen eines SYMBOLs in einem Array zur�ck.
+ * Gibt den Namen eines SYMBOLs in einem Array zurück.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index
@@ -379,7 +379,7 @@ const char* WINAPI symbols_Name(const SYMBOL symbols[], int index) {
 
 
 /**
- * Gibt das Feld "index" eines SYMBOLs in einem Array zur�ck.
+ * Gibt das Feld "index" eines SYMBOLs in einem Array zurück.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index
@@ -395,7 +395,7 @@ uint WINAPI symbols_Index(const SYMBOL symbols[], int index) {
 
 
 /**
- * Gibt die eindeutige ID eines SYMBOLs in einem Array zur�ck.
+ * Gibt die eindeutige ID eines SYMBOLs in einem Array zurück.
  *
  * @param  SYMBOL symbols[] - Array
  * @param  int    index     - Array-Index

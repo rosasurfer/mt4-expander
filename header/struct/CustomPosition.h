@@ -4,7 +4,7 @@
 
 #pragma pack(push, 1)
 /**
- * Bin‰re Repr‰sentation eines einzelnen Konfigurationsterms einer individuellen Position. Die Konfiguration einer CustomPosition besteht
+ * Bin√§re Repr√§sentation eines einzelnen Konfigurationsterms einer individuellen Position. Die Konfiguration einer CustomPosition besteht
  * aus ein oder mehreren durch Kommas voneinander getrennten Termen.
  *
  * In positions_config[] markiert ein nicht initialisiertes Struct (pct.type=NULL) das Ende einer CustomPosition.
@@ -15,8 +15,8 @@ struct POSITION_CONFIG_TERM {
    double type;               // [ Ticket | TERM_OPEN_LONG | TERM_OPEN_SHORT | TERM_OPEN_SYMBOL | TERM_OPEN_ALL | TERM_HISTORY_SYMBOL | TERM_HISTORY_ALL | TERM_ADJUSTMENT | TERM_EQUITY ]
    double confValue1;         // [ EMPTY  | LotSize | FromDateTime ]
    double confValue2;         // [ Price  | Amount  | ToDateTime   ]
-   double cacheValue1;        // Speicher f¸r Zwischenergebnisse bei Berechnung der Kennziffern von TERM_HISTORY_*
-   double cacheValue2;        // Speicher f¸r Zwischenergebnisse bei Berechnung der Kennziffern von TERM_HISTORY_*
+   double cacheValue1;        // Speicher f√ºr Zwischenergebnisse bei Berechnung der Kennziffern von TERM_HISTORY_*
+   double cacheValue2;        // Speicher f√ºr Zwischenergebnisse bei Berechnung der Kennziffern von TERM_HISTORY_*
 };
 #pragma pack(pop)
 
@@ -39,7 +39,7 @@ struct POSITION_DATA {
       double breakevenPrice;  // BreakevenPrice, wenn (directionalLots != 0)
       double pipDistance;     // Pip-Distance,   wenn (hedgedLots && !directionalLots)
    };
-   double openEquity;         // Equity bei PositionOpen (Maﬂstab f¸r fullProfitPct)
+   double openEquity;         // Equity bei PositionOpen (Ma√üstab f√ºr fullProfitPct)
    double openProfit;         // P/L offener Trades
    double closedProfit;       // P/L geschlossener Trades
    double adjustedProfit;     // P/L-Adjustment
