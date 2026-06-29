@@ -2,32 +2,13 @@
 #include "expander.h"
 
 
-char*   WINAPI GetClassNameA(HWND hWnd);
-wchar*  WINAPI GetClassNameW(HWND hWnd);
-string  WINAPI getClassNameA(HWND hWnd);
-wstring WINAPI getClassNameW(HWND hWnd);
+char*       WINAPI GetClassNameA(HWND hWnd);
+wchar*      WINAPI GetClassNameW(HWND hWnd);
+string      WINAPI getClassNameA(HWND hWnd);
+wstring     WINAPI getClassNameW(HWND hWnd);
 
-/**
- * Return the regular styles of the specified window.
- *
- * @param  HWND hWnd
- *
- * @return DWORD - regular window styles
- */
-__forceinline DWORD WINAPI GetWindowStyles(HWND hWnd) {
-   return GetWindowLongPtrW(hWnd, GWL_STYLE);
-}
-
-/**
- * Return the extended styles of the specified window.
- *
- * @param  HWND hWnd
- *
- * @return DWORD - extended window styles
- */
-__forceinline DWORD WINAPI GetWindowStylesEx(HWND hWnd) {
-   return GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
-}
+DWORD       WINAPI GetWindowStyles(HWND hWnd);
+DWORD       WINAPI GetWindowStylesEx(HWND hWnd);
 
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
