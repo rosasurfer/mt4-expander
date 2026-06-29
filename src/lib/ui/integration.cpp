@@ -15,7 +15,7 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handl
 #define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
 #define CHART_FRAME_SUBCLASS_ID     3                 // subclass identifier for chart frames (painting area)
 
-#define PROP_WINDOW_SUBCLASSED      L"rsf.MT4Expander.Subclassed"
+#define PROP_WINDOW_SUBCLASSED      L"rsfMT4Expander.subclassed"
 
 static HHOOK hUiThreadHook    = NULL;                 // hook handles
 static HHOOK hWindowEventHook = NULL;
@@ -538,7 +538,7 @@ int WINAPI Test_ChildWindow(uint pid) {
          ARGS* args = (ARGS*)lParam;
          if (!args) return !notice(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
-         const wchar* className = L"rsf.mt4expander.chart.childwindow";
+         const wchar* className = L"rsfMT4Expander.chart.childwindow";
 
          // register the window class
          WNDCLASSW wc = {};

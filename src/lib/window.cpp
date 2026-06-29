@@ -667,7 +667,7 @@ uint WINAPI WM_MT4() {
  * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
  */
 uint WINAPI MT4ExpanderMsg() {
-   static uint msgId = RegisterWindowMessageW(L"rsf.MT4Expander.Message");
+   static uint msgId = RegisterWindowMessageW(L"rsfMT4Expander.message");
    if (!msgId) return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessageW()");
    return msgId;
 }

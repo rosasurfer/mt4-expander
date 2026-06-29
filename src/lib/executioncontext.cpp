@@ -1813,7 +1813,7 @@ BOOL WINAPI AddToIndicatorList(EXECUTION_CONTEXT* ec) {
          break;
    }
 
-   const char* label = "rsfMT4Expander::indicator-list";
+   const char* label = "rsfMT4Expander.indicator-list";
    IndicatorList* indicators = (IndicatorList*)GetWindowPropertyA(ec->chart, label);
    if (!indicators) {
       indicators = new IndicatorList();
