@@ -455,8 +455,6 @@ static BOOL WINAPI CustomizeTerminal() {
 
 #include "struct/ExecutionContext.h"
 
-extern MqlInstanceList g_mqlInstances;
-
 static LRESULT CALLBACK ChartFrameChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
 
 
@@ -469,11 +467,8 @@ static LRESULT CALLBACK ChartFrameChildWindowProc(HWND hWnd, uint msg, WPARAM wP
  */
 int WINAPI Test_ChildStatic(uint pid) {
    // get the EXECUTION_CONTEXT of the caller
-   if ((int)pid <= 0)                return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
-   if (g_mqlInstances.size() <= pid) return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (program not found)", pid);
-   ContextChain &chain = *g_mqlInstances[pid];
-   EXECUTION_CONTEXT* master = chain[0];
-   if (!master) return error(ERR_ILLEGAL_STATE, "illegal master context in g_mqlInstances[%d]: NULL", pid);
+   if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
 
    // prepare UI callback
    struct local {
@@ -499,7 +494,7 @@ int WINAPI Test_ChildStatic(uint pid) {
    struct ARGS {
       __In_  HWND  hWndParent;
       __Out_ DWORD error;
-   } args = { master->chart, NO_ERROR };
+   } args = { ec->chart, NO_ERROR };
 
    HWND hWndChild;
 
@@ -534,11 +529,8 @@ int WINAPI Test_ChildStatic(uint pid) {
  */
 int WINAPI Test_ChildWindow(uint pid) {
    // get the EXECUTION_CONTEXT of the caller
-   if ((int)pid <= 0)                return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
-   if (g_mqlInstances.size() <= pid) return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (program not found)", pid);
-   ContextChain &chain = *g_mqlInstances[pid];
-   EXECUTION_CONTEXT* master = chain[0];
-   if (!master) return error(ERR_ILLEGAL_STATE, "illegal master context in g_mqlInstances[%d]: NULL", pid);
+   if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
 
    // prepare UI callback
    struct local {
@@ -578,7 +570,7 @@ int WINAPI Test_ChildWindow(uint pid) {
    struct ARGS {
       __In_  HWND  hWndParent;
       __Out_ DWORD error;
-   } args = { master->chart, NO_ERROR };
+   } args = { ec->chart, NO_ERROR };
 
    HWND hWndChild;
 

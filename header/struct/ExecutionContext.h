@@ -170,8 +170,9 @@ const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, cons
 
 
 // helpers
-char* WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec);
-char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec);
+EXECUTION_CONTEXT* WINAPI GetMasterContext(uint pid);
+char*              WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec);
+char*              WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec);
 
 
 // type definitions
