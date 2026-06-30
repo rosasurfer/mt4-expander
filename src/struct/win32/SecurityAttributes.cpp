@@ -11,7 +11,7 @@
 
 
 /**
- * Gibt die Gr��e der SECURITY_ATTRIBUTES-Structure in Bytes zurück.
+ * Gibt die Größe der SECURITY_ATTRIBUTES-Structure in Bytes zurück.
  *
  * @param  SECURITY_ATTRIBUTES* sa
  *
