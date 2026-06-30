@@ -7,6 +7,7 @@
 #include "lib/sound.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/thread.h"
 #include "lib/window.h"
 
 #include <shellapi.h>
@@ -669,6 +670,7 @@ HWND WINAPI GetTerminalMainWindow() {
          static int log1 = info("cannot find terminal main window, waiting...");
          if (i >= 10) {
             static int log2 = error(ERR_RUNTIME_ERROR, "cannot find terminal main window, giving up");
+            SetLastError(log2);
             return NULL;
          }
          i++;

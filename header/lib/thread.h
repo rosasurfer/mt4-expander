@@ -33,3 +33,4 @@ struct JOB {
 DWORD   WINAPI GetUiThreadId();
 BOOL    WINAPI IsUiThread(DWORD threadId = NULL);
 LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait = false);
+DWORD   WINAPI SetLastErrorEx(DWORD error);

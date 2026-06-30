@@ -56,6 +56,9 @@ LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
       return func(args);
    }
 
+   HWND hWndMain = GetTerminalMainWindow();
+   if (!hWndMain) return NULL;
+
    // dispatch function to the UI-thread
    if (!wait) {                              // fire-and-forget
       JOB* job = new JOB();                  // on the heap
@@ -63,7 +66,7 @@ LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
       job->args  = args;
       job->owner = true;                     // runner will free the job
 
-      if (!PostMessageW(GetTerminalMainWindow(), WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
+      if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
          delete job;
          return !error(ERR_WIN32_ERROR + GetLastError(), "PostMessageW()");
       }
@@ -77,7 +80,7 @@ LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
    job.done = CreateEventW(NULL, TRUE, FALSE, NULL);
    if (!job.done) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateEventW()");
 
-   if (!PostMessageW(GetTerminalMainWindow(), WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job)) {
+   if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job)) {
       CloseHandle(job.done);
       return !error(ERR_WIN32_ERROR + GetLastError(), "PostMessageW()");
    }
@@ -92,4 +95,17 @@ LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
    }
    CloseHandle(job.done);
    return job.error ? 0 : job.result;
+}
+
+
+/**
+ * Sets the last-error code for the calling thread. Helper to use kernel32::SetLastError() as an expression.
+ *
+ * @param  DWORD - error code
+ *
+ * @return DWORD - the same error code
+ */
+DWORD WINAPI SetLastErrorEx(DWORD error) {
+   SetLastError(error);
+   return error;
 }
