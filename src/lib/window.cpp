@@ -75,6 +75,18 @@ wstring WINAPI getClassNameW(HWND hWnd) {
 
 
 /**
+ * Return the class styles of a window's registered class.
+ *
+ * @param  HWND hWnd
+ *
+ * @return DWORD - class styles
+ */
+DWORD WINAPI GetClassStyles(HWND hWnd) {
+   return GetClassLongPtrW(hWnd, GCL_STYLE);
+}
+
+
+/**
  * Return the regular window styles of a window.
  *
  * @param  HWND hWnd
@@ -95,6 +107,32 @@ DWORD WINAPI GetWindowStyles(HWND hWnd) {
  */
 DWORD WINAPI GetWindowStylesEx(HWND hWnd) {
    return GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
+}
+
+
+/**
+ * Set the regular styles of a window.
+ *
+ * @param  HWND  hWnd   - window
+ * @param  DWORD styles - regular styles
+ *
+ * @return DWORD - previous regular styles or NULL (0) in case of errors
+ */
+DWORD WINAPI SetWindowStyles(HWND hWnd, DWORD styles) {
+   return SetWindowLongPtrW(hWnd, GWL_STYLE, styles);
+}
+
+
+/**
+ * Set the extended styles of a window.
+ *
+ * @param  HWND  hWnd   - window
+ * @param  DWORD styles - extended styles
+ *
+ * @return DWORD - previous extended styles or NULL (0) in case of errors
+ */
+DWORD WINAPI SetWindowStylesEx(HWND hWnd, DWORD styles) {
+   return SetWindowLongPtrW(hWnd, GWL_EXSTYLE, styles);
 }
 
 

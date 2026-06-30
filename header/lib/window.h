@@ -7,8 +7,13 @@ wchar*      WINAPI GetClassNameW(HWND hWnd);
 string      WINAPI getClassNameA(HWND hWnd);
 wstring     WINAPI getClassNameW(HWND hWnd);
 
+DWORD       WINAPI GetClassStyles(HWND hWnd);
+
 DWORD       WINAPI GetWindowStyles(HWND hWnd);
+DWORD       WINAPI SetWindowStyles(HWND hWnd, DWORD styles);
+
 DWORD       WINAPI GetWindowStylesEx(HWND hWnd);
+DWORD       WINAPI SetWindowStylesEx(HWND hWnd, DWORD styles);
 
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
@@ -45,7 +50,7 @@ uint        WINAPI WM_MT4();
 uint        WINAPI WM_MT4EXPANDER();
 
 
-// transport of callback details for MT4Expander ID_CALLBACK messages (see UI-thread dispatcher)
+// transport of callback details for WM_MT4EXPANDER ID_UI_CALLBACK messages (UI-thread dispatcher)
 struct JOB {
    LRESULT (*func)(LPARAM);               // function pointer
    LPARAM  args;                          // argument pointer
@@ -58,3 +63,17 @@ struct JOB {
       return result;
    }
 };
+
+/*
+UiInvoke(fn, arg);      // synchronous
+UiPost(fn, arg);        // asynchronous
+IsUiThread();           // fast path
+
+SetLastError(0);
+result.value = fn(arg);
+result.error = GetLastError();
+
+SetLastError(result.error);
+
+status = UiInvoke(fn, arg, &result);
+*/
