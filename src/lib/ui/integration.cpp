@@ -61,14 +61,14 @@ BOOL WINAPI SetupUiIntegration() {
 static BOOL WINAPI RegisterWindowEventHook() {
    if (!hWindowEventHook) {
       hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventHook, NULL, GetUiThreadId());
-      if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WindowEventHook)");
+      if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CBT)");
    }
    return TRUE;
 }
 
 
 /**
- * Hook procedure (listener) receiving window related events of the UI thread. Called in the UI thread.
+ * Hook procedure receiving window related events of the UI thread. Called in the UI thread.
  *
  * @param  int    type   - event type; below 0 (zero) if the hook should skip the event
  * @param  WPARAM wParam - whether the event was sent by the current thread
@@ -78,8 +78,6 @@ static BOOL WINAPI RegisterWindowEventHook() {
  */
 static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
    switch (type) {
-
-      // a window is about to be created
       case HCBT_CREATEWND: {
          HWND hWnd = (HWND)wParam;
          CREATESTRUCT* cs = ((CBT_CREATEWND*)lParam)->lpcs;
@@ -385,6 +383,9 @@ static BOOL WINAPI SubclassChartFrame(HWND hWndChart, HWND hWndChartFrame) {
       }
       SetPropW(hWndChartFrame, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
       if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug(" chart window %p: chart frame %p subclassed", hWndChart, hWndChartFrame);
+
+      // improve redrawing performance of child windows
+      SetWindowStyles(hWndChartFrame, GetWindowStyles(hWndChartFrame) | WS_CLIPCHILDREN);
    }
    return TRUE;
 }
@@ -455,20 +456,18 @@ static BOOL WINAPI CustomizeTerminal() {
 
 #include "struct/ExecutionContext.h"
 
-static LRESULT CALLBACK ChartFrameChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
-
 
 /**
  * Create a "Static" child control.
  *
  * @param  uint pid - pid of the calling MQL program
  *
- * @return int - error status
+ * @return HWND - created window handle
  */
-int WINAPI Test_ChildStatic(uint pid) {
+HWND WINAPI Test_CreateStatic(uint pid) {
    // get the EXECUTION_CONTEXT of the caller
-   if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
-   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
+   if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return NULL;
 
    // UI creation callback
    struct local {
@@ -476,16 +475,17 @@ int WINAPI Test_ChildStatic(uint pid) {
          ARGS* args = (ARGS*)lParam;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
+         DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS| SS_LEFT | SS_NOPREFIX;
          HWND hWndChild = CreateWindowExW(
-            0,                                                 // extended styles
-            L"Static",                                         // class name
-            L"EURUSD   Bid 1.23456   Ask 1.23478",             // window text
-            WS_CHILD | WS_VISIBLE | SS_LEFT | SS_NOPREFIX,     // regular styles
-            200, 200, 300, 50,                                 // position/size
-            args->hWndParent,                                  // parent window
-            0,                                                 // control id
-            HMODULE_EXPANDER,                                  // module instance
-            NULL                                               // additional CREATESTRUCT
+            0,                                        // extended styles
+            L"Static",                                // class name
+            L"EURUSD   Bid 1.23456   Ask 1.23478",    // window text
+            styles,                                   // regular styles
+            200, 200, 300, 50,                        // position/size
+            args->hWndParent,                         // parent window
+            0,                                        // control id
+            HMODULE_EXPANDER,                         // module instance
+            NULL                                      // additional CREATESTRUCT
          );
          if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
@@ -498,10 +498,12 @@ int WINAPI Test_ChildStatic(uint pid) {
 
    // create child control
    HWND hWndChild = (HWND) UiInvoke(local::CreateChildControl, (LPARAM)&args, true);
-   if (args.error) return error(args.error, "::CreateChildControl()");
+   if (args.error) return (HWND)!error(args.error, "::CreateChildControl()");
 
+   SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
-   return NO_ERROR;
+
+   return hWndChild;
    #pragma EXPANDER_EXPORT
 }
 
@@ -511,12 +513,12 @@ int WINAPI Test_ChildStatic(uint pid) {
 *
  * @param  uint pid - pid of the calling MQL program
  *
- * @return int - error status
+ * @return HWND - created window handle
  */
-int WINAPI Test_ChildWindow(uint pid) {
+HWND WINAPI Test_CreateWindow(uint pid) {
    // get the EXECUTION_CONTEXT of the caller
-   if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
-   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
+   if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return NULL;
 
    // UI creation callback
    struct local {
@@ -528,7 +530,7 @@ int WINAPI Test_ChildWindow(uint pid) {
 
          // register the window class
          WNDCLASSW wc = {};
-         wc.lpfnWndProc   = ChartFrameChildWindowProc;
+         wc.lpfnWndProc   = ChildWindowProc;
          wc.hInstance     = HMODULE_EXPANDER;
          wc.lpszClassName = className;
          wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
@@ -538,16 +540,17 @@ int WINAPI Test_ChildWindow(uint pid) {
          }
 
          // create the window
+         DWORD styles = WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS;
          HWND hWndChild = CreateWindowExW(
-            0,                                                                   // extended styles
-            className,                                                           // class name
-            L"My window",                                                        // window text
-            WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS,   // regular styles
-            200, 200, 300, 150,                                                  // position/size
-            args->hWndParent,                                                    // parent window
-            0,                                                                   // control id
-            HMODULE_EXPANDER,                                                    // module instance
-            NULL                                                                 // additional CREATESTRUCT
+            0,                                        // extended styles
+            className,                                // class name
+            L"My window",                             // window text
+            styles,                                   // regular styles
+            300, 200, 300, 150,                       // position/size
+            args->hWndParent,                         // parent window
+            0,                                        // control id
+            HMODULE_EXPANDER,                         // module instance
+            NULL                                      // additional CREATESTRUCT
          );
          if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
@@ -560,10 +563,12 @@ int WINAPI Test_ChildWindow(uint pid) {
 
    // create child window
    HWND hWndChild = (HWND) UiInvoke(local::CreateChildWindow, (LPARAM)&args, true);
-   if (args.error) return error(args.error, "::CreateChildWindow()");
+   if (args.error) return (HWND)!error(args.error, "::CreateChildWindow()");
 
+   SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
-   return NO_ERROR;
+
+   return hWndChild;
    #pragma EXPANDER_EXPORT
 }
 
@@ -578,22 +583,25 @@ int WINAPI Test_ChildWindow(uint pid) {
  *
  * @return LRESULT - depends on the message sent
  */
-static LRESULT CALLBACK ChartFrameChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
    switch (msg) {
       case WM_ERASEBKGND: {
-         break;
-         return 1;
+         return 1;                        // don't paint the bg in a separate message (causes flicker)
       }
 
       case WM_PAINT: {
          PAINTSTRUCT ps;
          HDC hdc = BeginPaint(hWnd, &ps);
-
-         //SetBkMode(hdc, TRANSPARENT);
-         SetTextColor(hdc, RGB(0,0,255));
-
          RECT rc;
          GetClientRect(hWnd, &rc);
+
+         // draw background
+         static HBRUSH classBg = GetClassBackground(hWnd);
+         FillRect(hdc, &rc, classBg);
+
+         // draw text
+         SetBkMode(hdc, TRANSPARENT);
+         SetTextColor(hdc, Blue);
          DrawTextW(hdc, L"Margin: 142.5%", -1, &rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
 
          EndPaint(hWnd, &ps);
@@ -601,6 +609,4 @@ static LRESULT CALLBACK ChartFrameChildWindowProc(HWND hWnd, uint msg, WPARAM wP
       }
    }
    return DefWindowProcW(hWnd, msg, wParam, lParam);
-
-   // https://devblogs.microsoft.com/oldnewthing/20171018-00/?p=97245#         [WS_EX_COMPOSITED results in sluggish behavior]
 }

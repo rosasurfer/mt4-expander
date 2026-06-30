@@ -19,3 +19,5 @@ static BOOL    WINAPI   SubclassChartFrame(HWND hWndChart, HWND hWndChartFrame);
 static LRESULT CALLBACK ChartFrameSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data);
 
 static BOOL    WINAPI   CustomizeTerminal();
+
+static LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);

@@ -7,6 +7,7 @@ wchar*      WINAPI GetClassNameW(HWND hWnd);
 string      WINAPI getClassNameA(HWND hWnd);
 wstring     WINAPI getClassNameW(HWND hWnd);
 
+HBRUSH      WINAPI GetClassBackground(HWND hWnd);
 DWORD       WINAPI GetClassStyles(HWND hWnd);
 
 DWORD       WINAPI GetWindowStyles(HWND hWnd);

@@ -75,6 +75,18 @@ wstring WINAPI getClassNameW(HWND hWnd) {
 
 
 /**
+ * Return the background brush of a window's registered class.
+ *
+ * @param  HWND hWnd
+ *
+ * @return HBRUSH - background brush
+ */
+HBRUSH WINAPI GetClassBackground(HWND hWnd) {
+   return (HBRUSH)GetClassLongPtrW(hWnd, GCLP_HBRBACKGROUND);
+}
+
+
+/**
  * Return the class styles of a window's registered class.
  *
  * @param  HWND hWnd
