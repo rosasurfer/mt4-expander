@@ -2,32 +2,18 @@
 #include "expander.h"
 
 
-char*   WINAPI GetClassNameA(HWND hWnd);
-wchar*  WINAPI GetClassNameW(HWND hWnd);
-string  WINAPI getClassNameA(HWND hWnd);
-wstring WINAPI getClassNameW(HWND hWnd);
+char*       WINAPI GetClassNameA(HWND hWnd);
+wchar*      WINAPI GetClassNameW(HWND hWnd);
+string      WINAPI getClassNameA(HWND hWnd);
+wstring     WINAPI getClassNameW(HWND hWnd);
 
-/**
- * Return the regular styles of the specified window.
- *
- * @param  HWND hWnd
- *
- * @return DWORD - regular window styles
- */
-__forceinline DWORD WINAPI GetWindowStyles(HWND hWnd) {
-   return GetWindowLongPtrW(hWnd, GWL_STYLE);
-}
+DWORD       WINAPI GetClassStyles(HWND hWnd);
 
-/**
- * Return the extended styles of the specified window.
- *
- * @param  HWND hWnd
- *
- * @return DWORD - extended window styles
- */
-__forceinline DWORD WINAPI GetWindowStylesEx(HWND hWnd) {
-   return GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
-}
+DWORD       WINAPI GetWindowStyles(HWND hWnd);
+DWORD       WINAPI SetWindowStyles(HWND hWnd, DWORD styles);
+
+DWORD       WINAPI GetWindowStylesEx(HWND hWnd);
+DWORD       WINAPI SetWindowStylesEx(HWND hWnd, DWORD styles);
 
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
@@ -62,18 +48,3 @@ uint        WINAPI MT4InternalMsg();
 uint        WINAPI MT4ExpanderMsg();
 uint        WINAPI WM_MT4();
 uint        WINAPI WM_MT4EXPANDER();
-
-
-// transport of callback details for MT4Expander ID_CALLBACK messages (see UI-thread dispatcher)
-struct JOB {
-   LRESULT (*func)(LPARAM);               // function pointer
-   LPARAM  args;                          // argument pointer
-   LRESULT result;                        // function result
-   HANDLE  done;                          // optional completion event
-
-   LRESULT run() {                        // excutes the job
-      result = func ? func(args) : 0;
-      if (done) SetEvent(done);
-      return result;
-   }
-};

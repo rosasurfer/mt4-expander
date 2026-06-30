@@ -12,7 +12,7 @@
 
 
 /**
- * Gibt das Process-Handle einer PROCESS_INFORMATION zurück.
+ * Gibt das Process-Handle einer PROCESS_INFORMATION zurÃ¼ck.
  *
  * @param  PROCESS_INFORMATION* pi
  *
@@ -26,7 +26,7 @@ HANDLE WINAPI pi_hProcess(const PROCESS_INFORMATION* pi) {
 
 
 /**
- * Gibt das Thread-Handle einer PROCESS_INFORMATION zurück.
+ * Gibt das Thread-Handle einer PROCESS_INFORMATION zurÃ¼ck.
  *
  * @param  PROCESS_INFORMATION* pi
  *
@@ -40,7 +40,7 @@ HANDLE WINAPI pi_hThread(const PROCESS_INFORMATION* pi) {
 
 
 /**
- * Gibt die Process-ID einer PROCESS_INFORMATION zurück.
+ * Gibt die Process-ID einer PROCESS_INFORMATION zurÃ¼ck.
  *
  * @param  PROCESS_INFORMATION* pi
  *
@@ -54,7 +54,7 @@ DWORD WINAPI pi_ProcessId(const PROCESS_INFORMATION* pi) {
 
 
 /**
- * Gibt die Thread-ID einer PROCESS_INFORMATION zurück.
+ * Gibt die Thread-ID einer PROCESS_INFORMATION zurÃ¼ck.
  *
  * @param  PROCESS_INFORMATION* pi
  *

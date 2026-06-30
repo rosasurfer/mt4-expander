@@ -372,6 +372,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\header\lib\thread.h"
+					>
+				</File>
+				<File
 					RelativePath=".\header\lib\timer.h"
 					>
 				</File>
@@ -927,6 +931,34 @@
 				</File>
 				<File
 					RelativePath=".\src\lib\tester.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\lib\"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\lib\thread.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

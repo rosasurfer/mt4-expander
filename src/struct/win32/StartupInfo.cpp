@@ -26,12 +26,12 @@
 
 
 /**
- * Setzt die Größe einer STARTUPINFO.
+ * Setzt die GrÃ¶ÃŸe einer STARTUPINFO.
  *
  * @param  STARTUPINFOA* si
  * @param  DWORD         size
  *
- * @return DWORD - dieselbe Größe
+ * @return DWORD - dieselbe GrÃ¶ÃŸe
  */
 DWORD WINAPI si_setSize(STARTUPINFOA* si, DWORD size) {
    if ((uint)si < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter si: 0x%p (not a valid pointer)", si));

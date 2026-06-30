@@ -194,41 +194,6 @@ DWORD WINAPI GetPressedVirtualKeys(DWORD flags = F_VK_ALL) {
 
 
 /**
- * Whether the specified thread is the application's UI thread.
- *
- * @param  DWORD threadId [optional] - thread id (default: the current thread)
- *
- * @return BOOL
- */
-BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
-   if (!threadId) {
-      threadId = GetCurrentThreadId();
-   }
-   return (threadId == GetUiThreadId());
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the id of the UI thread.
- *
- * @return DWORD - thread id (not thread handle) or NULL in case of errors
- */
-DWORD WINAPI GetUiThreadId() {
-   static DWORD uiThreadId;
-
-   if (!uiThreadId) {
-      if (HWND hWnd = GetTerminalMainWindow()) {
-         DWORD threadId = GetWindowThreadProcessId(hWnd, NULL);
-         if (!uiThreadId) uiThreadId = threadId;      // another thread may have been faster
-      }
-   }
-   return uiThreadId;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether any part of the specified window's client area is currently visible. The visible area is defined by the current
  * clipping region or clip path, as well as any overlapping windows.
  *

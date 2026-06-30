@@ -1,10 +1,10 @@
 #include "expander.h"
 #include "lib/conversion.h"
 #include "lib/datetime.h"
-#include "lib/helper.h"
 #include "lib/log.h"
 #include "lib/memory.h"
 #include "lib/string.h"
+#include "lib/thread.h"
 #include "struct/ExecutionContext.h"
 
 #include <fstream>
@@ -1795,6 +1795,27 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
       }
    }
    return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+}
+
+
+/**
+ * Return the master EXECUTION_CONTEXT of an MQL program.
+ *
+ * @param  uint pid - pid of the MQL program
+ *
+ * @return EXECUTION_CONTEXT* - master context or a NULL pointer in case of errors
+ */
+EXECUTION_CONTEXT* WINAPI GetMasterContext(uint pid) {
+   if (!pid)                         return (EXECUTION_CONTEXT*)_NULL(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %u (not a program id)", pid));
+   if (g_mqlInstances.size() <= pid) return (EXECUTION_CONTEXT*)_NULL(error(ERR_INVALID_PARAMETER, "invalid parameter pid: %u (program not found)", pid));
+
+   ContextChain &chain = *g_mqlInstances[pid];
+   EXECUTION_CONTEXT* master = chain[0];
+
+   if (!master) {
+      error(ERR_ILLEGAL_STATE, "illegal master context in g_mqlInstances[%u]: NULL", pid);
+   }
+   return master;
 }
 
 

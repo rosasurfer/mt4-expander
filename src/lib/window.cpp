@@ -15,7 +15,7 @@ static StringMap  stringProperties;                      // a map with strings s
 
 
 /**
- * Return the classname of the specified window. Simplified version of user32::GetClassNameA().
+ * Return the classname of a window. Simplified version of user32::GetClassNameA().
  *
  * @param  HWND hWnd - window handle
  *
@@ -29,7 +29,7 @@ char* WINAPI GetClassNameA(HWND hWnd) {
 
 
 /**
- * Return the classname of the specified window. Simplified version of user32::GetClassNameA().
+ * Return the classname of a window. Simplified version of user32::GetClassNameA().
  *
  * @param  HWND hWnd - window handle
  *
@@ -45,7 +45,7 @@ string WINAPI getClassNameA(HWND hWnd) {
 
 
 /**
- * Return the classname of the specified window. Simplified version of user32::GetClassNameW().
+ * Return the classname of a window. Simplified version of user32::GetClassNameW().
  *
  * @param  HWND hWnd - window handle
  *
@@ -59,7 +59,7 @@ wchar* WINAPI GetClassNameW(HWND hWnd) {
 
 
 /**
- * Return the classname of the specified window. Simplified version of user32::GetClassNameW().
+ * Return the classname of a window. Simplified version of user32::GetClassNameW().
  *
  * @param  HWND hWnd - window handle
  *
@@ -75,7 +75,69 @@ wstring WINAPI getClassNameW(HWND hWnd) {
 
 
 /**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * Return the class styles of a window's registered class.
+ *
+ * @param  HWND hWnd
+ *
+ * @return DWORD - class styles
+ */
+DWORD WINAPI GetClassStyles(HWND hWnd) {
+   return GetClassLongPtrW(hWnd, GCL_STYLE);
+}
+
+
+/**
+ * Return the regular window styles of a window.
+ *
+ * @param  HWND hWnd
+ *
+ * @return DWORD - regular styles
+ */
+DWORD WINAPI GetWindowStyles(HWND hWnd) {
+   return GetWindowLongPtrW(hWnd, GWL_STYLE);
+}
+
+
+/**
+ * Return the extended window styles of a window.
+ *
+ * @param  HWND hWnd
+ *
+ * @return DWORD - extended styles
+ */
+DWORD WINAPI GetWindowStylesEx(HWND hWnd) {
+   return GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
+}
+
+
+/**
+ * Set the regular styles of a window.
+ *
+ * @param  HWND  hWnd   - window
+ * @param  DWORD styles - regular styles
+ *
+ * @return DWORD - previous regular styles or NULL (0) in case of errors
+ */
+DWORD WINAPI SetWindowStyles(HWND hWnd, DWORD styles) {
+   return SetWindowLongPtrW(hWnd, GWL_STYLE, styles);
+}
+
+
+/**
+ * Set the extended styles of a window.
+ *
+ * @param  HWND  hWnd   - window
+ * @param  DWORD styles - extended styles
+ *
+ * @return DWORD - previous extended styles or NULL (0) in case of errors
+ */
+DWORD WINAPI SetWindowStylesEx(HWND hWnd, DWORD styles) {
+   return SetWindowLongPtrW(hWnd, GWL_EXSTYLE, styles);
+}
+
+
+/**
+ * Return the text of a window's title bar. If the window is a control the text of the control is obtained.
  * This function gets the text as a response to a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
@@ -95,7 +157,7 @@ char* WINAPI GetWindowTextA(HWND hWnd) {
 
 
 /**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * Return the text of a window's title bar. If the window is a control the text of the control is obtained.
  * This function gets the text as a response to a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
@@ -120,7 +182,7 @@ wchar* WINAPI GetWindowTextW(HWND hWnd) {
 
 
 /**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * Return the text of a window's title bar. If the window is a control the text of the control is obtained.
  * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
@@ -138,7 +200,7 @@ char* WINAPI GetInternalWindowTextA(HWND hWnd) {
 
 
 /**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * Return the text of a window's title bar. If the window is a control the text of the control is obtained.
  * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
@@ -152,7 +214,7 @@ string WINAPI getInternalWindowTextA(HWND hWnd) {
 
 
 /**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * Return the text of a window's title bar. If the window is a control the text of the control is obtained.
  * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
@@ -170,7 +232,7 @@ wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
 
 
 /**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
+ * Return the text of a window's title bar. If the window is a control the text of the control is obtained.
  * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
  *
  * @param  HWND hWnd - window handle
@@ -196,7 +258,7 @@ wstring WINAPI getInternalWindowTextW(HWND hWnd) {
 /**
  * Alias of user32::GetPropA()
  *
- * Retrieves a named value stored in the property list of the specified window.
+ * Retrieves a named value stored in the property list of a window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - property name
@@ -212,7 +274,7 @@ HANDLE WINAPI GetWindowPropertyA(HWND hWnd, const char* name) {
 /**
  * Alias of user32::SetPropA()
  *
- * Sets a named value stored in the property list of the specified window.
+ * Sets a named value stored in the property list of a window.
  *
  * @param  HWND   hWnd  - window handle
  * @param  char*  name  - property name
@@ -231,7 +293,7 @@ BOOL WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value) {
 /**
  * Alias of user32::RemovePropA()
  *
- * Removes a named value from the property list of the specified window.
+ * Removes a named value from the property list of a window.
  *
  * @param  HWND   hWnd  - window handle
  * @param  char*  name  - property name
@@ -245,7 +307,7 @@ HANDLE WINAPI RemoveWindowPropertyA(HWND hWnd, const char* name) {
 
 
 /**
- * Return a named integer value linked to the specified window.
+ * Return a named integer value linked to a window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - integer name
@@ -269,7 +331,7 @@ int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
 
 
 /**
- * Return a named double value linked to the specified window.
+ * Return a named double value linked to a window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
@@ -293,7 +355,7 @@ double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
 
 
 /**
- * Return a named string linked to the specified window.
+ * Return a named string linked to a window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - string identifier
@@ -317,7 +379,7 @@ const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
 
 
 /**
- * Store a named integer value and link it to the specified window.
+ * Store a named integer value and link it to a window.
  *
  * @param  HWND  hWnd  - window handle
  * @param  char* name  - integer name
@@ -339,7 +401,7 @@ BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
 
 
 /**
- * Store a named double value and link it to the specified window.
+ * Store a named double value and link it to a window.
  *
  * @param  HWND   hWnd  - window handle
  * @param  char*  name  - integer name
@@ -361,7 +423,7 @@ BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
 
 
 /**
- * Store a named string and link it to the specified window.
+ * Store a named string and link it to a window.
  *
  * @param  HWND  hWnd  - window handle
  * @param  char* name  - string identifier
@@ -384,7 +446,7 @@ BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
 
 
 /**
- * Remove a named integer value linked to the specified window.
+ * Remove a named integer value linked to a window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - integer name
@@ -410,7 +472,7 @@ int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
 
 
 /**
- * Remove a named double value linked to the specified window.
+ * Remove a named double value linked to a window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
@@ -436,7 +498,7 @@ double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
 
 
 /**
- * Remove a named string linked to the specified window.
+ * Remove a named string linked to a window.
  *
  * @param  HWND  hWnd - window handle
  * @param  char* name - double name
@@ -571,44 +633,43 @@ int WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
 int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
    if (prefix && (uint)prefix < MIN_VALID_POINTER) return _EMPTY(error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix));
 
-   struct USER_DATA {
-      const wchar* prefix;
-      int          count;
-   } data = { prefix, 0 };
-
    struct local {
       /**
        * @param  HWND      hWnd   - window whose property list is being enumerated
        * @param  wchar*    name   - property name
        * @param  HANDLE    value  - property value
-       * @param  ULONG_PTR lpData - user data as passed by the outer function
+       * @param  ULONG_PTR lpData - user arguments as passed by the outer function
        *
        * @return BOOL - whether to continue enumeration with the next property
        */
       static BOOL CALLBACK EnumPropsProc(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR lpData) {
-         USER_DATA* data = (USER_DATA*)lpData;
-         const wchar* prefix = data->prefix;
+         ARGS* args = (ARGS*)lpData;
+         const wchar* prefix = args->prefix;
 
          if (prefix && !*prefix) {
             prefix = NULL;
          }
          if (!prefix || StrStartsWith(name, prefix)) {
             debug_raw("  \"%S\" = 0x%p (%d)", name, value, value);
-            data->count++;
+            args->count++;
          }
          return TRUE;
       }
    };
+   struct ARGS {
+      __in    const wchar* prefix;
+      __inout int          count;
+   } args = { prefix, 0 };
 
    debug("for HWND %p", hWnd);
 
    SetLastError(NO_ERROR);
-   int result = EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&data);
+   int result = EnumPropsExW(hWnd, local::EnumPropsProc, (LPARAM)&args);
    if (result == -1 && GetLastError()) return _EMPTY(error(ERR_WIN32_ERROR + GetLastError(), "EnumPropsExW()"));
 
    // report no properties to visually distinguish from errors
-   if (!data.count) debug_raw("  (no window properties)");
-   return data.count;
+   if (!args.count) debug_raw("  (no window properties)");
+   return args.count;
    #pragma EXPANDER_EXPORT
 }
 
@@ -644,7 +705,7 @@ uint WINAPI WM_MT4() {
  * @return uint - message id in the range from 0xC000 to 0xFFFF, or NULL (0) in case of errors
  */
 uint WINAPI MT4ExpanderMsg() {
-   static uint msgId = RegisterWindowMessageW(L"rsf.MT4Expander.Message");
+   static uint msgId = RegisterWindowMessageW(L"rsfMT4Expander.message");
    if (!msgId) return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessageW()");
    return msgId;
 }

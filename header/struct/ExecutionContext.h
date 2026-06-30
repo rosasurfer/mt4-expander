@@ -13,10 +13,10 @@ typedef std::vector<string> LogBuffer;
  * Execution context of an MQL program. Used for keeping state, data exchange and communication between MQL modules and DLL.
  *
  * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
- * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verf�gt �ber einen eigenen Kontext, alle Kontexte eines
+ * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
  * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
  * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
- * Contexte einer Chain sind Library-Contexte. �ber die Kontexte werden wie folgt Daten ausgetauscht:
+ * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
  *
  *  - Data exchange between MQL modules and the DLL:
  *    The MQL modules pass MQL runtime state and market information to the DLL, the DLL passes back DLL runtime state and
@@ -170,8 +170,9 @@ const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, cons
 
 
 // helpers
-char* WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec);
-char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec);
+EXECUTION_CONTEXT* WINAPI GetMasterContext(uint pid);
+char*              WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec);
+char*              WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec);
 
 
 // type definitions

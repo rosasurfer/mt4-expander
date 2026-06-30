@@ -1,18 +1,21 @@
 #include "expander.h"
-#include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/thread.h"
 #include "lib/window.h"
 #include "lib/ui/integration.h"
 #include "lib/ui/menu.h"
 
 #include <commctrl.h>
 
+extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handle
+#define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
+
 #define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the main window
 #define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
 #define CHART_FRAME_SUBCLASS_ID     3                 // subclass identifier for chart frames (painting area)
 
-#define PROP_WINDOW_SUBCLASSED      L"rsf.MT4Expander.WindowSubclassed"
+#define PROP_WINDOW_SUBCLASSED      L"rsfMT4Expander.subclassed"
 
 static HHOOK hUiThreadHook    = NULL;                 // hook handles
 static HHOOK hWindowEventHook = NULL;
@@ -203,7 +206,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
    // process MT4Expander messages
    if (msg == WM_MT4EXPANDER) {
       switch (wParam) {
-         case ID_CALLBACK: {                                   // executes a task in the UI thread
+         case ID_UI_CALLBACK: {                                // executes a task in the UI thread
             JOB* job = (JOB*)lParam;
             if (!job) return !error(ERR_INVALID_POINTER, "WM_MT4EXPANDER  id=ID_CALLBACK  invalid parameter job: NULL");
             return job->run();
@@ -450,38 +453,154 @@ static BOOL WINAPI CustomizeTerminal() {
 }
 
 
-/**
- * Test implementation
- *
- * @return BOOL
- */
-BOOL WINAPI TestJob() {
-   struct local {
-      static LRESULT TestUiDispatcher(LPARAM lParam) {
-         USER_DATA* data = (USER_DATA*)lParam;
-         if (!data) return !error(ERR_INVALID_POINTER, "invalid parameter lParam: NULL");
+#include "struct/ExecutionContext.h"
 
-         debug("UI-thread=%d  %S %d Luftballons", IsUiThread(), data->msg, data->count);
-         return 0;
+static LRESULT CALLBACK ChartFrameChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
+
+
+/**
+ * Create a "Static" child control.
+ *
+ * @param  uint pid - pid of the calling MQL program
+ *
+ * @return int - error status
+ */
+int WINAPI Test_ChildStatic(uint pid) {
+   // get the EXECUTION_CONTEXT of the caller
+   if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
+
+   // UI creation callback
+   struct local {
+      static LRESULT CALLBACK CreateChildControl(LPARAM lParam) {
+         ARGS* args = (ARGS*)lParam;
+         if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
+
+         HWND hWndChild = CreateWindowExW(
+            0,                                                 // extended styles
+            L"Static",                                         // class name
+            L"EURUSD   Bid 1.23456   Ask 1.23478",             // window text
+            WS_CHILD | WS_VISIBLE | SS_LEFT | SS_NOPREFIX,     // regular styles
+            200, 200, 300, 50,                                 // position/size
+            args->hWndParent,                                  // parent window
+            0,                                                 // control id
+            HMODULE_EXPANDER,                                  // module instance
+            NULL                                               // additional CREATESTRUCT
+         );
+         if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
+         return (LRESULT)hWndChild;
       }
    };
+   struct ARGS {
+      __in  HWND  hWndParent;
+      __out DWORD error;
+   } args = { ec->chart, NO_ERROR };
 
-   struct USER_DATA {
-      const wchar* msg;
-      int          count;
-   } data = { L"Hello world!", 99 };
+   // create child control
+   HWND hWndChild = (HWND) UiInvoke(local::CreateChildControl, (LPARAM)&args, true);
+   if (args.error) return error(args.error, "::CreateChildControl()");
 
-   JOB job = {
-      local::TestUiDispatcher,
-      (LPARAM)&data,
-      0,
-      CreateEventW(NULL, TRUE, FALSE, NULL)
+   debug("child control created: %p", hWndChild);
+   return NO_ERROR;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+* Create a regular child window.
+*
+ * @param  uint pid - pid of the calling MQL program
+ *
+ * @return int - error status
+ */
+int WINAPI Test_ChildWindow(uint pid) {
+   // get the EXECUTION_CONTEXT of the caller
+   if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
+
+   // UI creation callback
+   struct local {
+      static LRESULT CALLBACK CreateChildWindow(LPARAM lParam) {
+         ARGS* args = (ARGS*)lParam;
+         if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
+
+         const wchar* className = L"rsfMT4Expander.chart.childwindow";
+
+         // register the window class
+         WNDCLASSW wc = {};
+         wc.lpfnWndProc   = ChartFrameChildWindowProc;
+         wc.hInstance     = HMODULE_EXPANDER;
+         wc.lpszClassName = className;
+         wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+         wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+         if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
+            return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassW(\"%S\")", className);
+         }
+
+         // create the window
+         HWND hWndChild = CreateWindowExW(
+            0,                                                                   // extended styles
+            className,                                                           // class name
+            L"My window",                                                        // window text
+            WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS,   // regular styles
+            200, 200, 300, 150,                                                  // position/size
+            args->hWndParent,                                                    // parent window
+            0,                                                                   // control id
+            HMODULE_EXPANDER,                                                    // module instance
+            NULL                                                                 // additional CREATESTRUCT
+         );
+         if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
+         return (LRESULT)hWndChild;
+      }
    };
-   if (!job.done) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateEventW()");
+   struct ARGS {
+      __in  HWND  hWndParent;
+      __out DWORD error;
+   } args = { ec->chart, NO_ERROR };
 
-   PostMessageW(GetTerminalMainWindow(), WM_MT4EXPANDER(), ID_CALLBACK, (LPARAM)&job);
-   WaitForSingleObject(job.done, INFINITE);
-   CloseHandle(job.done);
-   return TRUE;
-   //#pragma EXPANDER_EXPORT
+   // create child window
+   HWND hWndChild = (HWND) UiInvoke(local::CreateChildWindow, (LPARAM)&args, true);
+   if (args.error) return error(args.error, "::CreateChildWindow()");
+
+   debug("child window created: %p", hWndChild);
+   return NO_ERROR;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * ChartFrame child window procedure. Processes all messages for the window. Executed in the UI thread.
+ *
+ * @param  HWND   hWnd   - window receiving the message
+ * @param  uint   msg    - sent message
+ * @param  WPARAM wParam - additional message info
+ * @param  LPARAM lParam - additional message info
+ *
+ * @return LRESULT - depends on the message sent
+ */
+static LRESULT CALLBACK ChartFrameChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+   switch (msg) {
+      case WM_ERASEBKGND: {
+         break;
+         return 1;
+      }
+
+      case WM_PAINT: {
+         PAINTSTRUCT ps;
+         HDC hdc = BeginPaint(hWnd, &ps);
+
+         //SetBkMode(hdc, TRANSPARENT);
+         SetTextColor(hdc, RGB(0,0,255));
+
+         RECT rc;
+         GetClientRect(hWnd, &rc);
+         DrawTextW(hdc, L"Margin: 142.5%", -1, &rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+
+         EndPaint(hWnd, &ps);
+         return 0;
+      }
+   }
+   return DefWindowProcW(hWnd, msg, wParam, lParam);
+
+   // https://devblogs.microsoft.com/oldnewthing/20171018-00/?p=97245#         [WS_EX_COMPOSITED results in sluggish behavior]
 }
