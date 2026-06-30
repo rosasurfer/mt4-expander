@@ -6,6 +6,7 @@
 #include "lib/math.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/thread.h"
 #include "lib/window.h"
 #include "struct/ExecutionContext.h"
 

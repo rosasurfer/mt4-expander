@@ -8,6 +8,7 @@
 #pragma warning(disable:4101)                               // unreferenced local variable
 #pragma warning(disable:4127)                               // conditional expression is constant
 #pragma warning(disable:4189)                               // local variable is initialized but not referenced
+#pragma warning(disable:4345)                               // warning that a formerly broken feature is finally fixed: zero initialization of new() up to VS2005 (MSCV 8.0)
 #pragma warning(disable:4505)                               // unreferenced local function has been removed
 #pragma warning(disable:4702)                               // unreachable code
 #pragma warning(disable:4706)                               // assignment within conditional expression
@@ -61,10 +62,6 @@ using std::max;
 #define MAX_DIR                        _MAX_DIR             // max. length of path component
 #define MAX_FNAME                      _MAX_FNAME           // max. length of file name component
 #define MAX_EXT                        _MAX_EXT             // max. length of extension component
-
-#define __In_                                               // marks an input parameter
-#define __Out_                                              // marks an output parameter
-#define __InOut_                                            // marks an input and output parameter
 
 
 // MQL program types (flags)

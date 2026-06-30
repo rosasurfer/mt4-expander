@@ -55,8 +55,8 @@ HWND WINAPI FindTesterWindow() {
             }
          };
          struct ARGS {
-            __In_  DWORD myProcessId;
-            __Out_ HWND  hWndTester;
+            __in  DWORD myProcessId;
+            __out HWND  hWndTester;
          } args = { GetCurrentProcessId(), NULL };
 
          SetLastError(NO_ERROR);

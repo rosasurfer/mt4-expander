@@ -657,8 +657,8 @@ int WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
       }
    };
    struct ARGS {
-      __In_    const wchar* prefix;
-      __InOut_ int          count;
+      __in    const wchar* prefix;
+      __inout int          count;
    } args = { prefix, 0 };
 
    debug("for HWND %p", hWnd);

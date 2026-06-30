@@ -1,10 +1,10 @@
 #include "expander.h"
 #include "lib/conversion.h"
 #include "lib/datetime.h"
-#include "lib/helper.h"
 #include "lib/log.h"
 #include "lib/memory.h"
 #include "lib/string.h"
+#include "lib/thread.h"
 #include "struct/ExecutionContext.h"
 
 #include <fstream>

@@ -48,32 +48,3 @@ uint        WINAPI MT4InternalMsg();
 uint        WINAPI MT4ExpanderMsg();
 uint        WINAPI WM_MT4();
 uint        WINAPI WM_MT4EXPANDER();
-
-
-// transport of callback details for WM_MT4EXPANDER ID_UI_CALLBACK messages (UI-thread dispatcher)
-struct JOB {
-   LRESULT (*func)(LPARAM);               // function pointer
-   LPARAM  args;                          // argument pointer
-   LRESULT result;                        // return value
-   HANDLE  done;                          // optional completion event
-
-   LRESULT run() {                        // excutes the job
-      result = func ? func(args) : 0;
-      if (done) SetEvent(done);
-      return result;
-   }
-};
-
-/*
-UiInvoke(fn, arg);      // synchronous
-UiPost(fn, arg);        // asynchronous
-IsUiThread();           // fast path
-
-SetLastError(0);
-result.value = fn(arg);
-result.error = GetLastError();
-
-SetLastError(result.error);
-
-status = UiInvoke(fn, arg, &result);
-*/

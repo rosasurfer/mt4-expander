@@ -1,7 +1,7 @@
 #include "expander.h"
-#include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
+#include "lib/thread.h"
 #include "lib/window.h"
 #include "lib/ui/integration.h"
 #include "lib/ui/menu.h"
@@ -206,7 +206,7 @@ static LRESULT CALLBACK MainWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPara
    // process MT4Expander messages
    if (msg == WM_MT4EXPANDER) {
       switch (wParam) {
-         case ID_UI_CALLBACK: {                                   // executes a task in the UI thread
+         case ID_UI_CALLBACK: {                                // executes a task in the UI thread
             JOB* job = (JOB*)lParam;
             if (!job) return !error(ERR_INVALID_POINTER, "WM_MT4EXPANDER  id=ID_CALLBACK  invalid parameter job: NULL");
             return job->run();
@@ -470,11 +470,11 @@ int WINAPI Test_ChildStatic(uint pid) {
    if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
 
-   // prepare UI callback
+   // UI creation callback
    struct local {
-      static LRESULT CreateChildControl(LPARAM lParam) {
+      static LRESULT CALLBACK CreateChildControl(LPARAM lParam) {
          ARGS* args = (ARGS*)lParam;
-         if (!args) return !notice(ERR_INVALID_POINTER, "invalid arguments: NULL");
+         if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
          HWND hWndChild = CreateWindowExW(
             0,                                                 // extended styles
@@ -487,31 +487,17 @@ int WINAPI Test_ChildStatic(uint pid) {
             HMODULE_EXPANDER,                                  // module instance
             NULL                                               // additional CREATESTRUCT
          );
-         if (!hWndChild) notice(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
+         if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
       }
    };
    struct ARGS {
-      __In_  HWND  hWndParent;
-      __Out_ DWORD error;
+      __in  HWND  hWndParent;
+      __out DWORD error;
    } args = { ec->chart, NO_ERROR };
 
-   HWND hWndChild;
-
    // create child control
-   if (IsUiThread()) {                 // in thread
-      hWndChild = (HWND)local::CreateChildControl((LPARAM)&args);
-   }
-   else {                              // cross-thread
-      JOB job = { local::CreateChildControl, (LPARAM)&args, 0, CreateEventW(NULL, TRUE, FALSE, NULL) };
-      if (!job.done) return error(ERR_WIN32_ERROR + GetLastError(), "CreateEventW()");
-
-      PostMessageW(GetTerminalMainWindow(), WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job);
-      WaitForSingleObject(job.done, INFINITE);
-      CloseHandle(job.done);
-
-      hWndChild = (HWND)job.result;
-   }
+   HWND hWndChild = (HWND) UiInvoke(local::CreateChildControl, (LPARAM)&args, true);
    if (args.error) return error(args.error, "::CreateChildControl()");
 
    debug("child control created: %p", hWndChild);
@@ -532,11 +518,11 @@ int WINAPI Test_ChildWindow(uint pid) {
    if ((int)pid <= 0)                                      return error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return ERR_RUNTIME_ERROR;
 
-   // prepare UI callback
+   // UI creation callback
    struct local {
-      static LRESULT CreateChildWindow(LPARAM lParam) {
+      static LRESULT CALLBACK CreateChildWindow(LPARAM lParam) {
          ARGS* args = (ARGS*)lParam;
-         if (!args) return !notice(ERR_INVALID_POINTER, "invalid arguments: NULL");
+         if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
          const wchar* className = L"rsfMT4Expander.chart.childwindow";
 
@@ -563,31 +549,17 @@ int WINAPI Test_ChildWindow(uint pid) {
             HMODULE_EXPANDER,                                                    // module instance
             NULL                                                                 // additional CREATESTRUCT
          );
-         if (!hWndChild) notice(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
+         if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
       }
    };
    struct ARGS {
-      __In_  HWND  hWndParent;
-      __Out_ DWORD error;
+      __in  HWND  hWndParent;
+      __out DWORD error;
    } args = { ec->chart, NO_ERROR };
 
-   HWND hWndChild;
-
    // create child window
-   if (IsUiThread()) {                 // in thread
-      hWndChild = (HWND)local::CreateChildWindow((LPARAM)&args);
-   }
-   else {                              // cross-thread
-      JOB job = { local::CreateChildWindow, (LPARAM)&args, 0, CreateEventW(NULL, TRUE, FALSE, NULL) };
-      if (!job.done) return error(ERR_WIN32_ERROR + GetLastError(), "CreateEventW()");
-
-      PostMessageW(GetTerminalMainWindow(), WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job);
-      WaitForSingleObject(job.done, INFINITE);
-      CloseHandle(job.done);
-
-      hWndChild = (HWND)job.result;
-   }
+   HWND hWndChild = (HWND) UiInvoke(local::CreateChildWindow, (LPARAM)&args, true);
    if (args.error) return error(args.error, "::CreateChildWindow()");
 
    debug("child window created: %p", hWndChild);

@@ -650,8 +650,8 @@ HWND WINAPI GetTerminalMainWindow() {
          }
       };
       struct ARGS {
-         __In_  DWORD myProcessId;
-         __Out_ HWND  hWndFound;
+         __in  DWORD myProcessId;
+         __out HWND  hWndFound;
       } args = { GetCurrentProcessId(), 0 };
 
       // MQL scripts run in their own thread. On fast CPUs with multiple cores, the following race condition may occur when
@@ -1039,8 +1039,8 @@ BOOL WINAPI ReopenAlertDialog(BOOL sound) {
       }
    };
    struct ARGS {
-      __In_  DWORD myProcessId;
-      __Out_ HWND  hWndAlert;
+      __in  DWORD myProcessId;
+      __out HWND  hWndAlert;
    } args = { GetCurrentProcessId(), NULL };
 
    // enumerate top-level windows
