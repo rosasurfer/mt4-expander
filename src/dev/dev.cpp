@@ -20,7 +20,7 @@ HWND WINAPI Test_CreateStatic(uint pid) {
    if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return NULL;
 
-   // UI creation callback
+   // creation callback and arguments
    struct local {
       static LRESULT CALLBACK CreateChildControl(LPARAM lParam) {
          ARGS* args = (ARGS*)lParam;
@@ -43,13 +43,13 @@ HWND WINAPI Test_CreateStatic(uint pid) {
       }
    };
    struct ARGS {
-      __in  HWND  hWndParent;
-      __out DWORD error;
+      __in  HWND hWndParent;
+      __out int  error;
    } args = { ec->chart, NO_ERROR };
 
-   // create child control
+   // create the child control
    HWND hWndChild = (HWND) UiInvoke(local::CreateChildControl, (LPARAM)&args, true);
-   if (args.error) return (HWND)!error(args.error, "CreateChildControl()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
@@ -71,30 +71,29 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return NULL;
 
-   // UI creation callback
+   const wchar* className = L"rsfMT4Expander.chart.childwindow";
+
+   // register the window class
+   WNDCLASSW wc = {};
+   wc.lpfnWndProc   = ChildWindowProc;
+   wc.hInstance     = HMODULE_EXPANDER;
+   wc.lpszClassName = className;
+   wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+   wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+   if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
+      return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassW(\"%S\")", className);
+   }
+
+   // creation callback and arguments
    struct local {
       static LRESULT CALLBACK CreateChildWindow(LPARAM lParam) {
          ARGS* args = (ARGS*)lParam;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
-         const wchar* className = L"rsfMT4Expander.chart.childwindow";
-
-         // register the window class
-         WNDCLASSW wc = {};
-         wc.lpfnWndProc   = ChildWindowProc;
-         wc.hInstance     = HMODULE_EXPANDER;
-         wc.lpszClassName = className;
-         wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
-         wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
-         if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
-            return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassW(\"%S\")", className);
-         }
-
-         // create the window
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS;
          HWND hWndChild = CreateWindowExW(
             0,                                        // extended styles
-            className,                                // class name
+            args->className,                          // class name
             L"My window",                             // window text
             styles,                                   // regular styles
             300, 200, 300, 150,                       // position/size
@@ -108,13 +107,14 @@ HWND WINAPI Test_CreateWindow(uint pid) {
       }
    };
    struct ARGS {
-      __in  HWND  hWndParent;
-      __out DWORD error;
-   } args = { ec->chart, NO_ERROR };
+      __in  HWND         hWndParent;
+      __in  const wchar* className;
+      __out int          error;
+   } args = { ec->chart, className, NO_ERROR };
 
-   // create child window
+   // create the child window
    HWND hWndChild = (HWND) UiInvoke(local::CreateChildWindow, (LPARAM)&args, true);
-   if (args.error) return (HWND)!error(args.error, "CreateChildWindow()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
