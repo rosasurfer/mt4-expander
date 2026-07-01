@@ -8,7 +8,7 @@
  * @param  HWND hChart     - chart handle as returned by MQL::WindowHandle()
  * @param  int  lastHeight -
  *
- * @return int - chart height or NULL (0) if the chart is not visible; also in case of errors
+ * @return int - chart height or 0 if the chart is not visible or in case of errors
  */
 int WINAPI Grid_GetChartHeight(HWND hChart, int lastHeight) {
    HWND hChartWnd = GetAncestor(hChart, GA_PARENT);

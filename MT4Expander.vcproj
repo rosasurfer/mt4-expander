@@ -492,6 +492,14 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="dev"
+				>
+				<File
+					RelativePath=".\header\dev\dev.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
@@ -1405,6 +1413,38 @@
 						</FileConfiguration>
 					</File>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="dev"
+				>
+				<File
+					RelativePath=".\src\dev\dev.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\dev\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\dev\"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (private)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\dev\"
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>
