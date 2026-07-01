@@ -498,7 +498,7 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 
    // create child control
    HWND hWndChild = (HWND) UiInvoke(local::CreateChildControl, (LPARAM)&args, true);
-   if (args.error) return (HWND)!error(args.error, "::CreateChildControl()");
+   if (args.error) return (HWND)!error(args.error, "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
@@ -563,7 +563,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
 
    // create child window
    HWND hWndChild = (HWND) UiInvoke(local::CreateChildWindow, (LPARAM)&args, true);
-   if (args.error) return (HWND)!error(args.error, "::CreateChildWindow()");
+   if (args.error) return (HWND)!error(args.error, "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child window created: %p", hWndChild);

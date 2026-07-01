@@ -40,20 +40,22 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
 
 
 /**
- * Executes a callback function in the UI thread and returns the result.
+ * Executes a function in the UI thread and optionally returns the result.
  *
  * @param  UiInvokeProc func            - callback function to execute
  * @param  LPARAM       args            - callback function arguments
  * @param  bool         wait [optional] - whether to wait and return the function result (default: fire-and-forget)
  *
- * @return LRESULT - callback function return value, or NULL (0) in case of errors
+ * @return LRESULT - function return value if parameter `wait` is true;
+ *                   NULL (0) if parameter `wait` is false or in case of errors
  */
 LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
    if (!func) return !error(ERR_INVALID_PARAMETER, "invalid parameter func: 0x%p (not a valid pointer)", func);
 
    // execute directly if already in the UI thread
    if (IsUiThread()) {
-      return func(args);
+      LRESULT result = func(args);
+      return wait ? result : NULL;
    }
 
    HWND hWndMain = GetTerminalMainWindow();
@@ -70,7 +72,7 @@ LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
          delete job;
          return !error(ERR_WIN32_ERROR + GetLastError(), "PostMessageW()");
       }
-      return 0;
+      return NULL;
    }
 
    // wait and return the result
@@ -94,7 +96,7 @@ LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
          break;
    }
    CloseHandle(job.done);
-   return job.error ? 0 : job.result;
+   return job.error ? NULL : job.result;
 }
 
 
