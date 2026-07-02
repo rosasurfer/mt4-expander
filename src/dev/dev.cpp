@@ -90,7 +90,9 @@ HWND WINAPI Test_CreateWindow(uint pid) {
          ARGS* args = (ARGS*)lParam;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
-         DWORD styles = WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS;
+         //DWORD styles = WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS;
+         DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
+         //WS_BORDER | WS_DLGFRAME
          HWND hWndChild = CreateWindowExW(
             0,                                        // extended styles
             args->className,                          // class name
@@ -136,8 +138,8 @@ HWND WINAPI Test_CreateWindow(uint pid) {
  */
 LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
    switch (msg) {
-      case WM_ERASEBKGND: {
-         return 1;                        // don't paint the bg in a separate message (causes flicker)
+      case WM_ERASEBKGND: {               // don't paint the bg in a separate message (causes flicker)
+         return 1;
       }
 
       case WM_PAINT: {
@@ -146,17 +148,19 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
          RECT rc;
          GetClientRect(hWnd, &rc);
 
-         // draw background
-         static HBRUSH classBg = GetClassBackground(hWnd);
-         FillRect(hdc, &rc, classBg);
-
-         // draw text
+         FillRect(hdc, &rc, GetSysColorBrush(COLOR_BTNFACE));
+         DrawEdge(hdc, &rc, BDR_RAISEDINNER, BF_RECT);
          SetBkMode(hdc, TRANSPARENT);
          SetTextColor(hdc, Blue);
          DrawTextW(hdc, L"Margin: 142.5%", -1, &rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
 
          EndPaint(hWnd, &ps);
          return 0;
+      }
+
+      case WM_NCHITTEST: {                // make the whole client area draggable
+         LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
+         return (hit == HTCLIENT) ? HTCAPTION : hit;
       }
    }
    return DefWindowProcW(hWnd, msg, wParam, lParam);
