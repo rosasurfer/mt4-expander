@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "lib/string.h"
 #include "lib/ui/menu.h"
 
 
@@ -134,17 +135,67 @@ BOOL WINAPI DumpMenu(HMENU hMenu) {
    int size = GetMenuItemCount(hMenu);
    if (size < 0) return !error(ERR_WIN32_ERROR + GetLastError(), "GetMenuItemCount(hMenu=%p)", hMenu);
 
+   struct local {
+      static wstring MenuItemToStr(MENUITEMINFOW mi) {
+         wstring sType = L"";
+         if      (mi.fType & MFT_BITMAP)    sType.append(L"BITMAP");
+         else if (mi.fType & MFT_SEPARATOR) sType.append(L"SEPARATOR");
+         else              /*MFT_STRING*/   sType.append(L"\"").append(mi.dwTypeData).append(L"\"");
+
+         wstring sProps = L" (";
+
+         if (mi.wID) {
+            wchar* s = asformat(L"id=%u, ", mi.wID);
+            sProps.append(s);
+            free(s);
+         }
+         if (mi.dwItemData) {
+            wchar* s = asformat(L"itemData=%p, ", mi.dwItemData);
+            sProps.append(s);
+            free(s);
+         }
+         if (mi.hSubMenu) {
+            wchar* s = asformat(L"hSubMenu=%p, ", mi.hSubMenu);
+            sProps.append(s);
+            free(s);
+         }
+         
+         wstring flags = L"";
+         uint fType = mi.fType & ~(MFT_BITMAP | MFT_SEPARATOR);
+         if (fType & MFT_RADIOCHECK)   { flags.append(L"|MFT_RADIOCHECK");   fType &= ~MFT_RADIOCHECK;   }
+         if (fType & MFT_MENUBREAK)    { flags.append(L"|MFT_MENUBREAK");    fType &= ~MFT_MENUBREAK;    }
+         if (fType & MFT_MENUBARBREAK) { flags.append(L"|MFT_MENUBARBREAK"); fType &= ~MFT_MENUBARBREAK; }
+         if (fType & MFT_RIGHTORDER)   { flags.append(L"|MFT_RIGHTORDER");   fType &= ~MFT_RIGHTORDER;   }
+         if (fType & MFT_RIGHTJUSTIFY) { flags.append(L"|MFT_RIGHTJUSTIFY"); fType &= ~MFT_RIGHTJUSTIFY; }
+         if (fType & MFT_OWNERDRAW)    { flags.append(L"|MFT_OWNERDRAW");    fType &= ~MFT_OWNERDRAW;    }
+         if (fType)                    { flags.append(L"|").append(to_wstring(fType));                   }
+         if (flags.length()) {
+            sProps.append(flags, 1, flags.length()-1).append(L", ");
+         }
+         
+         if (sProps.length() > 2) {
+            sProps.erase(sProps.length() - 2).append(L")");
+         }
+         else {
+            sProps = L"";
+         }
+         return sType.append(sProps);
+      }
+   };
+
+   debug("HMENU=%p", hMenu);
+   
    for (int i=0; i < size; i++) {
       wchar text[256] = {};
-
+      
       MENUITEMINFOW mi = {};
       mi.cbSize = sizeof(mi);
       mi.fMask = MIIM_FTYPE | MIIM_ID | MIIM_SUBMENU | MIIM_STRING | MIIM_DATA;
       mi.dwTypeData = text;
       mi.cch = countof(text);
       if (!GetMenuItemInfoW(hMenu, i, TRUE, &mi)) return !error(ERR_WIN32_ERROR + GetLastError(), "GetMenuItemInfoW(%p, i=%d)", hMenu, i);
-
-      debug("%p  %d  \"%S\" (type=%d, item=%p, id=%d, hSubMenu=%p)", hMenu, i, text, mi.fType, mi.dwItemData, mi.wID, mi.hSubMenu);
+      
+      debug_raw("  %S", local::MenuItemToStr(mi).c_str());
    }
    return TRUE;
 }
