@@ -1,5 +1,6 @@
 #include "expander.h"
 #include "dev/dev.h"
+#include "lib/terminal.h"
 #include "lib/thread.h"
 #include "lib/window.h"
 #include "struct/ExecutionContext.h"
@@ -55,7 +56,7 @@ HWND WINAPI Test_CreateStatic(uint pid) {
    debug("child control created: %p", hWndChild);
 
    return hWndChild;
-   #pragma EXPANDER_EXPORT
+   //#pragma EXPANDER_EXPORT
 }
 
 
@@ -90,9 +91,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
          ARGS* args = (ARGS*)lParam;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
-         //DWORD styles = WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS;
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
-         //WS_BORDER | WS_DLGFRAME
          HWND hWndChild = CreateWindowExW(
             0,                                        // extended styles
             args->className,                          // class name
@@ -137,8 +136,33 @@ HWND WINAPI Test_CreateWindow(uint pid) {
  * @return LRESULT - depends on the message sent
  */
 LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+   static DWORD debugFeatures = GetDebugFeatures();
+
    switch (msg) {
-      case WM_ERASEBKGND: {               // don't paint the bg in a separate message (causes flicker)
+      // make the whole client area draggable
+      case WM_NCHITTEST: {
+         LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
+         return (hit == HTCLIENT) ? HTCAPTION : hit;  // because of HTCAPTION mouse messages will be NC variants
+      }
+
+      // load the context menu
+      case WM_NCRBUTTONDOWN: {
+         static HMENU hMenu = LoadMenuW(HMODULE_EXPANDER, MAKEINTRESOURCEW(IDR_CHART_STATUSPANEL_MENU));
+         if (!hMenu) return !error(ERR_WIN32_ERROR + GetLastError(), "LoadMenuW()");
+
+         POINTS pt = MAKEPOINTS(lParam);
+         if (!TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, NULL, hWnd, NULL) && GetLastError()) {
+            error(ERR_WIN32_ERROR + GetLastError(), "TrackPopupMenu()");
+         }
+         return 0;
+      }
+
+      case WM_COMMAND: {
+         if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
+         break;
+      }
+
+      case WM_ERASEBKGND: {                           // don't spread painting over multiple messages (causes flicker)
          return 1;
       }
 
@@ -156,11 +180,6 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
 
          EndPaint(hWnd, &ps);
          return 0;
-      }
-
-      case WM_NCHITTEST: {                // make the whole client area draggable
-         LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;
       }
    }
    return DefWindowProcW(hWnd, msg, wParam, lParam);

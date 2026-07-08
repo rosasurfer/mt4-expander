@@ -21,6 +21,7 @@
 #include "shared/defines.h"                                 // shared between C++ and MQL
 #include "shared/errors.h"                                  // shared between C++ and MQL
 #include "shared/metaquotes.h"
+#include "resources/expander.h"
 
 #include <iomanip>
 #include <mbstring.h>

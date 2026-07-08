@@ -1,0 +1,36 @@
+#include <windows.h>
+#include "expander.h"
+#include "shared/defines.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+IDR_CHART_STATUSPANEL_MENU MENU
+BEGIN
+   POPUP "Chart: panel"
+   BEGIN
+      MENUITEM "&New Order\tF9", 35431
+      MENUITEM "&Chart Window", 33160
+      MENUITEM "&Tick Chart\tSpace", 33174
+      MENUITEM SEPARATOR
+      MENUITEM "H&ide\tDelete", 33164
+      MENUITEM "&Hide All", 33165
+      MENUITEM "&Show All", 33167
+      MENUITEM "S&ymbols", 33171
+      POPUP "Sets"
+      BEGIN
+         MENUITEM "Save As...", 35427
+         POPUP "Remove"
+         BEGIN
+            MENUITEM SEPARATOR
+         END
+         MENUITEM SEPARATOR
+      END
+      MENUITEM SEPARATOR
+      MENUITEM "High/&Low", 33166
+      MENUITEM "Ti&me", 33175
+      MENUITEM "Auto &Arrange\tA", ID_CHART_REFRESH
+      MENUITEM "&Grid\tG", 33163
+      MENUITEM SEPARATOR
+      MENUITEM "&Popup Prices\tF10", 33162
+   END
+END

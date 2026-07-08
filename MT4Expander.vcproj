@@ -49,7 +49,7 @@
 				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\header&quot;;&quot;$(SolutionDir)\Plog\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)header&quot;;&quot;$(ProjectDir)&quot;;&quot;$(SolutionDir)Plog\include&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;WINVER=0x0601;_WIN32_WINNT=0x0601;_USRDLL;_SECURE_SCL=0;STDLIB_EXPORTS"
 				StringPooling="true"
 				ExceptionHandling="1"
@@ -67,6 +67,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)header&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -74,6 +75,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib shlwapi.lib version.lib winmm.lib ws2_32.lib"
+				OutputFile="$(OutDir)\rsfMT4Expander.dll"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -102,7 +104,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared headers...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot;  &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL4 libraries folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -138,7 +140,7 @@
 				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\header&quot;;&quot;$(SolutionDir)\Plog\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)header&quot;;&quot;$(ProjectDir)&quot;;&quot;$(SolutionDir)Plog\include&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;WINVER=0x0601;_WIN32_WINNT=0x0601;_USRDLL;_SECURE_SCL=0;STDLIB_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -157,6 +159,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)header&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -164,6 +167,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib shlwapi.lib version.lib winmm.lib ws2_32.lib"
+				OutputFile="$(OutDir)\rsfMT4Expander.dll"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -191,7 +195,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared headers...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot;  &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL4 libraries folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -227,7 +231,7 @@
 				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\header&quot;;&quot;$(SolutionDir)\Plog\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)header&quot;;&quot;$(ProjectDir)&quot;;&quot;$(SolutionDir)Plog\include&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;WINVER=0x0601;_WIN32_WINNT=0x0601;_USRDLL;_SECURE_SCL=0;STDLIB_EXPORTS;HAS_MT4_MANAGER_API"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -246,6 +250,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)header&quot;"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -253,6 +258,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib shlwapi.lib version.lib winmm.lib ws2_32.lib"
+				OutputFile="$(OutDir)\rsfMT4Expander.dll"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -280,7 +286,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Post-build event:"
-				CommandLine="echo Backup shared header &quot;/header/shared/defines.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;echo Backup shared header &quot;/header/shared/errors.h&quot;...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL library folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="echo Backup shared headers...&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\defines.h&quot; &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;copy &quot;$(ProjectDir)header\shared\errors.h&quot;  &quot;$(ProjectDir)header\shared\bak\&quot; || exit 1&#x0D;&#x0A;&#x0D;&#x0A;if exist &quot;$(ProjectDir)bin\mql4-libraries\&quot; (&#x0D;&#x0A;echo Copy DLL to MQL4 libraries folder...&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\mql4-libraries\rsfMT4Expander.$(ConfigurationName)$(TargetExt)&quot; || exit 1&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -1446,6 +1452,22 @@
 					</FileConfiguration>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="resources"
+			>
+			<File
+				RelativePath=".\resources\expander.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\expander.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\terminal.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
