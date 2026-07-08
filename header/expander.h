@@ -181,6 +181,20 @@ double __cdecl _double(double value, ...);
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)  // return the size of a type member without an actual instance
 
 
+/**
+ * Ternary shorthand (implements missing Elvis operator).
+ *
+ * @param  T &a
+ * @param  T &b
+ *
+ * @return T
+ */
+template <typename T>
+__forceinline T orElse(const T &a, const T &b) {
+   return a ? a : b;
+}
+
+
 // helpers to free() multiple pointers at once
 __forceinline void free(void* ptr1, void* ptr2)                         { free(ptr1); free(ptr2);                         }
 __forceinline void free(void* ptr1, void* ptr2, void* ptr3)             { free(ptr1); free(ptr2); free(ptr3);             }
