@@ -1,36 +1,38 @@
 #pragma once
 #include "expander.h"
 
-// callback function signature used by UiInvoke()
-typedef LRESULT (CALLBACK *UiInvokeProc)(LPARAM args);
+// callback function signature used by InvokeUiThread()
+typedef LRESULT (CALLBACK *UiThreadCallback)(void* args);
 
 // transport of callback details for the UI-thread dispatcher
 struct JOB {
-   UiInvokeProc func;            // function pointer
-   LPARAM       args;            // argument pointer
-   LRESULT      result;          // return value
-   HANDLE       done;            // optional completion event, without it: fire-and-forget
-   int          error;           // job execution error (if any)
-   bool         owner;           // if true, run() deletes itself (this job) after execution
+   UiThreadCallback func;        // function pointer
+   void*            args;        // argument pointer
+   LRESULT          result;      // return value
+   HANDLE           completion;  // completion event
+   int              last_error;  // last job execution error (if any)
 
    LRESULT run() {               // executes the job
-      if (func) {
-         result = func(args);
+      if (!func) {
+         last_error = error(ERR_INVALID_PARAMETER, "invalid job function: (null)");
+         return result = 0;
       }
-      else {
-         error = error(ERR_INVALID_PARAMETER, "invalid job function: 0x%p");
-         result = 0;
+      if (!completion) {
+         last_error = error(ERR_INVALID_PARAMETER, "invalid completion event: (null)");
+         return result = 0;
       }
-      if (done) SetEvent(done);
 
-      LRESULT retValue = result; // copy before potential self-delete
-      if (owner) delete this;
-      return retValue;
+      SetLastError(NO_ERROR);
+      result = func(args);
+      last_error = GetLastError();
+
+      SetEvent(completion);
+      return result;
    }
 };
 
 
 DWORD   WINAPI GetUiThreadId();
 BOOL    WINAPI IsUiThread(DWORD threadId = NULL);
-LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait = false);
+LRESULT WINAPI InvokeUiThread(UiThreadCallback func, void* args);
 DWORD   WINAPI SetLastErrorEx(DWORD error);

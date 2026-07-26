@@ -1467,7 +1467,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_WIN32_ERROR + ERROR_NOT_A_REPARSE_POINT                                    : return("win32:ERROR_NOT_A_REPARSE_POINT"                                    );    // 100000 + 4390
 
       // mapped MCI error codes
-      case ERR_MCI_ERROR                                                                  : return("MCI_NO_ERROR"                                                       );    // 100000 +                 0
+      case ERR_MCI_ERROR                                                                  : return("MCI_NO_ERROR"                                                       );    // 200000 +                 0
       case ERR_MCI_ERROR + MCIERR_INVALID_DEVICE_ID                                       : return("MCIERR_INVALID_DEVICE_ID"                                           );    // 200000 + (MCIERR_BASE +  1)
       case ERR_MCI_ERROR + MCIERR_UNRECOGNIZED_KEYWORD                                    : return("MCIERR_UNRECOGNIZED_KEYWORD"                                        );    // 200000 + (MCIERR_BASE +  3)
       case ERR_MCI_ERROR + MCIERR_UNRECOGNIZED_COMMAND                                    : return("MCIERR_UNRECOGNIZED_COMMAND"                                        );    // 200000 + (MCIERR_BASE +  5)

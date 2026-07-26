@@ -2,6 +2,7 @@
 #include "lib/terminal.h"
 #include "lib/thread.h"
 #include "lib/window.h"
+#include "lib/ui/integration.h"
 
 
 /**
@@ -40,63 +41,49 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
 
 
 /**
- * Executes a function in the UI thread and optionally returns the result.
+ * Executes a callback in the UI thread and returns the result.
  *
- * @param  UiInvokeProc func            - callback function to execute
- * @param  LPARAM       args            - callback function arguments
- * @param  bool         wait [optional] - whether to wait and return the function result (default: fire-and-forget)
+ * @param  UiThreadCallback func - callback function to execute
+ * @param  void*            args - callback function arguments
  *
- * @return LRESULT - function return value if parameter `wait` is true;
- *                   NULL (0) if parameter `wait` is false or in case of errors
+ * @return LRESULT - function return value, or NULL (0) in case of errors
  */
-LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
-   if (!func) return !error(ERR_INVALID_PARAMETER, "invalid parameter func: 0x%p (not a valid pointer)", func);
+LRESULT WINAPI InvokeUiThread(UiThreadCallback func, void* args) {
+   if (!func) return !error(SetLastErrorEx(ERR_INVALID_PARAMETER), "invalid parameter func: 0x%p (not a valid pointer)", func);
 
-   // execute directly if already in the UI thread
+   SetLastError(NO_ERROR);
+
+   // call directly if already in the UI thread
    if (IsUiThread()) {
-      LRESULT result = func(args);
-      return wait ? result : NULL;
+      return func(args);
    }
 
+   // make sure the UI thread dispatcher is installed
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return NULL;
+   if (!GetPropW(hWndMain, PROP_WINDOW_SUBCLASSED)) return !error(SetLastErrorEx(ERR_ILLEGAL_STATE), "terminal main window not subclassed");
 
-   // dispatch function to the UI-thread
-   if (!wait) {                              // fire-and-forget
-      JOB* job = new JOB();                  // on the heap
-      job->func  = func;
-      job->args  = args;
-      job->owner = true;                     // runner will free the job
-
-      if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
-         delete job;
-         return !error(ERR_WIN32_ERROR + GetLastError(), "PostMessageW()");
-      }
-      return NULL;
-   }
-
-   // wait and return the result
+   // dispatch the function call to the UI thread
    JOB job = {};
    job.func = func;
    job.args = args;
-   job.done = CreateEventW(NULL, TRUE, FALSE, NULL);
-   if (!job.done) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateEventW()");
+   job.completion = CreateEventW(NULL, TRUE, FALSE, NULL);
+   if (!job.completion) return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "CreateEventW()");
 
    if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job)) {
-      CloseHandle(job.done);
-      return !error(ERR_WIN32_ERROR + GetLastError(), "PostMessageW()");
+      CloseHandle(job.completion);
+      return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
    }
+   if (WaitForSingleObject(job.completion, INFINITE) == WAIT_FAILED) {
+      job.last_error = error(ERR_WIN32_ERROR + GetLastError(), "WaitForSingleObject()");
+   }
+   CloseHandle(job.completion);
 
-   switch (WaitForSingleObject(job.done, INFINITE)) {
-      case WAIT_ABANDONED:
-         error(job.error = ERR_RUNTIME_ERROR, "UI thread terminated");
-         break;
-      case WAIT_FAILED:
-         error(job.error = ERR_WIN32_ERROR + GetLastError(), "WaitForSingleObject()");
-         break;
+   if (job.last_error) {
+      SetLastError(job.last_error);
+      return NULL;
    }
-   CloseHandle(job.done);
-   return job.error ? NULL : job.result;
+   return job.result;
 }
 
 

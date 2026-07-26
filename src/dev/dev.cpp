@@ -23,8 +23,8 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 
    // creation callback and arguments
    struct local {
-      static LRESULT CALLBACK CreateChildControl(LPARAM lParam) {
-         ARGS* args = (ARGS*)lParam;
+      static LRESULT CALLBACK CreateChildControl(void* _args) {
+         ARGS* args = (ARGS*)_args;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS| SS_LEFT | SS_NOPREFIX;
@@ -49,8 +49,9 @@ HWND WINAPI Test_CreateStatic(uint pid) {
    } args = { ec->chart, NO_ERROR };
 
    // create the child control
-   HWND hWndChild = (HWND) UiInvoke(local::CreateChildControl, (LPARAM)&args, true);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildControl()");
+   SetLastError(NO_ERROR);
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (void*)&args);
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
@@ -87,8 +88,8 @@ HWND WINAPI Test_CreateWindow(uint pid) {
 
    // creation callback and arguments
    struct local {
-      static LRESULT CALLBACK CreateChildWindow(LPARAM lParam) {
-         ARGS* args = (ARGS*)lParam;
+      static LRESULT CALLBACK CreateChildWindow(void* _args) {
+         ARGS* args = (ARGS*)_args;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
@@ -114,8 +115,9 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    } args = { ec->chart, className, NO_ERROR };
 
    // create the child window
-   HWND hWndChild = (HWND) UiInvoke(local::CreateChildWindow, (LPARAM)&args, true);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildWindow()");
+   SetLastError(NO_ERROR);
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, &args);
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
