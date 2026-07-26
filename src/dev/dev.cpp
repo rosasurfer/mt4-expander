@@ -51,7 +51,7 @@ HWND WINAPI Test_CreateStatic(uint pid) {
    // create the child control
    SetLastError(NO_ERROR);
    HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (LPARAM)&args, true);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildControl()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)(ERR_WIN32_ERROR + GetLastError())), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
@@ -117,7 +117,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    // create the child window
    SetLastError(NO_ERROR);
    HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, (LPARAM)&args, true);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildWindow()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)(ERR_WIN32_ERROR + GetLastError())), "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
