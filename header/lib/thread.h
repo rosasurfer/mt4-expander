@@ -9,7 +9,7 @@ struct JOB {
    UiThreadCallback func;        // function pointer
    void*            args;        // argument pointer
    LRESULT          result;      // return value
-   HANDLE           event;       // completion event
+   HANDLE           completion;  // completion event
    int              last_error;  // last job execution error (if any)
 
    LRESULT run() {               // executes the job
@@ -17,7 +17,7 @@ struct JOB {
          last_error = error(ERR_INVALID_PARAMETER, "invalid job function: (null)");
          return result = 0;
       }
-      if (!event) {
+      if (!completion) {
          last_error = error(ERR_INVALID_PARAMETER, "invalid completion event: (null)");
          return result = 0;
       }
@@ -26,7 +26,7 @@ struct JOB {
       result = func(args);
       last_error = GetLastError();
 
-      SetEvent(event);
+      SetEvent(completion);
       return result;
    }
 };

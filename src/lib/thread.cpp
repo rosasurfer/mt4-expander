@@ -67,17 +67,17 @@ LRESULT WINAPI InvokeUiThread(UiThreadCallback func, void* args) {
    JOB job = {};
    job.func = func;
    job.args = args;
-   job.event = CreateEventW(NULL, TRUE, FALSE, NULL);
-   if (!job.event) return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "CreateEventW()");
+   job.completion = CreateEventW(NULL, TRUE, FALSE, NULL);
+   if (!job.completion) return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "CreateEventW()");
 
    if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job)) {
-      CloseHandle(job.event);
+      CloseHandle(job.completion);
       return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
    }
-   if (WaitForSingleObject(job.event, INFINITE) == WAIT_FAILED) {
+   if (WaitForSingleObject(job.completion, INFINITE) == WAIT_FAILED) {
       job.last_error = error(ERR_WIN32_ERROR + GetLastError(), "WaitForSingleObject()");
    }
-   CloseHandle(job.event);
+   CloseHandle(job.completion);
 
    if (job.last_error) {
       SetLastError(job.last_error);
