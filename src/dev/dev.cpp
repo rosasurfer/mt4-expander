@@ -112,7 +112,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    };
    struct ARGS {
       __in  HWND         hWndParent;
-      __in  const wchar* className;
+      __in  const wchar* className;                   // points to static storage
       __out int          error;
    } _args = { ec->chart, className, NO_ERROR };
    ARGS* args = new ARGS(_args);                      // passed args must be heap-allocated in case InvokeUiThread() fails
