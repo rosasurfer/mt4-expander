@@ -41,88 +41,49 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
 
 
 /**
- * Executes a function in the UI thread and optionally returns the result.
+ * Executes a function in the UI thread and returns the result.
  *
- * @param  UiThreadCallback func            - callback function to execute
- * @param  LPARAM           args            - callback function arguments
- * @param  bool             wait [optional] - whether to wait and return the function result (default: fire-and-forget)
+ * @param  UiThreadCallback func - callback function to execute
+ * @param  void*            args - callback function arguments
  *
- * @return LRESULT - function return value if parameter `wait` is true;
- *                   NULL (0) if parameter `wait` is false or in case of errors
+ * @return LRESULT - function return value, or NULL (0) in case of errors
  */
-LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=false*/) {
+LRESULT WINAPI InvokeUiThread(UiThreadCallback func, void* args) {
    if (!func) return !error(SetLastErrorEx(ERR_INVALID_PARAMETER), "invalid parameter func: 0x%p (not a valid pointer)", func);
 
    SetLastError(NO_ERROR);
 
-   // execute directly if already in the UI thread
+   // call directly if already in the UI thread
    if (IsUiThread()) {
-      LRESULT result = func(args);
-      return wait ? result : NULL;
+      return func(args);
    }
 
-   // make sure the terminal main window is subclassed
+   // make sure the UI thread dispatcher is installed
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return NULL;
+   if (!GetPropW(hWndMain, PROP_WINDOW_SUBCLASSED)) return !error(SetLastErrorEx(ERR_ILLEGAL_STATE), "terminal main window not subclassed");
 
-   if (!GetPropW(hWndMain, PROP_WINDOW_SUBCLASSED)) {
-      return !error(SetLastErrorEx(ERR_ILLEGAL_STATE), "terminal main window not subclassed");
-   }
+   // dispatch the function call to the UI thread
+   JOB job = {};
+   job.func = func;
+   job.args = args;
+   job.event = CreateEventW(NULL, TRUE, FALSE, NULL);
+   if (!job.event) return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "CreateEventW()");
 
-   // prepare JOB definition
-   JOB* job = new JOB();
-   job->func = func;
-   job->args = args;
-
-   // dispatch the function call to the UI-thread
-   if (!wait) {                              // fire-and-forget, runner will free the job
-      job->owner = true;
-      if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
-         delete job;
-         return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
-      }
-      return NULL;
-   }
-
-   // wait to return the result
-   job->done = CreateEventW(NULL, TRUE, FALSE, NULL);
-   if (!job->done) {
-      delete job;
-      return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "CreateEventW()");
-   }
-
-   if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
-      CloseHandle(job->done);
-      delete job;
+   if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job)) {
+      CloseHandle(job.event);
       return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
    }
-
-   // get the result
-   int last_error = NO_ERROR;
-   LRESULT result = NULL;
-
-   switch (WaitForSingleObject(job->done, 3000)) {
-      case WAIT_OBJECT_0: {                  // success
-         last_error = job->last_error;
-         result     = job->result;
-         CloseHandle(job->done);
-         delete job;
-         SetLastError(last_error);
-         return result;
-      }
-
-      case WAIT_TIMEOUT:
-         last_error = error(ERR_WIN32_ERROR + ERROR_TIMEOUT, "WaitForSingleObject()");
-         break;
-
-      case WAIT_FAILED:
-      default:
-         last_error = error(ERR_WIN32_ERROR + GetLastError(), "WaitForSingleObject()");
+   if (WaitForSingleObject(job.event, INFINITE) == WAIT_FAILED) {
+      job.last_error = error(ERR_WIN32_ERROR + GetLastError(), "WaitForSingleObject()");
    }
+   CloseHandle(job.event);
 
-   // deliberately orphan job and event
-   SetLastError(last_error);
-   return NULL;
+   if (job.last_error) {
+      SetLastError(job.last_error);
+      return NULL;
+   }
+   return job.result;
 }
 
 

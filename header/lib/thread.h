@@ -2,36 +2,35 @@
 #include "expander.h"
 
 // callback function signature used by InvokeUiThread()
-typedef LRESULT (CALLBACK *UiThreadCallback)(LPARAM args);
+typedef LRESULT (CALLBACK *UiThreadCallback)(void* args);
 
 // transport of callback details for the UI-thread dispatcher
 struct JOB {
    UiThreadCallback func;        // function pointer
-   LPARAM           args;        // argument pointer
+   void*            args;        // argument pointer
    LRESULT          result;      // return value
-   HANDLE           done;        // optional completion event, without it: fire-and-forget
+   HANDLE           event;       // completion event
    int              last_error;  // last job execution error (if any)
-   bool             owner;       // if true, run() deletes itself (this job) after execution
 
    LRESULT run() {               // executes the job
-      if (func) {
-         result = func(args);
-         last_error = GetLastError();
+      if (!func) {
+         last_error = error(ERR_INVALID_PARAMETER, "invalid job function: (null)");
+         return result = 0;
       }
-      else {
-         result = 0;
-         last_error = error(ERR_INVALID_PARAMETER, "invalid job function: 0x%p");
+      if (!event) {
+         last_error = error(ERR_INVALID_PARAMETER, "invalid completion event: (null)");
+         return result = 0;
       }
-      if (done) SetEvent(done);
 
-      LRESULT retValue = result; // copy before potential self-delete
-      if (owner) delete this;
-      return retValue;
+      result = func(args);
+      last_error = GetLastError();
+      SetEvent(event);
+      return result;
    }
 };
 
 
 DWORD   WINAPI GetUiThreadId();
 BOOL    WINAPI IsUiThread(DWORD threadId = NULL);
-LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait = false);
+LRESULT WINAPI InvokeUiThread(UiThreadCallback func, void* args);
 DWORD   WINAPI SetLastErrorEx(DWORD error);

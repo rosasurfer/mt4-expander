@@ -23,8 +23,8 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 
    // creation callback and arguments
    struct local {
-      static LRESULT CALLBACK CreateChildControl(LPARAM lParam) {
-         ARGS* args = (ARGS*)lParam;
+      static LRESULT CALLBACK CreateChildControl(void* _args) {
+         ARGS* args = (ARGS*)_args;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS| SS_LEFT | SS_NOPREFIX;
@@ -46,14 +46,12 @@ HWND WINAPI Test_CreateStatic(uint pid) {
    struct ARGS {
       __in  HWND hWndParent;
       __out int  error;
-   } _args = { ec->chart, NO_ERROR };
-   ARGS* args = new ARGS(_args);                      // passed args must be heap-allocated in case InvokeUiThread() fails
+   } args = { ec->chart, NO_ERROR };
 
    // create the child control
    SetLastError(NO_ERROR);
-   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (LPARAM)args, true);
-   if (!hWndChild || args->error) return (HWND)!error(orElse(args->error, (int)GetLastError()), "CreateChildControl()");
-   delete args;
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (void*)&args);
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
@@ -90,8 +88,8 @@ HWND WINAPI Test_CreateWindow(uint pid) {
 
    // creation callback and arguments
    struct local {
-      static LRESULT CALLBACK CreateChildWindow(LPARAM lParam) {
-         ARGS* args = (ARGS*)lParam;
+      static LRESULT CALLBACK CreateChildWindow(void* _args) {
+         ARGS* args = (ARGS*)_args;
          if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
@@ -112,16 +110,14 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    };
    struct ARGS {
       __in  HWND         hWndParent;
-      __in  const wchar* className;                   // points to static storage
+      __in  const wchar* className;
       __out int          error;
-   } _args = { ec->chart, className, NO_ERROR };
-   ARGS* args = new ARGS(_args);                      // passed args must be heap-allocated in case InvokeUiThread() fails
+   } args = { ec->chart, className, NO_ERROR };
 
    // create the child window
    SetLastError(NO_ERROR);
-   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, (LPARAM)args, true);
-   if (!hWndChild || args->error) return (HWND)!error(orElse(args->error, (int)GetLastError()), "CreateChildWindow()");
-   delete args;
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, &args);
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
