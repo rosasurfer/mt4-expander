@@ -22,8 +22,10 @@ struct JOB {
          return result = 0;
       }
 
+      SetLastError(NO_ERROR);
       result = func(args);
       last_error = GetLastError();
+
       SetEvent(event);
       return result;
    }
