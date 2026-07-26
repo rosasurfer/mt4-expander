@@ -1,6 +1,9 @@
 #pragma once
 #include "expander.h"
 
+#define PROP_WINDOW_SUBCLASSED L"rsfMT4Expander.subclassed"
+
+
 BOOL           WINAPI   IntegrateExpander();
 static BOOL    WINAPI   RegisterWindowEventHook();
 static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam);

@@ -8,11 +8,9 @@
 
 #include <commctrl.h>
 
-#define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the main window
+#define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the terminal main window
 #define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
-#define CHART_FRAME_SUBCLASS_ID     3                 // subclass identifier for chart frames (painting area)
-
-#define PROP_WINDOW_SUBCLASSED      L"rsfMT4Expander.subclassed"
+#define CHART_FRAME_SUBCLASS_ID     3                 // subclass identifier for chart frames (painting areas)
 
 static HHOOK hUiThreadHook    = NULL;                 // hook handles
 static HHOOK hWindowEventHook = NULL;
@@ -29,9 +27,9 @@ BOOL WINAPI IntegrateExpander() {
 
    // if not in the UI thread
    if (!IsUiThread()) {
-      static BOOL done = FALSE;
+      static bool done = false;
       if (!done) {                                    // no full synchronization needed
-         done = TRUE;
+         done = true;
          if (!CustomizeTerminal()) return FALSE;      // perform configured modifications
          if (!HookUiThread())      return FALSE;      // continue in the UI thread
       }
@@ -39,9 +37,9 @@ BOOL WINAPI IntegrateExpander() {
    }
 
    // if in the UI thread
-   static BOOL done = FALSE;
+   static bool done = false;
    if (!done) {                                       // fully synchronized
-      done = TRUE;
+      done = true;
       if (!SubclassMainWindow())      return FALSE;
       if (!SubclassChartWindows())    return FALSE;
       if (!RegisterWindowEventHook()) return FALSE;   // in the UI thread and after MT4 installed its own blocking hook
@@ -168,7 +166,7 @@ static BOOL WINAPI SubclassMainWindow() {
    if (!hWnd) return FALSE;
 
    if (GetPropW(hWnd, PROP_WINDOW_SUBCLASSED)) {
-      warn("main window %p already subclassed", hWnd);      // accepted but an issue: we want to know
+      warn("terminal main window %p already subclassed", hWnd);
       return TRUE;
    }
    if (!SetWindowSubclass(hWnd, MainWindowSubclassProc, MAIN_WINDOW_SUBCLASS_ID, 0)) {
@@ -177,7 +175,7 @@ static BOOL WINAPI SubclassMainWindow() {
    SetPropW(hWnd, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
 
    static DWORD debugFeatures = GetDebugFeatures();
-   if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug("main window %p subclassed", hWnd);
+   if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug("terminal main window %p subclassed", hWnd);
    return TRUE;
 }
 

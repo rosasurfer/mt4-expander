@@ -2,6 +2,7 @@
 #include "lib/terminal.h"
 #include "lib/thread.h"
 #include "lib/window.h"
+#include "lib/ui/integration.h"
 
 
 /**
@@ -52,24 +53,29 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
 LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=false*/) {
    if (!func) return !error(SetLastErrorEx(ERR_INVALID_PARAMETER), "invalid parameter func: 0x%p (not a valid pointer)", func);
 
+   SetLastError(NO_ERROR);
+
    // execute directly if already in the UI thread
    if (IsUiThread()) {
       LRESULT result = func(args);
       return wait ? result : NULL;
    }
 
+   // make sure the terminal main window is subclassed
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return NULL;
 
+   if (!GetPropW(hWndMain, PROP_WINDOW_SUBCLASSED)) {
+      return !error(SetLastErrorEx(ERR_ILLEGAL_STATE), "terminal main window not subclassed");
+   }
+
    // prepare JOB definition
-   JOB* job = new JOB();                     // always on the heap
-   job->func  = func;
-   job->args  = args;
-   job->done  = NULL;
-   job->owner = false;
+   JOB* job = new JOB();
+   job->func = func;
+   job->args = args;
 
    // dispatch the function call to the UI-thread
-   if (!wait) {                              // no wait, fire-and-forget, runner will free the job
+   if (!wait) {                              // fire-and-forget, runner will free the job
       job->owner = true;
       if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
          delete job;
@@ -78,7 +84,7 @@ LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=fa
       return NULL;
    }
 
-   // wait and return the result
+   // wait to return the result
    job->done = CreateEventW(NULL, TRUE, FALSE, NULL);
    if (!job->done) {
       delete job;
@@ -91,26 +97,32 @@ LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=fa
       return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
    }
 
+   // get the result
+   int last_error = NO_ERROR;
+   LRESULT result = NULL;
+
    switch (WaitForSingleObject(job->done, 3000)) {
-      case WAIT_OBJECT_0: {
+      case WAIT_OBJECT_0: {                  // success
+         last_error = job->last_error;
+         result     = job->result;
          CloseHandle(job->done);
-         int     error  = job->error;
-         LRESULT result = job->result;
-         delete job;                         // free the job on success only
-         return error ? NULL : result;
+         delete job;
+         SetLastError(last_error);
+         return result;
       }
 
       case WAIT_TIMEOUT:
-         error(job->error = SetLastErrorEx(ERR_WIN32_ERROR + ERROR_TIMEOUT), "WaitForSingleObject()");
+         last_error = error(ERR_WIN32_ERROR + ERROR_TIMEOUT, "WaitForSingleObject()");
          break;
 
       case WAIT_FAILED:
       default:
-         error(job->error = SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "WaitForSingleObject()");
+         last_error = error(ERR_WIN32_ERROR + GetLastError(), "WaitForSingleObject()");
    }
 
    // deliberately orphan job and event
-   return job->error ? NULL : job->result;
+   SetLastError(last_error);
+   return NULL;
 }
 
 

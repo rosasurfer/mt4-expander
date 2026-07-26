@@ -10,16 +10,17 @@ struct JOB {
    LPARAM           args;        // argument pointer
    LRESULT          result;      // return value
    HANDLE           done;        // optional completion event, without it: fire-and-forget
-   int              error;       // job execution error (if any)
+   int              last_error;  // last job execution error (if any)
    bool             owner;       // if true, run() deletes itself (this job) after execution
 
    LRESULT run() {               // executes the job
       if (func) {
          result = func(args);
+         last_error = GetLastError();
       }
       else {
-         error = error(ERR_INVALID_PARAMETER, "invalid job function: 0x%p");
          result = 0;
+         last_error = error(ERR_INVALID_PARAMETER, "invalid job function: 0x%p");
       }
       if (done) SetEvent(done);
 

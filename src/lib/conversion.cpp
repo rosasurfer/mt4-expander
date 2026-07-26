@@ -269,6 +269,13 @@ const char* WINAPI ErrorToStrA(int error) {
    #define ERROR_INSTALL_REJECTED                                      1654L
    #endif
 
+   if (error >= ERR_WIN32_ERROR) {
+      while (error >= ERR_WIN32_ERROR) {
+         error -= ERR_WIN32_ERROR;
+      }
+      error += ERR_WIN32_ERROR;
+   }
+
    switch (error) {
       case NO_ERROR                                                                       : return("NO_ERROR"                                                           );    //      0
 
