@@ -91,28 +91,23 @@ LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=fa
       return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
    }
 
-   switch (WaitForSingleObject(job->done, 3000)) {
-      case WAIT_OBJECT_0:
+   DWORD retVal = WaitForSingleObject(job->done, 3000);
+   switch (retVal) {
+      case WAIT_OBJECT_0: {
          CloseHandle(job->done);
-         delete job;
-         break;
+         int     error  = job->error;
+         LRESULT result = job->result;
+         delete job;                         // free the job on success only
+         return error ? NULL : result;
+      }
 
       case WAIT_TIMEOUT:
-         error(job->error = SetLastErrorEx(ERR_WIN32_ERROR + ERROR_TIMEOUT), "WaitForSingleObject() => UI thread timeout");
+         error(job->error = SetLastErrorEx(ERR_WIN32_ERROR + ERROR_TIMEOUT), "WaitForSingleObject()");
          break;
-
-      case WAIT_ABANDONED:
-         error(job->error = SetLastErrorEx(ERR_RUNTIME_ERROR), "WaitForSingleObject() => UI thread terminated");
-         CloseHandle(job->done);
-         delete job;
-         break;
-
-      case WAIT_FAILED:
+      default:
          error(job->error = SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "WaitForSingleObject()");
-         CloseHandle(job->done);
-         job->done = NULL;
-         break;
    }
+   // deliberately orphan job and event
    return job->error ? NULL : job->result;
 }
 
