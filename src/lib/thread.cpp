@@ -41,7 +41,7 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
 
 
 /**
- * Executes a function in the UI thread and returns the result.
+ * Executes a callback in the UI thread and returns the result.
  *
  * @param  UiThreadCallback func - callback function to execute
  * @param  void*            args - callback function arguments
