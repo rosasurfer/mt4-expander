@@ -49,7 +49,7 @@ HWND WINAPI Test_CreateStatic(uint pid) {
    } args = { ec->chart, NO_ERROR };
 
    // create the child control
-   HWND hWndChild = (HWND) UiInvoke(local::CreateChildControl, (LPARAM)&args, true);
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (LPARAM)&args, true);
    if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -114,7 +114,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    } args = { ec->chart, className, NO_ERROR };
 
    // create the child window
-   HWND hWndChild = (HWND) UiInvoke(local::CreateChildWindow, (LPARAM)&args, true);
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, (LPARAM)&args, true);
    if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, ERR_RUNTIME_ERROR), "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);

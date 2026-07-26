@@ -19,21 +19,21 @@ static HHOOK hWindowEventHook = NULL;
 
 
 /**
- * Setup UI integration of the Expander. Called two times: once from a non-UI thread, once from the UI thread.
- * The first call is always from a non-UI thread (worker in DLL loader).
+ * Integrate the Expander in the terminal process. Called two times: first from a non-UI thread (worker in DLL loader),
+ * then from the UI thread.
  *
  * @return BOOL - success status
  */
-BOOL WINAPI SetupUiIntegration() {
-   // Some integration tasks must run in the UI thread. Some must not run there. Some may run anywhere.
+BOOL WINAPI IntegrateExpander() {
+   // Some integration tasks MUST run in the UI thread. Some MUST NOT not run there. Some may run anywhere.
 
-   // if in a non-UI thread
+   // if not in the UI thread
    if (!IsUiThread()) {
       static BOOL done = FALSE;
       if (!done) {                                    // no full synchronization needed
          done = TRUE;
          if (!CustomizeTerminal()) return FALSE;      // perform configured modifications
-         if (!NotifyUiThread())    return FALSE;      // continue in the UI thread
+         if (!HookUiThread())      return FALSE;      // continue in the UI thread
       }
       return TRUE;
    }
@@ -119,22 +119,22 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
  *
  * @return BOOL - success status
  */
-static BOOL WINAPI NotifyUiThread() {
-   // register a hook for sent messages
-   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHook, NULL, GetUiThreadId());
-   if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHook)");
+static BOOL WINAPI HookUiThread() {
+   // register a hook for messages sent to any window owned by the UI thread
+   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUiThreadId());
+   if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHookProc)");
 
    // trigger the UI thread
    SetLastError(ERROR_SUCCESS);
    if (!SendMessageTimeout(GetTerminalMainWindow(), WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL)) {
-      warn(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");  // don't fail, as the hook is OK
+      warn(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");  // may fail if the UI thread doesn't process the message in time
    }
    return TRUE;
 }
 
 
 /**
- * Hook procedure (listener) for messages sent to the terminal main window (UI thread). Continues Expander integration and
+ * Hook procedure for messages sent to any window owned by the UI thread. Continues Expander integration and
  * removes itself.
  *
  * @param  int    code   - below 0 (zero) if the hook should skip the message
@@ -143,16 +143,16 @@ static BOOL WINAPI NotifyUiThread() {
  *
  * @return LRESULT - return value of CallNextHookEx()
  */
-static LRESULT CALLBACK UiThreadHook(int code, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
    if (code >= 0) {
       if (hUiThreadHook) {
          HHOOK hHook = hUiThreadHook;
          hUiThreadHook = NULL;
-         if (!UnhookWindowsHookEx(hHook)) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hHook=0x%p)", hHook);
-         SetupUiIntegration();                                    // continue Expander integration
+         if (!UnhookWindowsHookEx(hHook)) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hUiThreadHook=0x%p)", hHook);
+         IntegrateExpander();                                     // recursive call to continue integration in the UI thread
       }
    }
-   return CallNextHookEx(hUiThreadHook, code, wParam, lParam);    // will be NULL after the hook was removed
+   return CallNextHookEx(hUiThreadHook, code, wParam, lParam);    // hUiThreadHook will be NULL after the hook was removed
 }
 
 

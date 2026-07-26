@@ -42,14 +42,14 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
 /**
  * Executes a function in the UI thread and optionally returns the result.
  *
- * @param  UiInvokeProc func            - callback function to execute
- * @param  LPARAM       args            - callback function arguments
- * @param  bool         wait [optional] - whether to wait and return the function result (default: fire-and-forget)
+ * @param  UiThreadCallback func            - callback function to execute
+ * @param  LPARAM           args            - callback function arguments
+ * @param  bool             wait [optional] - whether to wait and return the function result (default: fire-and-forget)
  *
  * @return LRESULT - function return value if parameter `wait` is true;
  *                   NULL (0) if parameter `wait` is false or in case of errors
  */
-LRESULT WINAPI UiInvoke(UiInvokeProc func, LPARAM args, bool wait/*=false*/) {
+LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=false*/) {
    if (!func) return !error(ERR_INVALID_PARAMETER, "invalid parameter func: 0x%p (not a valid pointer)", func);
 
    // execute directly if already in the UI thread

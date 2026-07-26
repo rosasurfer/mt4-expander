@@ -102,7 +102,7 @@ static DWORD WINAPI ExpanderStartThread(void* lpParam) {
    }
    PinDllToMemory();                               // otherwise we keep the DLL in memory until process termination
 
-   SetupUiIntegration();
+   IntegrateExpander();
    return NO_ERROR;
 }
 
