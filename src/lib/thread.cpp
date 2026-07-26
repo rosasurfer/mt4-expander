@@ -50,7 +50,7 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
  *                   NULL (0) if parameter `wait` is false or in case of errors
  */
 LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=false*/) {
-   if (!func) return !error(ERR_INVALID_PARAMETER, "invalid parameter func: 0x%p (not a valid pointer)", func);
+   if (!func) return !error(SetLastErrorEx(ERR_INVALID_PARAMETER), "invalid parameter func: 0x%p (not a valid pointer)", func);
 
    // execute directly if already in the UI thread
    if (IsUiThread()) {
@@ -61,42 +61,59 @@ LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args, bool wait/*=fa
    HWND hWndMain = GetTerminalMainWindow();
    if (!hWndMain) return NULL;
 
-   // dispatch function to the UI-thread
-   if (!wait) {                              // fire-and-forget
-      JOB* job = new JOB();                  // on the heap
-      job->func  = func;
-      job->args  = args;
-      job->owner = true;                     // runner will free the job
+   // prepare JOB definition
+   JOB* job = new JOB();                     // always on the heap
+   job->func  = func;
+   job->args  = args;
+   job->done  = NULL;
+   job->owner = false;
 
+   // dispatch the function call to the UI-thread
+   if (!wait) {                              // no wait, fire-and-forget, runner will free the job
+      job->owner = true;
       if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
          delete job;
-         return !error(ERR_WIN32_ERROR + GetLastError(), "PostMessageW()");
+         return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
       }
       return NULL;
    }
 
    // wait and return the result
-   JOB job = {};
-   job.func = func;
-   job.args = args;
-   job.done = CreateEventW(NULL, TRUE, FALSE, NULL);
-   if (!job.done) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateEventW()");
-
-   if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)&job)) {
-      CloseHandle(job.done);
-      return !error(ERR_WIN32_ERROR + GetLastError(), "PostMessageW()");
+   job->done = CreateEventW(NULL, TRUE, FALSE, NULL);
+   if (!job->done) {
+      delete job;
+      return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "CreateEventW()");
    }
 
-   switch (WaitForSingleObject(job.done, INFINITE)) {
+   if (!PostMessageW(hWndMain, WM_MT4EXPANDER(), ID_UI_CALLBACK, (LPARAM)job)) {
+      CloseHandle(job->done);
+      delete job;
+      return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
+   }
+
+   switch (WaitForSingleObject(job->done, 3000)) {
+      case WAIT_OBJECT_0:
+         CloseHandle(job->done);
+         delete job;
+         break;
+
+      case WAIT_TIMEOUT:
+         error(job->error = SetLastErrorEx(ERR_WIN32_ERROR + ERROR_TIMEOUT), "WaitForSingleObject() => UI thread timeout");
+         break;
+
       case WAIT_ABANDONED:
-         error(job.error = ERR_RUNTIME_ERROR, "UI thread terminated");
+         error(job->error = SetLastErrorEx(ERR_RUNTIME_ERROR), "WaitForSingleObject() => UI thread terminated");
+         CloseHandle(job->done);
+         delete job;
          break;
+
       case WAIT_FAILED:
-         error(job.error = ERR_WIN32_ERROR + GetLastError(), "WaitForSingleObject()");
+         error(job->error = SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "WaitForSingleObject()");
+         CloseHandle(job->done);
+         job->done = NULL;
          break;
    }
-   CloseHandle(job.done);
-   return job.error ? NULL : job.result;
+   return job->error ? NULL : job->result;
 }
 
 
