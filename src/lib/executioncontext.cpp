@@ -513,8 +513,8 @@ int WINAPI MqlProgram_init(EXECUTION_CONTEXT* ec, ProgramType programType, const
  * @return int - error status
  */
 int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, time32 tickTime, BOOL isVirtual, double bid, double ask) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d  %s  ec=%s", GetCurrentThreadId(), IsUiThread() ? "(UI)":"(non-UI)", EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (!ec->pid)                     return error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  thread=%d  %s  ec=%s", GetCurrentThreadId(), IsUiThread() ? "(UI)":"(non-UI)", EXECUTION_CONTEXT_toStr(ec));
    SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
    int    validBars  = (changedBars==-1) ? -1 : bars-changedBars;
@@ -556,7 +556,7 @@ int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, 
       else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
-   return(NO_ERROR);
+   return NO_ERROR;
    #pragma EXPANDER_EXPORT
 }
 
@@ -573,8 +573,8 @@ int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, 
  * @return int - error status
  */
 int WINAPI MqlProgram_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitReasonToStr(uninitReason), GetCurrentThreadId(), (IsUiThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (!ec->pid)                     return error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d %s  ec=%s", UninitReasonToStr(uninitReason), GetCurrentThreadId(), (IsUiThread() ? "(UI)":"(non-UI)"), EXECUTION_CONTEXT_toStr(ec));
    SetLastThreadProgram(ec->pid);                                    // set the thread's currently executed program asap (error handling)
 
    static DWORD debugFeatures = GetDebugFeatures();
@@ -601,7 +601,7 @@ int WINAPI MqlProgram_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitRea
    }
 
    if (debugFeatures & DEBUG_FEATURE_EXECUTION_CONTEXT) debug("o:%p  %-17s  %-14s  ec=%s", ec, ec->programName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
-   return(NO_ERROR);
+   return NO_ERROR;
    #pragma EXPANDER_EXPORT
 }
 
@@ -625,21 +625,21 @@ int WINAPI MqlProgram_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitRea
  * @return int - error status
  */
 int WINAPI MqlLibrary_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason, DWORD initFlags, DWORD deinitFlags, const char* moduleName, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isOptimization) {
-   if ((uint)ec         < MIN_VALID_POINTER)         return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if ((uint)moduleName < MIN_VALID_POINTER)         return(error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName));
-   if (strlen(moduleName) >= sizeof(ec->moduleName)) return(error(ERR_INVALID_PARAMETER, "illegal length of parameter moduleName: \"%s\" (max %d characters)", moduleName, sizeof(ec->moduleName)-1));
-   if ((uint)symbol     < MIN_VALID_POINTER)         return(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol));
-   if (strlen(symbol)   > MAX_SYMBOL_LENGTH)         return(error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH));
-   if ((int)timeframe <= 0)                          return(error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe));
-   if ((int)digits < 0)                              return(error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits));
-   if (point <= 0)                                   return(error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point));
+   if ((uint)ec         < MIN_VALID_POINTER)         return error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((uint)moduleName < MIN_VALID_POINTER)         return error(ERR_INVALID_PARAMETER, "invalid parameter moduleName: 0x%p (not a valid pointer)", moduleName);
+   if (strlen(moduleName) >= sizeof(ec->moduleName)) return error(ERR_INVALID_PARAMETER, "illegal length of parameter moduleName: \"%s\" (max %d characters)", moduleName, sizeof(ec->moduleName)-1);
+   if ((uint)symbol     < MIN_VALID_POINTER)         return error(ERR_INVALID_PARAMETER, "invalid parameter symbol: 0x%p (not a valid pointer)", symbol);
+   if (strlen(symbol)   > MAX_SYMBOL_LENGTH)         return error(ERR_INVALID_PARAMETER, "illegal length of parameter symbol: \"%s\" (max %d characters)", symbol, MAX_SYMBOL_LENGTH);
+   if ((int)timeframe <= 0)                          return error(ERR_INVALID_PARAMETER, "invalid parameter timeframe: %d", (int)timeframe);
+   if ((int)digits < 0)                              return error(ERR_INVALID_PARAMETER, "invalid parameter digits: %d", (int)digits);
+   if (point <= 0)                                   return error(ERR_INVALID_PARAMETER, "invalid parameter point: %f", point);
 
    static DWORD debugFeatures = GetDebugFeatures();
    if (debugFeatures & DEBUG_FEATURE_EXECUTION_CONTEXT) debug("  i:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
 
    // fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_INIT, uninitReason);
-   if ((int)uninitReason < 0) return(ERR_RUNTIME_ERROR);
+   if ((int)uninitReason < 0) return ERR_RUNTIME_ERROR;
 
    // (1) if ec.pid is not set: empty context => first-time load or library recompilation
    //     - UR_UNDEFINED: first time load
@@ -739,7 +739,7 @@ int WINAPI MqlLibrary_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReaso
          // (1.2) first time load of library, Library::init() is called after MainModule::init() in the current thread
          // Initialize the library with the current program's master context.
          uint pid = GetLastThreadProgram();                          // the program is currently executed
-         if (!pid) return(error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitReasonToStr(uninitReason), GetCurrentThreadId(), IsUiThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
+         if (!pid) return error(ERR_ILLEGAL_STATE, "unknown program loading library \"%s\":  pid=0  UninitializeReason=%s  threadId=%d (%s)  ec=%s", moduleName, UninitReasonToStr(uninitReason), GetCurrentThreadId(), IsUiThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec));
 
          *ec = *(*g_mqlInstances[pid])[0];                           // initialize empty library context with master context
          ec->moduleType         = MT_LIBRARY;                        // update library specific values
@@ -807,7 +807,7 @@ int WINAPI MqlLibrary_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReaso
    else {
       // (2.2) ec.pid is set but not UI-thread: reloaded expert between tests (non-UI thread), Library::init() is called before Expert::init()
       // ec.pid points to the previously finished test
-      if (ec->programType!=PT_EXPERT || !ec->testing) return(error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUiThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
+      if (ec->programType!=PT_EXPERT || !ec->testing) return error(ERR_ILLEGAL_STATE, "unexpected library init cycle:  thread=%d (%s)  ec=%s", GetCurrentThreadId(), IsUiThread()?"UI":"non-UI", EXECUTION_CONTEXT_toStr(ec));
 
       EXECUTION_CONTEXT* master = NULL;
       uint currentPid=0, lastPid=GetLastThreadProgram();             // pid of the last executed program
@@ -887,7 +887,7 @@ int WINAPI MqlLibrary_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReaso
    }
 
    if (debugFeatures & DEBUG_FEATURE_EXECUTION_CONTEXT) debug("  o:%p  %-17s  %-14s  ec=%s", ec, moduleName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
-   return(NO_ERROR);
+   return NO_ERROR;
    #pragma EXPANDER_EXPORT
 }
 
@@ -902,8 +902,8 @@ int WINAPI MqlLibrary_init(EXECUTION_CONTEXT* ec, UninitializeReason uninitReaso
  * @return int - error status
  */
 int WINAPI MqlLibrary_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitReason) {
-   if ((uint)ec < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec));
-   if (!ec->pid)                     return(error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitReasonToStr(uninitReason), GetCurrentThreadId(), IsUiThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec)));
+   if ((uint)ec < MIN_VALID_POINTER) return error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if (!ec->pid)                     return error(ERR_INVALID_PARAMETER, "invalid execution context (ec.pid=0):  uninitReason=%s  thread=%d (%s)  ec=%s", UninitReasonToStr(uninitReason), GetCurrentThreadId(), IsUiThread() ? "UI":"non-UI", EXECUTION_CONTEXT_toStr(ec));
    SetLastThreadProgram(ec->pid);                        // set the thread's currently executed program asap (error handling)
 
    static DWORD debugFeatures = GetDebugFeatures();
@@ -911,7 +911,7 @@ int WINAPI MqlLibrary_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitRea
 
    // try to fix the UninitializeReason
    uninitReason = FixUninitReason(ec, MT_LIBRARY, CF_DEINIT, uninitReason);
-   if ((int)uninitReason < 0) return(ERR_RUNTIME_ERROR);
+   if ((int)uninitReason < 0) return ERR_RUNTIME_ERROR;
 
    ec->moduleCoreFunction = CF_DEINIT;                   // update library specific values
    ec->moduleUninitReason = uninitReason;
@@ -927,7 +927,7 @@ int WINAPI MqlLibrary_deinit(EXECUTION_CONTEXT* ec, UninitializeReason uninitRea
    }
 
    if (debugFeatures & DEBUG_FEATURE_EXECUTION_CONTEXT) debug("o:%p  %-17s  %-14s  ec=%s", ec, ec->moduleName, UninitReasonToStr(uninitReason), EXECUTION_CONTEXT_toStr(ec));
-   return(NO_ERROR);
+   return NO_ERROR;
    #pragma EXPANDER_EXPORT
 }
 
