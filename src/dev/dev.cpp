@@ -23,9 +23,9 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 
    // creation callback and arguments
    struct local {
-      static LRESULT CALLBACK CreateChildControl(void* _args) {
-         ARGS* args = (ARGS*)_args;
-         if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
+      static LRESULT CALLBACK CreateChildControl(LPARAM lParam) {
+         ARGS* args = (ARGS*)lParam;
+         if (!args) return !error(ERR_INVALID_PARAMETER, "invalid arguments: (null)");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS| SS_LEFT | SS_NOPREFIX;
          HWND hWndChild = CreateWindowExW(
@@ -50,7 +50,7 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 
    // create the child control
    SetLastError(NO_ERROR);
-   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (void*)&args);
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (LPARAM)&args);
    if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -88,9 +88,9 @@ HWND WINAPI Test_CreateWindow(uint pid) {
 
    // creation callback and arguments
    struct local {
-      static LRESULT CALLBACK CreateChildWindow(void* _args) {
-         ARGS* args = (ARGS*)_args;
-         if (!args) return !error(ERR_INVALID_POINTER, "invalid arguments: NULL");
+      static LRESULT CALLBACK CreateChildWindow(LPARAM lParam) {
+         ARGS* args = (ARGS*)lParam;
+         if (!args) return !error(ERR_INVALID_PARAMETER, "invalid arguments: (null)");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
          HWND hWndChild = CreateWindowExW(
@@ -116,7 +116,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
 
    // create the child window
    SetLastError(NO_ERROR);
-   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, &args);
+   HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, (LPARAM)&args);
    if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);

@@ -2,17 +2,17 @@
 #include "expander.h"
 
 // callback function signature used by InvokeUiThread()
-typedef LRESULT (CALLBACK *UiThreadCallback)(void* args);
+typedef LRESULT (CALLBACK *UiThreadCallback)(LPARAM args);
 
 // transport of callback details for the UI-thread dispatcher
 struct JOB {
-   UiThreadCallback func;        // function pointer
-   void*            args;        // argument pointer
-   LRESULT          result;      // return value
-   HANDLE           completion;  // completion event
-   int              last_error;  // last job execution error (if any)
+   UiThreadCallback func;           // function pointer
+   LPARAM           args;           // function arguments
+   LRESULT          result;         // return value
+   HANDLE           completion;     // completion event
+   int              last_error;     // last job execution error (if any)
 
-   LRESULT run() {               // executes the job
+   LRESULT run() {                  // executes the job
       if (!func) {
          last_error = error(ERR_INVALID_PARAMETER, "invalid job function: (null)");
          return result = 0;
@@ -34,5 +34,5 @@ struct JOB {
 
 DWORD   WINAPI GetUiThreadId();
 BOOL    WINAPI IsUiThread(DWORD threadId = NULL);
-LRESULT WINAPI InvokeUiThread(UiThreadCallback func, void* args);
+LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args);
 DWORD   WINAPI SetLastErrorEx(DWORD error);

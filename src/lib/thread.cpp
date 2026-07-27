@@ -44,11 +44,11 @@ BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
  * Executes a callback in the UI thread and returns the result.
  *
  * @param  UiThreadCallback func - callback function to execute
- * @param  void*            args - callback function arguments
+ * @param  LPARAM           args - callback function arguments
  *
  * @return LRESULT - function return value, or NULL (0) in case of errors
  */
-LRESULT WINAPI InvokeUiThread(UiThreadCallback func, void* args) {
+LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args) {
    if (!func) return !error(SetLastErrorEx(ERR_INVALID_PARAMETER), "invalid parameter func: 0x%p (not a valid pointer)", func);
 
    SetLastError(NO_ERROR);
