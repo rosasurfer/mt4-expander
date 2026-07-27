@@ -146,6 +146,10 @@ DWORD WINAPI GetCliOptions() {
             _options |= DEBUG_FEATURE_EXECUTION_CONTEXT;
             continue;
          }
+         if (StrCompare(argv[i], L"/rsf:debug-hooks")) {
+            _options |= DEBUG_FEATURE_HOOKS;
+            continue;
+         }
          if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
             _options |= DEBUG_FEATURE_INDICATOR_LIST;
             continue;
