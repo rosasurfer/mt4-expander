@@ -40,31 +40,74 @@ BOOL WINAPI IntegrateExpander() {
    static bool done = false;
    if (!done) {
       done = true;
-      if (!SubclassMainWindow())      return FALSE;
-      if (!SubclassChartWindows())    return FALSE;
-      if (!RegisterWindowEventHook()) return FALSE;   // in the UI thread and after MT4 installed its own blocking hook
+      if (!SubclassMainWindow())   return FALSE;
+      if (!SubclassChartWindows()) return FALSE;
+      if (!HookWindowEvents())     return FALSE;      // in the UI thread and after MT4 installed its own blocking hook
    }
    return TRUE;
 }
 
 
 /**
- * Register a window event hook for windows owned by the UI thread.
+ * Register a hook in the UI thread and trigger it. Called from a non-UI thread to run code in the UI thread.
  *
  * @return BOOL - success status
  */
-static BOOL WINAPI RegisterWindowEventHook() {
-   if (!hWindowEventHook) {
-      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventHook, NULL, GetUiThreadId());
-      if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CBT)");
-      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("WindowEventHook registered");
+static BOOL WINAPI HookUiThread() {
+   // register a hook for messages sent to any window owned by the UI thread
+   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUiThreadId());
+   if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHookProc)");
+   if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("hook registered");
+
+   // trigger the UI thread
+   SetLastError(ERROR_SUCCESS);
+   if (!SendMessageTimeout(GetTerminalMainWindow(), WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL)) {
+      warn(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
    }
    return TRUE;
 }
 
 
 /**
- * Hook procedure receiving window related events of the UI thread. Called in the UI thread.
+ * Hook procedure for messages sent to any window owned by the UI thread. Continues Expander integration and
+ * removes itself.
+ *
+ * @param  int    code   - below 0 (zero) if the hook should skip the message
+ * @param  WPARAM wParam - whether the message was sent by the current thread
+ * @param  LPARAM lParam - pointer to message details
+ *
+ * @return LRESULT - return value of CallNextHookEx()
+ */
+static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
+   if (hUiThreadHook) {
+      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("called");
+
+      if (!UnhookWindowsHookEx(hUiThreadHook)) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hUiThreadHook=0x%p)", hUiThreadHook);
+      hUiThreadHook = NULL;
+
+      IntegrateExpander();                         // continue integration in the UI thread
+   }
+   return CallNextHookEx(NULL, code, wParam, lParam);
+}
+
+
+/**
+ * Register a hook for window events for windows owned by the UI thread.
+ *
+ * @return BOOL - success status
+ */
+static BOOL WINAPI HookWindowEvents() {
+   if (!hWindowEventHook) {
+      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventsHookProc, NULL, GetUiThreadId());
+      if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CBT)");
+      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("hook registered");
+   }
+   return TRUE;
+}
+
+
+/**
+ * Hook procedure receiving window events for windows owned by the UI thread. Called in the UI thread.
  *
  * @param  int    type   - event type; below 0 (zero) if the hook should skip the event
  * @param  WPARAM wParam - whether the event was sent by the current thread
@@ -72,16 +115,19 @@ static BOOL WINAPI RegisterWindowEventHook() {
  *
  * @return LRESULT - whether the system should allow or prevent the event operation (depends on the event type)
  */
-static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK WindowEventsHookProc(int type, WPARAM wParam, LPARAM lParam) {
+   static DWORD debugFeatures = GetDebugFeatures();
+   static bool done = false;
+   if (!done) {
+      if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("called");
+      done = true;
+   }
+
    switch (type) {
       case HCBT_CREATEWND: {
-         static DWORD debugFeatures = GetDebugFeatures();
-         if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("window events hooked");
-
          HWND hWnd = (HWND)wParam;
          CREATESTRUCT* cs = ((CBT_CREATEWND*)lParam)->lpcs;
          uint ctrlId = (uint)cs->hMenu;
-
          if (debugFeatures & DEBUG_FEATURE_CREATE_WINDOW) debug(" HCBT_CREATEWND  %p  %S", hWnd, getClassNameW(hWnd).c_str());
 
          // call previous hooks first (MT4 overrides/disables subclassing)
@@ -112,49 +158,6 @@ static LRESULT CALLBACK WindowEventHook(int type, WPARAM wParam, LPARAM lParam) 
       }
    }
    return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
-}
-
-
-/**
- * Register a hook in the UI thread and trigger it. Called from a non-UI thread to run code in the UI thread.
- *
- * @return BOOL - success status
- */
-static BOOL WINAPI HookUiThread() {
-   // register a hook for messages sent to any window owned by the UI thread
-   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUiThreadId());
-   if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHookProc)");
-   if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("UiThreadHook registered");
-
-   // trigger the UI thread
-   SetLastError(ERROR_SUCCESS);
-   if (!SendMessageTimeout(GetTerminalMainWindow(), WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL)) {
-      warn(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");  // may fail if the UI thread doesn't process the message in time
-   }
-   return TRUE;
-}
-
-
-/**
- * Hook procedure for messages sent to any window owned by the UI thread. Continues Expander integration and
- * removes itself.
- *
- * @param  int    code   - below 0 (zero) if the hook should skip the message
- * @param  WPARAM wParam - whether the message was sent by the current thread
- * @param  LPARAM lParam - pointer to message details
- *
- * @return LRESULT - return value of CallNextHookEx()
- */
-static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
-   if (hUiThreadHook) {
-      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("UI thread hooked");
-
-      if (!UnhookWindowsHookEx(hUiThreadHook)) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hUiThreadHook=0x%p)", hUiThreadHook);
-      hUiThreadHook = NULL;
-
-      IntegrateExpander();                         // continue integration in the UI thread
-   }
-   return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
 
@@ -374,14 +377,14 @@ static BOOL WINAPI SubclassChartFrame(HWND hWndChart, HWND hWndChartFrame) {
    static DWORD debugFeatures = GetDebugFeatures();
 
    if (GetPropW(hWndChartFrame, PROP_WINDOW_SUBCLASSED)) {
-      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug(" chart window %p: chart frame %p already subclassed", hWndChart, hWndChartFrame);
+      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug(" chart window %p chart %p already subclassed", hWndChart, hWndChartFrame);
    }
    else {
       if (!SetWindowSubclass(hWndChartFrame, ChartFrameSubclassProc, CHART_FRAME_SUBCLASS_ID, 0)) {
          return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowSubclass()");
       }
       SetPropW(hWndChartFrame, PROP_WINDOW_SUBCLASSED, (HANDLE)1);
-      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug(" chart window %p: chart frame %p subclassed", hWndChart, hWndChartFrame);
+      if (debugFeatures & DEBUG_FEATURE_SUBCLASS) debug(" chart window %p chart %p subclassed", hWndChart, hWndChartFrame);
 
       // improve redrawing performance of child windows
       SetWindowStyles(hWndChartFrame, GetWindowStyles(hWndChartFrame) | WS_CLIPCHILDREN);
