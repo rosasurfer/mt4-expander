@@ -1686,26 +1686,26 @@ const char* WINAPI InitReasonToStr(InitializeReason reason) {
 const char* WINAPI LoglevelDescriptionA(int level, BOOL upperCase/*= TRUE*/) {
    if (upperCase) {
       switch (level) {
-         case NULL:       return("(null)");
-         case LOG_DEBUG:  return("DEBUG" );
-         case LOG_INFO:   return("INFO"  );
-         case LOG_NOTICE: return("NOTICE");
-         case LOG_WARN:   return("WARN"  );
-         case LOG_ERROR:  return("ERROR" );
-         case LOG_FATAL:  return("FATAL" );
-         case LOG_OFF:    return("OFF"   );        // not a regular loglevel
+         case NULL:       return "0";
+         case LOG_DEBUG:  return "DEBUG";
+         case LOG_INFO:   return "INFO";
+         case LOG_NOTICE: return "NOTICE";
+         case LOG_WARN:   return "WARN";
+         case LOG_ERROR:  return "ERROR";
+         case LOG_FATAL:  return "FATAL";
+         case LOG_OFF:    return "OFF";            // not a regular loglevel
       }
    }
    else {
       switch (level) {
-         case NULL:       return("(null)");
-         case LOG_DEBUG:  return("debug" );
-         case LOG_INFO:   return("info"  );
-         case LOG_NOTICE: return("notice");
-         case LOG_WARN:   return("warn"  );
-         case LOG_ERROR:  return("error" );
-         case LOG_FATAL:  return("fatal" );
-         case LOG_OFF:    return("off"   );        // not a regular loglevel
+         case NULL:       return "0";
+         case LOG_DEBUG:  return "debug";
+         case LOG_INFO:   return "info";
+         case LOG_NOTICE: return "notice";
+         case LOG_WARN:   return "warn";
+         case LOG_ERROR:  return "error";
+         case LOG_FATAL:  return "fatal";
+         case LOG_OFF:    return "off";            // not a regular loglevel
       }
    }
    return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter level: %d (not a loglevel)", level);
