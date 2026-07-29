@@ -12,8 +12,7 @@
 #define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
 #define CHART_FRAME_SUBCLASS_ID     3                 // subclass identifier for chart frames (painting areas)
 
-static HHOOK hUiThreadHook    = NULL;                 // hook handles
-static HHOOK hWindowEventHook = NULL;
+static HHOOK hWindowEventHook = NULL;                 // hook handle
 
 
 /**
@@ -40,7 +39,7 @@ BOOL WINAPI IntegrateExpander() {
       done = true;
       if (!SubclassMainWindow())   return FALSE;
       if (!SubclassChartWindows()) return FALSE;
-      if (!HookWindowEvents())     return FALSE;      // after MT4 installed its own blocking CBT hook
+      if (!HookWindowEvents())     return FALSE;      // after MT4 installed its own hook
    }
    return TRUE;
 }
@@ -83,37 +82,69 @@ static BOOL WINAPI CustomizeTerminal() {
  * @return BOOL - success status
  */
 static BOOL WINAPI HookUiThread() {
-   // register a hook for messages sent to any window owned by the UI thread
-   hUiThreadHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, GetUiThreadId());
-   if (!hUiThreadHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(UiThreadHookProc)");
-   if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("hook registered");
+   static DWORD debugFeatures = GetDebugFeatures();
 
-   // trigger the UI thread
-   SetLastError(NO_ERROR);
-   if (!SendMessageTimeout(GetTerminalMainWindow(), WM_NULL, 0, 0, SMTO_ABORTIFHUNG | SMTO_NOTIMEOUTIFNOTHUNG, 3000, NULL)) {
-      warn(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
+   HWND hWndMain = GetTerminalMainWindow();
+   if (!hWndMain) return FALSE;
+
+   DWORD uiThreadId = GetUiThreadId();
+   if (!uiThreadId) return FALSE;
+
+   // a local function to remove a registered hook
+   struct local {
+      static BOOL RemoveHook(HHOOK hHook) {
+         BOOL success = UnhookWindowsHookEx(hHook);
+         if (!success) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hHook=0x%p)", hHook);
+         return success;
+      }
+   };
+
+   // The UI thread may be temporarily unresponsive, or MT4 may immediately install another hook blocking ours.
+   // Therefore, we run in a loop until our hook has been successfully executed.
+   while (true) {
+      // register a hook for messages sent to windows owned by the UI thread
+      HHOOK hHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, uiThreadId);
+      if (!hHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CALLWNDPROC)");
+      if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hHook);
+
+      // trigger the UI thread, wait 3 seconds
+      SetLastError(NO_ERROR);
+      BOOL success = SendMessageTimeout(hWndMain, WM_NULL, 0, 0, 0, 3000, NULL);
+      if (success) {                                                    // a successful SendMessage() doesn't guarantee an executed hook
+         success = (BOOL)GetPropW(hWndMain, PROP_WINDOW_SUBCLASSED);    // check whether the main window is subclassed
+      }
+      else if (GetLastError() != ERROR_TIMEOUT) {
+         error(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
+         return _FALSE(local::RemoveHook(hHook));
+      }
+
+      // remove the hook
+      if (!local::RemoveHook(hHook)) return FALSE;
+      if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p removed", hHook);
+
+      if (success) break;
+      // on timeout try again
+      debug(ERR_WIN32_ERROR + ERROR_TIMEOUT, "UI thread unresponsive, waiting...");
    }
    return TRUE;
 }
 
 
 /**
- * Hook procedure for messages sent to any window owned by the UI thread. Runs in the UI thread. Continues MT4Expander
- * integration and removes itself.
+ * Hook procedure for messages sent to windows owned by the UI thread. Runs in the UI thread.
+ * Continues MT4Expander integration and removes itself.
  *
  * @param  int    code   - below 0 (zero) if the hook should skip the message
  * @param  WPARAM wParam - whether the message was sent by the current thread
- * @param  LPARAM lParam - pointer to message details
+ * @param  LPARAM lParam - message details
  *
  * @return LRESULT - return value of CallNextHookEx()
  */
 static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
-   if (hUiThreadHook) {
+   static bool done = false;
+   if (!done) {
+      done = true;
       if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("called");
-
-      if (!UnhookWindowsHookEx(hUiThreadHook)) error(ERR_WIN32_ERROR + GetLastError(), "UnhookWindowsHookEx(hUiThreadHook=0x%p)", hUiThreadHook);
-      hUiThreadHook = NULL;
-
       IntegrateExpander();                         // continue integration in the UI thread
    }
    return CallNextHookEx(NULL, code, wParam, lParam);
@@ -129,7 +160,7 @@ static BOOL WINAPI HookWindowEvents() {
    if (!hWindowEventHook) {
       hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventsHookProc, NULL, GetUiThreadId());
       if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CBT)");
-      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("hook registered");
+      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hWindowEventHook);
    }
    return TRUE;
 }
