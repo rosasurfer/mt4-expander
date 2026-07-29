@@ -5,6 +5,8 @@
 
 
 BOOL           WINAPI   IntegrateExpander();
+static BOOL    WINAPI   CustomizeTerminal();
+
 static BOOL    WINAPI   HookUiThread();
 static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam);
 
@@ -20,5 +22,3 @@ static LRESULT CALLBACK ChartWindowSubclassProc(HWND hWnd, uint msg, WPARAM wPar
 
 static BOOL    WINAPI   SubclassChartFrame(HWND hWndChart, HWND hWndChartFrame);
 static LRESULT CALLBACK ChartFrameSubclassProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam, UINT_PTR subclassId, DWORD_PTR data);
-
-static BOOL    WINAPI   CustomizeTerminal();
