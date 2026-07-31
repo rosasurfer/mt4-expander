@@ -19,29 +19,41 @@ static HHOOK hWindowEventHook = NULL;                 // hook handle
  * Integrate the Expander in the terminal process. Called first from a non-UI thread (worker in DLL loader),
  * then a 2nd time from the UI thread.
  *
- * @return BOOL - success status
+ * @return BOOL - success status of the first call per non-UI/UI thread
  */
 BOOL WINAPI IntegrateExpander() {
-   // if not in the UI thread (1st call)
-   if (!IsUiThread()) {
-      static bool done = false;
-      if (!done) {
-         done = true;
-         if (!CustomizeTerminal()) return FALSE;      // perform configured modifications
-         if (!HookUiThread())      return FALSE;      // continue in the UI thread
+   struct local {
+      // one-time execution in a non-UI thread
+      static BOOL CALLBACK InitOnceNonUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
+         BOOL result = CustomizeTerminal()         // perform configured modifications
+                    && HookUiThread();             // continue in the UI thread
+         *status = (PVOID)(INT_PTR)result;
+         return TRUE;                              // always TRUE, no retry on failure
+      };
+
+      // one-time execution in the UI thread
+      static BOOL CALLBACK InitOnceUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
+         BOOL result = SubclassMainWindow()
+                    && SubclassChartWindows()
+                    && HookWindowEvents();         // after MT4 installed its own hook
+         *status = (void*)(INT_PTR)result;
+         return TRUE;                              // always TRUE, no retry on failure
       }
-      return TRUE;
+   };
+
+   // 1st call: in non-UI thread
+   if (!IsUiThread()) {
+      static INIT_ONCE onceNonUi = INIT_ONCE_STATIC_INIT;
+      void* status = NULL;
+      InitOnceExecuteOnce(&onceNonUi, local::InitOnceNonUiThread, NULL, &status);
+      return (BOOL)(INT_PTR)status;                // permanent success or failure
    }
 
-   // if in the UI thread (2nd call)
-   static bool done = false;
-   if (!done) {
-      done = true;
-      if (!SubclassMainWindow())   return FALSE;
-      if (!SubclassChartWindows()) return FALSE;
-      if (!HookWindowEvents())     return FALSE;      // after MT4 installed its own hook
-   }
-   return TRUE;
+   // 2nd call: in UI thread
+   static INIT_ONCE onceUi = INIT_ONCE_STATIC_INIT;
+   void* status = NULL;
+   InitOnceExecuteOnce(&onceUi, local::InitOnceUiThread, NULL, &status);
+   return (BOOL)(INT_PTR)status;                   // permanent success or failure
 }
 
 
