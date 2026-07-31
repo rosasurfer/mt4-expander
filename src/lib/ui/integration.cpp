@@ -120,12 +120,14 @@ static BOOL WINAPI HookUiThread() {
       if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hHook);
 
       // trigger the UI thread and wait 3 seconds
+      bool timeout = false;
       SetLastError(NO_ERROR);
       if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, 0, 3000, NULL)) {
          if (GetLastError() != ERROR_TIMEOUT) {
             error(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
             return _FALSE(local::RemoveHook(hHook));
          }
+         timeout = true;
       }                                         // a successfully sent message does not guarantee hook execution
 
       // remove the hook
@@ -134,8 +136,8 @@ static BOOL WINAPI HookUiThread() {
 
       if (uiThreadHook_done) break;             // this guarantees hook execution, with whatever outcome
 
-      // here on timeout only: try again
-      debug(ERR_WIN32_ERROR + ERROR_TIMEOUT, "UI thread unresponsive, waiting...");
+      // try again
+      if (timeout) debug(ERR_WIN32_ERROR + ERROR_TIMEOUT, "UI thread unresponsive, waiting...");
    }
    return TRUE;
 }
