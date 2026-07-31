@@ -45,14 +45,18 @@ BOOL WINAPI IntegrateExpander() {
    if (!IsUiThread()) {
       static INIT_ONCE onceNonUi = INIT_ONCE_STATIC_INIT;
       void* status = NULL;
-      InitOnceExecuteOnce(&onceNonUi, local::ExecOnceNonUiThread, NULL, &status);
+      if (!InitOnceExecuteOnce(&onceNonUi, local::ExecOnceNonUiThread, NULL, &status)) {
+         return !error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
+      }
       return PtrToInt(status) >> INIT_ONCE_CTX_RESERVED_BITS;
    }
 
    // 2nd call: in UI thread
    static INIT_ONCE onceUi = INIT_ONCE_STATIC_INIT;
    void* status = NULL;
-   InitOnceExecuteOnce(&onceUi, local::ExecOnceUiThread, NULL, &status);
+   if (!InitOnceExecuteOnce(&onceUi, local::ExecOnceUiThread, NULL, &status)) {
+      return !error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
+   }
    return PtrToInt(status) >> INIT_ONCE_CTX_RESERVED_BITS;
 }
 
