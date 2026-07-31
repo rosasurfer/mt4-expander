@@ -27,7 +27,7 @@ BOOL WINAPI IntegrateExpander() {
       static BOOL CALLBACK ExecOnceNonUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
          BOOL result = CustomizeTerminal()         // perform configured modifications
                     && HookUiThread();             // continue in the UI thread
-         *status = IntToPtr(result);
+         *status = IntToPtr(result << INIT_ONCE_CTX_RESERVED_BITS);
          return TRUE;                              // always TRUE, no retry on failure
       };
 
@@ -36,7 +36,7 @@ BOOL WINAPI IntegrateExpander() {
          BOOL result = SubclassMainWindow()
                     && SubclassChartWindows()
                     && HookWindowEvents();         // after MT4 installed its own hook
-         *status = IntToPtr(result);
+         *status = IntToPtr(result << INIT_ONCE_CTX_RESERVED_BITS);
          return TRUE;                              // always TRUE, no retry on failure
       }
    };
@@ -46,14 +46,14 @@ BOOL WINAPI IntegrateExpander() {
       static INIT_ONCE onceNonUi = INIT_ONCE_STATIC_INIT;
       void* status = NULL;
       InitOnceExecuteOnce(&onceNonUi, local::ExecOnceNonUiThread, NULL, &status);
-      return PtrToInt(status);                     // permanent success or failure
+      return PtrToInt(status) >> INIT_ONCE_CTX_RESERVED_BITS;
    }
 
    // 2nd call: in UI thread
    static INIT_ONCE onceUi = INIT_ONCE_STATIC_INIT;
    void* status = NULL;
    InitOnceExecuteOnce(&onceUi, local::ExecOnceUiThread, NULL, &status);
-   return PtrToInt(status);                        // permanent success or failure
+   return PtrToInt(status) >> INIT_ONCE_CTX_RESERVED_BITS;
 }
 
 
