@@ -8,11 +8,11 @@
 
 #include <commctrl.h>
 
-#define MAIN_WINDOW_SUBCLASS_ID     1                 // subclass identifier for the terminal main window
-#define CHART_WINDOW_SUBCLASS_ID    2                 // subclass identifier for chart windows
-#define CHART_FRAME_SUBCLASS_ID     3                 // subclass identifier for chart frames (painting areas)
+static volatile BOOL uiThreadHook_done = FALSE;    // whether the UI-thread part of integration has run
 
-static HHOOK hWindowEventHook = NULL;                 // hook handle
+#define MAIN_WINDOW_SUBCLASS_ID     1              // subclass identifier for the terminal main window
+#define CHART_WINDOW_SUBCLASS_ID    2              // subclass identifier for chart windows
+#define CHART_FRAME_SUBCLASS_ID     3              // subclass identifier for chart frames (painting areas)
 
 
 /**
@@ -24,19 +24,19 @@ static HHOOK hWindowEventHook = NULL;                 // hook handle
 BOOL WINAPI IntegrateExpander() {
    struct local {
       // one-time execution in a non-UI thread
-      static BOOL CALLBACK InitOnceNonUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
+      static BOOL CALLBACK ExecOnceNonUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
          BOOL result = CustomizeTerminal()         // perform configured modifications
                     && HookUiThread();             // continue in the UI thread
-         *status = (PVOID)(INT_PTR)result;
+         *status = IntToPtr(result);
          return TRUE;                              // always TRUE, no retry on failure
       };
 
       // one-time execution in the UI thread
-      static BOOL CALLBACK InitOnceUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
+      static BOOL CALLBACK ExecOnceUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
          BOOL result = SubclassMainWindow()
                     && SubclassChartWindows()
                     && HookWindowEvents();         // after MT4 installed its own hook
-         *status = (void*)(INT_PTR)result;
+         *status = IntToPtr(result);
          return TRUE;                              // always TRUE, no retry on failure
       }
    };
@@ -45,15 +45,15 @@ BOOL WINAPI IntegrateExpander() {
    if (!IsUiThread()) {
       static INIT_ONCE onceNonUi = INIT_ONCE_STATIC_INIT;
       void* status = NULL;
-      InitOnceExecuteOnce(&onceNonUi, local::InitOnceNonUiThread, NULL, &status);
-      return (BOOL)(INT_PTR)status;                // permanent success or failure
+      InitOnceExecuteOnce(&onceNonUi, local::ExecOnceNonUiThread, NULL, &status);
+      return PtrToInt(status);                     // permanent success or failure
    }
 
    // 2nd call: in UI thread
    static INIT_ONCE onceUi = INIT_ONCE_STATIC_INIT;
    void* status = NULL;
-   InitOnceExecuteOnce(&onceUi, local::InitOnceUiThread, NULL, &status);
-   return (BOOL)(INT_PTR)status;                   // permanent success or failure
+   InitOnceExecuteOnce(&onceUi, local::ExecOnceUiThread, NULL, &status);
+   return PtrToInt(status);                        // permanent success or failure
 }
 
 
@@ -119,23 +119,22 @@ static BOOL WINAPI HookUiThread() {
       if (!hHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CALLWNDPROC)");
       if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hHook);
 
-      // trigger the UI thread, wait 3 seconds
+      // trigger the UI thread and wait 3 seconds
       SetLastError(NO_ERROR);
-      BOOL success = SendMessageTimeout(hWndMain, WM_NULL, 0, 0, 0, 3000, NULL);
-      if (success) {                                                    // a successful SendMessage() doesn't guarantee an executed hook
-         success = (BOOL)GetPropW(hWndMain, PROP_WINDOW_SUBCLASSED);    // check whether the main window is subclassed
-      }
-      else if (GetLastError() != ERROR_TIMEOUT) {
-         error(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
-         return _FALSE(local::RemoveHook(hHook));
-      }
+      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, 0, 3000, NULL)) {
+         if (GetLastError() != ERROR_TIMEOUT) {
+            error(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
+            return _FALSE(local::RemoveHook(hHook));
+         }
+      }                                         // a successfully sent message does not guarantee hook execution
 
       // remove the hook
       if (!local::RemoveHook(hHook)) return FALSE;
       if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p removed", hHook);
 
-      if (success) break;
-      // on timeout try again
+      if (uiThreadHook_done) break;             // this guarantees hook execution, with whatever outcome
+
+      // here on timeout only: try again
       debug(ERR_WIN32_ERROR + ERROR_TIMEOUT, "UI thread unresponsive, waiting...");
    }
    return TRUE;
@@ -153,11 +152,10 @@ static BOOL WINAPI HookUiThread() {
  * @return LRESULT - return value of CallNextHookEx()
  */
 static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
-   static bool done = false;
-   if (!done) {
-      done = true;
+   if (!uiThreadHook_done) {
       if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("called");
       IntegrateExpander();                         // continue integration in the UI thread
+      uiThreadHook_done = true;
    }
    return CallNextHookEx(NULL, code, wParam, lParam);
 }
@@ -169,6 +167,7 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
  * @return BOOL - success status
  */
 static BOOL WINAPI HookWindowEvents() {
+   static HHOOK hWindowEventHook = NULL;
    if (!hWindowEventHook) {
       hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventsHookProc, NULL, GetUiThreadId());
       if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CBT)");
@@ -203,7 +202,7 @@ static LRESULT CALLBACK WindowEventsHookProc(int type, WPARAM wParam, LPARAM lPa
          if (debugFeatures & DEBUG_FEATURE_CREATE_WINDOW) debug(" HCBT_CREATEWND  %p  %S", hWnd, getClassNameW(hWnd).c_str());
 
          // check behavior of previous hooks (there are reports that MT4 may block creation of specific windows)
-         LRESULT denied = CallNextHookEx(hWindowEventHook, type, wParam, lParam);
+         LRESULT denied = CallNextHookEx(NULL, type, wParam, lParam);
          if (denied) {
             notice("HCBT_CREATEWND  %p  %S  denied by other hooks", hWnd, getClassNameW(hWnd).c_str());
             return denied;
@@ -229,7 +228,7 @@ static LRESULT CALLBACK WindowEventsHookProc(int type, WPARAM wParam, LPARAM lPa
          return NULL;   // not denied by other hooks
       }
    }
-   return CallNextHookEx(hWindowEventHook, type, wParam, lParam);
+   return CallNextHookEx(NULL, type, wParam, lParam);
 }
 
 
