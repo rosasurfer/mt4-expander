@@ -24,24 +24,22 @@ static volatile UiThreadIntegration utiStatus = UTI_PENDING;
  * Integrate the Expander in the terminal process. Called first from a non-UI thread (worker in DLL loader),
  * then a 2nd time from the UI thread.
  *
- * @return BOOL - success status of the first call per non-UI/UI thread
+ * @return void
  */
-BOOL WINAPI IntegrateExpander() {
+void WINAPI IntegrateExpander() {
    struct local {
       // one-time execution in a non-UI thread
-      static BOOL CALLBACK ExecOnceNonUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
-         BOOL result = CustomizeTerminal()         // perform configured modifications
-                    && HookUiThread();             // continue in the UI thread
-         *status = IntToPtr(result << INIT_ONCE_CTX_RESERVED_BITS);
+      static BOOL CALLBACK ExecOnceNonUiThread(PINIT_ONCE, PVOID, PVOID*) {
+            CustomizeTerminal()                    // perform configured modifications
+         && HookUiThread();                        // continue in the UI thread
          return TRUE;                              // always TRUE, no retry on failure
       };
 
       // one-time execution in the UI thread
-      static BOOL CALLBACK ExecOnceUiThread(PINIT_ONCE io, void* lParam, PVOID* status) {
-         BOOL result = SubclassMainWindow()
-                    && SubclassChartWindows()
-                    && HookWindowEvents();         // after MT4 installed its own hook
-         *status = IntToPtr(result << INIT_ONCE_CTX_RESERVED_BITS);
+      static BOOL CALLBACK ExecOnceUiThread(PINIT_ONCE, PVOID, PVOID*) {
+            SubclassMainWindow()
+         && SubclassChartWindows()
+         && HookWindowEvents();                    // after MT4 installed its own hook
          return TRUE;                              // always TRUE, no retry on failure
       }
    };
@@ -49,20 +47,19 @@ BOOL WINAPI IntegrateExpander() {
    // 1st call: in non-UI thread
    if (!IsUiThread()) {
       static INIT_ONCE onceNonUi = INIT_ONCE_STATIC_INIT;
-      void* status = NULL;
-      if (!InitOnceExecuteOnce(&onceNonUi, local::ExecOnceNonUiThread, NULL, &status)) {
-         return !error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
+      void* ctx = NULL;
+      if (!InitOnceExecuteOnce(&onceNonUi, local::ExecOnceNonUiThread, NULL, &ctx)) {
+         error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
       }
-      return PtrToInt(status) >> INIT_ONCE_CTX_RESERVED_BITS;
+      return;
    }
 
    // 2nd call: in UI thread
    static INIT_ONCE onceUi = INIT_ONCE_STATIC_INIT;
-   void* status = NULL;
-   if (!InitOnceExecuteOnce(&onceUi, local::ExecOnceUiThread, NULL, &status)) {
-      return !error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
+   void* ctx = NULL;
+   if (!InitOnceExecuteOnce(&onceUi, local::ExecOnceUiThread, NULL, &ctx)) {
+      error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
    }
-   return PtrToInt(status) >> INIT_ONCE_CTX_RESERVED_BITS;
 }
 
 

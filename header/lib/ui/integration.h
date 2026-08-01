@@ -4,7 +4,7 @@
 #define PROP_WINDOW_SUBCLASSED L"rsfMT4Expander.subclassed"
 
 
-BOOL           WINAPI   IntegrateExpander();
+void           WINAPI   IntegrateExpander();
 static BOOL    WINAPI   CustomizeTerminal();
 
 static BOOL    WINAPI   HookUiThread();
