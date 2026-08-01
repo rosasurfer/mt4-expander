@@ -8,11 +8,11 @@
 
 #include <commctrl.h>
 
-enum UiThreadIntegration {                         // UI-thread integration states
+enum UiThreadIntegration {                         // UI thread integration states
    UTI_PENDING  = 0,
    UTI_STARTED  = 1,
    UTI_FINISHED = 2
-};                                                 // current runtime status
+};                                                 // current status
 static volatile UiThreadIntegration utiStatus = UTI_PENDING;
 
 #define MAIN_WINDOW_SUBCLASS_ID     1              // subclass identifier for the terminal main window
@@ -27,38 +27,24 @@ static volatile UiThreadIntegration utiStatus = UTI_PENDING;
  * @return void
  */
 void WINAPI IntegrateExpander() {
-   struct local {
-      // one-time execution in a non-UI thread
-      static BOOL CALLBACK ExecOnceNonUiThread(PINIT_ONCE, PVOID, PVOID*) {
-            CustomizeTerminal()                    // perform configured modifications
-         && HookUiThread();                        // continue in the UI thread
-         return TRUE;                              // always TRUE, no retry on failure
-      };
-
-      // one-time execution in the UI thread
-      static BOOL CALLBACK ExecOnceUiThread(PINIT_ONCE, PVOID, PVOID*) {
-            SubclassMainWindow()
-         && SubclassChartWindows()
-         && HookWindowEvents();                    // after MT4 installed its own hook
-         return TRUE;                              // always TRUE, no retry on failure
-      }
-   };
-
    // 1st call: in non-UI thread
    if (!IsUiThread()) {
-      static INIT_ONCE onceNonUi = INIT_ONCE_STATIC_INIT;
-      void* ctx = NULL;
-      if (!InitOnceExecuteOnce(&onceNonUi, local::ExecOnceNonUiThread, NULL, &ctx)) {
-         error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
+      static volatile bool done = false;
+      if (!done) {
+         done = true;
+         if (!CustomizeTerminal()) return;         // perform configured modifications
+         if (!HookUiThread())      return;         // continue in the UI thread
       }
       return;
    }
 
    // 2nd call: in UI thread
-   static INIT_ONCE onceUi = INIT_ONCE_STATIC_INIT;
-   void* ctx = NULL;
-   if (!InitOnceExecuteOnce(&onceUi, local::ExecOnceUiThread, NULL, &ctx)) {
-      error(ERR_WIN32_ERROR + GetLastError(), "InitOnceExecuteOnce()");
+   static bool done = false;                       // no serialization needed
+   if (!done) {
+      done = true;
+      if (!SubclassMainWindow())   return;
+      if (!SubclassChartWindows()) return;
+      if (!HookWindowEvents())     return;         // after MT4 installed its own hook
    }
 }
 
@@ -169,7 +155,9 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
       if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("called");
 
       utiStatus = UTI_STARTED;
+
       IntegrateExpander();                         // continue integration in the UI thread
+
       utiStatus = UTI_FINISHED;
    }
    return CallNextHookEx(NULL, code, wParam, lParam);
@@ -177,17 +165,15 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
 
 
 /**
- * Register a hook for window events for windows owned by the UI thread.
+ * Register a hook for window events for windows owned by the UI thread. Runs in the UI thread.
  *
  * @return BOOL - success status
  */
 static BOOL WINAPI HookWindowEvents() {
-   static HHOOK hWindowEventHook = NULL;
-   if (!hWindowEventHook) {
-      hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventsHookProc, NULL, GetUiThreadId());
-      if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CBT)");
-      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hWindowEventHook);
-   }
+   HHOOK hWindowEventHook = SetWindowsHookEx(WH_CBT, WindowEventsHookProc, NULL, GetUiThreadId());
+   if (!hWindowEventHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CBT)");
+
+   if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hWindowEventHook);
    return TRUE;
 }
 
