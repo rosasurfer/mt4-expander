@@ -8,7 +8,12 @@
 
 #include <commctrl.h>
 
-static volatile BOOL uiThreadHook_done = FALSE;    // whether the UI-thread part of integration has run
+enum UiThreadIntegration {                         // UI-thread integration states
+   UTI_PENDING = 0,
+   UTI_STARTED = 1,
+   UTI_DONE    = 2
+};                                                 // current runtime status
+static volatile UiThreadIntegration utiStatus = UTI_PENDING;
 
 #define MAIN_WINDOW_SUBCLASS_ID     1              // subclass identifier for the terminal main window
 #define CHART_WINDOW_SUBCLASS_ID    2              // subclass identifier for chart windows
@@ -115,7 +120,7 @@ static BOOL WINAPI HookUiThread() {
       }
    };
 
-   // The UI thread may be temporarily unresponsive, or MT4 may immediately install another hook blocking ours.
+   // The UI thread may be temporarily unresponsive, or MT4 may install its own hook which may block ours (similar to WH_CBT).
    // Therefore, we run in a loop until our hook has been successfully executed.
    while (true) {
       // register a hook for messages sent to windows owned by the UI thread
@@ -138,7 +143,7 @@ static BOOL WINAPI HookUiThread() {
       if (!local::RemoveHook(hHook)) return FALSE;
       if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p removed", hHook);
 
-      if (uiThreadHook_done) break;             // this guarantees hook execution, with whatever outcome
+      if (utiStatus == UTI_DONE) break;         // this guarantees hook execution, with whatever outcome
 
       // try again
       if (timeout) debug(ERR_WIN32_ERROR + ERROR_TIMEOUT, "UI thread unresponsive, waiting...");
@@ -158,10 +163,12 @@ static BOOL WINAPI HookUiThread() {
  * @return LRESULT - return value of CallNextHookEx()
  */
 static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
-   if (!uiThreadHook_done) {
+   if (utiStatus == UTI_PENDING) {
       if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("called");
+
+      utiStatus = UTI_STARTED;
       IntegrateExpander();                         // continue integration in the UI thread
-      uiThreadHook_done = true;
+      utiStatus = UTI_DONE;
    }
    return CallNextHookEx(NULL, code, wParam, lParam);
 }
