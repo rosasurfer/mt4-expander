@@ -7,7 +7,8 @@
 #include "lib/sound.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
-#include "lib/win32.h"
+#include "lib/thread.h"
+#include "lib/window.h"
 
 #include <shellapi.h>
 #include <shlobj.h>
@@ -103,12 +104,12 @@ HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
 
 
 /**
- * Parse command line arguments and return the flags of supported and enabled CLI options.
+ * Parse command line arguments and return the flags of enabled CLI options.
  *
  * @return DWORD - option flags
  */
 DWORD WINAPI GetCliOptions() {
-   static DWORD options = MAXDWORD;                   // bit mask of specified options
+   static volatile DWORD options = MAXDWORD;          // bit mask of specified options
 
    if (options == MAXDWORD) {
       int argc = 0;
@@ -122,39 +123,43 @@ DWORD WINAPI GetCliOptions() {
             continue;                                 // This test mirrors that unusual behavior.
          }
          if (StrCompare(argv[i], L"/rsf:debug-accountnumber")) {
-            _options |= OPTION_DEBUG_ACCOUNT_NUMBER;
+            _options |= DEBUG_FEATURE_ACCOUNT_NUMBER;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-accountserver")) {
-            _options |= OPTION_DEBUG_ACCOUNT_SERVER;
+            _options |= DEBUG_FEATURE_ACCOUNT_SERVER;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-charttemplates")) {
-            _options |= OPTION_DEBUG_CHART_TEMPLATES;
+            _options |= DEBUG_FEATURE_CHART_TEMPLATES;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-createobject")) {
-            _options |= OPTION_DEBUG_CREATE_OBJECT;
+            _options |= DEBUG_FEATURE_CREATE_OBJECT;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-createwindow")) {
-            _options |= OPTION_DEBUG_CREATE_WINDOW;
+            _options |= DEBUG_FEATURE_CREATE_WINDOW;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-ec")) {
-            _options |= OPTION_DEBUG_EXECUTION_CONTEXT;
+            _options |= DEBUG_FEATURE_EXECUTION_CONTEXT;
+            continue;
+         }
+         if (StrCompare(argv[i], L"/rsf:debug-hooks")) {
+            _options |= DEBUG_FEATURE_HOOKS;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-indicatorlist")) {
-            _options |= OPTION_DEBUG_INDICATOR_LIST;
+            _options |= DEBUG_FEATURE_INDICATOR_LIST;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-subclass")) {
-            _options |= OPTION_DEBUG_SUBCLASS;
+            _options |= DEBUG_FEATURE_SUBCLASS;
             continue;
          }
          if (StrCompare(argv[i], L"/rsf:debug-wmcommand")) {
-            _options |= OPTION_DEBUG_WM_COMMAND;
+            _options |= DEBUG_FEATURE_WM_COMMAND;
             continue;
          }
       }
@@ -170,11 +175,11 @@ DWORD WINAPI GetCliOptions() {
 
 
 /**
- * Return the flags of enabled debug options.
+ * Return enabled debug feature flags.
  *
  * @return DWORD - option flags
  */
-DWORD WINAPI GetDebugOptions() {
+DWORD WINAPI GetDebugFeatures() {
    return GetCliOptions() & ~OPTION_PORTABLE_MODE;
    #pragma EXPANDER_EXPORT
 }
@@ -325,7 +330,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
-   static char* testerPath, *onlinePath;
+   static char *testerPath, *onlinePath;
 
    if (inTester) {
       if (!testerPath) {
@@ -360,7 +365,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
  * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
-   static wchar* testerPath, *onlinePath;
+   static wchar *testerPath, *onlinePath;
 
    if (inTester) {
       if (!testerPath) {
@@ -632,12 +637,27 @@ const wchar* WINAPI GetTerminalFileNameW() {
  * @return HWND - handle or NULL (0) in case of errors
  */
 HWND WINAPI GetTerminalMainWindow() {
-   static HWND hWndMain;
+   static volatile HWND hWndMain;
 
    if (!hWndMain) {
-      DWORD processId = NULL, self = GetCurrentProcessId();
-      HWND hWndNext = NULL, hWndFound = NULL;
-      uint i = 0;
+      struct local {
+         /** @return BOOL - whether to continue enumeration */
+         static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
+            ARGS* args = (ARGS*)lParam;
+            DWORD processId = NULL;
+            GetWindowThreadProcessId(hWnd, &processId);
+
+            if (processId == args->myProcessId && getClassNameW(hWnd) == L"MetaQuotes::MetaTrader::4.00") {
+               args->hWndFound = hWnd;
+            }
+            SetLastError(NO_ERROR);             // an unrelated window may have been destroyed cross-thread
+            return !args->hWndFound;
+         }
+      };
+      struct ARGS {
+         __in  DWORD myProcessId;
+         __out HWND  hWndFound;
+      } args = { GetCurrentProcessId(), 0 };
 
       // MQL scripts run in their own thread. On fast CPUs with multiple cores, the following race condition may occur when
       // the Expander is loaded early: A non-UI thread is already looking-up the terminal main window, even though the UI
@@ -645,33 +665,23 @@ HWND WINAPI GetTerminalMainWindow() {
       //
       // Workaround: In such a case, the calling thread enters a brief wait loop. This is not critical, as MQL programs or
       // the UI thread itself will never enter this loop.
-
-      while (TRUE) {
-         hWndNext = GetTopWindow(NULL);            // TODO: use EnumWindows() as a Z order change will corrupt the result
-
-         while (hWndNext) {                        // iterate over all top-level windows
-            GetWindowThreadProcessId(hWndNext, &processId);
-            if (processId == self) {
-               wstring className = getClassNameW(hWndNext);
-               if (className == L"MetaQuotes::MetaTrader::4.00") {
-                  hWndFound = hWndNext;
-                  break;
-               }
-            }
-            hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-         }
-         if (hWndFound) break;
+      uint i = 0;
+      while (true) {
+         SetLastError(NO_ERROR);
+         if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&args) && GetLastError()) return (HWND)_NULL(error(GetLastError(), "EnumWindows()"));
+         if (args.hWndFound) break;
 
          static int log1 = info("cannot find terminal main window, waiting...");
          if (i >= 10) {
             static int log2 = error(ERR_RUNTIME_ERROR, "cannot find terminal main window, giving up");
+            SetLastError(log2);
             return NULL;
          }
          i++;
          Sleep(100);                               // wait in total 1 sec
       }
 
-      if (!hWndMain) hWndMain = hWndFound;         // another thread may have been faster
+      if (!hWndMain) hWndMain = args.hWndFound;    // another thread may have been faster
    }
    return hWndMain;
    #pragma EXPANDER_EXPORT
@@ -684,7 +694,7 @@ HWND WINAPI GetTerminalMainWindow() {
  * @return HWND - handle or NULL (0) in case of errors
  */
 HWND WINAPI GetTerminalMdiWindow() {
-   static HWND hWndMdi;
+   static volatile HWND hWndMdi;
 
    if (!hWndMdi) {
       HWND hWndMain = GetTerminalMainWindow();
@@ -875,7 +885,7 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
       if (!infos) return !error(ERR_WIN32_ERROR + GetLastError(), "LockResource()");
 
       int offset = 6;
-      if (!wstrcmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
+      if (StrCompare((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
          offset += sizeof(L"VS_VERSION_INFO");
          offset += offset % 4;                  // align to next 32 bit
          VS_FIXEDFILEINFO* tmp = (VS_FIXEDFILEINFO*)((BYTE*)infos + offset);
@@ -1009,60 +1019,51 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
  *
  * @return BOOL - success status, especially:
  *                TRUE if the dialog was successfully opened or already visible
- *                FALSE if the dialog was not yet opened before (dialog window not found)
+ *                FALSE if the dialog was not yet opened before (window not found)
  */
 BOOL WINAPI ReopenAlertDialog(BOOL sound) {
-   HWND hWnd = NULL, hWndAlert = NULL, hWndNext = GetTopWindow(NULL);
-   DWORD processId, self = GetCurrentProcessId();
+   // prepare callback function
+   struct local {
+      /** @return BOOL - whether to continue enumeration */
+      static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
+         ARGS* args = (ARGS*)lParam;
+         DWORD processId = NULL;
+         GetWindowThreadProcessId(hWnd, &processId);
 
-   // enumerate top-level windows
-   while (hWndNext) {
-      GetWindowThreadProcessId(hWndNext, &processId);
-      if (processId == self) {
-         // the window belongs to us: inspect the child controls (i18n prevents checking against the text)
-         if (getClassNameW(hWndNext) == L"#32770") {
-            hWnd = GetDlgItem(hWndNext, IDC_ALERT_BUTTON);
-            if (hWnd && getClassNameW(hWnd) == L"Button") {
-               hWnd = GetDlgItem(hWndNext, IDC_ALERT_ICON);
-               if (hWnd && getClassNameW(hWnd) == L"Static" && GetWindowLongPtrW(hWnd, GWL_STYLE) & SS_BITMAP) {
-                  hWnd = GetDlgItem(hWndNext, IDC_ALERT_EDITTEXT);
-                  if (hWnd && getClassNameW(hWnd) == L"Edit") {
-                     hWnd = GetDlgItem(hWndNext, IDC_ALERT_LISTVIEW);
-                     if (hWnd && getClassNameW(hWnd) == L"SysListView32") {
-                        hWndAlert = hWndNext;
-                        break;
-                     }
-                  }
-               }
+         // i18n prevents checking against the window text, so we must inspect child controls
+         if (processId == args->myProcessId && getClassNameW(hWnd) == L"#32770") {
+            HWND hChild;
+            if ((hChild = GetDlgItem(hWnd, IDC_ALERT_BUTTON))   && getClassNameW(hChild) == L"Button" &&
+                (hChild = GetDlgItem(hWnd, IDC_ALERT_ICON))     && getClassNameW(hChild) == L"Static" && GetWindowStyles(hChild) & SS_BITMAP &&
+                (hChild = GetDlgItem(hWnd, IDC_ALERT_EDITTEXT)) && getClassNameW(hChild) == L"Edit"   &&
+                (hChild = GetDlgItem(hWnd, IDC_ALERT_LISTVIEW)) && getClassNameW(hChild) == L"SysListView32") {
+               args->hWndAlert = hWnd;
             }
          }
+         SetLastError(NO_ERROR);             // an unrelated window may have been destroyed cross-thread
+         return !args->hWndAlert;
       }
-      hWndNext = GetWindow(hWndNext, GW_HWNDNEXT);
-   }
-   if (!hWndAlert) return _FALSE(debug("\"Alert\" dialog window not found"));
+   };
+   struct ARGS {
+      __in  DWORD myProcessId;
+      __out HWND  hWndAlert;
+   } args = { GetCurrentProcessId(), NULL };
 
-   // show the "Alert" window
-   bool wasHidden = !ShowWindow(hWndAlert, SW_SHOW);
-   SetForegroundWindow(hWndAlert);
+   // enumerate top-level windows
+   SetLastError(NO_ERROR);
+   if (!EnumWindows(local::EnumWindowsProc, (LPARAM)&args) && GetLastError()) return !error(GetLastError(), "EnumWindows()");
+   HWND hWndAlert = args.hWndAlert;
 
-   // play the standard "Alert" sound
-   if (wasHidden && sound) {
-      PlaySoundW(L"alert.wav");
+   if (hWndAlert) {
+      bool wasHidden = !ShowWindow(hWndAlert, SW_SHOW);
+      SetForegroundWindow(hWndAlert);        // show the "Alert" window
+      if (wasHidden && sound) {
+         PlaySoundW(L"alert.wav");           // play the standard "Alert" sound
+      }
    }
-   return TRUE;
+   else {
+      debug("\"Alert\" dialog window not found");
+   }
+   return (BOOL)hWndAlert;
    #pragma EXPANDER_EXPORT
-   /*
-   340 DIALOGEX 0, 0, 250, 134, 0
-   STYLE DS_SETFONT | DS_CONTEXTHELP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-   EXSTYLE WS_EX_CONTEXTHELP
-   CAPTION "Alert"
-   LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-   FONT 8, "Tahoma"
-   {
-     DEFPUSHBUTTON   "OK", 1, 100, 115, 50, 14
-     CONTROL 125, 1236, "STATIC", SS_BITMAP, 5, 5, 32, 30
-     EDITTEXT   "", 1325, 45, 10, 200, 40, NOT WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
-     CONTROL "List1", 4018, "SysListView32", WS_BORDER | WS_TABSTOP | 0x0000C405, 5, 55, 240, 55
-   }
-   */
 }

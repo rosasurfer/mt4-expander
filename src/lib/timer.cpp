@@ -1,6 +1,7 @@
 #include "expander.h"
 #include "lib/helper.h"
 #include "lib/timer.h"
+#include "lib/window.h"
 
 #include <vector>
 
@@ -47,7 +48,7 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    ttd->interval = millis;
    ttd->hWnd     = hWnd;
    ttd->flags    = flags;
-   g_tickTimers.push_back(ttd);                                // may re-allocate, thus needs to be synchronized
+   g_tickTimers.push_back(ttd);                                // may re-allocate, thus needs to be fully synchronized
    LeaveCriticalSection(&g_expanderMutex);
 
    // create the timer

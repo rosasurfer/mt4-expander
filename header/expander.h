@@ -8,6 +8,7 @@
 #pragma warning(disable:4101)                               // unreferenced local variable
 #pragma warning(disable:4127)                               // conditional expression is constant
 #pragma warning(disable:4189)                               // local variable is initialized but not referenced
+#pragma warning(disable:4345)                               // warning that a formerly broken feature is finally fixed: zero initialization of new() up to VS2005 (MSCV 8.0)
 #pragma warning(disable:4505)                               // unreferenced local function has been removed
 #pragma warning(disable:4702)                               // unreachable code
 #pragma warning(disable:4706)                               // assignment within conditional expression
@@ -20,6 +21,7 @@
 #include "shared/defines.h"                                 // shared between C++ and MQL
 #include "shared/errors.h"                                  // shared between C++ and MQL
 #include "shared/metaquotes.h"
+#include "resources/expander.h"
 
 #include <iomanip>
 #include <mbstring.h>
@@ -135,18 +137,17 @@ enum UninitializeReason {
 #define warn(...)   _warn  (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define error(...)  _error (__FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-int __cdecl _dump  (const char* fileName, const char* funcName, uint line, const void* data, uint size, DWORD mode = DUMPMODE_HEX);
-int __cdecl _debug (const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _debug (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _info  (const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _info  (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _notice(const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _notice(const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _warn  (const char* fileName, const char* funcName, uint line, const char* message, ...);
-int __cdecl _warn  (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-int __cdecl _error (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
-
-int __cdecl debug_raw(const char* message, ...);
+int __cdecl _dump     (const char* fileName, const char* funcName, uint line, const void* data, uint size, DWORD mode = DUMPMODE_HEX);
+int __cdecl _debug    (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl  debug_raw(const char* message, ...);
+int __cdecl _debug    (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _info     (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _info     (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _notice   (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _notice   (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _warn     (const char* fileName, const char* funcName, uint line, const char* message, ...);
+int __cdecl _warn     (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
+int __cdecl _error    (const char* fileName, const char* funcName, uint line, int error, const char* message, ...);
 
 
 // helper functions returning constant values
@@ -179,6 +180,20 @@ double __cdecl _double(double value, ...);
 
 #define countof(array)             _countof(array)                // MSVC array helper
 #define sizeofMember(type, member) sizeof(((type*)NULL)->member)  // return the size of a type member without an actual instance
+
+
+/**
+ * Ternary shorthand (implements missing Elvis operator).
+ *
+ * @param  T &a
+ * @param  T &b
+ *
+ * @return T
+ */
+template <typename T>
+__forceinline T orElse(const T &a, const T &b) {
+   return a ? a : b;
+}
 
 
 // helpers to free() multiple pointers at once

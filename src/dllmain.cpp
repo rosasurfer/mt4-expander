@@ -1,10 +1,10 @@
 #include "expander.h"
 #include "dllmain.h"
-#include "lib/helper.h"
+#include "integration.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/timer.h"
-#include "lib/ui/integration.h"
+#include "lib/window.h"
 #include "struct/ExecutionContext.h"
 
 extern MqlInstanceList               g_mqlInstances;        // all MQL program instances
@@ -50,7 +50,7 @@ static BOOL WINAPI onProcessAttach() {
    g_threadsPrograms.reserve(512);
    g_tickTimers.     reserve(32);
 
-   // launch worker thread for custom initializations
+   // launch worker thread for Expander integration
    HMODULE hModule = NULL;                // increase ref-count so the DLL can't be unloaded before the thread finishes
    GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)onProcessAttach, &hModule);
    if (!hModule) return !error(ERR_WIN32_ERROR + GetLastError(), "GetModuleHandleExA()");
@@ -102,7 +102,7 @@ static DWORD WINAPI ExpanderStartThread(void* lpParam) {
    }
    PinDllToMemory();                               // otherwise we keep the DLL in memory until process termination
 
-   SetupUiIntegration();
+   IntegrateExpander();
    return NO_ERROR;
 }
 

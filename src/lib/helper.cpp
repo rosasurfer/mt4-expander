@@ -2,28 +2,56 @@
 #include "lib/helper.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
-#include <map>
-
-typedef std::map<string, int>    IntegerMap;       // map = associative array
-typedef std::map<string, double> DoubleMap;        // new elements are added "by-copy"
-typedef std::map<string, string> StringMap;        //
-
-IntegerMap g_intWndProperties;                     // a map with integers stored as window properties
-DoubleMap  g_doubleWndProperties;                  // a map with doubles stored as window properties
-StringMap  g_stringWndProperties;                  // a map with strings stored as window properties
 
 
 /**
- * Whether the build of the DLL is a debug build.
+ * Return a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily").
  *
- * @return BOOL
+ * @param  string &symbol
+ * @param  uint   timeframe
+ * @param  bool   custom [optional] - whether to support custom timeframes (default: no)
+ *
+ * @return string - chart title or an empty string in case of errors; call GetLastError() for details
  */
-BOOL WINAPI IsDebugBuild() {
-   #ifdef _DEBUG
-      return TRUE;
-   #else
-      return FALSE;
-   #endif
+string WINAPI ChartTitleA(const string &symbol, uint timeframe, bool custom/*= false*/) {
+   size_t symbolLength = symbol.length();
+   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
+
+   string description = "";
+
+   switch (timeframe) {
+      case PERIOD_M1 : description += "M1";      break;
+      case PERIOD_M5 : description += "M5";      break;
+      case PERIOD_M10: description += "M10";     break;
+      case PERIOD_M15: description += "M15";     break;
+      case PERIOD_M30: description += "M30";     break;
+      case PERIOD_H1 : description += "H1";      break;
+      case PERIOD_H4 : description += "H4";      break;
+      case PERIOD_D1 : description += "Daily";   break;
+      case PERIOD_W1 : description += "Weekly";  break;
+      case PERIOD_MN1: description += "Monthly"; break;
+      default:
+         if (custom) {
+            switch (timeframe) {
+               case PERIOD_M2 : description += "M2";  break;
+               case PERIOD_M3 : description += "M3";  break;
+               case PERIOD_M4 : description += "M4";  break;
+               case PERIOD_M6 : description += "M6";  break;
+               case PERIOD_M12: description += "M12"; break;
+               case PERIOD_M20: description += "M20"; break;
+               case PERIOD_H2 : description += "H2";  break;
+               case PERIOD_H3 : description += "H3";  break;
+               case PERIOD_H6 : description += "H6";  break;
+               case PERIOD_H8 : description += "H8";  break;
+               case PERIOD_H12: description += "H12"; break;
+            }
+         }
+         if (!description.length()) {
+            description += "M";
+            description += to_string(timeframe);      // for custom offline charts
+         }
+   }
+   return string(symbol).append(",").append(description);
 }
 
 
@@ -39,121 +67,16 @@ DWORD WINAPI GetLastWin32Error() {
 
 
 /**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
+ * Whether the build of the DLL is a debug build.
  *
- * @param  HWND hWnd - window handle
- *
- * @return char* - text or a NULL pointer in case of errors
+ * @return BOOL
  */
-char* WINAPI GetInternalWindowTextA(HWND hWnd) {
-   SetLastError(NO_ERROR);
-   string text = getInternalWindowTextA(hWnd);
-   if (GetLastError()) return NULL;
-
-   return sdup(text.c_str());                            // caller must free()
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
- *
- * @param  HWND hWnd - window handle
- *
- * @return string - text or an empty string in case of errors; call GetLastError() for details
- */
-string WINAPI getInternalWindowTextA(HWND hWnd) {
-   wstring text = getInternalWindowTextW(hWnd);
-   return utf16ToAnsi(text);
-}
-
-
-/**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
- *
- * @param  HWND hWnd - window handle
- *
- * @return wchar* - text or a NULL pointer in case of errors
- */
-wchar* WINAPI GetInternalWindowTextW(HWND hWnd) {
-   SetLastError(NO_ERROR);
-   wstring text = getInternalWindowTextW(hWnd);
-   if (GetLastError()) return NULL;
-
-   return wsdup(text.c_str());                           // caller must free()
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function reads the text directly from the window structure, it doesn't send a WM_GETTEXT message.
- *
- * @param  HWND hWnd - window handle
- *
- * @return wstring - text or an empty string in case of errors; call GetLastError() for details
- */
-wstring WINAPI getInternalWindowTextW(HWND hWnd) {
-   wchar* buffer = NULL;
-   int chars = 64, copiedChars = chars;
-
-   SetLastError(NO_ERROR);
-   while (copiedChars >= chars-1) {                      // if (length == chars-1) the string may have been truncated
-      chars <<= 1;                                       // double the length (starts with 128 chars)
-      buffer = (wchar*) alloca(chars * sizeof(wchar));
-      copiedChars = InternalGetWindowText(hWnd, buffer, chars);
-   }
-   if (!copiedChars && GetLastError()) return _empty_wstr(error(ERR_WIN32_ERROR + GetLastError(), "InternalGetWindowText()"));
-
-   return wstring(buffer);
-}
-
-
-/**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function gets the text as a response to a WM_GETTEXT message.
- *
- * @param  HWND hWnd - window handle
- *
- * @return char* - text (may be empty) or a NULL pointer in case of errors
- */
-char* WINAPI GetWindowTextA(HWND hWnd) {
-   wchar* utf16Text = GetWindowTextW(hWnd);
-   if (!utf16Text) return NULL;
-
-   char* ansiText = utf16ToAnsi(utf16Text);
-   free(utf16Text);
-
-   return ansiText;                                      // caller must free()
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the text of the specified window's title bar. If the window is a control the text of the control is obtained.
- * This function gets the text as a response to a WM_GETTEXT message.
- *
- * @param  HWND hWnd - window handle
- *
- * @return wchar* - text (may be empty) or a NULL pointer in case of errors
- */
-wchar* WINAPI GetWindowTextW(HWND hWnd) {
-   wchar* buffer = NULL;
-   int chars = 64, copiedChars = chars;
-
-   SetLastError(NO_ERROR);
-   while (copiedChars >= chars-1) {                      // if (length == chars-1) the string may have been truncated
-      chars <<= 1;                                       // double the size (starts with 128 chars)
-      buffer = (wchar*) alloca(chars * sizeof(wchar));
-      copiedChars = GetWindowTextW(hWnd, buffer, chars);
-   }
-   if (!copiedChars && GetLastError()) return (wchar*)!error(ERR_WIN32_ERROR + GetLastError(), "GetWindowTextW()");
-
-   return wsdup(buffer);                                 // caller must free()
-   #pragma EXPANDER_EXPORT
+BOOL WINAPI IsDebugBuild() {
+   #ifdef _DEBUG
+      return TRUE;
+   #else
+      return FALSE;
+   #endif
 }
 
 
@@ -271,41 +194,6 @@ DWORD WINAPI GetPressedVirtualKeys(DWORD flags = F_VK_ALL) {
 
 
 /**
- * Whether the specified thread is the application's UI thread.
- *
- * @param  DWORD threadId [optional] - thread id (default: the current thread)
- *
- * @return BOOL
- */
-BOOL WINAPI IsUiThread(DWORD threadId/*= NULL*/) {
-   if (!threadId) {
-      threadId = GetCurrentThreadId();
-   }
-   return (threadId == GetUiThreadId());
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return the id of the UI thread.
- *
- * @return DWORD - thread id (not thread handle) or NULL in case of errors
- */
-DWORD WINAPI GetUiThreadId() {
-   static DWORD uiThreadId;
-
-   if (!uiThreadId) {
-      if (HWND hWnd = GetTerminalMainWindow()) {
-         DWORD threadId = GetWindowThreadProcessId(hWnd, NULL);
-         if (!uiThreadId) uiThreadId = threadId;      // another thread may have been faster
-      }
-   }
-   return uiThreadId;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
  * Whether any part of the specified window's client area is currently visible. The visible area is defined by the current
  * clipping region or clip path, as well as any overlapping windows.
  *
@@ -326,424 +214,5 @@ BOOL WINAPI IsWindowAreaVisible(HWND hWnd) {
    if (region == RGN_ERROR) return !error(ERR_WIN32_ERROR + GetLastError(), "GetClipBox(hDC=%p) => RGN_ERROR", hDC);
 
    return (region != NULLREGION);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of user32::GetPropA()
- *
- * Retrieves a named value stored in the property list of the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - property name
- *
- * @return HANDLE - the stored value or NULL if no such property exists in the window
- */
-HANDLE WINAPI GetWindowPropertyA(HWND hWnd, const char* name) {
-   return GetPropA(hWnd, name);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of user32::SetPropA()
- *
- * Sets a named value stored in the property list of the specified window.
- *
- * @param  HWND   hWnd  - window handle
- * @param  char*  name  - property name
- * @param  HANDLE value - property value
- *
- * @return BOOL - success status
- */
-BOOL WINAPI SetWindowPropertyA(HWND hWnd, const char* name, HANDLE value) {
-   BOOL success = SetPropA(hWnd, name, value);
-   if (!success) {
-      error(ERR_WIN32_ERROR + GetLastError(), "SetPropA()  name=\"%s\"", name);
-   }
-   return success;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of user32::RemovePropA()
- *
- * Removes a named value from the property list of the specified window.
- *
- * @param  HWND   hWnd  - window handle
- * @param  char*  name  - property name
- *
- * @return HANDLE - the removed value or NULL if no such property exists in the window
- */
-HANDLE WINAPI RemoveWindowPropertyA(HWND hWnd, const char* name) {
-   return RemovePropA(hWnd, name);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Callback function for EnumWindowPropertiesA(). Prints property names/values to the debug output.
- *
- * @param  HWND      hWnd   - window whose property list is being enumerated
- * @param  wchar*    name   - property name
- * @param  HANDLE    value  - property value
- * @param  ULONG_PTR prefix - limiting name prefix of properties to print
- *
- * @return BOOL - whether to continue enumeration with the next property
- */
-BOOL CALLBACK EnumWindowPropertiesProcW(HWND hwnd, wchar* name, HANDLE value, ULONG_PTR prefix) {
-   wchar* wPrefix = (wchar*)prefix;
-   if (wPrefix && !*wPrefix) {
-      wPrefix = NULL;
-   }
-   if (wPrefix && !StrStartsWith(name, wPrefix)) {
-      return TRUE;
-   }
-   debug("property %S = %d", name, value);
-   return TRUE;
-}
-
-
-/**
- * Enumerates the properties of the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - limiting name prefix of properties to print
- *
- * @return BOOL - success status; FALSE if the function did not find any window properties or in case of errors
- */
-BOOL WINAPI EnumWindowPropertiesA(HWND hWnd, const char* prefix) {
-   wchar* wPrefix = NULL;
-   if (prefix) {
-      if ((uint)prefix < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix);
-      wPrefix = ansiToUtf16(prefix);
-   }
-   BOOL result = EnumWindowPropertiesW(hWnd, wPrefix);
-   if (wPrefix) free(wPrefix);
-   return result;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Enumerates the properties of the specified window.
- *
- * @param  HWND   hWnd - window handle
- * @param  wchar* name - limiting name prefix of properties to print
- *
- * @return BOOL - success status; FALSE if the function did not find any window properties or in case of errors
- */
-BOOL WINAPI EnumWindowPropertiesW(HWND hWnd, const wchar* prefix) {
-   if (prefix) {
-      if ((uint)prefix < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter prefix: 0x%p (not a valid pointer)", prefix);
-   }
-   int result = EnumPropsExW(hWnd, EnumWindowPropertiesProcW, (LPARAM)prefix);
-   return (result != -1);
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a named integer value linked to the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - integer name
- *
- * @return int - stored value or NULL if the name was not found or in case of errors
- */
-int WINAPI GetWindowIntegerA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   IntegerMap::iterator result = g_intWndProperties.find(key);
-
-   if (result != g_intWndProperties.end()) {
-      return result->second;
-   }
-   return NULL;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a named double value linked to the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - double name
- *
- * @return double - stored value or NULL if the name was not found or in case of errors
- */
-double WINAPI GetWindowDoubleA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   DoubleMap::iterator result = g_doubleWndProperties.find(key);
-
-   if (result != g_doubleWndProperties.end()) {
-      return result->second;
-   }
-   return NULL;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Return a named string linked to the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - string identifier
- *
- * @return char* - stored string or a NULL pointer if the name was not found or in case of errors
- */
-const char* WINAPI GetWindowStringA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   StringMap::iterator result = g_stringWndProperties.find(key);
-
-   if (result != g_stringWndProperties.end()) {
-      return result->second.c_str();
-   }
-   return NULL;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Store a named integer value and link it to the specified window.
- *
- * @param  HWND  hWnd  - window handle
- * @param  char* name  - integer name
- * @param  int   value - integer value
- *
- * @return BOOL - success status
- */
-BOOL WINAPI SetWindowIntegerA(HWND hWnd, const char* name, int value) {
-   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   g_intWndProperties[key] = value;
-
-   return TRUE;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Store a named double value and link it to the specified window.
- *
- * @param  HWND   hWnd  - window handle
- * @param  char*  name  - integer name
- * @param  double value - double value
- *
- * @return BOOL - success status
- */
-BOOL WINAPI SetWindowDoubleA(HWND hWnd, const char* name, double value) {
-   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   g_doubleWndProperties[key] = value;
-
-   return TRUE;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Store a named string and link it to the specified window.
- *
- * @param  HWND  hWnd  - window handle
- * @param  char* name  - string identifier
- * @param  char* value - string (must not be a NULL pointer)
- *
- * @return BOOL - success status
- */
-BOOL WINAPI SetWindowStringA(HWND hWnd, const char* name, const char* value) {
-   if (!IsWindow(hWnd))                 return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER)  return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                          return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-   if ((uint)value < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter value: 0x%p (not a valid pointer)", value);
-
-   string key = to_string(hWnd).append("|").append(name);
-   g_stringWndProperties[key] = value;
-
-   return TRUE;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Remove a named integer value linked to the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - integer name
- *
- * @return int - removed value or NULL if the name was not found or in case of errors
- */
-int WINAPI RemoveWindowIntegerA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   IntegerMap::iterator result = g_intWndProperties.find(key);
-
-   if (result != g_intWndProperties.end()) {
-      int value = result->second;
-      g_intWndProperties.erase(result);
-      return value;
-   }
-   return NULL;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Remove a named double value linked to the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - double name
- *
- * @return double - removed value or NULL if the name was not found or in case of errors
- */
-double WINAPI RemoveWindowDoubleA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return !error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return !error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   DoubleMap::iterator result = g_doubleWndProperties.find(key);
-
-   if (result != g_doubleWndProperties.end()) {
-      double value = result->second;
-      g_doubleWndProperties.erase(result);
-      return value;
-   }
-   return NULL;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Remove a named string linked to the specified window.
- *
- * @param  HWND  hWnd - window handle
- * @param  char* name - double name
- *
- * @return char* - removed string or a NULL pointer if the name was not found or in case of errors
- */
-char* WINAPI RemoveWindowStringA(HWND hWnd, const char* name) {
-   if (!IsWindow(hWnd))                return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter hWnd: 0x%p (not a window)", hWnd);
-   if ((uint)name < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
-   if (!*name)                         return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: \"\" (empty)");
-
-   string key = to_string(hWnd).append("|").append(name);
-   StringMap::iterator result = g_stringWndProperties.find(key);
-
-   if (result != g_stringWndProperties.end()) {
-      string value = result->second;
-      g_stringWndProperties.erase(result);      // invalidates result and releases result->second
-      return sdup(value.c_str());               // caller must free()
-   }
-   return NULL;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Release all stored window properties. Called from DLL::onProcessDetach() only.
- */
-void WINAPI ReleaseWindowProperties() {
-   g_intWndProperties.clear();
-   g_doubleWndProperties.clear();
-   g_stringWndProperties.clear();
-}
-
-
-/**
- * Return a description "<symbol>,<timeframe>" for the chart title bar (e.g. "EURUSD,Daily").
- *
- * @param  string &symbol
- * @param  uint   timeframe
- * @param  bool   custom [optional] - whether to support custom timeframes (default: no)
- *
- * @return string - chart title or an empty string in case of errors; call GetLastError() for details
- */
-string WINAPI MakeChartTitleA(const string &symbol, uint timeframe, bool custom/*= false*/) {
-   size_t symbolLength = symbol.length();
-   if (!symbolLength || symbolLength > MAX_SYMBOL_LENGTH) return _empty_str(error(ERR_INVALID_PARAMETER, "invalid parameter symbol: \"%s\"", symbol.c_str()));
-
-   string description = "";
-
-   switch (timeframe) {
-      case PERIOD_M1 : description += "M1";      break;
-      case PERIOD_M5 : description += "M5";      break;
-      case PERIOD_M10: description += "M10";     break;
-      case PERIOD_M15: description += "M15";     break;
-      case PERIOD_M30: description += "M30";     break;
-      case PERIOD_H1 : description += "H1";      break;
-      case PERIOD_H4 : description += "H4";      break;
-      case PERIOD_D1 : description += "Daily";   break;
-      case PERIOD_W1 : description += "Weekly";  break;
-      case PERIOD_MN1: description += "Monthly"; break;
-      default:
-         if (custom) {
-            switch (timeframe) {
-               case PERIOD_M2 : description += "M2";  break;
-               case PERIOD_M3 : description += "M3";  break;
-               case PERIOD_M4 : description += "M4";  break;
-               case PERIOD_M6 : description += "M6";  break;
-               case PERIOD_M12: description += "M12"; break;
-               case PERIOD_M20: description += "M20"; break;
-               case PERIOD_H2 : description += "H2";  break;
-               case PERIOD_H3 : description += "H3";  break;
-               case PERIOD_H6 : description += "H6";  break;
-               case PERIOD_H8 : description += "H8";  break;
-               case PERIOD_H12: description += "H12"; break;
-            }
-         }
-         if (!description.length()) {
-            description += "M";
-            description += to_string(timeframe);      // for custom offline charts
-         }
-   }
-   return string(symbol).append(",").append(description);
-}
-
-
-/**
- * Get a unique message id for the string "MetaTrader4_Internal_Message".
- *
- * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (NULL) in case of errors
- */
-uint WINAPI MT4InternalMsg() {
-   static uint msgId = RegisterWindowMessageA("MetaTrader4_Internal_Message");
-   if (!msgId) return !error(ERR_WIN32_ERROR + GetLastError(), "RegisterWindowMessageA()");
-   return msgId;
-   #pragma EXPANDER_EXPORT
-}
-
-
-/**
- * Alias of MT4InternalMsg()
- *
- * Get a unique message id for the string "MetaTrader4_Internal_Message".
- *
- * @return uint - message id in the range from 0xC000 to 0xFFFF or 0 (NULL) in case of errors
- */
-uint WINAPI WM_MT4() {
-   return MT4InternalMsg();
    #pragma EXPANDER_EXPORT
 }

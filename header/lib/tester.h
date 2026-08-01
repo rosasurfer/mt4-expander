@@ -9,4 +9,4 @@ int    WINAPI Tester_GetBarModel();
 time32 WINAPI Tester_GetStartDate();
 time32 WINAPI Tester_GetEndDate();
 BOOL   WINAPI Tester_ReadFxtHeader(const char* symbol, uint timeframe, uint barModel, FXT_HEADER* fxtHeader);
-double WINAPI Test_GetCommission  (const EXECUTION_CONTEXT* ec);
+double WINAPI Test_GetCommission(const EXECUTION_CONTEXT* ec);

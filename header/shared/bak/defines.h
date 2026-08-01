@@ -1,5 +1,5 @@
 /**
- * MQL constants shared with the MT4Expander DLL.
+ * MQL constants shared with the MT4Expander
  */
 
 // special constants
@@ -13,17 +13,17 @@
 #define MAX_ORDER_COMMENT_LENGTH               27
 #define MAX_SYMBOL_GROUP_LENGTH                15
 #define MAX_SYMBOL_LENGTH                      11
+#define CHARTS_MAX                            100
+#define CHART_TEMPLATES_MAX                   100
 
 
-// string constants in the MT4Expander are defined as ANSI
-#define EOL_MAC                              "\r"        // old MacOS line separator: 0x0D
-#define EOL_NETSCAPE                     "\r\r\n"        // Netscape line separator:  0x0D0D0A
-#define EOL_UNIX                             "\n"        // Unix line separator:      0x0A (MQL/Win32 file functions in text mode auto-convert EOL_UNIX to EOL_WINDOWS)
-#define EOL_WINDOWS                        "\r\n"        // Windows line separator:   0x0D0A
+// string constants in MT4Expander are ANSI strings
+#define EOL_UNIX                             "\n"        // 0x0A (MQL+Win32 file functions in text mode silently auto-convert EOL_UNIX to EOL_WINDOWS)
+#define EOL_WINDOWS                        "\r\n"        // 0x0D0A
 
-#define NL                                   "\n"        // MQL4.0 bug: string constants cannot reference each other
+#define NL                                   "\n"        // missing MQL4.0 feature: string constants cannot reference each other
 #define CRLF                               "\r\n"
-#define TAB                                  "\t"        // tabulator: 0x09
+#define TAB                                  "\t"        // 0x09
 
 
 // log levels
@@ -108,20 +108,21 @@
 
 // flags for command line options of "terminal.exe"
 #define OPTION_PORTABLE_MODE                    1        // option "/portable"
-#define OPTION_DEBUG_ACCOUNT_NUMBER             2        // option "/rsf:debug-accountnumber"
-#define OPTION_DEBUG_ACCOUNT_SERVER             4        // option "/rsf:debug-accountserver"
-#define OPTION_DEBUG_CREATE_OBJECT              8        // option "/rsf:debug-createobject"
-#define OPTION_DEBUG_CREATE_WINDOW             16        // option "/rsf:debug-createwindow"
-#define OPTION_DEBUG_EXECUTION_CONTEXT         32        // option "/rsf:debug-ec"
-#define OPTION_DEBUG_INDICATOR_LIST            64        // option "/rsf:debug-indicatorlist"
-#define OPTION_DEBUG_WM_COMMAND               128        // option "/rsf:debug-wmcommand"
-#define OPTION_DEBUG_SUBCLASS                 256        // option "/rsf:debug-subclass"
-#define OPTION_DEBUG_CHART_TEMPLATES          512        // option "/rsf:debug-charttemplates"
+#define DEBUG_FEATURE_ACCOUNT_NUMBER            2        // option "/rsf:debug-accountnumber"
+#define DEBUG_FEATURE_ACCOUNT_SERVER            4        // option "/rsf:debug-accountserver"
+#define DEBUG_FEATURE_CHART_TEMPLATES           8        // option "/rsf:debug-charttemplates"
+#define DEBUG_FEATURE_CREATE_OBJECT            16        // option "/rsf:debug-createobject"
+#define DEBUG_FEATURE_CREATE_WINDOW            32        // option "/rsf:debug-createwindow"
+#define DEBUG_FEATURE_EXECUTION_CONTEXT        64        // option "/rsf:debug-ec"
+#define DEBUG_FEATURE_HOOKS                   128        // option "/rsf:debug-hooks"
+#define DEBUG_FEATURE_INDICATOR_LIST          256        // option "/rsf:debug-indicatorlist"
+#define DEBUG_FEATURE_SUBCLASS                512        // option "/rsf:debug-subclass"
+#define DEBUG_FEATURE_WM_COMMAND             1024        // option "/rsf:debug-wmcommand"
 
 
 // window property names
-#define PROP_STRING_ACCOUNT_SERVER              "rsf:string:accountServer"
-#define PROP_INT_ACCOUNT_NUMBER                 "rsf:int:accountNumber"
+#define PROP_STRING_ACCOUNT_SERVER  "rsf.string.accountServer"
+#define PROP_INT_ACCOUNT_NUMBER     "rsf.int.accountNumber"
 
 
 // timeframe identifiers (can't be combined)
@@ -392,9 +393,9 @@
 #define INIT_TIMEZONE                           1        // ensure a valid timezone configuration
 #define INIT_PIPVALUE                           2        // check availability of the current pip value (requires tick size and tick value)
 #define INIT_BARS_ON_HIST_UPDATE                4        //
-#define INIT_NO_BARS_REQUIRED                   8        // program operates without price history (scripts only)
+#define INIT_NO_BARS_REQUIRED                   8        // scripts only: can operate without price history
 #define INIT_BUFFERED_LOG                      16        // setup a logfile buffer for logging
-#define INIT_AUTO_TRADING                      32        // ensure that auto-trading is enabled
+#define INIT_AUTO_TRADING                      32        // ensure auto-trading is enabled
 
 
 // MT4 internal messages
@@ -426,7 +427,7 @@
 #define TICK_PAUSE_ON_WEEKEND                  16        // send ticks only at regular session times (not implemented)
 
 
-// MT4 command ids (main/context menus, toolbars, hotkeys)
+// MT4 command ids (hotkeys, menus, toolbars, internal commands)
 #define ID_CHART_INDICATORS_LIST            35419        // Chart:   Indicators List dialog            Ctrl+I
 #define ID_CHART_EXPERT_PROPERTIES          33048        //          Expert properties dialog              F7
 #define ID_CHART_OBJECTS_UNSELECTALL        35462        //          Objects->Unselect All
@@ -440,6 +441,8 @@
 #define ID_CHART_TEMPLATES_DEFAULT          34825        //          Templates->Default (base id, dynamic if more than 25 user templates)
 #define ID_CHART_TEMPLATES_OFFLINE          34826        //          Templates->Offline (base id, dynamic if more than 25 user templates)
 #define ID_CHART_TEMPLATES_TESTER           34827        //          Templates->Tester  (base id, dynamic if more than 25 user templates)
+#define ID_CHART_TEMPLATES_REMOVE_USER1     34900        //          Templates->Remove->{first-user-template}
+#define ID_CHART_TEMPLATES_REFRESH          33320        //          refresh main menu templates from disk (context menus are updated per invocation)
 
 #define ID_WINDOW_NEWWINDOW                 57648        // Window:  New Window
 #define ID_WINDOW_TILEWINDOWS               38259        //          Tile Windows                       Alt+R
@@ -455,25 +458,19 @@
 #define ID_TESTER_TICK       ID_CHART_STEPFORWARD        // Tester:  Next Tick                            F12
 
 
-// MT4 control ids (windows, controls, ui elements)
-#define IDC_ALERT_BUTTON                        1        // "Alert" dialog
-#define IDC_ALERT_ICON                       1236        //
-#define IDC_ALERT_EDITTEXT                   1325        //
-#define IDC_ALERT_LISTVIEW                   4018        //
-
+// MT4 control ids (windows, controls, UI elements)
 #define IDC_TOOLBAR                         59419        // toolbar
-#define IDC_TOOLBAR_COMMUNITY_BUTTON        38160        // MQL4/MQL5 community button (terminal builds <= 509)
-#define IDC_TOOLBAR_SEARCHBOX               38213        // search box                 (terminal builds > 509)
+#define IDC_TOOLBAR_COMMUNITY_BUTTON        38160        // MQL4/MQL5 community button (builds <= 509)
+#define IDC_TOOLBAR_SEARCHBOX               38213        // search box (builds > 509)
+
 #define IDC_STATUSBAR                       59393        // status bar
-#define IDC_DOCKED_CONTAINER                59422        // window containing all dockable child windows docked to the main terminal window
-#define IDC_FLOATING_CONTAINER              59423        // window containing a single dockable but floating child window (possibly more than one, not a top-level window)
+
+#define IDC_DOCK_CONTAINER                  59422        // A single window containing all application windows currently docked to the main window.
+#define IDC_FLOAT_CONTAINER                 59423        // One or more windows each containing a single dockable but currently floating application window.
+
 #define IDC_MDICLIENT                       59648        // MDI container window (holding all chart windows)
 #define IDC_MDICLIENT_CHART1                65280        // first chart window
 #define IDC_MDICLIENT_CHART_FRAME   IDC_MDICLIENT        // a chart window's painting area (AfxFrameOrView), return value of MQL::WindowHandle()
-
-#define IDC_CUSTOM_INDICATOR_OK                 1        // load dialog "Custom Indicator"
-#define IDC_CUSTOM_INDICATOR_CANCEL             2        // ...
-#define IDC_CUSTOM_INDICATOR_RESET          12321        // ...
 
 #define IDC_MARKETWATCH                        80        // Market Watch
 #define IDC_MARKETWATCH_SYMBOLS             35441        // Market Watch - Symbols
@@ -485,6 +482,7 @@
 
 #define IDC_TERMINAL                           81        // Terminal
 #define IDC_TERMINAL_TRADE                  33217        // Terminal - Trade
+#define IDC_TERMINAL_EXPOSURE               38311        // Terminal - Exposure
 #define IDC_TERMINAL_ACCOUNTHISTORY         33208        // Terminal - Account History
 #define IDC_TERMINAL_NEWS                   33211        // Terminal - News
 #define IDC_TERMINAL_ALERTS                 33206        // Terminal - Alerts
@@ -492,6 +490,7 @@
 #define IDC_TERMINAL_COMPANY                 4078        // Terminal - Company
 #define IDC_TERMINAL_MARKET                  4081        // Terminal - Market
 #define IDC_TERMINAL_SIGNALS                 1405        // Terminal - Signals
+#define IDC_TERMINAL_ARTICLES               33216        // Terminal - Articles
 #define IDC_TERMINAL_CODEBASE               33212        // Terminal - Code Base
 #define IDC_TERMINAL_EXPERTS                35434        // Terminal - Experts
 #define IDC_TERMINAL_JOURNAL                33209        // Terminal - Journal
@@ -517,6 +516,25 @@
 #define IDC_TESTER_GRAPH                    33207        // Tester - Graph
 #define IDC_TESTER_REPORT                   33213        // Tester - Report
 #define IDC_TESTER_JOURNAL   IDC_TERMINAL_EXPERTS        // Tester - Journal (same as Terminal - Experts)
+
+#define IDC_ALERT_BUTTON                        1        // "Alert" dialog
+#define IDC_ALERT_ICON                       1236        //
+#define IDC_ALERT_EDITTEXT                   1325        //
+#define IDC_ALERT_LISTVIEW                   4018        //
+
+#define IDC_CUSTOM_INDICATOR_OK                 1        // load "Custom Indicator" dialog
+#define IDC_CUSTOM_INDICATOR_CANCEL             2        // ...
+#define IDC_CUSTOM_INDICATOR_RESET          12321        // ...
+
+
+// LFX trade commands
+#define TC_LFX_ORDER_CREATE              1
+#define TC_LFX_ORDER_OPEN                2
+#define TC_LFX_ORDER_CLOSE               3
+#define TC_LFX_ORDER_CLOSEBY             4
+#define TC_LFX_ORDER_HEDGE               5
+#define TC_LFX_ORDER_MODIFY              6
+#define TC_LFX_ORDER_DELETE              7
 
 
 // colors
@@ -787,13 +805,3 @@
 #define clrYellow                        Yellow
 #define clrYellowGreen                   YellowGreen
 #define clrNONE                          CLR_NONE
-
-
-// LFX trade commands
-#define TC_LFX_ORDER_CREATE              1
-#define TC_LFX_ORDER_OPEN                2
-#define TC_LFX_ORDER_CLOSE               3
-#define TC_LFX_ORDER_CLOSEBY             4
-#define TC_LFX_ORDER_HEDGE               5
-#define TC_LFX_ORDER_MODIFY              6
-#define TC_LFX_ORDER_DELETE              7

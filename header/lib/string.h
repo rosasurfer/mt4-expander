@@ -1,6 +1,7 @@
 #pragma once
 #include "expander.h"
 #include "struct/mt4/MqlString.h"
+
 #include <cctype>
 #include <sstream>
 

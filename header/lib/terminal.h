@@ -4,7 +4,7 @@
 char*        WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile);
 HWND         WINAPI FindInputDialogA(ProgramType programType, const char* programName);
 DWORD        WINAPI GetCliOptions();
-DWORD        WINAPI GetDebugOptions();
+DWORD        WINAPI GetDebugFeatures();
 const char*  WINAPI GetExpanderFileNameA();
 const wchar* WINAPI GetExpanderFileNameW();
 const char*  WINAPI GetHistoryRootPathA();

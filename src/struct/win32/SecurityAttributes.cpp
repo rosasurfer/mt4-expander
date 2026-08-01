@@ -11,7 +11,7 @@
 
 
 /**
- * Gibt die Größe der SECURITY_ATTRIBUTES-Structure in Bytes zurück.
+ * Gibt die GrÃ¶ÃŸe der SECURITY_ATTRIBUTES-Structure in Bytes zurÃ¼ck.
  *
  * @param  SECURITY_ATTRIBUTES* sa
  *
@@ -25,7 +25,7 @@ DWORD WINAPI sa_Length(const SECURITY_ATTRIBUTES* sa) {
 
 
 /**
- * Gibt den Zeiger auf den SECURITY_DESCRIPTOR der SECURITY_ATTRIBUTES-Structure zurück.
+ * Gibt den Zeiger auf den SECURITY_DESCRIPTOR der SECURITY_ATTRIBUTES-Structure zurÃ¼ck.
  *
  * @param  SECURITY_ATTRIBUTES* sa
  *
@@ -39,7 +39,7 @@ LPVOID WINAPI sa_SecurityDescriptor(const SECURITY_ATTRIBUTES* sa) {
 
 
 /**
- * Gibt den Inherited-Status des Handles eines mit diesen SECURITY_ATTRIBUTES erzeugten Prozesses zurück.
+ * Gibt den Inherited-Status des Handles eines mit diesen SECURITY_ATTRIBUTES erzeugten Prozesses zurÃ¼ck.
  *
  * @param  SECURITY_ATTRIBUTES* sa
  *

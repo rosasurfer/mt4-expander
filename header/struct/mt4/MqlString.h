@@ -2,8 +2,6 @@
 #include "expander.h"
 
 #pragma pack(push,1)
-
-
 /**
  * Internal MT4 representation of an MQL4.0 string. MQL4.0 strings are stored as ANSI strings. If such a string variable is
  * passed to a C function, in fact the field MqlStringA.value is passed. If an MQL4.0 string array is passed to a C function,

@@ -2,7 +2,6 @@
 #include "expander.h"
 #include "struct/ExecutionContext.h"
 
-
 int                WINAPI MqlProgram_init  (EXECUTION_CONTEXT* ec, ProgramType type, const char* name, UninitializeReason reason, DWORD initFlags, DWORD deinitFlags, const char* symbol, uint timeframe, uint digits, double point, BOOL isTesting, BOOL isVisualMode, BOOL isOptimization, int recorder, EXECUTION_CONTEXT* sec, HWND hChart, int droppedOnChart, int droppedOnPosX, int droppedOnPosY, const char* accountServer, int accountNumber);
 int                WINAPI MqlProgram_start (EXECUTION_CONTEXT* ec, const void* rates, int bars, int changedBars, uint ticks, time32 tickTime, BOOL isVirtual, double bid, double ask);
 int                WINAPI MqlProgram_deinit(EXECUTION_CONTEXT* ec, UninitializeReason reason);

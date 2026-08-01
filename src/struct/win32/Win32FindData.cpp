@@ -18,7 +18,7 @@
 
 
 /**
- * Gibt die Dateiattribute eines struct WIN32_FIND_DATA zurück.
+ * Gibt die Dateiattribute eines struct WIN32_FIND_DATA zurÃ¼ck.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -242,7 +242,7 @@ BOOL WINAPI wfd_FileAttribute_Virtual(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Gibt den Dateinamen eines struct WIN32_FIND_DATA zurück.
+ * Gibt den Dateinamen eines struct WIN32_FIND_DATA zurÃ¼ck.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *
@@ -256,7 +256,7 @@ const char* WINAPI wfd_FileName(const WIN32_FIND_DATAA* wfd) {
 
 
 /**
- * Gibt den alternativen Dateinamen eines struct WIN32_FIND_DATA zurück.
+ * Gibt den alternativen Dateinamen eines struct WIN32_FIND_DATA zurÃ¼ck.
  *
  * @param  WIN32_FIND_DATAA* wfd
  *

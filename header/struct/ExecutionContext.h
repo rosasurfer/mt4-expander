@@ -1,4 +1,6 @@
 #pragma once
+#include "expander.h"
+
 #include <vector>
 
 typedef std::vector<string> LogBuffer;
@@ -11,10 +13,10 @@ typedef std::vector<string> LogBuffer;
  * Execution context of an MQL program. Used for keeping state, data exchange and communication between MQL modules and DLL.
  *
  * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
- * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
+ * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfÃ¼gt Ã¼ber einen eigenen Kontext, alle Kontexte eines
  * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
  * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
- * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ * Contexte einer Chain sind Library-Contexte. Ãœber die Kontexte werden wie folgt Daten ausgetauscht:
  *
  *  - Data exchange between MQL modules and the DLL:
  *    The MQL modules pass MQL runtime state and market information to the DLL, the DLL passes back DLL runtime state and
@@ -23,7 +25,7 @@ typedef std::vector<string> LogBuffer;
  *  - Data exchange between different MQL programs (e.g. experts and indicators).
  */
 struct EXECUTION_CONTEXT {                         // -- offset -- size -- description ------------------------------------------+-------+-------------------------------+
-   uint               pid;                         //       0        4     MQL program id, starting from 1                       | const | index in g_mqlPrograms[]      |
+   uint               pid;                         //       0        4     MQL program id, starting from 1                       | const | index of g_mqlInstances[]     |
    uint               previousPid;                 //       4        4     previous pid of an indicator after IR_CHARTCHANGE     |       |                               |
                                                    //                                                                            |       |                               |
    ProgramType        programType;                 //       8        4     type of the MQL main module                           | const |                               |
@@ -79,7 +81,7 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    char*              dllErrorMsg;                 //     700        4     DLL error message                                     |       |                               |
    int                mqlError;                    //     704        4     last MQL error of all MQL modules                     |       |                               |
                                                    //                                                                            |       |                               |
-   DWORD              debugOptions;                //     708        4     specified command line debug options                  |       |                               |
+   DWORD              debugFeatures;               //     708        4     enabled debug features                                |       |                               |
    int                loglevel;                    //     712        4     program main loglevel                                 |       |                               |
    int                loglevelDebug;               //     716        4     loglevel of the debug output appender                 |       |                               |
    int                loglevelTerminal;            //     720        4     loglevel of the terminal log appender                 |       |                               |
@@ -154,7 +156,7 @@ int                WINAPI ec_SetDllError            (EXECUTION_CONTEXT* ec, int 
 //                        ec.dllErrorMsg
 int                WINAPI ec_SetMqlError            (EXECUTION_CONTEXT* ec, int error);
 
-DWORD              WINAPI ec_SetDebugOptions        (EXECUTION_CONTEXT* ec, DWORD options);
+DWORD              WINAPI ec_SetDebugFeatures       (EXECUTION_CONTEXT* ec, DWORD features);
 int                WINAPI ec_SetLoglevel            (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelDebug       (EXECUTION_CONTEXT* ec, int level);
 int                WINAPI ec_SetLoglevelTerminal    (EXECUTION_CONTEXT* ec, int level);
@@ -168,11 +170,12 @@ const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, cons
 
 
 // helpers
-char* WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec);
-char* WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec);
+EXECUTION_CONTEXT* WINAPI GetMasterContext(uint pid);
+char*              WINAPI EXECUTION_CONTEXT_toStr  (const EXECUTION_CONTEXT* ec);
+char*              WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec);
 
 
 // type definitions
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // A ContextChain holds all EXECUTION_CONTEXTs of an MQL program (one per module).
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // A ContextChain holds all EXECUTION_CONTEXTs of an MQL program (one EC per module).
 typedef std::vector<uint>               IndicatorList;      // List of indicators (pids) loaded in a chart window.
-typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL programs ever loaded (index = pid = instance id).
+typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL programs ever loaded (index: pid).

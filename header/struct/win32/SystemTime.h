@@ -1,6 +1,5 @@
 #pragma once
-#include "stdafx.h"
-
+#include "expander.h"
 
 /**
  * Win32 struct SYSTEMTIME

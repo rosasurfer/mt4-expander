@@ -8,7 +8,7 @@
 
 
 /**
- * Gibt das Barformat eines HISTORY_HEADERs zurück.
+ * Gibt das Barformat eines HISTORY_HEADERs zurÃ¼ck.
  *
  * @param  HISTORY_HEADER* hh
  *
@@ -22,7 +22,7 @@ uint WINAPI hh_BarFormat(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt die Beschreibung eines HISTORY_HEADERs zurück.
+ * Gibt die Beschreibung eines HISTORY_HEADERs zurÃ¼ck.
  *
  * @param  HISTORY_HEADER* hh
  *
@@ -36,7 +36,7 @@ const char* WINAPI hh_Description(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt das Symbol eines HISTORY_HEADERs zurück.
+ * Gibt das Symbol eines HISTORY_HEADERs zurÃ¼ck.
  *
  * @param  HISTORY_HEADER* hh
  *
@@ -50,7 +50,7 @@ const char* WINAPI hh_Symbol(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt die Periode eines HISTORY_HEADERs zurück.
+ * Gibt die Periode eines HISTORY_HEADERs zurÃ¼ck.
  *
  * @param  HISTORY_HEADER* hh
  *
@@ -73,7 +73,7 @@ uint WINAPI hh_Timeframe(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt die Digits eines HISTORY_HEADERs zurück.
+ * Gibt die Digits eines HISTORY_HEADERs zurÃ¼ck.
  *
  * @param  HISTORY_HEADER* hh
  *
@@ -87,7 +87,7 @@ uint WINAPI hh_Digits(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt den SyncMarker eines HISTORY_HEADERs zurück.
+ * Gibt den SyncMarker eines HISTORY_HEADERs zurÃ¼ck.
  *
  * @param  HISTORY_HEADER* hh
  *
@@ -101,7 +101,7 @@ time32 WINAPI hh_SyncMarker(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt die LastSyncTime eines HISTORY_HEADERs zurück.
+ * Gibt die LastSyncTime eines HISTORY_HEADERs zurÃ¼ck.
  *
  * @param  HISTORY_HEADER* hh
  *
@@ -115,7 +115,7 @@ time32 WINAPI hh_LastSyncTime(const HISTORY_HEADER* hh) {
 
 
 /**
- * Gibt das Barformat eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt das Barformat eines HISTORY_HEADERs in einem Array zurÃ¼ck.
  *
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
@@ -131,7 +131,7 @@ uint WINAPI hhs_BarFormat(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
- * Gibt die Beschreibung eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt die Beschreibung eines HISTORY_HEADERs in einem Array zurÃ¼ck.
  *
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int            index - Array-Index
@@ -147,7 +147,7 @@ const char* WINAPI hhs_Description(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
- * Gibt das Symbol eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt das Symbol eines HISTORY_HEADERs in einem Array zurÃ¼ck.
  *
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
@@ -163,7 +163,7 @@ const char* WINAPI hhs_Symbol(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
- * Gibt die Periode eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt die Periode eines HISTORY_HEADERs in einem Array zurÃ¼ck.
  *
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
@@ -188,7 +188,7 @@ uint WINAPI hhs_Timeframe(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
- * Gibt die Digits eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt die Digits eines HISTORY_HEADERs in einem Array zurÃ¼ck.
  *
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
@@ -204,7 +204,7 @@ uint WINAPI hhs_Digits(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
- * Gibt den SyncMarker eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt den SyncMarker eines HISTORY_HEADERs in einem Array zurÃ¼ck.
  *
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
@@ -220,7 +220,7 @@ time32 WINAPI hhs_SyncMarker(const HISTORY_HEADER hhs[], int index) {
 
 
 /**
- * Gibt die LastSyncTime eines HISTORY_HEADERs in einem Array zurück.
+ * Gibt die LastSyncTime eines HISTORY_HEADERs in einem Array zurÃ¼ck.
  *
  * @param  HISTORY_HEADER hhs[] - Array
  * @param  int    index         - Array-Index
@@ -255,7 +255,7 @@ uint WINAPI hh_SetBarFormat(HISTORY_HEADER* hh, int format) {
  * Setzt die Beschreibung eines HISTORY_HEADERs.
  *
  * @param  HISTORY_HEADER* hh
- * @param  char*           description - eine vorhandene Beschreibung kann mit einem Leerstring gelöscht werden
+ * @param  char*           description - eine vorhandene Beschreibung kann mit einem Leerstring gelÃ¶scht werden
  *
  * @return char* - dieselbe Beschreibung
  */

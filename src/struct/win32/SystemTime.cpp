@@ -16,7 +16,7 @@
 
 
 /**
- * Gibt das Jahr einer SYSTEMTIME zurück.
+ * Gibt das Jahr einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *
@@ -30,7 +30,7 @@ WORD WINAPI st_Year(const SYSTEMTIME* st) {
 
 
 /**
- * Gibt den Monat einer SYSTEMTIME zurück.
+ * Gibt den Monat einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *
@@ -44,7 +44,7 @@ WORD WINAPI st_Month(const SYSTEMTIME* st) {
 
 
 /**
- * Gibt den Wochentag einer SYSTEMTIME zurück.
+ * Gibt den Wochentag einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *
@@ -58,7 +58,7 @@ WORD WINAPI st_DayOfWeek(const SYSTEMTIME* st) {
 
 
 /**
- * Gibt den Tag einer SYSTEMTIME zurück.
+ * Gibt den Tag einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *
@@ -72,7 +72,7 @@ WORD WINAPI st_Day(const SYSTEMTIME* st) {
 
 
 /**
- * Gibt die Stunden einer SYSTEMTIME zurück.
+ * Gibt die Stunden einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *
@@ -86,7 +86,7 @@ WORD WINAPI st_Hour(const SYSTEMTIME* st) {
 
 
 /**
- * Gibt die Minuten einer SYSTEMTIME zurück.
+ * Gibt die Minuten einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *
@@ -100,7 +100,7 @@ WORD WINAPI st_Minute(const SYSTEMTIME* st) {
 
 
 /**
- * Gibt die Sekunden einer SYSTEMTIME zurück.
+ * Gibt die Sekunden einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *
@@ -114,7 +114,7 @@ WORD WINAPI st_Second(const SYSTEMTIME* st) {
 
 
 /**
- * Gibt die Millisekunden einer SYSTEMTIME zurück.
+ * Gibt die Millisekunden einer SYSTEMTIME zurÃ¼ck.
  *
  * @param  SYSTEMTIME* st
  *

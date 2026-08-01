@@ -345,17 +345,16 @@ char* WINAPI GetReparsePointTargetA(const char* name) {
       }
       else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a mount point or symbolic link)", name);
    }
-   else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a Microsoft reparse point)", name);
+   else error(ERR_RUNTIME_ERROR, "cannot interpret \"%s\" (not a Windows reparse point)", name);
 
    free(rdata);
-   return result;                            // caller must free()
+   return result;                                  // caller must free()
    #pragma EXPANDER_EXPORT
 }
 
 // @see  PathCanonicalize()
 // @see  https://stackoverflow.com/questions/1816691/how-do-i-resolve-a-canonical-filename-in-windows
 // @see  http://pdh11.blogspot.com/2009/05/pathcanonicalize-versus-what-it-says-on.html
-//
 // @see  https://stackoverflow.com/questions/2487237/detect-symbolic-links-junction-points-mount-points-and-hard-links
 
 
