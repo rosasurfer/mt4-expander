@@ -1,9 +1,9 @@
 #include "expander.h"
+#include "integration.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/thread.h"
 #include "lib/window.h"
-#include "lib/ui/integration.h"
 #include "lib/ui/menu.h"
 
 #include <commctrl.h>
@@ -12,12 +12,12 @@ enum UiThreadIntegration {                         // UI thread integration stat
    UTI_PENDING  = 0,
    UTI_STARTED  = 1,
    UTI_FINISHED = 2
-};                                                 // current status
-static volatile UiThreadIntegration utiStatus = UTI_PENDING;
+};
+volatile UiThreadIntegration utiStatus = UTI_PENDING;
 
 #define MAIN_WINDOW_SUBCLASS_ID     1              // subclass identifier for the terminal main window
 #define CHART_WINDOW_SUBCLASS_ID    2              // subclass identifier for chart windows
-#define CHART_FRAME_SUBCLASS_ID     3              // subclass identifier for chart frames (painting areas)
+#define CHART_FRAME_SUBCLASS_ID     3              // subclass identifier for chart AfxFrames (painting areas)
 
 
 /**

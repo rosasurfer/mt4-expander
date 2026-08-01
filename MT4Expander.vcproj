@@ -307,6 +307,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\header\integration.h"
+				>
+			</File>
+			<File
 				RelativePath=".\header\stdafx.h"
 				>
 			</File>
@@ -396,10 +400,6 @@
 				<Filter
 					Name="ui"
 					>
-					<File
-						RelativePath=".\header\lib\ui\integration.h"
-						>
-					</File>
 					<File
 						RelativePath=".\header\lib\ui\menu.h"
 						>
@@ -518,6 +518,10 @@
 			</File>
 			<File
 				RelativePath=".\src\expander.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\integration.cpp"
 				>
 			</File>
 			<Filter
@@ -1062,34 +1066,6 @@
 				<Filter
 					Name="ui"
 					>
-					<File
-						RelativePath=".\src\lib\ui\integration.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\lib\ui\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\lib\ui\"
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release (private)|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\lib\ui\"
-							/>
-						</FileConfiguration>
-					</File>
 					<File
 						RelativePath=".\src\lib\ui\menu.cpp"
 						>
