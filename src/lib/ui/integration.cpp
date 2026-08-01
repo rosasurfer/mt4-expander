@@ -9,9 +9,9 @@
 #include <commctrl.h>
 
 enum UiThreadIntegration {                         // UI-thread integration states
-   UTI_PENDING = 0,
-   UTI_STARTED = 1,
-   UTI_DONE    = 2
+   UTI_PENDING  = 0,
+   UTI_STARTED  = 1,
+   UTI_FINISHED = 2
 };                                                 // current runtime status
 static volatile UiThreadIntegration utiStatus = UTI_PENDING;
 
@@ -123,30 +123,35 @@ static BOOL WINAPI HookUiThread() {
    // The UI thread may be temporarily unresponsive, or MT4 may install its own hook which may block ours (similar to WH_CBT).
    // Therefore, we run in a loop until our hook has been successfully executed.
    while (true) {
-      // register a hook for messages sent to windows owned by the UI thread
-      HHOOK hHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, uiThreadId);
-      if (!hHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CALLWNDPROC)");
-      if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hHook);
+      if (utiStatus == UTI_PENDING) {
+         // register a hook for messages sent to windows owned by the UI thread
+         HHOOK hHook = SetWindowsHookEx(WH_CALLWNDPROC, UiThreadHookProc, NULL, uiThreadId);
+         if (!hHook) return !error(ERR_WIN32_ERROR + GetLastError(), "SetWindowsHookEx(WH_CALLWNDPROC)");
+         if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p registered", hHook);
 
-      // trigger the UI thread and wait 3 seconds
-      bool timeout = false;
-      SetLastError(NO_ERROR);
-      if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, 0, 3000, NULL)) {
-         if (GetLastError() != ERROR_TIMEOUT) {
-            error(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
-            return _FALSE(local::RemoveHook(hHook));
-         }
-         timeout = true;
-      }                                         // a successfully sent message does not guarantee hook execution
+         // trigger the UI thread and wait a few seconds
+         bool timeout = false;
+         SetLastError(NO_ERROR);
+         if (!SendMessageTimeout(hWndMain, WM_NULL, 0, 0, 0, 5000, NULL)) {
+            if (GetLastError() != ERROR_TIMEOUT) {
+               error(ERR_WIN32_ERROR + GetLastError(), "SendMessageTimeout()");
+               return _FALSE(local::RemoveHook(hHook));
+            }
+            timeout = true;
+         }                                      // a successfully sent message does not guarantee hook execution
 
-      // remove the hook
-      if (!local::RemoveHook(hHook)) return FALSE;
-      if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p removed", hHook);
+         // remove the hook
+         if (!local::RemoveHook(hHook)) return FALSE;
+         if (debugFeatures & DEBUG_FEATURE_HOOKS) debug("hook %p removed", hHook);
 
-      if (utiStatus == UTI_DONE) break;         // this guarantees hook execution, with whatever outcome
+         if (timeout) debug(ERR_WIN32_ERROR + ERROR_TIMEOUT, "UI thread unresponsive, waiting...");
+      }
+      else {
+         // wait for UI thread integration to finish
+         Sleep(100);
+      }
 
-      // try again
-      if (timeout) debug(ERR_WIN32_ERROR + ERROR_TIMEOUT, "UI thread unresponsive, waiting...");
+      if (utiStatus == UTI_FINISHED) break;     // this guarantees finished hook execution, with whatever outcome
    }
    return TRUE;
 }
@@ -168,7 +173,7 @@ static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam)
 
       utiStatus = UTI_STARTED;
       IntegrateExpander();                         // continue integration in the UI thread
-      utiStatus = UTI_DONE;
+      utiStatus = UTI_FINISHED;
    }
    return CallNextHookEx(NULL, code, wParam, lParam);
 }
