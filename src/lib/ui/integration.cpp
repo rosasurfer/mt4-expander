@@ -152,9 +152,8 @@ static BOOL WINAPI HookUiThread() {
  */
 static LRESULT CALLBACK UiThreadHookProc(int code, WPARAM wParam, LPARAM lParam) {
    if (utiStatus == UTI_PENDING) {
-      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("called");
-
       utiStatus = UTI_STARTED;
+      if (GetDebugFeatures() & DEBUG_FEATURE_HOOKS) debug("called");
 
       IntegrateExpander();                         // continue integration in the UI thread
 
