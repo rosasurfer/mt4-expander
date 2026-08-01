@@ -15,9 +15,9 @@
  */
 inline double iOpen(const void* rates, uint bars, uint bar) {
    static uint build = GetTerminalBuild();               // TODO: defeats inlining
-   if (!build || bar < 0 || bar >= bars) return NULL;
+   if (!build || bar >= bars) return NULL;
 
-   uint shift = bars-1-bar;
+   uint shift = bars - 1 - bar;
 
    double open;
    if (build <= 509) open = ((HistoryBar400*) rates)[shift].open;
@@ -37,10 +37,10 @@ inline double iOpen(const void* rates, uint bars, uint bar) {
  */
 inline double WINAPI iHigh(const void* rates, uint bars, uint bar) {
    static uint build = GetTerminalBuild();               // TODO: defeats inlining
-   if (!build || bar < 0 || bar >= bars) return NULL;
+   if (!build || bar >= bars) return NULL;
 
    double high;
-   uint shift = bars-1-bar;
+   uint shift = bars - 1 - bar;
    if (build <= 509) high = ((HistoryBar400*) rates)[shift].high;
    else              high = ((HistoryBar401*) rates)[shift].high;
    return high;
@@ -58,10 +58,10 @@ inline double WINAPI iHigh(const void* rates, uint bars, uint bar) {
  */
 inline double WINAPI iLow(const void* rates, uint bars, uint bar) {
    static uint build = GetTerminalBuild();               // TODO: defeats inlining
-   if (!build || bar < 0 || bar >= bars) return NULL;
+   if (!build || bar >= bars) return NULL;
 
    double low;
-   uint shift = bars-1-bar;
+   uint shift = bars - 1 - bar;
    if (build <= 509) low = ((HistoryBar400*) rates)[shift].low;
    else              low = ((HistoryBar401*) rates)[shift].low;
    return low;
@@ -79,10 +79,10 @@ inline double WINAPI iLow(const void* rates, uint bars, uint bar) {
  */
 inline double WINAPI iClose(const void* rates, uint bars, uint bar) {
    static uint build = GetTerminalBuild();               // TODO: defeats inlining
-   if (!build || bar < 0 || bar >= bars) return NULL;
+   if (!build || bar >= bars) return NULL;
 
    double close;
-   uint shift = bars-1-bar;
+   uint shift = bars - 1 -bar;
    if (build <= 509) close = ((HistoryBar400*) rates)[shift].close;
    else              close = ((HistoryBar401*) rates)[shift].close;
    return close;
@@ -100,10 +100,10 @@ inline double WINAPI iClose(const void* rates, uint bars, uint bar) {
  */
 inline uint WINAPI iVolume(const void* rates, uint bars, uint bar) {
    static uint build = GetTerminalBuild();               // TODO: defeats inlining
-   if (!build || bar < 0 || bar >= bars) return NULL;
+   if (!build || bar >= bars) return NULL;
 
    uint ticks;
-   uint shift = bars-1-bar;
+   uint shift = bars - 1 - bar;
    if (build <= 509) ticks = (uint)((HistoryBar400*) rates)[shift].ticks;
    else              ticks = (uint)((HistoryBar401*) rates)[shift].ticks;
    return ticks;
@@ -119,12 +119,12 @@ inline uint WINAPI iVolume(const void* rates, uint bars, uint bar) {
  *
  * @return time32
  */
-inline time32 WINAPI iTime(const void* rates, int bars, int bar) {
+inline time32 WINAPI iTime(const void* rates, uint bars, uint bar) {
    static uint build = GetTerminalBuild();               // TODO: defeats inlining
-   if (!build || bar < 0 || bar >= bars) return NULL;
+   if (!build || bar >= bars) return NULL;
 
    time32 time;
-   uint shift = bars-1-bar;
+   uint shift = bars - 1 - bar;
    if (build <= 509) time = ((HistoryBar400*) rates)[shift].time;
    else              time = ((HistoryBar401*) rates)[shift].time;
    return time;

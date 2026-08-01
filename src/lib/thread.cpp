@@ -11,7 +11,7 @@
  * @return DWORD - thread id (not thread handle) or NULL in case of errors
  */
 DWORD WINAPI GetUiThreadId() {
-   static DWORD uiThreadId;
+   static volatile DWORD uiThreadId;
 
    if (!uiThreadId) {
       if (HWND hWnd = GetTerminalMainWindow()) {

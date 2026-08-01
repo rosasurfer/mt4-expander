@@ -19,7 +19,7 @@
  * @return HWND - handle or NULL (0) in case of errors
  */
 HWND WINAPI FindTesterWindow() {
-   static HWND hWndTester;
+   static volatile HWND hWndTester;
 
    if (!hWndTester) {
       // The tester window may be docked at the terminal main window (child of IDC_DOCK_CONTAINER) or

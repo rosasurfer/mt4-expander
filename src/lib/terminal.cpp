@@ -109,7 +109,7 @@ HWND WINAPI FindInputDialogA(ProgramType programType, const char* programName) {
  * @return DWORD - option flags
  */
 DWORD WINAPI GetCliOptions() {
-   static DWORD options = MAXDWORD;                   // bit mask of specified options
+   static volatile DWORD options = MAXDWORD;          // bit mask of specified options
 
    if (options == MAXDWORD) {
       int argc = 0;
@@ -330,7 +330,7 @@ const wchar* WINAPI GetMqlDirectoryW() {
  * @return char* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
-   static char* testerPath, *onlinePath;
+   static char *testerPath, *onlinePath;
 
    if (inTester) {
       if (!testerPath) {
@@ -365,7 +365,7 @@ const char* WINAPI GetMqlSandboxPathA(BOOL inTester) {
  * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors
  */
 const wchar* WINAPI GetMqlSandboxPathW(BOOL inTester) {
-   static wchar* testerPath, *onlinePath;
+   static wchar *testerPath, *onlinePath;
 
    if (inTester) {
       if (!testerPath) {
@@ -637,7 +637,7 @@ const wchar* WINAPI GetTerminalFileNameW() {
  * @return HWND - handle or NULL (0) in case of errors
  */
 HWND WINAPI GetTerminalMainWindow() {
-   static HWND hWndMain;
+   static volatile HWND hWndMain;
 
    if (!hWndMain) {
       struct local {
@@ -694,7 +694,7 @@ HWND WINAPI GetTerminalMainWindow() {
  * @return HWND - handle or NULL (0) in case of errors
  */
 HWND WINAPI GetTerminalMdiWindow() {
-   static HWND hWndMdi;
+   static volatile HWND hWndMdi;
 
    if (!hWndMdi) {
       HWND hWndMain = GetTerminalMainWindow();
@@ -885,7 +885,7 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
       if (!infos) return !error(ERR_WIN32_ERROR + GetLastError(), "LockResource()");
 
       int offset = 6;
-      if (!wstrcmp((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
+      if (StrCompare((wchar*)((BYTE*)infos + offset), L"VS_VERSION_INFO")) {
          offset += sizeof(L"VS_VERSION_INFO");
          offset += offset % 4;                  // align to next 32 bit
          VS_FIXEDFILEINFO* tmp = (VS_FIXEDFILEINFO*)((BYTE*)infos + offset);
