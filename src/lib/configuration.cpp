@@ -9,12 +9,14 @@
 
 
 /**
- * Return the full name of the global framework configuration file. The global configuration is used by all installed terminals
- * of the current user. The file is located in the common MetaTrader data folder and is named "global-config.ini". If the file
- * does not exist an attempt is made to create it.
+ * Return the full name of the user's global framework configuration file. This configuration file is used by all terminals
+ * installed by the user.
  *
- * @return char* - file name or NULL in case of errors,
- *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini"
+ * The file is named "rsf-user-config.ini" and is located in the terminal's common data folder. If the file does not exist
+ * an attempt is made to
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\rsf-user-config.ini"
  */
 const char* WINAPI GetGlobalConfigPathA() {
    static char* configPath;
@@ -23,7 +25,7 @@ const char* WINAPI GetGlobalConfigPathA() {
       const char* commonDataPath = GetTerminalCommonDataPathA();
       if (!commonDataPath) return NULL;
 
-      string filename = string(commonDataPath).append("\\global-config.ini");
+      string filename = string(commonDataPath).append("\\rsf-user-config.ini");
       char* tmp = sdup(filename.c_str());
       if (!configPath) configPath = tmp;
       else             free(tmp);                  // another thread may have been faster
