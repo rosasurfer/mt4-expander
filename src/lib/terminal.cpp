@@ -422,8 +422,8 @@ uint WINAPI GetTerminalBuild() {
  * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
  * check whether the returned directory exists.
  *
- * @return char* - directory name without trailing path separator, e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common";
- *                 or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
    static char* path;

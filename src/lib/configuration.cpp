@@ -49,12 +49,15 @@ const char* WINAPI GetGlobalConfigPathA() {
 
 
 /**
- * Return the full name of the terminal-specific framework configuration file. This configuration file is used by the currently
- * active terminal only. The file is located in the terminal-specific data folder and is named "terminal-config.ini". If the
- * file does not exist an attempt is made to create it.
+ * Returns the full name of the terminal-specific configuration file. This configuration file is used by the currently active
+ * terminal only.
  *
- * @return char* - filename or NULL in case of errors,
- *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\terminal-config.ini"
+ * The file is named "rsf-terminal-config.ini" and is located in the terminal-specific data folder. If the terminal runs in
+ * "portable mode", the data folder is the terminal's installation folder. If the file does not exist an attempt is made to
+ * create it.
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\rsf-terminal-config.ini"
  */
 const char* WINAPI GetTerminalConfigPathA() {
    static char* configPath;
@@ -63,12 +66,12 @@ const char* WINAPI GetTerminalConfigPathA() {
       const char* dataPath = GetTerminalDataPathA();
       if (!dataPath) return NULL;
 
-      string iniFile = string(dataPath).append("\\terminal-config.ini");
+      string iniFile = string(dataPath).append("\\rsf-terminal-config.ini");
       char* tmp = sdup(iniFile.c_str());
       if (!configPath) configPath = tmp;
       else             free(tmp);                                          // another thread may have been faster
 
-      // make sure the config directory exists (e.g. if in non-portable mode)
+      // make sure the config directory exists (applies to non-portable mode only)
       if (!IsDirectoryA(dataPath, MODE_SYSTEM)) {
          int error = CreateDirectoryA(dataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
