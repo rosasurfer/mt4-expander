@@ -9,16 +9,16 @@
 
 
 /**
- * Return the full name of the user's global framework configuration file. This configuration file is used by all terminals
- * installed by the user.
+ * Return the full name of the framework's user configuration file. This configuration file is used by all terminals installed
+ * by the user.
  *
  * The file is named "rsf-user-config.ini" and is located in the terminal's common data folder. If the file does not exist
- * an attempt is made to
+ * an attempt is made to create it.
  *
  * @return char* - file name or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\rsf-user-config.ini"
  */
-const char* WINAPI GetGlobalConfigPathA() {
+const char* WINAPI GetUserConfigPathA() {
    static char* configPath;
 
    if (!configPath) {
@@ -110,16 +110,16 @@ const char* WINAPI GetTerminalConfigPathA() {
 
 
 /**
- * Whether a config key exists in the global configuration.
+ * Whether a config key exists in the user configuration.
  *
- * @param  char* section - case-insensitive config section name
- * @param  char* key     - case-insensitive config key
+ * @param  char* section - case insensitive config section name
+ * @param  char* key     - case insensitive config key
  *
  * @return BOOL
  */
-BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
-   const char* globalConfig = GetGlobalConfigPathA();
-   return globalConfig && IsIniKeyA(globalConfig, section, key);
+BOOL WINAPI IsUserConfigKeyA(const char* section, const char* key) {
+   const char* userConfig = GetUserConfigPathA();
+   return userConfig && IsIniKeyA(userConfig, section, key);
    #pragma EXPANDER_EXPORT
 }
 
@@ -127,8 +127,8 @@ BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
 /**
  * Whether a config key exists in the terminal configuration.
  *
- * @param  char* section - case-insensitive config section name
- * @param  char* key     - case-insensitive config key
+ * @param  char* section - case insensitive config section name
+ * @param  char* key     - case insensitive config key
  *
  * @return BOOL
  */
@@ -143,8 +143,8 @@ BOOL WINAPI IsTerminalConfigKeyA(const char* section, const char* key) {
  * Whether a config key exists in the specified .ini file.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section
- * @param  char* key      - case-insensitive config key
+ * @param  char* section  - case insensitive config section
+ * @param  char* key      - case insensitive config key
  *
  * @return BOOL
  */
@@ -170,7 +170,7 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
    }
    char* lKey = strToLower(strim(sdupa(key)));
 
-   // look for a case-insensitive match
+   // look for a case insensitive match
    BOOL result = FALSE;
    char* name = buffer;                                  // The buffer is filled with one or more trimmed and NUL terminated
    while (*name) {                                       // strings. The last string is followed by a second NUL character.
@@ -192,8 +192,8 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
  * returned if creation fails.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
- * @param  char* key      - case-insensitive config key to delete
+ * @param  char* section  - case insensitive config section name
+ * @param  char* key      - case insensitive config key to delete
  *
  * @return BOOL - success status
  */
@@ -217,7 +217,7 @@ BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char*
  * Whether a config section exists in the specified .ini file.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
+ * @param  char* section  - case insensitive config section name
  *
  * @return BOOL
  */
@@ -241,7 +241,7 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
    }
    char* lSection = strToLower(strim(sdupa(section)));
 
-   // look for a case-insensitive match
+   // look for a case insensitive match
    BOOL result = FALSE;
    char* name = buffer;                                  // The buffer is filled with one or more trimmed and NUL terminated
    while (*name) {                                       // strings. The last string is followed by a second NUL character.
@@ -263,7 +263,7 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
  * is returned if creation fails.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
+ * @param  char* section  - case insensitive config section name
  *
  * @return BOOL - success status
  */
@@ -286,7 +286,7 @@ BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
  * If the file does not exist an attempt is made to create it. No error is returned if file creation fails.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
+ * @param  char* section  - case insensitive config section name
  *
  * @return BOOL - success status
  */
@@ -312,7 +312,7 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
  * Alias of GetPrivateProfileString(). Required for MQL4.0 which doesn't support function overloading (multiple signatures).
  *
  * @param  _In_  char* fileName   - initialization file name
- * @param  _In_  char* section    - case-insensitive section name
+ * @param  _In_  char* section    - case insensitive section name
  * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
  *                                  NUL terminated strings. The last string is followed by a second NUL character.
  * @param  _In_  uint  bufferSize - size of the buffer in bytes (note: MQL4.0 has no unsigned integer type)
@@ -361,8 +361,8 @@ uint WINAPI GetIniSectionsA(const char* fileName, char* buffer, uint bufferSize)
  * Return a config value from an .ini file as a string. Enclosing white space and trailing comments are removed.
  *
  * @param  char* fileName                - name of the .ini file
- * @param  char* section                 - case-insensitive config section name
- * @param  char* key                     - case-insensitive config key
+ * @param  char* section                 - case insensitive config section name
+ * @param  char* key                     - case insensitive config key
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space and inline
@@ -386,8 +386,8 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
  * Return a config value from an .ini file as a raw string, including config line comments.
  *
  * @param  char* fileName                - name of the .ini file
- * @param  char* section                 - case-insensitive config section name
- * @param  char* key                     - case-insensitive config key
+ * @param  char* section                 - case insensitive config section name
+ * @param  char* key                     - case insensitive config key
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space is removed).
@@ -418,10 +418,9 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
 
 
 /**
- * Return a terminal config value as a boolean. Queries the global and the terminal configuration with the terminal configu-
- * ration superseeding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
- * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
- * its nominal value is non-zero. Trailing configuration comments are ignored.
+ * Return a config value as a boolean. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true"
+ * or "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE
+ * if its nominal value is non-zero. Trailing configuration comments are ignored.
  *
  * @param  char* section      - configuration section name
  * @param  char* key          - configuration key
@@ -430,8 +429,7 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
  * @return BOOL - configuration value
  */
 //BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
-//   // It's faster to always evaluate global and local configuration: internally only one call of GetPrivateProfileString().    // TODO: true?
-//   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
+//   //BOOL result = GetUserConfigBool(section, key, defaultValue);
 //   //return GetTerminalConfigBool(section, key, result);
 //   return FALSE;
 //}

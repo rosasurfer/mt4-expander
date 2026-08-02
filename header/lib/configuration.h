@@ -1,10 +1,10 @@
 #pragma once
 #include "expander.h"
 
-const char* WINAPI GetGlobalConfigPathA();
+const char* WINAPI GetUserConfigPathA();
 const char* WINAPI GetTerminalConfigPathA();
 
-BOOL        WINAPI IsGlobalConfigKeyA(const char* section, const char* key);
+BOOL        WINAPI IsUserConfigKeyA(const char* section, const char* key);
 BOOL        WINAPI IsTerminalConfigKeyA(const char* section, const char* key);
 
 BOOL        WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key);
