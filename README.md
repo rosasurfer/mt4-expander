@@ -30,7 +30,7 @@ After a successfull build the post-build event creates new backups of the curren
 `{expander-root}/bin/mql4-libraries` is found the resulting DLL is copied into that directory.
 
 ```bash
-:: Pre-build event
+: Pre-build event
 if not exist "$(ProjectDir)header\shared\defines.h" (
    echo Shared header "/header/shared/defines.h" missing, using backup "/header/shared/bak/defines.h"...
    copy "$(ProjectDir)header\shared\bak\defines.h" "$(ProjectDir)header\shared\" || exit 1
@@ -42,7 +42,7 @@ if not exist "$(ProjectDir)header\shared\errors.h" (
 ```
 
 ```bash
-:: Post-build event
+: Post-build event
 echo Backup shared header "/header/shared/defines.h"...
 copy "$(ProjectDir)header\shared\defines.h" "$(ProjectDir)header\shared\bak\" || exit 1
 
