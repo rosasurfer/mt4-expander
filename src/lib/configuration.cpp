@@ -1,5 +1,5 @@
 #include "expander.h"
-#include "lib/config.h"
+#include "lib/configuration.h"
 #include "lib/conversion.h"
 #include "lib/file.h"
 #include "lib/string.h"
@@ -13,7 +13,7 @@
  * of the current user. The file is located in the common MetaTrader data folder and is named "global-config.ini". If the file
  * does not exist an attempt is made to create it.
  *
- * @return char* - filename or NULL in case of errors,
+ * @return char* - file name or NULL in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini"
  */
 const char* WINAPI GetGlobalConfigPathA() {
