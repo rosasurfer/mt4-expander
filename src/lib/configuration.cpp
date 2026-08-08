@@ -68,17 +68,23 @@ const wchar* WINAPI GetUserConfigPathW() {
       // rename an existing legacy config file
       else {
          wstring legacyName = wstring(commonDataPath).append(L"\\global-config.ini");
-         if (IsFileW(legacyName.c_str(), MODE_SYSTEM)) {          // check legacy file for existence and rename it
+
+         BOOL isLegacyFile = IsFileW(legacyName.c_str(), MODE_SYSTEM);
+         if (isLegacyFile) {                                      // check legacy file for existence and rename it
             if (MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
                info("renamed \"global-config.ini\" to \"rsf-user-config.ini\"");
                result = wsdup(fileName.c_str());
             }
             else {
-               static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
-               result = wsdup(legacyName.c_str());                // keep using the old "global-config.ini"
+               DWORD error = GetLastError();
+               static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
+               if (isLegacyFile = (error != ERROR_FILE_NOT_FOUND)) {
+                  result = wsdup(legacyName.c_str());             // keep using the old "global-config.ini"
+               }
             }
          }
-         else {                                                   // create "rsf-user-config.ini"
+
+         if (!isLegacyFile) {                                     // create "rsf-user-config.ini"
             HANDLE hFile = CreateFileW(fileName.c_str(), 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (hFile == INVALID_HANDLE_VALUE) {
                if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
@@ -188,19 +194,23 @@ const wchar* WINAPI GetTerminalConfigPathW() {
       else {
          // rename an existing legacy config file
          wstring legacyName = wstring(dataPath).append(L"\\terminal-config.ini");
-         if (IsFileW(legacyName.c_str(), MODE_SYSTEM)) {          // check legacy file for existence and rename it
+
+         BOOL isLegacyFile = IsFileW(legacyName.c_str(), MODE_SYSTEM);
+         if (isLegacyFile) {                                      // check legacy file for existence and rename it
             if (MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
                info("renamed \"terminal-config.ini\" to \"rsf-terminal-config.ini\"");
                result = wsdup(fileName.c_str());
             }
             else {
-               static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
-               result = wsdup(legacyName.c_str());                // keep using the old "terminal-config.ini"
+               DWORD error = GetLastError();
+               static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
+               if (isLegacyFile = (error != ERROR_FILE_NOT_FOUND)) {
+                  result = wsdup(legacyName.c_str());             // keep using the old "terminal-config.ini"
+               }
             }
          }
 
-         // create "rsf-terminal-config.ini"
-         else {
+         if (!isLegacyFile) {                                     // create "rsf-terminal-config.ini"
             HANDLE hFile = CreateFileW(fileName.c_str(), 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (hFile == INVALID_HANDLE_VALUE) {
                if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
