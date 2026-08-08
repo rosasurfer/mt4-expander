@@ -22,29 +22,13 @@ const char* WINAPI GetUserConfigPathA() {
    static char* configPath;
 
    if (!configPath) {
-      const char* commonDataPath = GetTerminalCommonDataPathA();
-      if (!commonDataPath) return NULL;
+      const wchar* wpath = GetUserConfigPathW();
+      if (!wpath) return NULL;
 
-      string filename = string(commonDataPath).append("\\rsf-user-config.ini");
-      char* tmp = sdup(filename.c_str());
+      char* tmp = utf16ToAnsi(wpath);
       if (!configPath) configPath = tmp;
       else             free(tmp);                  // another thread may have been faster
-
-      if (!IsFileA(configPath, MODE_SYSTEM)) {
-         // make sure the directory exists
-         int error = CreateDirectoryA(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
-         if (error) {
-            warn(error, "cannot create directory \"%s\" (%s)", commonDataPath, strerror(errno));
-         }
-         else {
-            // make sure the file exists
-            std::ofstream file(configPath);
-            if (file.is_open()) file.close();
-            else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
-         }
-      }
    }
-
    return configPath;
    #pragma EXPANDER_EXPORT
 }
