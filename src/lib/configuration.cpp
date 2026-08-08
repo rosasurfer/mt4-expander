@@ -5,8 +5,6 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 
-#include <fstream>
-
 
 /**
  * Return the full name of the framework's user configuration file.
@@ -54,7 +52,7 @@ const wchar* WINAPI GetUserConfigPathW() {
       wstring filename = wstring(commonDataPath).append(L"\\rsf-user-config.ini");
       wchar* tmp = wsdup(filename.c_str());
       if (!configPath) configPath = tmp;
-      else             free(tmp);                  // another thread may have been faster
+      else             free(tmp);                                 // another thread may have been faster
 
       if (!IsFileW(configPath, MODE_SYSTEM)) {
          // make sure the config directory exists
@@ -64,9 +62,11 @@ const wchar* WINAPI GetUserConfigPathW() {
          }
          else {
             // make sure the config file exists
-            HANDLE hFile = CreateFileW(configPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            HANDLE hFile = CreateFileW(configPath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (hFile == INVALID_HANDLE_VALUE) {
-               warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
+               if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
+                  warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
+               }
             }
             else {
                CloseHandle(hFile);
@@ -142,36 +142,34 @@ const wchar* WINAPI GetTerminalConfigPathW() {
          if (!StrCompare(terminalPath, dataPath)) {
             wstring originFile = wstring(dataPath).append(L"\\origin.txt");
 
-            if (!IsFileW(originFile.c_str(), MODE_SYSTEM)) {
-               HANDLE hFile = CreateFileW(originFile.c_str(), GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-               if (hFile == INVALID_HANDLE_VALUE) {
-                  if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
-                     warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", originFile.c_str());
-                  }
+            HANDLE hFile = CreateFileW(originFile.c_str(), GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_DELETE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (hFile == INVALID_HANDLE_VALUE) {
+               DWORD error = GetLastError();                         // ignore if open elsewhere
+               if (error != ERROR_FILE_EXISTS && error != ERROR_SHARING_VIOLATION) {
+                  warn(ERR_WIN32_ERROR + error, "cannot create file \"%S\"", originFile.c_str());
                }
-               else {
-                  string content = utf16ToAnsi(wstring(terminalPath)).append(CRLF);
-                  DWORD bytesWritten;
-                  if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
-                     warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
-                  }
-                  CloseHandle(hFile);
+            }
+            else {
+               string content = utf16ToAnsi(wstring(terminalPath)).append(CRLF);
+               DWORD bytesWritten;
+               if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
+                  warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
                }
+               CloseHandle(hFile);
             }
          }
       }
 
       // make sure the config file exists
-      if (!IsFileW(configPath, MODE_SYSTEM)) {
-         HANDLE hFile = CreateFileW(configPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-         if (hFile == INVALID_HANDLE_VALUE) {
-            if (GetLastError() != ERROR_SHARING_VIOLATION) {         // ignore if open elsewhere
-               warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
-            }
+      HANDLE hFile = CreateFileW(configPath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+      if (hFile == INVALID_HANDLE_VALUE) {
+         DWORD error = GetLastError();                               // ignore if open elsewhere
+         if (error != ERROR_FILE_EXISTS && error != ERROR_SHARING_VIOLATION) {
+            warn(ERR_WIN32_ERROR + error, "cannot create file \"%S\"", configPath);
          }
-         else {
-            CloseHandle(hFile);
-         }
+      }
+      else {
+         CloseHandle(hFile);
       }
    }
 

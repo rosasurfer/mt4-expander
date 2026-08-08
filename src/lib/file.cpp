@@ -60,8 +60,8 @@ int WINAPI CreateDirectoryW(const wchar* path, DWORD flags) {
    else /*flags & MODE_SYSTEM*/ {
       // check whether such a file or directory already exists
       if (IsFileOrDirectoryW(path)) {
-         if (!IsDirectoryW(path, MODE_SYSTEM))  return error(ERR_WIN32_ERROR + ERROR_FILE_EXISTS, "cannot create directory \"%S\" (a file of the same name already exists)", path);
-         if (!(flags & MODE_MKPARENT))          return error(ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS, "directory \"%S\" already exists", path);
+         if (!IsDirectoryW(path, MODE_SYSTEM)) return error(ERR_WIN32_ERROR + ERROR_FILE_EXISTS, "cannot create directory \"%S\" (a file of the same name already exists)", path);
+         if (!(flags & MODE_MKPARENT))         return error(ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS, "directory \"%S\" already exists", path);
          return NO_ERROR;
       }
 
