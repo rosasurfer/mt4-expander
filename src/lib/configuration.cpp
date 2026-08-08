@@ -49,30 +49,47 @@ const wchar* WINAPI GetUserConfigPathW() {
       const wchar* commonDataPath = GetTerminalCommonDataPathW();
       if (!commonDataPath) return NULL;
 
-      wstring filename = wstring(commonDataPath).append(L"\\rsf-user-config.ini");
-      wchar* tmp = wsdup(filename.c_str());
-      if (!configPath) configPath = tmp;
-      else             free(tmp);                                 // another thread may have been faster
+      // make sure the directory exists
+      int error = CreateDirectoryW(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
+      if (error) {
+         static int done = warn(error, "cannot create directory \"%S\"", commonDataPath);
+         return NULL;
+      }
 
-      if (!IsFileW(configPath, MODE_SYSTEM)) {
-         // make sure the config directory exists
-         int error = CreateDirectoryW(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
-         if (error) {
-            warn(error, "cannot create directory \"%S\"", commonDataPath);
+      // make sure the config file exists, and migrate an existing legacy config file
+      wstring fileName = wstring(commonDataPath).append(L"\\rsf-user-config.ini");
+      wchar* result = NULL;
+
+      if (IsFileW(fileName.c_str(), MODE_SYSTEM)) {               // check "rsf-user-config.ini" for existence
+         result = wsdup(fileName.c_str());
+      }
+      else {                                                      // check "global-config.ini" for existence
+         wstring legacyName = wstring(commonDataPath).append(L"\\global-config.ini");
+         if (IsFileW(legacyName.c_str(), MODE_SYSTEM)) {          // rename "global-config.ini" to "rsf-user-config.ini"
+            if (!MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
+               static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
+               result = wsdup(legacyName.c_str());                // keep using old "global-config.ini"
+            }
+            else {
+               result = wsdup(fileName.c_str());
+            }
          }
-         else {
-            // make sure the config file exists
-            HANDLE hFile = CreateFileW(configPath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+         else {                                                   // create "rsf-user-config.ini"
+            HANDLE hFile = CreateFileW(fileName.c_str(), 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (hFile == INVALID_HANDLE_VALUE) {
                if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
-                  warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
+                  static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", fileName.c_str());
                }
             }
             else {
                CloseHandle(hFile);
             }
+            result = wsdup(fileName.c_str());
          }
       }
+
+      if (!configPath) configPath = result;
+      else             free(result);                              // another thread may have been faster
    }
    return configPath;
    #pragma EXPANDER_EXPORT
