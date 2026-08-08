@@ -94,45 +94,13 @@ const char* WINAPI GetTerminalConfigPathA() {
    static char* configPath;
 
    if (!configPath) {
-      const char* dataPath = GetTerminalDataPathA();
-      if (!dataPath) return NULL;
+      const wchar* wpath = GetTerminalConfigPathW();
+      if (!wpath) return NULL;
 
-      string iniFile = string(dataPath).append("\\rsf-terminal-config.ini");
-      char* tmp = sdup(iniFile.c_str());
+      char* tmp = utf16ToAnsi(wpath);
       if (!configPath) configPath = tmp;
-      else             free(tmp);                                          // another thread may have been faster
-
-      // make sure the config directory exists (applies to non-portable mode only)
-      if (!IsDirectoryA(dataPath, MODE_SYSTEM)) {
-         int error = CreateDirectoryA(dataPath, MODE_SYSTEM|MODE_MKPARENT);
-         if (error) {
-            warn(error, "cannot create directory \"%s\"", dataPath);
-            return configPath;
-         }
-
-         // if in non-portable mode (terminalPath != dataPath): make sure file "origin.txt" exists
-         const char* terminalPath = GetTerminalPathA();
-         if (!StrCompare(terminalPath, dataPath)) {
-            string originFile = string(dataPath).append("\\origin.txt");   // store file "origin.txt"
-            std::ofstream file(originFile.c_str());
-            if (file.is_open()) {
-               file << terminalPath << NL;
-               file.close();
-            }
-            else {
-               warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", originFile.c_str(), strerror(errno));
-            }
-         }
-      }
-
-      // make sure the config file exists
-      if (!IsFileA(configPath, MODE_SYSTEM)) {
-         std::ofstream file(configPath);
-         if (file.is_open()) file.close();
-         else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
-      }
+      else             free(tmp);                                             // another thread may have been faster
    }
-
    return configPath;
    #pragma EXPANDER_EXPORT
 }
