@@ -1,21 +1,24 @@
 #pragma once
 #include "expander.h"
 
-const char* WINAPI GetGlobalConfigPathA();
-const char* WINAPI GetTerminalConfigPathA();
+const char*  WINAPI GetUserConfigPathA();
+const wchar* WINAPI GetUserConfigPathW();
 
-BOOL        WINAPI IsGlobalConfigKeyA(const char* section, const char* key);
-BOOL        WINAPI IsTerminalConfigKeyA(const char* section, const char* key);
+const char*  WINAPI GetTerminalConfigPathA();
+const wchar* WINAPI GetTerminalConfigPathW();
 
-BOOL        WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key);
-BOOL        WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key);
+BOOL         WINAPI IsUserConfigKeyA(const char* section, const char* key);
+BOOL         WINAPI IsTerminalConfigKeyA(const char* section, const char* key);
 
-BOOL        WINAPI IsIniSectionA(const char* fileName, const char* section);
-BOOL        WINAPI DeleteIniSectionA(const char* fileName, const char* section);
-BOOL        WINAPI EmptyIniSectionA(const char* fileName, const char* section);
+BOOL         WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key);
+BOOL         WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char* key);
 
-uint        WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, uint bufferSize);
-uint        WINAPI GetIniSectionsA(const char* fileName, char* buffer, uint bufferSize);
+BOOL         WINAPI IsIniSectionA(const char* fileName, const char* section);
+BOOL         WINAPI DeleteIniSectionA(const char* fileName, const char* section);
+BOOL         WINAPI EmptyIniSectionA(const char* fileName, const char* section);
 
-char*       WINAPI GetIniStringA(const char* fileName, const char* section, const char* key, const char* defaultValue = "");
-char*       WINAPI GetIniStringRawA(const char* fileName, const char* section, const char* key, const char* defaultValue = "");
+uint         WINAPI GetIniKeysA(const char* fileName, const char* section, char* buffer, uint bufferSize);
+uint         WINAPI GetIniSectionsA(const char* fileName, char* buffer, uint bufferSize);
+
+char*        WINAPI GetIniStringA(const char* fileName, const char* section, const char* key, const char* defaultValue = "");
+char*        WINAPI GetIniStringRawA(const char* fileName, const char* section, const char* key, const char* defaultValue = "");

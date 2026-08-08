@@ -418,12 +418,12 @@ uint WINAPI GetTerminalBuild() {
 
 
 /**
- * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
- * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
- * check whether the returned directory exists.
+ * Return the full path of the terminal's common data directory (same as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
+ * in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not check whether
+ * the returned directory exists.
  *
- * @return char* - directory name without trailing path separator, e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common";
- *                 or a NULL pointer in case of errors
+ * @return char* - directory name without trailing path separator or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common"
  */
 const char* WINAPI GetTerminalCommonDataPathA() {
    static char* path;
@@ -442,12 +442,12 @@ const char* WINAPI GetTerminalCommonDataPathA() {
 
 
 /**
- * Return the full path of the terminal's common data directory (same value as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
- * introduced in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not
- * check whether the returned directory exists.
+ * Return the full path of the terminal's common data directory (same as returned by TerminalInfoString(TERMINAL_COMMONDATA_PATH)
+ * in MQL4.5). The common data directory is shared between all terminals installed by a user. The function does not check whether
+ * the returned directory exists.
  *
- * @return wchar* - directory name without trailing path separator, e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common";
- *                  or a NULL pointer in case of errors
+ * @return wchar* - directory name without trailing path separator or a NULL pointer in case of errors,
+ *                  e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common";
  */
 const wchar* WINAPI GetTerminalCommonDataPathW() {
    static wchar* path;
@@ -944,7 +944,7 @@ BOOL WINAPI IsPortableMode() {
  *
  * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  char*       programName - MQL program name (C string)
+ * @param  char*       programName - MQL program name
  *
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
@@ -962,7 +962,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
  *
  * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  wchar*      programName - MQL program name (UTF-16)
+ * @param  wchar*      programName - MQL program name
  *
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
