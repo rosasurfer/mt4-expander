@@ -99,7 +99,7 @@ const char* WINAPI GetTerminalConfigPathA() {
 
       char* tmp = utf16ToAnsi(wpath);
       if (!configPath) configPath = tmp;
-      else             free(tmp);                                             // another thread may have been faster
+      else             free(tmp);                  // another thread may have been faster
    }
    return configPath;
    #pragma EXPANDER_EXPORT
@@ -127,7 +127,7 @@ const wchar* WINAPI GetTerminalConfigPathW() {
       wstring iniFile = wstring(dataPath).append(L"\\rsf-terminal-config.ini");
       wchar* tmp = wsdup(iniFile.c_str());
       if (!configPath) configPath = tmp;
-      else             free(tmp);                                             // another thread may have been faster
+      else             free(tmp);                                    // another thread may have been faster
 
       // make sure the config directory exists (applies to non-portable mode only)
       if (!IsDirectoryW(dataPath, MODE_SYSTEM)) {
@@ -140,30 +140,34 @@ const wchar* WINAPI GetTerminalConfigPathW() {
          // if in non-portable mode (terminalPath != dataPath): make sure file "origin.txt" exists
          const wchar* terminalPath = GetTerminalPathW();
          if (!StrCompare(terminalPath, dataPath)) {
-            wstring originFile = wstring(dataPath).append(L"\\origin.txt");   // store file "origin.txt"
+            wstring originFile = wstring(dataPath).append(L"\\origin.txt");
 
-            HANDLE hFile = CreateFileW(originFile.c_str(), GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-            if (hFile == INVALID_HANDLE_VALUE) {
-               if (GetLastError() != ERROR_SHARING_VIOLATION) {               // ignore if open elsewhere
-                  warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", originFile.c_str());
+            if (!IsFileW(originFile.c_str(), MODE_SYSTEM)) {
+               HANDLE hFile = CreateFileW(originFile.c_str(), GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+               if (hFile == INVALID_HANDLE_VALUE) {
+                  if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
+                     warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", originFile.c_str());
+                  }
                }
-            }
-            else {
-               string content = utf16ToAnsi(wstring(terminalPath)) + CRLF;
-               DWORD bytesWritten;
-               if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
-                  warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
+               else {
+                  string content = utf16ToAnsi(wstring(terminalPath)).append(CRLF);
+                  DWORD bytesWritten;
+                  if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
+                     warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
+                  }
+                  CloseHandle(hFile);
                }
-               CloseHandle(hFile);
             }
          }
       }
 
-      // make sure the config file exists (OPEN_ALWAYS: create if missing)
-      if (!IsFileW(configPath, MODE_SYSTEM)) {
+      // make sure the config file exists
+      if (!IsFileW(configPath, MODE_SYSTEM)) {                       // create if missing
          HANDLE hFile = CreateFileW(configPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
          if (hFile == INVALID_HANDLE_VALUE) {
-            warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
+            if (GetLastError() != ERROR_SHARING_VIOLATION) {         // ignore if open elsewhere
+               warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
+            }
          }
          else {
             CloseHandle(hFile);

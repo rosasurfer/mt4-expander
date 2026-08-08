@@ -944,7 +944,7 @@ BOOL WINAPI IsPortableMode() {
  *
  * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  char*       programName - MQL program name (C string)
+ * @param  char*       programName - MQL program name
  *
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
@@ -962,7 +962,7 @@ BOOL WINAPI LoadMqlProgramA(HWND hChart, ProgramType programType, const char* pr
  *
  * @param  HWND        hChart      - handle of the chart to load the program on = value of MQL::WindowHandle()
  * @param  ProgramType programType - MQL program type: PT_INDICATOR | PT_EXPERT | PT_SCRIPT
- * @param  wchar*      programName - MQL program name (UTF-16)
+ * @param  wchar*      programName - MQL program name
  *
  * @return BOOL - whether the load command was successfully queued; not whether the program was indeed launched
  */
