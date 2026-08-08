@@ -171,11 +171,13 @@ const wchar* WINAPI GetTerminalConfigPathW() {
                   static int done = warn(ERR_WIN32_ERROR + error, "cannot create file \"%S\"", originFile.c_str());
                }
             }
-            else if (const wchar* terminalPath = GetTerminalPathW()) {
-               string content = utf16ToAnsi(wstring(terminalPath)).append(CRLF);
-               DWORD bytesWritten;
-               if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
-                  static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
+            else {
+               if (const wchar* terminalPath = GetTerminalPathW()) {
+                  string content = utf16ToAnsi(wstring(terminalPath)).append(CRLF);
+                  DWORD bytesWritten;
+                  if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
+                     static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
+                  }
                }
                CloseHandle(hFile);
             }
