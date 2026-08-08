@@ -29,8 +29,8 @@
 int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
    if ((uint)path < MIN_VALID_POINTER)     return error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
    if (!*path)                             return error(ERR_INVALID_PARAMETER, "invalid parameter path: \"\" (empty)");
-   if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flag: only one of MODE_MQL or MODE_SYSTEM can be specified");
-   if (!( flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flag: one of MODE_MQL or MODE_SYSTEM must be specified");
+   if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flags: only one of MODE_MQL or MODE_SYSTEM can be specified");
+   if (!( flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flags: one of MODE_MQL or MODE_SYSTEM must be specified");
 
    if (flags & MODE_MQL) {
       return error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented");
@@ -55,7 +55,7 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
       }
 
       // create the final directory
-      if (CreateDirectory(path, (LPSECURITY_ATTRIBUTES)NULL)) {
+      if (CreateDirectoryA(path, (LPSECURITY_ATTRIBUTES)NULL)) {
          return NO_ERROR;
       }
 
@@ -64,6 +64,59 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
          return NO_ERROR;
       }
       return error(ERR_WIN32_ERROR + GetLastError(), "creation of \"%s\" failed", path);
+   }
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Create a directory.
+ *
+ * @param  wchar* path  - directory path
+ * @param  DWORD  flags - MODE_MQL:      restrict the function's operation to the MQL sandbox
+ *                        MODE_SYSTEM:   allow the function to operate outside of the MQL sandbox
+ *                        MODE_MKPARENT: create parent directories as needed and report no error on an existing directory;
+ *                                       otherwise create only the final directory and report an error if it exists
+ * @return int - error status
+ */
+int WINAPI CreateDirectoryW(const wchar* path, DWORD flags) {
+   if ((uint)path < MIN_VALID_POINTER)     return error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
+   if (!*path)                             return error(ERR_INVALID_PARAMETER, "invalid parameter path: \"\" (empty)");
+   if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flags: only one of MODE_MQL or MODE_SYSTEM can be specified");
+   if (!( flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flags: one of MODE_MQL or MODE_SYSTEM must be specified");
+
+   if (flags & MODE_MQL) {
+      return error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented");
+   }
+   else /*flags & MODE_SYSTEM*/ {
+      // check whether such a file or directory already exists
+      if (IsFileOrDirectoryW(path)) {
+         if (!IsDirectoryW(path, MODE_SYSTEM))  return error(ERR_WIN32_ERROR + ERROR_FILE_EXISTS, "cannot create directory \"%S\" (a file of the same name already exists)", path);
+         if (!(flags & MODE_MKPARENT))          return error(ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS, "directory \"%S\" already exists", path);
+         return NO_ERROR;
+      }
+
+      // make sure a parent directory exists
+      if (flags & MODE_MKPARENT) {
+         wstring sPath = wstring(path);
+         size_t pos = sPath.find_last_of(L"\\/");
+         if (pos != wstring::npos) {
+            if (pos == 0) return error(ERR_INVALID_PARAMETER, "invalid parameter path: \"%S\"", path);
+            int error = CreateDirectoryW(sPath.substr(0, pos).c_str(), flags);
+            if (error) return error;
+         }
+      }
+
+      // create the final directory
+      if (CreateDirectoryW(path, (LPSECURITY_ATTRIBUTES)NULL)) {
+         return NO_ERROR;
+      }
+
+      // with multiple path separators the directory may already exist
+      if (GetLastError() == ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT)) {
+         return NO_ERROR;
+      }
+      return error(ERR_WIN32_ERROR + GetLastError(), "creation of \"%S\" failed", path);
    }
    #pragma EXPANDER_EXPORT
 }
@@ -88,6 +141,33 @@ BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
       }
       else /*mode & MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesA(path);
+         return (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
+      }
+   }
+   return FALSE;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether the specified directory exists and is not a regular file. Symbolic links and junctions are supported.
+ *
+ * @param  wchar* path - directory path with support for forward, backward and trailing slashes
+ * @param  DWORD  mode - MODE_MQL:    restrict the function's operation to the MQL sandbox
+ *                       MODE_SYSTEM: allow the function to operate outside of the MQL sandbox
+ * @return BOOL
+ */
+BOOL WINAPI IsDirectoryW(const wchar* path, DWORD mode) {
+   if (path) {
+      if ((uint)path < MIN_VALID_POINTER)    return !error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
+      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified");
+      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified");
+
+      if (mode & MODE_MQL) {
+         return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
+      }
+      else /*mode & MODE_SYSTEM*/ {
+         DWORD attributes = GetFileAttributesW(path);
          return (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
       }
    }
@@ -159,12 +239,31 @@ BOOL WINAPI IsFileW(const wchar* path, DWORD mode) {
  */
 BOOL WINAPI IsFileOrDirectoryA(const char* name) {
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
 
-      DWORD attributes = GetFileAttributes(name);
-      return(attributes != INVALID_FILE_ATTRIBUTES);
+      DWORD attributes = GetFileAttributesA(name);
+      return (attributes != INVALID_FILE_ATTRIBUTES);
    }
-   return(FALSE);
+   return FALSE;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether the specified file or directory exists. Symbolic links and junctions are supported.
+ *
+ * @param  wchar* name - full name with support for forward, backward and trailing slashes
+ *
+ * @return BOOL
+ */
+BOOL WINAPI IsFileOrDirectoryW(const wchar* name) {
+   if (name) {
+      if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
+
+      DWORD attributes = GetFileAttributesW(name);
+      return (attributes != INVALID_FILE_ATTRIBUTES);
+   }
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
