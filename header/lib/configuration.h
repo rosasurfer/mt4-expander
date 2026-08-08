@@ -5,6 +5,7 @@ const char*  WINAPI GetUserConfigPathA();
 const wchar* WINAPI GetUserConfigPathW();
 
 const char*  WINAPI GetTerminalConfigPathA();
+const wchar* WINAPI GetTerminalConfigPathW();
 
 BOOL         WINAPI IsUserConfigKeyA(const char* section, const char* key);
 BOOL         WINAPI IsTerminalConfigKeyA(const char* section, const char* key);

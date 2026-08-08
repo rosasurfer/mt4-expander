@@ -57,7 +57,7 @@ const wchar* WINAPI GetUserConfigPathW() {
       else             free(tmp);                  // another thread may have been faster
 
       if (!IsFileW(configPath, MODE_SYSTEM)) {
-         // make sure the directory exists
+         // make sure the config directory exists
          int error = CreateDirectoryW(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
             warn(error, "cannot create directory \"%S\"", commonDataPath);
@@ -106,7 +106,7 @@ const char* WINAPI GetTerminalConfigPathA() {
       if (!IsDirectoryA(dataPath, MODE_SYSTEM)) {
          int error = CreateDirectoryA(dataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
-            warn(ERR_WIN32_ERROR + error, "cannot create directory \"%s\" (%s)", dataPath, strerror(errno));
+            warn(error, "cannot create directory \"%s\"", dataPath);
             return configPath;
          }
 
@@ -130,6 +130,76 @@ const char* WINAPI GetTerminalConfigPathA() {
          std::ofstream file(configPath);
          if (file.is_open()) file.close();
          else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
+      }
+   }
+
+   return configPath;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Returns the full name of the terminal-specific configuration file.
+ *
+ * - This configuration file is used by the currently active terminal only.
+ * - The file is named "rsf-terminal-config.ini" and is located in the terminal-specific data folder. If the terminal runs in
+ *   "portable mode", the data folder is the terminal's installation folder.
+ * - If the file does not exist an attempt is made to create it.
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\rsf-terminal-config.ini"
+ */
+const wchar* WINAPI GetTerminalConfigPathW() {
+   static wchar* configPath;
+
+   if (!configPath) {
+      const wchar* dataPath = GetTerminalDataPathW();
+      if (!dataPath) return NULL;
+
+      wstring iniFile = wstring(dataPath).append(L"\\rsf-terminal-config.ini");
+      wchar* tmp = wsdup(iniFile.c_str());
+      if (!configPath) configPath = tmp;
+      else             free(tmp);                                             // another thread may have been faster
+
+      // make sure the config directory exists (applies to non-portable mode only)
+      if (!IsDirectoryW(dataPath, MODE_SYSTEM)) {
+         int error = CreateDirectoryW(dataPath, MODE_SYSTEM|MODE_MKPARENT);
+         if (error) {
+            warn(error, "cannot create directory \"%S\"", dataPath);
+            return configPath;
+         }
+
+         // if in non-portable mode (terminalPath != dataPath): make sure file "origin.txt" exists
+         const wchar* terminalPath = GetTerminalPathW();
+         if (!StrCompare(terminalPath, dataPath)) {
+            wstring originFile = wstring(dataPath).append(L"\\origin.txt");   // store file "origin.txt"
+
+            HANDLE hFile = CreateFileW(originFile.c_str(), GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (hFile == INVALID_HANDLE_VALUE) {
+               if (GetLastError() != ERROR_SHARING_VIOLATION) {               // ignore if open elsewhere
+                  warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", originFile.c_str());
+               }
+            }
+            else {
+               string content = utf16ToAnsi(wstring(terminalPath)) + CRLF;
+               DWORD bytesWritten;
+               if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
+                  warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
+               }
+               CloseHandle(hFile);
+            }
+         }
+      }
+
+      // make sure the config file exists (OPEN_ALWAYS: create if missing)
+      if (!IsFileW(configPath, MODE_SYSTEM)) {
+         HANDLE hFile = CreateFileW(configPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+         if (hFile == INVALID_HANDLE_VALUE) {
+            warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
+         }
+         else {
+            CloseHandle(hFile);
+         }
       }
    }
 
