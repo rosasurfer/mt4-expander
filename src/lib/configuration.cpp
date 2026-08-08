@@ -9,11 +9,11 @@
 
 
 /**
- * Return the full name of the framework's user configuration file. This configuration file is used by all terminals installed
- * by the user.
+ * Return the full name of the framework's user configuration file.
  *
- * The file is named "rsf-user-config.ini" and is located in the terminal's common data folder. If the file does not exist
- * an attempt is made to create it.
+ * - This configuration file is used by all terminals installed by the user.
+ * - The file is named "rsf-user-config.ini" and is located in the terminal's common data folder.
+ * - If the file does not exist an attempt is made to create it.
  *
  * @return char* - file name or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\rsf-user-config.ini"
@@ -31,13 +31,13 @@ const char* WINAPI GetUserConfigPathA() {
       else             free(tmp);                  // another thread may have been faster
 
       if (!IsFileA(configPath, MODE_SYSTEM)) {
-         // make sure the config directory exists
+         // make sure the directory exists
          int error = CreateDirectoryA(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
          if (error) {
             warn(error, "cannot create directory \"%s\" (%s)", commonDataPath, strerror(errno));
          }
          else {
-            // make sure the config file exists
+            // make sure the file exists
             std::ofstream file(configPath);
             if (file.is_open()) file.close();
             else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
@@ -51,12 +51,57 @@ const char* WINAPI GetUserConfigPathA() {
 
 
 /**
- * Returns the full name of the terminal-specific configuration file. This configuration file is used by the currently active
- * terminal only.
+ * Return the full name of the framework's user configuration file.
  *
- * The file is named "rsf-terminal-config.ini" and is located in the terminal-specific data folder. If the terminal runs in
- * "portable mode", the data folder is the terminal's installation folder. If the file does not exist an attempt is made to
- * create it.
+ * - This configuration file is used by all terminals installed by the user.
+ * - The file is named "rsf-user-config.ini" and is located in the terminal's common data folder.
+ * - If the file does not exist an attempt is made to create it.
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\rsf-user-config.ini"
+ */
+const wchar* WINAPI GetUserConfigPathW() {
+   static wchar* configPath;
+
+   if (!configPath) {
+      const wchar* commonDataPath = GetTerminalCommonDataPathW();
+      if (!commonDataPath) return NULL;
+
+      wstring filename = wstring(commonDataPath).append(L"\\rsf-user-config.ini");
+      wchar* tmp = wsdup(filename.c_str());
+      if (!configPath) configPath = tmp;
+      else             free(tmp);                  // another thread may have been faster
+
+      if (!IsFileW(configPath, MODE_SYSTEM)) {
+         // make sure the directory exists
+         int error = CreateDirectoryW(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
+         if (error) {
+            warn(error, "cannot create directory \"%S\"", commonDataPath);
+         }
+         else {
+            // make sure the file exists (OPEN_ALWAYS: create if missing)
+            HANDLE hFile = CreateFileW(configPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (hFile == INVALID_HANDLE_VALUE) {
+               warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
+            }
+            else {
+               CloseHandle(hFile);
+            }
+         }
+      }
+   }
+   return configPath;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Returns the full name of the terminal-specific configuration file.
+ *
+ * - This configuration file is used by the currently active terminal only.
+ * - The file is named "rsf-terminal-config.ini" and is located in the terminal-specific data folder. If the terminal runs in
+ *   "portable mode", the data folder is the terminal's installation folder.
+ * - If the file does not exist an attempt is made to create it.
  *
  * @return char* - file name or a NULL pointer in case of errors,
  *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\rsf-terminal-config.ini"
