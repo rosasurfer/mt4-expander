@@ -66,12 +66,13 @@ const wchar* WINAPI GetUserConfigPathW() {
       else {                                                      // check "global-config.ini" for existence
          wstring legacyName = wstring(commonDataPath).append(L"\\global-config.ini");
          if (IsFileW(legacyName.c_str(), MODE_SYSTEM)) {          // rename "global-config.ini" to "rsf-user-config.ini"
-            if (!MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
-               static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
-               result = wsdup(legacyName.c_str());                // keep using old "global-config.ini"
+            if (MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
+               info("renamed \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
+               result = wsdup(fileName.c_str());
             }
             else {
-               result = wsdup(fileName.c_str());
+               static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
+               result = wsdup(legacyName.c_str());                // keep using the old "global-config.ini"
             }
          }
          else {                                                   // create "rsf-user-config.ini"
