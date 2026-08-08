@@ -32,39 +32,8 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags) {
    if (!(~flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flags: only one of MODE_MQL or MODE_SYSTEM can be specified");
    if (!( flags & (MODE_MQL|MODE_SYSTEM))) return error(ERR_INVALID_PARAMETER, "invalid parameter flags: one of MODE_MQL or MODE_SYSTEM must be specified");
 
-   if (flags & MODE_MQL) {
-      return error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented");
-   }
-   else /*flags & MODE_SYSTEM*/ {
-      // check whether such a file or directory already exists
-      if (IsFileOrDirectoryA(path)) {
-         if (!IsDirectoryA(path, MODE_SYSTEM)) return error(ERR_WIN32_ERROR + ERROR_FILE_EXISTS, "cannot create directory \"%s\" (a file of the same name already exists)", path);
-         if (!(flags & MODE_MKPARENT))         return error(ERR_WIN32_ERROR + ERROR_ALREADY_EXISTS, "directory \"%s\" already exists", path);
-         return NO_ERROR;
-      }
-
-      // make sure a parent directory exists
-      if (flags & MODE_MKPARENT) {
-         string sPath = string(path);
-         size_t pos = sPath.find_last_of("\\/");
-         if (pos != string::npos) {
-            if (pos == 0) return error(ERR_INVALID_PARAMETER, "invalid parameter path: \"%s\"", path);
-            int error = CreateDirectoryA(sPath.substr(0, pos).c_str(), flags);
-            if (error) return error;
-         }
-      }
-
-      // create the final directory
-      if (CreateDirectoryA(path, (LPSECURITY_ATTRIBUTES)NULL)) {
-         return NO_ERROR;
-      }
-
-      // with multiple path separators the directory may already exist
-      if (GetLastError() == ERROR_ALREADY_EXISTS && (flags & MODE_MKPARENT)) {
-         return NO_ERROR;
-      }
-      return error(ERR_WIN32_ERROR + GetLastError(), "creation of \"%s\" failed", path);
-   }
+   wstring wpath = ansiToUtf16(string(path));
+   return CreateDirectoryW(wpath.c_str(), flags);
    #pragma EXPANDER_EXPORT
 }
 
@@ -136,13 +105,8 @@ BOOL WINAPI IsDirectoryA(const char* path, DWORD mode) {
       if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified");
       if (!( mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified");
 
-      if (mode & MODE_MQL) {
-         return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
-      }
-      else /*mode & MODE_SYSTEM*/ {
-         DWORD attributes = GetFileAttributesA(path);
-         return (attributes != INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_DIRECTORY);
-      }
+      wstring wpath = ansiToUtf16(string(path));
+      return IsDirectoryW(wpath.c_str(), mode);
    }
    return FALSE;
    #pragma EXPANDER_EXPORT
@@ -190,13 +154,8 @@ BOOL WINAPI IsFileA(const char* path, DWORD mode) {
       if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified");
       if (!( mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified");
 
-      if (mode & MODE_MQL) {
-         return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
-      }
-      else /*MODE_SYSTEM*/ {
-         DWORD attributes = GetFileAttributesA(path);
-         return (attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY);
-      }
+      wstring wpath = ansiToUtf16(string(path));
+      return IsFileW(wpath.c_str(), mode);
    }
    return FALSE;
    #pragma EXPANDER_EXPORT
@@ -241,8 +200,8 @@ BOOL WINAPI IsFileOrDirectoryA(const char* name) {
    if (name) {
       if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
 
-      DWORD attributes = GetFileAttributesA(name);
-      return (attributes != INVALID_FILE_ATTRIBUTES);
+      wstring wname = ansiToUtf16(string(name));
+      return IsFileOrDirectoryW(wname.c_str());
    }
    return FALSE;
    #pragma EXPANDER_EXPORT

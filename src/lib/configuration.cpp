@@ -63,7 +63,7 @@ const wchar* WINAPI GetUserConfigPathW() {
             warn(error, "cannot create directory \"%S\"", commonDataPath);
          }
          else {
-            // make sure the file exists (OPEN_ALWAYS: create if missing)
+            // make sure the config file exists
             HANDLE hFile = CreateFileW(configPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (hFile == INVALID_HANDLE_VALUE) {
                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", configPath);
@@ -162,7 +162,7 @@ const wchar* WINAPI GetTerminalConfigPathW() {
       }
 
       // make sure the config file exists
-      if (!IsFileW(configPath, MODE_SYSTEM)) {                       // create if missing
+      if (!IsFileW(configPath, MODE_SYSTEM)) {
          HANDLE hFile = CreateFileW(configPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
          if (hFile == INVALID_HANDLE_VALUE) {
             if (GetLastError() != ERROR_SHARING_VIOLATION) {         // ignore if open elsewhere
