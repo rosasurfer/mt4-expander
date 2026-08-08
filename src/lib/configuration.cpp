@@ -174,7 +174,10 @@ const wchar* WINAPI GetTerminalConfigPathW() {
                CloseHandle(hFile);
             }
          }
-         result = wsdup(fileName.c_str());
+      }
+
+      if (!IsDirectoryW(dataPath, MODE_SYSTEM)) {
+         result = wsdup(fileName.c_str());                        // directory creation attempt failed
       }
 
       // check "rsf-terminal-config.ini" for existence
