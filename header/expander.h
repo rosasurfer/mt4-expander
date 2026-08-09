@@ -18,6 +18,9 @@
 #define EXPANDER_EXPORT_AS(name) comment(linker, "/EXPORT:"name"="__FUNCDNAME__)          // custom export from namespace without prefix
 
 #include "stdafx.h"
+#if defined(NO_ERROR)
+   #undef NO_ERROR                                          // same value/different types in C++ and MQL
+#endif
 #include "shared/defines.h"                                 // shared between C++ and MQL
 #include "shared/errors.h"                                  // shared between C++ and MQL
 #include "shared/metaquotes.h"
@@ -49,7 +52,6 @@ using std::min;
 using std::max;
 
 #define CLR_NONE             0xFFFFFFFFL                    // different types/same value in C++ and MQL
-#define NO_ERROR                      0L                    // different types/same value in C++ and MQL
 
 #define DUMPMODE_HEX                   1
 #define DUMPMODE_CHAR                  2

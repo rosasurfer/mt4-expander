@@ -379,7 +379,7 @@ const char* WINAPI ErrorToStrA(int error) {
       case ERR_TERMINAL_AUTOTRADE_DISABLED                                                : return("ERR_TERMINAL_AUTOTRADE_DISABLED"                                    );    //   4109
       case ERR_PROGRAM_LONGS_DISABLED                                                     : return("ERR_PROGRAM_LONGS_DISABLED"                                         );    //   4110
       case ERR_PROGRAM_SHORTS_DISABLED                                                    : return("ERR_PROGRAM_LONGS_DISABLED"                                         );    //   4111
-      case ERR_BROKER_AUTOTRADE_DISABLED                                                  : return("ERR_BROKER_AUTOTRADE_DISABLED"                                      );    //   4112
+      case ERR_SERVER_AUTOTRADE_DISABLED                                                  : return("ERR_SERVER_AUTOTRADE_DISABLED"                                      );    //   4112
       case ERR_OBJECT_ALREADY_EXISTS                                                      : return("ERR_OBJECT_ALREADY_EXISTS"                                          );    //   4200
       case ERR_UNKNOWN_OBJECT_PROPERTY                                                    : return("ERR_UNKNOWN_OBJECT_PROPERTY"                                        );    //   4201
       case ERR_OBJECT_DOES_NOT_EXIST                                                      : return("ERR_OBJECT_DOES_NOT_EXIST"                                          );    //   4202
