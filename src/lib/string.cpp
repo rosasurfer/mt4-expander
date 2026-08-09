@@ -302,7 +302,7 @@ BOOL WINAPI StrStartsWith(const wchar* str, const wchar* prefix) {
 
 
 /**
- * Whether a C string ends with the specified substring (case-sensitive).
+ * Whether a C string ends with the specified substring (case sensitive).
  *
  * @param  char* str
  * @param  char* suffix
@@ -327,7 +327,7 @@ BOOL WINAPI StrEndsWith(const char* str, const char* suffix) {
 
 
 /**
- * Whether a C string ends with the specified substring (case-insensitive).
+ * Whether a C string ends with the specified substring (case insensitive).
  *
  * @param  char* str
  * @param  char* suffix
@@ -352,7 +352,7 @@ BOOL WINAPI StrEndsWithI(const char* str, const char* suffix) {
 
 
 /**
- * Whether a UTF-16 string ends with the specified substring (case-sensitive).
+ * Whether a UTF-16 string ends with the specified substring (case sensitive).
  *
  * @param  wchar* str
  * @param  wchar* suffix
@@ -377,7 +377,7 @@ BOOL WINAPI StrEndsWith(const wchar* str, const wchar* suffix) {
 
 
 /**
- * Whether a UTF-16 string ends with the specified substring (case-insensitive).
+ * Whether a UTF-16 string ends with the specified substring (case insensitive).
  *
  * @param  wchar* str
  * @param  wchar* suffix

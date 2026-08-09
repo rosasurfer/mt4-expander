@@ -14,8 +14,8 @@
 #define strtoint     atoi              // convert a C string to an integer
 #define wstrtoint    _wtoi             // convert a UTF-16 string to an integer
 
-#define wstrcmp      wcscmp            // case-sensitive comparison of two UTF-16 strings
-#define wstricmp     wcsicmp           // case-insensitive comparison of two UTF-16 strings
+#define wstrcmp      wcscmp            // case sensitive comparison of two UTF-16 strings
+#define wstricmp     wcsicmp           // case insensitive comparison of two UTF-16 strings
 
 
 namespace rsf {

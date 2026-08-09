@@ -1006,7 +1006,7 @@ const TimezoneMapping* WINAPI GetTimeZoneMappings() {
 /**
  * Get a timezone id for an IANA timezone name.
  *
- * @param  char* name - case-insensitive IANA timezone name
+ * @param  char* name - case insensitive IANA timezone name
  *
  * @return int - timezone id or NULL if no timezone with that name was found
  */
@@ -1026,7 +1026,7 @@ int WINAPI GetTimeZoneIdByIanaNameA(const char* name) {
 /**
  * Get a timezone id for an IANA timezone name.
  *
- * @param  wchar* name - case-insensitive IANA timezone name
+ * @param  wchar* name - case insensitive IANA timezone name
  *
  * @return int - timezone id or NULL if no timezone with that name was found
  */

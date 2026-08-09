@@ -322,7 +322,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\header\lib\config.h"
+					RelativePath=".\header\lib\configuration.h"
 					>
 				</File>
 				<File
@@ -556,7 +556,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\lib\config.cpp"
+					RelativePath=".\src\lib\configuration.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

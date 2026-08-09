@@ -1,120 +1,252 @@
 #include "expander.h"
-#include "lib/config.h"
+#include "lib/configuration.h"
 #include "lib/conversion.h"
 #include "lib/file.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 
-#include <fstream>
-
 
 /**
- * Return the full name of the global framework configuration file. The global configuration is used by all installed terminals
- * of the current user. The file is located in the common MetaTrader data folder and is named "global-config.ini". If the file
- * does not exist an attempt is made to create it.
+ * Return the full name of the framework's user configuration file.
  *
- * @return char* - filename or NULL in case of errors,
- *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\global-config.ini"
+ * - This configuration file is used by all terminals installed by the user.
+ * - The file is named "rsf-user-config.ini" and is located in the terminal's common data folder.
+ * - If the file does not exist an attempt is made to create it.
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\rsf-user-config.ini"
  */
-const char* WINAPI GetGlobalConfigPathA() {
+const char* WINAPI GetUserConfigPathA() {
    static char* configPath;
 
    if (!configPath) {
-      const char* commonDataPath = GetTerminalCommonDataPathA();
-      if (!commonDataPath) return NULL;
+      const wchar* wpath = GetUserConfigPathW();
+      if (!wpath) return NULL;
 
-      string filename = string(commonDataPath).append("\\global-config.ini");
-      char* tmp = sdup(filename.c_str());
+      char* tmp = utf16ToAnsi(wpath);
       if (!configPath) configPath = tmp;
       else             free(tmp);                  // another thread may have been faster
-
-      if (!IsFileA(configPath, MODE_SYSTEM)) {
-         // make sure the config directory exists
-         int error = CreateDirectoryA(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
-         if (error) {
-            warn(error, "cannot create directory \"%s\" (%s)", commonDataPath, strerror(errno));
-         }
-         else {
-            // make sure the config file exists
-            std::ofstream file(configPath);
-            if (file.is_open()) file.close();
-            else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
-         }
-      }
    }
-
    return configPath;
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Return the full name of the terminal-specific framework configuration file. This configuration file is used by the currently
- * active terminal only. The file is located in the terminal-specific data folder and is named "terminal-config.ini". If the
- * file does not exist an attempt is made to create it.
+ * Return the full name of the framework's user configuration file.
  *
- * @return char* - filename or NULL in case of errors,
- *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\terminal-config.ini"
+ * - This configuration file is used by all terminals installed by the user.
+ * - The file is named "rsf-user-config.ini" and is located in the terminal's common data folder.
+ * - If the file does not exist an attempt is made to create it.
+ * - An existing legacy config file "global-config.ini" is renamed to the new name.
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\Common\rsf-user-config.ini"
+ */
+const wchar* WINAPI GetUserConfigPathW() {
+   static wchar* configPath;
+
+   if (!configPath) {
+      const wchar* commonDataPath = GetTerminalCommonDataPathW();
+      if (!commonDataPath) return NULL;
+
+      wstring fileName = wstring(commonDataPath).append(L"\\rsf-user-config.ini");
+      wchar* result = NULL;
+
+      // make sure the directory exists
+      int error = CreateDirectoryW(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
+      if (error) {
+         static int done = warn(error, "cannot create directory \"%S\"", commonDataPath);
+         result = wsdup(fileName.c_str());
+      }
+
+      // check "rsf-user-config.ini" for existence
+      else if (IsFileW(fileName.c_str(), MODE_SYSTEM)) {
+         result = wsdup(fileName.c_str());
+      }
+
+      // rename an existing legacy config file
+      else {
+         wstring legacyName = wstring(commonDataPath).append(L"\\global-config.ini");
+
+         BOOL isLegacyFile = IsFileW(legacyName.c_str(), MODE_SYSTEM);
+         if (isLegacyFile) {                                      // check legacy file for existence and rename it
+            if (MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
+               info("renamed \"global-config.ini\" to \"rsf-user-config.ini\"");
+               result = wsdup(fileName.c_str());
+            }
+            else {
+               DWORD error = GetLastError();
+               isLegacyFile = (error != ERROR_FILE_NOT_FOUND);    // another thread may have been faster
+               if (isLegacyFile) {
+                  static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
+                  result = wsdup(legacyName.c_str());             // keep using the old "global-config.ini"
+               }
+            }
+         }
+
+         if (!isLegacyFile) {                                     // create "rsf-user-config.ini"
+            HANDLE hFile = CreateFileW(fileName.c_str(), 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (hFile == INVALID_HANDLE_VALUE) {
+               if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
+                  static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", fileName.c_str());
+               }
+            }
+            else {
+               CloseHandle(hFile);
+            }
+            result = wsdup(fileName.c_str());
+         }
+      }
+
+      if (!configPath) configPath = result;
+      else             free(result);                              // another thread may have been faster
+   }
+   return configPath;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Returns the full name of the terminal-specific configuration file.
+ *
+ * - This configuration file is used by the currently active terminal only.
+ * - The file is named "rsf-terminal-config.ini" and is located in the terminal-specific data folder. If the terminal runs in
+ *   "portable mode", the data folder is the terminal's installation folder.
+ * - If the file does not exist an attempt is made to create it.
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\rsf-terminal-config.ini"
  */
 const char* WINAPI GetTerminalConfigPathA() {
    static char* configPath;
 
    if (!configPath) {
-      const char* dataPath = GetTerminalDataPathA();
-      if (!dataPath) return NULL;
+      const wchar* wpath = GetTerminalConfigPathW();
+      if (!wpath) return NULL;
 
-      string iniFile = string(dataPath).append("\\terminal-config.ini");
-      char* tmp = sdup(iniFile.c_str());
+      char* tmp = utf16ToAnsi(wpath);
       if (!configPath) configPath = tmp;
-      else             free(tmp);                                          // another thread may have been faster
-
-      // make sure the config directory exists (e.g. if in non-portable mode)
-      if (!IsDirectoryA(dataPath, MODE_SYSTEM)) {
-         int error = CreateDirectoryA(dataPath, MODE_SYSTEM|MODE_MKPARENT);
-         if (error) {
-            warn(ERR_WIN32_ERROR + error, "cannot create directory \"%s\" (%s)", dataPath, strerror(errno));
-            return configPath;
-         }
-
-         // if in non-portable mode (terminalPath != dataPath): make sure file "origin.txt" exists
-         const char* terminalPath = GetTerminalPathA();
-         if (!StrCompare(terminalPath, dataPath)) {
-            string originFile = string(dataPath).append("\\origin.txt");   // store file "origin.txt"
-            std::ofstream file(originFile.c_str());
-            if (file.is_open()) {
-               file << terminalPath << NL;
-               file.close();
-            }
-            else {
-               warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", originFile.c_str(), strerror(errno));
-            }
-         }
-      }
-
-      // make sure the config file exists
-      if (!IsFileA(configPath, MODE_SYSTEM)) {
-         std::ofstream file(configPath);
-         if (file.is_open()) file.close();
-         else                warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%s\" (%s)", configPath, strerror(errno));
-      }
+      else             free(tmp);                  // another thread may have been faster
    }
-
    return configPath;
    #pragma EXPANDER_EXPORT
 }
 
 
 /**
- * Whether a config key exists in the global configuration.
+ * Returns the full name of the terminal-specific configuration file.
  *
- * @param  char* section - case-insensitive config section name
- * @param  char* key     - case-insensitive config key
+ * - This configuration file is used by the currently active terminal only.
+ * - The file is named "rsf-terminal-config.ini" and is located in the terminal-specific data folder. If the terminal runs in
+ *   "portable mode", then the data folder is the terminal's installation folder.
+ * - If the file does not exist an attempt is made to create it.
+ * - An existing legacy config file "terminal-config.ini" is renamed to the new name.
+ *
+ * @return char* - file name or a NULL pointer in case of errors,
+ *                 e.g. "%UserProfile%\AppData\Roaming\MetaQuotes\Terminal\{installation-id}\rsf-terminal-config.ini"
+ */
+const wchar* WINAPI GetTerminalConfigPathW() {
+   static wchar* configPath;
+
+   if (!configPath) {
+      const wchar* dataPath = GetTerminalDataPathW();
+      if (!dataPath) return NULL;
+
+      wstring fileName = wstring(dataPath).append(L"\\rsf-terminal-config.ini");
+      wchar* result = NULL;
+
+      // make sure the directory exists
+      if (!IsDirectoryW(dataPath, MODE_SYSTEM)) {
+         int error = CreateDirectoryW(dataPath, MODE_SYSTEM|MODE_MKPARENT);
+         if (error) {
+            static int done = warn(error, "cannot create directory \"%S\"", dataPath);
+         }
+         else if (!IsPortableMode()) {                            // in non-portable mode we have to create file "origin.txt"
+            wstring originFile = wstring(dataPath).append(L"\\origin.txt");
+
+            HANDLE hFile = CreateFileW(originFile.c_str(), GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_DELETE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (hFile == INVALID_HANDLE_VALUE) {
+               DWORD error = GetLastError();                      // ignore if open elsewhere
+               if (error != ERROR_FILE_EXISTS && error != ERROR_SHARING_VIOLATION) {
+                  static int done = warn(ERR_WIN32_ERROR + error, "cannot create file \"%S\"", originFile.c_str());
+               }
+            }
+            else {
+               if (const wchar* terminalPath = GetTerminalPathW()) {
+                  string content = utf16ToAnsi(wstring(terminalPath)).append(CRLF);
+                  DWORD bytesWritten;
+                  if (!WriteFile(hFile, content.c_str(), (DWORD)content.length(), &bytesWritten, NULL)) {
+                     static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot write to file \"%S\"", originFile.c_str());
+                  }
+               }
+               CloseHandle(hFile);
+            }
+         }
+      }
+
+      if (!IsDirectoryW(dataPath, MODE_SYSTEM)) {
+         result = wsdup(fileName.c_str());                        // directory creation attempt failed
+      }
+
+      // check "rsf-terminal-config.ini" for existence
+      else if (IsFileW(fileName.c_str(), MODE_SYSTEM)) {
+         result = wsdup(fileName.c_str());
+      }
+
+      else {
+         // rename an existing legacy config file
+         wstring legacyName = wstring(dataPath).append(L"\\terminal-config.ini");
+
+         BOOL isLegacyFile = IsFileW(legacyName.c_str(), MODE_SYSTEM);
+         if (isLegacyFile) {                                      // check legacy file for existence and rename it
+            if (MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
+               info("renamed \"terminal-config.ini\" to \"rsf-terminal-config.ini\"");
+               result = wsdup(fileName.c_str());
+            }
+            else {
+               DWORD error = GetLastError();
+               isLegacyFile = (error != ERROR_FILE_NOT_FOUND);    // another thread may have been faster
+               if (isLegacyFile) {
+                  static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
+                  result = wsdup(legacyName.c_str());             // keep using the old "terminal-config.ini"
+               }
+            }
+         }
+
+         if (!isLegacyFile) {                                     // create "rsf-terminal-config.ini"
+            HANDLE hFile = CreateFileW(fileName.c_str(), 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (hFile == INVALID_HANDLE_VALUE) {
+               if (GetLastError() != ERROR_SHARING_VIOLATION) {   // ignore if open elsewhere
+                  static int done = warn(ERR_WIN32_ERROR + GetLastError(), "cannot create file \"%S\"", fileName.c_str());
+               }
+            }
+            else {
+               CloseHandle(hFile);
+            }
+            result = wsdup(fileName.c_str());
+         }
+      }
+
+      if (!configPath) configPath = result;
+      else             free(result);                              // another thread may have been faster
+   }
+   return configPath;
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Whether a config key exists in the user configuration.
+ *
+ * @param  char* section - case insensitive config section name
+ * @param  char* key     - case insensitive config key
  *
  * @return BOOL
  */
-BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
-   const char* globalConfig = GetGlobalConfigPathA();
-   return globalConfig && IsIniKeyA(globalConfig, section, key);
+BOOL WINAPI IsUserConfigKeyA(const char* section, const char* key) {
+   const char* userConfig = GetUserConfigPathA();
+   return userConfig && IsIniKeyA(userConfig, section, key);
    #pragma EXPANDER_EXPORT
 }
 
@@ -122,8 +254,8 @@ BOOL WINAPI IsGlobalConfigKeyA(const char* section, const char* key) {
 /**
  * Whether a config key exists in the terminal configuration.
  *
- * @param  char* section - case-insensitive config section name
- * @param  char* key     - case-insensitive config key
+ * @param  char* section - case insensitive config section name
+ * @param  char* key     - case insensitive config key
  *
  * @return BOOL
  */
@@ -138,8 +270,8 @@ BOOL WINAPI IsTerminalConfigKeyA(const char* section, const char* key) {
  * Whether a config key exists in the specified .ini file.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section
- * @param  char* key      - case-insensitive config key
+ * @param  char* section  - case insensitive config section
+ * @param  char* key      - case insensitive config key
  *
  * @return BOOL
  */
@@ -165,7 +297,7 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
    }
    char* lKey = strToLower(strim(sdupa(key)));
 
-   // look for a case-insensitive match
+   // look for a case insensitive match
    BOOL result = FALSE;
    char* name = buffer;                                  // The buffer is filled with one or more trimmed and NUL terminated
    while (*name) {                                       // strings. The last string is followed by a second NUL character.
@@ -187,8 +319,8 @@ BOOL WINAPI IsIniKeyA(const char* fileName, const char* section, const char* key
  * returned if creation fails.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
- * @param  char* key      - case-insensitive config key to delete
+ * @param  char* section  - case insensitive config section name
+ * @param  char* key      - case insensitive config key to delete
  *
  * @return BOOL - success status
  */
@@ -212,7 +344,7 @@ BOOL WINAPI DeleteIniKeyA(const char* fileName, const char* section, const char*
  * Whether a config section exists in the specified .ini file.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
+ * @param  char* section  - case insensitive config section name
  *
  * @return BOOL
  */
@@ -236,7 +368,7 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
    }
    char* lSection = strToLower(strim(sdupa(section)));
 
-   // look for a case-insensitive match
+   // look for a case insensitive match
    BOOL result = FALSE;
    char* name = buffer;                                  // The buffer is filled with one or more trimmed and NUL terminated
    while (*name) {                                       // strings. The last string is followed by a second NUL character.
@@ -258,7 +390,7 @@ BOOL WINAPI IsIniSectionA(const char* fileName, const char* section) {
  * is returned if creation fails.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
+ * @param  char* section  - case insensitive config section name
  *
  * @return BOOL - success status
  */
@@ -281,7 +413,7 @@ BOOL WINAPI DeleteIniSectionA(const char* fileName, const char* section) {
  * If the file does not exist an attempt is made to create it. No error is returned if file creation fails.
  *
  * @param  char* fileName - name of the .ini file
- * @param  char* section  - case-insensitive config section name
+ * @param  char* section  - case insensitive config section name
  *
  * @return BOOL - success status
  */
@@ -307,7 +439,7 @@ BOOL WINAPI EmptyIniSectionA(const char* fileName, const char* section) {
  * Alias of GetPrivateProfileString(). Required for MQL4.0 which doesn't support function overloading (multiple signatures).
  *
  * @param  _In_  char* fileName   - initialization file name
- * @param  _In_  char* section    - case-insensitive section name
+ * @param  _In_  char* section    - case insensitive section name
  * @param  _Out_ char* buffer     - Pointer to a buffer that receives the found keys. The buffer is filled with one or more
  *                                  NUL terminated strings. The last string is followed by a second NUL character.
  * @param  _In_  uint  bufferSize - size of the buffer in bytes (note: MQL4.0 has no unsigned integer type)
@@ -356,8 +488,8 @@ uint WINAPI GetIniSectionsA(const char* fileName, char* buffer, uint bufferSize)
  * Return a config value from an .ini file as a string. Enclosing white space and trailing comments are removed.
  *
  * @param  char* fileName                - name of the .ini file
- * @param  char* section                 - case-insensitive config section name
- * @param  char* key                     - case-insensitive config key
+ * @param  char* section                 - case insensitive config section name
+ * @param  char* key                     - case insensitive config key
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space and inline
@@ -381,8 +513,8 @@ char* WINAPI GetIniStringA(const char* fileName, const char* section, const char
  * Return a config value from an .ini file as a raw string, including config line comments.
  *
  * @param  char* fileName                - name of the .ini file
- * @param  char* section                 - case-insensitive config section name
- * @param  char* key                     - case-insensitive config key
+ * @param  char* section                 - case insensitive config section name
+ * @param  char* key                     - case insensitive config key
  * @param  char* defaultValue [optional] - value to return if the specified key does not exist (default: empty string)
  *
  * @return char* - Config value or the default value if the config value does not exist (enclosing white space is removed).
@@ -413,10 +545,9 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
 
 
 /**
- * Return a terminal config value as a boolean. Queries the global and the terminal configuration with the terminal configu-
- * ration superseeding the global one. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true" or
- * "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE if
- * its nominal value is non-zero. Trailing configuration comments are ignored.
+ * Return a config value as a boolean. Boolean values can be expressed by "0" or "1", "On" or "Off", "Yes" or "No" and "true"
+ * or "false" (case insensitive). An empty value of an existing key is considered FALSE and a numeric value is considered TRUE
+ * if its nominal value is non-zero. Trailing configuration comments are ignored.
  *
  * @param  char* section      - configuration section name
  * @param  char* key          - configuration key
@@ -425,8 +556,7 @@ char* WINAPI GetIniStringRawA(const char* fileName, const char* section, const c
  * @return BOOL - configuration value
  */
 //BOOL WINAPI GetConfigBool(const char* section, const char* key, BOOL defaultValue/*=FALSE*/) {
-//   // It's faster to always evaluate global and local configuration: internally only one call of GetPrivateProfileString().    // TODO: true?
-//   //BOOL result = GetGlobalConfigBool(section, key, defaultValue);
+//   //BOOL result = GetUserConfigBool(section, key, defaultValue);
 //   //return GetTerminalConfigBool(section, key, result);
 //   return FALSE;
 //}
