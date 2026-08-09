@@ -77,8 +77,9 @@ const wchar* WINAPI GetUserConfigPathW() {
             }
             else {
                DWORD error = GetLastError();
-               static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
-               if (isLegacyFile = (error != ERROR_FILE_NOT_FOUND)) {
+               isLegacyFile = (error != ERROR_FILE_NOT_FOUND);    // another thread may have been faster
+               if (isLegacyFile) {
+                  static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
                   result = wsdup(legacyName.c_str());             // keep using the old "global-config.ini"
                }
             }
@@ -205,8 +206,9 @@ const wchar* WINAPI GetTerminalConfigPathW() {
             }
             else {
                DWORD error = GetLastError();
-               static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
-               if (isLegacyFile = (error != ERROR_FILE_NOT_FOUND)) {
+               isLegacyFile = (error != ERROR_FILE_NOT_FOUND);    // another thread may have been faster
+               if (isLegacyFile) {
+                  static int done = warn(ERR_WIN32_ERROR + error, "cannot rename \"%S\" to \"%S\"", legacyName.c_str(), fileName.c_str());
                   result = wsdup(legacyName.c_str());             // keep using the old "terminal-config.ini"
                }
             }
