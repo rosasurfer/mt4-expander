@@ -8,7 +8,7 @@
  * @param  HWND hChart     - chart handle as returned by MQL::WindowHandle()
  * @param  int  lastHeight -
  *
- * @return int - chart height or 0 if the chart is not visible or in case of errors
+ * @return int - chart height or 0 if the chart is not visible, or in case of errors
  */
 int WINAPI Grid_GetChartHeight(HWND hChart, int lastHeight) {
    HWND hChartWnd = GetAncestor(hChart, GA_PARENT);
@@ -23,7 +23,7 @@ int WINAPI Grid_GetChartHeight(HWND hChart, int lastHeight) {
       }
    }
 
-   RECT rect;
+   RECT rect = {};
    if (!GetWindowRect(hChart, &rect)) return !error(ERR_WIN32_ERROR + GetLastError(), "GetWindowRect()");
 
    return (rect.bottom - rect.top);                   // on (height == 0) the view port was resized to zero height
