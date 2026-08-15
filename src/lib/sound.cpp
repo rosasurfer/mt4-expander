@@ -116,9 +116,9 @@ const char* WINAPI mciErrorToStr(const DWORD error) {
  * @return DWORD - error status (MCI errors are mapped to ERR_MCI_ERROR + error)
  */
 DWORD WINAPI PlaySoundA(const char* soundfile) {
-   if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
-   wstring s = ansiToUtf16(string(soundfile));
-   return PlaySoundW(s.c_str());
+   if ((uint)soundfile < MIN_VALID_POINTER) return error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile);
+   wstring ws = ansiToUtf16(string(soundfile));
+   return PlaySoundW(ws.c_str());
    #pragma EXPANDER_EXPORT
 }
 
@@ -134,18 +134,18 @@ DWORD WINAPI PlaySoundA(const char* soundfile) {
  * @return DWORD - error status (MCI errors are mapped to ERR_MCI_ERROR + error)
  */
 DWORD WINAPI PlaySoundW(const wchar* soundfile) {
-   if ((uint)soundfile < MIN_VALID_POINTER) return(error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile));
+   if ((uint)soundfile < MIN_VALID_POINTER) return error(ERR_INVALID_PARAMETER, "invalid parameter soundfile: 0x%p (not a valid pointer)", soundfile);
 
    // test absolute path
    wstring filepath(soundfile);
-   if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
+   if (!IsFileW(filepath.c_str())) {
       // test data dir path
       filepath = wstring(GetTerminalDataPathW()).append(L"\\sounds\\").append(soundfile);
-      if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
+      if (!IsFileW(filepath.c_str())) {
          // test terminal dir path
          filepath = wstring(GetTerminalPathW()).append(L"\\sounds\\").append(soundfile);
-         if (!IsFileW(filepath.c_str(), MODE_SYSTEM)) {
-            return(warn(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%S\" (file not found)", soundfile));
+         if (!IsFileW(filepath.c_str())) {
+            return warn(ERR_FILE_NOT_FOUND, "invalid parameter soundfile: \"%S\" (file not found)", soundfile);
          }
       }
    }
@@ -165,12 +165,12 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
          case MCIERR_DEVICE_OPEN:                              // if played again in the same thread: continue and re-use the device
             break;
          case MCIERR_WAVE_OUTPUTSUNSUITABLE:                   // quite common in VMs without RDP connection
-            return(notice(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S) no suitable sound device found", cmd.c_str()));
+            return notice(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S) no suitable sound device found", cmd.c_str());
          case MCIERR_INVALID_DEVICE_NAME:
-            return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S) unsupported file type or codec not available", cmd.c_str()));
+            return warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S) unsupported file type or codec not available", cmd.c_str());
 
          default:                                              // MCI errors must not trigger MQL runtime errors (would terminate EAs)
-            return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str()));
+            return warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str());
       }
    }
 
@@ -183,13 +183,13 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
          case MCIERR_SEQ_PORT_INUSE:                           // MIDI files can't be mixed with the MCI extension
          case MCIERR_WAVE_OUTPUTSINUSE:
          case MCIERR_WAVE_OUTPUTSUNSUITABLE:                   // spurious issue: open succeeded but playing fails
-            return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str()));
+            return warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str());
       }                                                        // MCI errors must not trigger MQL runtime errors (would terminate EAs)
-      return(warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str()));
+      return warn(ERR_MCI_ERROR + (WORD)error, "mciSendString(%S)", cmd.c_str());
    }
 
    // intentionally leave sound open for faster re-use
-   return(NO_ERROR);
+   return NO_ERROR;
    #pragma EXPANDER_EXPORT
 }
 
@@ -199,7 +199,7 @@ DWORD WINAPI PlaySoundW(const wchar* soundfile) {
  */
 BOOL WINAPI TestSound(const char* soundfile) {
    debug("format %%S, utf-16 param: %S", L"arg");
-   return(TRUE);
+   return TRUE;
    //#pragma EXPANDER_EXPORT
 
    // @see  API description of winmm::PlaySound()

@@ -40,11 +40,11 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
 
    // open a closed logger
    if (useLogger && !master->logger->is_open()) {
-      if (!IsFileA(master->logFilename, MODE_SYSTEM)) {
+      if (!IsFileA(master->logFilename)) {
          char drive[MAX_DRIVE] = {}, dir[MAX_DIR] = {};                                   // extract the directory part of logFilename
          _splitpath(master->logFilename, drive, dir, NULL, NULL);
          string path = string(drive).append(dir);
-         if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT)) return FALSE;     // make sure the directory exists
+         if (CreateDirectoryA(path.c_str(), MODE_MKPARENT)) return FALSE;                 // make sure the directory exists
       }
       master->logger->open(master->logFilename, std::ios::binary|std::ios::app);          // open the logfile
       if (!master->logger->is_open()) return !error(ERR_WIN32_ERROR + GetLastError(), "opening of \"%s\" failed (%s)", master->logFilename, strerror(errno));
@@ -65,14 +65,14 @@ BOOL WINAPI AppendLogMessageA(EXECUTION_CONTEXT* ec, time32 serverTime, const ch
 
    // compose the log entry
    std::ostringstream ss;
-   string sLoglevel(level==LOG_DEBUG ? "": LoglevelDescriptionA(level));                  // loglevel (LOG_DEBUG is blanked out)
+   string sLoglevel(level==LOG_DEBUG ? "": LoglevelDescriptionA(level));                  // loglevel (DEBUG is blanked out for better readability)
    string sExecPath(master->programName); sExecPath.append("::");                         // execution path
    if (ec->moduleType == MT_LIBRARY) sExecPath.append(ec->moduleName).append("::");       //
    string sMessage(message); strReplace(strReplace(sMessage, "\r\n", " "), "\n", " ");    // replace linebreaks with spaces
    string sError; if (error) sError.append("  [").append(ErrorToStrA(error)).append("]"); // append error description
 
    if (master->testing) {                                                                 // tester:
-      ss << "T " << gmtTimeFormat(serverTime, "%Y-%m-%d %H:%M:%S");                       // prepend prefix "T" followed by the passed tester time (seconds only)
+      ss << "T " << gmtTimeFormat(serverTime, "%Y-%m-%d %H:%M:%S");                       // prepend "T" followed by the passed tester time (seconds only)
    }
    else {
       SYSTEMTIME st = getSystemTime();                                                    // online:
@@ -123,11 +123,11 @@ BOOL WINAPI SetLogfileA(EXECUTION_CONTEXT* ec, const char* filename) {
       // open the new logfile if the logfile appender is not disabled
       if (master->loglevel!=LOG_OFF && master->loglevelFile!=LOG_OFF) {
          if (!log->is_open()) {
-            if (!IsFileA(filename, MODE_SYSTEM)) {
+            if (!IsFileA(filename)) {
                char drive[MAX_DRIVE] = {}, dir[MAX_DIR] = {};                    // extract the directory part of filename
                _splitpath(filename, drive, dir, NULL, NULL);
                string path = string(drive).append(dir);                          // make sure the directory exists
-               if (CreateDirectoryA(path.c_str(), MODE_SYSTEM|MODE_MKPARENT)) return FALSE;
+               if (CreateDirectoryA(path.c_str(), MODE_MKPARENT)) return FALSE;
             }
             log->open(filename, std::ios::binary|std::ios::app);                 // open the logfile
             if (!log->is_open()) return !error(ERR_WIN32_ERROR + GetLastError(), "opening of \"%s\" failed (%s)", filename, strerror(errno));

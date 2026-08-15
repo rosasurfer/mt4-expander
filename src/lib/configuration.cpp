@@ -54,14 +54,14 @@ const wchar* WINAPI GetUserConfigPathW() {
       wchar* result = NULL;
 
       // make sure the directory exists
-      int error = CreateDirectoryW(commonDataPath, MODE_SYSTEM|MODE_MKPARENT);
+      int error = CreateDirectoryW(commonDataPath, MODE_MKPARENT);
       if (error) {
          static int done = warn(error, "cannot create directory \"%S\"", commonDataPath);
          result = wsdup(fileName.c_str());
       }
 
       // check "rsf-user-config.ini" for existence
-      else if (IsFileW(fileName.c_str(), MODE_SYSTEM)) {
+      else if (IsFileW(fileName.c_str())) {
          result = wsdup(fileName.c_str());
       }
 
@@ -69,7 +69,7 @@ const wchar* WINAPI GetUserConfigPathW() {
       else {
          wstring legacyName = wstring(commonDataPath).append(L"\\global-config.ini");
 
-         BOOL isLegacyFile = IsFileW(legacyName.c_str(), MODE_SYSTEM);
+         BOOL isLegacyFile = IsFileW(legacyName.c_str());
          if (isLegacyFile) {                                      // check legacy file for existence and rename it
             if (MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
                info("renamed \"global-config.ini\" to \"rsf-user-config.ini\"");
@@ -157,8 +157,8 @@ const wchar* WINAPI GetTerminalConfigPathW() {
       wchar* result = NULL;
 
       // make sure the directory exists
-      if (!IsDirectoryW(dataPath, MODE_SYSTEM)) {
-         int error = CreateDirectoryW(dataPath, MODE_SYSTEM|MODE_MKPARENT);
+      if (!IsDirectoryW(dataPath)) {
+         int error = CreateDirectoryW(dataPath, MODE_MKPARENT);
          if (error) {
             static int done = warn(error, "cannot create directory \"%S\"", dataPath);
          }
@@ -185,12 +185,12 @@ const wchar* WINAPI GetTerminalConfigPathW() {
          }
       }
 
-      if (!IsDirectoryW(dataPath, MODE_SYSTEM)) {
+      if (!IsDirectoryW(dataPath)) {
          result = wsdup(fileName.c_str());                        // directory creation attempt failed
       }
 
       // check "rsf-terminal-config.ini" for existence
-      else if (IsFileW(fileName.c_str(), MODE_SYSTEM)) {
+      else if (IsFileW(fileName.c_str())) {
          result = wsdup(fileName.c_str());
       }
 
@@ -198,7 +198,7 @@ const wchar* WINAPI GetTerminalConfigPathW() {
          // rename an existing legacy config file
          wstring legacyName = wstring(dataPath).append(L"\\terminal-config.ini");
 
-         BOOL isLegacyFile = IsFileW(legacyName.c_str(), MODE_SYSTEM);
+         BOOL isLegacyFile = IsFileW(legacyName.c_str());
          if (isLegacyFile) {                                      // check legacy file for existence and rename it
             if (MoveFileExW(legacyName.c_str(), fileName.c_str(), MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH|MOVEFILE_FAIL_IF_NOT_TRACKABLE)) {
                info("renamed \"terminal-config.ini\" to \"rsf-terminal-config.ini\"");
