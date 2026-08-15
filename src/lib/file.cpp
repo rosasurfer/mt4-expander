@@ -172,19 +172,19 @@ BOOL WINAPI IsFileA(const char* path, DWORD mode) {
  */
 BOOL WINAPI IsFileW(const wchar* path, DWORD mode) {
    if (path) {
-      if ((uint)path < MIN_VALID_POINTER)    return(!error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path));
-      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified"));
-      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return(!error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified"));
+      if ((uint)path < MIN_VALID_POINTER)    return !error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
+      if (!(~mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: only one of MODE_MQL or MODE_SYSTEM can be specified");
+      if (!( mode & (MODE_MQL|MODE_SYSTEM))) return !error(ERR_INVALID_PARAMETER, "invalid parameter mode: one of MODE_MQL or MODE_SYSTEM must be specified");
 
       if (mode & MODE_MQL) {
-         return(!error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented"));
+         return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
       }
       else /*MODE_SYSTEM*/ {
          DWORD attributes = GetFileAttributesW(path);
-         return((attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
+         return (attributes != INVALID_FILE_ATTRIBUTES) && !(attributes & FILE_ATTRIBUTE_DIRECTORY);
       }
    }
-   return(FALSE);
+   return FALSE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -240,9 +240,9 @@ BOOL WINAPI IsJunctionA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
 
-      DWORD attributes = GetFileAttributes(name);
+      DWORD attributes = GetFileAttributesA(name);
       if ((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))) {
          char* _name = sdup(name);                                            // on the heap
 
@@ -252,7 +252,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
          }
 
          WIN32_FIND_DATA wfd = {};
-         HANDLE hFind = FindFirstFile(_name, &wfd);
+         HANDLE hFind = FindFirstFileA(_name, &wfd);
          if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR + GetLastError(), "cannot find path \"%s\"", _name);
          else {
             FindClose(hFind);
@@ -261,7 +261,7 @@ BOOL WINAPI IsJunctionA(const char* name) {
          free(_name);
       }
    }
-   return(result);
+   return result;
    #pragma EXPANDER_EXPORT
 }
 
@@ -277,9 +277,9 @@ BOOL WINAPI IsSymlinkA(const char* name) {
    BOOL result = FALSE;
 
    if (name) {
-      if ((uint)name < MIN_VALID_POINTER) return(!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name));
+      if ((uint)name < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
 
-      DWORD attributes = GetFileAttributes(name);
+      DWORD attributes = GetFileAttributesA(name);
 
       if ((attributes!=INVALID_FILE_ATTRIBUTES) && (attributes & FILE_ATTRIBUTE_REPARSE_POINT)) {
          char* _name = sdup(name);                                            // on the heap
@@ -292,7 +292,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
          }
 
          WIN32_FIND_DATA wfd = {};
-         HANDLE hFind = FindFirstFile(_name, &wfd);
+         HANDLE hFind = FindFirstFileA(_name, &wfd);
          if (hFind == INVALID_HANDLE_VALUE) error(ERR_WIN32_ERROR + GetLastError(), "cannot find path \"%s\"", _name);
          else {
             FindClose(hFind);
@@ -301,7 +301,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
          free(_name);
       }
    }
-   return(result);
+   return result;
    #pragma EXPANDER_EXPORT
 }
 
@@ -311,7 +311,7 @@ BOOL WINAPI IsSymlinkA(const char* name) {
  *
  * @param  char* name - path
  *
- * @return char* - resolved name in "\\?\" or UNC format or NULL in case of errors
+ * @return char* - resolved name in "\\?\" or UNC format, or a NULL pointer in case of errors
  */
 char* WINAPI GetFinalPathNameA(const char* name) {
    if ((uint)name < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter name: 0x%p (not a valid pointer)", name);
@@ -345,7 +345,7 @@ char* WINAPI GetFinalPathNameA(const char* name) {
  *
  * @param  char* name - path
  *
- * @return char* - resolved target path or NULL in case of errors
+ * @return char* - resolved target path, or a NULL pointer in case of errors
  *
  * @see    http://blog.kalmbach-software.de/2008/02/28/howto-correctly-read-reparse-data-in-vista/
  * @see    https://tyranidslair.blogspot.com/2016/02/tracking-down-root-cause-of-windows.html
@@ -421,7 +421,7 @@ char* WINAPI GetReparsePointTargetA(const char* name) {
  *
  * @param  char* file - file
  *
- * @return char* - found file path or NULL in case of errors
+ * @return char* - found file path, or a NULL pointer in case of errors
  */
 char* WINAPI SearchPathA(const char* file) {
    if ((uint)file < MIN_VALID_POINTER) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: 0x%p (not a valid pointer)", file);
@@ -441,7 +441,7 @@ char* WINAPI SearchPathA(const char* file) {
  *
  * @param  wchar* file - file
  *
- * @return wchar* - found file path or NULL in case of errors
+ * @return wchar* - found file path, or a NULL pointer in case of errors
  */
 wchar* WINAPI SearchPathW(const wchar* file) {
    if ((uint)file < MIN_VALID_POINTER) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter file: 0x%p (not a valid pointer)", file);
