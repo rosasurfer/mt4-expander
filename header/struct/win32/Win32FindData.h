@@ -2,7 +2,7 @@
 #include "expander.h"
 
 /**
- * Win32 struct WIN32_FIND_DATAA (ANSI-Version)
+ * Win32 struct WIN32_FIND_DATA (ANSI-Version)
  *
  * struct WIN32_FIND_DATAA {
  *    DWORD    dwFileAttributes;          //   4
@@ -15,7 +15,7 @@
  *    DWORD    dwReserved1;               //   4
  *    CHAR     cFileName[MAX_PATH];       // 260
  *    CHAR     cAlternateFileName[14];    //  14
- * } WIN32_FIND_DATA;                     // 318 byte
+ * };                                     // 318 byte
  */
 DWORD       WINAPI wfd_FileAttributes            (const WIN32_FIND_DATAA* wfd);
 BOOL        WINAPI wfd_FileAttribute_ReadOnly    (const WIN32_FIND_DATAA* wfd);

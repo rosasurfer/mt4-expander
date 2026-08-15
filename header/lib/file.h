@@ -29,18 +29,20 @@ struct REPARSE_DATA_BUFFER {
 
 #define SYMLINK_FLAG_RELATIVE 1
 
-int    WINAPI CreateDirectoryA(const char* path, DWORD flags);
-int    WINAPI CreateDirectoryW(const wchar* path, DWORD flags);
+int    WINAPI CreateDirectoryA(const char* path, DWORD flags = MODE_SYSTEM);
+int    WINAPI CreateDirectoryW(const wchar* path, DWORD flags = MODE_SYSTEM);
 char*  WINAPI GetFinalPathNameA(const char* name);
 char*  WINAPI GetReparsePointTargetA(const char* name);
-BOOL   WINAPI IsDirectoryA(const char* path, DWORD mode);
-BOOL   WINAPI IsDirectoryW(const wchar* path, DWORD mode);
-BOOL   WINAPI IsFileA(const char* path, DWORD mode);
-BOOL   WINAPI IsFileW(const wchar* path, DWORD mode);
+BOOL   WINAPI IsDirectoryA(const char* path, DWORD mode = MODE_SYSTEM);
+BOOL   WINAPI IsDirectoryW(const wchar* path, DWORD mode = MODE_SYSTEM);
+BOOL   WINAPI IsFileA(const char* path, DWORD mode = MODE_SYSTEM);
+BOOL   WINAPI IsFileW(const wchar* path, DWORD mode = MODE_SYSTEM);
 BOOL   WINAPI IsFileOrDirectoryA(const char* name);
 BOOL   WINAPI IsFileOrDirectoryW(const wchar* name);
 BOOL   WINAPI IsJunctionA(const char* name);
+BOOL   WINAPI IsJunctionW(const wchar* name);
 BOOL   WINAPI IsSymlinkA(const char* name);
+BOOL   WINAPI IsSymlinkW(const wchar* name);
 
 char*  WINAPI SearchPathA(const char* file);
 wchar* WINAPI SearchPathW(const wchar* file);

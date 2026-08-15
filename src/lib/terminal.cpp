@@ -33,7 +33,7 @@ char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
    if (!hstRootPath) return NULL;
 
    string pattern = string(hstRootPath).append("\\*");
-   WIN32_FIND_DATA wfd = {};
+   WIN32_FIND_DATAA wfd = {};
    HANDLE hFind = FindFirstFileA(pattern.c_str(), &wfd);
    if (hFind == INVALID_HANDLE_VALUE) return (char*)!error(ERR_FILE_NOT_FOUND, "directory \"%s\" not found", pattern.c_str());
 
@@ -46,7 +46,7 @@ char* WINAPI FindHistoryDirectoryA(const char* filename, BOOL removeFile) {
 
          if (!StrCompare(dirName, ".") && !StrCompare(dirName, "..")) {
             string fullFilename = string(GetHistoryRootPathA()).append("\\").append(dirName).append("\\").append(filename);
-            if (IsFileA(fullFilename.c_str(), MODE_SYSTEM)) {
+            if (IsFileA(fullFilename.c_str())) {
                hstDirectory = dirName;
                if (removeFile && !DeleteFileA(fullFilename.c_str())) warn(ERR_WIN32_ERROR + GetLastError(), "cannot delete file \"%s\"", fullFilename.c_str());
                break;
@@ -908,11 +908,11 @@ BOOL WINAPI GetTerminalVersionFromImage(VS_FIXEDFILEINFO &fileInfo) {
  * @return BOOL
  */
 BOOL WINAPI IsLockedFile(const string &filename) {
-   if (!IsFileA(filename.c_str(), MODE_SYSTEM)) return FALSE;
+   if (!IsFileA(filename.c_str())) return FALSE;
 
    // for logfile: OF_READWRITE|OF_SHARE_COMPAT must succeed
    HFILE hFile = _lopen(filename.c_str(), OF_READWRITE|OF_SHARE_COMPAT);
-   if (hFile == HFILE_ERROR) return FALSE;         // not succeeded
+   if (hFile == HFILE_ERROR) return FALSE;      // not succeeded
    _lclose(hFile);
 
    // for logfile: OF_READWRITE|OF_SHARE_EXCLUSIVE must fail with ERROR_SHARING_VIOLATION
@@ -996,7 +996,7 @@ BOOL WINAPI LoadMqlProgramW(HWND hChart, ProgramType programType, const wchar* p
          cmd = MT4_LOAD_SCRIPT;
          break;
    }
-   if (!IsFileW(file.c_str(), MODE_SYSTEM)) return !error(ERR_FILE_NOT_FOUND, "file not found: \"%S\"", file.c_str());
+   if (!IsFileW(file.c_str())) return !error(ERR_FILE_NOT_FOUND, "file not found: \"%S\"", file.c_str());
 
    // create a copy of programName on the heap (`programName` may be immediately destroyed after return)
    const wchar* name = wsdup(programName);               // TODO: add to GC
