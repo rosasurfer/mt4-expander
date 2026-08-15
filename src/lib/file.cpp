@@ -22,6 +22,7 @@
  * @param  char* path  - directory path
  * @param  DWORD flags - MODE_SYSTEM:   allow operation outside of the MQL sandbox (default)
  *                       MODE_MQL:      restrict operation to the MQL sandbox
+ *                       MODE_TESTER:   apply operation to the tester sandbox (requires MODE_MQL)
  *                       MODE_MKPARENT: create parent directories as needed and report no error on an existing directory;
  *                                      otherwise create only the final directory and report an error if it exists
  * @return int - error status
@@ -42,6 +43,7 @@ int WINAPI CreateDirectoryA(const char* path, DWORD flags/*= MODE_SYSTEM*/) {
  * @param  wchar* path  - directory path
  * @param  DWORD  flags - MODE_SYSTEM:   allow operation outside of the MQL sandbox (default)
  *                        MODE_MQL:      restrict operation to the MQL sandbox
+ *                        MODE_TESTER:   apply operation to the tester sandbox (requires MODE_MQL)
  *                        MODE_MKPARENT: create parent directories as needed and report no error on an existing directory;
  *                                       otherwise create only the final directory and report an error if it exists
  * @return int - error status
@@ -50,9 +52,8 @@ int WINAPI CreateDirectoryW(const wchar* path, DWORD flags/*= MODE_SYSTEM*/) {
    if ((uint)path < MIN_VALID_POINTER) return error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
    if (!*path)                         return error(ERR_INVALID_PARAMETER, "invalid parameter path: \"\" (empty)");
 
-   if (flags & MODE_MQL) {
-      return error(ERR_NOT_IMPLEMENTED, "support for flag MODE_MQL not yet implemented");
-   }
+   if (flags & MODE_MQL)    return error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
+   if (flags & MODE_TESTER) return error(ERR_NOT_IMPLEMENTED, "support for MODE_TESTER not yet implemented");
 
    // MODE_SYSTEM
    // check whether such a file or directory already exists
@@ -93,6 +94,7 @@ int WINAPI CreateDirectoryW(const wchar* path, DWORD flags/*= MODE_SYSTEM*/) {
  * @param  char* path - directory path with support for forward, backward and trailing slashes
  * @param  DWORD mode - MODE_SYSTEM: allow operation outside of the MQL sandbox (default)
  *                      MODE_MQL:    restrict operation to the MQL sandbox
+ *                      MODE_TESTER: apply operation to the tester sandbox (requires MODE_MQL)
  * @return BOOL
  */
 BOOL WINAPI IsDirectoryA(const char* path, DWORD mode/*= MODE_SYSTEM*/) {
@@ -111,15 +113,15 @@ BOOL WINAPI IsDirectoryA(const char* path, DWORD mode/*= MODE_SYSTEM*/) {
  * @param  wchar* path - directory path with support for forward, backward and trailing slashes
  * @param  DWORD  mode - MODE_SYSTEM: allow operation outside of the MQL sandbox (default)
  *                       MODE_MQL:    restrict operation to the MQL sandbox
+ *                       MODE_TESTER: apply operation to the tester sandbox (requires MODE_MQL)
  * @return BOOL
  */
 BOOL WINAPI IsDirectoryW(const wchar* path, DWORD mode/*= MODE_SYSTEM*/) {
    if (!path)                          return FALSE;
    if ((uint)path < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
 
-   if (mode & MODE_MQL) {
-      return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
-   }
+   if (mode & MODE_MQL)    return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
+   if (mode & MODE_TESTER) return !error(ERR_NOT_IMPLEMENTED, "support for MODE_TESTER not yet implemented");
 
    // MODE_SYSTEM
    DWORD attributes = GetFileAttributesW(path);
@@ -134,6 +136,7 @@ BOOL WINAPI IsDirectoryW(const wchar* path, DWORD mode/*= MODE_SYSTEM*/) {
  * @param  char* path - file path (supports forward and backward slashes)
  * @param  DWORD mode - MODE_SYSTEM: allow operation outside of the MQL sandbox (default)
  *                      MODE_MQL:    restrict operation to the MQL sandbox
+ *                      MODE_TESTER: apply operation to the tester sandbox (requires MODE_MQL)
  * @return BOOL
  */
 BOOL WINAPI IsFileA(const char* path, DWORD mode/*= MODE_SYSTEM*/) {
@@ -152,15 +155,15 @@ BOOL WINAPI IsFileA(const char* path, DWORD mode/*= MODE_SYSTEM*/) {
  * @param  wchar* path - file path (supports forward and backward slashes)
  * @param  DWORD  mode - MODE_SYSTEM: allow operation outside of the MQL sandbox (default)
  *                       MODE_MQL:    restrict operation to the MQL sandbox
+ *                       MODE_TESTER: apply operation to the tester sandbox (requires MODE_MQL)
  * @return BOOL
  */
 BOOL WINAPI IsFileW(const wchar* path, DWORD mode/*= MODE_SYSTEM*/) {
    if (!path)                          return FALSE;
    if ((uint)path < MIN_VALID_POINTER) return !error(ERR_INVALID_PARAMETER, "invalid parameter path: 0x%p (not a valid pointer)", path);
 
-   if (mode & MODE_MQL) {
-      return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
-   }
+   if (mode & MODE_MQL)    return !error(ERR_NOT_IMPLEMENTED, "support for MODE_MQL not yet implemented");
+   if (mode & MODE_TESTER) return !error(ERR_NOT_IMPLEMENTED, "support for MODE_TESTER not yet implemented");
 
    // MODE_SYSTEM
    DWORD attributes = GetFileAttributesW(path);
