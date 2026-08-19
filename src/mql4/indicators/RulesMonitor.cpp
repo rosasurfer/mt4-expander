@@ -26,20 +26,20 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid) {
 
 
 /**
- * Remove the status panel.
+ * Destroy the status panel.
  *
  * @param  uint pid - indicator pid
  *
- * @return HWND - window handle
+ * @return bool - success status
  */
-HWND WINAPI RulesMonitor_RemoveStatusPanel(uint pid) {
+BOOL WINAPI RulesMonitor_DestroyStatusPanel(uint pid) {
    // get the EXECUTION_CONTEXT
-   if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   if ((int)pid <= 0) return !error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
-   if (!ec) return NULL;
-   if (!StrCompare(ec->programName, MQL_PROGRAM_NAME)) return (HWND)!error(ERR_ILLEGAL_STATE, "illegal caller: \"%s\"", ec->programName);
+   if (!ec) return FALSE;
+   if (!StrCompare(ec->programName, MQL_PROGRAM_NAME)) return !error(ERR_ILLEGAL_STATE, "illegal caller: \"%s\"", ec->programName);
 
-   return NULL;
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
 
@@ -49,15 +49,15 @@ HWND WINAPI RulesMonitor_RemoveStatusPanel(uint pid) {
  *
  * @param  uint pid - indicator pid
  *
- * @return HWND - window handle
+ * @return bool - success status
  */
-HWND WINAPI RulesMonitor_UpdateStatusPanel(uint pid) {
+BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid) {
    // get the EXECUTION_CONTEXT
-   if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
+   if ((int)pid <= 0) return !error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
-   if (!ec) return NULL;
-   if (!StrCompare(ec->programName, MQL_PROGRAM_NAME)) return (HWND)!error(ERR_ILLEGAL_STATE, "illegal caller: \"%s\"", ec->programName);
+   if (!ec) return FALSE;
+   if (!StrCompare(ec->programName, MQL_PROGRAM_NAME)) return !error(ERR_ILLEGAL_STATE, "illegal caller: \"%s\"", ec->programName);
 
-   return NULL;
+   return TRUE;
    #pragma EXPANDER_EXPORT
 }
