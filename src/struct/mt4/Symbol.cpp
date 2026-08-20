@@ -1,7 +1,8 @@
 /**
- * MT4 struct SYMBOL (Dateiformat of "<data-directory>/history/<trade-server>/symbols.raw")
+ * MT4 struct SYMBOL
  *
- * Die Symbole einer Datei sind alphabetisch nach Namen sortiert.
+ * Struct definition and file format of "<data-directory>/history/<trade-server>/symbols.raw".
+ * All symbols in a file are sorted alphabetically by name.
  */
 #include "expander.h"
 #include "struct/mt4/Symbol.h"

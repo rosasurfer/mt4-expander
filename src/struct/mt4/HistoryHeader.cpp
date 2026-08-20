@@ -1,7 +1,7 @@
 /**
- * MT4 struct HISTORY_HEADER (Header der Kursreihen im "history"-Verzeichnis)
+ * MT4 struct HISTORY_HEADER
  *
- * HistoryFile Header
+ * Struct definition and header format of history files.
  */
 #include "expander.h"
 #include "struct/mt4/HistoryHeader.h"

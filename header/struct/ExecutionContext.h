@@ -10,19 +10,15 @@ typedef std::vector<string> LogBuffer;
 /**
  * Framework struct EXECUTION_CONTEXT
  *
- * Execution context of an MQL program. Used for keeping state, data exchange and communication between MQL modules and DLL.
+ * Struct for storing runtime data of an MQL program instance. Used to exchange this data between multiple MQL modules, and
+ * between an MQL module and the MT4Expander (DLL). Each MQL module has its own context. All contexts of an MQL program
+ * instance form a `ContextChain` which is defined as
  *
- * Die EXECUTION_CONTEXTe dienen dem Datenaustausch zwischen mehreren MQL-Programmen, zwischen einzelnen Modulen desselben
- * Programms und zwischen einem Programm und der DLL. Jedes MQL-Modul verfügt über einen eigenen Kontext, alle Kontexte eines
- * MQL-Programms bilden gemeinsam eine Context-Chain. An erster Stelle einer Context-Chain liegt der Master-Context, der in der
- * DLL verwaltet wird. An zweiter Stelle liegt der Context des MQL-Hauptmodules (Expert, Script oder Indikator). Alle weiteren
- * Contexte einer Chain sind Library-Contexte. Über die Kontexte werden wie folgt Daten ausgetauscht:
+ *   `typedef std::vector<EXECUTION_CONTEXT*> ContextChain;`
  *
- *  - Data exchange between MQL modules and the DLL:
- *    The MQL modules pass MQL runtime state and market information to the DLL, the DLL passes back DLL runtime state and
- *    calculation results.
- *  - Data exchange between MQL modules of the same program (i.e. MQL main and library modules).
- *  - Data exchange between different MQL programs (e.g. experts and indicators).
+ * Index 0 of this vector contains the master context and is accessed only from the DLL. Index 1 of the vector contains the
+ * context of the MQL main module (expert, script, or indicator). All other contexts in a `ContextChain` are MQL library
+ * contexts (if any).
  */
 struct EXECUTION_CONTEXT {                         // -- offset -- size -- description ------------------------------------------+-------+-------------------------------+
    uint               pid;                         //       0        4     MQL program id, starting from 1                       | const | index of g_mqlInstances[]     |
@@ -93,8 +89,10 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    std::ofstream*     logger;                      //     740        4     logger instance                                       |       |                               |
    LogBuffer*         logBuffer;                   //     744        4     log buffer                                            |       |                               |
    char*              logFilename;                 //     748        4     log filename                                          |       |                               |
+                                                   //                                                                            |       |                               |
+   DWORD              userData[8];                 //     752       32     memory for user data                                  |       |                               |
 };                                                 // ---------------------------------------------------------------------------+-------+-------------------------------+
-#pragma pack(pop)                                  //            = 752
+#pragma pack(pop)                                  //            = 784
 
 
 // exported getters
@@ -167,6 +165,7 @@ int                WINAPI ec_SetLoglevelTelegram    (EXECUTION_CONTEXT* ec, int 
 //                        ec.logger
 //                        ec.logBuffer
 const char*        WINAPI ec_SetLogFilename         (EXECUTION_CONTEXT* ec, const char* filename);
+DWORD              WINAPI ec_SetUserData            (EXECUTION_CONTEXT* ec, uint offset, DWORD data);
 
 
 // helpers
@@ -176,6 +175,6 @@ char*              WINAPI lpEXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec)
 
 
 // type definitions
-typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // A ContextChain holds all EXECUTION_CONTEXTs of an MQL program (one EC per module).
-typedef std::vector<uint>               IndicatorList;      // List of indicators (pids) loaded in a chart window.
-typedef std::vector<ContextChain*>      MqlInstanceList;    // List of all MQL programs ever loaded (index: pid).
+typedef std::vector<EXECUTION_CONTEXT*> ContextChain;       // holds all EXECUTION_CONTEXTs of an MQL program instance (one per MQL module).
+typedef std::vector<uint>               IndicatorList;      // list of indicators (pids) loaded in a chart window
+typedef std::vector<ContextChain*>      MqlInstanceList;    // list of all MQL program instances ever loaded (index: pid)

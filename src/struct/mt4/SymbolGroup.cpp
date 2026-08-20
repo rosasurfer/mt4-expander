@@ -1,6 +1,7 @@
 /**
- * MT4 struct SYMBOL_GROUP and file format of "<data-directory>/history/<trade-server>/symgroups.raw"
+ * MT4 struct SYMBOL_GROUP
  *
+ * Struct definition and file format of "<data-directory>/history/<trade-server>/symgroups.raw".
  * The file size is fix, a file always contains 32 groups. Unused group entries are empty (zero-ed).
  */
 #include "expander.h"
