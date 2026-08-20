@@ -195,7 +195,7 @@ int WINAPI ec_SuperLoglevelTelegram(uint pid) {
 
 
 /**
- * Set EXECUTION_CONTEXT.programType and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.programType` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  ProgramType        type
@@ -236,7 +236,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
 
 
 /**
- * Set EXECUTION_CONTEXT.programName and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.programName` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
@@ -272,7 +272,7 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Set EXECUTION_CONTEXT.programInitReason and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.programInitReason` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  InitializeReason   reason
@@ -320,7 +320,7 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
 
 
 /**
- * Set EXECUTION_CONTEXT.programUninitReason and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.programUninitReason` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  UninitializeReason reason
@@ -368,7 +368,7 @@ UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, Unini
 
 
 /**
- * Set EXECUTION_CONTEXT.programCoreFunction and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.programCoreFunction` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  CoreFunction       id
@@ -410,7 +410,7 @@ CoreFunction WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunctio
 
 
 /**
- * Set EXECUTION_CONTEXT.programInitFlags and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.programInitFlags` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -442,7 +442,7 @@ DWORD WINAPI ec_SetProgramInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set EXECUTION_CONTEXT.programDeinitFlags and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.programDeinitFlags` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -474,7 +474,7 @@ DWORD WINAPI ec_SetProgramDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set EXECUTION_CONTEXT.moduleType. If the passed context is the main context also update the master context.
+ * Set `EXECUTION_CONTEXT.moduleType`. If the passed context is the main context also update the master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  ModuleType         type
@@ -515,7 +515,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
 
 
 /**
- * Set EXECUTION_CONTEXT.moduleName. If the passed context is the main context also update the master context.
+ * Set `EXECUTION_CONTEXT.moduleName`. If the passed context is the main context also update the master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              name
@@ -548,7 +548,7 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
 
 
 /**
- * Set EXECUTION_CONTEXT.moduleUninitReason. If the passed context is the main context also update the master context.
+ * Set `EXECUTION_CONTEXT.moduleUninitReason`. If the passed context is the main context also update the master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  UninitializeReason reason
@@ -595,7 +595,7 @@ UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, Uninit
 
 
 /**
- * Set EXECUTION_CONTEXT.moduleCoreFunction. If the passed context is the main context also update the master context.
+ * Set `EXECUTION_CONTEXT.moduleCoreFunction`. If the passed context is the main context also update the master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  CoreFunction       id
@@ -635,7 +635,7 @@ CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction
 
 
 /**
- * Set EXECUTION_CONTEXT.moduleInitFlags. If the passed context is the main context also update the master context.
+ * Set `EXECUTION_CONTEXT.moduleInitFlags`. If the passed context is the main context also update the master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -666,7 +666,7 @@ DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set EXECUTION_CONTEXT.moduleDeinitFlags. If the passed context is the main context also update the master context.
+ * Set `EXECUTION_CONTEXT.moduleDeinitFlags`. If the passed context is the main context also update the master context.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              flags
@@ -697,7 +697,7 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
 
 
 /**
- * Set EXECUTION_CONTEXT.symbol and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.symbol` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              symbol
@@ -733,7 +733,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
 
 
 /**
- * Set EXECUTION_CONTEXT.timeframe and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.timeframe` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               timeframe
@@ -766,7 +766,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
 
 
 /**
- * Set EXECUTION_CONTEXT.bars and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.bars` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                bars
@@ -799,7 +799,7 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int bars) {
 
 
 /**
- * Set EXECUTION_CONTEXT.validBars and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.validBars` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                validBars
@@ -832,7 +832,7 @@ int WINAPI ec_SetValidBars(EXECUTION_CONTEXT* ec, int validBars) {
 
 
 /**
- * Set EXECUTION_CONTEXT.changedBars and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.changedBars` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                changedBars
@@ -865,7 +865,7 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int changedBars) {
 
 
 /**
- * Set EXECUTION_CONTEXT.digits and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.digits` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               digits
@@ -898,7 +898,7 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
 
 
 /**
- * Set EXECUTION_CONTEXT.pipDigits and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.pipDigits` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               pipDigits
@@ -931,7 +931,7 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint pipDigits) {
 
 
 /**
- * Set EXECUTION_CONTEXT.pip and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.pip` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  double             size - pip size
@@ -964,7 +964,7 @@ double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
 
 
 /**
- * Set EXECUTION_CONTEXT.point and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.point` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  double             size - MQL point size
@@ -997,7 +997,7 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
 
 
 /**
- * Set EXECUTION_CONTEXT.superContext and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.superContext` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec  - a program's execution context
  * @param  EXECUTION_CONTEXT* sec - a program's super context
@@ -1030,7 +1030,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
 
 
 /**
- * Set EXECUTION_CONTEXT.threadId and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.threadId` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  uint               id - thread id
@@ -1063,7 +1063,7 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
 
 
 /**
- * Set EXECUTION_CONTEXT.chartWindow and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.chartWindow` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  HWND               hWnd - handle of chart window with title bar "Symbol,Period"
@@ -1096,7 +1096,7 @@ HWND WINAPI ec_SetChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Set EXECUTION_CONTEXT.chart and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.chart` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  HWND               hWnd - handle of embedded chart AfxFrame; same as MQL::WindowHandle()
@@ -1129,7 +1129,7 @@ HWND WINAPI ec_SetChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
 
 
 /**
- * Set EXECUTION_CONTEXT.testing and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.testing` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
@@ -1161,7 +1161,7 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set EXECUTION_CONTEXT.visualMode and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.visualMode` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
@@ -1193,7 +1193,7 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set EXECUTION_CONTEXT.optimization and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.optimization` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  BOOL               status
@@ -1225,7 +1225,7 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
 
 
 /**
- * Set EXECUTION_CONTEXT.recorder and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.recorder` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                mode
@@ -1259,7 +1259,7 @@ int WINAPI ec_SetRecorder(EXECUTION_CONTEXT* ec, int mode) {
 
 
 /**
- * Set EXECUTION_CONTEXT.accountServer and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.accountServer` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              server - server name (an empty string is converted to a NULL pointer)
@@ -1305,7 +1305,7 @@ const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server
 
 
 /**
- * Set EXECUTION_CONTEXT.accountNumber and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.accountNumber` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                number - account number
@@ -1339,7 +1339,7 @@ int WINAPI ec_SetAccountNumber(EXECUTION_CONTEXT* ec, int number) {
 
 
 /**
- * Set EXECUTION_CONTEXT.dllWarning.
+ * Set `EXECUTION_CONTEXT.dllWarning`.
  *
  * - If a main context is passed the warning is propagated to the master context (incl. resetting i.e. ERR_NO_ERROR).
  * - If a library context is passed the warning is propagated to main and master context (except resetting i.e. ERR_NO_ERROR).
@@ -1385,7 +1385,7 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Set EXECUTION_CONTEXT.dllError.
+ * Set `EXECUTION_CONTEXT.dllError`.
  *
  * - If a main context is passed the error is propagated to the master context (incl. resetting i.e. ERR_NO_ERROR).
  * - If a library context is passed the error is propagated to main and master context (except resetting i.e. ERR_NO_ERROR).
@@ -1431,7 +1431,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Set EXECUTION_CONTEXT.mqlError.
+ * Set `EXECUTION_CONTEXT.mqlError`.
  *
  * - If a main context is passed the error is propagated to the master context (incl. resetting i.e. ERR_NO_ERROR).
  * - If a library context is passed the error is propagated to main and master context (except resetting i.e. ERR_NO_ERROR).
@@ -1477,7 +1477,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
 
 
 /**
- * Set EXECUTION_CONTEXT.debugFeatures and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.debugFeatures` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  DWORD              features - feature flags
@@ -1509,7 +1509,7 @@ DWORD WINAPI ec_SetDebugFeatures(EXECUTION_CONTEXT* ec, DWORD features) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevel and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.loglevel` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -1548,7 +1548,7 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevelDebug and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.loglevelDebug` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -1581,7 +1581,7 @@ int WINAPI ec_SetLoglevelDebug(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevelTerminal and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.loglevelTerminal` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -1614,7 +1614,7 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevelAlert and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.loglevelAlert` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -1647,7 +1647,7 @@ int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevelFile and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.loglevelFile` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -1686,7 +1686,7 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevelMail and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.loglevelMail` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -1719,7 +1719,7 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.loglevelTelegram and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.loglevelTelegram` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  int                level - loglevel
@@ -1752,7 +1752,7 @@ int WINAPI ec_SetLoglevelTelegram(EXECUTION_CONTEXT* ec, int level) {
 
 
 /**
- * Set EXECUTION_CONTEXT.logFilename and update all MQL modules of the program.
+ * Set `EXECUTION_CONTEXT.logFilename` and update all MQL modules of the program.
  *
  * @param  EXECUTION_CONTEXT* ec
  * @param  char*              filename - filename (an empty string or a NULL pointer reset the field)
@@ -1799,7 +1799,44 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
 
 
 /**
- * Return the master EXECUTION_CONTEXT of an MQL program.
+ * Set `EXECUTION_CONTEXT.userData` and update all MQL modules of the program.
+ *
+ * @param  EXECUTION_CONTEXT* ec     - execution context
+ * @param  uint               offset - user data offset
+ * @param  DWORD              data   - user data
+ *
+ * @return DWORD data - previously stored user data at that offset, or NULL in case of errors
+ */
+DWORD WINAPI ec_SetUserData(EXECUTION_CONTEXT* ec, uint offset, DWORD data) {
+   if ((uint)ec < MIN_VALID_POINTER)    return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   uint pid = ec->pid;
+   if (!pid)                            return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid)    return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
+   if ((int)offset < 0)                 return !error(ERR_INVALID_PARAMETER, "invalid parameter offset: %d (must be >= 0)", offset);
+   if (offset >= countof(ec->userData)) return !error(ERR_INVALID_PARAMETER, "invalid parameter offset: %d (must be <= %d)", offset, countof(ec->userData)-1);
+
+   ContextChain &chain = *g_mqlInstances[pid];
+   size_t chainSize = chain.size();
+
+   for (size_t i=0; i < chainSize; i++) {
+      if (chain[i] == ec) {                           // context found
+         DWORD oldData = 0;
+         for (i=0; i < chainSize; i++) {              // update all program modules
+            if (chain[i]) {
+               !i && (oldData = chain[i]->userData[offset]);
+               chain[i]->userData[offset] = data;
+            }
+         }
+         return oldData;
+      }
+   }
+   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   #pragma EXPANDER_EXPORT
+}
+
+
+/**
+ * Return the master `EXECUTION_CONTEXT` of an MQL program.
  *
  * @param  uint pid - pid of the MQL program
  *
@@ -1820,7 +1857,7 @@ EXECUTION_CONTEXT* WINAPI GetMasterContext(uint pid) {
 
 
 /**
- * Return a human-readable version of an EXECUTION_CONTEXT.
+ * Return a human-readable version of an `EXECUTION_CONTEXT`.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
@@ -1912,7 +1949,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
 
 
 /**
- * Alias of EXECUTION_CONTEXT_toStr() with a different MQL signature.
+ * Alias of `EXECUTION_CONTEXT_toStr()` with a different MQL signature.
  *
  * @param  EXECUTION_CONTEXT* ec
  *
