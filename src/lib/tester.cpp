@@ -6,7 +6,7 @@
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/tester.h"
-#include "lib/window.h"
+#include "lib/ui/window.h"
 
 #include <fstream>
 #include <windowsx.h>

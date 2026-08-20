@@ -2,7 +2,7 @@
 #include "dev/dev.h"
 #include "lib/terminal.h"
 #include "lib/thread.h"
-#include "lib/window.h"
+#include "lib/ui/window.h"
 #include "struct/ExecutionContext.h"
 
 extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handle

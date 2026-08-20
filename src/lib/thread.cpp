@@ -2,7 +2,7 @@
 #include "integration.h"
 #include "lib/terminal.h"
 #include "lib/thread.h"
-#include "lib/window.h"
+#include "lib/ui/window.h"
 
 
 /**

@@ -1,7 +1,7 @@
 #include "expander.h"
 #include "lib/conversion.h"
 #include "lib/string.h"
-#include "lib/window.h"
+#include "lib/ui/window.h"
 
 #include <map>
 
