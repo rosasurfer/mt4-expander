@@ -1808,12 +1808,12 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
  * @return DWORD data - previously stored user data at that offset, or NULL in case of errors
  */
 DWORD WINAPI ec_SetUserData(EXECUTION_CONTEXT* ec, uint offset, DWORD data) {
-   if ((uint)ec < MIN_VALID_POINTER)   return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
+   if ((uint)ec < MIN_VALID_POINTER)    return !error(ERR_INVALID_PARAMETER, "invalid parameter ec: 0x%p (not a valid pointer)", ec);
    uint pid = ec->pid;
-   if (!pid)                           return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
-   if (g_mqlInstances.size() <= pid)   return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
-   if ((int)offset < 0)                return !error(ERR_INVALID_PARAMETER, "invalid parameter offset: %d (must be >= 0)", offset);
-   if (offset > countof(ec->userData)) return !error(ERR_INVALID_PARAMETER, "invalid parameter offset: %d (must be <= %d)", offset, countof(ec->userData)-1);
+   if (!pid)                            return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (not a program id)", pid);
+   if (g_mqlInstances.size() <= pid)    return !error(ERR_INVALID_PARAMETER, "invalid parameter ec.pid: %d (program not found)", pid);
+   if ((int)offset < 0)                 return !error(ERR_INVALID_PARAMETER, "invalid parameter offset: %d (must be >= 0)", offset);
+   if (offset >= countof(ec->userData)) return !error(ERR_INVALID_PARAMETER, "invalid parameter offset: %d (must be <= %d)", offset, countof(ec->userData)-1);
 
    ContextChain &chain = *g_mqlInstances[pid];
    size_t chainSize = chain.size();
