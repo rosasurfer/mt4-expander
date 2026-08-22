@@ -1169,7 +1169,7 @@ string WINAPI utf16ToUtf8(const wstring &wstr) {
  * @return char* - formatted string or a NULL pointer in case of errors
  */
 char* __cdecl asformat(const char* format, ...) {
-   if (!format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
+   if (!format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL");
 
    va_list args;
    va_start(args, format);
@@ -1190,7 +1190,7 @@ char* __cdecl asformat(const char* format, ...) {
  * @return wchar* - formatted string or a NULL pointer in case of errors
  */
 wchar* __cdecl asformat(const wchar* format, ...) {
-   if (!format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
+   if (!format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL");
 
    va_list args;
    va_start(args, format);
@@ -1211,7 +1211,7 @@ wchar* __cdecl asformat(const wchar* format, ...) {
  * @return char* - formatted string or NULL in case of errors
  */
 char* WINAPI _asformat(const char* format, const va_list &args) {
-   if (!format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
+   if (!format) return (char*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL");
 
    uint size = vscprintf(format, args) + 1;     // +1 for the terminating NUL char
    char* buffer = (char*) malloc(size);
@@ -1232,7 +1232,7 @@ char* WINAPI _asformat(const char* format, const va_list &args) {
  * @return wchar* - formatted string or NULL in case of errors
  */
 wchar* WINAPI _asformat(const wchar* format, const va_list &args) {
-   if (!format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: (null)");
+   if (!format) return (wchar*)!error(ERR_INVALID_PARAMETER, "invalid parameter format: NULL");
 
    uint size = vwscprintf(format, args) + 1;       // +1 for the terminating NUL wchar
    wchar* buffer = (wchar*)malloc(size * sizeof(wchar));

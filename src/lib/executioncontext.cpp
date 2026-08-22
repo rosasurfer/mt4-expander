@@ -485,7 +485,7 @@ int WINAPI MqlProgram_init(EXECUTION_CONTEXT* ec, ProgramType programType, const
          lib->moduleInitFlags    = bak.moduleInitFlags;
          lib->moduleDeinitFlags  = bak.moduleDeinitFlags;
       }
-      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
    // update indicator positions in the chart
@@ -553,7 +553,7 @@ int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, 
             ctx->moduleCoreFunction = ctx->programCoreFunction;      // in master and main context only
          }
       }
-      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
+      else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
    }
 
    return NO_ERROR;
@@ -976,7 +976,7 @@ int WINAPI LeaveMqlModule(EXECUTION_CONTEXT* ec) {
                   ctx->moduleCoreFunction = (CoreFunction)NULL;
                }
             }
-            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: (null)  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
+            else warn(ERR_ILLEGAL_STATE, "no module context found at chain[%d]: NULL  main=%s", i, EXECUTION_CONTEXT_toStr(ec));
          }
          chain[1] = NULL;                                                  // unset the main execution context but keep the slot in the chain
          break;

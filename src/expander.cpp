@@ -65,7 +65,7 @@ int __cdecl _dump(const char* fileName, const char* funcName, uint line, const v
  */
 int __cdecl debug_raw(const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -97,7 +97,7 @@ int __cdecl debug_raw(const char* message, ...) {
  */
 int __cdecl _debug(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -133,7 +133,7 @@ int __cdecl _debug(const char* fileName, const char* funcName, uint line, const 
  */
 int __cdecl _debug(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -175,7 +175,7 @@ int __cdecl _debug(const char* fileName, const char* funcName, uint line, int er
  */
 int __cdecl _info(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -211,7 +211,7 @@ int __cdecl _info(const char* fileName, const char* funcName, uint line, const c
  */
 int __cdecl _info(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -253,7 +253,7 @@ int __cdecl _info(const char* fileName, const char* funcName, uint line, int err
  */
 int __cdecl _notice(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -289,7 +289,7 @@ int __cdecl _notice(const char* fileName, const char* funcName, uint line, const
  */
 int __cdecl _notice(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -331,7 +331,7 @@ int __cdecl _notice(const char* fileName, const char* funcName, uint line, int e
  */
 int __cdecl _warn(const char* fileName, const char* funcName, uint line, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -381,7 +381,7 @@ int __cdecl _warn(const char* fileName, const char* funcName, uint line, const c
  */
 int __cdecl _warn(const char* fileName, const char* funcName, uint line, int error, const char* message, ...) {
    const char* msg = message;
-   if (!msg) msg = "(null)";
+   if (!msg) msg = "NULL";
 
    // format the variable parameters
    va_list args;
@@ -440,7 +440,7 @@ int __cdecl _error(const char* fileName, const char* funcName, uint line, int er
    if (!error) return NO_ERROR;
 
    const char* msg = message;
-   if (!msg) message = "(null)";
+   if (!msg) message = "NULL";
 
    // format the variable parameters
    va_list args;

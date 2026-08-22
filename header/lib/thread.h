@@ -14,11 +14,11 @@ struct JOB {
 
    LRESULT run() {                  // executes the job
       if (!func) {
-         last_error = error(ERR_INVALID_PARAMETER, "invalid job function: (null)");
+         last_error = error(ERR_INVALID_PARAMETER, "invalid job function: NULL");
          return result = 0;
       }
       if (!completion) {
-         last_error = error(ERR_INVALID_PARAMETER, "invalid completion event: (null)");
+         last_error = error(ERR_INVALID_PARAMETER, "invalid completion event: NULL");
          return result = 0;
       }
 

@@ -1894,7 +1894,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
 
          << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
          << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
-         << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "(null)")
+         << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
          << ", validBars="            <<                      ec->validBars
          << ", changedBars="          <<                      ec->changedBars
@@ -1911,7 +1911,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", pip="   << std::setprecision(ec->pipDigits) << ec->pip
          << ", point=" << std::setprecision(ec->digits)    << ec->point
 
-         << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "(null)")
+         << ", superContext="         <<                     (ec->superContext ? asformat("0x%p", ec->superContext) : "NULL")
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUiThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
          << ", chartWindow="          <<                     (ec->chartWindow ? asformat("%p", ec->chartWindow ) : "0")
          << ", chart="                <<                     (ec->chart       ? asformat("%p", ec->chart       ) : "0")
@@ -1936,7 +1936,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", loglevelFile="         << LoglevelDescriptionA(ec->loglevelFile)
          << ", loglevelMail="         << LoglevelDescriptionA(ec->loglevelMail)
          << ", loglevelTelegram="     << LoglevelDescriptionA(ec->loglevelTelegram)
-         << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "(null)")
+         << ", logger="               <<                     (ec->logger    ? asformat("0x%p", ec->logger) : "NULL")
          << ", logBufferSize="        <<                     (ec->logBuffer ? ec->logBuffer->size() : 0)
          << ", logFilename="          <<       DoubleQuoteStr(ec->logFilename)
          << "}";

@@ -25,7 +25,7 @@ HWND WINAPI Test_CreateStatic(uint pid) {
    struct local {
       static LRESULT CALLBACK CreateChildControl(LPARAM lParam) {
          ARGS* args = (ARGS*)lParam;
-         if (!args) return !error(ERR_INVALID_PARAMETER, "invalid arguments: (null)");
+         if (!args) return !error(ERR_INVALID_PARAMETER, "invalid arguments: NULL");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS| SS_LEFT | SS_NOPREFIX;
          HWND hWndChild = CreateWindowExW(
@@ -90,7 +90,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    struct local {
       static LRESULT CALLBACK CreateChildWindow(LPARAM lParam) {
          ARGS* args = (ARGS*)lParam;
-         if (!args) return !error(ERR_INVALID_PARAMETER, "invalid arguments: (null)");
+         if (!args) return !error(ERR_INVALID_PARAMETER, "invalid arguments: NULL");
 
          DWORD styles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
          HWND hWndChild = CreateWindowExW(
