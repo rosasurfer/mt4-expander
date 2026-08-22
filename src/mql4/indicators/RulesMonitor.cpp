@@ -143,9 +143,9 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
    switch (msg) {
       // link the view data to the window
       case WM_NCCREATE: {
-         CREATESTRUCT* cs = (CREATESTRUCT*) lParam;
-         SetWindowUserData(hWnd, (LONG_PTR) cs->lpCreateParams);
-         return TRUE;
+         CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
+         SetWindowUserData(hWnd, (LONG_PTR)cs->lpCreateParams);
+         break;
       }
 
       // free the view data
@@ -157,14 +157,13 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
       // make the whole client area draggable
       case WM_NCHITTEST: {
          LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;  // all mouse messages become NC variants
+         return (hit == HTCLIENT) ? HTCAPTION : hit;  // mouse handling must handle NC message variants
       }
 
       case WM_COMMAND: {
          if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
          break;
       }
-
    }
    return DefWindowProcW(hWnd, msg, wParam, lParam);
 }
