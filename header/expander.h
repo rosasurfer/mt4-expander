@@ -37,10 +37,13 @@ typedef            wchar_t   wchar;
 typedef unsigned   int       uint;
 typedef          __int64     int64;
 typedef unsigned __int64     uint64;
-typedef            DWORD     color;                         // MQL4 color
+typedef            DWORD     color;                         // MQL4 color (high-order byte marks clrNone = full transparency)
 typedef          __time32_t  time32;                        // MQL4.0 32-bit timestamp
 typedef          __time64_t  time64;                        // MQL4.5 64-bit timestamp
 typedef            tm        TM;                            // C time struct
+
+#define colorRef(color) ((COLORREF)((color) & 0x00FFFFFF))  // convert an MQL color to a Win32 color
+
 
 namespace rsf {}                                            // define our namespace and use it first
 using namespace rsf;
