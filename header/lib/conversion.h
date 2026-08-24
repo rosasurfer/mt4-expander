@@ -5,6 +5,8 @@
 const char*  WINAPI BarModelDescription(int id);
 const char*  WINAPI BarModelToStr(int id);
 const char*  WINAPI BoolToStr(BOOL value);
+const char*  WINAPI ColorToStr(DWORD value);
+      char*  WINAPI ColorToRGBStr(DWORD value);
 const char*  WINAPI CoreFunctionDescription(CoreFunction func);
 const char*  WINAPI CoreFunctionToStr(CoreFunction func);
       char*  WINAPI DeinitFlagsToStr(DWORD flags);
