@@ -420,7 +420,7 @@ int WINAPI MqlProgram_init(EXECUTION_CONTEXT* ec, ProgramType programType, const
    ec_SetChangedBars         (ec, -1);                                     // ...
 
    if (initReason==IR_SYMBOLCHANGE || initReason==IR_ACCOUNTCHANGE) {
-      master->ticks    = ec->ticks    = (uint)(initReason == IR_ACCOUNTCHANGE);
+      master->ticks    = ec->ticks    = 0;
       master->currTick = ec->currTick = 0;
       master->prevTick = ec->prevTick = 0;
    }

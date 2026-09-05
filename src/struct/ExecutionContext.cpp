@@ -231,7 +231,7 @@ ProgramType WINAPI ec_SetProgramType(EXECUTION_CONTEXT* ec, ProgramType type) {
          return type;
       }
    }
-   return (ProgramType)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (ProgramType)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -267,7 +267,7 @@ const char* WINAPI ec_SetProgramName(EXECUTION_CONTEXT* ec, const char* name) {
          return name;
       }
    }
-   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (char*)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -315,7 +315,7 @@ InitializeReason WINAPI ec_SetProgramInitReason(EXECUTION_CONTEXT* ec, Initializ
          return reason;
       }
    }
-   return (InitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (InitializeReason)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -363,7 +363,7 @@ UninitializeReason WINAPI ec_SetProgramUninitReason(EXECUTION_CONTEXT* ec, Unini
          return reason;
       }
    }
-   return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -404,7 +404,7 @@ CoreFunction WINAPI ec_SetProgramCoreFunction(EXECUTION_CONTEXT* ec, CoreFunctio
          return id;
       }
    }
-   return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (CoreFunction)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -437,7 +437,7 @@ DWORD WINAPI ec_SetProgramInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
          return flags;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -469,7 +469,7 @@ DWORD WINAPI ec_SetProgramDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
          return flags;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -510,7 +510,7 @@ ModuleType WINAPI ec_SetModuleType(EXECUTION_CONTEXT* ec, ModuleType type) {
          return type;
       }
    }
-   return (ModuleType)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (ModuleType)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -543,7 +543,7 @@ const char* WINAPI ec_SetModuleName(EXECUTION_CONTEXT* ec, const char* name) {
          return name;
       }
    }
-   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (char*)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -590,7 +590,7 @@ UninitializeReason WINAPI ec_SetModuleUninitReason(EXECUTION_CONTEXT* ec, Uninit
          return reason;
       }
    }
-   return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (UninitializeReason)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -630,7 +630,7 @@ CoreFunction WINAPI ec_SetModuleCoreFunction(EXECUTION_CONTEXT* ec, CoreFunction
          return id;
       }
    }
-   return (CoreFunction)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (CoreFunction)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -661,7 +661,7 @@ DWORD WINAPI ec_SetModuleInitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
          return flags;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -692,7 +692,7 @@ DWORD WINAPI ec_SetModuleDeinitFlags(EXECUTION_CONTEXT* ec, DWORD flags) {
          return flags;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -728,7 +728,7 @@ const char* WINAPI ec_SetSymbol(EXECUTION_CONTEXT* ec, const char* symbol) {
          return symbol;
       }
    }
-   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (char*)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -761,7 +761,7 @@ uint WINAPI ec_SetTimeframe(EXECUTION_CONTEXT* ec, uint timeframe) {
          return timeframe;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -794,7 +794,7 @@ int WINAPI ec_SetBars(EXECUTION_CONTEXT* ec, int bars) {
          return bars;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -827,7 +827,7 @@ int WINAPI ec_SetValidBars(EXECUTION_CONTEXT* ec, int validBars) {
          return validBars;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -860,7 +860,7 @@ int WINAPI ec_SetChangedBars(EXECUTION_CONTEXT* ec, int changedBars) {
          return changedBars;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -893,7 +893,7 @@ uint WINAPI ec_SetDigits(EXECUTION_CONTEXT* ec, uint digits) {
          return digits;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -926,7 +926,7 @@ uint WINAPI ec_SetPipDigits(EXECUTION_CONTEXT* ec, uint pipDigits) {
          return pipDigits;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -959,7 +959,7 @@ double WINAPI ec_SetPip(EXECUTION_CONTEXT* ec, double size) {
          return size;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -992,7 +992,7 @@ double WINAPI ec_SetPoint(EXECUTION_CONTEXT* ec, double size) {
          return size;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1025,7 +1025,7 @@ EXECUTION_CONTEXT* WINAPI ec_SetSuperContext(EXECUTION_CONTEXT* ec, EXECUTION_CO
          return sec;
       }
    }
-   return (EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (EXECUTION_CONTEXT*)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1058,7 +1058,7 @@ uint WINAPI ec_SetThreadId(EXECUTION_CONTEXT* ec, uint id) {
          return id;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1091,7 +1091,7 @@ HWND WINAPI ec_SetChartWindow(EXECUTION_CONTEXT* ec, HWND hWnd) {
          return hWnd;
       }
    }
-   return (HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (HWND)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1124,7 +1124,7 @@ HWND WINAPI ec_SetChart(EXECUTION_CONTEXT* ec, HWND hWnd) {
          return hWnd;
       }
    }
-   return (HWND)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (HWND)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1156,7 +1156,7 @@ BOOL WINAPI ec_SetTesting(EXECUTION_CONTEXT* ec, BOOL status) {
          return status;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1188,7 +1188,7 @@ BOOL WINAPI ec_SetVisualMode(EXECUTION_CONTEXT* ec, BOOL status) {
          return status;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1220,7 +1220,7 @@ BOOL WINAPI ec_SetOptimization(EXECUTION_CONTEXT* ec, BOOL status) {
          return status;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1253,7 +1253,7 @@ int WINAPI ec_SetRecorder(EXECUTION_CONTEXT* ec, int mode) {
          return mode;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1299,7 +1299,7 @@ const char* WINAPI ec_SetAccountServer(EXECUTION_CONTEXT* ec, const char* server
          return server;
       }
    }
-   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (char*)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1333,7 +1333,7 @@ int WINAPI ec_SetAccountNumber(EXECUTION_CONTEXT* ec, int number) {
          return number;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1379,7 +1379,7 @@ int WINAPI ec_SetDllWarning(EXECUTION_CONTEXT* ec, int error) {
          return error;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1425,7 +1425,7 @@ int WINAPI ec_SetDllError(EXECUTION_CONTEXT* ec, int error) {
          return error;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1471,7 +1471,7 @@ int WINAPI ec_SetMqlError(EXECUTION_CONTEXT* ec, int error) {
          return error;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1504,7 +1504,7 @@ DWORD WINAPI ec_SetDebugFeatures(EXECUTION_CONTEXT* ec, DWORD features) {
          return features;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1542,7 +1542,7 @@ int WINAPI ec_SetLoglevel(EXECUTION_CONTEXT* ec, int level) {
          return level;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1575,7 +1575,7 @@ int WINAPI ec_SetLoglevelDebug(EXECUTION_CONTEXT* ec, int level) {
          return level;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1608,7 +1608,7 @@ int WINAPI ec_SetLoglevelTerminal(EXECUTION_CONTEXT* ec, int level) {
          return level;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1641,7 +1641,7 @@ int WINAPI ec_SetLoglevelAlert(EXECUTION_CONTEXT* ec, int level) {
          return level;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1680,7 +1680,7 @@ int WINAPI ec_SetLoglevelFile(EXECUTION_CONTEXT* ec, int level) {
          return level;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1713,7 +1713,7 @@ int WINAPI ec_SetLoglevelMail(EXECUTION_CONTEXT* ec, int level) {
          return level;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1746,7 +1746,7 @@ int WINAPI ec_SetLoglevelTelegram(EXECUTION_CONTEXT* ec, int level) {
          return level;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
@@ -1794,7 +1794,7 @@ const char* WINAPI ec_SetLogFilename(EXECUTION_CONTEXT* ec, const char* filename
          return filename;
       }
    }
-   return (char*)!error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return (char*)!error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
 }
 
 
@@ -1830,7 +1830,7 @@ DWORD WINAPI ec_SetUserData(EXECUTION_CONTEXT* ec, uint offset, DWORD data) {
          return oldData;
       }
    }
-   return !error(ERR_INVALID_PARAMETER, "invalid EXECUTION_CONTEXT: 0x%p (not a context of program %d), ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
+   return !error(ERR_INVALID_PARAMETER, "context 0x%p not found in program chain %d, ec=%s", ec, pid, EXECUTION_CONTEXT_toStr(ec));
    #pragma EXPANDER_EXPORT
 }
 
