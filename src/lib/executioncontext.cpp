@@ -1593,6 +1593,11 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
       return (master->timeframe!=timeframe ? IR_TIMEFRAMECHANGE : IR_SYMBOLCHANGE);
    }
 
+   // UR_ACCONT                                          // account changed (implemented in most recent builds)
+   if (uninitReason == UR_ACCOUNT) {
+      return IR_ACCOUNTCHANGE;
+   }
+
    // UR_RECOMPILE                                       // reloaded after recompilation
    if (uninitReason == UR_RECOMPILE) {
       return IR_RECOMPILE;
@@ -1631,7 +1636,6 @@ InitializeReason WINAPI GetInitReason_expert(EXECUTION_CONTEXT* ec, const char* 
    }
 
    switch (uninitReason) {
-      case UR_ACCOUNT:
       case UR_CLOSE:
       case UR_INITFAILED:
          return (InitializeReason)!error(ERR_ILLEGAL_STATE, "unexpected UninitializeReason %s (Testing=%d  build=%d)", UninitReasonToStr(uninitReason), isTesting, terminalBuild);

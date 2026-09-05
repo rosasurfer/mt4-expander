@@ -102,10 +102,6 @@ int WINAPI onDeinit() {
 
 
 int WINAPI onDeinitAccountChange() {
-   if (uint pid = GetLastThreadProgram()) {
-      EXECUTION_CONTEXT* ec = (*g_mqlInstances[pid])[0];
-      warn(ERR_UNDEFINED_STATE, "unexpected uninitialize reason UR_ACCOUNT:  ec=%s", EXECUTION_CONTEXT_toStr(ec));
-   }
    return(NO_ERROR);
    #pragma EXPANDER_EXPORT
 }
