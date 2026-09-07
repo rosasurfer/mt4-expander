@@ -2,7 +2,7 @@
 #include "dev/dev.h"
 #include "lib/terminal.h"
 #include "lib/thread.h"
-#include "lib/window.h"
+#include "lib/ui/window.h"
 #include "struct/ExecutionContext.h"
 
 extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handle
@@ -37,21 +37,21 @@ HWND WINAPI Test_CreateStatic(uint pid) {
             args->hWndParent,                         // parent window
             0,                                        // control id
             HMODULE_EXPANDER,                         // module instance
-            NULL                                      // additional CREATESTRUCT
+            NULL                                      // additional user data
          );
          if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
       }
    };
    struct ARGS {
-      __in  HWND hWndParent;
-      __out int  error;
+      __in  HWND  hWndParent;
+      __out DWORD error;
    } args = { ec->chart, NO_ERROR };
 
    // create the child control
    SetLastError(NO_ERROR);
    HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (LPARAM)&args);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildControl()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, GetLastError()), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
@@ -62,8 +62,8 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 
 
 /**
-* Create a regular child window.
-*
+ * Create a regular child window.
+ *
  * @param  uint pid - pid of the calling MQL program
  *
  * @return HWND - created window handle
@@ -71,19 +71,18 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 HWND WINAPI Test_CreateWindow(uint pid) {
    // get the EXECUTION_CONTEXT of the caller
    if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
-   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return NULL;
-
-   const wchar* className = L"rsfMT4Expander.chart.childwindow";
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid);
+   if (!ec) return NULL;
 
    // register the window class
    WNDCLASSW wc = {};
    wc.lpfnWndProc   = ChildWindowProc;
    wc.hInstance     = HMODULE_EXPANDER;
-   wc.lpszClassName = className;
+   wc.lpszClassName = L"rsfMT4Expander.chart.childwindow";
    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
    if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
-      return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassW(\"%S\")", className);
+      return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassW(\"%S\")", wc.lpszClassName);
    }
 
    // creation callback and arguments
@@ -102,7 +101,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
             args->hWndParent,                         // parent window
             0,                                        // control id
             HMODULE_EXPANDER,                         // module instance
-            NULL                                      // additional CREATESTRUCT
+            NULL                                      // additional user data
          );
          if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
@@ -111,15 +110,15 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    struct ARGS {
       __in  HWND         hWndParent;
       __in  const wchar* className;
-      __out int          error;
-   } args = { ec->chart, className, NO_ERROR };
+      __out DWORD        error;
+   } args = { ec->chart, wc.lpszClassName, NO_ERROR };
 
    // create the child window
    SetLastError(NO_ERROR);
    HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, (LPARAM)&args);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildWindow()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, GetLastError()), "CreateChildWindow()");
 
-   SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+   SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
 
    return hWndChild;
@@ -144,19 +143,30 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
       // make the whole client area draggable
       case WM_NCHITTEST: {
          LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;  // because of HTCAPTION mouse messages will be NC variants
+         return (hit == HTCLIENT) ? HTCAPTION : hit;  // all mouse messages become NC variants
       }
 
-      // load the context menu
+      // on right-click load the context menu
       case WM_NCRBUTTONDOWN: {
+         SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
+
          static HMENU hMenu = LoadMenuW(HMODULE_EXPANDER, MAKEINTRESOURCEW(IDR_CHART_STATUSPANEL_MENU));
          if (!hMenu) return !error(ERR_WIN32_ERROR + GetLastError(), "LoadMenuW()");
 
          POINTS pt = MAKEPOINTS(lParam);
-         if (!TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, NULL, hWnd, NULL) && GetLastError()) {
+         if (!TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN|TPM_RIGHTBUTTON, pt.x, pt.y, NULL, hWnd, NULL) && GetLastError()) {
             error(ERR_WIN32_ERROR + GetLastError(), "TrackPopupMenu()");
          }
          return 0;
+      }
+
+      // on any other click move the window to the top
+      case WM_NCLBUTTONDOWN:
+      case WM_NCMBUTTONDOWN:
+      case WM_NCXBUTTONDOWN: {
+         SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+         RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE|RDW_UPDATENOW|RDW_ALLCHILDREN);
+         break;
       }
 
       case WM_COMMAND: {
@@ -164,21 +174,21 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
          break;
       }
 
-      case WM_ERASEBKGND: {                           // don't spread painting over multiple messages (causes flicker)
+      case WM_ERASEBKGND: {                                    // don't spread painting over multiple messages (causes flicker)
          return 1;
       }
 
       case WM_PAINT: {
          PAINTSTRUCT ps;
-         HDC hdc = BeginPaint(hWnd, &ps);
+         HDC hDC = BeginPaint(hWnd, &ps);
+
          RECT rc;
          GetClientRect(hWnd, &rc);
-
-         FillRect(hdc, &rc, GetSysColorBrush(COLOR_BTNFACE));
-         DrawEdge(hdc, &rc, BDR_RAISEDINNER, BF_RECT);
-         SetBkMode(hdc, TRANSPARENT);
-         SetTextColor(hdc, Blue);
-         DrawTextW(hdc, L"Margin: 142.5%", -1, &rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+         FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));  // background
+         DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);         // edge
+         SetBkMode(hDC, TRANSPARENT);                          // text without background rectangle
+         SetTextColor(hDC, Blue);
+         DrawTextW(hDC, L"Margin: 142.5%", -1, &rc, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
 
          EndPaint(hWnd, &ps);
          return 0;

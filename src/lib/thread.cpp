@@ -2,7 +2,7 @@
 #include "integration.h"
 #include "lib/terminal.h"
 #include "lib/thread.h"
-#include "lib/window.h"
+#include "lib/ui/window.h"
 
 
 /**
@@ -54,9 +54,7 @@ LRESULT WINAPI InvokeUiThread(UiThreadCallback func, LPARAM args) {
    SetLastError(NO_ERROR);
 
    // call directly if already in the UI thread
-   if (IsUiThread()) {
-      return func(args);
-   }
+   if (IsUiThread()) return func(args);
 
    // make sure the UI thread dispatcher is installed
    HWND hWndMain = GetTerminalMainWindow();

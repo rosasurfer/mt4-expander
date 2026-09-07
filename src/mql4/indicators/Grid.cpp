@@ -1,7 +1,6 @@
 #include "expander.h"
 #include "lib/helper.h"
 
-
 /**
  * Get the height of the specified chart.
  *
