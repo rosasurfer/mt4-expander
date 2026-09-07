@@ -1,18 +1,22 @@
 #pragma once
 #include "expander.h"
 
-// container for view data of the status panel
+// view data for the status panel
 struct VIEW_DATA {
-   int    trend;
+   uint   pid;                // MQL program instance
+   HWND   hWnd;               // handle of the panel
+   BOOL   initialized;        // whether view data is initialized
 
-   color  bgColorUpTrend;
-   HBRUSH bgBrushUpTrend;
+   int    trend;              // trend direction
 
-   color  bgColorDownTrend;
-   HBRUSH bgBrushDownTrend;
+   color  bgColorUpTrend;     // background color for uptrends
+   HBRUSH bgBrushUpTrend;     // brush for uptrends
 
-   color  textColor;
-   HFONT  hFont;
+   color  bgColorDownTrend;   // background color for downtrends
+   HBRUSH bgBrushDownTrend;   // brush for downtrends
+
+   color  textColor;          // text foreground color
+   HFONT  hFont;              // handle of the font to be used
 
    //wchar text[256];
 };
