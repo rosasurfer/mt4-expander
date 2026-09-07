@@ -506,6 +506,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="mql4"
+				>
+				<Filter
+					Name="indicators"
+					>
+					<File
+						RelativePath=".\header\mql4\indicators\RulesMonitor.h"
+						>
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
