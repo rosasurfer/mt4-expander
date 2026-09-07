@@ -1,4 +1,5 @@
 #include "expander.h"
+#include "lib/conversion.h"
 #include "lib/string.h"
 #include "lib/terminal.h"
 #include "lib/thread.h"
@@ -12,25 +13,18 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handl
 #define MQL_PROGRAM_NAME      "Rules Monitor"
 #define USERDATA_HWND_PANEL   0
 
-// container for view data of the status panel
-struct VIEW_DATA {
-   int trend;
-
-   // --- old ------
-   double profit;
-   uint   trades;
-   wchar  text[256];
-};
-
 
 /**
  * Create the status panel.
  *
- * @param  uint pid - indicator pid
+ * @param  uint pid             - indicator pid
+ * @param  color textColor      - text color
+ * @param  color upTrendColor   - background color for uptrend
+ * @param  color downTrendColor - background color for downtrend
  *
  * @return HWND - window handle
  */
-HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid) {
+HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTrendColor, color downTrendColor) {
    // get the EXECUTION_CONTEXT
    if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
@@ -47,7 +41,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid) {
    WNDCLASSW wc = {};
    wc.lpfnWndProc   = StatusPanelWindowProc;
    wc.hInstance     = HMODULE_EXPANDER;
-   wc.lpszClassName = L"rsfMT4Expander.RulesMonitor.status-panel";
+   wc.lpszClassName = L"rsfMT4Expander.RulesMonitor";
    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
    if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
@@ -60,26 +54,28 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid) {
          ARGS* args = (ARGS*)lParam;
          if (!args) return !error(ERR_INVALID_PARAMETER, "invalid arguments: NULL");
 
-         DWORD stdStyles = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
-               stdStyles |= WS_CAPTION | WS_SYSMENU;
-         DWORD extStyles = WS_EX_DLGMODALFRAME;
-         wstring windowText = ansiToUtf16(string(MQL_PROGRAM_NAME));
-
          HWND hWnd = CreateWindowExW(
-            extStyles,                             // extended styles
-            args->className,                       // class name
-            windowText.c_str(),                    // window text
-            stdStyles,                             // regular styles
-            300, 200, 300, 150,                    // position + size
-            args->hWndParent,                      // parent window
-            0,                                     // control id
-            HMODULE_EXPANDER,                      // module instance
-            args->viewData                         // user data
+            0,                                        // extended styles
+            args->className,                          // class name
+            L"",                                      // window text
+            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,  // regular styles |= WS_CAPTION | WS_SYSMENU
+            300, 200, 180, 30,                        // position(x,y) + size(w,h)
+            args->hWndParent,                         // parent window
+            0,                                        // control id
+            HMODULE_EXPANDER,                         // module instance
+            args->viewData                            // user data
          );
          if (!hWnd) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWnd;
       }
    };
+
+   VIEW_DATA data = {};
+   data.trend            = -1;
+   data.textColor        = textColor;
+   data.bgColorUpTrend   = upTrendColor;
+   data.bgColorDownTrend = downTrendColor;
+
    struct ARGS {
       __in  HWND         hWndParent;
       __in  const wchar* className;
@@ -88,7 +84,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid) {
    } args = {
       ec->chart,
       wc.lpszClassName,
-      (VIEW_DATA*)calloc(sizeof(VIEW_DATA), 1),
+      new VIEW_DATA(data),
       NO_ERROR,
    };
 
@@ -100,8 +96,9 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid) {
    // move it to the top
    SetWindowPos(hWndPanel, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
 
-   // update the EXECUTION_CONTEXT
+   // update EXECUTION_CONTEXT
    ec_SetUserData(ec, USERDATA_HWND_PANEL, (DWORD)hWndPanel);
+
    return hWndPanel;
    #pragma EXPANDER_EXPORT
 }
@@ -125,7 +122,7 @@ BOOL WINAPI RulesMonitor_DestroyStatusPanel(uint pid) {
    HWND hWndPanel = (HWND)ec->userData[USERDATA_HWND_PANEL];
    if (hWndPanel && IsWindow(hWndPanel)) {
       if (IsUiThread()) DestroyWindow(hWndPanel);
-      else              PostMessageA(hWndPanel, WM_CLOSE, 0, 0);
+      else              PostMessageW(hWndPanel, WM_CLOSE, 0, 0);
    }
 
    // update the EXECUTION_CONTEXT
@@ -154,7 +151,7 @@ BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, int trend) {
    HWND hWndPanel = (HWND)ec->userData[USERDATA_HWND_PANEL];
    if (!hWndPanel) return !error(ERR_ILLEGAL_STATE, "status panel not found");
 
-   debug("tick=%d  trend=%d", ec->ticks, trend);
+   //debug("tick=%d  trend=%d", ec->ticks, trend);
 
    return TRUE;
    #pragma EXPANDER_EXPORT
@@ -182,22 +179,95 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
          break;
       }
 
-      // free the view data
+      // release the view data
       case WM_NCDESTROY: {
-         free((void*)GetWindowUserData(hWnd));
+         ReleaseViewData((VIEW_DATA*)GetWindowUserData(hWnd));
          break;
       }
 
       // make the whole client area draggable
       case WM_NCHITTEST: {
          LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;  // mouse handling must process NC message variants
+         return (hit == HTCLIENT) ? HTCAPTION : hit;     // mouse handling must process NC message variants
       }
 
       case WM_COMMAND: {
          if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
          break;
       }
+
+      case WM_ERASEBKGND: {                              // don't spread painting over multiple messages (causes flicker)
+         return 1;
+      }
+
+      case WM_PAINT: {
+         PAINTSTRUCT ps;
+         HDC hDC = BeginPaint(hWnd, &ps);
+         VIEW_DATA* data = (VIEW_DATA*)GetWindowUserData(hWnd);
+         static BOOL done = InitViewData(data, hDC);
+         if (!done) return _NULL(EndPaint(hWnd, &ps));
+
+         RECT rc;
+         GetClientRect(hWnd, &rc);
+         FillRect(hDC, &rc, data->trend > 0 ? data->bgBrushUpTrend : data->bgBrushDownTrend);
+         DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);
+
+         SetTextColor(hDC, colorRef(data->textColor));
+         SetBkMode(hDC, TRANSPARENT);                    // no text background color
+         HFONT hOldFont = (HFONT)SelectObject(hDC, data->hFont);
+         wchar* text = (data->trend > 0 ? L"LONG ONLY" : L"SHORT ONLY");
+         DrawTextW(hDC, text, -1, &rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_NOCLIP);
+         SelectObject(hDC, hOldFont);
+
+         EndPaint(hWnd, &ps);
+         return 0;
+      }
    }
    return DefWindowProcW(hWnd, msg, wParam, lParam);
+}
+
+
+/**
+ * Initialize the view data of the status panel.
+ *
+ * @param  VIEW_DATA* data - view data
+ * @param  HDC        hDC  - device context of the panel
+ *
+ * @return BOOL - success status
+ */
+BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
+   data->bgBrushUpTrend = CreateSolidBrush(colorRef(data->bgColorUpTrend));
+   if (!data->bgBrushUpTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
+
+   data->bgBrushDownTrend = CreateSolidBrush(colorRef(data->bgColorDownTrend));
+   if (!data->bgBrushDownTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
+
+   data->hFont = CreateFontW(
+      -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt
+      0, 0, 0,
+      FW_BOLD,
+      FALSE, FALSE, FALSE,
+      DEFAULT_CHARSET,
+      0,
+      0,
+      CLEARTYPE_QUALITY,                                 // use the user's ClearType configuration
+      0,
+      L"Arial Black"
+   );
+   if (!data->hFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontW()");
+   return TRUE;
+}
+
+
+/**
+ * Release the view data of the status panel.
+ *
+ * @param  VIEW_DATA* data - view data
+ */
+void WINAPI ReleaseViewData(VIEW_DATA* data) {
+   if (data->bgBrushUpTrend)   DeleteObject(data->bgBrushUpTrend);
+   if (data->bgBrushDownTrend) DeleteObject(data->bgBrushDownTrend);
+   if (data->hFont)            DeleteObject(data->hFont);
+
+   delete data;
 }
