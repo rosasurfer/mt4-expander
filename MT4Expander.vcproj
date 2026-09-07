@@ -1418,6 +1418,34 @@
 							/>
 						</FileConfiguration>
 					</File>
+					<File
+						RelativePath=".\src\mql4\indicators\RulesMonitor.cpp"
+						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\mql4\indicators\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\mql4\indicators\"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release (private)|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)\mql4\indicators\"
+							/>
+						</FileConfiguration>
+					</File>
 				</Filter>
 			</Filter>
 			<Filter
