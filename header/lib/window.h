@@ -16,6 +16,9 @@ DWORD       WINAPI SetWindowStyles(HWND hWnd, DWORD styles);
 DWORD       WINAPI GetWindowStylesEx(HWND hWnd);
 DWORD       WINAPI SetWindowStylesEx(HWND hWnd, DWORD styles);
 
+LONG_PTR    WINAPI GetWindowUserData(HWND hWnd);
+LONG_PTR    WINAPI SetWindowUserData(HWND hWnd, LONG_PTR data);
+
 char*       WINAPI GetWindowTextA(HWND hWnd);
 wchar*      WINAPI GetWindowTextW(HWND hWnd);
 

@@ -99,26 +99,14 @@ DWORD WINAPI GetClassStyles(HWND hWnd) {
 
 
 /**
- * Return the regular window styles of a window.
+ * Return the regular styles of a window.
  *
  * @param  HWND hWnd
  *
- * @return DWORD - regular styles
+ * @return DWORD - regular window styles
  */
 DWORD WINAPI GetWindowStyles(HWND hWnd) {
    return GetWindowLongPtrW(hWnd, GWL_STYLE);
-}
-
-
-/**
- * Return the extended window styles of a window.
- *
- * @param  HWND hWnd
- *
- * @return DWORD - extended styles
- */
-DWORD WINAPI GetWindowStylesEx(HWND hWnd) {
-   return GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
 }
 
 
@@ -128,10 +116,22 @@ DWORD WINAPI GetWindowStylesEx(HWND hWnd) {
  * @param  HWND  hWnd   - window
  * @param  DWORD styles - regular styles
  *
- * @return DWORD - previous regular styles or NULL (0) in case of errors
+ * @return DWORD - previous regular window styles, or NULL (0) in case of errors
  */
 DWORD WINAPI SetWindowStyles(HWND hWnd, DWORD styles) {
    return SetWindowLongPtrW(hWnd, GWL_STYLE, styles);
+}
+
+
+/**
+ * Return the extended styles of a window.
+ *
+ * @param  HWND hWnd
+ *
+ * @return DWORD - extended window styles
+ */
+DWORD WINAPI GetWindowStylesEx(HWND hWnd) {
+   return GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
 }
 
 
@@ -141,10 +141,35 @@ DWORD WINAPI SetWindowStyles(HWND hWnd, DWORD styles) {
  * @param  HWND  hWnd   - window
  * @param  DWORD styles - extended styles
  *
- * @return DWORD - previous extended styles or NULL (0) in case of errors
+ * @return DWORD - previous extended window styles, or NULL (0) in case of errors
  */
 DWORD WINAPI SetWindowStylesEx(HWND hWnd, DWORD styles) {
    return SetWindowLongPtrW(hWnd, GWL_EXSTYLE, styles);
+}
+
+
+/**
+ * Return the user data associated with a window.
+ *
+ * @param  HWND hWnd
+ *
+ * @return LONG_PTR - user data
+ */
+LONG_PTR WINAPI GetWindowUserData(HWND hWnd) {
+   return GetWindowLongPtrW(hWnd, GWL_USERDATA);
+}
+
+
+/**
+ * Set the user data associated with a window.
+ *
+ * @param  HWND     hWnd - window
+ * @param  LONG_PTR data - user data
+ *
+ * @return LONG_PTR - previous user data, or NULL (0) in case of errors
+ */
+LONG_PTR WINAPI SetWindowUserData(HWND hWnd, LONG_PTR data) {
+   return SetWindowLongPtrW(hWnd, GWL_USERDATA, data);
 }
 
 
