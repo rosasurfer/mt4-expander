@@ -67,14 +67,14 @@ static BOOL WINAPI CustomizeTerminal() {
    // find and remove a search box control (contains the "Community" button, builds > 509)
    HWND hSearchCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_SEARCHBOX);
    if (hSearchCtrl) {
-      PostMessageA(hSearchCtrl, WM_CLOSE, 0, 0);   // DestroyWindow() in the UI thread would delay terminal startup
+      PostMessageW(hSearchCtrl, WM_CLOSE, 0, 0);
       return TRUE;
    }
 
    // find and remove a separate "Community" button (builds <= 509)
    HWND hBtnCtrl = GetDlgItem(hToolbar, IDC_TOOLBAR_COMMUNITY_BUTTON);
    if (hBtnCtrl) {
-      PostMessageA(hBtnCtrl, WM_CLOSE, 0, 0);      // DestroyWindow() in the UI thread would delay terminal startup
+      PostMessageW(hBtnCtrl, WM_CLOSE, 0, 0);
    }
    return TRUE;
 }

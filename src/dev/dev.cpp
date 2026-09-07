@@ -163,7 +163,7 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
          break;
       }
 
-      case WM_ERASEBKGND: {                           // don't spread painting over multiple messages (causes flicker)
+      case WM_ERASEBKGND: {                                    // don't spread painting over multiple messages (causes flicker)
          return 1;
       }
 
@@ -173,9 +173,9 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
 
          RECT rc;
          GetClientRect(hWnd, &rc);
-         FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));
-         DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);
-         SetBkMode(hDC, TRANSPARENT);
+         FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));  // background
+         DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);         // edge
+         SetBkMode(hDC, TRANSPARENT);                          // text without background rectangle
          SetTextColor(hDC, Blue);
          DrawTextW(hDC, L"Margin: 142.5%", -1, &rc, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
 
