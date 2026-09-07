@@ -2,7 +2,6 @@
 #include "lib/string.h"
 #include "struct/ExecutionContext.h"
 
-
 #define MQL_PROGRAM_NAME "Rules Monitor"
 
 
