@@ -62,8 +62,8 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 
 
 /**
-* Create a regular child window.
-*
+ * Create a regular child window.
+ *
  * @param  uint pid - pid of the calling MQL program
  *
  * @return HWND - created window handle
@@ -71,7 +71,8 @@ HWND WINAPI Test_CreateStatic(uint pid) {
 HWND WINAPI Test_CreateWindow(uint pid) {
    // get the EXECUTION_CONTEXT of the caller
    if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
-   EXECUTION_CONTEXT* ec = GetMasterContext(pid); if (!ec) return NULL;
+   EXECUTION_CONTEXT* ec = GetMasterContext(pid);
+   if (!ec) return NULL;
 
    const wchar* className = L"rsfMT4Expander.chart.childwindow";
 
@@ -119,7 +120,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, (LPARAM)&args);
    if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildWindow()");
 
-   SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+   SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
 
    return hWndChild;
@@ -153,7 +154,7 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
          if (!hMenu) return !error(ERR_WIN32_ERROR + GetLastError(), "LoadMenuW()");
 
          POINTS pt = MAKEPOINTS(lParam);
-         if (!TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, NULL, hWnd, NULL) && GetLastError()) {
+         if (!TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN|TPM_RIGHTBUTTON, pt.x, pt.y, NULL, hWnd, NULL) && GetLastError()) {
             error(ERR_WIN32_ERROR + GetLastError(), "TrackPopupMenu()");
          }
          return 0;
@@ -170,15 +171,15 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
 
       case WM_PAINT: {
          PAINTSTRUCT ps;
-         HDC hdc = BeginPaint(hWnd, &ps);
+         HDC hDC = BeginPaint(hWnd, &ps);
+
          RECT rc;
          GetClientRect(hWnd, &rc);
-
-         FillRect(hdc, &rc, GetSysColorBrush(COLOR_BTNFACE));
-         DrawEdge(hdc, &rc, BDR_RAISEDINNER, BF_RECT);
-         SetBkMode(hdc, TRANSPARENT);
-         SetTextColor(hdc, Blue);
-         DrawTextW(hdc, L"Margin: 142.5%", -1, &rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+         FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));
+         DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);
+         SetBkMode(hDC, TRANSPARENT);
+         SetTextColor(hDC, Blue);
+         DrawTextW(hDC, L"Margin: 142.5%", -1, &rc, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
 
          EndPaint(hWnd, &ps);
          return 0;
