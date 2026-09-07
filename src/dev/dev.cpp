@@ -37,21 +37,21 @@ HWND WINAPI Test_CreateStatic(uint pid) {
             args->hWndParent,                         // parent window
             0,                                        // control id
             HMODULE_EXPANDER,                         // module instance
-            NULL                                      // additional CREATESTRUCT
+            NULL                                      // additional user data
          );
          if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
       }
    };
    struct ARGS {
-      __in  HWND hWndParent;
-      __out int  error;
+      __in  HWND  hWndParent;
+      __out DWORD error;
    } args = { ec->chart, NO_ERROR };
 
    // create the child control
    SetLastError(NO_ERROR);
    HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildControl, (LPARAM)&args);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildControl()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, GetLastError()), "CreateChildControl()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
    debug("child control created: %p", hWndChild);
@@ -74,17 +74,15 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
    if (!ec) return NULL;
 
-   const wchar* className = L"rsfMT4Expander.chart.childwindow";
-
    // register the window class
    WNDCLASSW wc = {};
    wc.lpfnWndProc   = ChildWindowProc;
    wc.hInstance     = HMODULE_EXPANDER;
-   wc.lpszClassName = className;
+   wc.lpszClassName = L"rsfMT4Expander.chart.childwindow";
    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
    if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
-      return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassW(\"%S\")", className);
+      return (HWND)!error(ERR_WIN32_ERROR + GetLastError(), "RegisterClassW(\"%S\")", wc.lpszClassName);
    }
 
    // creation callback and arguments
@@ -103,7 +101,7 @@ HWND WINAPI Test_CreateWindow(uint pid) {
             args->hWndParent,                         // parent window
             0,                                        // control id
             HMODULE_EXPANDER,                         // module instance
-            NULL                                      // additional CREATESTRUCT
+            NULL                                      // additional user data
          );
          if (!hWndChild) error(args->error = ERR_WIN32_ERROR + GetLastError(), "CreateWindowExW()");
          return (LRESULT)hWndChild;
@@ -112,13 +110,13 @@ HWND WINAPI Test_CreateWindow(uint pid) {
    struct ARGS {
       __in  HWND         hWndParent;
       __in  const wchar* className;
-      __out int          error;
-   } args = { ec->chart, className, NO_ERROR };
+      __out DWORD        error;
+   } args = { ec->chart, wc.lpszClassName, NO_ERROR };
 
    // create the child window
    SetLastError(NO_ERROR);
    HWND hWndChild = (HWND) InvokeUiThread(local::CreateChildWindow, (LPARAM)&args);
-   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, (int)GetLastError()), "CreateChildWindow()");
+   if (!hWndChild || args.error) return (HWND)!error(orElse(args.error, GetLastError()), "CreateChildWindow()");
 
    SetWindowPos(hWndChild, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
    debug("child window created: %p", hWndChild);
@@ -145,7 +143,7 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
       // make the whole client area draggable
       case WM_NCHITTEST: {
          LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;  // because of HTCAPTION mouse messages will be NC variants
+         return (hit == HTCLIENT) ? HTCAPTION : hit;  // all mouse messages become NC variants
       }
 
       // load the context menu
