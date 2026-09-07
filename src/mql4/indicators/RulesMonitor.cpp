@@ -18,9 +18,9 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handl
  * Create the status panel.
  *
  * @param  uint pid             - indicator pid
- * @param  color textColor      - text color
- * @param  color upTrendColor   - background color for uptrend
- * @param  color downTrendColor - background color for downtrend
+ * @param  color textColor      - text foreground color
+ * @param  color upTrendColor   - background color for uptrends
+ * @param  color downTrendColor - background color for downtrends
  *
  * @return HWND - window handle
  */
@@ -71,7 +71,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
    };
 
    VIEW_DATA data = {};
-   data.trend            = -1;
+   data.pid              = pid;
    data.textColor        = textColor;
    data.bgColorUpTrend   = upTrendColor;
    data.bgColorDownTrend = downTrendColor;
@@ -109,7 +109,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
  *
  * @param  uint pid - indicator pid
  *
- * @return bool - success status
+ * @return BOOL - success status
  */
 BOOL WINAPI RulesMonitor_DestroyStatusPanel(uint pid) {
    // get the EXECUTION_CONTEXT
@@ -136,9 +136,9 @@ BOOL WINAPI RulesMonitor_DestroyStatusPanel(uint pid) {
  * Update the status panel.
  *
  * @param  uint pid   - indicator pid
- * @param  int  trend - trend direction
+ * @param  int  trend - current trend direction
  *
- * @return bool - success status
+ * @return BOOL - success status
  */
 BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, int trend) {
    // get the EXECUTION_CONTEXT
@@ -175,7 +175,9 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
       // link the view data to the window
       case WM_NCCREATE: {
          CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
-         SetWindowUserData(hWnd, (LONG_PTR)cs->lpCreateParams);
+         VIEW_DATA* data = (VIEW_DATA*)cs->lpCreateParams;
+         data->hWnd = hWnd;
+         SetWindowUserData(hWnd, (LONG_PTR)data);
          break;
       }
 
@@ -191,6 +193,16 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
          return (hit == HTCLIENT) ? HTCAPTION : hit;     // mouse handling must process NC message variants
       }
 
+      // on click move the window to the top
+      case WM_NCLBUTTONDOWN:
+      case WM_NCRBUTTONDOWN:
+      case WM_NCMBUTTONDOWN:
+      case WM_NCXBUTTONDOWN: {
+         SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+         RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE|RDW_UPDATENOW|RDW_ALLCHILDREN);
+         break;
+      }
+
       case WM_COMMAND: {
          if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
          break;
@@ -203,9 +215,9 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
       case WM_PAINT: {
          PAINTSTRUCT ps;
          HDC hDC = BeginPaint(hWnd, &ps);
+
          VIEW_DATA* data = (VIEW_DATA*)GetWindowUserData(hWnd);
-         static BOOL done = InitViewData(data, hDC);
-         if (!done) return _NULL(EndPaint(hWnd, &ps));
+         if (!data->initialized && !InitViewData(data, hDC)) return _NULL(EndPaint(hWnd, &ps));
 
          RECT rc;
          GetClientRect(hWnd, &rc);
@@ -243,26 +255,27 @@ BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
    if (!data->bgBrushDownTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
 
    data->hFont = CreateFontW(
-      -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt
+      -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt, same as in MQL::ObjectSetText()
       0, 0, 0,
       FW_BOLD,
       FALSE, FALSE, FALSE,
       DEFAULT_CHARSET,
       0,
       0,
-      CLEARTYPE_QUALITY,                                 // use the user's ClearType configuration
+      CLEARTYPE_QUALITY,                                 // apply the user's ClearType configuration
       0,
       L"Arial Black"
    );
    if (!data->hFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontW()");
-   return TRUE;
+
+   return data->initialized = TRUE;
 }
 
 
 /**
  * Release the view data of the status panel.
  *
- * @param  VIEW_DATA* data - view data
+ * @param  VIEW_DATA* data
  */
 void WINAPI ReleaseViewData(VIEW_DATA* data) {
    if (data->bgBrushUpTrend)   DeleteObject(data->bgBrushUpTrend);
