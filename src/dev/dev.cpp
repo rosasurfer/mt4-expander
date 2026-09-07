@@ -146,8 +146,10 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
          return (hit == HTCLIENT) ? HTCAPTION : hit;  // all mouse messages become NC variants
       }
 
-      // load the context menu
+      // on right-click load the context menu
       case WM_NCRBUTTONDOWN: {
+         SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
+
          static HMENU hMenu = LoadMenuW(HMODULE_EXPANDER, MAKEINTRESOURCEW(IDR_CHART_STATUSPANEL_MENU));
          if (!hMenu) return !error(ERR_WIN32_ERROR + GetLastError(), "LoadMenuW()");
 
@@ -156,6 +158,15 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
             error(ERR_WIN32_ERROR + GetLastError(), "TrackPopupMenu()");
          }
          return 0;
+      }
+
+      // on any other click move the window to the top
+      case WM_NCLBUTTONDOWN:
+      case WM_NCMBUTTONDOWN:
+      case WM_NCXBUTTONDOWN: {
+         SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+         RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE|RDW_UPDATENOW|RDW_ALLCHILDREN);
+         break;
       }
 
       case WM_COMMAND: {
