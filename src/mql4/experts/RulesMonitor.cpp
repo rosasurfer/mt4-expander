@@ -61,7 +61,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
             args->className,                          // class name
             L"Rules Monitor",                         // window text
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SIZEBOX,  // regular styles     | WS_CAPTION | WS_SYSMENU
-            300, 200, 300, 150,                       // position(x,y) + size(w,h)
+            300, 200, 200, 75,                       // position(x,y) + size(w,h)
             args->hWndParent,                         // parent window
             0,                                        // control id
             HMODULE_EXPANDER,                         // module instance
@@ -72,11 +72,11 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
       }
    };
 
-   VIEW_DATA data = {};
-   data.pid              = pid;
-   data.textColor        = textColor;
-   data.bgColorUpTrend   = upTrendColor;
-   data.bgColorDownTrend = downTrendColor;
+   VIEW_DATA* data = new VIEW_DATA();
+   data->pid              = pid;
+   data->textColor        = textColor;
+   data->bgColorUpTrend   = upTrendColor;
+   data->bgColorDownTrend = downTrendColor;
 
    struct ARGS {
       __in  HWND         hWndParent;
@@ -86,7 +86,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
    } args = {
       ec->chart,
       wc.lpszClassName,
-      new VIEW_DATA(data),
+      data,
       NO_ERROR,
    };
 
@@ -160,13 +160,14 @@ BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, double price, int trend, do
    if (!hWndPanel) return !error(ERR_ILLEGAL_STATE, "status panel not found");
 
    // create a status update
-   STATUS_UPDATE* update = new STATUS_UPDATE;
+   STATUS_UPDATE* update = new STATUS_UPDATE();
    update->price = price;
    update->trend = trend;
    update->dcw   = dcw;
 
    // post it to the panel
    if (!PostMessageW(hWndPanel, WM_MT4EXPANDER(), ID_STATUS_UPDATE, (LPARAM)update)) {
+      delete update;
       return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
    }
    return TRUE;
@@ -193,18 +194,20 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
       switch (wParam) {
          case ID_STATUS_UPDATE: {                              // status update of the window's view data
             STATUS_UPDATE* update = (STATUS_UPDATE*)lParam;
-            if (!update) return !error(ERR_INVALID_POINTER, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  invalid parameter STATUS_UPDATE: NULL");
+            if (!update) return !error(ERR_ILLEGAL_STATE, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  invalid parameter STATUS_UPDATE: NULL");
 
             VIEW_DATA* view = (VIEW_DATA*)GetWindowUserData(hWnd);
-            if (!view->initialized) return !error(ERR_ILLEGAL_STATE, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  VIEW_DATA not initialized");
+            if (!view) return !error(ERR_ILLEGAL_STATE, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  linked VIEW_DATA not found: NULL");
 
             view->price = update->price;
             view->trend = update->trend;
             view->dcw   = update->dcw;
             delete update;
 
-            InvalidateRect(hWnd, NULL, FALSE);
-            UpdateWindow(hWnd);                                // immediately send WM_PAINT bypassing the message queue
+            if (view->initialized) {                           // WM_PAINT/view initialization may be deferred by the system
+               InvalidateRect(hWnd, NULL, FALSE);
+               UpdateWindow(hWnd);                             // immediately send WM_PAINT bypassing the message queue
+            }
             return 0;
          }
       }
@@ -225,6 +228,7 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
       // release the view data
       case WM_NCDESTROY: {
          ReleaseViewData((VIEW_DATA*)GetWindowUserData(hWnd));
+         SetWindowUserData(hWnd, NULL);
          break;
       }
 
@@ -297,33 +301,41 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
  * @return BOOL - success status
  */
 BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
-   data->bgBrushUpTrend = CreateSolidBrush(colorRef(data->bgColorUpTrend));
-   if (!data->bgBrushUpTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
+   if (!data->bgBrushUpTrend) {
+      data->bgBrushUpTrend = CreateSolidBrush(colorRef(data->bgColorUpTrend));
+      if (!data->bgBrushUpTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
+   }
 
-   data->bgBrushDownTrend = CreateSolidBrush(colorRef(data->bgColorDownTrend));
-   if (!data->bgBrushDownTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
+   if (!data->bgBrushDownTrend) {
+      data->bgBrushDownTrend = CreateSolidBrush(colorRef(data->bgColorDownTrend));
+      if (!data->bgBrushDownTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
+   }
 
    // create a font by hand
-   data->hFont = CreateFontW(
-      -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt, matches fontsize in MQL::ObjectSetText()
-      0, 0, 0,
-      FW_BOLD,
-      FALSE, FALSE, FALSE,
-      DEFAULT_CHARSET,
-      0,
-      0,
-      CLEARTYPE_QUALITY,                                 // apply the user's ClearType configuration
-      0,
-      L"Arial Black"
-   );
-   if (!data->hFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontW()");
+   if (!data->hFont) {
+      data->hFont = CreateFontW(
+         -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt, matches fontsize in MQL::ObjectSetText()
+         0, 0, 0,
+         FW_BOLD,
+         FALSE, FALSE, FALSE,
+         DEFAULT_CHARSET,
+         0,
+         0,
+         CLEARTYPE_QUALITY,                                 // apply the user's ClearType configuration
+         0,
+         L"Arial Black"
+      );
+      if (!data->hFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontW()");
+   }
 
    // get the system font for dialogs/message boxes
-   NONCLIENTMETRICSW ncm = {};
-   ncm.cbSize = sizeof(ncm);
-   if (!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0)) return !error(ERR_WIN32_ERROR + GetLastError(), "SystemParametersInfoW()");
-   data->hSystemFont = CreateFontIndirectW(&ncm.lfMessageFont);
-   if (!data->hSystemFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontIndirectW()");
+   if (!data->hSystemFont) {
+      NONCLIENTMETRICSW ncm = {};
+      ncm.cbSize = sizeof(ncm);
+      if (!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0)) return !error(ERR_WIN32_ERROR + GetLastError(), "SystemParametersInfoW()");
+      data->hSystemFont = CreateFontIndirectW(&ncm.lfMessageFont);
+      if (!data->hSystemFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontIndirectW()");
+   }
 
    return data->initialized = TRUE;
 }
@@ -339,6 +351,5 @@ void WINAPI ReleaseViewData(VIEW_DATA* data) {
    if (data->bgBrushDownTrend) DeleteObject(data->bgBrushDownTrend);
    if (data->hFont)            DeleteObject(data->hFont);
    if (data->hSystemFont)      DeleteObject(data->hSystemFont);
-
    delete data;
 }
