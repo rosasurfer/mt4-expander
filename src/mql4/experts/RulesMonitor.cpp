@@ -4,11 +4,11 @@
 #include "lib/terminal.h"
 #include "lib/thread.h"
 #include "lib/ui/window.h"
-#include "mql4/indicators/RulesMonitor.h"
+#include "mql4/experts/RulesMonitor.h"
 #include "struct/ExecutionContext.h"
 
-extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handle
-#define HMODULE_EXPANDER ((HMODULE) &__ImageBase)
+extern "C" IMAGE_DOS_HEADER          __ImageBase;
+#define HMODULE_EXPANDER ((HMODULE) &__ImageBase)     // this DLL's module handle
 
 #define MQL_PROGRAM_NAME      "Rules Monitor"
 #define USERDATA_HWND_PANEL   0
@@ -17,7 +17,7 @@ extern "C" IMAGE_DOS_HEADER          __ImageBase;     // this DLL's module handl
 /**
  * Create the status panel.
  *
- * @param  uint pid             - indicator pid
+ * @param  uint  pid            - indicator pid
  * @param  color textColor      - text foreground color
  * @param  color upTrendColor   - background color for uptrends
  * @param  color downTrendColor - background color for downtrends
@@ -57,7 +57,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
          HWND hWnd = CreateWindowExW(
             0,                                        // extended styles
             args->className,                          // class name
-            L"",                                      // window text
+            L"Rules Monitor",                         // window text
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,  // regular styles |= WS_CAPTION | WS_SYSMENU
             300, 200, 180, 30,                        // position(x,y) + size(w,h)
             args->hWndParent,                         // parent window
@@ -255,7 +255,7 @@ BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
    if (!data->bgBrushDownTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
 
    data->hFont = CreateFontW(
-      -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt, same as in MQL::ObjectSetText()
+      -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt, matches fontsize in MQL::ObjectSetText()
       0, 0, 0,
       FW_BOLD,
       FALSE, FALSE, FALSE,
