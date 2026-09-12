@@ -510,10 +510,10 @@
 				Name="mql4"
 				>
 				<Filter
-					Name="indicators"
+					Name="experts"
 					>
 					<File
-						RelativePath=".\header\mql4\indicators\RulesMonitor.h"
+						RelativePath=".\header\mql4\experts\RulesMonitor.h"
 						>
 					</File>
 				</Filter>
@@ -1430,15 +1430,19 @@
 							/>
 						</FileConfiguration>
 					</File>
+				</Filter>
+				<Filter
+					Name="experts"
+					>
 					<File
-						RelativePath=".\src\mql4\indicators\RulesMonitor.cpp"
+						RelativePath=".\src\mql4\experts\RulesMonitor.cpp"
 						>
 						<FileConfiguration
 							Name="Debug|Win32"
 							>
 							<Tool
 								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\mql4\indicators\"
+								ObjectFile="$(IntDir)\mql4\experts\"
 							/>
 						</FileConfiguration>
 						<FileConfiguration
@@ -1446,7 +1450,7 @@
 							>
 							<Tool
 								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\mql4\indicators\"
+								ObjectFile="$(IntDir)\mql4\experts\"
 							/>
 						</FileConfiguration>
 						<FileConfiguration
@@ -1454,7 +1458,7 @@
 							>
 							<Tool
 								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)\mql4\indicators\"
+								ObjectFile="$(IntDir)\mql4\experts\"
 							/>
 						</FileConfiguration>
 					</File>
