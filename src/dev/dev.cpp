@@ -143,7 +143,7 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
       // make the whole client area draggable
       case WM_NCHITTEST: {
          LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;  // all mouse messages become NC variants
+         return (hit == HTCLIENT) ? HTCAPTION : hit;  // mouse handling must listen to NC message variants
       }
 
       // on right-click load the context menu
@@ -186,9 +186,9 @@ LRESULT CALLBACK ChildWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lPar
          GetClientRect(hWnd, &rc);
          FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));  // background
          DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);         // edge
-         SetBkMode(hDC, TRANSPARENT);                          // text without background rectangle
+         SetBkMode(hDC, TRANSPARENT);                          // no text background color
          SetTextColor(hDC, Blue);
-         DrawTextW(hDC, L"Margin: 142.5%", -1, &rc, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
+         DrawTextW(hDC, L"Margin: 142.5%", -1, &rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_NOCLIP);
 
          EndPaint(hWnd, &ps);
          return 0;
