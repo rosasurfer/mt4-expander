@@ -29,7 +29,9 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
    if ((int)pid <= 0) return (HWND)!error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
    if (!ec) return NULL;
-   if (!StrCompare(ec->programName, MQL_PROGRAM_NAME)) return (HWND)!error(ERR_ILLEGAL_STATE, "illegal caller: \"%s\"", ec->programName);
+   if (ec->programType != PT_EXPERT || !StrCompare(ec->programName, MQL_PROGRAM_NAME)) {
+      return (HWND)!error(ERR_ILLEGAL_STATE, "illegal caller: %s \"%s\"", ProgramTypeDescription(ec->programType), ec->programName);
+   }
 
    // return an existing panel
    HWND hWndPanel = (HWND)ec->userData[USERDATA_HWND_PANEL];
@@ -96,7 +98,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
    // move it to the top
    SetWindowPos(hWndPanel, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
 
-   // update EXECUTION_CONTEXT
+   // update the EXECUTION_CONTEXT
    ec_SetUserData(ec, USERDATA_HWND_PANEL, (DWORD)hWndPanel);
 
    return hWndPanel;
@@ -116,7 +118,9 @@ BOOL WINAPI RulesMonitor_DestroyStatusPanel(uint pid) {
    if ((int)pid <= 0) return !error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
    if (!ec) return FALSE;
-   if (!StrCompare(ec->programName, MQL_PROGRAM_NAME)) return !error(ERR_ILLEGAL_STATE, "illegal caller: \"%s\"", ec->programName);
+   if (ec->programType != PT_EXPERT || !StrCompare(ec->programName, MQL_PROGRAM_NAME)) {
+      return !error(ERR_ILLEGAL_STATE, "illegal caller: %s \"%s\"", ProgramTypeDescription(ec->programType), ec->programName);
+   }
 
    // destroy the panel
    HWND hWndPanel = (HWND)ec->userData[USERDATA_HWND_PANEL];
@@ -145,7 +149,9 @@ BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, int trend) {
    if ((int)pid <= 0) return !error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
    if (!ec) return FALSE;
-   if (!StrCompare(ec->programName, MQL_PROGRAM_NAME)) return !error(ERR_ILLEGAL_STATE, "illegal caller: \"%s\"", ec->programName);
+   if (ec->programType != PT_EXPERT || !StrCompare(ec->programName, MQL_PROGRAM_NAME)) {
+      return !error(ERR_ILLEGAL_STATE, "illegal caller: %s \"%s\"", ProgramTypeDescription(ec->programType), ec->programName);
+   }
 
    // get the panel
    HWND hWndPanel = (HWND)ec->userData[USERDATA_HWND_PANEL];
