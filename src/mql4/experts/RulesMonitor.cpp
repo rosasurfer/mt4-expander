@@ -61,7 +61,7 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
             args->className,                          // class name
             L"Rules Monitor",                         // window text
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SIZEBOX,  // regular styles     | WS_CAPTION | WS_SYSMENU
-            300, 200, 200, 75,                       // position(x,y) + size(w,h)
+            300, 200, 206, 70,                        // position(x, y) + size(w, h)
             args->hWndParent,                         // parent window
             0,                                        // control id
             HMODULE_EXPANDER,                         // module instance
@@ -139,14 +139,15 @@ BOOL WINAPI RulesMonitor_DestroyStatusPanel(uint pid) {
 /**
  * Update the status panel.
  *
- * @param  uint   pid   - indicator pid
- * @param  double price - current price
- * @param  int    trend - current trend
- * @param  double dcw   - current Donchian Channel width
+ * @param  uint   pid       - indicator pid
+ * @param  double price     - current price
+ * @param  int    trend     - current trend
+ * @param  double dcWidth   - current Donchian Channel width
+ * @param  double dcLegsize - current Donchian Channel leg size
  *
  * @return BOOL - success status
  */
-BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, double price, int trend, double dcw) {
+BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, double price, int trend, double dcWidth, double dcLegsize) {
    // get the EXECUTION_CONTEXT
    if ((int)pid <= 0) return !error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
@@ -159,14 +160,15 @@ BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, double price, int trend, do
    HWND hWndPanel = (HWND)ec->userData[USERDATA_HWND_PANEL];
    if (!hWndPanel) return !error(ERR_ILLEGAL_STATE, "status panel not found");
 
-   // create a status update
-   STATUS_UPDATE* update = new STATUS_UPDATE();
-   update->price = price;
-   update->trend = trend;
-   update->dcw   = dcw;
+   // create a view model update
+   VIEW_UPDATE* update = new VIEW_UPDATE();
+   update->price           = price;
+   update->trend           = trend;
+   update->donchianWidth   = dcWidth;
+   update->donchianLegsize = dcLegsize;
 
    // post it to the panel
-   if (!PostMessageW(hWndPanel, WM_MT4EXPANDER(), ID_STATUS_UPDATE, (LPARAM)update)) {
+   if (!PostMessageW(hWndPanel, WM_MT4EXPANDER(), ID_UPDATE_VIEW, (LPARAM)update)) {
       delete update;
       return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
    }
@@ -176,131 +178,14 @@ BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, double price, int trend, do
 
 
 /**
- * Status panel window procedure. Processes all messages for the window. Executed in the UI thread.
- *
- * @param  HWND   hWnd   - window receiving the message
- * @param  uint   msg    - sent message
- * @param  WPARAM wParam - additional message info
- * @param  LPARAM lParam - additional message info
- *
- * @return LRESULT - depends on the message sent
- */
-LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
-   static DWORD debugFeatures = GetDebugFeatures();
-   static uint WM_MT4EXPANDER = MT4ExpanderMsg();
-
-   // process MT4Expander messages
-   if (msg == WM_MT4EXPANDER) {
-      switch (wParam) {
-         case ID_STATUS_UPDATE: {                              // status update of the window's view data
-            STATUS_UPDATE* update = (STATUS_UPDATE*)lParam;
-            if (!update) return !error(ERR_ILLEGAL_STATE, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  invalid parameter STATUS_UPDATE: NULL");
-
-            VIEW_DATA* view = (VIEW_DATA*)GetWindowUserData(hWnd);
-            if (!view) return !error(ERR_ILLEGAL_STATE, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  linked VIEW_DATA not found: NULL");
-
-            view->price = update->price;
-            view->trend = update->trend;
-            view->dcw   = update->dcw;
-            delete update;
-
-            if (view->initialized) {                           // WM_PAINT/view initialization may be deferred by the system
-               InvalidateRect(hWnd, NULL, FALSE);
-               UpdateWindow(hWnd);                             // immediately send WM_PAINT bypassing the message queue
-            }
-            return 0;
-         }
-      }
-      return DefWindowProcW(hWnd, msg, wParam, lParam);
-   }
-
-   // process regular messages
-   switch (msg) {
-      // link the view data to the window
-      case WM_NCCREATE: {
-         CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
-         VIEW_DATA* view = (VIEW_DATA*)cs->lpCreateParams;
-         view->hWnd = hWnd;
-         SetWindowUserData(hWnd, (LONG_PTR)view);
-         break;
-      }
-
-      // release the view data
-      case WM_NCDESTROY: {
-         ReleaseViewData((VIEW_DATA*)GetWindowUserData(hWnd));
-         SetWindowUserData(hWnd, NULL);
-         break;
-      }
-
-      // make the whole client area draggable
-      case WM_NCHITTEST: {
-         LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;           // mouse handling must listen to NC message variants
-      }
-
-      // on click move the window to the top
-      case WM_NCLBUTTONDOWN:
-      case WM_NCRBUTTONDOWN:
-      case WM_NCMBUTTONDOWN:
-      case WM_NCXBUTTONDOWN: {
-         SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
-         RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE|RDW_UPDATENOW|RDW_ALLCHILDREN);
-         break;
-      }
-
-      case WM_COMMAND: {
-         if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  lParam=0x%p", LOWORD(wParam), lParam);
-         break;
-      }
-
-      case WM_ERASEBKGND: {                                    // don't spread painting over multiple messages (causes flicker)
-         return 1;
-      }
-
-      case WM_PAINT: {
-         PAINTSTRUCT ps;
-         HDC hDC = BeginPaint(hWnd, &ps);
-
-         VIEW_DATA* view = (VIEW_DATA*)GetWindowUserData(hWnd);
-         if (!view->initialized && !InitViewData(view, hDC)) return _NULL(EndPaint(hWnd, &ps));
-
-         // write view data with custom colors/styles
-         //FillRect(hDC, &rc, view->trend > 0 ? view->bgBrushUpTrend : view->bgBrushDownTrend);
-         //DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);                // edge
-         //SetTextColor(hDC, colorRef(view->textColor));
-         //SelectObject(hDC, view->hFont);
-         //DrawTextW(hDC, L"text", -1, &rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_NOCLIP);
-
-         RECT rc;
-         GetClientRect(hWnd, &rc);
-
-         // write text with system colors/styles
-         FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));           // background
-         SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
-         SetBkMode(hDC, TRANSPARENT);                                   // no text background color
-         SelectObject(hDC, view->hSystemFont);
-
-         wchar* text = asformat(L"Price: %.2f\nATR: 100.12\nTrend: %d\nDonchian Channel Width: %.2f", view->price, view->trend, view->dcw);
-         DrawTextW(hDC, text, -1, &rc, DT_LEFT|DT_NOPREFIX|DT_NOCLIP);  // DT_CENTER|DT_VCENTER|DT_SINGLELINE|
-         free(text);
-
-         EndPaint(hWnd, &ps);
-         return 0;
-      }
-   }
-   return DefWindowProcW(hWnd, msg, wParam, lParam);
-}
-
-
-/**
- * Initialize the view data of the status panel.
+ * Initialize the view model of the status panel. Called when the panel receives the first WM_PAINT message.
  *
  * @param  VIEW_DATA* data - view data
  * @param  HDC        hDC  - device context of the panel
  *
  * @return BOOL - success status
  */
-BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
+BOOL WINAPI StatusPanel_InitView(VIEW_DATA* data, HDC hDC) {
    if (!data->bgBrushUpTrend) {
       data->bgBrushUpTrend = CreateSolidBrush(colorRef(data->bgColorUpTrend));
       if (!data->bgBrushUpTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
@@ -342,14 +227,173 @@ BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
 
 
 /**
- * Release the view data of the status panel.
+ * Release the view model of the status panel.
  *
  * @param  VIEW_DATA* data
  */
-void WINAPI ReleaseViewData(VIEW_DATA* data) {
+void WINAPI StatusPanel_ReleaseView(VIEW_DATA* data) {
    if (data->bgBrushUpTrend)   DeleteObject(data->bgBrushUpTrend);
    if (data->bgBrushDownTrend) DeleteObject(data->bgBrushDownTrend);
    if (data->hFont)            DeleteObject(data->hFont);
    if (data->hSystemFont)      DeleteObject(data->hSystemFont);
    delete data;
+}
+
+
+/**
+ * Status panel window procedure. Processes all messages for the window. Executed in the UI thread.
+ *
+ * @param  HWND   hWnd   - window receiving the message
+ * @param  uint   msg    - received message
+ * @param  WPARAM wParam - additional message info
+ * @param  LPARAM lParam - additional message info
+ *
+ * @return LRESULT - depends on the message sent
+ */
+LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+   static uint WM_MT4EXPANDER = MT4ExpanderMsg();
+
+   switch (msg) {
+      // link the view model to the window
+      case WM_NCCREATE: {
+         CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
+         VIEW_DATA* view = (VIEW_DATA*)cs->lpCreateParams;
+         view->hWnd = hWnd;
+         SetWindowUserData(hWnd, (LONG_PTR)view);
+         break;
+      }
+
+      // release the view data
+      case WM_NCDESTROY: {
+         StatusPanel_ReleaseView((VIEW_DATA*)GetWindowUserData(hWnd));
+         SetWindowUserData(hWnd, NULL);
+         break;
+      }
+
+      // make the whole client area draggable
+      case WM_NCHITTEST: {
+         LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
+         return (hit == HTCLIENT) ? HTCAPTION : hit;  // mouse handling must listen to NC message variants
+      }
+
+      // on click move the window to the top
+      case WM_NCLBUTTONDOWN:
+      case WM_NCRBUTTONDOWN:
+      case WM_NCMBUTTONDOWN:
+      case WM_NCXBUTTONDOWN: {
+         SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+         RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE|RDW_UPDATENOW|RDW_ALLCHILDREN);
+         break;
+      }
+
+      case WM_COMMAND:    return StatusPanel_onCommand(hWnd, msg, wParam, lParam);
+      case WM_PAINT:      return StatusPanel_onPaint  (hWnd, msg, wParam, lParam);
+      case WM_ERASEBKGND: return 1;                   // don't spread painting over multiple messages (causes flicker)
+
+      default:
+         if (msg == WM_MT4EXPANDER) return StatusPanel_onMT4ExpanderMsg(hWnd, msg, wParam, lParam);
+   }
+   return DefWindowProcW(hWnd, msg, wParam, lParam);
+}
+
+
+/**
+ * Process a WM_COMMAND message.
+ *
+ * @param  HWND   hWnd   - window receiving the message
+ * @param  uint   msg    - received message
+ * @param  WPARAM wParam - additional message info
+ * @param  LPARAM lParam - additional message info
+ *
+ * @return LRESULT
+ */
+LRESULT WINAPI StatusPanel_onCommand(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+   uint id   = LOWORD(wParam);
+   uint code = HIWORD(wParam);
+   HWND hCtl = (HWND)lParam;
+
+   static DWORD debugFeatures = GetDebugFeatures();
+   if (debugFeatures & DEBUG_FEATURE_WM_COMMAND) debug("WM_COMMAND  id=%d  code=%d  hCtl=%p", id, code, hCtl);
+
+   return DefWindowProcW(hWnd, msg, wParam, lParam);
+}
+
+
+/**
+ * Process an internal MT4Expander message.
+ *
+ * @param  HWND   hWnd   - window receiving the message
+ * @param  uint   msg    - received message
+ * @param  WPARAM wParam - additional message info
+ * @param  LPARAM lParam - additional message info
+ *
+ * @return LRESULT
+ */
+LRESULT WINAPI StatusPanel_onMT4ExpanderMsg(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+   uint id = wParam;
+
+   switch (id) {
+      // update the panel's view model
+      case ID_UPDATE_VIEW: {
+         VIEW_UPDATE* update = (VIEW_UPDATE*)lParam;
+         if (!update) return !error(ERR_ILLEGAL_STATE, "id=ID_VIEW_UPDATE  invalid parameter VIEW_UPDATE: NULL");
+
+         VIEW_DATA* view = (VIEW_DATA*)GetWindowUserData(hWnd);
+         if (!view) return !error(ERR_ILLEGAL_STATE, "id=ID_VIEW_UPDATE  linked VIEW_DATA not found: NULL");
+
+         view->price           = update->price;
+         view->trend           = update->trend;
+         view->donchianWidth   = update->donchianWidth;
+         view->donchianLegsize = update->donchianLegsize;
+         delete update;
+
+         if (view->initialized) {               // the view is initialized in the first WM_PAINT which may be deferred by the system
+            InvalidateRect(hWnd, NULL, FALSE);
+            UpdateWindow(hWnd);                 // immediately send WM_PAINT bypassing the message queue
+         }
+         return 0;
+      }
+   }
+   return DefWindowProcW(hWnd, msg, wParam, lParam);
+}
+
+
+/**
+ * Process a WM_PAINT message.
+ *
+ * @param  HWND   hWnd   - window receiving the message
+ * @param  uint   msg    - received message
+ * @param  WPARAM wParam - not used
+ * @param  LPARAM lParam - not used
+ *
+ * @return LRESULT
+ */
+LRESULT WINAPI StatusPanel_onPaint(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
+   PAINTSTRUCT ps;
+   HDC hDC = BeginPaint(hWnd, &ps);
+
+   VIEW_DATA* view = (VIEW_DATA*)GetWindowUserData(hWnd);
+   if (!view->initialized && !StatusPanel_InitView(view, hDC)) return _NULL(EndPaint(hWnd, &ps));
+
+   // use custom colors/styles
+   //FillRect(hDC, &rc, view->trend > 0 ? view->bgBrushUpTrend : view->bgBrushDownTrend);
+   //DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);
+   //SetTextColor(hDC, colorRef(view->textColor));
+   //SelectObject(hDC, view->hFont);
+   //DrawTextW(hDC, L"text", -1, &rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_NOCLIP);
+
+   // use system colors/styles
+   RECT rc;
+   GetClientRect(hWnd, &rc);
+   FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));     // background color
+   SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));        // foreground color
+   SetBkMode(hDC, TRANSPARENT);                             // no text background color
+   SelectObject(hDC, view->hSystemFont);
+
+   wchar* text = asformat(L"Price: %.2f\nTrend: %d\nDonchian Channel width: %.2f\nDonchian Channel leg size: %.2f", view->price, view->trend, view->donchianWidth, view->donchianLegsize);
+   DrawTextW(hDC, text, -1, &rc, DT_LEFT|DT_NOPREFIX|DT_NOCLIP);  // DT_CENTER|DT_VCENTER|DT_SINGLELINE|
+   free(text);
+
+   EndPaint(hWnd, &ps);
+   return 0;
 }

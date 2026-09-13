@@ -1,7 +1,7 @@
 #pragma once
 #include "expander.h"
 
-// view data for the status panel
+// struct holding view model and data of the status panel
 struct VIEW_DATA {
    uint   pid;                // MQL program instance
    HWND   hWnd;               // handle of the panel
@@ -17,17 +17,23 @@ struct VIEW_DATA {
 
    double price;              // close price
    int    trend;              // trend direction
-   double dcw;                // Donchian Channel width
+   double donchianWidth;      // Donchian Channel width
+   double donchianLegsize;    // Donchian Channel leg size
    //wchar text[256];
 };
 
-// view status update
-struct STATUS_UPDATE {
+// struct holding a view model update
+struct VIEW_UPDATE {
    double price;
    int    trend;
-   double dcw;
+   double donchianWidth;
+   double donchianLegsize;
 };
 
-LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
-BOOL    WINAPI   InitViewData(VIEW_DATA* data, HDC hDC);
-void    WINAPI   ReleaseViewData(VIEW_DATA* data);
+BOOL    WINAPI   StatusPanel_InitView(VIEW_DATA* data, HDC hDC);
+void    WINAPI   StatusPanel_ReleaseView(VIEW_DATA* data);
+
+LRESULT CALLBACK StatusPanelWindowProc       (HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
+LRESULT WINAPI   StatusPanel_onCommand       (HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
+LRESULT WINAPI   StatusPanel_onMT4ExpanderMsg(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
+LRESULT WINAPI   StatusPanel_onPaint         (HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
