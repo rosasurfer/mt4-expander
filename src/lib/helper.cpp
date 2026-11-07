@@ -81,7 +81,7 @@ BOOL WINAPI IsDebugBuild() {
 
 
 /**
- * Whether the specified value is a MetaTrader standard timeframe identifier.
+ * Whether the specified value is a standard MT4 timeframe identifier.
  *
  * @param  int timeframe
  *
@@ -105,7 +105,7 @@ BOOL WINAPI IsStandardTimeframe(int timeframe) {
 
 
 /**
- * Whether the specified value is a custom timeframe identifier.
+ * Whether the specified value is a custom MT4 timeframe identifier.
  *
  * @param  int timeframe
  *

@@ -13,8 +13,8 @@
 struct HISTORY_BAR_401 {                  // -- offset -- size -- description -----------
    union {                                //       0        8     opentime
       struct {                            //
-         time32 time;                     //       0        4     32-bit datetime value
-         DWORD  reserved1;                //       4        4     high 32 bits
+         time32 time;                     //       0        4     low 32-bit:  datetime32 value
+         DWORD  reserved1;                //       4        4     high 32-bit: -
       };                                  //
       time64 time_ex;                     //       0        8     64-bit datetime value
    };                                     //
@@ -24,8 +24,8 @@ struct HISTORY_BAR_401 {                  // -- offset -- size -- description --
    double close;                          //      32        8
    union {                                //      40        8
       struct {                            //
-         uint  ticks;                     //      40        4      low 32 bits
-         DWORD reserved2;                 //      44        4      high 32 bits
+         uint  ticks;                     //      40        4      low 32-bit
+         DWORD reserved2;                 //      44        4      high 32-bit
       };                                  //
       uint64 tickVolume;                  //      40        8      full 64-bit value
    };                                     //
