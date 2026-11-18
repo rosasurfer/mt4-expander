@@ -16,11 +16,9 @@ std::vector<TICK_TIMER_DATA*> g_tickTimers;              // all registered tickt
  * @param  HWND  hWnd   - handle of the window to receive virtual ticks
  * @param  uint  millis - time interval of the virtual ticks in milliseconds
  * @param  DWORD flags  - tick configuration flags (default: standard ticks for experts and indicators)
- *                        TICK_CHART_REFRESH:     send command ID_CHART_REFRESH instead of standard ticks (for synthetic and
- *                                                offline charts)
+ *                        TICK_CHART_REFRESH:     send command ID_CHART_REFRESH instead of standard ticks (for offline charts and custom symbols)
  *                        TICK_TESTER:            send command ID_CHART_STEPFORWARD instead of standard ticks (for tester)
  *                        TICK_IF_WINDOW_VISIBLE: send ticks only if the receiving window is visible (saving of resources)
- *                        TICK_PAUSE_ON_WEEKEND:  skip sending ticks during sessionbreaks (saving of resources, not yet implemented)
  *
  * @return uint - identifier of the registered timer or 0 (NULL) in case of errors
  */
@@ -32,7 +30,6 @@ uint WINAPI SetupTickTimer(HWND hWnd, uint millis, DWORD flags/*=NULL*/) {
    if (processId != GetCurrentProcessId())                return !error(ERR_INVALID_PARAMETER, "window hWnd=%p is not owned by the current process", hWnd);
    if ((int)millis <= 0)                                  return !error(ERR_INVALID_PARAMETER, "invalid parameter millis: %d", (int)millis);
    if (flags & TICK_CHART_REFRESH && flags & TICK_TESTER) return !error(ERR_INVALID_PARAMETER, "invalid combination in parameter flags: TICK_CHART_REFRESH & TICK_TESTER");
-   if (flags & TICK_PAUSE_ON_WEEKEND)                     warn(ERR_NOT_IMPLEMENTED, "flag TICK_PAUSE_ON_WEEKEND not yet implemented");
 
    // generate a new timer id and timer metadata
    if (!TryEnterCriticalSection(&g_expanderMutex)) {
@@ -73,11 +70,9 @@ static void CALLBACK onTickTimerEvent(TICK_TIMER_DATA* ttd, BOOLEAN timerFired) 
       if (ttd->flags & TICK_IF_WINDOW_VISIBLE) {         // skip if the chart is not visible
          if (!IsWindowAreaVisible(ttd->hWnd)) return;
       }
-      if (ttd->flags & TICK_PAUSE_ON_WEEKEND) {}         // skip timer event on weekends (not yet implemented)
-
-      if      (ttd->flags & TICK_CHART_REFRESH) PostMessageA(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);  // triggers indicators but not experts
-      else if (ttd->flags & TICK_TESTER)        PostMessageA(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
-      else                                      PostMessageA(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);  // triggers indicators and experts in online/offline charts
+      if      (ttd->flags & TICK_CHART_REFRESH) PostMessageW(ttd->hWnd, WM_COMMAND, ID_CHART_REFRESH,     0);  // triggers indicators but not experts
+      else if (ttd->flags & TICK_TESTER)        PostMessageW(ttd->hWnd, WM_COMMAND, ID_CHART_STEPFORWARD, 0);
+      else                                      PostMessageW(ttd->hWnd, WM_MT4(), MT4_TICK, TICK_OFFLINE_EA);  // triggers indicators and experts in online/offline charts
    }
    else {
       // expected case if an MQL program crashes and fails to release its resources
