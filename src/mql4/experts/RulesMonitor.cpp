@@ -60,8 +60,8 @@ HWND WINAPI RulesMonitor_CreateStatusPanel(uint pid, color textColor, color upTr
             0,                                        // extended styles
             args->className,                          // class name
             L"Rules Monitor",                         // window text
-            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,  // regular styles |= WS_CAPTION | WS_SYSMENU
-            300, 200, 180, 30,                        // position(x,y) + size(w,h)
+            WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_SIZEBOX,  // regular styles     | WS_CAPTION | WS_SYSMENU
+            300, 200, 300, 150,                       // position(x,y) + size(w,h)
             args->hWndParent,                         // parent window
             0,                                        // control id
             HMODULE_EXPANDER,                         // module instance
@@ -139,12 +139,14 @@ BOOL WINAPI RulesMonitor_DestroyStatusPanel(uint pid) {
 /**
  * Update the status panel.
  *
- * @param  uint pid   - indicator pid
- * @param  int  trend - current trend direction
+ * @param  uint   pid   - indicator pid
+ * @param  double price - current price
+ * @param  int    trend - current trend
+ * @param  double dcw   - current Donchian Channel width
  *
  * @return BOOL - success status
  */
-BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, int trend) {
+BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, double price, int trend, double dcw) {
    // get the EXECUTION_CONTEXT
    if ((int)pid <= 0) return !error(ERR_INVALID_PARAMETER, "invalid parameter pid: %d (not a program id)", (int)pid);
    EXECUTION_CONTEXT* ec = GetMasterContext(pid);
@@ -157,8 +159,16 @@ BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, int trend) {
    HWND hWndPanel = (HWND)ec->userData[USERDATA_HWND_PANEL];
    if (!hWndPanel) return !error(ERR_ILLEGAL_STATE, "status panel not found");
 
-   //debug("tick=%d  trend=%d", ec->ticks, trend);
+   // create a status update
+   STATUS_UPDATE* update = new STATUS_UPDATE;
+   update->price = price;
+   update->trend = trend;
+   update->dcw   = dcw;
 
+   // post it to the panel
+   if (!PostMessageW(hWndPanel, WM_MT4EXPANDER(), ID_STATUS_UPDATE, (LPARAM)update)) {
+      return !error(SetLastErrorEx(ERR_WIN32_ERROR + GetLastError()), "PostMessageW()");
+   }
    return TRUE;
    #pragma EXPANDER_EXPORT
 }
@@ -176,14 +186,39 @@ BOOL WINAPI RulesMonitor_UpdateStatusPanel(uint pid, int trend) {
  */
 LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam) {
    static DWORD debugFeatures = GetDebugFeatures();
+   static uint WM_MT4EXPANDER = MT4ExpanderMsg();
 
+   // process MT4Expander messages
+   if (msg == WM_MT4EXPANDER) {
+      switch (wParam) {
+         case ID_STATUS_UPDATE: {                              // status update of the window's view data
+            STATUS_UPDATE* update = (STATUS_UPDATE*)lParam;
+            if (!update) return !error(ERR_INVALID_POINTER, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  invalid parameter STATUS_UPDATE: NULL");
+
+            VIEW_DATA* view = (VIEW_DATA*)GetWindowUserData(hWnd);
+            if (!view->initialized) return !error(ERR_ILLEGAL_STATE, "WM_MT4EXPANDER  id=ID_STATUS_UPDATE  VIEW_DATA not initialized");
+
+            view->price = update->price;
+            view->trend = update->trend;
+            view->dcw   = update->dcw;
+            delete update;
+
+            InvalidateRect(hWnd, NULL, FALSE);
+            UpdateWindow(hWnd);                                // immediately send WM_PAINT bypassing the message queue
+            return 0;
+         }
+      }
+      return DefWindowProcW(hWnd, msg, wParam, lParam);
+   }
+
+   // process regular messages
    switch (msg) {
       // link the view data to the window
       case WM_NCCREATE: {
          CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
-         VIEW_DATA* data = (VIEW_DATA*)cs->lpCreateParams;
-         data->hWnd = hWnd;
-         SetWindowUserData(hWnd, (LONG_PTR)data);
+         VIEW_DATA* view = (VIEW_DATA*)cs->lpCreateParams;
+         view->hWnd = hWnd;
+         SetWindowUserData(hWnd, (LONG_PTR)view);
          break;
       }
 
@@ -196,7 +231,7 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
       // make the whole client area draggable
       case WM_NCHITTEST: {
          LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-         return (hit == HTCLIENT) ? HTCAPTION : hit;     // mouse handling must process NC message variants
+         return (hit == HTCLIENT) ? HTCAPTION : hit;           // mouse handling must listen to NC message variants
       }
 
       // on click move the window to the top
@@ -214,7 +249,7 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
          break;
       }
 
-      case WM_ERASEBKGND: {                              // don't spread painting over multiple messages (causes flicker)
+      case WM_ERASEBKGND: {                                    // don't spread painting over multiple messages (causes flicker)
          return 1;
       }
 
@@ -222,20 +257,28 @@ LRESULT CALLBACK StatusPanelWindowProc(HWND hWnd, uint msg, WPARAM wParam, LPARA
          PAINTSTRUCT ps;
          HDC hDC = BeginPaint(hWnd, &ps);
 
-         VIEW_DATA* data = (VIEW_DATA*)GetWindowUserData(hWnd);
-         if (!data->initialized && !InitViewData(data, hDC)) return _NULL(EndPaint(hWnd, &ps));
+         VIEW_DATA* view = (VIEW_DATA*)GetWindowUserData(hWnd);
+         if (!view->initialized && !InitViewData(view, hDC)) return _NULL(EndPaint(hWnd, &ps));
+
+         // write view data with custom colors/styles
+         //FillRect(hDC, &rc, view->trend > 0 ? view->bgBrushUpTrend : view->bgBrushDownTrend);
+         //DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);                // edge
+         //SetTextColor(hDC, colorRef(view->textColor));
+         //SelectObject(hDC, view->hFont);
+         //DrawTextW(hDC, L"text", -1, &rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_NOCLIP);
 
          RECT rc;
          GetClientRect(hWnd, &rc);
-         FillRect(hDC, &rc, data->trend > 0 ? data->bgBrushUpTrend : data->bgBrushDownTrend);
-         DrawEdge(hDC, &rc, BDR_RAISEDINNER, BF_RECT);
 
-         SetTextColor(hDC, colorRef(data->textColor));
-         SetBkMode(hDC, TRANSPARENT);                    // no text background color
-         HFONT hOldFont = (HFONT)SelectObject(hDC, data->hFont);
-         wchar* text = (data->trend > 0 ? L"LONG ONLY" : L"SHORT ONLY");
-         DrawTextW(hDC, text, -1, &rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX|DT_NOCLIP);
-         SelectObject(hDC, hOldFont);
+         // write text with system colors/styles
+         FillRect(hDC, &rc, GetSysColorBrush(COLOR_BTNFACE));           // background
+         SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
+         SetBkMode(hDC, TRANSPARENT);                                   // no text background color
+         SelectObject(hDC, view->hSystemFont);
+
+         wchar* text = asformat(L"Price: %.2f\nATR: 100.12\nTrend: %d\nDonchian Channel Width: %.2f", view->price, view->trend, view->dcw);
+         DrawTextW(hDC, text, -1, &rc, DT_LEFT|DT_NOPREFIX|DT_NOCLIP);  // DT_CENTER|DT_VCENTER|DT_SINGLELINE|
+         free(text);
 
          EndPaint(hWnd, &ps);
          return 0;
@@ -260,6 +303,7 @@ BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
    data->bgBrushDownTrend = CreateSolidBrush(colorRef(data->bgColorDownTrend));
    if (!data->bgBrushDownTrend) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateSolidBrush()");
 
+   // create a font by hand
    data->hFont = CreateFontW(
       -MulDiv(12, GetDeviceCaps(hDC, LOGPIXELSY), 72),   // 12 pt, matches fontsize in MQL::ObjectSetText()
       0, 0, 0,
@@ -274,6 +318,13 @@ BOOL WINAPI InitViewData(VIEW_DATA* data, HDC hDC) {
    );
    if (!data->hFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontW()");
 
+   // get the system font for dialogs/message boxes
+   NONCLIENTMETRICSW ncm = {};
+   ncm.cbSize = sizeof(ncm);
+   if (!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0)) return !error(ERR_WIN32_ERROR + GetLastError(), "SystemParametersInfoW()");
+   data->hSystemFont = CreateFontIndirectW(&ncm.lfMessageFont);
+   if (!data->hSystemFont) return !error(ERR_WIN32_ERROR + GetLastError(), "CreateFontIndirectW()");
+
    return data->initialized = TRUE;
 }
 
@@ -287,6 +338,7 @@ void WINAPI ReleaseViewData(VIEW_DATA* data) {
    if (data->bgBrushUpTrend)   DeleteObject(data->bgBrushUpTrend);
    if (data->bgBrushDownTrend) DeleteObject(data->bgBrushDownTrend);
    if (data->hFont)            DeleteObject(data->hFont);
+   if (data->hSystemFont)      DeleteObject(data->hSystemFont);
 
    delete data;
 }
