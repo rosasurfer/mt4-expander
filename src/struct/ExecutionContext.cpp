@@ -1899,7 +1899,6 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", validBars="            <<                      ec->validBars
          << ", changedBars="          <<                      ec->changedBars
          << ", ticks="                <<                      ec->ticks
-         << ", cycleTicks="           <<                      ec->cycleTicks
          << ", currTick="             <<                     (ec->currTick ? GmtTimeFormatA(ec->currTick, "%Y.%m.%d %H:%M:%S") : "0")
          << ", currReal="             <<            BoolToStr(ec->currReal)
          << ", prevTick="             <<                     (ec->prevTick ? GmtTimeFormatA(ec->prevTick, "%Y.%m.%d %H:%M:%S") : "0")
