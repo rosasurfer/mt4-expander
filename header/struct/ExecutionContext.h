@@ -49,7 +49,7 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    time32             currentTickTime;             //     600        4     server time of the current tick                       |       |                               |
    BOOL               currentTickReal;             //     604        4     whether the current tick is non-synthetic             |       |                               |
    time32             prevTickTime;                //     608        4     server time of the previous tick                      |       |                               |
-   BOOL               prevReal;                    //     612        4     whether the previous tick was non-synthetic           |       |                               |
+   BOOL               prevTickReal;                //     612        4     whether the previous tick was non-synthetic           |       |                               |
    time32             lastRealTick;                //     616        4     server time of the last non-synthetic tick            |       | used by IsBarOpen()           |
                                                    //                                                                            |       |                               |
    uint               digits;                      //     620        4     digits of the symbol                                  |       | MQL::Digits                   |

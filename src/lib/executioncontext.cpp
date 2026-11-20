@@ -542,7 +542,7 @@ int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, 
          ctx->currentTickTime = tickTime;
          ctx->currentTickReal = !isVirtual;
          ctx->prevTickTime    = prevTickTime;
-         ctx->prevReal        = prevTickReal;
+         ctx->prevTickReal    = prevTickReal;
          if (prevTickReal) {
             ctx->lastRealTick = prevTickTime;
          }
