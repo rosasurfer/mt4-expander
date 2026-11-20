@@ -47,14 +47,14 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    int                changedBars;                 //     592        4     number of changed bars                                |       |                               |
    uint               ticks;                       //     596        4     number of times start() was called for the instance   |       |                               |
    time32             currentTickTime;             //     600        4     server time of the current tick                       |       |                               |
-   BOOL               currentTickReal;             //     604        4     whether the current tick is non-synthetic             |       |                               |
+   BOOL               currentTickReal;             //     604        4     whether the current tick is a non-synthetic tick      |       |                               |
    time32             prevTickTime;                //     608        4     server time of the previous tick                      |       |                               |
-   BOOL               prevTickReal;                //     612        4     whether the previous tick was non-synthetic           |       |                               |
-   time32             lastRealTick;                //     616        4     server time of the last non-synthetic tick            |       | used by IsBarOpen()           |
+   BOOL               prevTickReal;                //     612        4     whether the previous tick was a non-synthetic tick    |       |                               |
+   time32             lastRealTickTime;            //     616        4     server time of the last non-synthetic tick            |       | used by IsBarOpen()           |
                                                    //                                                                            |       |                               |
    uint               digits;                      //     620        4     digits of the symbol                                  |       | MQL::Digits                   |
    uint               pipDigits;                   //     624        4     digits of a pip                                       |       |                               |
-   BYTE               _alignment1;                 //     628        4     alignment to the next double                          |       |                               |
+   BYTE               _alignment1;                 //     628        4     (alignment to the next double)                        |       |                               |
    double             pip;                         //     632        8     size of a pip                                         |       |                               |
    double             point;                       //     640        8     size of a point                                       |       | MQL::Point                    |
                                                    //                                                                            |       |                               |

@@ -544,7 +544,7 @@ int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, 
          ctx->prevTickTime    = prevTickTime;
          ctx->prevTickReal    = prevTickReal;
          if (prevTickReal) {
-            ctx->lastRealTick = prevTickTime;
+            ctx->lastRealTickTime = prevTickTime;
          }
          if (i < 2) {
             ctx->moduleCoreFunction = ctx->programCoreFunction;      // in master and main context only
