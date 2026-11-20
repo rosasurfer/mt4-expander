@@ -47,7 +47,7 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    int                changedBars;                 //     592        4     number of changed bars                                |       |                               |
    uint               ticks;                       //     596        4     number of times start() was called for the instance   |       |                               |
    time32             currentTickTime;             //     600        4     server time of the current tick                       |       |                               |
-   BOOL               currReal;                    //     604        4     whether the current tick is non-synthetic             |       |                               |
+   BOOL               currentTickReal;             //     604        4     whether the current tick is non-synthetic             |       |                               |
    time32             prevTickTime;                //     608        4     server time of the previous tick                      |       |                               |
    BOOL               prevReal;                    //     612        4     whether the previous tick was non-synthetic           |       |                               |
    time32             lastRealTick;                //     616        4     server time of the last non-synthetic tick            |       | used by IsBarOpen()           |

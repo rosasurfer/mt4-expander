@@ -1900,7 +1900,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", changedBars="          <<                      ec->changedBars
          << ", ticks="                <<                      ec->ticks
          << ", currentTickTime="      <<                     (ec->currentTickTime ? GmtTimeFormatA(ec->currentTickTime, "%Y.%m.%d %H:%M:%S") : "0")
-         << ", currReal="             <<            BoolToStr(ec->currReal)
+         << ", currentTickReal="      <<            BoolToStr(ec->currentTickReal)
          << ", prevTickTime="         <<                     (ec->prevTickTime ? GmtTimeFormatA(ec->prevTickTime, "%Y.%m.%d %H:%M:%S") : "0")
          << ", prevReal="             <<            BoolToStr(ec->prevReal)
          << ", lastRealTick="         <<                     (ec->lastRealTick ? GmtTimeFormatA(ec->lastRealTick, "%Y.%m.%d %H:%M:%S") : "0")

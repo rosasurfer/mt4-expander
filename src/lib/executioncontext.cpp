@@ -518,7 +518,7 @@ int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, 
 
    int    validBars    = (changedBars==-1) ? -1 : bars-changedBars;
    time32 prevTickTime = ec->currentTickTime;
-   BOOL   prevReal     = ec->currReal;
+   BOOL   prevTickReal = ec->currentTickReal;
    DWORD  threadId     = GetCurrentThreadId();
 
    if (validBars && tickTime < prevTickTime) {                       // don't warn if all bars have changed (was L_ERROR, now only L_WARN)
@@ -540,10 +540,10 @@ int WINAPI MqlProgram_start(EXECUTION_CONTEXT* ec, const void* rates, int bars, 
          ctx->changedBars     = changedBars;
          ctx->ticks           = ticks;
          ctx->currentTickTime = tickTime;
-         ctx->currReal        = !isVirtual;
+         ctx->currentTickReal = !isVirtual;
          ctx->prevTickTime    = prevTickTime;
-         ctx->prevReal        = prevReal;
-         if (prevReal) {
+         ctx->prevReal        = prevTickReal;
+         if (prevTickReal) {
             ctx->lastRealTick = prevTickTime;
          }
          if (i < 2) {
