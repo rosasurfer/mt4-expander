@@ -46,11 +46,11 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    int                validBars;                   //     588        4     number of validBars bars                              |       | MQL::IndicatorCounted()       |
    int                changedBars;                 //     592        4     number of changed bars                                |       |                               |
    uint               ticks;                       //     596        4     number of times start() was called for the instance   |       |                               |
-   time32             currTick;                    //     600        4     server time of the current tick                       |       |                               |
-   BOOL               currReal;                    //     604        4     whether the current tick is non-virtual               |       |                               |
-   time32             prevTick;                    //     608        4     server time of the previous tick                      |       |                               |
-   BOOL               prevReal;                    //     612        4     whether the previous tick was non-virtual             |       |                               |
-   time32             lastRealTick;                //     616        4     server time of the last non-virtual tick              |       | used by IsBarOpen()           |
+   time32             currentTickTime;             //     600        4     server time of the current tick                       |       |                               |
+   BOOL               currReal;                    //     604        4     whether the current tick is non-synthetic             |       |                               |
+   time32             prevTickTime;                //     608        4     server time of the previous tick                      |       |                               |
+   BOOL               prevReal;                    //     612        4     whether the previous tick was non-synthetic           |       |                               |
+   time32             lastRealTick;                //     616        4     server time of the last non-synthetic tick            |       | used by IsBarOpen()           |
                                                    //                                                                            |       |                               |
    uint               digits;                      //     620        4     digits of the symbol                                  |       | MQL::Digits                   |
    uint               pipDigits;                   //     624        4     digits of a pip                                       |       |                               |
