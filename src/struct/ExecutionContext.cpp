@@ -1893,6 +1893,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", moduleDeinitFlags="    <<     DeinitFlagsToStr(ec->moduleDeinitFlags)
 
          << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
+         << ", customSymbol="         <<            BoolToStr(ec->customSymbol)
          << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
          << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
@@ -1914,6 +1915,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", threadId="             <<                      ec->threadId << (ec->threadId ? (IsUiThread(ec->threadId) ? " (UI)":" (non-UI)"):"")
          << ", chartWindow="          <<                     (ec->chartWindow ? asformat("%p", ec->chartWindow ) : "0")
          << ", chart="                <<                     (ec->chart       ? asformat("%p", ec->chart       ) : "0")
+         << ", offlineChart="         <<            BoolToStr(ec->offlineChart)
 
          << ", testing="              <<            BoolToStr(ec->testing)
          << ", visualMode="           <<            BoolToStr(ec->visualMode)
