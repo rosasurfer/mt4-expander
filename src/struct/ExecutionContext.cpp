@@ -1895,6 +1895,7 @@ char* WINAPI EXECUTION_CONTEXT_toStr(const EXECUTION_CONTEXT* ec) {
          << ", symbol="               <<       DoubleQuoteStr(ec->symbol)
          << ", customSymbol="         <<            BoolToStr(ec->customSymbol)
          << ", timeframe="            <<   PeriodDescriptionA(ec->timeframe)
+         << ", customTimeframe="      <<            BoolToStr(ec->customTimeframe)
          << ", rates="                <<                     (ec->rates ? asformat("0x%p", ec->rates) : "NULL")
          << ", bars="                 <<                      ec->bars
          << ", validBars="            <<                      ec->validBars

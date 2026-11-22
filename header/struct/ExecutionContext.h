@@ -42,58 +42,60 @@ struct EXECUTION_CONTEXT {                         // -- offset -- size -- descr
    char               symbol[MAX_SYMBOL_LENGTH+1]; //     564       12     current chart symbol                                  |       | MQL::Symbol()                 |
    BOOL               customSymbol;                //     576        4     Custom symbols are user-defined and receive no server data. Neither in offline nor in regular charts.
    uint               timeframe;                   //     580        4     current chart timeframe                               |       | MQL::Period()                 |
-   const void*        rates;                       //     584        4     current price series from MQL::ArrayCopyRates()       |       | HistoryBar[400|401][]         |
-   int                bars;                        //     588        4     current number of chart bars                          |       | MQL::Bars                     |
-   int                validBars;                   //     592        4     number of validBars bars                              |       | MQL::IndicatorCounted()       |
-   int                changedBars;                 //     596        4     number of changed bars                                |       |                               |
-   uint               ticks;                       //     600        4     number of times start() was called for the instance   |       |                               |
-   time32             currentTickTime;             //     604        4     server time of the current tick                       |       |                               |
-   BOOL               currentTickReal;             //     608        4     whether the current tick is a non-synthetic tick      |       |                               |
-   time32             prevTickTime;                //     612        4     server time of the previous tick                      |       |                               |
-   BOOL               prevTickReal;                //     616        4     whether the previous tick was a non-synthetic tick    |       |                               |
-   time32             lastRealTickTime;            //     620        4     server time of the last non-synthetic tick            |       | used by IsBarOpen()           |
+   BOOL               customTimeframe;             //     584        4     Charts with custom timeframes are always offline charts.      |                               |
+   const void*        rates;                       //     588        4     current price series from MQL::ArrayCopyRates()       |       | HistoryBar[400|401][]         |
+   int                bars;                        //     592        4     current number of chart bars                          |       | MQL::Bars                     |
+   int                validBars;                   //     596        4     number of validBars bars                              |       | MQL::IndicatorCounted()       |
+   int                changedBars;                 //     600        4     number of changed bars                                |       |                               |
+   uint               ticks;                       //     604        4     number of times start() was called for the instance   |       |                               |
+   time32             currentTickTime;             //     608        4     server time of the current tick                       |       |                               |
+   BOOL               currentTickReal;             //     612        4     whether the current tick is a non-synthetic tick      |       |                               |
+   time32             prevTickTime;                //     616        4     server time of the previous tick                      |       |                               |
+   BOOL               prevTickReal;                //     620        4     whether the previous tick was a non-synthetic tick    |       |                               |
+   time32             lastRealTickTime;            //     624        4     server time of the last non-synthetic tick            |       | used by IsBarOpen()           |
                                                    //                                                                            |       |                               |
-   uint               digits;                      //     624        4     digits of the symbol                                  |       | MQL::Digits                   |
-   uint               pipDigits;                   //     628        4     digits of a pip                                       |       |                               |
-   double             pip;                         //     632        8     size of a pip                                         |       |                               |
-   double             point;                       //     640        8     size of a point                                       |       | MQL::Point                    |
+   uint               digits;                      //     628        4     digits of the symbol                                  |       | MQL::Digits                   |
+   uint               pipDigits;                   //     632        4     digits of a pip                                       |       |                               |
+   DWORD              _alignment1;                 //     636        4     (alignment to the next double)                        |       |                               |
+   double             pip;                         //     640        8     size of a pip                                         |       |                               |
+   double             point;                       //     648        8     size of a point                                       |       | MQL::Point                    |
                                                    //                                                                            |       |                               |
-   EXECUTION_CONTEXT* superContext;                //     648        4     indicator host program                                | const | whether loaded by iCustom()   |
-   uint               threadId;                    //     652        4     current executing thread                              |       |                               |
-   HWND               chartWindow;                 //     656        4     handle of chart window with title bar "Symbol,Period" | const |                               |
-   HWND               chart;                       //     660        4     handle of embedded chart AfxFrame                     | const | MQL::WindowHandle()           |
-   BOOL               offlineChart;                //     664        4     Offline charts are feeded by synthetic ticks only (no server connection, neither for custom nor for broker symbols).
+   EXECUTION_CONTEXT* superContext;                //     656        4     indicator host program                                | const | whether loaded by iCustom()   |
+   uint               threadId;                    //     660        4     current executing thread                              |       |                               |
+   HWND               chartWindow;                 //     664        4     handle of chart window with title bar "Symbol,Period" | const |                               |
+   HWND               chart;                       //     668        4     handle of embedded chart AfxFrame                     | const | MQL::WindowHandle()           |
+   BOOL               offlineChart;                //     672        4     Offline charts are feeded by synthetic ticks only (no server connection, neither for custom nor for broker symbols).
                                                    //                                                                            |       |                               |
-   BOOL               testing;                     //     668        4     IsTesting() status                                    | const |                               |
-   BOOL               visualMode;                  //     672        4     expert IsVisualMode() status                          | const |                               |
-   BOOL               optimization;                //     676        4     expert IsOptimization() status                        | const |                               |
-   int                recorder;                    //     680        4     expert recorder mode                                  |       |                               |
+   BOOL               testing;                     //     676        4     IsTesting() status                                    | const |                               |
+   BOOL               visualMode;                  //     680        4     expert IsVisualMode() status                          | const |                               |
+   BOOL               optimization;                //     684        4     expert IsOptimization() status                        | const |                               |
+   int                recorder;                    //     688        4     expert recorder mode                                  |       |                               |
                                                    //                                                                            |       |                               |
-   char*              accountServer;               //     684        4     MQL::AccountServer()                                  |       |                               |
-   int                accountNumber;               //     688        4     MQL::AccountNumber()                                  |       |                               |
+   char*              accountServer;               //     692        4     MQL::AccountServer()                                  |       |                               |
+   int                accountNumber;               //     696        4     MQL::AccountNumber()                                  |       |                               |
                                                    //                                                                            |       |                               |
-   int                dllWarning;                  //     692        4     last DLL warning                                      |       |                               |
-   char*              dllWarningMsg;               //     696        4     DLL warning message                                   |       |                               |
-   int                dllError;                    //     700        4     last DLL error                                        |       |                               |
-   char*              dllErrorMsg;                 //     704        4     DLL error message                                     |       |                               |
-   int                mqlError;                    //     708        4     last MQL error of all MQL modules                     |       |                               |
+   int                dllWarning;                  //     700        4     last DLL warning                                      |       |                               |
+   char*              dllWarningMsg;               //     704        4     DLL warning message                                   |       |                               |
+   int                dllError;                    //     708        4     last DLL error                                        |       |                               |
+   char*              dllErrorMsg;                 //     712        4     DLL error message                                     |       |                               |
+   int                mqlError;                    //     716        4     last MQL error of all MQL modules                     |       |                               |
                                                    //                                                                            |       |                               |
-   DWORD              debugFeatures;               //     712        4     enabled debug features                                |       |                               |
-   int                loglevel;                    //     716        4     program main loglevel                                 |       |                               |
-   int                loglevelDebug;               //     720        4     loglevel of the debug output appender                 |       |                               |
-   int                loglevelTerminal;            //     724        4     loglevel of the terminal log appender                 |       |                               |
-   int                loglevelAlert;               //     728        4     loglevel of the terminal alert appender               |       |                               |
-   int                loglevelFile;                //     732        4     loglevel of the custom logfile appender               |       |                               |
-   int                loglevelMail;                //     736        4     loglevel of the mail appender                         |       |                               |
-   int                loglevelTelegram;            //     740        4     loglevel of the Telegram appender                     |       |                               |
+   DWORD              debugFeatures;               //     720        4     enabled debug features                                |       |                               |
+   int                loglevel;                    //     724        4     program main loglevel                                 |       |                               |
+   int                loglevelDebug;               //     728        4     loglevel of the debug output appender                 |       |                               |
+   int                loglevelTerminal;            //     732        4     loglevel of the terminal log appender                 |       |                               |
+   int                loglevelAlert;               //     736        4     loglevel of the terminal alert appender               |       |                               |
+   int                loglevelFile;                //     740        4     loglevel of the custom logfile appender               |       |                               |
+   int                loglevelMail;                //     744        4     loglevel of the mail appender                         |       |                               |
+   int                loglevelTelegram;            //     748        4     loglevel of the Telegram appender                     |       |                               |
                                                    //                                                                            |       |                               |
-   std::ofstream*     logger;                      //     744        4     logger instance                                       |       |                               |
-   LogBuffer*         logBuffer;                   //     748        4     log buffer                                            |       |                               |
-   char*              logFilename;                 //     752        4     log filename                                          |       |                               |
+   std::ofstream*     logger;                      //     752        4     logger instance                                       |       |                               |
+   LogBuffer*         logBuffer;                   //     756        4     log buffer                                            |       |                               |
+   char*              logFilename;                 //     760        4     log filename                                          |       |                               |
                                                    //                                                                            |       |                               |
-   DWORD              userData[8];                 //     756       32     memory for user data                                  |       |                               |
+   DWORD              userData[8];                 //     764       32     memory for user data                                  |       |                               |
 };                                                 // ---------------------------------------------------------------------------+-------+-------------------------------+
-#pragma pack(pop)                                  //            = 788
+#pragma pack(pop)                                  //            = 796
 
 
 // exported getters
